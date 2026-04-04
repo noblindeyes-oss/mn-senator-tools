@@ -1,0 +1,1560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>District 58 Growth-Cost Transparency Tool — Sen. Bill Lieske</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Tabbed dashboard — four rectangular tabs across top, full-width content below. No sidebar, no centered max-width shell. Content uses full viewport width with internal column constraints via CSS Grid.
+   2. Navigation: Flat rectangular tabs with a 3px lake-blue underline on active tab. No rounded corners, no bordered boxes. Clean, utilitarian.
+   3. Typography: Cambria (headers/serif), Verdana (body/sans), Consolas (data/mono). NOT Georgia/Arial Narrow/Courier New.
+   4. Hero moment: A large "GROWTH RATE: 1.8%" figure in sunset orange on lake-blue background, 56px+, dominating the entry view.
+   5. Color strategy: #5 Cool dominant — lake blue and pine dark as structural backgrounds, birch-bark white for content zones, sunset orange as warm accent. 50%+ of entry viewport is saturated color.
+   6. Entry experience: Lake-horizon SVG with birch silhouettes, subtle wave animation. Content fades in below. No explanatory paragraph — leads with the diagnostic hero number.
+   Additional: Form inputs styled dark to match lake theme. Dense data tables in calculator, spacious hero in overview. Print CSS formats Module 3 as a city clerk memo.
+*/
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --lake: #1a5276;
+  --lake-light: #2471a3;
+  --lake-dark: #11344d;
+  --birch: #f5f0e6;
+  --birch-dark: #e8e0cf;
+  --pine: #1b2a1b;
+  --orange: #e67e22;
+  --orange-dark: #c96b15;
+  --success: #2a7d3f;
+  --warning: #c4922a;
+  --alert: #b5271f;
+  --text: #1c1c1c;
+  --text-light: #f5f0e6;
+  --muted: #6b7b8d;
+}
+
+html { font-size: 15px; scroll-behavior: smooth; }
+
+body {
+  font-family: Verdana, Geneva, sans-serif;
+  color: var(--text);
+  background: var(--birch);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* ── ENTRY EXPERIENCE: LAKE HORIZON ── */
+.lake-hero {
+  position: relative;
+  width: 100%;
+  height: 340px;
+  background: linear-gradient(180deg, var(--lake-dark) 0%, var(--lake) 50%, var(--lake-light) 100%);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.lake-hero svg {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 120px;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  color: var(--text-light);
+  animation: fadeInUp 1s ease-out;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes waveMotion {
+  0%, 100% { d: path("M0,40 Q120,20 240,40 T480,40 T720,40 T960,40 T1200,40 T1440,40 V120 H0 Z"); }
+  50% { d: path("M0,40 Q120,55 240,35 T480,45 T720,35 T960,45 T1200,35 T1440,40 V120 H0 Z"); }
+}
+
+.wave-path {
+  animation: waveMotion 4s ease-in-out infinite;
+}
+
+.hero-label {
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 0.73rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  opacity: 0.7;
+  margin-bottom: 4px;
+}
+
+.hero-rate {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 3.6rem;
+  font-weight: 700;
+  color: var(--orange);
+  line-height: 1.1;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.3);
+}
+
+.hero-subtitle {
+  font-family: Cambria, serif;
+  font-size: 1.15rem;
+  margin-top: 8px;
+  opacity: 0.85;
+  max-width: 600px;
+}
+
+.hero-sf {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 0.78rem;
+  margin-top: 12px;
+  opacity: 0.55;
+  letter-spacing: 1px;
+}
+
+/* ── TAB NAVIGATION ── */
+.tab-bar {
+  background: var(--pine);
+  display: flex;
+  gap: 0;
+  padding: 0 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.tab-btn {
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.5px;
+  padding: 14px 24px 11px;
+  background: none;
+  border: none;
+  color: rgba(245,240,230,0.55);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+  white-space: nowrap;
+}
+
+.tab-btn:hover { color: var(--text-light); }
+.tab-btn.active {
+  color: var(--text-light);
+  border-bottom-color: var(--lake-light);
+}
+
+/* ── MAIN CONTENT PANELS ── */
+.panel {
+  display: none;
+  padding: 28px 24px 48px;
+  max-width: 1100px;
+  margin: 0 auto;
+  animation: fadeInUp 0.4s ease-out;
+}
+.panel.active { display: block; }
+
+/* ── MODULE 1: DEVELOPMENT COST CALCULATOR ── */
+.calc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  margin-top: 20px;
+}
+
+@media (max-width: 800px) {
+  .calc-grid { grid-template-columns: 1fr; }
+}
+
+.input-section {
+  background: var(--lake-dark);
+  color: var(--text-light);
+  padding: 20px 22px;
+  border-radius: 3px;
+}
+
+.input-section h3 {
+  font-family: Cambria, serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(245,240,230,0.15);
+}
+
+.field-row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+
+.field-row label {
+  font-size: 0.73rem;
+  letter-spacing: 0.3px;
+  margin-bottom: 3px;
+  opacity: 0.8;
+}
+
+.field-row input,
+.field-row select {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 0.85rem;
+  padding: 7px 10px;
+  border: 1px solid rgba(245,240,230,0.2);
+  border-radius: 2px;
+  background: rgba(0,0,0,0.25);
+  color: var(--text-light);
+  transition: border-color 0.2s;
+}
+
+.field-row input:focus,
+.field-row select:focus {
+  outline: none;
+  border-color: var(--orange);
+}
+
+.field-row select option {
+  background: var(--lake-dark);
+  color: var(--text-light);
+}
+
+.inline-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.toggle-row label {
+  font-size: 0.73rem;
+  opacity: 0.8;
+  flex: 1;
+}
+
+.toggle-row select {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 0.78rem;
+  padding: 4px 8px;
+  border: 1px solid rgba(245,240,230,0.2);
+  border-radius: 2px;
+  background: rgba(0,0,0,0.25);
+  color: var(--text-light);
+  width: 70px;
+}
+
+.conditional-fields {
+  padding-left: 12px;
+  border-left: 2px solid rgba(230,126,34,0.4);
+  margin: 6px 0 10px;
+}
+
+.conditional-fields.hidden { display: none; }
+
+/* ── OUTPUT PANEL ── */
+.output-panel {
+  background: var(--birch);
+  padding: 24px;
+  border-radius: 3px;
+  border: 2px solid var(--lake);
+}
+
+.output-panel h3 {
+  font-family: Cambria, serif;
+  font-size: 1.05rem;
+  color: var(--lake);
+  margin-bottom: 16px;
+}
+
+.result-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--birch-dark);
+  font-size: 0.85rem;
+}
+
+.result-row:last-child { border-bottom: none; }
+
+.result-label { color: var(--muted); }
+
+.result-value {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.net-position {
+  text-align: center;
+  padding: 20px 16px;
+  margin: 16px 0;
+  border-radius: 3px;
+}
+
+.net-position.surplus {
+  background: var(--success);
+  color: white;
+}
+
+.net-position.deficit {
+  background: var(--alert);
+  color: white;
+}
+
+.net-position.neutral {
+  background: var(--muted);
+  color: white;
+}
+
+.net-label {
+  font-size: 0.7rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.net-amount {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+.subsidy-block {
+  background: var(--lake-dark);
+  color: var(--text-light);
+  padding: 14px 16px;
+  border-radius: 3px;
+  margin-top: 16px;
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+
+.subsidy-block strong {
+  color: var(--orange);
+  font-family: Consolas, 'Liberation Mono', monospace;
+}
+
+.chart-container {
+  margin-top: 20px;
+  height: 200px;
+  position: relative;
+}
+
+.break-even-row {
+  margin-top: 16px;
+  padding: 12px 14px;
+  background: rgba(26,82,118,0.08);
+  border-radius: 3px;
+  font-size: 0.82rem;
+}
+
+.break-even-row .be-value {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-weight: 700;
+  color: var(--lake);
+  font-size: 1.1rem;
+}
+
+.example-btn {
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 0.72rem;
+  padding: 6px 14px;
+  background: var(--orange);
+  color: white;
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+  margin-bottom: 16px;
+  letter-spacing: 0.3px;
+  transition: background 0.2s;
+}
+.example-btn:hover { background: var(--orange-dark); }
+
+/* ── MODULE 2: FEE ADEQUACY AUDIT ── */
+.audit-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  margin-top: 20px;
+}
+
+@media (max-width: 800px) {
+  .audit-layout { grid-template-columns: 1fr; }
+}
+
+.audit-output {
+  padding: 20px 22px;
+}
+
+.status-indicator {
+  display: inline-block;
+  padding: 6px 16px;
+  border-radius: 2px;
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.status-green { background: var(--success); color: white; }
+.status-yellow { background: var(--warning); color: white; }
+.status-red { background: var(--alert); color: white; }
+
+.audit-stat {
+  margin: 16px 0;
+}
+.audit-stat-label {
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.audit-stat-value {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--lake);
+}
+
+.ref-note {
+  font-size: 0.75rem;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--birch-dark);
+}
+
+/* ── MODULE 3: COUNCIL SUMMARY ── */
+.memo-area {
+  background: white;
+  padding: 36px 40px;
+  margin-top: 20px;
+  border: 1px solid #ccc;
+  max-width: 800px;
+  font-family: Cambria, serif;
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: var(--text);
+  min-height: 500px;
+}
+
+.memo-area [contenteditable="true"]:focus {
+  outline: 2px solid var(--lake-light);
+  outline-offset: 2px;
+}
+
+.memo-header {
+  border-bottom: 2px solid var(--text);
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+}
+
+.memo-header p {
+  margin: 2px 0;
+  font-size: 0.85rem;
+}
+
+.memo-header p strong {
+  display: inline-block;
+  width: 60px;
+}
+
+.memo-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 14px 0;
+  font-size: 0.82rem;
+}
+
+.memo-table th,
+.memo-table td {
+  padding: 6px 10px;
+  border: 1px solid #999;
+  text-align: left;
+}
+
+.memo-table th {
+  background: var(--lake);
+  color: white;
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.memo-table td.number {
+  text-align: right;
+  font-family: Consolas, 'Liberation Mono', monospace;
+}
+
+.radio-group {
+  margin: 16px 0;
+}
+
+.radio-group label {
+  display: block;
+  padding: 8px 12px;
+  margin: 4px 0;
+  cursor: pointer;
+  border: 1px solid var(--birch-dark);
+  border-radius: 2px;
+  font-size: 0.82rem;
+  transition: background 0.2s;
+}
+
+.radio-group label:hover { background: var(--birch-dark); }
+.radio-group input[type="radio"] { margin-right: 8px; }
+
+.gen-btn, .print-btn {
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 0.78rem;
+  padding: 10px 22px;
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+  letter-spacing: 0.3px;
+  transition: background 0.2s;
+  margin-right: 8px;
+}
+
+.gen-btn {
+  background: var(--lake);
+  color: white;
+}
+.gen-btn:hover { background: var(--lake-light); }
+
+.print-btn {
+  background: var(--pine);
+  color: white;
+}
+.print-btn:hover { background: #2a4a2a; }
+
+/* ── MODULE 4: ABOUT / HELP ── */
+.about-content {
+  max-width: 720px;
+  margin-top: 20px;
+}
+
+.about-content h2 {
+  font-family: Cambria, serif;
+  font-size: 1.3rem;
+  color: var(--lake);
+  margin: 24px 0 10px;
+}
+
+.about-content h2:first-child { margin-top: 0; }
+
+.about-content p {
+  font-size: 0.85rem;
+  margin-bottom: 10px;
+  line-height: 1.7;
+}
+
+.about-content dl {
+  margin: 10px 0;
+}
+
+.about-content dt {
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: var(--lake);
+  margin-top: 10px;
+}
+
+.about-content dd {
+  font-size: 0.8rem;
+  margin-left: 16px;
+  line-height: 1.6;
+  color: #444;
+}
+
+.formula-block {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 0.75rem;
+  background: var(--lake-dark);
+  color: var(--text-light);
+  padding: 14px 18px;
+  border-radius: 3px;
+  margin: 10px 0;
+  line-height: 1.8;
+  overflow-x: auto;
+}
+
+/* ── FOOTER ── */
+.site-footer {
+  background: var(--pine);
+  color: rgba(245,240,230,0.5);
+  text-align: center;
+  padding: 20px;
+  font-size: 0.68rem;
+  line-height: 1.7;
+}
+
+/* ── PRINT STYLES ── */
+@media print {
+  .lake-hero, .tab-bar, .site-footer,
+  .input-section, .example-btn, .gen-btn, .print-btn,
+  .chart-container, .radio-group, .calc-grid,
+  .audit-layout, .about-content { display: none !important; }
+
+  .panel { display: none !important; }
+  .panel#panel-summary { display: block !important; }
+
+  .memo-area {
+    border: none;
+    padding: 0;
+    max-width: 100%;
+    font-size: 11pt;
+  }
+
+  .memo-table th {
+    background: #333 !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body { background: white; }
+}
+
+/* ── UTILITY ── */
+.section-title {
+  font-family: Cambria, serif;
+  font-size: 1.2rem;
+  color: var(--lake);
+  margin-bottom: 4px;
+}
+
+.section-desc {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-bottom: 0;
+}
+
+.help-tip {
+  font-size: 0.7rem;
+  color: rgba(245,240,230,0.5);
+  line-height: 1.5;
+  margin-top: 6px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  border: 0;
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════ LAKE HERO ════════════ -->
+<header class="lake-hero" role="banner">
+  <svg viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true">
+    <!-- birch tree silhouettes -->
+    <g fill="rgba(245,240,230,0.12)">
+      <rect x="80" y="10" width="5" height="110" rx="2"/>
+      <ellipse cx="82" cy="14" rx="14" ry="22"/>
+      <rect x="200" y="25" width="4" height="95" rx="2"/>
+      <ellipse cx="202" cy="28" rx="11" ry="18"/>
+      <rect x="340" y="5" width="6" height="115" rx="2"/>
+      <ellipse cx="343" cy="10" rx="16" ry="24"/>
+      <rect x="1100" y="15" width="5" height="105" rx="2"/>
+      <ellipse cx="1102" cy="18" rx="13" ry="20"/>
+      <rect x="1250" y="8" width="4" height="112" rx="2"/>
+      <ellipse cx="1252" cy="12" rx="12" ry="19"/>
+      <rect x="1360" y="20" width="5" height="100" rx="2"/>
+      <ellipse cx="1362" cy="24" rx="14" ry="21"/>
+    </g>
+    <!-- wave -->
+    <path class="wave-path" d="M0,40 Q120,20 240,40 T480,40 T720,40 T960,40 T1200,40 T1440,40 V120 H0 Z"
+          fill="var(--birch)" opacity="0.95"/>
+    <path d="M0,55 Q180,40 360,55 T720,55 T1080,55 T1440,55 V120 H0 Z"
+          fill="var(--birch)" opacity="0.6"/>
+  </svg>
+  <div class="hero-content">
+    <div class="hero-label">Lonsdale Annual Growth Rate</div>
+    <div class="hero-rate" aria-label="1.8 percent annual growth rate">1.8%</div>
+    <div class="hero-subtitle">Is new development paying its own way?</div>
+    <div class="hero-sf">SF3620 &#183; $4,851,000 Water Tower Bond &#183; SD-58</div>
+  </div>
+</header>
+
+<!-- ════════════ TAB BAR ════════════ -->
+<nav class="tab-bar" role="tablist" aria-label="Tool modules">
+  <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="panel-calc" data-tab="panel-calc">Cost Calculator</button>
+  <button class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-audit" data-tab="panel-audit">Fee Audit</button>
+  <button class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-summary" data-tab="panel-summary">Council Memo</button>
+  <button class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-about" data-tab="panel-about">Reference</button>
+</nav>
+
+<!-- ════════════ PANEL 1: DEVELOPMENT COST CALCULATOR ════════════ -->
+<section class="panel active" id="panel-calc" role="tabpanel">
+  <h2 class="section-title">Development Cost Calculator</h2>
+  <p class="section-desc">Does the city's current fee structure recover the actual infrastructure cost of serving one new residential unit?</p>
+  <button class="example-btn" id="loadExample" type="button">Load Example: Lonsdale Water Tower Scenario</button>
+
+  <div class="calc-grid">
+    <!-- LEFT COLUMN: INPUTS -->
+    <div>
+      <div class="input-section">
+        <h3>City Profile</h3>
+        <div class="field-row">
+          <label for="cityName">City name</label>
+          <input type="text" id="cityName" placeholder="e.g. Lonsdale">
+        </div>
+        <div class="inline-pair">
+          <div class="field-row">
+            <label for="population">Current population</label>
+            <input type="number" id="population" min="0" placeholder="5066">
+          </div>
+          <div class="field-row">
+            <label for="connections">Existing utility connections</label>
+            <input type="number" id="connections" min="1" placeholder="1900">
+          </div>
+        </div>
+        <div class="inline-pair">
+          <div class="field-row">
+            <label for="utilRevenue">Annual utility revenue ($)</label>
+            <input type="number" id="utilRevenue" min="0" placeholder="1200000">
+          </div>
+          <div class="field-row">
+            <label for="utilOM">Annual utility O&amp;M ($)</label>
+            <input type="number" id="utilOM" min="0" placeholder="900000">
+          </div>
+        </div>
+        <div class="field-row">
+          <label for="debtService">Existing annual debt service ($)</label>
+          <input type="number" id="debtService" min="0" placeholder="250000">
+        </div>
+      </div>
+
+      <div class="input-section" style="margin-top:16px">
+        <h3>Proposed Development</h3>
+        <div class="inline-pair">
+          <div class="field-row">
+            <label for="numUnits">Number of new units</label>
+            <input type="number" id="numUnits" min="1" placeholder="50">
+          </div>
+          <div class="field-row">
+            <label for="devType">Development type</label>
+            <select id="devType">
+              <option value="sfr">Single-family residential</option>
+              <option value="townhome">Townhome</option>
+              <option value="apartment">Small apartment (2-8 units)</option>
+              <option value="commercial">Commercial</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Trunk water main -->
+        <div class="toggle-row">
+          <label for="needsTrunk">New trunk water main required?</label>
+          <select id="needsTrunk"><option value="no">No</option><option value="yes">Yes</option></select>
+        </div>
+        <div class="conditional-fields hidden" id="trunkFields">
+          <div class="inline-pair">
+            <div class="field-row">
+              <label for="trunkCostFt">Cost per linear foot ($)</label>
+              <input type="number" id="trunkCostFt" min="0" placeholder="185">
+            </div>
+            <div class="field-row">
+              <label for="trunkFeet">Estimated footage</label>
+              <input type="number" id="trunkFeet" min="0" placeholder="2400">
+            </div>
+          </div>
+        </div>
+
+        <!-- Lift station -->
+        <div class="toggle-row">
+          <label for="needsLift">New lift station or force main?</label>
+          <select id="needsLift"><option value="no">No</option><option value="yes">Yes</option></select>
+        </div>
+        <div class="conditional-fields hidden" id="liftFields">
+          <div class="field-row">
+            <label for="liftCost">Estimated cost ($)</label>
+            <input type="number" id="liftCost" min="0" placeholder="800000">
+          </div>
+        </div>
+
+        <!-- Tower capacity -->
+        <div class="toggle-row">
+          <label for="needsTower">Water tower expansion needed?</label>
+          <select id="needsTower"><option value="no">No</option><option value="yes">Yes</option></select>
+        </div>
+        <div class="conditional-fields hidden" id="towerFields">
+          <div class="inline-pair">
+            <div class="field-row">
+              <label for="towerPct">% capacity consumed by dev.</label>
+              <input type="number" id="towerPct" min="0" max="100" placeholder="15">
+            </div>
+            <div class="field-row">
+              <label for="towerCost">Tower/looping total cost ($)</label>
+              <input type="number" id="towerCost" min="0" placeholder="4851000">
+            </div>
+          </div>
+        </div>
+
+        <!-- Roads -->
+        <div class="field-row">
+          <label for="roadCost">Road construction cost attributable ($)</label>
+          <input type="number" id="roadCost" min="0" placeholder="600000">
+        </div>
+        <div class="toggle-row">
+          <label for="devBuildsRoads">Developer builds roads to city spec?</label>
+          <select id="devBuildsRoads"><option value="no">No</option><option value="yes">Yes</option></select>
+        </div>
+      </div>
+
+      <div class="input-section" style="margin-top:16px">
+        <h3>Current Fee Structure</h3>
+        <div class="inline-pair">
+          <div class="field-row">
+            <label for="sacFee">SAC per unit ($)</label>
+            <input type="number" id="sacFee" min="0" placeholder="4685">
+          </div>
+          <div class="field-row">
+            <label for="wacFee">WAC per unit ($)</label>
+            <input type="number" id="wacFee" min="0" placeholder="3200">
+          </div>
+        </div>
+        <div class="inline-pair">
+          <div class="field-row">
+            <label for="parksFee">Parks dedication per unit ($)</label>
+            <input type="number" id="parksFee" min="0" placeholder="1500">
+          </div>
+          <div class="field-row">
+            <label for="roadFee">Road/transport impact per unit ($)</label>
+            <input type="number" id="roadFee" min="0" placeholder="0">
+          </div>
+        </div>
+        <div class="field-row">
+          <label for="sacType">SAC/WAC fee retention</label>
+          <select id="sacType">
+            <option value="local">City retains own SAC (outside MUSA)</option>
+            <option value="metcouncil">Metro Council SAC applies (inside MUSA)</option>
+          </select>
+        </div>
+        <p class="help-tip">Cities outside the Metropolitan Urban Service Area (MUSA) set and retain their own SAC/WAC. Inside MUSA, cities pay Met Council SAC and may add local fees. Verify MUSA status with the Metropolitan Council or your county planning office.</p>
+
+        <div class="field-row" style="margin-top:10px">
+          <label for="monthlyRate">Current avg. monthly utility bill ($)</label>
+          <input type="number" id="monthlyRate" min="0" placeholder="85">
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN: OUTPUTS -->
+    <div>
+      <div class="output-panel" id="calcOutput">
+        <h3>Fiscal Impact Analysis</h3>
+        <div id="outputPlaceholder" style="color:var(--muted);font-size:0.82rem;">Enter development data or load the Lonsdale example to see results.</div>
+        <div id="outputContent" style="display:none;">
+          <div class="result-row">
+            <span class="result-label">Total one-time fee revenue</span>
+            <span class="result-value" id="outRevenue">—</span>
+          </div>
+          <div class="result-row">
+            <span class="result-label">Total infrastructure cost</span>
+            <span class="result-value" id="outCost">—</span>
+          </div>
+          <div class="result-row">
+            <span class="result-label">Revenue per unit</span>
+            <span class="result-value" id="outRevUnit">—</span>
+          </div>
+          <div class="result-row">
+            <span class="result-label">Cost per unit</span>
+            <span class="result-value" id="outCostUnit">—</span>
+          </div>
+
+          <div class="net-position neutral" id="netBox">
+            <div class="net-label">Net Position</div>
+            <div class="net-amount" id="netAmount">—</div>
+          </div>
+
+          <div class="subsidy-block" id="subsidyBlock" style="display:none;">
+            <span id="subsidyText"></span>
+          </div>
+
+          <div class="break-even-row">
+            Break-even fee (SAC+WAC combined):
+            <span class="be-value" id="breakEvenFee">—</span>
+            <span id="breakEvenPct" style="font-size:0.78rem;color:var(--muted);margin-left:6px;"></span>
+          </div>
+
+          <div class="chart-container">
+            <canvas id="rateChart" aria-label="Rate impact bar chart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ PANEL 2: FEE ADEQUACY AUDIT ════════════ -->
+<section class="panel" id="panel-audit" role="tabpanel">
+  <h2 class="section-title">Fee Adequacy Audit</h2>
+  <p class="section-desc">Has your SAC/WAC kept pace with construction cost inflation?</p>
+
+  <div class="audit-layout">
+    <div class="input-section">
+      <h3>Fee History</h3>
+      <div class="field-row">
+        <label for="feeYear">Year fees were last updated</label>
+        <input type="number" id="feeYear" min="1980" max="2026" placeholder="2015">
+      </div>
+      <div class="inline-pair">
+        <div class="field-row">
+          <label for="sacThen">SAC at last update ($)</label>
+          <input type="number" id="sacThen" min="0" placeholder="3200">
+        </div>
+        <div class="field-row">
+          <label for="sacNow">Current SAC ($)</label>
+          <input type="number" id="sacNow" min="0" placeholder="4685">
+        </div>
+      </div>
+      <div class="inline-pair">
+        <div class="field-row">
+          <label for="lastProjectCost">Last major project cost ($)</label>
+          <input type="number" id="lastProjectCost" min="0" placeholder="4851000">
+        </div>
+        <div class="field-row">
+          <label for="lastProjectYear">Project year</label>
+          <input type="number" id="lastProjectYear" min="1980" max="2026" placeholder="2018">
+        </div>
+      </div>
+      <div class="field-row">
+        <label for="projectConnections">Connections project designed to serve</label>
+        <input type="number" id="projectConnections" min="1" placeholder="500">
+      </div>
+      <div class="field-row">
+        <label for="cciRate">Annual construction cost escalator (%)</label>
+        <input type="number" id="cciRate" min="0" max="20" step="0.1" value="2.5" placeholder="2.5">
+      </div>
+      <p class="help-tip">Default 2.5% is a conservative estimate. ENR Construction Cost Index rose approximately 40% from 2015 to 2024; FHWA highway construction index rose approximately 45% over the same period.</p>
+    </div>
+
+    <div class="audit-output">
+      <div id="auditPlaceholder" style="color:var(--muted);font-size:0.82rem;">Enter fee history to see adequacy analysis.</div>
+      <div id="auditContent" style="display:none;">
+        <div class="audit-stat">
+          <div class="audit-stat-label">Years Since Last Update</div>
+          <div class="audit-stat-value" id="auditYears">—</div>
+          <span class="status-indicator" id="auditStatus">—</span>
+        </div>
+
+        <div class="audit-stat">
+          <div class="audit-stat-label">Inflation-Adjusted Fee</div>
+          <div class="audit-stat-value" id="auditAdjusted">—</div>
+        </div>
+
+        <div class="audit-stat">
+          <div class="audit-stat-label">Adequacy Gap</div>
+          <div class="audit-stat-value" id="auditGap" style="color:var(--alert);">—</div>
+        </div>
+
+        <div class="ref-note" id="auditNote">
+          Minnesota cities are authorized under Minn. Stat. &sect;444.075 to charge fees for connection to municipal water and sewer systems. Fees should be reviewed when major infrastructure projects are completed, when construction costs rise significantly, or at least every 5 years.
+        </div>
+
+        <div class="ref-note" style="margin-top:12px;">
+          <strong style="color:var(--text);">SD-58 reference:</strong> The StarTribune documented in 2014 that New Prague faced a $30 million water/wastewater project, with financial consultants noting that refinancing over 30 years would add $8.45 million in long-term interest on a community of about 7,000 residents. This illustrates why fee adequacy and debt structure matter in fast-growing exurban cities.
+          <!-- VERIFY: StarTribune 2014 New Prague reference from software brief — not independently confirmed -->
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ PANEL 3: COUNCIL SUMMARY ════════════ -->
+<section class="panel" id="panel-summary" role="tabpanel">
+  <h2 class="section-title">Council Summary Generator</h2>
+  <p class="section-desc">Generate a formatted memo from the calculator data. Edit any text before printing.</p>
+
+  <div style="margin-top:16px;">
+    <div class="field-row" style="max-width:400px;margin-bottom:12px;">
+      <label for="devName" style="font-size:0.78rem;color:var(--muted);">Development / Plat name</label>
+      <input type="text" id="devName" placeholder="e.g. Prairie Ridge Addition" style="font-family:Consolas,monospace;font-size:0.85rem;padding:7px 10px;border:1px solid var(--birch-dark);border-radius:2px;">
+    </div>
+
+    <div class="radio-group">
+      <strong style="font-size:0.78rem;color:var(--muted);display:block;margin-bottom:6px;">Recommendation</strong>
+      <label><input type="radio" name="recOption" value="A" checked> Option A — Approve with current fees</label>
+      <label><input type="radio" name="recOption" value="B"> Option B — Approve pending fee update</label>
+      <label><input type="radio" name="recOption" value="C"> Option C — Defer pending fee study</label>
+    </div>
+
+    <button class="gen-btn" id="generateMemo" type="button">Generate Memo</button>
+    <button class="print-btn" id="printMemo" type="button">Print Memo</button>
+  </div>
+
+  <div class="memo-area" id="memoArea" style="display:none;" contenteditable="true">
+    <!-- filled by JS -->
+  </div>
+</section>
+
+<!-- ════════════ PANEL 4: REFERENCE / ABOUT ════════════ -->
+<section class="panel" id="panel-about" role="tabpanel">
+  <div class="about-content">
+    <h2>About This Tool</h2>
+    <p>Senator Lieske's SF3620 is pushing $4.85 million in state bonds toward Lonsdale's water tower because growth outpaced the infrastructure Lonsdale had. This tool was built to help SD-58 cities catch that gap earlier &mdash; before it becomes a bonding bill.</p>
+    <!-- VERIFY: SF3620 amount and description from software brief -->
+
+    <h2>Formulas</h2>
+    <div class="formula-block">
+Total Development Revenue
+  = (SAC + WAC + Parks + Road Impact) x Units
+
+Total Infrastructure Cost
+  = Trunk Main + Lift Station
+    + (Tower Cost x % Capacity) + Road Cost
+
+Net Position
+  = Revenue - Infrastructure Cost
+
+Subsidy Burden (monthly per household)
+  = Amortize(deficit, 4.5%, 20yr)
+    / existing_connections / 12
+
+  Annuity: P x [r(1+r)^n] / [(1+r)^n - 1]
+
+Inflation-Adjusted Fee
+  = Original SAC x (1 + escalator)^years
+
+Break-Even Fee
+  = Total Infrastructure Cost / Units
+    </div>
+
+    <h2>Key Terms</h2>
+    <dl>
+      <dt>SAC (Sewer Access Charge)</dt>
+      <dd>A one-time fee per new connection to the municipal sewer system. In cities outside the Metropolitan Urban Service Area (MUSA), the city sets and retains this fee. Inside MUSA, the Metropolitan Council charges its own SAC; cities may add a local charge on top.</dd>
+      <dt>WAC (Water Access Charge)</dt>
+      <dd>A one-time fee per new connection to the municipal water system, set by the city.</dd>
+      <dt>MUSA (Metropolitan Urban Service Area)</dt>
+      <dd>The geographic boundary within which Metropolitan Council Environmental Services (MCES) provides wastewater treatment. Cities inside MUSA connect to the regional system and pay Met Council SAC. Many SD-58 communities with their own treatment systems are outside MUSA. Verify your city's status with the Metropolitan Council or Rice/Scott County planning office.</dd>
+      <!-- VERIFY: MUSA description based on software brief; confirm details with Metropolitan Council -->
+      <dt>Trunk Main</dt>
+      <dd>A large-diameter water main that carries supply from the source (well or tower) to distribution lines within a development.</dd>
+      <dt>Lift Station</dt>
+      <dd>A pumping station that moves wastewater from a lower to higher elevation when gravity flow is not possible.</dd>
+    </dl>
+
+    <h2>SD-58 Fee Reference</h2>
+    <p>Elko New Market SAC rate (2025-2026): <strong>$4,685 per unit</strong> (verified public figure from city utility billing schedule). This is a flat SAC that cities set and retain as a local fee. Elko New Market is in Scott County.</p>
+    <!-- VERIFY: Elko New Market SAC from software brief -->
+
+    <h2>Data Sources &amp; Limitations</h2>
+    <p>Data reflects Minnesota municipal finance law and utility practices as of 2025. All figures are estimates unless sourced from public records. Verify current rates with each city. This tool is not legal or financial advice — consult your city attorney and financial advisor for formal fee studies.</p>
+  </div>
+</section>
+
+<!-- ════════════ FOOTER ════════════ -->
+<footer class="site-footer">
+  A resource for Senate District 58 communities and growing Minnesota cities. Built with AI.<br>
+  Data reflects Minnesota municipal finance law and utility practices as of 2025.<br>
+  Not legal or financial advice — consult your city attorney and financial advisor for formal fee studies.
+</footer>
+
+<script>
+/* ══════════════════════════════════════════════
+   TAB NAVIGATION
+   ══════════════════════════════════════════════ */
+const tabBtns = document.querySelectorAll('.tab-btn');
+const panels = document.querySelectorAll('.panel');
+
+tabBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    tabBtns.forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+    panels.forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    btn.setAttribute('aria-selected', 'true');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ══════════════════════════════════════════════
+   CONDITIONAL FIELD TOGGLES
+   ══════════════════════════════════════════════ */
+function setupToggle(selectId, fieldsId) {
+  const sel = document.getElementById(selectId);
+  const fields = document.getElementById(fieldsId);
+  sel.addEventListener('change', () => {
+    fields.classList.toggle('hidden', sel.value === 'no');
+    recalc();
+  });
+}
+setupToggle('needsTrunk', 'trunkFields');
+setupToggle('needsLift', 'liftFields');
+setupToggle('needsTower', 'towerFields');
+
+/* ══════════════════════════════════════════════
+   UTILITY FUNCTIONS
+   ══════════════════════════════════════════════ */
+function $(id) { return document.getElementById(id); }
+function numVal(id) { return parseFloat($(id).value) || 0; }
+function fmt(n) {
+  if (Math.abs(n) >= 1e6) return '$' + (n / 1e6).toFixed(2) + 'M';
+  return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+function fmtFull(n) {
+  return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+
+/* ══════════════════════════════════════════════
+   MODULE 1: LIVE CALCULATION
+   ══════════════════════════════════════════════ */
+let rateChart = null;
+
+function recalc() {
+  const units = numVal('numUnits');
+  if (units <= 0) {
+    $('outputContent').style.display = 'none';
+    $('outputPlaceholder').style.display = '';
+    return;
+  }
+  $('outputContent').style.display = '';
+  $('outputPlaceholder').style.display = 'none';
+
+  // Revenue
+  const sacFee = numVal('sacFee');
+  const wacFee = numVal('wacFee');
+  const parksFee = numVal('parksFee');
+  const roadFee = numVal('roadFee');
+  const feePerUnit = sacFee + wacFee + parksFee + roadFee;
+  const totalRevenue = feePerUnit * units;
+
+  // Infrastructure cost
+  let trunkCost = 0;
+  if ($('needsTrunk').value === 'yes') {
+    trunkCost = numVal('trunkCostFt') * numVal('trunkFeet');
+  }
+  let liftCost = 0;
+  if ($('needsLift').value === 'yes') {
+    liftCost = numVal('liftCost');
+  }
+  let towerCapCost = 0;
+  if ($('needsTower').value === 'yes') {
+    towerCapCost = numVal('towerCost') * (numVal('towerPct') / 100);
+  }
+  let roadCost = numVal('roadCost');
+  if ($('devBuildsRoads').value === 'yes') {
+    roadCost = 0; // developer absorbs
+  }
+  const totalCost = trunkCost + liftCost + towerCapCost + roadCost;
+
+  const net = totalRevenue - totalCost;
+
+  // Display
+  $('outRevenue').textContent = fmtFull(totalRevenue);
+  $('outCost').textContent = fmtFull(totalCost);
+  $('outRevUnit').textContent = fmtFull(Math.round(totalRevenue / units));
+  $('outCostUnit').textContent = fmtFull(Math.round(totalCost / units));
+
+  const netBox = $('netBox');
+  netBox.className = 'net-position ' + (net > 0 ? 'surplus' : net < 0 ? 'deficit' : 'neutral');
+  const netLabel = net > 0 ? 'Surplus' : net < 0 ? 'Deficit' : 'Break Even';
+  netBox.querySelector('.net-label').textContent = 'Net Position: ' + netLabel;
+  $('netAmount').textContent = (net < 0 ? '-' : '') + fmtFull(Math.abs(Math.round(net)));
+
+  // Subsidy burden
+  const subsidyBlock = $('subsidyBlock');
+  if (net < 0) {
+    const deficit = Math.abs(net);
+    const connections = numVal('connections') || 1;
+    const r = 0.045;
+    const n = 20;
+    const annuity = deficit * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+    const monthlyInc = annuity / connections / 12;
+    $('subsidyText').innerHTML = 'If the infrastructure shortfall of <strong>' + fmtFull(Math.round(deficit)) +
+      '</strong> is absorbed by existing ratepayers over 20 years at 4.5%, the average monthly utility bill would increase by <strong>' +
+      '$' + monthlyInc.toFixed(2) + '</strong> per household (' + connections.toLocaleString() + ' connections).';
+    subsidyBlock.style.display = '';
+  } else {
+    subsidyBlock.style.display = 'none';
+  }
+
+  // Break-even fee
+  const breakEven = totalCost > 0 ? Math.round(totalCost / units) : 0;
+  $('breakEvenFee').textContent = fmtFull(breakEven);
+  const currentCombo = sacFee + wacFee;
+  if (currentCombo > 0 && breakEven > 0) {
+    const pctChange = ((breakEven - currentCombo) / currentCombo * 100).toFixed(1);
+    $('breakEvenPct').textContent = '(' + (pctChange > 0 ? '+' : '') + pctChange + '% vs. current SAC+WAC)';
+  } else {
+    $('breakEvenPct').textContent = '';
+  }
+
+  // Rate impact chart
+  updateChart(net);
+
+  // Save to localStorage
+  saveInputs();
+}
+
+function updateChart(net) {
+  const currentRate = numVal('monthlyRate');
+  const ctx = $('rateChart');
+  if (!ctx) return;
+
+  // Fallback if Chart.js not loaded
+  if (typeof Chart === 'undefined') return;
+
+  if (rateChart) rateChart.destroy();
+
+  if (net >= 0) {
+    // Surplus — single green bar
+    rateChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Current Monthly Rate'],
+        datasets: [{
+          data: [currentRate || 0],
+          backgroundColor: '#2a7d3f',
+          barThickness: 60
+        }]
+      },
+      options: chartOpts('No rate impact — development is self-funding')
+    });
+  } else {
+    const deficit = Math.abs(net);
+    const connections = numVal('connections') || 1;
+    const r = 0.045, n = 20;
+    const annuity = deficit * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+    const monthlyInc = annuity / connections / 12;
+    const projected = (currentRate || 0) + monthlyInc;
+
+    rateChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Current Monthly Rate', 'Projected After Shortfall'],
+        datasets: [{
+          data: [currentRate || 0, projected],
+          backgroundColor: ['#1a5276', '#b5271f'],
+          barThickness: 60
+        }]
+      },
+      options: chartOpts(null)
+    });
+  }
+}
+
+function chartOpts(subtitle) {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      title: {
+        display: true,
+        text: subtitle || 'Monthly Utility Rate Impact',
+        font: { family: 'Verdana, sans-serif', size: 11 },
+        color: '#6b7b8d'
+      },
+      tooltip: {
+        callbacks: {
+          label: function(ctx) { return '$' + ctx.raw.toFixed(2); }
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: function(v) { return '$' + v; },
+          font: { family: 'Consolas, monospace', size: 10 }
+        },
+        grid: { color: 'rgba(0,0,0,0.06)' }
+      },
+      x: {
+        ticks: { font: { family: 'Verdana, sans-serif', size: 10 } },
+        grid: { display: false }
+      }
+    }
+  };
+}
+
+// Attach live recalc to all inputs in calc panel
+document.querySelectorAll('#panel-calc input, #panel-calc select').forEach(el => {
+  el.addEventListener('input', recalc);
+  el.addEventListener('change', recalc);
+});
+
+/* ══════════════════════════════════════════════
+   LOAD EXAMPLE DATA
+   ══════════════════════════════════════════════ */
+$('loadExample').addEventListener('click', () => {
+  $('cityName').value = 'Lonsdale';
+  $('population').value = 5066;
+  $('connections').value = 1900;
+  $('utilRevenue').value = 1200000;
+  $('utilOM').value = 900000;
+  $('debtService').value = 250000;
+  $('numUnits').value = 50;
+  $('devType').value = 'sfr';
+  $('needsTrunk').value = 'yes';
+  $('needsTrunk').dispatchEvent(new Event('change'));
+  $('trunkCostFt').value = 185;
+  $('trunkFeet').value = 2400;
+  $('needsLift').value = 'no';
+  $('needsLift').dispatchEvent(new Event('change'));
+  $('needsTower').value = 'yes';
+  $('needsTower').dispatchEvent(new Event('change'));
+  $('towerPct').value = 15;
+  $('towerCost').value = 4851000;
+  $('roadCost').value = 600000;
+  $('devBuildsRoads').value = 'no';
+  $('sacFee').value = 4685;
+  $('wacFee').value = 3200;
+  $('parksFee').value = 1500;
+  $('roadFee').value = 0;
+  $('sacType').value = 'local';
+  $('monthlyRate').value = 85;
+  recalc();
+});
+
+/* ══════════════════════════════════════════════
+   MODULE 2: FEE ADEQUACY AUDIT
+   ══════════════════════════════════════════════ */
+function recalcAudit() {
+  const feeYear = numVal('feeYear');
+  const sacThen = numVal('sacThen');
+  const sacNow = numVal('sacNow');
+  const escalator = numVal('cciRate') / 100;
+
+  if (!feeYear || !sacThen) {
+    $('auditContent').style.display = 'none';
+    $('auditPlaceholder').style.display = '';
+    return;
+  }
+  $('auditContent').style.display = '';
+  $('auditPlaceholder').style.display = 'none';
+
+  const currentYear = 2025;
+  const years = Math.max(0, currentYear - feeYear);
+
+  $('auditYears').textContent = years;
+
+  const statusEl = $('auditStatus');
+  if (years <= 5) {
+    statusEl.textContent = 'Adequate cadence';
+    statusEl.className = 'status-indicator status-green';
+  } else if (years <= 10) {
+    statusEl.textContent = 'Review recommended';
+    statusEl.className = 'status-indicator status-yellow';
+  } else {
+    statusEl.textContent = 'Likely underpriced';
+    statusEl.className = 'status-indicator status-red';
+  }
+
+  const adjusted = sacThen * Math.pow(1 + escalator, years);
+  $('auditAdjusted').textContent = fmtFull(Math.round(adjusted));
+
+  const gap = sacNow - adjusted;
+  const gapEl = $('auditGap');
+  gapEl.textContent = (gap < 0 ? '-' : '+') + fmtFull(Math.abs(Math.round(gap)));
+  gapEl.style.color = gap < 0 ? 'var(--alert)' : 'var(--success)';
+}
+
+document.querySelectorAll('#panel-audit input').forEach(el => {
+  el.addEventListener('input', recalcAudit);
+  el.addEventListener('change', recalcAudit);
+});
+
+/* ══════════════════════════════════════════════
+   MODULE 3: COUNCIL MEMO GENERATOR
+   ══════════════════════════════════════════════ */
+$('generateMemo').addEventListener('click', generateMemo);
+
+function generateMemo() {
+  const city = $('cityName').value || '[City Name]';
+  const devName = $('devName').value || '[Development Name]';
+  const units = numVal('numUnits') || 0;
+  const devType = $('devType').options[$('devType').selectedIndex].text;
+
+  // Calculate values
+  const sacFee = numVal('sacFee'), wacFee = numVal('wacFee');
+  const parksFee = numVal('parksFee'), roadFee = numVal('roadFee');
+  const feePerUnit = sacFee + wacFee + parksFee + roadFee;
+  const totalRevenue = feePerUnit * units;
+
+  let trunkCost = 0;
+  if ($('needsTrunk').value === 'yes') trunkCost = numVal('trunkCostFt') * numVal('trunkFeet');
+  let liftCost = 0;
+  if ($('needsLift').value === 'yes') liftCost = numVal('liftCost');
+  let towerCapCost = 0;
+  if ($('needsTower').value === 'yes') towerCapCost = numVal('towerCost') * (numVal('towerPct') / 100);
+  let roadCostVal = numVal('roadCost');
+  if ($('devBuildsRoads').value === 'yes') roadCostVal = 0;
+  const totalCost = trunkCost + liftCost + towerCapCost + roadCostVal;
+  const net = totalRevenue - totalCost;
+
+  // Subsidy calc
+  let rateImpactLine = '';
+  if (net < 0) {
+    const deficit = Math.abs(net);
+    const connections = numVal('connections') || 1;
+    const r = 0.045, n = 20;
+    const annuity = deficit * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+    const monthlyInc = annuity / connections / 12;
+    rateImpactLine = '<p>If the infrastructure shortfall of ' + fmtFull(Math.round(deficit)) +
+      ' is absorbed by existing ratepayers over 20 years at 4.5%, the average monthly utility bill would increase by $' +
+      monthlyInc.toFixed(2) + ' per household.</p>';
+  } else {
+    rateImpactLine = '<p>The development is projected to be self-funding; no rate increase to existing ratepayers is anticipated.</p>';
+  }
+
+  // Fee adequacy note
+  const feeYear = numVal('feeYear');
+  let feeNote = '';
+  if (feeYear) {
+    feeNote = '<p>The city\'s current SAC/WAC was last updated in ' + feeYear + ' and may not reflect current construction costs.</p>';
+  }
+
+  // Recommendation
+  const recOpt = document.querySelector('input[name="recOption"]:checked').value;
+  let recText = '';
+  if (recOpt === 'A') {
+    recText = '<p><strong>Recommendation:</strong> Approve the ' + devName + ' plat with current fee structure. Staff notes that the ' +
+      (net < 0 ? 'infrastructure shortfall of ' + fmtFull(Math.round(Math.abs(net))) + ' will be absorbed into the general utility rate base over time.' : 'development is projected to generate a fee surplus of ' + fmtFull(Math.round(net)) + '.') + '</p>';
+  } else if (recOpt === 'B') {
+    recText = '<p><strong>Recommendation:</strong> Approve the ' + devName + ' plat contingent upon council directing staff to conduct a comprehensive SAC/WAC fee review prior to recording the final plat. Current fees may not reflect infrastructure cost escalation since last update.</p>';
+  } else {
+    recText = '<p><strong>Recommendation:</strong> Defer action on the ' + devName + ' plat pending completion of a formal utility fee study by an independent financial consultant. The magnitude of the infrastructure investment warrants updated fee analysis before committing existing ratepayers to additional debt service.</p>';
+  }
+
+  const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+  const html = `
+<div class="memo-header">
+  <p><strong>To:</strong> ${city} City Council</p>
+  <p><strong>From:</strong> City Administrator</p>
+  <p><strong>Date:</strong> ${today}</p>
+  <p><strong>Re:</strong> Fiscal Impact Analysis &mdash; ${devName} Plat</p>
+</div>
+
+<p>This memo presents a fiscal impact analysis of the proposed ${devName} development: ${units} ${devType.toLowerCase()} units.</p>
+
+<p><strong>Infrastructure Cost Summary</strong></p>
+<table class="memo-table">
+  <thead><tr><th>Item</th><th>Cost</th></tr></thead>
+  <tbody>
+    <tr><td>Trunk water main</td><td class="number">${fmtFull(Math.round(trunkCost))}</td></tr>
+    <tr><td>Lift station / force main</td><td class="number">${fmtFull(Math.round(liftCost))}</td></tr>
+    <tr><td>Water tower capacity share</td><td class="number">${fmtFull(Math.round(towerCapCost))}</td></tr>
+    <tr><td>Road construction (city share)</td><td class="number">${fmtFull(Math.round(roadCostVal))}</td></tr>
+    <tr><td><strong>Total Infrastructure Cost</strong></td><td class="number"><strong>${fmtFull(Math.round(totalCost))}</strong></td></tr>
+  </tbody>
+</table>
+
+<p><strong>Fee Revenue Summary</strong></p>
+<table class="memo-table">
+  <thead><tr><th>Fee</th><th>Per Unit</th><th>${units} Units</th></tr></thead>
+  <tbody>
+    <tr><td>SAC</td><td class="number">${fmtFull(sacFee)}</td><td class="number">${fmtFull(sacFee * units)}</td></tr>
+    <tr><td>WAC</td><td class="number">${fmtFull(wacFee)}</td><td class="number">${fmtFull(wacFee * units)}</td></tr>
+    <tr><td>Parks dedication</td><td class="number">${fmtFull(parksFee)}</td><td class="number">${fmtFull(parksFee * units)}</td></tr>
+    <tr><td>Road/transport impact</td><td class="number">${fmtFull(roadFee)}</td><td class="number">${fmtFull(roadFee * units)}</td></tr>
+    <tr><td><strong>Total Fee Revenue</strong></td><td></td><td class="number"><strong>${fmtFull(Math.round(totalRevenue))}</strong></td></tr>
+  </tbody>
+</table>
+
+<p><strong>Net Fiscal Position: ${net >= 0 ? 'Surplus of ' + fmtFull(Math.round(net)) : 'Deficit of ' + fmtFull(Math.round(Math.abs(net)))}</strong></p>
+
+${rateImpactLine}
+${feeNote}
+${recText}
+  `;
+
+  $('memoArea').innerHTML = html;
+  $('memoArea').style.display = '';
+}
+
+$('printMemo').addEventListener('click', () => {
+  if ($('memoArea').style.display === 'none') generateMemo();
+  // Switch to summary panel for print
+  tabBtns.forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+  panels.forEach(p => p.classList.remove('active'));
+  document.querySelector('[data-tab="panel-summary"]').classList.add('active');
+  $('panel-summary').classList.add('active');
+  setTimeout(() => window.print(), 200);
+});
+
+/* ══════════════════════════════════════════════
+   LOCALSTORAGE PERSISTENCE
+   ══════════════════════════════════════════════ */
+const STORAGE_KEY = 'lieske-growth-cost-tool';
+const persistFields = [
+  'cityName','population','connections','utilRevenue','utilOM','debtService',
+  'numUnits','devType','needsTrunk','trunkCostFt','trunkFeet','needsLift','liftCost',
+  'needsTower','towerPct','towerCost','roadCost','devBuildsRoads',
+  'sacFee','wacFee','parksFee','roadFee','sacType','monthlyRate',
+  'feeYear','sacThen','sacNow','lastProjectCost','lastProjectYear','projectConnections','cciRate',
+  'devName'
+];
+
+function saveInputs() {
+  try {
+    const data = {};
+    persistFields.forEach(id => {
+      const el = $(id);
+      if (el) data[id] = el.value;
+    });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch (e) { /* localStorage unavailable */ }
+}
+
+function loadInputs() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    let loaded = false;
+    persistFields.forEach(id => {
+      const el = $(id);
+      if (el && data[id] !== undefined && data[id] !== '') {
+        el.value = data[id];
+        loaded = true;
+      }
+    });
+    // Trigger conditional field visibility
+    ['needsTrunk','needsLift','needsTower'].forEach(id => {
+      $(id).dispatchEvent(new Event('change'));
+    });
+    return loaded;
+  } catch (e) { return false; }
+}
+
+// On load: restore saved inputs and recalc
+if (loadInputs()) {
+  recalc();
+  recalcAudit();
+}
+
+// Also save audit inputs
+document.querySelectorAll('#panel-audit input').forEach(el => {
+  el.addEventListener('input', saveInputs);
+});
+</script>
+</body>
+</html>

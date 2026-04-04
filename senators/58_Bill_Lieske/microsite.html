@@ -1,0 +1,1722 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Senator Bill Lieske — District 58</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800;900&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   BASE RESET & SHARED
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* Pro palette — utility infrastructure */
+  --pro-bg:        #F2F0EB;
+  --pro-bg2:       #E8E4DC;
+  --pro-surface:   #FAFAF7;
+  --pro-rule:      #C8C0B0;
+  --pro-ink:       #1A1A14;
+  --pro-ink2:      #3A3830;
+  --pro-ink3:      #6A6355;
+  --pro-accent:    #2B4E8C;   /* utility blue */
+  --pro-accent2:   #4A7ABF;
+  --pro-gold:      #8C6B28;   /* fencepost brown-gold */
+  --pro-green:     #3D5C35;   /* shelterbelt green */
+  --pro-silver:    #9CA8A0;   /* silo silver */
+
+  /* Oppo palette — audit / compliance */
+  --oppo-bg:       #F8F7F4;
+  --oppo-bg2:      #EFEDE8;
+  --oppo-surface:  #FFFFFF;
+  --oppo-rule:     #DADAD0;
+  --oppo-ink:      #111111;
+  --oppo-ink2:     #333333;
+  --oppo-ink3:     #777777;
+  --oppo-red:      #C03020;
+  --oppo-red2:     #E04030;
+  --oppo-yellow:   #D4A800;   /* matches Yellow No. 5 / Yellow No. 6 */
+  --oppo-stamp:    #B02010;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 17px;
+  line-height: 1.6;
+  background: var(--pro-bg);
+  color: var(--pro-ink);
+  transition: opacity 0.22s ease;
+}
+
+body.fading { opacity: 0; }
+
+/* ============================================================
+   PRO / OPPO SHOW-HIDE
+   ============================================================ */
+.pro-content  { display: block; }
+.oppo-content { display: none;  }
+
+body.mode-oppo .pro-content  { display: none;  }
+body.mode-oppo .oppo-content { display: block; }
+body.mode-oppo {
+  background: var(--oppo-bg);
+  color: var(--oppo-ink);
+}
+
+/* ============================================================
+   TOGGLE BUTTON
+   ============================================================ */
+#mode-toggle {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 9999;
+  background: var(--pro-accent);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 11px 20px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 3px 16px rgba(0,0,0,0.25);
+  transition: background 0.18s, transform 0.12s;
+  line-height: 1.2;
+}
+
+#mode-toggle:hover { background: var(--pro-accent2); transform: translateY(-1px); }
+
+body.mode-oppo #mode-toggle {
+  background: var(--oppo-red);
+}
+body.mode-oppo #mode-toggle:hover { background: var(--oppo-red2); }
+
+/* ============================================================
+   SHARED UTILITY CLASSES
+   ============================================================ */
+.mono {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.78em;
+  letter-spacing: 0.04em;
+}
+
+.rule-h {
+  border: none;
+  border-top: 2px solid var(--pro-rule);
+  margin: 0;
+}
+
+.tag {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--pro-ink3);
+}
+
+/* ============================================================
+   ====  PRO SITE  ============================================
+   ============================================================ */
+
+/* --- Grid lines overlay for engineering feel --- */
+.pro-grid-bg {
+  position: relative;
+  background-color: var(--pro-bg);
+  background-image:
+    linear-gradient(var(--pro-rule) 1px, transparent 1px),
+    linear-gradient(90deg, var(--pro-rule) 1px, transparent 1px);
+  background-size: 60px 60px;
+  background-position: -1px -1px;
+  opacity: 1;
+}
+
+/* --- PRO HEADER --- */
+.pro-header {
+  position: relative;
+  overflow: hidden;
+  background: var(--pro-ink);
+  padding: 0;
+}
+
+.pro-header-inner {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  min-height: 520px;
+  position: relative;
+}
+
+@media (max-width: 900px) {
+  .pro-header-inner { grid-template-columns: 1fr; min-height: auto; }
+}
+
+.pro-header-text {
+  padding: 52px 52px 52px 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+}
+
+.pro-header-eyebrow {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--pro-silver);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.pro-header-eyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 32px;
+  height: 2px;
+  background: var(--pro-accent2);
+  flex-shrink: 0;
+}
+
+.pro-headline {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: clamp(52px, 7vw, 88px);
+  font-weight: 900;
+  line-height: 0.93;
+  color: #fff;
+  letter-spacing: -0.01em;
+  margin-bottom: 28px;
+}
+
+.pro-headline em {
+  font-style: normal;
+  color: var(--pro-accent2);
+}
+
+.pro-subhead {
+  font-family: 'Source Serif 4', serif;
+  font-size: 18px;
+  font-weight: 300;
+  line-height: 1.55;
+  color: #C8C4B8;
+  max-width: 440px;
+  margin-bottom: 36px;
+}
+
+.pro-header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(43, 78, 140, 0.25);
+  border: 1px solid rgba(74, 122, 191, 0.4);
+  border-radius: 3px;
+  padding: 10px 16px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: var(--pro-accent2);
+  letter-spacing: 0.06em;
+  align-self: flex-start;
+}
+
+/* Senator photo panel */
+.pro-photo-panel {
+  position: relative;
+  overflow: hidden;
+  background: #0D1520;
+}
+
+.pro-photo-panel img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 15%;
+  opacity: 0.85;
+  filter: sepia(20%) contrast(1.05);
+  display: block;
+}
+
+.pro-photo-fallback {
+  width: 100%;
+  height: 100%;
+  min-height: 360px;
+  background: linear-gradient(160deg, #1a2640 0%, #0d1520 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pro-photo-fallback span {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 48px;
+  font-weight: 900;
+  color: var(--pro-accent2);
+  opacity: 0.5;
+}
+
+.pro-photo-fallback small {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--pro-silver);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.pro-photo-label {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0,0,0,0.7));
+  padding: 28px 20px 16px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: rgba(255,255,255,0.6);
+  text-transform: uppercase;
+  text-align: center;
+}
+
+/* Header grid lines */
+.pro-header-grid-line {
+  position: absolute;
+  background: rgba(255,255,255,0.04);
+  pointer-events: none;
+}
+.pro-header-grid-line.h { height: 1px; width: 100%; }
+.pro-header-grid-line.v { width: 1px; height: 100%; }
+
+/* --- STAT RAIL --- */
+.pro-stat-rail {
+  background: var(--pro-accent);
+  padding: 0;
+  overflow: hidden;
+}
+
+.pro-stat-rail-inner {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-left: 1px solid rgba(255,255,255,0.12);
+}
+
+@media (max-width: 900px) {
+  .pro-stat-rail-inner { grid-template-columns: 1fr; }
+}
+
+.pro-stat-cell {
+  padding: 28px 36px;
+  border-right: 1px solid rgba(255,255,255,0.12);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.pro-stat-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.55);
+  margin-bottom: 6px;
+}
+
+.pro-stat-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 44px;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  margin-bottom: 4px;
+}
+
+.pro-stat-num sup {
+  font-size: 0.5em;
+  vertical-align: super;
+  font-weight: 700;
+}
+
+.pro-stat-desc {
+  font-family: 'Source Serif 4', serif;
+  font-size: 13px;
+  font-weight: 300;
+  color: rgba(255,255,255,0.7);
+  line-height: 1.4;
+}
+
+/* --- PRO BODY SECTIONS --- */
+.pro-section {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 72px 48px;
+}
+
+@media (max-width: 900px) {
+  .pro-section { padding: 48px 24px; }
+}
+
+.pro-section-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--pro-ink3);
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pro-section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--pro-rule);
+}
+
+/* --- PROJECT BLOCK --- */
+.pro-project-block {
+  background: var(--pro-surface);
+  border: 1px solid var(--pro-rule);
+  border-left: 5px solid var(--pro-accent);
+  padding: 40px 44px;
+  margin-bottom: 40px;
+  position: relative;
+}
+
+.pro-project-block::before {
+  content: 'SF 3620';
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--pro-ink3);
+  opacity: 0.6;
+}
+
+.pro-project-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--pro-ink);
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  margin-bottom: 16px;
+}
+
+.pro-project-body {
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--pro-ink2);
+  max-width: 680px;
+  margin-bottom: 28px;
+}
+
+/* Spec table */
+.pro-spec-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+.pro-spec-table td {
+  padding: 10px 14px;
+  border: 1px solid var(--pro-rule);
+}
+
+.pro-spec-table td:first-child {
+  color: var(--pro-ink3);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  width: 200px;
+  background: var(--pro-bg2);
+}
+
+.pro-spec-table td:last-child {
+  color: var(--pro-ink);
+  font-weight: 500;
+}
+
+/* --- PULL QUOTE --- */
+.pro-pull-quote {
+  background: var(--pro-bg2);
+  border: none;
+  border-top: 4px solid var(--pro-gold);
+  padding: 40px 48px;
+  margin: 48px 0;
+  position: relative;
+}
+
+.pro-pull-quote p {
+  font-family: 'Source Serif 4', serif;
+  font-size: clamp(20px, 2.5vw, 26px);
+  font-weight: 300;
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--pro-ink);
+  max-width: 700px;
+}
+
+.pro-pull-quote cite {
+  display: block;
+  margin-top: 16px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pro-ink3);
+  font-style: normal;
+}
+
+/* --- DISTRICT CONTEXT --- */
+.pro-district-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  margin: 48px 0;
+  background: var(--pro-rule);
+}
+
+@media (max-width: 900px) {
+  .pro-district-grid { grid-template-columns: 1fr; }
+}
+
+.pro-district-cell {
+  background: var(--pro-surface);
+  padding: 32px 36px;
+}
+
+.pro-district-cell-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--pro-ink3);
+  margin-bottom: 10px;
+}
+
+.pro-district-cell-val {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--pro-accent);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.pro-district-cell p {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--pro-ink2);
+  max-width: 340px;
+}
+
+/* --- PRO WATER VISUAL --- */
+.pro-water-vis {
+  background: var(--pro-ink);
+  padding: 48px 60px;
+  margin: 0 0 0 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.pro-water-vis::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=1200&q=60') center/cover no-repeat;
+  opacity: 0.18;
+}
+
+.pro-water-vis-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.pro-water-vis-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--pro-silver);
+  margin-bottom: 20px;
+}
+
+.pro-water-vis h3 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: clamp(32px, 4vw, 52px);
+  font-weight: 900;
+  color: #fff;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  max-width: 640px;
+  margin-bottom: 20px;
+}
+
+.pro-water-vis p {
+  font-family: 'Source Serif 4', serif;
+  font-size: 16px;
+  font-weight: 300;
+  color: rgba(255,255,255,0.72);
+  max-width: 560px;
+  line-height: 1.6;
+}
+
+/* SVG water tower inline */
+.pro-tower-svg {
+  position: absolute;
+  right: 60px;
+  bottom: 0;
+  opacity: 0.15;
+}
+
+@media (max-width: 900px) {
+  .pro-tower-svg { display: none; }
+  .pro-water-vis { padding: 36px 24px; }
+}
+
+/* --- FOOTNOTES --- */
+.pro-footnotes {
+  background: var(--pro-bg2);
+  border-top: 1px solid var(--pro-rule);
+  padding: 32px 48px;
+}
+
+@media (max-width: 900px) {
+  .pro-footnotes { padding: 24px; }
+}
+
+.pro-footnotes h4 {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--pro-ink3);
+  margin-bottom: 16px;
+}
+
+.pro-footnotes ol {
+  list-style: decimal;
+  padding-left: 20px;
+  max-width: 900px;
+}
+
+.pro-footnotes li {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--pro-ink3);
+  margin-bottom: 6px;
+}
+
+.pro-footnotes a {
+  color: var(--pro-accent2);
+  text-decoration: none;
+}
+
+.pro-footnotes a:hover { text-decoration: underline; }
+
+/* ============================================================
+   ====  OPPO SITE  ===========================================
+   ============================================================ */
+
+body.mode-oppo {
+  background: var(--oppo-bg);
+}
+
+/* --- OPPO HEADER / CASE FILE --- */
+.oppo-header {
+  background: var(--oppo-ink);
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.oppo-header-tape {
+  background: var(--oppo-red);
+  height: 8px;
+}
+
+.oppo-header-inner {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  min-height: 480px;
+}
+
+@media (max-width: 900px) {
+  .oppo-header-inner { grid-template-columns: 1fr; }
+}
+
+.oppo-header-text {
+  padding: 48px 52px 52px 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.oppo-file-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--oppo-red);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.oppo-file-label::before {
+  content: '▶';
+  font-size: 8px;
+}
+
+.oppo-case-ref {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: rgba(255,255,255,0.35);
+  letter-spacing: 0.1em;
+  margin-bottom: 24px;
+  padding: 8px 14px;
+  border: 1px solid rgba(255,255,255,0.12);
+  display: inline-block;
+  align-self: flex-start;
+}
+
+.oppo-headline {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: clamp(38px, 5.5vw, 72px);
+  font-weight: 900;
+  line-height: 0.95;
+  color: #fff;
+  letter-spacing: -0.01em;
+  margin-bottom: 28px;
+  max-width: 600px;
+}
+
+.oppo-headline em {
+  font-style: normal;
+  color: var(--oppo-red);
+}
+
+.oppo-accusation {
+  font-family: 'Source Serif 4', serif;
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.55;
+  color: rgba(255,255,255,0.72);
+  max-width: 480px;
+  border-left: 3px solid var(--oppo-red);
+  padding-left: 16px;
+}
+
+/* Oppo photo panel */
+.oppo-photo-panel {
+  position: relative;
+  overflow: hidden;
+  background: #0a0a0a;
+}
+
+.oppo-photo-panel img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 15%;
+  display: block;
+  filter: grayscale(100%) contrast(1.2) brightness(0.7);
+}
+
+.oppo-photo-fallback {
+  width: 100%;
+  height: 100%;
+  min-height: 320px;
+  background: #0a0a0a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.oppo-photo-fallback span {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 48px;
+  font-weight: 900;
+  color: var(--oppo-red);
+  opacity: 0.4;
+}
+
+.oppo-photo-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(10,10,10,0.4) 0%, transparent 60%);
+}
+
+/* --- SEQUENCE BAND --- */
+.oppo-sequence {
+  background: var(--oppo-red);
+  padding: 0;
+}
+
+.oppo-sequence-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 48px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+@media (max-width: 900px) {
+  .oppo-sequence-inner { grid-template-columns: 1fr; padding: 0 24px; }
+}
+
+.oppo-seq-step {
+  padding: 24px 16px;
+  border-right: 1px solid rgba(255,255,255,0.2);
+  position: relative;
+}
+
+.oppo-seq-step:last-child { border-right: none; }
+
+.oppo-seq-num {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 6px;
+}
+
+.oppo-seq-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+  margin-bottom: 6px;
+}
+
+.oppo-seq-body {
+  font-family: 'Source Serif 4', serif;
+  font-size: 13px;
+  color: rgba(255,255,255,0.75);
+  line-height: 1.45;
+}
+
+/* --- OPPO BODY --- */
+.oppo-section {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 64px 48px;
+}
+
+@media (max-width: 900px) {
+  .oppo-section { padding: 40px 24px; }
+}
+
+.oppo-section-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--oppo-ink3);
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.oppo-section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--oppo-rule);
+}
+
+/* --- PROOF BLOCK --- */
+.oppo-proof-block {
+  background: var(--oppo-surface);
+  border: 1px solid var(--oppo-rule);
+  border-top: 4px solid var(--oppo-red);
+  padding: 36px 40px;
+  margin-bottom: 40px;
+  position: relative;
+}
+
+.oppo-proof-block-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--oppo-red);
+  margin-bottom: 16px;
+}
+
+.oppo-proof-headline {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--oppo-ink);
+  line-height: 1.15;
+  margin-bottom: 16px;
+  max-width: 680px;
+}
+
+.oppo-proof-body {
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--oppo-ink2);
+  max-width: 680px;
+  margin-bottom: 24px;
+}
+
+/* Bill text excerpt */
+.oppo-bill-excerpt {
+  background: #F0EEE8;
+  border-left: 4px solid var(--oppo-yellow);
+  padding: 20px 24px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--oppo-ink2);
+  margin-bottom: 20px;
+}
+
+.oppo-bill-excerpt .highlight {
+  background: rgba(212, 168, 0, 0.25);
+  padding: 1px 3px;
+  border-radius: 2px;
+}
+
+.oppo-bill-cite {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--oppo-ink3);
+  letter-spacing: 0.06em;
+}
+
+/* --- EVIDENCE CARDS --- */
+.oppo-evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin: 40px 0;
+}
+
+@media (max-width: 900px) {
+  .oppo-evidence-grid { grid-template-columns: 1fr; }
+}
+
+.oppo-evidence-card {
+  background: var(--oppo-surface);
+  border: 1px solid var(--oppo-rule);
+  padding: 28px 28px 32px;
+  position: relative;
+  cursor: default;
+  transition: border-color 0.18s, box-shadow 0.18s;
+  overflow: hidden;
+}
+
+.oppo-evidence-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--oppo-red);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.22s ease;
+}
+
+.oppo-evidence-card:hover {
+  border-color: var(--oppo-red);
+  box-shadow: 0 4px 20px rgba(192, 48, 32, 0.12);
+}
+
+.oppo-evidence-card:hover::after { transform: scaleX(1); }
+
+.oppo-card-num {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--oppo-red);
+  margin-bottom: 10px;
+}
+
+.oppo-card-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 21px;
+  font-weight: 700;
+  color: var(--oppo-ink);
+  line-height: 1.15;
+  margin-bottom: 12px;
+}
+
+.oppo-card-body {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--oppo-ink2);
+}
+
+/* --- CONTRADICTION PANEL --- */
+.oppo-contradiction {
+  background: var(--oppo-ink);
+  padding: 52px 60px;
+  margin: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+@media (max-width: 900px) {
+  .oppo-contradiction { padding: 36px 24px; }
+}
+
+.oppo-contradiction-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.oppo-contradiction-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--oppo-red);
+  margin-bottom: 20px;
+}
+
+.oppo-vs-grid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .oppo-vs-grid { grid-template-columns: 1fr; }
+}
+
+.oppo-vs-divider {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 32px;
+  font-weight: 900;
+  color: var(--oppo-red);
+  padding-top: 16px;
+  text-align: center;
+}
+
+.oppo-vs-col-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.oppo-vs-col-label.brand { color: var(--pro-accent2); }
+.oppo-vs-col-label.record { color: var(--oppo-red); }
+
+.oppo-vs-col p {
+  font-family: 'Source Serif 4', serif;
+  font-size: 16px;
+  font-weight: 300;
+  font-style: italic;
+  line-height: 1.55;
+  color: rgba(255,255,255,0.8);
+}
+
+.oppo-vs-col p strong {
+  font-weight: 600;
+  font-style: normal;
+  color: #fff;
+}
+
+/* --- OPPO FOOTNOTES --- */
+.oppo-footnotes {
+  background: var(--oppo-bg2);
+  border-top: 1px solid var(--oppo-rule);
+  padding: 32px 48px;
+}
+
+@media (max-width: 900px) {
+  .oppo-footnotes { padding: 24px; }
+}
+
+.oppo-footnotes h4 {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--oppo-ink3);
+  margin-bottom: 16px;
+}
+
+.oppo-footnotes ol {
+  list-style: decimal;
+  padding-left: 20px;
+  max-width: 900px;
+}
+
+.oppo-footnotes li {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--oppo-ink3);
+  margin-bottom: 6px;
+}
+
+.oppo-footnotes a {
+  color: var(--oppo-red);
+  text-decoration: none;
+}
+.oppo-footnotes a:hover { text-decoration: underline; }
+
+/* --- OPPO COLOR SWATCH ACCENT (Yellow No. 5 / 6 visual) --- */
+.oppo-dye-swatch {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin: 20px 0;
+}
+
+.oppo-dye-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.1);
+}
+
+.oppo-dye-dot.y5 { background: #E8D000; }
+.oppo-dye-dot.y6 { background: #F4A800; }
+
+.oppo-dye-legend {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--oppo-ink3);
+  line-height: 1.5;
+}
+
+/* --- STAMP --- */
+.oppo-stamp {
+  display: inline-block;
+  border: 3px solid var(--oppo-red);
+  color: var(--oppo-red);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  padding: 6px 16px;
+  transform: rotate(-3deg);
+  opacity: 0.85;
+  margin-top: 20px;
+  align-self: flex-start;
+}
+
+/* ============================================================
+   ANIMATION
+   ============================================================ */
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.count-up {
+  animation: countUp 0.6s ease forwards;
+}
+
+</style>
+</head>
+
+<body id="page-body">
+
+<!-- ============================================================
+     TOGGLE BUTTON
+     ============================================================ -->
+<button id="mode-toggle" onclick="flipMode()" aria-label="Switch view">
+  VIEW OPPOSITION FILE
+</button>
+
+<!-- ============================================================
+     PRO SITE
+     ============================================================ -->
+<div class="pro-content">
+
+  <!-- HEADER -->
+  <header class="pro-header">
+    <div class="pro-header-inner">
+      <div class="pro-header-text">
+        <div class="pro-header-eyebrow">
+          Minnesota Senate · District 58 · Republican
+        </div>
+        <h1 class="pro-headline">
+          BILL<br>
+          <em>LIESKE</em>
+        </h1>
+        <p class="pro-subhead">
+          A first-term senator from Lonsdale who filed a specific infrastructure request for the district he lives in.
+        </p>
+        <div class="pro-header-badge">
+          <span>▪</span>
+          <span>SF 3620 · Lonsdale Water Improvement · $4,851,000</span>
+        </div>
+      </div>
+      <div class="pro-photo-panel">
+        <img
+          src="https://www.senate.mn/graphics/58Lieske.jpg"
+          alt="Senator Bill Lieske"
+          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+        >
+        <div class="pro-photo-fallback" style="display:none;">
+          <span>BL</span>
+          <small>Sen. Lieske · SD 58</small>
+        </div>
+        <div class="pro-photo-label">Sen. Bill Lieske · District 58</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- STAT RAIL -->
+  <div class="pro-stat-rail">
+    <div class="pro-stat-rail-inner">
+      <div class="pro-stat-cell">
+        <div class="pro-stat-label">Bond Request</div>
+        <div class="pro-stat-num" id="pro-num-1">$4.85M</div>
+        <div class="pro-stat-desc">In bond proceeds requested for Lonsdale water infrastructure</div>
+      </div>
+      <div class="pro-stat-cell">
+        <div class="pro-stat-label">Project Components</div>
+        <div class="pro-stat-num">2</div>
+        <div class="pro-stat-desc">New water tower plus water-main looping for the city system</div>
+      </div>
+      <div class="pro-stat-cell">
+        <div class="pro-stat-label">Lonsdale Population Growth</div>
+        <div class="pro-stat-num">+8.1<sup>%</sup></div>
+        <div class="pro-stat-desc">July 2024 estimate versus April 2020 base. The infrastructure need is real and growing.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN BODY -->
+  <main>
+    <!-- PROJECT SECTION -->
+    <section class="pro-section">
+      <div class="pro-section-label">The Work · SF 3620</div>
+
+      <div class="pro-project-block">
+        <h2 class="pro-project-title">One town. One water project. One price tag.</h2>
+        <p class="pro-project-body">
+          Lonsdale is growing. The city's July 2024 population estimate sits about 8.1 percent above its April 2020 base. New residents need water pressure that works. New development needs a distribution loop that can handle demand.
+        </p>
+        <p class="pro-project-body">
+          SF 3620, chief-authored by Sen. Lieske, would appropriate $4,851,000 in state bond proceeds to build a new water tower and complete water-main looping for the city. This is not a planning study or a grant application. It is a filed capital request with a named city and a specific amount.
+        </p>
+        <p class="pro-project-body">
+          District 58 runs through Rice, Dakota, Scott, and Goodhue counties. It is exurban territory where the gap between population growth and utility capacity is felt on streets, in basements, and at building permit windows. Lieske put his name on the bill seeking to close part of that gap.
+        </p>
+
+        <table class="pro-spec-table">
+          <tbody>
+            <tr>
+              <td>Bill Number</td>
+              <td>SF 3620 · 94th Legislature (2025–2026)</td>
+            </tr>
+            <tr>
+              <td>Appropriation</td>
+              <td>$4,851,000 in bond proceeds</td>
+            </tr>
+            <tr>
+              <td>Project Type</td>
+              <td>Water tower (new construction) + water-main looping</td>
+            </tr>
+            <tr>
+              <td>Recipient City</td>
+              <td>Lonsdale, Rice County, Minnesota</td>
+            </tr>
+            <tr>
+              <td>Committee Referral</td>
+              <td>Capital Investment</td>
+            </tr>
+            <tr>
+              <td>Chief Author</td>
+              <td>Sen. Bill Lieske, SD 58</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- PULL QUOTE -->
+      <blockquote class="pro-pull-quote">
+        <p>"Lonsdale is planning for a population of 5,520 by 2030. The water system has to be ready before the houses arrive."</p>
+        <cite>Context — City of Lonsdale Comprehensive Plan, Utilities Chapter</cite>
+      </blockquote>
+    </section>
+
+    <!-- WATER VISUAL BAND -->
+    <div class="pro-water-vis">
+      <!-- Water tower SVG silhouette -->
+      <svg class="pro-tower-svg" width="200" height="340" viewBox="0 0 200 340" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect x="90" y="240" width="20" height="100" fill="white"/>
+        <rect x="70" y="240" width="60" height="16" fill="white"/>
+        <ellipse cx="100" cy="160" rx="70" ry="90" fill="white"/>
+        <rect x="88" y="245" width="24" height="8" fill="white" opacity="0.5"/>
+        <line x1="30" y1="200" x2="100" y2="255" stroke="white" stroke-width="4"/>
+        <line x1="170" y1="200" x2="100" y2="255" stroke="white" stroke-width="4"/>
+        <line x1="60" y1="218" x2="100" y2="255" stroke="white" stroke-width="3"/>
+        <line x1="140" y1="218" x2="100" y2="255" stroke="white" stroke-width="3"/>
+      </svg>
+
+      <div class="pro-water-vis-inner">
+        <div class="pro-water-vis-label">District 58 · Infrastructure Context</div>
+        <h3>Water pressure is a basic service. Exurban growth puts it under stress.</h3>
+        <p>
+          District 58 is the corridor where the Twin Cities metro frays into small towns and rural townships. Farmington, Northfield, Lonsdale. These are places where municipal systems are sized for yesterday's population and developers are building for tomorrow's. The water project in SF 3620 is not ceremonial. It is what happens when a utility falls behind a growth curve.
+        </p>
+      </div>
+    </div>
+
+    <!-- DISTRICT CONTEXT GRID -->
+    <section class="pro-section">
+      <div class="pro-section-label">District Character · SD 58</div>
+
+      <div class="pro-district-grid">
+        <div class="pro-district-cell">
+          <div class="pro-district-cell-label">District Profile</div>
+          <div class="pro-district-cell-val">Exurban Growth</div>
+          <p>District 58 spans Rice, Dakota, Scott, and Goodhue counties. It includes Lonsdale, Farmington, and Northfield, and a chain of townships where development pressure is accelerating.</p>
+        </div>
+        <div class="pro-district-cell">
+          <div class="pro-district-cell-label">Why Infrastructure Matters Here</div>
+          <div class="pro-district-cell-val">Utility Gap</div>
+          <p>In fast-growing exurban towns, water infrastructure is the constraint. You cannot permit new housing if the distribution system cannot handle it. The tower and the loop are not optional.</p>
+        </div>
+        <div class="pro-district-cell">
+          <div class="pro-district-cell-label">Senator Background</div>
+          <div class="pro-district-cell-val">Lonsdale, MN</div>
+          <p>Bill Lieske is a chiropractor from Lonsdale. He is not a career legislator. He ran in 2022, won, and put his home city's water project in a capital investment bill in his first term.</p>
+        </div>
+        <div class="pro-district-cell">
+          <div class="pro-district-cell-label">Political Style</div>
+          <div class="pro-district-cell-val">Low-Drama</div>
+          <p>Lieske fits the mold of a small-town conservative focused on practical systems rather than statewide fights. SF 3620 is that brand in a single bill number and dollar amount.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTNOTES -->
+  <footer class="pro-footnotes">
+    <h4>Sources &amp; Notes</h4>
+    <ol>
+      <li>SF 3620, 94th Minnesota Legislature (2025–2026). Chief author: Sen. Bill Lieske. Bill would appropriate $4,851,000 in bond proceeds for a Lonsdale water tower and water-main looping project; referred to Capital Investment Committee. <a href="https://legiscan.com/MN/bill/SF3620/2025" target="_blank">legiscan.com/MN/bill/SF3620/2025</a></li>
+      <li>City of Lonsdale Comprehensive Plan, Chapter 10 (Utilities), 2016 edition. Population projection: 5,520 residents by 2030. <a href="http://lonsdale.govoffice.com/vertical/sites/%7B0FD1D10A-F0C7-48D8-B47A-D828DCF6F997%7D/uploads/Chapter_10_-_Utilities.pdf" target="_blank">lonsdale.govoffice.com</a></li>
+      <li>U.S. Census Bureau QuickFacts for Lonsdale city, Minnesota: July 1, 2024 population estimate 5,066 versus April 1, 2020 population of 4,687, an increase of about 8.1%. <a href="https://www.census.gov/quickfacts/fact/table/lonsdalecityminnesota/PST045224" target="_blank">census.gov/quickfacts</a></li>
+      <li>Sen. Bill Lieske biography. Minnesota Senate members page. Elected 2022; represents District 58 (Rice, Dakota, Scott, Goodhue counties). <a href="https://www.senate.mn/members/member_bio.html?mem_id=1272" target="_blank">senate.mn</a></li>
+      <li>District 58 community list per Minnesota Legislature GIS and Ballotpedia. Includes Lonsdale, Farmington, Northfield, and townships in four counties. <a href="https://ballotpedia.org/Minnesota_State_Senate_District_58" target="_blank">ballotpedia.org</a></li>
+    </ol>
+  </footer>
+
+</div><!-- /pro-content -->
+
+
+<!-- ============================================================
+     OPPO SITE
+     ============================================================ -->
+<div class="oppo-content">
+
+  <!-- TAPE -->
+  <div class="oppo-header-tape"></div>
+
+  <!-- HEADER -->
+  <header class="oppo-header">
+    <div class="oppo-header-inner">
+      <div class="oppo-header-text">
+        <div class="oppo-file-label">Accountability File · SD 58</div>
+        <div class="oppo-case-ref">REF: SF 3482 · 94th Legislature · Chief Author: Lieske</div>
+        <h1 class="oppo-headline">
+          The Small-Government<br>Conservative Who<br><em>Told Schools</em><br>What Colors<br>to Avoid
+        </h1>
+        <p class="oppo-accusation">
+          Sen. Lieske built his brand on keeping government out of daily life. Then he wrote a bill dictating which specific food dyes school cafeterias are allowed to serve.
+        </p>
+        <div class="oppo-stamp">Contradiction on Record</div>
+      </div>
+      <div class="oppo-photo-panel">
+        <img
+          src="https://www.senate.mn/graphics/58Lieske.jpg"
+          alt="Senator Bill Lieske"
+          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+        >
+        <div class="oppo-photo-fallback" style="display:none;">
+          <span>BL</span>
+        </div>
+        <div class="oppo-photo-overlay"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- SEQUENCE BAND -->
+  <div class="oppo-sequence">
+    <div class="oppo-sequence-inner">
+      <div class="oppo-seq-step">
+        <div class="oppo-seq-num">Step 01</div>
+        <div class="oppo-seq-title">The Brand</div>
+        <div class="oppo-seq-body">Lieske presents as a low-drama conservative who lets small towns run their own affairs. Practical systems. Local control.</div>
+      </div>
+      <div class="oppo-seq-step">
+        <div class="oppo-seq-num">Step 02</div>
+        <div class="oppo-seq-title">The Bill</div>
+        <div class="oppo-seq-body">SF 3482 would make it illegal for schools to knowingly sell any food containing FD&amp;C Yellow No. 5 or Yellow No. 6. Effective January 1, 2027.</div>
+      </div>
+      <div class="oppo-seq-step">
+        <div class="oppo-seq-num">Step 03</div>
+        <div class="oppo-seq-title">The Gap</div>
+        <div class="oppo-seq-body">A senator who campaigns on local control wrote a state mandate reaching down into cafeteria ingredient lists. The two positions do not reconcile.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BODY -->
+  <main>
+    <!-- PROOF BLOCK -->
+    <section class="oppo-section">
+      <div class="oppo-section-label">Core Document · SF 3482</div>
+
+      <div class="oppo-proof-block">
+        <div class="oppo-proof-block-label">The Bill</div>
+        <h2 class="oppo-proof-headline">SF 3482 prohibits schools from selling food containing two specific synthetic dyes. Lieske is the chief author.</h2>
+
+        <p class="oppo-proof-body">
+          The bill targets FD&C Yellow No. 5 (tartrazine) and FD&C Yellow No. 6 (sunset yellow). These are certified color additives approved by the FDA and used across thousands of food products. The bill does not ban them broadly. It targets school food sales specifically, effective January 1, 2027.
+        </p>
+
+        <p class="oppo-proof-body">
+          The restriction is precise to the point of bureaucratic specificity: a school that knowingly sells food containing either dye would be in violation. School nutrition directors would need to audit ingredient lists across their menus. That is a regulatory compliance requirement, written by a senator who says he opposes government overreach.
+        </p>
+
+        <!-- Dye swatch visual -->
+        <div class="oppo-dye-swatch">
+          <div class="oppo-dye-dot y5"></div>
+          <div class="oppo-dye-dot y6"></div>
+          <div class="oppo-dye-legend">
+            FD&amp;C Yellow No. 5 (tartrazine) &nbsp;|&nbsp; FD&amp;C Yellow No. 6 (sunset yellow)<br>
+            Both targeted by SF 3482. Neither currently banned by FDA.
+          </div>
+        </div>
+
+        <!-- Bill text excerpt (paraphrased from legislative description) -->
+        <div class="oppo-bill-excerpt">
+          SF 3482 (94th Legislature, 2025–2026) — introduced May 5, 2025<br>
+          Chief author: Sen. Bill Lieske (SD 58, Republican)<br><br>
+          Summary: <span class="highlight">Prohibits a person from knowingly selling food containing FD&amp;C Yellow No. 5 or FD&amp;C Yellow No. 6 to schools.</span><br>
+          Effective date: January 1, 2027<br>
+          Referred to: Senate Commerce and Consumer Protection Committee
+        </div>
+
+        <div class="oppo-bill-cite">Source: LegiScan — MN SF3482 / 94th Legislature (2025–2026). <a href="https://legiscan.com/MN/bill/SF3482/2025" target="_blank">legiscan.com</a></div>
+      </div>
+
+      <!-- EVIDENCE CARDS -->
+      <div class="oppo-section-label">Evidence</div>
+
+      <div class="oppo-evidence-grid">
+        <div class="oppo-evidence-card">
+          <div class="oppo-card-num">Evidence 01</div>
+          <h3 class="oppo-card-title">The brand says local control</h3>
+          <p class="oppo-card-body">
+            Lieske campaigns as a practical conservative focused on letting small towns manage their own affairs. His Senate bio and campaign materials emphasize keeping government out of decisions that belong at the local level. SF 3620 fits that brand. SF 3482 does not.
+          </p>
+        </div>
+        <div class="oppo-evidence-card">
+          <div class="oppo-card-num">Evidence 02</div>
+          <h3 class="oppo-card-title">The bill mandates dye audits in cafeterias</h3>
+          <p class="oppo-card-body">
+            SF 3482 requires schools to know which foods contain Yellow No. 5 or Yellow No. 6 and prohibits selling them. That means ingredient audits across every menu item. That is a new administrative compliance burden, imposed by state law, on school nutrition staff. It is the kind of mandate conservatives typically oppose.
+          </p>
+        </div>
+        <div class="oppo-evidence-card">
+          <div class="oppo-card-num">Evidence 03</div>
+          <h3 class="oppo-card-title">The restriction is narrowly specific</h3>
+          <p class="oppo-card-body">
+            The bill does not ban dyes from all food. It does not create a general food safety standard. It targets two specific FDA-approved color additives sold to one class of buyer: schools. That level of specificity is exactly what critics mean by legislative micromanagement.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTRADICTION PANEL -->
+    <div class="oppo-contradiction">
+      <div class="oppo-contradiction-inner">
+        <div class="oppo-contradiction-label">The Contradiction</div>
+        <div class="oppo-vs-grid">
+          <div class="oppo-vs-col">
+            <div class="oppo-vs-col-label brand">The Brand</div>
+            <p><strong>"Practical conservative."</strong> A local operator who prefers visible systems over ideological theory. Lets communities decide. Keeps the state out of local decisions. That is the Lieske presentation on record.</p>
+          </div>
+          <div class="oppo-vs-divider">VS</div>
+          <div class="oppo-vs-col">
+            <div class="oppo-vs-col-label record">The Record</div>
+            <p><strong>SF 3482 is a state mandate</strong> telling school food vendors which color additives are off-limits. It does not give school boards discretion. It creates a compliance requirement by law. It is the definition of state micromanagement in a cafeteria.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTEXT SECTION -->
+    <section class="oppo-section">
+      <div class="oppo-section-label">Context · Why This Matters</div>
+
+      <div class="oppo-proof-block">
+        <div class="oppo-proof-block-label">Political Exposure</div>
+        <h2 class="oppo-proof-headline">Conservatives across the country have criticized food-dye school bans as government overreach. Lieske authored one.</h2>
+
+        <p class="oppo-proof-body">
+          Approximately 30 states have considered or passed legislation targeting synthetic food dyes in school settings since 2024. Most of that activity comes from legislators with public health or progressive consumer-safety arguments. It is an unusual position for a first-term rural Republican from an exurban district who markets himself on minimal government.
+        </p>
+
+        <p class="oppo-proof-body">
+          SF 3482 is not inherently wrong. Reasonable people disagree about food dyes in school meals. The problem is not the policy. The problem is that the senator's stated political identity and this specific bill pull in opposite directions. Voters in District 58 towns like Lonsdale and Farmington will notice.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTNOTES -->
+  <footer class="oppo-footnotes">
+    <h4>Sources &amp; Notes</h4>
+    <ol>
+      <li>SF 3482, 94th Minnesota Legislature (2025–2026). Chief author: Sen. Bill Lieske. Prohibits sale of food containing FD&C Yellow No. 5 or Yellow No. 6 to schools. Introduced May 5, 2025. Referred to Senate Commerce and Consumer Protection Committee. <a href="https://legiscan.com/MN/bill/SF3482/2025" target="_blank">legiscan.com/MN/bill/SF3482/2025</a></li>
+      <li>Sen. Bill Lieske biography and campaign materials. Presented as a practical conservative focused on local control and small-town systems. <a href="https://ballotpedia.org/Bill_Lieske" target="_blank">ballotpedia.org/Bill_Lieske</a></li>
+      <li>FD&C Yellow No. 5 (tartrazine) and Yellow No. 6 (sunset yellow) are FDA-certified color additives approved for use in food. Neither is currently banned at the federal level. FDA color additive database.</li>
+      <li>State food dye legislation trend. Approximately 30 states have considered or enacted restrictions on food dyes since 2024, primarily in school-food contexts. <a href="https://www.astho.org/communications/blog/2025/states-moving-to-prohibit-additives-and-dyes-in-food/" target="_blank">astho.org</a></li>
+      <li>Sen. Lieske biography. Minnesota Senate members page. First term; elected 2022; represents District 58. <a href="https://www.senate.mn/members/member_bio.html?mem_id=1272" target="_blank">senate.mn</a></li>
+      <li>TrackBill profile for Sen. Bill Lieske, 94th Legislature (2025–2026). Full bill history. <a href="https://trackbill.com/legislator/minnesota-senator-bill-lieske/1042-26233/" target="_blank">trackbill.com</a></li>
+    </ol>
+  </footer>
+
+
+  <!-- Auto-transition sentinel — observed by IntersectionObserver -->
+  <div id="brief-sentinel" style="height:1px;width:100%;"></div>
+
+  <!-- Subtle stamp — visible as user nears the bottom -->
+  <div class="machine-stamp">
+    <span class="machine-stamp-text">AI-GENERATED &nbsp;·&nbsp; 67 SENATORS &nbsp;·&nbsp; 63 PARALLEL AGENTS &nbsp;·&nbsp; ~4 HRS &nbsp;·&nbsp; ~$47</span>
+  </div>
+
+</div><!-- /oppo-content -->
+
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+<script>
+  const body     = document.getElementById('page-body');
+  const toggle   = document.getElementById('mode-toggle');
+  let   isOppo   = false;
+
+  function flipMode() {
+    body.classList.add('fading');
+
+    setTimeout(function() {
+      isOppo = !isOppo;
+      if (isOppo) {
+        body.classList.add('mode-oppo');
+        toggle.textContent = 'VIEW SUPPORTER CASE';
+      } else {
+        body.classList.remove('mode-oppo');
+        toggle.textContent = 'VIEW OPPOSITION FILE';
+      }
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      body.classList.remove('fading');
+    }, 220);
+  }
+
+  // Animate stat counters on pro side load
+  function animateCounters() {
+    // Simple visual pop — counters are already rendered, just trigger CSS
+    const nums = document.querySelectorAll('.pro-stat-num');
+    nums.forEach(function(el, i) {
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(8px)';
+      el.style.transition = 'opacity 0.5s ease ' + (i * 0.12) + 's, transform 0.5s ease ' + (i * 0.12) + 's';
+      requestAnimationFrame(function() {
+        requestAnimationFrame(function() {
+          el.style.opacity = '1';
+          el.style.transform = 'translateY(0)';
+        });
+      });
+    });
+  }
+
+  window.addEventListener('load', animateCounters);
+</script>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     THE BRIEF — AI capabilities briefing
+═══════════════════════════════════════════════════════ -->
+<div class="brief-content">
+
+  <div class="brief-opening">
+    <p class="brief-made-by">Sixty-seven of these pages were made using one AI account in about thirty minutes. Six months ago an automated project like this would have been impossible.</p>
+  </div>
+
+  <div class="brief-chart-section">
+    <h2 class="brief-chart-title">This is the trend that made it possible.</h2>
+    <div class="brief-chart-frame">
+      <img src="https://metr.org/assets/images/measuring-ai-ability-to-complete-long-tasks/length-of-tasks-log.png" alt="METR chart" class="brief-metr-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+      <div class="brief-chart-fallback" style="display:none;"><p>Chart unavailable. See the original at <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">metr.org</a>.</p></div>
+    </div>
+    <p class="brief-chart-source">Source: <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR</a>, an independent AI evaluation lab.</p>
+    <p class="brief-chart-read">This chart tracks how long a task an AI agent can finish on its own. In 2019, the answer was about three seconds. By early 2023, it was six minutes. by mid 2025, over two hours. As of early 2026, Claude Opus 4.6 completes tasks that take a skilled human roughly twelve hours.</p>
+    <p class="brief-chart-read">The overall doubling time has been about seven months. But it is getting faster. <a href="https://metr.org/time-horizons/" target="_blank">When researchers fit only the most recent data</a>, the doubling time drops to four months. At that rate, AI agents capable of completing month-long autonomous projects arrive not in the early 2030s but around 2028.</p>
+  </div>
+
+  <div class="brief-so-what">
+    <h2 class="brief-so-what-title">What that means for lawmakers.</h2>
+    <p>Urgency. There was a narrative last year that AI had hit a wall in capabilities. It was a plausible perspective at the time. It isn't anymore. After breakthroughs late last year, AI systems' ability to automate cyberattacks, pathogen design, misinformation, mass surveillance, and vast swaths of white-collar work is advancing faster than ever.</p>
+    <p>The world will soon change faster than the typical pace of policymaking. The only solution is to act with atypical speed: AI regulations, data center moratoriums, calling for a federal pause on AI development, worker displacement funds. Some of these ideas already have bills introduced this session. Others should be explored soon. Time is limited, so if you feel behind on AI, the sources below are a good place to start.</p>
+    
+  </div>
+
+  <div class="brief-next">
+    <h2 class="brief-next-title">Start here.</h2>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">USE</span>
+      <a href="https://claude.ai/cowork" target="_blank">Claude Cowork</a> · <a href="https://claude.ai/code" target="_blank">Claude Code</a>
+      <span class="brief-link-detail">The tools that built this page. Cowork handles research and writing. Code is the agent that runs tasks, spawns sub-agents, and makes decisions on its own. Spend thirty minutes with one of these on a real problem from your week. That will teach you more than any briefing.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR: Measuring AI Ability to Complete Long Tasks</a>
+      <span class="brief-link-detail">The source for the chart above. The METR trend is based on software tasks, but <a href="https://futuretech.mit.edu/publication/crashing-waves-vs-rising-tides-preliminary-findings-on-ai-automation-from-thousands-of-worker-evaluations-of-labor-market-tasks" target="_blank">MIT research on worker evaluations of labor market tasks</a> finds similar patterns across white-collar work broadly.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://aiindex.stanford.edu/report/" target="_blank">Stanford HAI AI Index 2025</a>
+      <span class="brief-link-detail">The most comprehensive annual report on AI capabilities, economics, and policy across all 50 states.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.imdb.com/title/tt39150120/" target="_blank">The AI Doc: Or How I Became an Apocaloptimist</a>
+      <span class="brief-link-detail">Daniel Roher's 2026 documentary, in theaters now. Roher interviews Amodei, Altman, Hassabis, and dozens more. If you see one thing on this list, see this.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.youtube.com/watch?v=xoVJKj8lcNQ" target="_blank">The A.I. Dilemma</a>
+      <span class="brief-link-detail">Center for Humane Technology. 60 min, free on YouTube. Made for people with institutional power who need to understand AI quickly.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">TRACK</span>
+      <a href="https://www.ncsl.org/technology-and-communication/artificial-intelligence" target="_blank">NCSL AI Legislation Tracker</a> · <a href="https://mn.gov/mnit/about-mnit/oit-programs/ai/" target="_blank">MN.IT AI Office</a>
+      <span class="brief-link-detail">Every AI bill in every state. Plus Minnesota's own AI program office. See where you stand relative to the field.</span>
+    </div>
+  </div>
+
+  <div class="brief-close">
+    <p class="brief-close-small">This project is not affiliated with any campaign, party, or organization.</p>
+    <button id="exit-brief-btn">← Back</button>
+  </div>
+
+</div><!-- /brief-content -->
+
+<style>
+.brief-content { display: none; }
+body.mode-brief .brief-content { display: block; }
+body.mode-brief .pro-content { display: none; }
+body.mode-brief .oppo-content { display: none; }
+body.mode-brief #flip-btn { display: none; }
+.brief-content { background: #0C0A08; color: #D4CCBE; font-family: 'Source Serif 4', Georgia, serif; font-size: 17px; line-height: 1.75; min-height: 100vh; }
+.brief-content a { color: #C0B49A; }
+.brief-content a:hover { color: #fff; }
+@keyframes glitch-seq { 0% { filter: saturate(0) brightness(0.5); } 10% { filter: hue-rotate(90deg) contrast(4) brightness(3); transform: skewX(4deg); } 12% { filter: brightness(0.1); transform: none; } 25% { filter: hue-rotate(200deg) invert(0.8); transform: translateX(6px); } 27% { filter: brightness(0.05); transform: none; } 40% { filter: blur(6px) brightness(0.02); } 44% { filter: brightness(6); } 46% { filter: none; transform: none; } 60% { filter: hue-rotate(300deg) contrast(3) saturate(8); transform: skewX(-3deg); } 62% { filter: none; transform: none; } 78% { filter: blur(16px) brightness(0.01); } 82% { filter: brightness(2); } 84% { filter: none; } 100% { filter: none; transform: none; } }
+body.glitching { animation: glitch-seq 1.2s ease-in-out forwards; pointer-events: none; }
+.machine-stamp { background: #050505; border-top: 1px solid #111; padding: 16px 40px; text-align: center; }
+.machine-stamp-text { font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 0.22em; color: #222; text-transform: uppercase; animation: stamp-pulse 3s ease-in-out infinite; }
+@keyframes stamp-pulse { 0%, 100% { color: #222; } 50% { color: #4A3A2A; } }
+.brief-opening { max-width: 640px; margin: 0 auto; padding: 100px 40px 64px; }
+.brief-made-by { font-size: 20px; line-height: 1.65; color: #B8AE9C; margin-bottom: 20px; }
+.brief-chart-section { max-width: 740px; margin: 0 auto; padding: 48px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-chart-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 32px; font-style: italic; }
+.brief-chart-frame { background: #fff; border-radius: 4px; padding: 12px; margin-bottom: 12px; }
+.brief-metr-img { width: 100%; height: auto; display: block; }
+.brief-chart-fallback { padding: 40px; text-align: center; color: #666; font-size: 14px; }
+.brief-chart-source { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #5A5040; line-height: 1.6; margin-bottom: 28px; }
+.brief-chart-source a { color: #7A6A54; text-decoration: none; }
+.brief-chart-read { font-size: 17px; color: #B8AE9C; margin-bottom: 16px; }
+.brief-so-what { max-width: 640px; margin: 0 auto; padding: 56px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-so-what-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 28px; font-style: italic; }
+.brief-so-what p { font-size: 17px; color: #B8AE9C; margin-bottom: 20px; }
+.brief-next { max-width: 640px; margin: 0 auto; padding: 56px 40px 48px; border-top: 1px solid #1E1A14; }
+.brief-next-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 14px; font-style: italic; }
+.brief-link-block { margin-bottom: 28px; line-height: 1.7; }
+.brief-link-tag { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.2em; color: #6A5A44; text-transform: uppercase; display: block; margin-bottom: 4px; }
+.brief-link-block a { font-weight: 600; color: #E0D6C4; text-decoration: underline; text-underline-offset: 3px; font-size: 16px; }
+.brief-link-block a:hover { color: #fff; }
+.brief-link-detail { display: block; font-size: 14px; color: #6A5E4C; margin-top: 2px; }
+.brief-close { max-width: 640px; margin: 0 auto; padding: 48px 40px 100px; border-top: 1px solid #1E1A14; }
+.brief-close p { font-family: 'Source Serif 4', Georgia, serif; font-size: 16px; color: #9A9080; margin-bottom: 32px; line-height: 1.7; }
+.brief-close-small { font-family: 'IBM Plex Mono', monospace !important; font-size: 11px !important; color: #3A3428 !important; letter-spacing: 0.04em; }
+#exit-brief-btn { background: none; border: 1px solid #2A2418; color: #5A5040; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; padding: 10px 20px; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
+#exit-brief-btn:hover { border-color: #8A7A64; color: #C0B49A; }
+@media (max-width: 900px) { .brief-opening, .brief-so-what, .brief-next, .brief-close { padding-left: 24px; padding-right: 24px; } .brief-chart-section { padding-left: 24px; padding-right: 24px; } .brief-made-by { font-size: 18px; } .brief-opening { padding-top: 64px; } .machine-stamp { padding: 14px 20px; } }
+</style>
+
+<script>
+(function() {
+  let briefTriggered = false;
+  function startBriefTransition() {
+    if (briefTriggered) return;
+    if (!document.body.classList.contains('mode-oppo')) return;
+    briefTriggered = true;
+    const body = document.body;
+    body.style.transition = 'filter 2.5s ease-in';
+    body.style.filter = 'saturate(0) brightness(0.3)';
+    setTimeout(() => {
+      const hed = document.querySelector('.oppo-content h1') || document.querySelector('.oppo-content h2');
+      if (hed) { const orig = hed.textContent; const chars = '█▓▒░■□0123456789'; let n = 0; const si = setInterval(() => { n++; hed.textContent = Array.from(orig).map(c => c === ' ' ? ' ' : chars[Math.floor(Math.random() * chars.length)]).join(''); if (n > 40) { clearInterval(si); hed.textContent = orig; } }, 40); }
+    }, 1200);
+    setTimeout(() => {
+      body.style.transition = ''; body.style.filter = ''; body.classList.add('glitching');
+      setTimeout(() => { body.classList.remove('glitching'); body.classList.add('mode-brief'); window.scrollTo({ top: 0, behavior: 'instant' }); }, 1500);
+    }, 2500);
+  }
+  const sentinel = document.getElementById('brief-sentinel');
+  if (sentinel && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => { entries.forEach(e => { if (e.isIntersecting) { io.disconnect(); setTimeout(startBriefTransition, 1200); } }); }, { threshold: 0.5 });
+    io.observe(sentinel);
+  }
+  const flipBtn = document.getElementById('flip-btn');
+  if (flipBtn) { flipBtn.addEventListener('click', () => { if (document.body.classList.contains('mode-oppo')) briefTriggered = false; }); }
+})();
+document.addEventListener('click', (e) => {
+  if (e.target && e.target.id === 'exit-brief-btn') {
+    const body = document.body; body.style.opacity = '0'; body.style.transition = 'opacity 0.3s';
+    setTimeout(() => { body.classList.remove('mode-brief'); body.classList.add('mode-oppo'); window.scrollTo({ top: 0, behavior: 'instant' }); body.style.opacity = '1'; }, 300);
+  }
+});
+</script>
+
+</body>
+</html>

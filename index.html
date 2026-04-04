@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>67 Gifts for 67 Senators</title>
+<style>
+  *, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    background: #0a0a0a;
+    color: #e0e0e0;
+    font-family: system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a {
+    color: #4fc3f7;
+    text-decoration: none;
+    transition: opacity 0.15s ease;
+  }
+
+  a:hover {
+    opacity: 0.75;
+  }
+
+  /* --- Header --- */
+
+  .header {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 80px 24px 40px;
+  }
+
+  .header h1 {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: clamp(1.8rem, 5vw, 3rem);
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -0.02em;
+    margin-bottom: 24px;
+  }
+
+  .header p {
+    max-width: 680px;
+    font-size: 1.05rem;
+    color: #999;
+    margin-bottom: 12px;
+  }
+
+  .header p.note {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 16px;
+    border-left: 2px solid #222;
+    padding-left: 14px;
+  }
+
+  /* --- Stats Bar --- */
+
+  .stats-bar {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  .stats-bar-inner {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    padding: 16px 0;
+    border-top: 1px solid #1a1a1a;
+    border-bottom: 1px solid #1a1a1a;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.8rem;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .stats-bar-inner span::after {
+    content: "|";
+    margin-left: 24px;
+    color: #333;
+  }
+
+  .stats-bar-inner span:last-child::after {
+    content: "";
+  }
+
+  /* --- Filter --- */
+
+  .filter-section {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 32px 24px 0;
+  }
+
+  .filter-input {
+    width: 100%;
+    max-width: 400px;
+    background: #111;
+    border: 1px solid #222;
+    color: #ccc;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9rem;
+    padding: 10px 14px;
+    border-radius: 4px;
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+
+  .filter-input::placeholder {
+    color: #444;
+  }
+
+  .filter-input:focus {
+    border-color: #4fc3f7;
+  }
+
+  .filter-count {
+    font-size: 0.8rem;
+    color: #444;
+    margin-top: 8px;
+    font-family: 'Courier New', Courier, monospace;
+  }
+
+  /* --- Grid --- */
+
+  .grid-section {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 24px 24px 60px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+  }
+
+  .card {
+    background: #0f0f0f;
+    border: 1px solid #1c1c1c;
+    border-radius: 6px;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-3px);
+    border-color: #2a2a2a;
+  }
+
+  .card.hidden {
+    display: none;
+  }
+
+  .card-photo {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: top;
+    background: #1a1a1a;
+    margin-bottom: 12px;
+    filter: grayscale(30%);
+  }
+
+  .card-name {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #ddd;
+    line-height: 1.3;
+  }
+
+  .card-name a {
+    color: #ddd;
+  }
+
+  .card-name a:hover {
+    color: #4fc3f7;
+    opacity: 1;
+  }
+
+  .card-meta {
+    font-size: 0.75rem;
+    color: #555;
+    margin-top: 2px;
+    letter-spacing: 0.04em;
+  }
+
+  .card-tool {
+    font-size: 0.78rem;
+    color: #4fc3f7;
+    margin-top: 10px;
+    line-height: 1.4;
+  }
+
+  .card-links {
+    margin-top: 10px;
+    display: flex;
+    gap: 6px 14px;
+    flex-wrap: wrap;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-family: 'Courier New', Courier, monospace;
+  }
+
+  .card-links a.micro {
+    color: #888;
+  }
+
+  .card-links a.micro:hover {
+    color: #4fc3f7;
+  }
+
+  /* --- Footer --- */
+
+  .footer {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+    border-top: 1px solid #1a1a1a;
+  }
+
+  .footer p {
+    font-size: 0.8rem;
+    color: #444;
+    line-height: 1.7;
+    max-width: 680px;
+  }
+
+  /* --- Responsive --- */
+
+  @media (max-width: 600px) {
+    .header {
+      padding: 48px 16px 28px;
+    }
+
+    .grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .card {
+      padding: 14px 10px;
+    }
+
+    .card-photo {
+      width: 56px;
+      height: 56px;
+    }
+
+    .card-name {
+      font-size: 0.8rem;
+    }
+
+    .stats-bar-inner {
+      font-size: 0.7rem;
+    }
+
+    .filter-section, .grid-section, .stats-bar, .footer {
+      padding-left: 16px;
+      padding-right: 16px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <h1>67 Gifts for 67 Senators</h1>
+  <p>One AI. One weekend. Sixty-seven personalized software tools built for every sitting Minnesota state senator. Each one was researched and constructed from public legislative records, district data, and biographical information. No senator requested, approved, or knew about any of this.</p>
+  <p class="note">Every tool on this page is a fully functional, single-file HTML application. No templates were reused. No code was copied between them. Each one is architecturally and functionally distinct.</p>
+</header>
+
+<div class="stats-bar">
+  <div class="stats-bar-inner">
+    <span>67 senators</span>
+    <span>67 tools</span>
+    <span>67 microsites</span>
+    <span>~100,000 lines of code</span>
+    <span>0 templates</span>
+    <span>Built with Claude by Anthropic</span>
+  </div>
+</div>
+
+<div class="filter-section">
+  <input
+    type="text"
+    class="filter-input"
+    id="filterInput"
+    placeholder="Filter by name, district, or party..."
+    autocomplete="off"
+    spellcheck="false"
+  >
+  <div class="filter-count" id="filterCount">Showing 67 of 67</div>
+</div>
+
+<main class="grid-section">
+  <div class="grid" id="senatorGrid">
+  </div>
+</main>
+
+<footer class="footer">
+  <p>This project was built entirely by AI (Claude, Anthropic) directed by a single human operator. The tools contain estimates and projections that should be independently verified before any real-world use. All source data is publicly available. No senator endorsed, requested, or was consulted about these tools.</p>
+</footer>
+
+<script>
+var senators = [
+  {sd:1, name:"Mark T. Johnson", party:"R", photo:"https://www.senate.mn/graphics/01Johnson.jpg", file:"johnson-infrastructure-tool.html", dir:"01_Mark_T_Johnson", tool:"Small-City Infrastructure Bonding Readiness Tool"},
+  {sd:2, name:"Steve Green", party:"R", photo:"https://www.senate.mn/graphics/02Green.jpg", file:"green-outdoor-rights-navigator.html", dir:"02_Steve_Green", tool:"Outdoor Recreation Rights & Property Navigator"},
+  {sd:3, name:"Grant Hauschild", party:"DFL", photo:"https://www.senate.mn/graphics/03Hauschild.jpg", file:"hauschild-healthcare-desert-analyzer.html", dir:"03_Grant_Hauschild", tool:"North Shore Healthcare Desert Analyzer"},
+  {sd:4, name:"Robert J. Kupec", party:"DFL", photo:"https://www.senate.mn/graphics/04Kupec.jpg", file:"kupec-radar-gap.html", dir:"04_Robert_J_Kupec", tool:"Radar Gap Explorer"},
+  {sd:5, name:"Paul J. Utke", party:"R", photo:"https://www.senate.mn/graphics/02Utke.jpg", file:"utke-pa-appeal-guide.html", dir:"05_Paul_J_Utke", tool:"Prior Authorization Patient Appeal Guide"},
+  {sd:6, name:"Keri Heintzeman", party:"R", photo:"https://www.senate.mn/graphics/06Heintzeman.jpg", file:"heintzeman-rental-planner.html", dir:"06_Keri_Heintzeman", tool:"Vacation Rental Host Compliance Planner"},
+  {sd:7, name:"Robert D. Farnsworth", party:"R", photo:"https://www.senate.mn/graphics/07Farnsworth.jpg", file:"farnsworth-irrrb-guide.html", dir:"07_Robert_D_Farnsworth", tool:"Iron Range IRRRB Grant Finder"},
+  {sd:8, name:"Jennifer A. McEwen", party:"DFL", photo:"https://www.senate.mn/graphics/07McEwenJen.jpg", file:"mcewen-worker-rights.html", dir:"08_Jennifer_A_McEwen", tool:"New Worker Rights Field Guide"},
+  {sd:9, name:"Jordan Rasmusson", party:"R", photo:"https://www.senate.mn/graphics/09Rasmusson.jpg", file:"rasmusson-ems-coverage-tool.html", dir:"09_Jordan_Rasmusson", tool:"Rural EMS Coverage Tool"},
+  {sd:10, name:"Nathan Wesenberg", party:"R", photo:"https://www.senate.mn/graphics/10Wesenberg.jpg", file:"wesenberg-wildlife-calculator.html", dir:"10_Nathan_Wesenberg", tool:"Wildlife Population Harvest Calculator"},
+  {sd:11, name:"Jason Rarick", party:"R", photo:"https://www.senate.mn/graphics/11Rarick.jpg", file:"rarick-trades-explorer.html", dir:"11_Jason_Rarick", tool:"Skilled Trades Career Pathway Explorer"},
+  {sd:12, name:"Torrey N. Westrom", party:"R", photo:"https://www.senate.mn/graphics/12Westrom.jpg", file:"westrom-nitrogen-dashboard.html", dir:"12_Torrey_N_Westrom", tool:"Farm Input Cost & Green Ammonia Dashboard"},
+  {sd:13, name:"Jeff R. Howe", party:"R", photo:"https://www.senate.mn/graphics/13Howe.jpg", file:"howe-guard-navigator.html", dir:"13_Jeff_R_Howe", tool:"National Guard & Veterans Benefits Navigator"},
+  {sd:14, name:"Aric Putnam", party:"DFL", photo:"https://www.senate.mn/graphics/14PutnamAric.jpg", file:"putnam-fridg-tool-opus.html", dir:"14_Aric_Putnam", tool:"FRIDG Grant Eligibility Planner"},
+  {sd:15, name:"Gary H. Dahms", party:"R", photo:"https://www.senate.mn/graphics/16Dahms.jpg", file:"dahms-insurance-calculator.html", dir:"15_Gary_H_Dahms", tool:"Health Insurance Premium Estimator"},
+  {sd:16, name:"Andrew R. Lang", party:"R", photo:"https://www.senate.mn/graphics/16Lang.jpg", file:"lang-mission-tracker.html", dir:"16_Andrew_R_Lang", tool:"Infrastructure Mission Tracker"},
+  {sd:17, name:"Glenn H. Gruenhagen", party:"R", photo:"https://www.senate.mn/graphics/17Gruenhagen.jpg", file:"gruenhagen-highway212-scorecard.html", dir:"17_Glenn_H_Gruenhagen", tool:"Highway 212 Safety & Infrastructure Scorecard"},
+  {sd:18, name:"Nick A. Frentz", party:"DFL", photo:"https://www.senate.mn/graphics/18Frentz.jpg", file:"frentz-clean-energy-tracker.html", dir:"18_Nick_A_Frentz", tool:"Clean Energy Progress Tracker"},
+  {sd:19, name:"John R. Jasinski", party:"R", photo:"https://www.senate.mn/graphics/24Jasinski.jpg", file:"jasinski-highway-cost-tool.html", dir:"19_John_R_Jasinski", tool:"Trunk Highway Cost Participation Estimator"},
+  {sd:20, name:"Steve Drazkowski", party:"R", photo:"https://www.senate.mn/graphics/20Drazkowski.jpg", file:"drazkowski-budget-watchdog.html", dir:"20_Steve_Drazkowski", tool:"State Budget Watchdog Dashboard"},
+  {sd:21, name:"Bill Weber", party:"R", photo:"https://www.senate.mn/graphics/22Weber.jpg", file:"weber-land-transition.html", dir:"21_Bill_Weber", tool:"Farm Land Transition Navigator"},
+  {sd:22, name:"Rich Draheim", party:"R", photo:"https://www.senate.mn/graphics/20Draheim.jpg", file:"draheim-housing-calculator-opus.html", dir:"22_Rich_Draheim", tool:"Small-City Housing Supply Calculator"},
+  {sd:23, name:"Gene Dornink", party:"R", photo:"https://www.senate.mn/graphics/27DorninkGene.jpg", file:"dornink-mandate-estimator.html", dir:"23_Gene_Dornink", tool:"Small Employer Mandate Cost Estimator"},
+  {sd:24, name:"Carla J. Nelson", party:"R", photo:"https://www.senate.mn/graphics/24Nelson.jpg", file:"nelson-pathway-explorer.html", dir:"24_Carla_J_Nelson", tool:"Med-Tech Workforce Pipeline Explorer"},
+  {sd:25, name:"Liz Boldon", party:"DFL", photo:"https://www.senate.mn/graphics/25Boldon.jpg", file:"boldon-accessible-housing-tool.html", dir:"25_Liz_Boldon", tool:"Accessible Housing Gap Calculator"},
+  {sd:26, name:"Jeremy R. Miller", party:"R", photo:"https://www.senate.mn/graphics/26Miller.jpg", file:"miller-trail-business-tool.html", dir:"26_Jeremy_R_Miller", tool:"Root River Trail Business Estimator"},
+  {sd:27, name:"Andrew Mathews", party:"R", photo:"https://www.senate.mn/graphics/15Mathews.jpg", file:"mathews-algorithm-audit.html", dir:"27_Andrew_Mathews", tool:"Child Algorithm Audit Tool"},
+  {sd:28, name:"Mark W. Koran", party:"R", photo:"https://www.senate.mn/graphics/32Koran.jpg", file:"koran-election-compliance.html", dir:"28_Mark_W_Koran", tool:"Election Administration Compliance Tracker"},
+  {sd:29, name:"Michael W. Holmstrom", party:"R", photo:"https://www.senate.mn/graphics/29Holmstrom.jpg", file:"holmstrom-water-planner.html", dir:"29_Michael_W_Holmstrom", tool:"Growth-Corridor Water Capacity Planner"},
+  {sd:30, name:"Eric Lucero", party:"R", photo:"https://www.senate.mn/graphics/30Lucero.jpg", file:"lucero-water-capacity-planner.html", dir:"30_Eric_Lucero", tool:"Water System Growth & Compliance Planner"},
+  {sd:31, name:"Calvin K. Bahr", party:"R", photo:"https://www.senate.mn/graphics/31Bahr.jpg", file:"bahr-road-restriction-planner.html", dir:"31_Calvin_K_Bahr", tool:"Spring Road Restriction Planner"},
+  {sd:32, name:"Michael E. Kreun", party:"R", photo:"https://www.senate.mn/graphics/32Kreun.jpg", file:"kreun-intersection-safety.html", dir:"32_Michael_E_Kreun", tool:"Intersection Safety Scorer"},
+  {sd:33, name:"Karin Housley", party:"R", photo:"https://www.senate.mn/graphics/39Housley.jpg", file:"housley-homeshare-planner.html", dir:"33_Karin_Housley", tool:"HomeShare Readiness Planner"},
+  {sd:34, name:"John A. Hoffman", party:"DFL", photo:"https://www.senate.mn/graphics/36Hoffman.jpg", file:"hoffman-reassessment-tool.html", dir:"34_John_A_Hoffman", tool:"Disability Waiver Reassessment Tracker"},
+  {sd:35, name:"Jim Abeler", party:"R", photo:"https://www.senate.mn/graphics/35Abeler.jpg", file:"abeler-dsp-workforce.html", dir:"35_Jim_Abeler", tool:"Direct Support Professional Workforce Tool"},
+  {sd:36, name:"Heather Gustafson", party:"DFL", photo:"https://www.senate.mn/graphics/36Gustafson.jpg", file:"gustafson-teacher-pathway.html", dir:"36_Heather_Gustafson", tool:"Teacher Career Pathway Navigator"},
+  {sd:37, name:"Warren Limmer", party:"R", photo:"https://www.senate.mn/graphics/37Limmer.jpg", file:"limmer-sentencing-grid.html", dir:"37_Warren_Limmer", tool:"Sentencing Guidelines Interactive Tool"},
+  {sd:38, name:"Susan Pha", party:"DFL", photo:"https://www.senate.mn/graphics/38Pha.jpg", file:"pha-safety-planner.html", dir:"38_Susan_Pha", tool:"School Safety Facility Funding Planner"},
+  {sd:39, name:"Mary K. Kunesh", party:"DFL", photo:"https://www.senate.mn/graphics/41KuneshPodeinMary.jpg", file:"kunesh-cooperative-planner.html", dir:"39_Mary_K_Kunesh", tool:"Manufactured Home Co-op Purchase Planner"},
+  {sd:40, name:"John Marty", party:"DFL", photo:"https://www.senate.mn/graphics/40Marty.jpg", file:"marty-ethics-dashboard.html", dir:"40_John_Marty", tool:"Legislative Ethics Accountability Dashboard"},
+  {sd:41, name:"Judy Seeberger", party:"DFL", photo:"https://www.senate.mn/graphics/41Seeberger.jpg", file:"seeberger-peer-support-builder.html", dir:"41_Judy_Seeberger", tool:"First Responder Peer Support Builder"},
+  {sd:42, name:"Bonnie S. Westlin", party:"DFL", photo:"https://www.senate.mn/graphics/42Westlin.jpg", file:"westlin-rights-navigator.html", dir:"42_Bonnie_S_Westlin", tool:"Foster Youth Rights Navigator"},
+  {sd:43, name:"Ann H. Rest", party:"DFL", photo:"https://www.senate.mn/graphics/43Rest.jpg", file:"rest-ethics-navigator.html", dir:"43_Ann_H_Rest", tool:"City Official Ethics & Disclosure Navigator"},
+  {sd:44, name:"Tou Xiong", party:"DFL", photo:"https://www.senate.mn/graphics/44Xiong.jpg", file:"xiong-adult-learner-planner.html", dir:"44_Tou_Xiong", tool:"Adult Learner Pathway Planner"},
+  {sd:45, name:"Ann M. Johnson Stewart", party:"DFL", photo:"https://www.senate.mn/graphics/45Johnson_Stewart.jpg", file:"johnson-stewart-pavement-tool.html", dir:"45_Ann_M_Johnson_Stewart", tool:"Street Pavement Management Tool"},
+  {sd:46, name:"Ron Latz", party:"DFL", photo:"https://www.senate.mn/graphics/46Latz.jpg", file:"latz-hoa-navigator.html", dir:"46_Ron_Latz", tool:"HOA & Condo Owner Rights Navigator"},
+  {sd:47, name:"Amanda H. Hemmingsen-Jaeger", party:"DFL", photo:"https://www.senate.mn/graphics/47Hemmingsen-Jaeger.jpg", file:"hemmingsen-jaeger-foster-docs.html", dir:"47_Amanda_H_Hemmingsen_Jaeger", tool:"Foster Youth Vital Documents Tracker"},
+  {sd:48, name:"Julia E. Coleman", party:"R", photo:"https://www.senate.mn/graphics/47ColemanJulia.jpg", file:"coleman-school-camera.html", dir:"48_Julia_E_Coleman", tool:"School Camera Readiness & Grant Planner"},
+  {sd:49, name:"Steve A. Cwodzinski", party:"DFL", photo:"https://www.senate.mn/graphics/49Cwodzinski.jpg", file:"cwodzinski-civic-seal-portfolio.html", dir:"49_Steve_A_Cwodzinski", tool:"Civic Seal Student Portfolio Builder"},
+  {sd:50, name:"Alice Mann", party:"DFL", photo:"https://www.senate.mn/graphics/50Mann.jpg", file:"mann-gvp-dashboard.html", dir:"50_Alice_Mann", tool:"Gun Violence Prevention Data Dashboard"},
+  {sd:51, name:"Melissa H. Wiklund", party:"DFL", photo:"https://www.senate.mn/graphics/50Wiklund.jpg", file:"wiklund-language-access-tool.html", dir:"51_Melissa_H_Wiklund", tool:"Health Care Language Access Audit Tool"},
+  {sd:52, name:"Jim Carlson", party:"DFL", photo:"https://www.senate.mn/graphics/51Carlson.jpg", file:"carlson-water-diagnostic.html", dir:"52_Jim_Carlson", tool:"Water System Pressure & Looping Tool"},
+  {sd:53, name:"Matt D. Klein", party:"DFL", photo:"https://www.senate.mn/graphics/52Klein.jpg", file:"klein-mail-audit.html", dir:"53_Matt_D_Klein", tool:"Business Mail Fraud Identification Tool"},
+  {sd:54, name:"Eric R. Pratt", party:"R", photo:"https://www.senate.mn/graphics/55Pratt.jpg", file:"pratt-fraud-risk-tool.html", dir:"54_Eric_R_Pratt", tool:"Small Business Fraud Risk Assessment"},
+  {sd:55, name:"Lindsey Port", party:"DFL", photo:"https://www.senate.mn/graphics/56PortLindsey.jpg", file:"port-supportive-housing-gap-tool.html", dir:"55_Lindsey_Port", tool:"Supportive Housing Sustainability Calculator"},
+  {sd:56, name:"Erin K. Maye Quade", party:"DFL", photo:"https://www.senate.mn/graphics/56MayeQuade.jpg", file:"mayequade-kinship-navigator.html", dir:"56_Erin_K_Maye_Quade", tool:"Kinship Foster Care Licensing Navigator"},
+  {sd:57, name:"Zach Duckworth", party:"R", photo:"https://www.senate.mn/graphics/58DuckworthZach.jpg", file:"duckworth-growth-calculator.html", dir:"57_Zach_Duckworth", tool:"Suburban Growth Service-Cost Calculator"},
+  {sd:58, name:"Bill Lieske", party:"R", photo:"https://www.senate.mn/graphics/58Lieske.jpg", file:"lieske-growth-cost-tool.html", dir:"58_Bill_Lieske", tool:"Growth-Cost Transparency Tool"},
+  {sd:59, name:"Bobby Joe Champion", party:"DFL", photo:"https://www.senate.mn/graphics/59Champion.jpg", file:"champion-trades-navigator.html", dir:"59_Bobby_Joe_Champion", tool:"North Side Trades Pipeline Navigator"},
+  {sd:60, name:"Doron Clark", party:"DFL", photo:"https://www.senate.mn/graphics/60Clark.jpg", file:"clark-corridor-decoder.html", dir:"60_Doron_Clark", tool:"Commercial Corridor Housing Decoder"},
+  {sd:61, name:"D. Scott Dibble", party:"DFL", photo:"https://www.senate.mn/graphics/61Dibble.jpg", file:"dibble-transit-equity-tool.html", dir:"61_D_Scott_Dibble", tool:"Transit Corridor Housing Equity Tool"},
+  {sd:62, name:"Omar Fateh", party:"DFL", photo:"https://www.senate.mn/graphics/62FatehOmar.jpg", file:"fateh-tenant-navigator.html", dir:"62_Omar_Fateh", tool:"Tenant Rights & Rent Burden Calculator"},
+  {sd:63, name:"Zaynab Mohamed", party:"DFL", photo:"https://www.senate.mn/graphics/63Mohamed.jpg", file:"mohamed-contract-for-deed-tool.html", dir:"63_Zaynab_Mohamed", tool:"Contract-for-Deed Buyer Rights Tool"},
+  {sd:64, name:"Erin P. Murphy", party:"DFL", photo:"https://www.senate.mn/graphics/64MurphyErin.jpg", file:"murphy-grant-navigator.html", dir:"64_Erin_P_Murphy", tool:"Small Business Grant Readiness Navigator"},
+  {sd:65, name:"Sandra L. Pappas", party:"DFL", photo:"https://www.senate.mn/graphics/65Pappas.jpg", file:"pappas-preservation-calculator.html", dir:"65_Sandra_L_Pappas", tool:"Affordable Home Preservation Calculator"},
+  {sd:66, name:"Clare Oumou Verbeten", party:"DFL", photo:"https://www.senate.mn/graphics/66OumouVerbeten.jpg", file:"verbeten-host-city-tool.html", dir:"66_Clare_Oumou_Verbeten", tool:"Host-City Cost Equity Tool"},
+  {sd:67, name:"Foung Hawj", party:"DFL", photo:"https://www.senate.mn/graphics/67Hawj.jpg", file:"hawj-corridor-grant-tool.html", dir:"67_Foung_Hawj", tool:"Corridor Business Loss & Grant Tool"}
+];
+
+function padSD(n) {
+  return n < 10 ? "0" + n : "" + n;
+}
+
+function buildGrid() {
+  var grid = document.getElementById("senatorGrid");
+  var html = "";
+  for (var i = 0; i < senators.length; i++) {
+    var s = senators[i];
+    var basePath = "senators/" + s.dir + "/";
+    var toolPath = basePath + s.file;
+    var microPath = basePath + "microsite.html";
+    html += '<div class="card" data-name="' + s.name.toLowerCase() + '" data-sd="' + s.sd + '" data-party="' + s.party.toLowerCase() + '">'
+      + '<img class="card-photo" src="' + s.photo + '" alt="' + s.name + '" loading="lazy" onerror="this.style.display=\'none\'">'
+      + '<div class="card-name"><a href="' + s.photo + '" target="_blank" rel="noopener">' + s.name + '</a></div>'
+      + '<div class="card-meta">SD-' + padSD(s.sd) + ' &bull; ' + s.party + '</div>'
+      + '<div class="card-tool">' + s.tool + '</div>'
+      + '<div class="card-links"><a href="' + toolPath + '">Tool &rarr;</a> <a href="' + microPath + '" class="micro">Microsite &rarr;</a></div>'
+      + '</div>';
+  }
+  grid.innerHTML = html;
+}
+
+function filterGrid() {
+  var q = document.getElementById("filterInput").value.toLowerCase().trim();
+  var cards = document.querySelectorAll(".card");
+  var shown = 0;
+  for (var i = 0; i < cards.length; i++) {
+    var c = cards[i];
+    var name = c.getAttribute("data-name");
+    var sd = c.getAttribute("data-sd");
+    var party = c.getAttribute("data-party");
+    var match = !q
+      || name.indexOf(q) !== -1
+      || sd === q
+      || ("sd-" + sd) === q
+      || ("sd " + sd) === q
+      || party.indexOf(q) !== -1
+      || ("district " + sd) === q;
+    if (match) {
+      c.classList.remove("hidden");
+      shown++;
+    } else {
+      c.classList.add("hidden");
+    }
+  }
+  document.getElementById("filterCount").textContent = "Showing " + shown + " of 67";
+}
+
+buildGrid();
+document.getElementById("filterInput").addEventListener("input", filterGrid);
+</script>
+
+</body>
+</html>

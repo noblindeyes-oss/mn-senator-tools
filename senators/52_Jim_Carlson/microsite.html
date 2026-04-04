@@ -1,0 +1,1720 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jim Carlson — Senate District 52</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ─── RESET ─────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    /* ─── MODE SWITCHING ─────────────────────────────────────────── */
+    .pro-content  { display: block; }
+    .oppo-content { display: none; }
+    body.mode-oppo .pro-content  { display: none; }
+    body.mode-oppo .oppo-content { display: block; }
+
+    body {
+      overflow-x: hidden;
+      opacity: 1;
+      transition: opacity 220ms ease;
+    }
+    body.fading { opacity: 0; }
+
+    /* ─── FLIP BUTTON ────────────────────────────────────────────── */
+    #flip-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      border: none;
+      cursor: pointer;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      padding: 11px 18px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    body:not(.mode-oppo) #flip-btn {
+      background: #1C1C1C;
+      color: #F0EDE6;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+    }
+    body.mode-oppo #flip-btn {
+      background: #F0EDE6;
+      color: #1C1C1C;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+    #flip-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+    }
+    body:not(.mode-oppo) .btn-oppo-label { display: none; }
+    body.mode-oppo .btn-pro-label { display: none; }
+
+
+    /* ═══════════════════════════════════════════════════════════════
+       PRO SITE — "South Metro Service Ledger"
+       Palette: concrete #D4CFC6 · steel blue #2B4C6F
+                works orange #E36A1B · off-white #F0EDE6 · ink #1C1C1C
+    ═══════════════════════════════════════════════════════════════ */
+
+    /* PRO — GLOBAL */
+    .pro-content {
+      background: #F0EDE6;
+      font-family: 'Barlow', sans-serif;
+      color: #1C1C1C;
+      min-height: 100vh;
+    }
+
+    /* PRO — MUNICIPAL HEADER BAND */
+    .pro-header {
+      background: #2B4C6F;
+      padding: 0;
+      border-bottom: 5px solid #E36A1B;
+    }
+    .pro-header-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 28px 40px 24px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 32px;
+    }
+    .pro-seal {
+      width: 64px;
+      height: 64px;
+      border: 2.5px solid rgba(240,237,230,0.45);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .pro-seal svg { width: 36px; height: 36px; opacity: 0.7; }
+    .pro-header-title {
+      font-family: 'IBM Plex Mono', monospace;
+      color: rgba(240,237,230,0.55);
+      font-size: 9px;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      line-height: 1.8;
+    }
+    .pro-header-title strong {
+      display: block;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800;
+      font-size: 26px;
+      letter-spacing: 0.04em;
+      color: #F0EDE6;
+      line-height: 1.1;
+      margin-top: 4px;
+    }
+    .pro-header-doc-num {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: rgba(240,237,230,0.45);
+      letter-spacing: 0.1em;
+      text-align: right;
+      line-height: 1.9;
+    }
+
+    /* PRO — HERO LEDGER BAND */
+    .pro-hero {
+      background: #1C1C1C;
+      position: relative;
+      overflow: hidden;
+    }
+    .pro-hero::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: repeating-linear-gradient(90deg,
+        #E36A1B 0, #E36A1B 40px, transparent 40px, transparent 48px);
+    }
+    .pro-hero-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 72px 40px 64px;
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      gap: 64px;
+      align-items: center;
+    }
+    .pro-hero-text {}
+    .pro-ledger-tag {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: #E36A1B;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .pro-ledger-tag::before {
+      content: '';
+      display: block;
+      width: 24px;
+      height: 1.5px;
+      background: #E36A1B;
+    }
+    .pro-hero-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900;
+      font-size: clamp(58px, 7vw, 108px);
+      line-height: 0.88;
+      color: #F0EDE6;
+      letter-spacing: -0.01em;
+      margin-bottom: 28px;
+    }
+    .pro-hero-argument {
+      font-family: 'Barlow', sans-serif;
+      font-size: 18px;
+      font-weight: 400;
+      line-height: 1.55;
+      color: rgba(240,237,230,0.75);
+      max-width: 520px;
+      border-left: 3px solid #E36A1B;
+      padding-left: 20px;
+    }
+
+    /* PRO — PHOTO BOX */
+    .pro-photo-box {
+      position: relative;
+    }
+    .pro-photo-frame {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 3/4;
+      overflow: hidden;
+      border: 1px solid rgba(240,237,230,0.12);
+    }
+    .pro-photo-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 15%;
+      filter: sepia(12%) contrast(1.06);
+    }
+    .pro-photo-placeholder {
+      width: 100%;
+      height: 100%;
+      background: #2B4C6F;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+    .pro-photo-placeholder span {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: rgba(240,237,230,0.4);
+      letter-spacing: 0.2em;
+    }
+    .pro-photo-caption {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(28,28,28,0.88);
+      padding: 12px 16px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      color: rgba(240,237,230,0.55);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    /* PRO — STAT RAIL */
+    .pro-stat-rail {
+      background: #E36A1B;
+      padding: 0;
+    }
+    .pro-stat-rail-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 40px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .pro-stat-item {
+      padding: 28px 0;
+      border-right: 1px solid rgba(28,28,28,0.2);
+      padding-right: 32px;
+      padding-left: 32px;
+    }
+    .pro-stat-item:first-child { padding-left: 0; }
+    .pro-stat-item:last-child { border-right: none; }
+    .pro-stat-num {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900;
+      font-size: 46px;
+      line-height: 1;
+      color: #1C1C1C;
+      letter-spacing: -0.02em;
+    }
+    .pro-stat-num sup {
+      font-size: 22px;
+      vertical-align: super;
+    }
+    .pro-stat-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(28,28,28,0.7);
+      margin-top: 4px;
+    }
+
+    /* PRO — BODY SECTION */
+    .pro-body {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 72px 40px;
+    }
+
+    /* PRO — SECTION RULE */
+    .pro-section-rule {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 40px;
+    }
+    .pro-section-rule span {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: #2B4C6F;
+      white-space: nowrap;
+    }
+    .pro-section-rule::after {
+      content: '';
+      flex: 1;
+      height: 1.5px;
+      background: #2B4C6F;
+      opacity: 0.25;
+    }
+
+    /* PRO — LEDGER TABLE */
+    .pro-ledger-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      margin-bottom: 56px;
+    }
+    .pro-ledger-table thead th {
+      background: #2B4C6F;
+      color: rgba(240,237,230,0.7);
+      font-size: 9px;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 600;
+    }
+    .pro-ledger-table tbody tr {
+      border-bottom: 1px solid rgba(28,28,28,0.12);
+    }
+    .pro-ledger-table tbody tr:last-child { border-bottom: none; }
+    .pro-ledger-table tbody td {
+      padding: 16px;
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    .pro-ledger-table tbody td:first-child {
+      color: #2B4C6F;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .pro-ledger-table tbody td .row-amount {
+      font-weight: 700;
+      color: #E36A1B;
+    }
+    .pro-ledger-table tfoot td {
+      padding: 14px 16px;
+      font-weight: 700;
+      font-size: 14px;
+      background: rgba(43,76,111,0.07);
+      border-top: 2px solid #2B4C6F;
+    }
+
+    /* PRO — MAIN FACT BLOCK */
+    .pro-fact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      margin-bottom: 56px;
+    }
+    .pro-fact-card {
+      background: #fff;
+      border: 1px solid rgba(28,28,28,0.1);
+      border-top: 4px solid #2B4C6F;
+      padding: 32px;
+    }
+    .pro-fact-card-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+      color: #E36A1B;
+      margin-bottom: 16px;
+    }
+    .pro-fact-card h3 {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 22px;
+      line-height: 1.2;
+      color: #1C1C1C;
+      margin-bottom: 14px;
+    }
+    .pro-fact-card p {
+      font-family: 'Barlow', sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      color: #3A3A3A;
+    }
+
+    /* PRO — PULL QUOTE */
+    .pro-pull-quote {
+      background: #2B4C6F;
+      padding: 52px 56px;
+      margin-bottom: 56px;
+      position: relative;
+    }
+    .pro-pull-quote::before {
+      content: '"';
+      position: absolute;
+      top: 16px;
+      left: 40px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 120px;
+      font-weight: 900;
+      color: rgba(240,237,230,0.07);
+      line-height: 1;
+    }
+    .pro-pull-quote blockquote {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: clamp(26px, 3vw, 38px);
+      line-height: 1.2;
+      color: #F0EDE6;
+      max-width: 820px;
+      position: relative;
+      z-index: 1;
+    }
+    .pro-pull-quote cite {
+      display: block;
+      margin-top: 20px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      color: rgba(240,237,230,0.5);
+      font-style: normal;
+    }
+
+    /* PRO — DISTRICT IMAGE STRIP */
+    .pro-district-strip {
+      background: #1C1C1C;
+      overflow: hidden;
+      position: relative;
+      height: 280px;
+      margin-bottom: 56px;
+    }
+    .pro-district-strip img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.65;
+      filter: sepia(20%) contrast(1.1);
+    }
+    .pro-district-strip-label {
+      position: absolute;
+      bottom: 20px;
+      left: 40px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(240,237,230,0.6);
+      background: rgba(28,28,28,0.7);
+      padding: 6px 14px;
+    }
+
+    /* PRO — TIMELINE */
+    .pro-timeline {
+      margin-bottom: 56px;
+    }
+    .pro-timeline-item {
+      display: grid;
+      grid-template-columns: 160px auto 1fr;
+      gap: 0 24px;
+      margin-bottom: 0;
+      position: relative;
+    }
+    .pro-timeline-item::before {
+      content: '';
+      position: absolute;
+      left: 180px;
+      top: 24px;
+      bottom: -1px;
+      width: 1.5px;
+      background: rgba(43,76,111,0.2);
+    }
+    .pro-timeline-item:last-child::before { display: none; }
+    .pro-timeline-date {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      color: #2B4C6F;
+      letter-spacing: 0.08em;
+      text-align: right;
+      padding-top: 20px;
+      padding-bottom: 32px;
+    }
+    .pro-timeline-dot {
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: #E36A1B;
+      border: 2px solid #F0EDE6;
+      box-shadow: 0 0 0 2px #E36A1B;
+      margin-top: 22px;
+      flex-shrink: 0;
+    }
+    .pro-timeline-text {
+      padding: 16px 0 32px;
+    }
+    .pro-timeline-text h4 {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 18px;
+      color: #1C1C1C;
+      margin-bottom: 6px;
+    }
+    .pro-timeline-text p {
+      font-family: 'Barlow', sans-serif;
+      font-size: 14px;
+      line-height: 1.55;
+      color: #4A4A4A;
+    }
+
+    /* PRO — FOOTNOTES */
+    .pro-footnotes {
+      border-top: 1px solid rgba(28,28,28,0.15);
+      padding-top: 28px;
+      margin-top: 16px;
+    }
+    .pro-footnotes h5 {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: #2B4C6F;
+      margin-bottom: 14px;
+    }
+    .pro-footnotes ol {
+      list-style: decimal;
+      padding-left: 18px;
+    }
+    .pro-footnotes li {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: rgba(28,28,28,0.5);
+      line-height: 1.7;
+      margin-bottom: 4px;
+    }
+    .pro-footnotes li a {
+      color: #2B4C6F;
+      text-decoration: none;
+    }
+    .pro-footnotes li a:hover {
+      text-decoration: underline;
+    }
+
+    /* PRO — FOOTER */
+    .pro-footer {
+      background: #1C1C1C;
+      border-top: 4px solid #E36A1B;
+      padding: 28px 40px;
+    }
+    .pro-footer-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .pro-footer span {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      color: rgba(240,237,230,0.35);
+    }
+
+
+    /* ═══════════════════════════════════════════════════════════════
+       OPPO SITE — "Invoice: Road Usage Charge"
+       Palette: invoice white #F7F5F0 · charge red #C0392B
+                concrete #D0CAC0 · ledger black #0F0F0F · steel #4A4A4A
+    ═══════════════════════════════════════════════════════════════ */
+
+    .oppo-content {
+      background: #F7F5F0;
+      font-family: 'IBM Plex Mono', monospace;
+      color: #0F0F0F;
+      min-height: 100vh;
+    }
+
+    /* OPPO — FILE HEADER */
+    .oppo-header {
+      background: #0F0F0F;
+      padding: 0;
+    }
+    .oppo-header-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .oppo-file-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: #C0392B;
+    }
+    .oppo-case-num {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      color: rgba(240,237,230,0.3);
+      letter-spacing: 0.18em;
+    }
+
+    /* OPPO — HERO */
+    .oppo-hero {
+      background: #0F0F0F;
+      border-bottom: 5px solid #C0392B;
+      padding-bottom: 64px;
+    }
+    .oppo-hero-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 60px 40px 0;
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 60px;
+      align-items: start;
+    }
+    .oppo-hero-left {}
+    .oppo-charge-tag {
+      display: inline-block;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: #C0392B;
+      border: 1px solid #C0392B;
+      padding: 5px 12px;
+      margin-bottom: 28px;
+    }
+    .oppo-hero-headline {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900;
+      font-size: clamp(44px, 6vw, 86px);
+      line-height: 0.9;
+      color: #F7F5F0;
+      letter-spacing: -0.01em;
+      margin-bottom: 28px;
+    }
+    .oppo-hero-headline em {
+      color: #C0392B;
+      font-style: normal;
+    }
+    .oppo-hero-subhead {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      line-height: 1.65;
+      color: rgba(247,245,240,0.55);
+      max-width: 560px;
+      border-left: 2px solid #C0392B;
+      padding-left: 18px;
+    }
+
+    /* OPPO — PHOTO BOX */
+    .oppo-photo-box {
+      position: relative;
+    }
+    .oppo-photo-frame {
+      width: 100%;
+      aspect-ratio: 3/4;
+      overflow: hidden;
+      position: relative;
+      border: 1px solid rgba(192,57,43,0.25);
+    }
+    .oppo-photo-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 15%;
+      filter: grayscale(100%) contrast(1.2) brightness(0.85);
+    }
+    .oppo-photo-placeholder {
+      width: 100%;
+      height: 100%;
+      background: #1A1A1A;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+    .oppo-photo-placeholder span {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: rgba(247,245,240,0.25);
+      letter-spacing: 0.2em;
+    }
+    .oppo-photo-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(160deg, transparent 50%, rgba(192,57,43,0.18) 100%);
+    }
+    .oppo-photo-stamp {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(247,245,240,0.45);
+      background: rgba(15,15,15,0.7);
+      padding: 5px 10px;
+    }
+
+    /* OPPO — INVOICE BLOCK */
+    .oppo-invoice-strip {
+      background: #C0392B;
+      padding: 0;
+    }
+    .oppo-invoice-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 40px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+    }
+    .oppo-invoice-item {
+      padding: 24px 24px 24px 0;
+      border-right: 1px solid rgba(15,15,15,0.2);
+    }
+    .oppo-invoice-item:last-child { border-right: none; }
+    .oppo-invoice-item:first-child { padding-left: 0; }
+    .oppo-invoice-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+      color: rgba(15,15,15,0.65);
+      margin-bottom: 6px;
+    }
+    .oppo-invoice-val {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900;
+      font-size: 32px;
+      color: #0F0F0F;
+      line-height: 1;
+    }
+    .oppo-invoice-val small {
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .oppo-invoice-sub {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      color: rgba(15,15,15,0.55);
+      margin-top: 4px;
+      letter-spacing: 0.06em;
+    }
+
+    /* OPPO — BODY */
+    .oppo-body {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 64px 40px;
+    }
+
+    /* OPPO — SECTION LABEL */
+    .oppo-section-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.36em;
+      text-transform: uppercase;
+      color: #C0392B;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .oppo-section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(192,57,43,0.3);
+    }
+
+    /* OPPO — SEQUENCE / EVIDENCE CHAIN */
+    .oppo-sequence {
+      margin-bottom: 56px;
+    }
+    .oppo-sequence-step {
+      display: grid;
+      grid-template-columns: 56px 1fr;
+      gap: 24px;
+      margin-bottom: 0;
+      position: relative;
+    }
+    .oppo-sequence-step::before {
+      content: '';
+      position: absolute;
+      left: 27px;
+      top: 56px;
+      bottom: 0;
+      width: 1.5px;
+      background: rgba(192,57,43,0.2);
+    }
+    .oppo-sequence-step:last-child::before { display: none; }
+    .oppo-step-num {
+      width: 56px;
+      height: 56px;
+      background: #C0392B;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'IBM Plex Mono', monospace;
+      font-weight: 700;
+      font-size: 22px;
+      color: #F7F5F0;
+      flex-shrink: 0;
+    }
+    .oppo-step-body {
+      padding: 8px 0 40px;
+    }
+    .oppo-step-body h4 {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800;
+      font-size: 20px;
+      color: #0F0F0F;
+      margin-bottom: 8px;
+      letter-spacing: 0.01em;
+    }
+    .oppo-step-body p {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      line-height: 1.75;
+      color: #4A4A4A;
+    }
+
+    /* OPPO — PROOF BLOCK */
+    .oppo-proof-block {
+      background: #0F0F0F;
+      border-left: 4px solid #C0392B;
+      padding: 36px 40px;
+      margin-bottom: 56px;
+      position: relative;
+    }
+    .oppo-proof-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: #C0392B;
+      margin-bottom: 18px;
+    }
+    .oppo-proof-text {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      line-height: 1.8;
+      color: rgba(247,245,240,0.75);
+    }
+    .oppo-proof-text strong {
+      color: #F7F5F0;
+      font-weight: 700;
+    }
+    .oppo-proof-source {
+      margin-top: 18px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      color: rgba(247,245,240,0.3);
+      letter-spacing: 0.1em;
+    }
+
+    /* OPPO — EVIDENCE CARDS */
+    .oppo-evidence-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      margin-bottom: 56px;
+      background: rgba(192,57,43,0.15);
+    }
+    .oppo-evidence-card {
+      background: #F7F5F0;
+      padding: 32px 28px;
+      border-top: 3px solid #C0392B;
+      transition: background 0.18s, transform 0.18s;
+      cursor: default;
+      position: relative;
+    }
+    .oppo-evidence-card:hover {
+      background: #0F0F0F;
+      transform: translateY(-3px);
+      z-index: 2;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    }
+    .oppo-evidence-card:hover .oppo-ev-label,
+    .oppo-evidence-card:hover .oppo-ev-title,
+    .oppo-evidence-card:hover .oppo-ev-body {
+      color: #F7F5F0;
+    }
+    .oppo-evidence-card:hover .oppo-ev-label {
+      color: #C0392B;
+    }
+    .oppo-ev-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: #C0392B;
+      margin-bottom: 14px;
+      transition: color 0.18s;
+    }
+    .oppo-ev-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800;
+      font-size: 20px;
+      line-height: 1.15;
+      color: #0F0F0F;
+      margin-bottom: 12px;
+      transition: color 0.18s;
+    }
+    .oppo-ev-body {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      line-height: 1.75;
+      color: #4A4A4A;
+      transition: color 0.18s;
+    }
+
+    /* OPPO — CONTRADICTION BOX */
+    .oppo-contradiction {
+      background: #fff;
+      border: 1.5px solid rgba(192,57,43,0.3);
+      padding: 40px;
+      margin-bottom: 56px;
+    }
+    .oppo-contradiction-header {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900;
+      font-size: 28px;
+      color: #C0392B;
+      margin-bottom: 28px;
+      letter-spacing: 0.02em;
+    }
+    .oppo-contradiction-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+    }
+    .oppo-contra-col h5 {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .oppo-contra-col.col-brand h5 { color: #2B4C6F; }
+    .oppo-contra-col.col-record h5 { color: #C0392B; }
+    .oppo-contra-col p {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      line-height: 1.75;
+      color: #4A4A4A;
+    }
+    .oppo-contra-divider {
+      width: 1px;
+      background: rgba(192,57,43,0.25);
+      display: none;
+    }
+
+    /* OPPO — FOOTNOTES */
+    .oppo-footnotes {
+      border-top: 1px solid rgba(15,15,15,0.15);
+      padding-top: 28px;
+      margin-top: 16px;
+    }
+    .oppo-footnotes h5 {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: #C0392B;
+      margin-bottom: 14px;
+    }
+    .oppo-footnotes ol {
+      list-style: decimal;
+      padding-left: 18px;
+    }
+    .oppo-footnotes li {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: rgba(15,15,15,0.45);
+      line-height: 1.7;
+      margin-bottom: 4px;
+    }
+    .oppo-footnotes li a {
+      color: #C0392B;
+      text-decoration: none;
+    }
+    .oppo-footnotes li a:hover { text-decoration: underline; }
+
+    /* OPPO — FOOTER */
+    .oppo-footer {
+      background: #0F0F0F;
+      border-top: 4px solid #C0392B;
+      padding: 28px 40px;
+    }
+    .oppo-footer-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .oppo-footer span {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      color: rgba(247,245,240,0.25);
+    }
+    .oppo-footer .oppo-file-label { font-size: 9px; }
+
+    /* ─── RESPONSIVE ─────────────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .pro-header-inner {
+        grid-template-columns: auto 1fr;
+        padding: 20px 24px;
+      }
+      .pro-header-doc-num { display: none; }
+      .pro-hero-inner {
+        grid-template-columns: 1fr;
+        padding: 48px 24px 40px;
+        gap: 40px;
+      }
+      .pro-photo-box { max-width: 320px; }
+      .pro-stat-rail-inner {
+        grid-template-columns: 1fr;
+        padding: 0 24px;
+      }
+      .pro-stat-item {
+        border-right: none;
+        border-bottom: 1px solid rgba(28,28,28,0.15);
+        padding: 20px 0;
+      }
+      .pro-stat-item:first-child { padding-left: 0; }
+      .pro-body { padding: 48px 24px; }
+      .pro-fact-grid { grid-template-columns: 1fr; }
+      .pro-pull-quote { padding: 36px 28px; }
+      .pro-district-strip-label { left: 24px; }
+      .pro-timeline-item { grid-template-columns: 120px auto 1fr; }
+      .pro-timeline-item::before { left: 140px; }
+      .pro-footer-inner { flex-direction: column; gap: 8px; text-align: center; }
+
+      .oppo-header-inner { padding: 16px 24px; }
+      .oppo-hero-inner {
+        grid-template-columns: 1fr;
+        padding: 48px 24px 40px;
+        gap: 36px;
+      }
+      .oppo-photo-box { max-width: 300px; }
+      .oppo-invoice-inner {
+        grid-template-columns: 1fr 1fr;
+        padding: 0 24px;
+      }
+      .oppo-invoice-item {
+        padding: 18px 18px 18px 0;
+      }
+      .oppo-invoice-item:nth-child(2) { border-right: none; }
+      .oppo-body { padding: 48px 24px; }
+      .oppo-evidence-grid { grid-template-columns: 1fr; }
+      .oppo-contradiction-cols { grid-template-columns: 1fr; }
+      .oppo-footer-inner { flex-direction: column; gap: 8px; }
+      #flip-btn { top: 12px; right: 12px; padding: 9px 14px; font-size: 8px; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ─── FLIP BUTTON ─────────────────────────────────────────────── -->
+  <button id="flip-btn" aria-label="Toggle view">
+    <span class="btn-oppo-label">View Supporter Side</span>
+    <span class="btn-pro-label">View Opposition File</span>
+  </button>
+
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       PRO SITE
+  ═══════════════════════════════════════════════════════════════════ -->
+  <div class="pro-content">
+
+    <!-- MUNICIPAL HEADER BAND -->
+    <header class="pro-header">
+      <div class="pro-header-inner">
+        <div class="pro-seal">
+          <!-- Pipe/wrench icon as SVG: utility work -->
+          <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="18" cy="18" r="17" stroke="rgba(240,237,230,0.5)" stroke-width="1.5"/>
+            <rect x="8" y="16" width="20" height="4" rx="2" fill="rgba(240,237,230,0.55)"/>
+            <rect x="15" y="8" width="6" height="6" rx="1" fill="rgba(240,237,230,0.45)"/>
+            <rect x="15" y="22" width="6" height="6" rx="1" fill="rgba(240,237,230,0.45)"/>
+            <circle cx="18" cy="18" r="2" fill="#E36A1B"/>
+          </svg>
+        </div>
+        <div class="pro-header-title">
+          Minnesota Senate District 52 &mdash; DFL &mdash; Eagan, Burnsville, Mendota Heights, Mendota
+          <strong>Senator Jim Carlson</strong>
+        </div>
+        <div class="pro-header-doc-num">
+          SF 3183 &bull; 94th Legislature<br/>
+          Water Infrastructure Bond<br/>
+          Fiscal Year 2025&ndash;2026
+        </div>
+      </div>
+    </header>
+
+    <!-- HERO -->
+    <section class="pro-hero">
+      <div class="pro-hero-inner">
+        <div class="pro-hero-text">
+          <div class="pro-ledger-tag">Service Record &mdash; District 52</div>
+          <h1 class="pro-hero-name">The Water<br/>Runs<br/>Here.</h1>
+          <p class="pro-hero-argument">
+            Jim Carlson is a retired mechanical engineer who spent 18 years in the Minnesota Senate filing detailed infrastructure work. His latest: a $5.207 million bond request to fix Mendota's aging water system. A bill number. A named project. A public record.
+          </p>
+        </div>
+        <div class="pro-photo-box">
+          <div class="pro-photo-frame">
+            <img
+              src="https://www.senate.mn/graphics/51Carlson.jpg"
+              alt="Senator Jim Carlson"
+              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+            />
+            <div class="pro-photo-placeholder" style="display:none;">
+              <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="18" r="10" stroke="rgba(240,237,230,0.3)" stroke-width="1.5"/><path d="M8 44c0-8.837 7.163-16 16-16s16 7.163 16 16" stroke="rgba(240,237,230,0.3)" stroke-width="1.5"/></svg>
+              <span>Sen. Carlson</span>
+            </div>
+            <div class="pro-photo-caption">Sen. Jim Carlson &mdash; District 52 &mdash; 5th Term</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STAT RAIL -->
+    <div class="pro-stat-rail">
+      <div class="pro-stat-rail-inner">
+        <div class="pro-stat-item">
+          <div class="pro-stat-num"><sup>$</sup><span class="counter" data-target="5207000" data-prefix="$" data-format="abbr">5.2M</span></div>
+          <div class="pro-stat-label">Bond — SF 3183 &mdash; Mendota Water</div>
+        </div>
+        <div class="pro-stat-item">
+          <div class="pro-stat-num"><span class="counter" data-target="18">18</span></div>
+          <div class="pro-stat-label">Years in the MN Senate</div>
+        </div>
+        <div class="pro-stat-item">
+          <div class="pro-stat-num"><span class="counter" data-target="4">4</span></div>
+          <div class="pro-stat-label">Senate Committees Served</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN BODY -->
+    <div class="pro-body">
+
+      <!-- LEDGER TABLE -->
+      <div class="pro-section-rule"><span>Bill Ledger &mdash; SF 3183</span></div>
+      <table class="pro-ledger-table">
+        <thead>
+          <tr>
+            <th>Line Item</th>
+            <th>Description</th>
+            <th>Amount</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>01 &mdash; Land</td>
+            <td>Property acquisition and easements for the water-main corridor in Mendota</td>
+            <td><span class="row-amount">Included</span></td>
+            <td>Introduced by Carlson</td>
+          </tr>
+          <tr>
+            <td>02 &mdash; Design</td>
+            <td>Engineering design and planning for the looping system and pressure-reduction stations</td>
+            <td><span class="row-amount">Included</span></td>
+            <td>Referred to Capital Investment</td>
+          </tr>
+          <tr>
+            <td>03 &mdash; Construction</td>
+            <td>Water-main loop construction and pressure-reduction installation, City of Mendota</td>
+            <td><span class="row-amount">Included</span></td>
+            <td>Companion: HF 2924</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="2">Total Bond Authorization &mdash; SF 3183, 94th Legislature</td>
+            <td><span class="row-amount">$5,207,000</span></td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <!-- FACT CARDS -->
+      <div class="pro-section-rule"><span>What It Means for District 52</span></div>
+      <div class="pro-fact-grid">
+        <div class="pro-fact-card">
+          <div class="pro-fact-card-label">Pro Fact 01 &mdash; Infrastructure</div>
+          <h3>Mendota's water system needed an engineer's attention. It got one.</h3>
+          <p>
+            Mendota is one of the smallest cities in the district. Its water infrastructure is old. Pressure drops and system dead-ends are real risks in aging single-loop networks. SF 3183 funds a water-main looping system and pressure-reduction controls. Looping eliminates dead-end pressure failures. Residents notice when they don't have water pressure. They also notice when nobody bothered to fix it.
+          </p>
+        </div>
+        <div class="pro-fact-card">
+          <div class="pro-fact-card-label">Pro Fact 02 &mdash; Record</div>
+          <h3>He wrote the bill. His name is on it.</h3>
+          <p>
+            Carlson is listed as chief author of SF 3183 in the official 94th Legislature record. A companion bill, HF 2924, was filed in the House. The $5.207 million figure comes from the bill text. This is the kind of work a mechanical engineer with 18 years in the Senate does: specific, named, tied to a real place with real consequences if nothing gets funded.
+          </p>
+        </div>
+      </div>
+
+      <!-- DISTRICT IMAGE STRIP -->
+      <div class="pro-district-strip">
+        <img
+          src="https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?w=1400&q=80&auto=format&fit=crop"
+          alt="Engineer reviewing infrastructure plans"
+          onerror="this.style.display='none';"
+        />
+        <div class="pro-district-strip-label">Water infrastructure &mdash; South Metro Minnesota</div>
+      </div>
+
+      <!-- PULL QUOTE -->
+      <div class="pro-pull-quote">
+        <blockquote>
+          "In 18 years, Carlson did the work a district like this needs: infrastructure over theater, specifics over slogans, water pressure over headlines."
+        </blockquote>
+        <cite>District 52 Record &mdash; Summarized from MN Senate Official Bill Record, 94th Legislature</cite>
+      </div>
+
+      <!-- TIMELINE -->
+      <div class="pro-section-rule"><span>Service Timeline</span></div>
+      <div class="pro-timeline">
+        <div class="pro-timeline-item">
+          <div class="pro-timeline-date">2006</div>
+          <div class="pro-timeline-dot"></div>
+          <div class="pro-timeline-text">
+            <h4>First Elected to Minnesota Senate</h4>
+            <p>Carlson won District 52 for the first time. He holds a degree in Mechanical Engineering from the University of Minnesota and a machine design certificate from Dunwoody Institute. He brought an engineer's approach to a legislative process that rarely sees one.</p>
+          </div>
+        </div>
+        <div class="pro-timeline-item">
+          <div class="pro-timeline-date">2006&ndash;2024</div>
+          <div class="pro-timeline-dot"></div>
+          <div class="pro-timeline-text">
+            <h4>Fifth Term, Four Committees</h4>
+            <p>Carlson chaired the Senate Elections Committee and served on Judiciary and Public Safety, State and Local Government and Veterans, and Transportation. The Transportation committee seat matters for a district built around airport corridors and south-metro infrastructure.</p>
+          </div>
+        </div>
+        <div class="pro-timeline-item">
+          <div class="pro-timeline-date">2025</div>
+          <div class="pro-timeline-dot"></div>
+          <div class="pro-timeline-text">
+            <h4>SF 3183: Mendota Water Bond</h4>
+            <p>Carlson chief-authored a $5.207 million bond bill for Mendota's water-main looping and pressure-reduction system. The bill covers acquisition, design, and construction. Companion: HF 2924. Status: referred to Capital Investment committee, 94th Legislature.</p>
+          </div>
+        </div>
+        <div class="pro-timeline-item">
+          <div class="pro-timeline-date">Oct. 2025</div>
+          <div class="pro-timeline-dot"></div>
+          <div class="pro-timeline-text">
+            <h4>Announced Retirement After 18 Years</h4>
+            <p>Carlson announced he would not seek re-election in 2026. He is leaving a record built on local service delivery in a district where residents expect water to work, roads to hold, and somebody in St. Paul to actually understand both.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- FOOTNOTES -->
+      <div class="pro-footnotes">
+        <h5>Sources &amp; Footnotes</h5>
+        <ol>
+          <li>SF 3183, 94th Legislature (2025&ndash;2026): "Mendota water infrastructure bond issue and appropriation." Chief author: Sen. Jim Carlson. <a href="https://www.revisor.mn.gov/bills/bill.php?b=Senate&f=SF3183&ssn=0&y=2025" target="_blank">revisor.mn.gov</a></li>
+          <li>Companion: HF 2924, 94th Legislature. Minnesota House of Representatives, 2025.</li>
+          <li>Jim Carlson biography and committee service. <a href="https://www.senate.mn/members/member_bio.html?mem_id=1140" target="_blank">senate.mn</a></li>
+          <li>Carlson retirement announcement, October 6, 2025. <a href="https://kstp.com/kstp-news/local-news/state-senator-from-eagan-jim-carlson-to-retire-at-end-of-term/" target="_blank">KSTP.com</a></li>
+          <li>Carlson education: B.S. Mechanical Engineering, University of Minnesota; machine design certificate, Dunwoody Institute. Ballotpedia.</li>
+          <li>District 52 covers most of Eagan, most of Mendota Heights, the City of Mendota, and northeastern Burnsville. Minnesota Senate.</li>
+        </ol>
+      </div>
+    </div><!-- /pro-body -->
+
+    <footer class="pro-footer">
+      <div class="pro-footer-inner">
+        <span>Minnesota Senate District 52 &mdash; Jim Carlson, DFL &mdash; Eagan, MN</span>
+        <span>Research site &mdash; not affiliated with any campaign &mdash; all claims sourced</span>
+      </div>
+    </footer>
+
+  </div><!-- /pro-content -->
+
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       OPPO SITE
+  ═══════════════════════════════════════════════════════════════════ -->
+  <div class="oppo-content">
+
+    <!-- FILE HEADER -->
+    <div class="oppo-header">
+      <div class="oppo-header-inner">
+        <span class="oppo-file-label">Accountability File &mdash; MN Senate District 52</span>
+        <span class="oppo-case-num">SF 1480 &bull; 94th Legislature &bull; Road Usage Charge &bull; All-Electric Vehicles</span>
+      </div>
+    </div>
+
+    <!-- HERO -->
+    <section class="oppo-hero">
+      <div class="oppo-hero-inner">
+        <div class="oppo-hero-left">
+          <span class="oppo-charge-tag">On the Record &mdash; SF 1480</span>
+          <h1 class="oppo-hero-headline">
+            He&rsquo;s Billing<br/>Your <em>Electric</em><br/>Vehicle.
+          </h1>
+          <p class="oppo-hero-subhead">
+            Jim Carlson authored SF 1480. The bill creates a new road usage charge on all-electric vehicle owners beginning July 1, 2026 &mdash; a per-mile fee calculated against the gas tax rate, plus a $75 registration surcharge that kicks in immediately. This is a new tax. His name is on it.
+          </p>
+        </div>
+        <div class="oppo-photo-box">
+          <div class="oppo-photo-frame">
+            <img
+              src="https://www.senate.mn/graphics/51Carlson.jpg"
+              alt="Senator Jim Carlson"
+              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+            />
+            <div class="oppo-photo-placeholder" style="display:none;">
+              <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="18" r="10" stroke="rgba(247,245,240,0.2)" stroke-width="1.5"/><path d="M8 44c0-8.837 7.163-16 16-16s16 7.163 16 16" stroke="rgba(247,245,240,0.2)" stroke-width="1.5"/></svg>
+              <span>Sen. Carlson</span>
+            </div>
+            <div class="oppo-photo-overlay"></div>
+            <div class="oppo-photo-stamp">SF 1480 &mdash; Author on Record</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- INVOICE STRIP -->
+    <div class="oppo-invoice-strip">
+      <div class="oppo-invoice-inner">
+        <div class="oppo-invoice-item">
+          <div class="oppo-invoice-label">New Charge Type</div>
+          <div class="oppo-invoice-val">Per-Mile</div>
+          <div class="oppo-invoice-sub">Usage-based, billed on miles driven in MN</div>
+        </div>
+        <div class="oppo-invoice-item">
+          <div class="oppo-invoice-label">Effective Date</div>
+          <div class="oppo-invoice-val">Jul 1<small>, 2026</small></div>
+          <div class="oppo-invoice-sub">Phase-in: 60% rate yr 1, 80% yr 2</div>
+        </div>
+        <div class="oppo-invoice-item">
+          <div class="oppo-invoice-label">Registration Surcharge</div>
+          <div class="oppo-invoice-val"><small>$</small>75</div>
+          <div class="oppo-invoice-sub">Owed per vehicle at registration</div>
+        </div>
+        <div class="oppo-invoice-item">
+          <div class="oppo-invoice-label">Author</div>
+          <div class="oppo-invoice-val" style="font-size:20px; padding-top:6px;">Carlson</div>
+          <div class="oppo-invoice-sub">Chief author &mdash; SF 1480, 94th Legislature</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OPPO BODY -->
+    <div class="oppo-body">
+
+      <!-- SEQUENCE -->
+      <div class="oppo-section-label">The Chain of Events</div>
+      <div class="oppo-sequence">
+        <div class="oppo-sequence-step">
+          <div class="oppo-step-num">1</div>
+          <div class="oppo-step-body">
+            <h4>Carlson authors SF 1480 in the 94th Legislature</h4>
+            <p>
+              The bill is titled "Road usage charge enactment for all-electric vehicles." Carlson is listed as chief author in the official Minnesota Legislature record. The bill creates a new per-mile fee category that did not previously exist for EV owners in Minnesota.
+            </p>
+          </div>
+        </div>
+        <div class="oppo-sequence-step">
+          <div class="oppo-step-num">2</div>
+          <div class="oppo-step-body">
+            <h4>The fee is calculated against the gas tax rate</h4>
+            <p>
+              Under SF 1480, EV owners pay miles driven multiplied by a ratio tied to the total excise tax rate for gasoline under Minnesota statute 296A.07, adjusted for the vehicle's fuel-economy equivalent. The goal is to make EV owners pay the same effective road-use rate as gasoline drivers &mdash; even though they have already paid for their vehicles in part because those vehicles avoid the gas tax.
+            </p>
+          </div>
+        </div>
+        <div class="oppo-sequence-step">
+          <div class="oppo-step-num">3</div>
+          <div class="oppo-step-body">
+            <h4>A separate $75 registration surcharge is added on top</h4>
+            <p>
+              SF 1480 also imposes a flat $75 surcharge at vehicle registration for all-electric vehicles &mdash; before the per-mile usage charge even begins. EV owners face two separate new costs under the bill, not one. The surcharge applies immediately during the registration period.
+            </p>
+          </div>
+        </div>
+        <div class="oppo-sequence-step">
+          <div class="oppo-step-num">4</div>
+          <div class="oppo-step-body">
+            <h4>The bill was re-referred to Taxes with no recommendation</h4>
+            <p>
+              As of April 1, 2025, the committee report was amended with no recommendation and re-referred to the Senate Taxes Committee. The bill has not passed. But Carlson's name remains on it &mdash; and his authorship of a new EV charge is a matter of public legislative record, regardless of the bill's current status.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROOF BLOCK -->
+      <div class="oppo-section-label">Core Document</div>
+      <div class="oppo-proof-block">
+        <div class="oppo-proof-label">Official Legislature Record &mdash; SF 1480, 94th Legislature (2025&ndash;2026)</div>
+        <p class="oppo-proof-text">
+          <strong>"An act relating to transportation; imposing a road usage charge for all-electric vehicles; requiring reports..."</strong><br/><br/>
+          Author: <strong>Carlson</strong> (chief author).<br/>
+          Implementation: <strong>July 1, 2026.</strong><br/>
+          Rate: miles driven multiplied by the ratio of total gasoline excise tax rate to the vehicle's fuel-economy equivalent under MN Stat. 296A.07.<br/>
+          Phase-in: <strong>60%</strong> of full rate in first year (2026&ndash;2027); <strong>80%</strong> in second year (2027&ndash;2028).<br/>
+          Additional: <strong>$75 registration surcharge</strong> per all-electric vehicle per registration period.<br/>
+          Current status: Amended in committee, no recommendation, <strong>re-referred to Senate Taxes Committee, April 1, 2025.</strong>
+        </p>
+        <div class="oppo-proof-source">Source: revisor.mn.gov bill status for SF1480, including the April 1, 2025 amended/no-recommendation report and re-referral to Taxes.</div>
+      </div>
+
+      <!-- EVIDENCE CARDS -->
+      <div class="oppo-section-label">Evidence Cards &mdash; Hover to Examine</div>
+      <div class="oppo-evidence-grid">
+        <div class="oppo-evidence-card">
+          <div class="oppo-ev-label">Card 01 &mdash; Pocketbook</div>
+          <div class="oppo-ev-title">Two New Costs. One Bill. His Name on Both.</div>
+          <p class="oppo-ev-body">
+            SF 1480 creates a per-mile usage charge and a separate $75 registration surcharge. EV owners in District 52 face both costs. The per-mile charge is tied to the gas tax rate and grows to full rate by 2028. Carlson authored both provisions.
+          </p>
+        </div>
+        <div class="oppo-evidence-card">
+          <div class="oppo-ev-label">Card 02 &mdash; Targeting</div>
+          <div class="oppo-ev-title">The Bill Applies Only to All-Electric Vehicles</div>
+          <p class="oppo-ev-body">
+            SF 1480 targets all-electric vehicles specifically. Hybrid owners are not covered. Gas vehicle owners pay no new charge. EV owners in the south metro &mdash; a population that skews toward households that chose EVs for long-term cost savings &mdash; bear the new cost alone.
+          </p>
+        </div>
+        <div class="oppo-evidence-card">
+          <div class="oppo-ev-label">Card 03 &mdash; Branding Gap</div>
+          <div class="oppo-ev-title">An "Engineering-Minded" Senator Targets the Vehicle of the Future</div>
+          <p class="oppo-ev-body">
+            Carlson presents a managerial, competence-first brand. The same legislative session where he bonded money for a small city's water pipes, he also authored a bill that creates new financial pressure specifically on residents who own electric vehicles. The contrast is his record, not an argument.
+          </p>
+        </div>
+      </div>
+
+      <!-- CONTRADICTION BLOCK -->
+      <div class="oppo-section-label">Brand vs. Record</div>
+      <div class="oppo-contradiction">
+        <div class="oppo-contradiction-header">The Carlson Contradiction</div>
+        <div class="oppo-contradiction-cols">
+          <div class="oppo-contra-col col-brand">
+            <h5>The Brand</h5>
+            <p>
+              Carlson has spent 18 years building a reputation as a competent, nuts-and-bolts legislator who focuses on service delivery and infrastructure. His public image is managerial and low-drama. He is an engineer. He fixes things.
+            </p>
+          </div>
+          <div class="oppo-contra-col col-record">
+            <h5>The Record</h5>
+            <p>
+              In the 94th Legislature, Carlson authored a bill that imposes a new per-mile charge and a flat $75 surcharge on all-electric vehicle owners in Minnesota &mdash; a new cost category targeting one class of driver. The bill is quiet in district messaging. It is loud in the official authored-bill record.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- FOOTNOTES -->
+      <div class="oppo-footnotes">
+        <h5>Sources &amp; Footnotes</h5>
+        <ol>
+          <li>SF 1480, 94th Legislature (2025&ndash;2026): "Road usage charge enactment for all-electric vehicles." Chief author: Sen. Jim Carlson. <a href="https://www.revisor.mn.gov/bills/bill.php?b=Senate&f=SF1480&ssn=0&y=2025" target="_blank">revisor.mn.gov</a></li>
+          <li>Bill status: amended, no recommendation, re-referred to Senate Taxes Committee, April 1, 2025. <a href="https://trackbill.com/bill/minnesota-senate-file-1480-road-usage-charge-enactment-for-all-electric-vehicles/2663045/" target="_blank">TrackBill</a> &bull; <a href="https://fastdemocracy.com/bill-search/mn/2025-2026/bills/MNB00057852/" target="_blank">FastDemocracy</a></li>
+          <li>Rate structure: miles driven x (gasoline excise tax rate / fuel-economy equivalent). Per SF 1480 as introduced. <a href="https://www.revisor.mn.gov/bills/text.php?number=SF1480&version=0&session=ls94&session_year=2025&session_number=0" target="_blank">revisor.mn.gov (bill text)</a></li>
+          <li>Phase-in: 60% of full rate July 1, 2026&ndash;June 30, 2027; 80% July 1, 2027&ndash;June 30, 2028; 100% thereafter. Per SF 1480 text.</li>
+          <li>Registration surcharge: $75 per all-electric vehicle per registration period. Per SF 1480 text.</li>
+          <li>Carlson retirement announcement, October 6, 2025. <a href="https://kstp.com/kstp-news/local-news/state-senator-from-eagan-jim-carlson-to-retire-at-end-of-term/" target="_blank">KSTP.com</a></li>
+          <li>Additional context: Drive Electric Minnesota, "Minnesota Legislature Adopts Punitive New Electric Vehicle Fees." <a href="https://driveelectricmn.org/minnesota-legislature-adopts-punitive-new-electric-vehicle-fees/" target="_blank">driveelectricmn.org</a></li>
+        </ol>
+      </div>
+    </div><!-- /oppo-body -->
+
+    <footer class="oppo-footer">
+      <div class="oppo-footer-inner">
+        <span class="oppo-file-label">Accountability File &mdash; MN Senate District 52</span>
+        <span>Research site &mdash; not affiliated with any campaign &mdash; all claims sourced</span>
+      </div>
+    </footer>
+
+  <!-- Auto-transition sentinel — observed by IntersectionObserver -->
+  <div id="brief-sentinel" style="height:1px;width:100%;"></div>
+
+  <!-- Subtle stamp — visible as user nears the bottom -->
+  <div class="machine-stamp">
+    <span class="machine-stamp-text">AI-GENERATED &nbsp;·&nbsp; 67 SENATORS &nbsp;·&nbsp; 63 PARALLEL AGENTS &nbsp;·&nbsp; ~4 HRS &nbsp;·&nbsp; ~$47</span>
+  </div>
+
+  </div><!-- /oppo-content -->
+
+
+  <!-- ─── JS ─────────────────────────────────────────────────────── -->
+  <script>
+    /* ── FLIP BUTTON ──────────────────────────────────────────────── */
+    const btn = document.getElementById('flip-btn');
+    btn.addEventListener('click', () => {
+      const body = document.body;
+      body.classList.add('fading');
+      setTimeout(() => {
+        body.classList.toggle('mode-oppo');
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        body.classList.remove('fading');
+      }, 220);
+    });
+
+    /* ── SCROLL COUNTERS ──────────────────────────────────────────── */
+    const counters = document.querySelectorAll('.counter');
+    const observed = new Set();
+
+    const runCounter = (el) => {
+      const target = parseInt(el.dataset.target, 10);
+      const duration = 1400;
+      const start = performance.now();
+      const tick = (now) => {
+        const elapsed = Math.min((now - start) / duration, 1);
+        const ease = 1 - Math.pow(1 - elapsed, 3);
+        const value = Math.round(target * ease);
+        // Format
+        if (target >= 1000000) {
+          el.textContent = (value / 1000000).toFixed(1) + 'M';
+        } else {
+          el.textContent = value.toLocaleString();
+        }
+        if (elapsed < 1) requestAnimationFrame(tick);
+        else {
+          if (target >= 1000000) el.textContent = (target / 1000000).toFixed(1) + 'M';
+          else el.textContent = target.toLocaleString();
+        }
+      };
+      requestAnimationFrame(tick);
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !observed.has(entry.target)) {
+          observed.add(entry.target);
+          runCounter(entry.target);
+        }
+      });
+    }, { threshold: 0.3 });
+
+    counters.forEach(c => observer.observe(c));
+  </script>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     THE BRIEF — AI capabilities briefing
+═══════════════════════════════════════════════════════ -->
+<div class="brief-content">
+
+  <div class="brief-opening">
+    <p class="brief-made-by">Sixty-seven of these pages were made using one AI account in about thirty minutes. Six months ago an automated project like this would have been impossible.</p>
+  </div>
+
+  <div class="brief-chart-section">
+    <h2 class="brief-chart-title">This is the trend that made it possible.</h2>
+    <div class="brief-chart-frame">
+      <img src="https://metr.org/assets/images/measuring-ai-ability-to-complete-long-tasks/length-of-tasks-log.png" alt="METR chart" class="brief-metr-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+      <div class="brief-chart-fallback" style="display:none;"><p>Chart unavailable. See the original at <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">metr.org</a>.</p></div>
+    </div>
+    <p class="brief-chart-source">Source: <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR</a>, an independent AI evaluation lab.</p>
+    <p class="brief-chart-read">This chart tracks how long a task an AI agent can finish on its own. In 2019, the answer was about three seconds. By early 2023, it was six minutes. by mid 2025, over two hours. As of early 2026, Claude Opus 4.6 completes tasks that take a skilled human roughly twelve hours.</p>
+    <p class="brief-chart-read">The overall doubling time has been about seven months. But it is getting faster. <a href="https://metr.org/time-horizons/" target="_blank">When researchers fit only the most recent data</a>, the doubling time drops to four months. At that rate, AI agents capable of completing month-long autonomous projects arrive not in the early 2030s but around 2028.</p>
+  </div>
+
+  <div class="brief-so-what">
+    <h2 class="brief-so-what-title">What that means for lawmakers.</h2>
+    <p>Urgency. There was a narrative last year that AI had hit a wall in capabilities. It was a plausible perspective at the time. It isn't anymore. After breakthroughs late last year, AI systems' ability to automate cyberattacks, pathogen design, misinformation, mass surveillance, and vast swaths of white-collar work is advancing faster than ever.</p>
+    <p>The world will soon change faster than the typical pace of policymaking. The only solution is to act with atypical speed: AI regulations, data center moratoriums, calling for a federal pause on AI development, worker displacement funds. Some of these ideas already have bills introduced this session. Others should be explored soon. Time is limited, so if you feel behind on AI, the sources below are a good place to start.</p>
+    
+  </div>
+
+  <div class="brief-next">
+    <h2 class="brief-next-title">Start here.</h2>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">USE</span>
+      <a href="https://claude.ai/cowork" target="_blank">Claude Cowork</a> · <a href="https://claude.ai/code" target="_blank">Claude Code</a>
+      <span class="brief-link-detail">The tools that built this page. Cowork handles research and writing. Code is the agent that runs tasks, spawns sub-agents, and makes decisions on its own. Spend thirty minutes with one of these on a real problem from your week. That will teach you more than any briefing.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR: Measuring AI Ability to Complete Long Tasks</a>
+      <span class="brief-link-detail">The source for the chart above. The METR trend is based on software tasks, but <a href="https://futuretech.mit.edu/publication/crashing-waves-vs-rising-tides-preliminary-findings-on-ai-automation-from-thousands-of-worker-evaluations-of-labor-market-tasks" target="_blank">MIT research on worker evaluations of labor market tasks</a> finds similar patterns across white-collar work broadly.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://aiindex.stanford.edu/report/" target="_blank">Stanford HAI AI Index 2025</a>
+      <span class="brief-link-detail">The most comprehensive annual report on AI capabilities, economics, and policy across all 50 states.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.imdb.com/title/tt39150120/" target="_blank">The AI Doc: Or How I Became an Apocaloptimist</a>
+      <span class="brief-link-detail">Daniel Roher's 2026 documentary, in theaters now. Roher interviews Amodei, Altman, Hassabis, and dozens more. If you see one thing on this list, see this.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.youtube.com/watch?v=xoVJKj8lcNQ" target="_blank">The A.I. Dilemma</a>
+      <span class="brief-link-detail">Center for Humane Technology. 60 min, free on YouTube. Made for people with institutional power who need to understand AI quickly.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">TRACK</span>
+      <a href="https://www.ncsl.org/technology-and-communication/artificial-intelligence" target="_blank">NCSL AI Legislation Tracker</a> · <a href="https://mn.gov/mnit/about-mnit/oit-programs/ai/" target="_blank">MN.IT AI Office</a>
+      <span class="brief-link-detail">Every AI bill in every state. Plus Minnesota's own AI program office. See where you stand relative to the field.</span>
+    </div>
+  </div>
+
+  <div class="brief-close">
+    <p class="brief-close-small">This project is not affiliated with any campaign, party, or organization.</p>
+    <button id="exit-brief-btn">← Back</button>
+  </div>
+
+</div><!-- /brief-content -->
+
+<style>
+.brief-content { display: none; }
+body.mode-brief .brief-content { display: block; }
+body.mode-brief .pro-content { display: none; }
+body.mode-brief .oppo-content { display: none; }
+body.mode-brief #flip-btn { display: none; }
+.brief-content { background: #0C0A08; color: #D4CCBE; font-family: 'Source Serif 4', Georgia, serif; font-size: 17px; line-height: 1.75; min-height: 100vh; }
+.brief-content a { color: #C0B49A; }
+.brief-content a:hover { color: #fff; }
+@keyframes glitch-seq { 0% { filter: saturate(0) brightness(0.5); } 10% { filter: hue-rotate(90deg) contrast(4) brightness(3); transform: skewX(4deg); } 12% { filter: brightness(0.1); transform: none; } 25% { filter: hue-rotate(200deg) invert(0.8); transform: translateX(6px); } 27% { filter: brightness(0.05); transform: none; } 40% { filter: blur(6px) brightness(0.02); } 44% { filter: brightness(6); } 46% { filter: none; transform: none; } 60% { filter: hue-rotate(300deg) contrast(3) saturate(8); transform: skewX(-3deg); } 62% { filter: none; transform: none; } 78% { filter: blur(16px) brightness(0.01); } 82% { filter: brightness(2); } 84% { filter: none; } 100% { filter: none; transform: none; } }
+body.glitching { animation: glitch-seq 1.2s ease-in-out forwards; pointer-events: none; }
+.machine-stamp { background: #050505; border-top: 1px solid #111; padding: 16px 40px; text-align: center; }
+.machine-stamp-text { font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 0.22em; color: #222; text-transform: uppercase; animation: stamp-pulse 3s ease-in-out infinite; }
+@keyframes stamp-pulse { 0%, 100% { color: #222; } 50% { color: #4A3A2A; } }
+.brief-opening { max-width: 640px; margin: 0 auto; padding: 100px 40px 64px; }
+.brief-made-by { font-size: 20px; line-height: 1.65; color: #B8AE9C; margin-bottom: 20px; }
+.brief-chart-section { max-width: 740px; margin: 0 auto; padding: 48px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-chart-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 32px; font-style: italic; }
+.brief-chart-frame { background: #fff; border-radius: 4px; padding: 12px; margin-bottom: 12px; }
+.brief-metr-img { width: 100%; height: auto; display: block; }
+.brief-chart-fallback { padding: 40px; text-align: center; color: #666; font-size: 14px; }
+.brief-chart-source { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #5A5040; line-height: 1.6; margin-bottom: 28px; }
+.brief-chart-source a { color: #7A6A54; text-decoration: none; }
+.brief-chart-read { font-size: 17px; color: #B8AE9C; margin-bottom: 16px; }
+.brief-so-what { max-width: 640px; margin: 0 auto; padding: 56px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-so-what-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 28px; font-style: italic; }
+.brief-so-what p { font-size: 17px; color: #B8AE9C; margin-bottom: 20px; }
+.brief-next { max-width: 640px; margin: 0 auto; padding: 56px 40px 48px; border-top: 1px solid #1E1A14; }
+.brief-next-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 14px; font-style: italic; }
+.brief-link-block { margin-bottom: 28px; line-height: 1.7; }
+.brief-link-tag { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.2em; color: #6A5A44; text-transform: uppercase; display: block; margin-bottom: 4px; }
+.brief-link-block a { font-weight: 600; color: #E0D6C4; text-decoration: underline; text-underline-offset: 3px; font-size: 16px; }
+.brief-link-block a:hover { color: #fff; }
+.brief-link-detail { display: block; font-size: 14px; color: #6A5E4C; margin-top: 2px; }
+.brief-close { max-width: 640px; margin: 0 auto; padding: 48px 40px 100px; border-top: 1px solid #1E1A14; }
+.brief-close p { font-family: 'Source Serif 4', Georgia, serif; font-size: 16px; color: #9A9080; margin-bottom: 32px; line-height: 1.7; }
+.brief-close-small { font-family: 'IBM Plex Mono', monospace !important; font-size: 11px !important; color: #3A3428 !important; letter-spacing: 0.04em; }
+#exit-brief-btn { background: none; border: 1px solid #2A2418; color: #5A5040; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; padding: 10px 20px; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
+#exit-brief-btn:hover { border-color: #8A7A64; color: #C0B49A; }
+@media (max-width: 900px) { .brief-opening, .brief-so-what, .brief-next, .brief-close { padding-left: 24px; padding-right: 24px; } .brief-chart-section { padding-left: 24px; padding-right: 24px; } .brief-made-by { font-size: 18px; } .brief-opening { padding-top: 64px; } .machine-stamp { padding: 14px 20px; } }
+</style>
+
+<script>
+(function() {
+  let briefTriggered = false;
+  function startBriefTransition() {
+    if (briefTriggered) return;
+    if (!document.body.classList.contains('mode-oppo')) return;
+    briefTriggered = true;
+    const body = document.body;
+    body.style.transition = 'filter 2.5s ease-in';
+    body.style.filter = 'saturate(0) brightness(0.3)';
+    setTimeout(() => {
+      const hed = document.querySelector('.oppo-content h1') || document.querySelector('.oppo-content h2');
+      if (hed) { const orig = hed.textContent; const chars = '█▓▒░■□0123456789'; let n = 0; const si = setInterval(() => { n++; hed.textContent = Array.from(orig).map(c => c === ' ' ? ' ' : chars[Math.floor(Math.random() * chars.length)]).join(''); if (n > 40) { clearInterval(si); hed.textContent = orig; } }, 40); }
+    }, 1200);
+    setTimeout(() => {
+      body.style.transition = ''; body.style.filter = ''; body.classList.add('glitching');
+      setTimeout(() => { body.classList.remove('glitching'); body.classList.add('mode-brief'); window.scrollTo({ top: 0, behavior: 'instant' }); }, 1500);
+    }, 2500);
+  }
+  const sentinel = document.getElementById('brief-sentinel');
+  if (sentinel && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => { entries.forEach(e => { if (e.isIntersecting) { io.disconnect(); setTimeout(startBriefTransition, 1200); } }); }, { threshold: 0.5 });
+    io.observe(sentinel);
+  }
+  const flipBtn = document.getElementById('flip-btn');
+  if (flipBtn) { flipBtn.addEventListener('click', () => { if (document.body.classList.contains('mode-oppo')) briefTriggered = false; }); }
+})();
+document.addEventListener('click', (e) => {
+  if (e.target && e.target.id === 'exit-brief-btn') {
+    const body = document.body; body.style.opacity = '0'; body.style.transition = 'opacity 0.3s';
+    setTimeout(() => { body.classList.remove('mode-brief'); body.classList.add('mode-oppo'); window.scrollTo({ top: 0, behavior: 'instant' }); body.style.opacity = '1'; }, 300);
+  }
+});
+</script>
+
+</body>
+</html>

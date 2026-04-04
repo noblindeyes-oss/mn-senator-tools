@@ -1,0 +1,1851 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Heather Gustafson — Senate District 36</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=IBM+Plex+Mono:wght@400;500;600&family=DM+Sans:wght@300;400;500;600&family=Lora:ital,wght@0,400;0,600;1,400&display=swap&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&family=Oswald:wght@300;400;500;600;700" rel="stylesheet" />
+
+  <style>
+    /* ─── RESET ────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    /* ─── MODE SWITCHING ────────────────────────────────────────── */
+    .pro-content  { display: block; }
+    .oppo-content { display: none;  }
+    body.mode-oppo .pro-content  { display: none;  }
+    body.mode-oppo .oppo-content { display: block; }
+
+    body {
+      transition: opacity 0.22s ease;
+    }
+    body.fading {
+      opacity: 0;
+    }
+
+    /* ─── FLIP BUTTON ───────────────────────────────────────────── */
+    #flip-btn {
+      position: fixed;
+      top: 22px;
+      right: 22px;
+      z-index: 9999;
+      border: none;
+      cursor: pointer;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      padding: 12px 20px;
+      border-radius: 2px;
+      transition: transform 0.18s, box-shadow 0.18s;
+    }
+    body:not(.mode-oppo) #flip-btn {
+      background: #1C1C1C;
+      color: #F4EFE4;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.25);
+    }
+    body.mode-oppo #flip-btn {
+      background: #F4EFE4;
+      color: #1C1C1C;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.18);
+    }
+    #flip-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+    }
+    .btn-pro-label, .btn-oppo-label { pointer-events: none; }
+    body:not(.mode-oppo) .btn-oppo-label { display: none; }
+    body.mode-oppo .btn-pro-label       { display: none; }
+
+
+    /* ════════════════════════════════════════════════════════════
+       PRO SITE  —  "The Teacher's Ledger"
+       Palette: lake teal #2A7A8C  |  brick red #8B3A3A
+                warm cream #F4EFE4  |  ink #1C1C1C
+                soft gold #C8963E
+    ════════════════════════════════════════════════════════════ */
+
+    /* ── Shared pro tokens ───────────────────────────────────── */
+    .pro-content {
+      background: #F4EFE4;
+      font-family: 'DM Sans', sans-serif;
+      color: #1C1C1C;
+    }
+
+    /* ── Rule utility ────────────────────────────────────────── */
+    .pro-rule {
+      display: block;
+      width: 100%;
+      height: 3px;
+      background: #2A7A8C;
+    }
+    .pro-rule-thin {
+      display: block;
+      width: 100%;
+      height: 1px;
+      background: rgba(42,122,140,0.3);
+      margin: 0;
+    }
+
+    /* ── HERO ────────────────────────────────────────────────── */
+    .pro-hero {
+      display: grid;
+      grid-template-columns: 55% 45%;
+      min-height: 100vh;
+      border-bottom: 3px solid #1C1C1C;
+    }
+
+    /* Left panel — lake teal */
+    .pro-hero-left {
+      background: #2A7A8C;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 72px 60px 64px;
+      overflow: hidden;
+    }
+
+    /* Subtle wave/ripple texture — lake character */
+    .pro-hero-left::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        repeating-linear-gradient(
+          160deg,
+          transparent,
+          transparent 28px,
+          rgba(255,255,255,0.04) 28px,
+          rgba(255,255,255,0.04) 29px
+        ),
+        repeating-linear-gradient(
+          70deg,
+          transparent,
+          transparent 44px,
+          rgba(255,255,255,0.025) 44px,
+          rgba(255,255,255,0.025) 45px
+        );
+      pointer-events: none;
+    }
+
+    /* Chalkboard-line echo at top */
+    .pro-hero-left::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: #C8963E;
+    }
+
+    .pro-district-tag {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+      color: rgba(244,239,228,0.55);
+      border: 1px solid rgba(244,239,228,0.25);
+      padding: 5px 12px;
+      display: inline-block;
+      width: fit-content;
+      margin-bottom: 32px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .pro-hero-name {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: clamp(52px, 5.8vw, 88px);
+      line-height: 0.9;
+      color: #F4EFE4;
+      margin-bottom: 28px;
+      position: relative;
+      z-index: 1;
+      letter-spacing: -0.01em;
+    }
+
+    .pro-hero-tagline {
+      font-family: 'Lora', serif;
+      font-style: italic;
+      font-size: clamp(15px, 1.6vw, 18px);
+      line-height: 1.55;
+      color: rgba(244,239,228,0.82);
+      max-width: 380px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .pro-hero-tagline strong {
+      font-style: normal;
+      color: #F4EFE4;
+      font-weight: 600;
+    }
+
+    /* Right panel — photo + stat */
+    .pro-hero-right {
+      background: #1C1C1C;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      overflow: hidden;
+    }
+
+    .pro-photo-wrap {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .pro-photo-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 15%;
+      filter: sepia(15%) brightness(0.92) contrast(1.06);
+    }
+
+    .pro-photo-fallback {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(160deg, #3a3a3a 0%, #1c1c1c 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: rgba(244,239,228,0.3);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .pro-hero-stat-bar {
+      background: #C8963E;
+      padding: 18px 32px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .pro-hero-stat-num {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 36px;
+      line-height: 1;
+      color: #1C1C1C;
+    }
+
+    .pro-hero-stat-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(28,28,28,0.7);
+      line-height: 1.4;
+    }
+
+    /* ── LEDGER INTRO BAND ───────────────────────────────────── */
+    .pro-intro {
+      padding: 72px 10%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: start;
+      border-bottom: 1px solid rgba(28,28,28,0.12);
+    }
+
+    .pro-intro-hed {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: clamp(28px, 3vw, 42px);
+      line-height: 1.1;
+      color: #8B3A3A;
+    }
+
+    .pro-intro-body {
+      font-family: 'Lora', serif;
+      font-size: 17px;
+      line-height: 1.72;
+      color: #2d2d2d;
+    }
+
+    .pro-intro-body p + p {
+      margin-top: 16px;
+    }
+
+    /* ── KEY NUMBERS BAR ─────────────────────────────────────── */
+    .pro-numbers {
+      background: #8B3A3A;
+      padding: 52px 10%;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+    }
+
+    .pro-num-card {
+      background: #8B3A3A;
+      padding: 32px 28px;
+      border-right: 1px solid rgba(244,239,228,0.15);
+      position: relative;
+    }
+    .pro-num-card:last-child { border-right: none; }
+
+    .pro-num-val {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: clamp(40px, 4.5vw, 64px);
+      color: #F4EFE4;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .pro-num-val .counter { display: inline; }
+
+    .pro-num-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(244,239,228,0.55);
+      margin-bottom: 10px;
+    }
+
+    .pro-num-desc {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      line-height: 1.55;
+      color: rgba(244,239,228,0.75);
+    }
+
+    /* ── MAIN FACT SECTION ───────────────────────────────────── */
+    .pro-fact {
+      padding: 80px 10%;
+      display: grid;
+      grid-template-columns: 56px 1fr;
+      gap: 0 40px;
+      border-bottom: 1px solid rgba(28,28,28,0.12);
+    }
+
+    .pro-fact-spine {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      padding-top: 6px;
+    }
+
+    .pro-fact-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #2A7A8C;
+      flex-shrink: 0;
+    }
+
+    .pro-fact-line {
+      flex: 1;
+      width: 2px;
+      background: rgba(42,122,140,0.25);
+      margin-top: 6px;
+    }
+
+    .pro-fact-hed {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: clamp(22px, 2.4vw, 32px);
+      line-height: 1.2;
+      color: #1C1C1C;
+      margin-bottom: 20px;
+    }
+
+    .pro-fact-body {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 16px;
+      line-height: 1.72;
+      color: #2d2d2d;
+    }
+
+    .pro-fact-body p + p { margin-top: 14px; }
+
+    .pro-bill-block {
+      margin-top: 32px;
+      background: #F4EFE4;
+      border: 1px solid rgba(42,122,140,0.3);
+      border-left: 4px solid #2A7A8C;
+      padding: 24px 28px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      line-height: 1.7;
+      color: #2d2d2d;
+    }
+
+    .pro-bill-block .bill-id {
+      font-size: 13px;
+      font-weight: 600;
+      color: #2A7A8C;
+      display: block;
+      margin-bottom: 10px;
+      letter-spacing: 0.08em;
+    }
+
+    .pro-bill-block .bill-provision {
+      display: block;
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(42,122,140,0.12);
+    }
+    .pro-bill-block .bill-provision:last-child { border-bottom: none; }
+
+    .pro-bill-block .bill-key {
+      color: #8B3A3A;
+      font-weight: 600;
+    }
+
+    /* ── PULL QUOTE ──────────────────────────────────────────── */
+    .pro-pullquote {
+      background: #2A7A8C;
+      padding: 72px 12%;
+      text-align: center;
+    }
+
+    .pro-pullquote blockquote {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-style: italic;
+      font-size: clamp(22px, 2.8vw, 36px);
+      line-height: 1.35;
+      color: #F4EFE4;
+      max-width: 820px;
+      margin: 0 auto 28px;
+    }
+
+    .pro-pullquote cite {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(244,239,228,0.55);
+      font-style: normal;
+    }
+
+    /* ── DISTRICT SECTION ────────────────────────────────────── */
+    .pro-district {
+      padding: 80px 10%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      border-bottom: 1px solid rgba(28,28,28,0.12);
+    }
+
+    .pro-district-hed {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: clamp(24px, 2.6vw, 36px);
+      line-height: 1.15;
+      color: #1C1C1C;
+      margin-bottom: 24px;
+    }
+
+    .pro-district-body {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      line-height: 1.72;
+      color: #2d2d2d;
+    }
+    .pro-district-body p + p { margin-top: 14px; }
+
+    .pro-community-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .pro-community-item {
+      display: grid;
+      grid-template-columns: 8px 1fr auto;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 0;
+      border-bottom: 1px solid rgba(28,28,28,0.1);
+    }
+    .pro-community-item:last-child { border-bottom: none; }
+
+    .pro-community-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #2A7A8C;
+    }
+
+    .pro-community-name {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      font-size: 14px;
+      color: #1C1C1C;
+    }
+
+    .pro-community-tag {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      color: rgba(28,28,28,0.4);
+      text-transform: uppercase;
+    }
+
+    /* ── TEACHER PIPELINE SECTION ────────────────────────────── */
+    .pro-pipeline {
+      padding: 80px 10%;
+      background: #1C1C1C;
+    }
+
+    .pro-pipeline-hed {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: clamp(24px, 2.6vw, 36px);
+      color: #F4EFE4;
+      margin-bottom: 8px;
+    }
+
+    .pro-pipeline-sub {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(244,239,228,0.4);
+      margin-bottom: 48px;
+    }
+
+    .pro-pipeline-steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+    }
+
+    .pro-pipeline-step {
+      background: #252525;
+      padding: 36px 28px;
+      border-top: 3px solid #2A7A8C;
+      transition: border-color 0.2s;
+    }
+    .pro-pipeline-step:hover { border-color: #C8963E; }
+
+    .pro-step-num {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      color: rgba(244,239,228,0.3);
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .pro-step-val {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 32px;
+      color: #C8963E;
+      margin-bottom: 8px;
+    }
+
+    .pro-step-label {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      line-height: 1.55;
+      color: rgba(244,239,228,0.7);
+    }
+
+    /* ── FOOTNOTES ───────────────────────────────────────────── */
+    .pro-footnotes {
+      background: #F4EFE4;
+      border-top: 3px solid #2A7A8C;
+      padding: 48px 10%;
+    }
+
+    .pro-footnotes-title {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(28,28,28,0.4);
+      margin-bottom: 20px;
+    }
+
+    .pro-fn-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .pro-fn-list li {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      line-height: 1.6;
+      color: rgba(28,28,28,0.55);
+      padding-left: 18px;
+      position: relative;
+    }
+
+    .pro-fn-list li::before {
+      content: attr(data-fn);
+      position: absolute;
+      left: 0;
+      color: #2A7A8C;
+      font-weight: 600;
+    }
+
+    .pro-fn-list li a {
+      color: #2A7A8C;
+      text-decoration: none;
+    }
+    .pro-fn-list li a:hover { text-decoration: underline; }
+
+    /* ── RESPONSIVE PRO ──────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .pro-hero {
+        grid-template-columns: 1fr;
+        min-height: auto;
+      }
+      .pro-hero-left { padding: 56px 32px 48px; min-height: 60vh; }
+      .pro-hero-right { min-height: 360px; }
+      .pro-intro, .pro-district { grid-template-columns: 1fr; gap: 40px; padding: 52px 6%; }
+      .pro-numbers { grid-template-columns: 1fr; padding: 40px 6%; }
+      .pro-num-card { border-right: none; border-bottom: 1px solid rgba(244,239,228,0.15); }
+      .pro-fact { grid-template-columns: 1fr; padding: 52px 6%; }
+      .pro-fact-spine { display: none; }
+      .pro-pullquote { padding: 52px 8%; }
+      .pro-pipeline { padding: 52px 6%; }
+      .pro-pipeline-steps { grid-template-columns: 1fr; }
+      .pro-footnotes { padding: 40px 6%; }
+    }
+
+
+    /* ════════════════════════════════════════════════════════════
+       OPPO SITE  —  "Legislative Case File SF662"
+       Palette: cold white #F8F7F5  |  charcoal #1A1A1A
+                case red #C0392B    |  document gray #E8E5DF
+                steel #6B7280
+    ════════════════════════════════════════════════════════════ */
+
+    .oppo-content {
+      background: #F8F7F5;
+      font-family: 'DM Sans', sans-serif;
+      color: #1A1A1A;
+    }
+
+    /* ── OPPO HEADER / CASE LABEL ────────────────────────────── */
+    .oppo-header {
+      background: #1A1A1A;
+      padding: 0;
+      border-bottom: 4px solid #C0392B;
+    }
+
+    .oppo-header-inner {
+      padding: 28px 8% 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .oppo-case-label {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .oppo-case-prefix {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px;
+      font-weight: 600;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: rgba(248,247,245,0.35);
+    }
+
+    .oppo-case-id {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 18px;
+      font-weight: 600;
+      color: #C0392B;
+      letter-spacing: 0.04em;
+    }
+
+    .oppo-header-meta {
+      text-align: right;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      color: rgba(248,247,245,0.35);
+      letter-spacing: 0.1em;
+      line-height: 1.7;
+    }
+
+    /* ── ACCUSATION HERO ─────────────────────────────────────── */
+    .oppo-hero {
+      background: #1A1A1A;
+      padding: 64px 8% 60px;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 64px;
+      align-items: center;
+    }
+
+    .oppo-hero-accusation {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: clamp(32px, 4vw, 56px);
+      line-height: 1.05;
+      color: #F8F7F5;
+      margin-bottom: 24px;
+    }
+
+    .oppo-hero-accusation span.accent {
+      color: #C0392B;
+    }
+
+    .oppo-hero-sub {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      line-height: 1.65;
+      color: rgba(248,247,245,0.6);
+      max-width: 540px;
+    }
+
+    .oppo-photo-wrap {
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .oppo-photo-wrap img {
+      width: 100%;
+      aspect-ratio: 3/4;
+      object-fit: cover;
+      object-position: center 15%;
+      filter: grayscale(100%) contrast(1.2) brightness(0.75);
+      display: block;
+    }
+
+    .oppo-photo-wrap .photo-caption {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(192,57,43,0.88);
+      padding: 10px 14px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #F8F7F5;
+    }
+
+    .oppo-photo-fallback {
+      width: 100%;
+      aspect-ratio: 3/4;
+      background: #2a2a2a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: rgba(248,247,245,0.2);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    /* ── BRAND vs RECORD GAP BAR ─────────────────────────────── */
+    .oppo-gap-bar {
+      background: #C0392B;
+      padding: 20px 8%;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .oppo-gap-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(248,247,245,0.7);
+      white-space: nowrap;
+    }
+
+    .oppo-gap-rule {
+      flex: 1;
+      height: 1px;
+      background: rgba(248,247,245,0.25);
+    }
+
+    .oppo-gap-text {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: #F8F7F5;
+    }
+
+    /* ── SEQUENCE SECTION ────────────────────────────────────── */
+    .oppo-sequence {
+      padding: 72px 8%;
+      border-bottom: 1px solid rgba(26,26,26,0.1);
+    }
+
+    .oppo-section-tag {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: #C0392B;
+      margin-bottom: 12px;
+    }
+
+    .oppo-section-hed {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: clamp(22px, 2.4vw, 32px);
+      color: #1A1A1A;
+      margin-bottom: 48px;
+      line-height: 1.2;
+    }
+
+    .oppo-timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .oppo-timeline-item {
+      display: grid;
+      grid-template-columns: 160px 32px 1fr;
+      gap: 0 20px;
+      position: relative;
+    }
+
+    .oppo-timeline-date {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      color: rgba(26,26,26,0.4);
+      text-align: right;
+      padding-top: 6px;
+      text-transform: uppercase;
+    }
+
+    .oppo-timeline-spine {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .oppo-timeline-node {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #C0392B;
+      flex-shrink: 0;
+      margin-top: 4px;
+    }
+
+    .oppo-timeline-connector {
+      flex: 1;
+      width: 2px;
+      background: rgba(192,57,43,0.2);
+    }
+    .oppo-timeline-item:last-child .oppo-timeline-connector { display: none; }
+
+    .oppo-timeline-content {
+      padding-bottom: 40px;
+    }
+
+    .oppo-timeline-title {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 600;
+      font-size: 16px;
+      color: #1A1A1A;
+      margin-bottom: 8px;
+    }
+
+    .oppo-timeline-body {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      line-height: 1.65;
+      color: rgba(26,26,26,0.65);
+    }
+
+    /* ── PROOF BLOCK — bill text ─────────────────────────────── */
+    .oppo-proof {
+      padding: 72px 8%;
+      background: #EFECE6;
+      border-top: 1px solid rgba(26,26,26,0.1);
+      border-bottom: 1px solid rgba(26,26,26,0.1);
+    }
+
+    .oppo-doc-frame {
+      max-width: 760px;
+      margin: 0 auto;
+      background: #F8F7F5;
+      border: 1px solid rgba(26,26,26,0.15);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+
+    .oppo-doc-header {
+      background: #1A1A1A;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .oppo-doc-title {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(248,247,245,0.55);
+    }
+
+    .oppo-doc-stamp {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #C0392B;
+      border: 1px solid #C0392B;
+      padding: 3px 8px;
+    }
+
+    .oppo-doc-body {
+      padding: 32px 36px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      line-height: 1.85;
+      color: #2d2d2d;
+    }
+
+    .oppo-doc-body .doc-section {
+      margin-bottom: 20px;
+    }
+
+    .oppo-doc-body .doc-section-label {
+      font-size: 8px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(26,26,26,0.35);
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .oppo-doc-body .doc-text {
+      color: #2d2d2d;
+    }
+
+    .oppo-highlight {
+      background: rgba(192,57,43,0.12);
+      border-bottom: 2px solid #C0392B;
+      padding: 0 2px;
+      font-weight: 600;
+      color: #C0392B;
+      cursor: default;
+      transition: background 0.18s;
+    }
+    .oppo-highlight:hover {
+      background: rgba(192,57,43,0.22);
+    }
+
+    /* ── EVIDENCE CARDS ──────────────────────────────────────── */
+    .oppo-evidence {
+      padding: 72px 8%;
+      border-bottom: 1px solid rgba(26,26,26,0.1);
+    }
+
+    .oppo-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      margin-top: 40px;
+    }
+
+    .oppo-card {
+      background: #F8F7F5;
+      border: 1px solid rgba(26,26,26,0.1);
+      padding: 32px 28px;
+      border-top: 3px solid rgba(26,26,26,0.15);
+      transition: border-top-color 0.18s, box-shadow 0.18s, transform 0.18s;
+      cursor: default;
+    }
+
+    .oppo-card:hover {
+      border-top-color: #C0392B;
+      box-shadow: 0 6px 24px rgba(192,57,43,0.12);
+      transform: translateY(-3px);
+    }
+
+    .oppo-card-icon {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(26,26,26,0.35);
+      margin-bottom: 20px;
+      display: block;
+    }
+
+    .oppo-card-title {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 18px;
+      line-height: 1.25;
+      color: #1A1A1A;
+      margin-bottom: 12px;
+    }
+
+    .oppo-card-body {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      line-height: 1.62;
+      color: rgba(26,26,26,0.62);
+    }
+
+    .oppo-card-data {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(26,26,26,0.08);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      color: #C0392B;
+    }
+
+    /* Hostile hover state: reveal a sharp verdict */
+    .oppo-card-verdict {
+      display: none;
+      margin-top: 10px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #C0392B;
+      padding: 6px 0;
+      border-top: 1px solid rgba(192,57,43,0.2);
+    }
+    .oppo-card:hover .oppo-card-verdict { display: block; }
+
+    /* ── BRAND CONTRADICTION BOX ─────────────────────────────── */
+    .oppo-contrast {
+      padding: 72px 8%;
+      background: #1A1A1A;
+    }
+
+    .oppo-contrast-hed {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: clamp(22px, 2.4vw, 32px);
+      color: #F8F7F5;
+      margin-bottom: 40px;
+    }
+
+    .oppo-contrast-grid {
+      display: grid;
+      grid-template-columns: 1fr 48px 1fr;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .oppo-contrast-col {
+      padding: 32px;
+    }
+
+    .oppo-contrast-col.brand {
+      background: #252525;
+      border-top: 3px solid rgba(248,247,245,0.15);
+    }
+    .oppo-contrast-col.record {
+      background: #252525;
+      border-top: 3px solid #C0392B;
+    }
+
+    .oppo-contrast-col-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px;
+      font-weight: 600;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .brand .oppo-contrast-col-label { color: rgba(248,247,245,0.35); }
+    .record .oppo-contrast-col-label { color: #C0392B; }
+
+    .oppo-contrast-col-text {
+      font-family: 'Lora', serif;
+      font-size: 15px;
+      line-height: 1.65;
+    }
+    .brand .oppo-contrast-col-text { color: rgba(248,247,245,0.65); }
+    .record .oppo-contrast-col-text { color: #F8F7F5; }
+
+    .oppo-vs {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 28px;
+      color: #C0392B;
+      text-align: center;
+    }
+
+    /* ── OPPO FOOTNOTES ──────────────────────────────────────── */
+    .oppo-footnotes {
+      background: #F8F7F5;
+      border-top: 3px solid #C0392B;
+      padding: 48px 8%;
+    }
+
+    .oppo-footnotes-title {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(26,26,26,0.35);
+      margin-bottom: 20px;
+    }
+
+    .oppo-fn-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .oppo-fn-list li {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      line-height: 1.6;
+      color: rgba(26,26,26,0.5);
+      padding-left: 18px;
+      position: relative;
+    }
+
+    .oppo-fn-list li::before {
+      content: attr(data-fn);
+      position: absolute;
+      left: 0;
+      color: #C0392B;
+      font-weight: 600;
+    }
+
+    .oppo-fn-list li a {
+      color: #C0392B;
+      text-decoration: none;
+    }
+    .oppo-fn-list li a:hover { text-decoration: underline; }
+
+    /* ── RESPONSIVE OPPO ─────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .oppo-hero { grid-template-columns: 1fr; padding: 48px 6%; }
+      .oppo-photo-wrap { max-width: 280px; margin: 0 auto; }
+      .oppo-header-inner { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .oppo-header-meta { text-align: left; }
+      .oppo-gap-bar { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .oppo-gap-rule { display: none; }
+      .oppo-sequence, .oppo-evidence, .oppo-contrast, .oppo-proof { padding: 52px 6%; }
+      .oppo-timeline-item { grid-template-columns: 100px 24px 1fr; }
+      .oppo-cards { grid-template-columns: 1fr; }
+      .oppo-contrast-grid { grid-template-columns: 1fr; }
+      .oppo-vs { display: none; }
+      .oppo-doc-body { padding: 20px; }
+      .oppo-footnotes { padding: 40px 6%; }
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- ─── FLIP BUTTON ────────────────────────────────────────── -->
+  <button id="flip-btn" aria-label="Switch between supporter and accountability view">
+    <span class="btn-pro-label">View Accountability File</span>
+    <span class="btn-oppo-label">View Supporter Case</span>
+  </button>
+
+
+  <!-- ══════════════════════════════════════════════════════════
+       PRO SITE
+  ══════════════════════════════════════════════════════════ -->
+  <div class="pro-content" aria-label="Supporter view">
+
+    <!-- HERO -->
+    <section class="pro-hero">
+      <div class="pro-hero-left">
+        <span class="pro-district-tag">Minnesota Senate District 36 &nbsp;|&nbsp; DFL</span>
+        <h1 class="pro-hero-name">Heather<br>Gustafson</h1>
+        <p class="pro-hero-tagline">
+          A classroom teacher turned legislator.<br>
+          <strong>Now writing the law that makes teaching financially possible.</strong>
+        </p>
+      </div>
+      <div class="pro-hero-right">
+        <div class="pro-photo-wrap">
+          <img
+            src="https://www.senate.mn/graphics/36Gustafson.jpg"
+            alt="Senator Heather Gustafson"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+          />
+          <div class="pro-photo-fallback" style="display:none;">Senator Gustafson &mdash; District 36</div>
+        </div>
+        <div class="pro-hero-stat-bar">
+          <div class="pro-hero-stat-num">
+            <span class="counter" data-target="400">0</span>
+          </div>
+          <div class="pro-hero-stat-label">Future teachers<br>targeted for support</div>
+        </div>
+      </div>
+    </section>
+
+    <span class="pro-rule"></span>
+
+    <!-- INTRO -->
+    <section class="pro-intro">
+      <div>
+        <h2 class="pro-intro-hed">She taught in District 36 before she legislated for it.</h2>
+      </div>
+      <div class="pro-intro-body">
+        <p>
+          Heather Gustafson taught history at Centennial High School in Circle Pines&mdash;inside Senate District 36&mdash;before winning her seat in 2022. She knows from the inside what keeps good people from entering the classroom.
+        </p>
+        <p>
+          The cost of student teaching is one of the biggest quiet barriers in education. Candidates spend twelve or more weeks in full-time placements with no pay, often while carrying tuition bills. Many drop out of teacher preparation before they finish. Minnesota has a teacher shortage. Gustafson filed a bill to break the connection between financial pressure and attrition.
+        </p>
+      </div>
+    </section>
+
+    <span class="pro-rule-thin"></span>
+
+    <!-- NUMBERS -->
+    <section class="pro-numbers">
+      <div class="pro-num-card">
+        <div class="pro-num-label">SF3333 Appropriation</div>
+        <div class="pro-num-val">$<span class="counter" data-target="20">0</span>M</div>
+        <div class="pro-num-desc">Fiscal year 2026 appropriation to the Professional Educator Licensing and Standards Board to fund teacher candidate support grants.<sup style="color:#C8963E; font-size:10px;">1</sup></div>
+      </div>
+      <div class="pro-num-card">
+        <div class="pro-num-label">Living Expense Grant</div>
+        <div class="pro-num-val">$<span class="counter" data-target="40">0</span>K</div>
+        <div class="pro-num-desc">Per-candidate living expense grant available under SF3333, designed to replace income lost during unpaid student teaching terms.<sup style="color:#C8963E; font-size:10px;">1</sup></div>
+      </div>
+      <div class="pro-num-card">
+        <div class="pro-num-label">Minimum Hourly Rate</div>
+        <div class="pro-num-val">$<span class="counter" data-target="15">0</span></div>
+        <div class="pro-num-desc">Bill language directs that stipends provide at least $15 per hour when practicable&mdash;a floor built into the grant conditions, not left to programs to decide.<sup style="color:#C8963E; font-size:10px;">1</sup></div>
+      </div>
+    </section>
+
+    <!-- FACT SECTION -->
+    <section class="pro-fact">
+      <div class="pro-fact-spine">
+        <div class="pro-fact-dot"></div>
+        <div class="pro-fact-line"></div>
+      </div>
+      <div>
+        <h2 class="pro-fact-hed">What SF3333 does, specifically</h2>
+        <div class="pro-fact-body">
+          <p>
+            Minnesota already ran a pilot. In 2024, the legislature funded a small student teaching stipend trial at seven institutions. The Professional Educator Licensing and Standards Board reported back to the legislature in 2025. The program worked as a concept. The question was scale.
+          </p>
+          <p>
+            Gustafson's SF3333 is the scale-up bill. It would appropriate $20 million in fiscal year 2026 to PELSB to fund grants through teacher preparation providers. Those providers would distribute support directly to candidates during student teaching.
+          </p>
+          <p>
+            The bill also sets grant priorities. Programs preparing higher percentages of teacher candidates of color move to the front of the eligibility line. That is not a decoration. Minnesota's teacher shortage is sharpest in schools serving students of color, and the pipeline of diverse teachers is the thinnest.
+          </p>
+        </div>
+
+        <div class="pro-bill-block">
+          <span class="bill-id">S.F. No. 3333 &mdash; 94th Minnesota Legislature (2025)</span>
+          <span class="bill-provision"><span class="bill-key">Authors:</span> Gustafson, Boldon</span>
+          <span class="bill-provision"><span class="bill-key">Filed:</span> April 7, 2025</span>
+          <span class="bill-provision"><span class="bill-key">Proposed appropriation:</span> $20,000,000 to PELSB for fiscal year 2026</span>
+          <span class="bill-provision"><span class="bill-key">Stipend floor:</span> At least $15/hour when practicable</span>
+          <span class="bill-provision"><span class="bill-key">Living expense grant:</span> Up to $40,000 per candidate</span>
+          <span class="bill-provision"><span class="bill-key">Tuition grant:</span> Up to $3,000 per candidate</span>
+          <span class="bill-provision"><span class="bill-key">Mentor stipend:</span> $3,500 per mentor teacher</span>
+          <span class="bill-provision"><span class="bill-key">Priority:</span> Programs with higher shares of teacher candidates of color</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- PULL QUOTE -->
+    <div class="pro-pullquote">
+      <blockquote>
+        "The financial burden of unpaid teaching placements has forced many aspiring educators to question their careers before they ever get started."
+      </blockquote>
+      <cite>Minnesota House Session Daily coverage of the student teacher stipend bill</cite>
+    </div>
+
+    <!-- DISTRICT SECTION -->
+    <section class="pro-district">
+      <div>
+        <h2 class="pro-district-hed">White Bear Lake. Vadnais Heights. Circle Pines. This is District 36.</h2>
+        <div class="pro-district-body">
+          <p>
+            Senate District 36 sits in the north and east metro, a band of lake communities and inner-ring suburbs where school quality is not an abstraction. Families here track school budgets and teacher retention numbers the way other districts track road conditions.
+          </p>
+          <p>
+            Gustafson taught here. She ran here. The Centennial School District, which serves Circle Pines and Lino Lakes inside the district, is the kind of place where a bill about teacher pipeline is not a generic education argument. It is a local employment and school quality argument.
+          </p>
+          <p>
+            District 36 voters rewarded her margin in 2022 partly because she made practical, detailed arguments. SF3333 is a practical, detailed bill. That is not a coincidence.
+          </p>
+        </div>
+      </div>
+      <div>
+        <div class="pro-community-list">
+          <div class="pro-community-item">
+            <div class="pro-community-dot"></div>
+            <span class="pro-community-name">White Bear Lake</span>
+            <span class="pro-community-tag">Washington / Ramsey Co.</span>
+          </div>
+          <div class="pro-community-item">
+            <div class="pro-community-dot"></div>
+            <span class="pro-community-name">Vadnais Heights</span>
+            <span class="pro-community-tag">Ramsey County</span>
+          </div>
+          <div class="pro-community-item">
+            <div class="pro-community-dot"></div>
+            <span class="pro-community-name">Lino Lakes</span>
+            <span class="pro-community-tag">Anoka County</span>
+          </div>
+          <div class="pro-community-item">
+            <div class="pro-community-dot"></div>
+            <span class="pro-community-name">Circle Pines</span>
+            <span class="pro-community-tag">Anoka County</span>
+          </div>
+          <div class="pro-community-item">
+            <div class="pro-community-dot"></div>
+            <span class="pro-community-name">Centerville</span>
+            <span class="pro-community-tag">Anoka County</span>
+          </div>
+          <div class="pro-community-item">
+            <div class="pro-community-dot"></div>
+            <span class="pro-community-name">North Oaks</span>
+            <span class="pro-community-tag">Ramsey County</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PIPELINE STEPS -->
+    <section class="pro-pipeline">
+      <div class="pro-pipeline-hed">From pilot to pipeline</div>
+      <div class="pro-pipeline-sub">How Gustafson's bill builds on what Minnesota already tested</div>
+      <div class="pro-pipeline-steps">
+        <div class="pro-pipeline-step">
+          <div class="pro-step-num">Step 01 &mdash; 2024</div>
+          <div class="pro-step-val">$1.5M</div>
+          <div class="pro-step-label">Legislature funded a small student teaching stipend pilot at seven Minnesota institutions. PELSB administered. Reporting required back to legislature by February 2025.<sup style="color:#C8963E; font-size:10px;">2</sup></div>
+        </div>
+        <div class="pro-pipeline-step">
+          <div class="pro-step-num">Step 02 &mdash; 2025</div>
+          <div class="pro-step-val">Report</div>
+          <div class="pro-step-label">PELSB reported pilot outcomes. The concept worked. The barrier is real: unpaid placements push candidates&mdash;especially those with fewer financial resources&mdash;out of teaching preparation programs.</div>
+        </div>
+        <div class="pro-pipeline-step">
+          <div class="pro-step-num">Step 03 &mdash; SF3333</div>
+          <div class="pro-step-val">$20M</div>
+          <div class="pro-step-label">Gustafson files the scale-up request. Twenty million in FY2026. Statewide eligibility. Explicit priority for programs diversifying the teacher workforce. A floor wage written into the proposed grant conditions.<sup style="color:#C8963E; font-size:10px;">1</sup></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRO FOOTNOTES -->
+    <footer class="pro-footnotes">
+      <div class="pro-footnotes-title">Sources &amp; footnotes</div>
+      <ul class="pro-fn-list">
+        <li data-fn="1">SF3333, 94th Minnesota Legislature (2025). Filed April 7, 2025. Authors: Gustafson, Boldon. Bill text and status: <a href="https://www.revisor.mn.gov/bills/94/2025/0/SF/3333/?body=senate" target="_blank">revisor.mn.gov</a>.</li>
+        <li data-fn="2">2024 Student Teaching Stipend Pilot. Minnesota Professional Educator Licensing and Standards Board. <a href="https://mn.gov/pelsb/board/news/index.jsp?id=1113-630913" target="_blank">mn.gov/pelsb</a>. Also: MN Student Teacher Grants, Office of Higher Education: <a href="https://ohe.mn.gov/minnesota-student-teacher-grant" target="_blank">ohe.mn.gov</a>.</li>
+        <li data-fn="3">Session Daily coverage: "Lawmakers hear grant proposal to fund 400 future teachers." Minnesota House of Representatives. <a href="https://www.house.mn.gov/sessiondaily/Story/17774" target="_blank">house.mn.gov</a>.</li>
+        <li data-fn="4">Gustafson biography and committee assignments (Vice Chair, Education Finance; State Local Government; Agriculture; Veterans; Jobs and Economic Development). <a href="https://www.senate.mn/members/member_bio.html?mem_id=1263" target="_blank">senate.mn</a>. Legislative record: lrl.mn.gov.</li>
+        <li data-fn="5">2022 election results: Gustafson 52.81% (23,348 votes) vs. Chamberlain 47.13% (20,838 votes). Press Pubs/White Bear Lake Area election coverage.</li>
+      </ul>
+    </footer>
+
+  </div><!-- end .pro-content -->
+
+
+  <!-- ══════════════════════════════════════════════════════════
+       OPPO SITE
+  ══════════════════════════════════════════════════════════ -->
+  <div class="oppo-content" aria-label="Accountability view">
+
+    <!-- CASE LABEL HEADER -->
+    <header class="oppo-header">
+      <div class="oppo-header-inner">
+        <div class="oppo-case-label">
+          <span class="oppo-case-prefix">Legislative Case File</span>
+          <span class="oppo-case-id">SF 662 &mdash; 94th Legislature</span>
+        </div>
+        <div class="oppo-header-meta">
+          Subject: Sen. Heather Gustafson &mdash; District 36, DFL<br>
+          Filed: January 23, 2025 &nbsp;|&nbsp; Status: Introduced<br>
+          Classification: Civil Liability &mdash; Intimate Conduct
+        </div>
+      </div>
+    </header>
+
+    <!-- ACCUSATION HERO -->
+    <section class="oppo-hero">
+      <div>
+        <h1 class="oppo-hero-accusation">
+          She ran as a practical<br>problem-solver.<br>
+          <span class="accent">She filed a bill to create new civil liability for intimate conduct</span>&mdash;with $10,000 statutory damages.
+        </h1>
+        <p class="oppo-hero-sub">
+          In her first term, Senator Gustafson filed SF662 on January 23, 2025. The bill creates a new civil cause of action under Minnesota law. It defines a category of conduct called "sexual battery," establishes a damages regime, and authorizes statutory damages of up to $10,000 per incident plus attorney fees and injunctive relief. This is her record.
+        </p>
+      </div>
+      <div class="oppo-photo-wrap">
+        <img
+          src="https://www.senate.mn/graphics/36Gustafson.jpg"
+          alt="Senator Heather Gustafson"
+          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+        />
+        <div class="oppo-photo-fallback" style="display:none;">Gustafson&nbsp;/&nbsp;Dist. 36</div>
+        <div class="photo-caption">Sen. Gustafson &mdash; SF662 Primary Author</div>
+      </div>
+    </section>
+
+    <!-- GAP BAR -->
+    <div class="oppo-gap-bar">
+      <span class="oppo-gap-label">The gap</span>
+      <div class="oppo-gap-rule"></div>
+      <span class="oppo-gap-text">Campaign brand: "practical educator." Legislative record: a novel civil liability framework for intimate conduct.</span>
+    </div>
+
+    <!-- SEQUENCE -->
+    <section class="oppo-sequence">
+      <div class="oppo-section-tag">Exhibit A &mdash; Sequence of Events</div>
+      <h2 class="oppo-section-hed">From the 2022 campaign to the 2025 filing</h2>
+      <div class="oppo-timeline">
+
+        <div class="oppo-timeline-item">
+          <div class="oppo-timeline-date">Nov. 2022</div>
+          <div class="oppo-timeline-spine">
+            <div class="oppo-timeline-node"></div>
+            <div class="oppo-timeline-connector"></div>
+          </div>
+          <div class="oppo-timeline-content">
+            <div class="oppo-timeline-title">Elected on kitchen-table platform</div>
+            <div class="oppo-timeline-body">Gustafson defeats incumbent Roger Chamberlain with 52.8% of the vote. Campaign focuses on police funding, eliminating the Social Security income tax, and abortion access. District 36 voters are north metro suburban families who, per Gustafson's own positioning, want "detailed, practical arguments over performance politics."<sup style="font-size:9px; color:#C0392B;">1</sup></div>
+          </div>
+        </div>
+
+        <div class="oppo-timeline-item">
+          <div class="oppo-timeline-date">Jan. 2023</div>
+          <div class="oppo-timeline-spine">
+            <div class="oppo-timeline-node"></div>
+            <div class="oppo-timeline-connector"></div>
+          </div>
+          <div class="oppo-timeline-content">
+            <div class="oppo-timeline-title">Takes office as a first-term senator</div>
+            <div class="oppo-timeline-body">Gustafson enters the Senate in January 2023. She is assigned to the Education Finance Committee (Vice Chair), State Local Government, Agriculture, Veterans, and Jobs and Economic Development. Her background as a Centennial High School history teacher is her central credential.</div>
+          </div>
+        </div>
+
+        <div class="oppo-timeline-item">
+          <div class="oppo-timeline-date">Jan. 23, 2025</div>
+          <div class="oppo-timeline-spine">
+            <div class="oppo-timeline-node"></div>
+            <div class="oppo-timeline-connector"></div>
+          </div>
+          <div class="oppo-timeline-content">
+            <div class="oppo-timeline-title">Files SF662: A civil cause of action for intimate conduct</div>
+            <div class="oppo-timeline-body">In the second year of the 94th Legislature, Gustafson files SF662. The bill creates a new tort under Minnesota civil law. It defines "sexual battery" as contact occurring when a condom is removed without verbal consent, and establishes a full civil damages regime: general damages, special damages, punitive damages, statutory damages up to $10,000, injunctive relief, and attorney fees.<sup style="font-size:9px; color:#C0392B;">2</sup></div>
+          </div>
+        </div>
+
+        <div class="oppo-timeline-item">
+          <div class="oppo-timeline-date">2025 Session</div>
+          <div class="oppo-timeline-spine">
+            <div class="oppo-timeline-node"></div>
+            <div class="oppo-timeline-connector"></div>
+          </div>
+          <div class="oppo-timeline-content">
+            <div class="oppo-timeline-title">Bill status: introduced, referred to committee</div>
+            <div class="oppo-timeline-body">SF662 was introduced and referred to committee in the 2025 session. The bill represents a choice about how Gustafson spends her first-term legislative capital. The question for District 36 voters: is this the bill a practical suburban senator should be leading?</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- PROOF BLOCK -->
+    <section class="oppo-proof">
+      <div class="oppo-section-tag">Exhibit B &mdash; Bill Text</div>
+      <h2 class="oppo-section-hed" style="max-width:600px; margin-bottom:36px;">The damages language, as written</h2>
+      <div class="oppo-doc-frame">
+        <div class="oppo-doc-header">
+          <span class="oppo-doc-title">S.F. No. 662 &mdash; 94th Legislature (2025) &mdash; As Introduced</span>
+          <span class="oppo-doc-stamp">Primary Author: Gustafson</span>
+        </div>
+        <div class="oppo-doc-body">
+          <div class="doc-section">
+            <span class="doc-section-label">Sec. 1 &mdash; Civil Cause of Action (Summary)</span>
+            <span class="doc-text">
+              A person who commits a <span class="oppo-highlight" title="Defined as contact with intimate part when condom removed without verbal consent">"sexual battery"</span> upon another is liable to that person for damages, including but not limited to general damages, special damages, and punitive damages.
+            </span>
+          </div>
+          <div class="doc-section">
+            <span class="doc-section-label">Damages Provision</span>
+            <span class="doc-text">
+              In addition, the plaintiff may be awarded <span class="oppo-highlight" title="Statutory damages — available without proving specific harm">up to $10,000 in statutory damages</span>, injunctive relief, and <span class="oppo-highlight" title="Fee-shifting provision">reasonable attorney fees and costs</span>.
+            </span>
+          </div>
+          <div class="doc-section">
+            <span class="doc-section-label">Definition: Sexual Battery (as written in SF662)</span>
+            <span class="doc-text">
+              An act that causes contact between a sexual organ, <span class="oppo-highlight" title="Core trigger condition">from which a condom has been removed</span>, and the intimate part of another who <span class="oppo-highlight" title="Consent standard written into statute">did not verbally consent to the removal</span> of the condom.
+            </span>
+          </div>
+          <div class="doc-section">
+            <span class="doc-section-label">Filing Record</span>
+            <span class="doc-text">Filed: January 23, 2025. Senate file SF662. 94th Legislature. Author: Senator Heather Gustafson, District 36.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- EVIDENCE CARDS -->
+    <section class="oppo-evidence">
+      <div class="oppo-section-tag">Exhibit C &mdash; Three Points of Exposure</div>
+      <h2 class="oppo-section-hed">The accountability case, card by card</h2>
+      <div class="oppo-cards">
+
+        <div class="oppo-card">
+          <span class="oppo-card-icon">Point 01 &mdash; Liability Design</span>
+          <div class="oppo-card-title">She built a new civil liability framework from scratch</div>
+          <div class="oppo-card-body">
+            SF662 does not amend an existing statute. It creates an entirely new cause of action in Minnesota civil law. Gustafson wrote in general damages, special damages, punitive damages, statutory damages, injunctive relief, and fee-shifting. That is a comprehensive tort construction for a first-term senator who ran on practical suburban issues.
+          </div>
+          <div class="oppo-card-data">Source: SF662 text, revisor.mn.gov</div>
+          <div class="oppo-card-verdict">The architecture is deliberate, not incidental.</div>
+        </div>
+
+        <div class="oppo-card">
+          <span class="oppo-card-icon">Point 02 &mdash; Damages Scale</span>
+          <div class="oppo-card-title">$10,000 statutory damages, plus punitive, plus fees</div>
+          <div class="oppo-card-body">
+            The bill authorizes up to $10,000 in statutory damages per incident. Statutory damages are available without proving specific financial harm. Add punitive damages and attorney fee-shifting, and the total exposure in any single civil action under this bill could substantially exceed $10,000. That is not a modest liability floor. It is a litigation-enabling regime.
+          </div>
+          <div class="oppo-card-data">Statutory damages: up to $10,000 &mdash; SF662, Sec. 1</div>
+          <div class="oppo-card-verdict">A first-term senator chose to make this her bill.</div>
+        </div>
+
+        <div class="oppo-card">
+          <span class="oppo-card-icon">Point 03 &mdash; Brand Mismatch</span>
+          <div class="oppo-card-title">Ran as a practical educator. Filed a novel culture-law bill.</div>
+          <div class="oppo-card-body">
+            Gustafson's 2022 campaign ran on police funding, Social Security taxes, and abortion access. Those are bread-and-butter suburban arguments. SF662 is a different kind of bill. It writes a new liability framework for intimate conduct. Voters in White Bear Lake, Vadnais Heights, and Lino Lakes who elected a practical educator are looking at a first-term record that includes one of the most specific social-conduct civil liability bills in the 2025 session.
+          </div>
+          <div class="oppo-card-data">Compare: 2022 campaign platform vs. 2025 SF662 filing</div>
+          <div class="oppo-card-verdict">The record raises the question. She owns the answer.</div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- BRAND vs RECORD -->
+    <section class="oppo-contrast">
+      <h2 class="oppo-contrast-hed">What she said. What she filed.</h2>
+      <div class="oppo-contrast-grid">
+        <div class="oppo-contrast-col brand">
+          <div class="oppo-contrast-col-label">2022 Campaign Brand</div>
+          <div class="oppo-contrast-col-text">
+            A practical classroom teacher running on police funding, eliminating the Social Security income tax, and kitchen-table suburban issues. District 36 voters, she argued, want "detailed, practical arguments over performance politics."
+          </div>
+        </div>
+        <div class="oppo-vs">vs</div>
+        <div class="oppo-contrast-col record">
+          <div class="oppo-contrast-col-label">2025 Legislative Filing</div>
+          <div class="oppo-contrast-col-text">
+            A first-term senator who filed a novel civil liability bill for intimate conduct. The bill creates a new tort in Minnesota law with statutory damages of up to $10,000, punitive damages, and attorney fee-shifting. Filed January 23, 2025. Bill number SF662.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- OPPO FOOTNOTES -->
+    <footer class="oppo-footnotes">
+      <div class="oppo-footnotes-title">Sources &amp; footnotes</div>
+      <ul class="oppo-fn-list">
+        <li data-fn="1">2022 Minnesota Senate District 36 general election results: Gustafson 52.81% (23,348 votes), Chamberlain 47.13% (20,838 votes). Press Pubs election results coverage, November 2022; Minnesota Secretary of State canvass records.</li>
+        <li data-fn="2">SF662, 94th Minnesota Legislature (2025). Filed January 23, 2025. Author: Sen. Gustafson. Bill text and status: <a href="https://www.revisor.mn.gov/bills/bill.php?b=senate&f=SF662&ssn=0&y=2025" target="_blank">revisor.mn.gov</a>.</li>
+        <li data-fn="3">Gustafson committee assignments and biography: <a href="https://www.senate.mn/members/member_bio.html?mem_id=1263" target="_blank">senate.mn</a>. Legislative record: lrl.mn.gov.</li>
+        <li data-fn="4">SF662 defines "sexual battery" and establishes a civil cause of action. Full text available at: <a href="https://www.revisor.mn.gov/bills/text.php?number=SF662&version=0&session=ls94&session_year=2025&session_number=0" target="_blank">revisor.mn.gov</a>.</li>
+        <li data-fn="5">Gustafson campaign platform, 2022: voteheathergustafson.com (Meet Heather). Archive also available via Ballotpedia candidate page.</li>
+      </ul>
+    </footer>
+
+
+  <!-- Auto-transition sentinel — observed by IntersectionObserver -->
+  <div id="brief-sentinel" style="height:1px;width:100%;"></div>
+
+  <!-- Subtle stamp — visible as user nears the bottom -->
+  <div class="machine-stamp">
+    <span class="machine-stamp-text">AI-GENERATED &nbsp;·&nbsp; 67 SENATORS &nbsp;·&nbsp; 63 PARALLEL AGENTS &nbsp;·&nbsp; ~4 HRS &nbsp;·&nbsp; ~$47</span>
+  </div>
+
+  </div><!-- end .oppo-content -->
+
+
+  <!-- ─── JS ──────────────────────────────────────────────────── -->
+  <script>
+    /* ── Mode toggle ──────────────────────────────────────────── */
+    const btn  = document.getElementById('flip-btn');
+    const body = document.body;
+
+    btn.addEventListener('click', () => {
+      body.classList.add('fading');
+      setTimeout(() => {
+        body.classList.toggle('mode-oppo');
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        body.classList.remove('fading');
+      }, 220);
+    });
+
+    /* ── Scroll-triggered counters ────────────────────────────── */
+    function animateCounters(scope) {
+      const counters = scope
+        ? scope.querySelectorAll('.counter')
+        : document.querySelectorAll('.counter');
+
+      counters.forEach(el => {
+        if (el.dataset.animated) return;
+        const target  = parseFloat(el.dataset.target);
+        const isFloat = !Number.isInteger(target);
+        const duration = 1200;
+        const start    = performance.now();
+
+        el.dataset.animated = '1';
+
+        function tick(now) {
+          const elapsed  = now - start;
+          const progress = Math.min(elapsed / duration, 1);
+          const ease     = 1 - Math.pow(1 - progress, 3);
+          const value    = target * ease;
+          el.textContent = isFloat
+            ? value.toFixed(1)
+            : Math.round(value).toString();
+          if (progress < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+      });
+    }
+
+    /* Observer for visible counters */
+    const counterObs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          animateCounters(e.target.closest('section') || document);
+        }
+      });
+    }, { threshold: 0.2 });
+
+    document.querySelectorAll('.counter').forEach(el => counterObs.observe(el));
+  </script>
+
+
+<!-- \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+     THE BRIEF \u2014 AI capabilities briefing
+\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 -->
+<div class="brief-content">
+
+  <div class="brief-opening">
+    <p class="brief-made-by">Sixty-seven of these pages were made using one AI account in about thirty minutes. Six months ago an automated project like this would have been impossible.</p>
+  </div>
+
+  <div class="brief-chart-section">
+    <h2 class="brief-chart-title">This is the trend that made it possible.</h2>
+    <div class="brief-chart-frame">
+      <img
+        src="https://metr.org/assets/images/measuring-ai-ability-to-complete-long-tasks/length-of-tasks-log.png"
+        alt="METR chart: length of tasks AI agents can complete autonomously, doubling roughly every 7 months since 2019"
+        class="brief-metr-img"
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+      >
+      <div class="brief-chart-fallback" style="display:none;">
+        <p>Chart unavailable. See the original at <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">metr.org</a>.</p>
+      </div>
+    </div>
+    <p class="brief-chart-source">Source: <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR</a>, an independent AI evaluation lab.</p>
+    <p class="brief-chart-read">This chart tracks how long a task an AI agent can finish on its own. In 2019, the answer was about three seconds. By early 2023, it was six minutes. by mid 2025, over two hours. As of early 2026, Claude Opus 4.6 completes tasks that take a skilled human roughly twelve hours.</p>
+    <p class="brief-chart-read">The overall doubling time has been about seven months. But it is getting faster. <a href="https://metr.org/time-horizons/" target="_blank">When researchers fit only the most recent data</a>, the doubling time drops to four months. At that rate, AI agents capable of completing month-long autonomous projects arrive not in the early 2030s but around 2028.</p>
+  </div>
+
+  <div class="brief-so-what">
+    <h2 class="brief-so-what-title">What that means for lawmakers.</h2>
+    <p>Urgency. There was a narrative last year that AI had hit a wall in capabilities. It was a plausible perspective at the time. It isn&#x2019;t anymore. After breakthroughs late last year, AI systems&#x2019; ability to automate cyberattacks, pathogen design, misinformation, mass surveillance, and vast swaths of white-collar work is advancing faster than ever.</p>
+    <p>The world will soon change faster than the typical pace of policymaking. The only solution is to act with atypical speed: AI regulations, data center moratoriums, calling for a federal pause on AI development, worker displacement funds. Some of these ideas already have bills introduced this session. Others should be explored soon. Time is limited, so if you feel behind on AI, the sources below are a good place to start.</p>
+    
+  </div>
+
+  <div class="brief-next">
+    <h2 class="brief-next-title">Start here.</h2>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">USE</span>
+      <a href="https://claude.ai/cowork" target="_blank">Claude Cowork</a> &middot; <a href="https://claude.ai/code" target="_blank">Claude Code</a>
+      <span class="brief-link-detail">The tools that built this page. Cowork handles research and writing. Code is the agent that runs tasks, spawns sub-agents, and makes decisions on its own. Spend thirty minutes with one of these on a real problem from your week. That will teach you more than any briefing.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR: Measuring AI Ability to Complete Long Tasks</a>
+      <span class="brief-link-detail">The source for the chart above. The METR trend is based on software tasks, but <a href="https://futuretech.mit.edu/publication/crashing-waves-vs-rising-tides-preliminary-findings-on-ai-automation-from-thousands-of-worker-evaluations-of-labor-market-tasks" target="_blank">MIT research on worker evaluations of labor market tasks</a> finds similar patterns across white-collar work broadly.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://aiindex.stanford.edu/report/" target="_blank">Stanford HAI AI Index 2025</a>
+      <span class="brief-link-detail">The most comprehensive annual report on AI capabilities, economics, and policy across all 50 states.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.imdb.com/title/tt39150120/" target="_blank">The AI Doc: Or How I Became an Apocaloptimist</a>
+      <span class="brief-link-detail">Daniel Roher&#x2019;s 2026 documentary, in theaters now. Roher interviews Amodei, Altman, Hassabis, and dozens more. If you see one thing on this list, see this.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.youtube.com/watch?v=xoVJKj8lcNQ" target="_blank">The A.I. Dilemma</a>
+      <span class="brief-link-detail">Center for Humane Technology. 60 min, free on YouTube. Made for people with institutional power who need to understand AI quickly.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">TRACK</span>
+      <a href="https://www.ncsl.org/technology-and-communication/artificial-intelligence" target="_blank">NCSL AI Legislation Tracker</a> &middot;
+      <a href="https://mn.gov/mnit/about-mnit/oit-programs/ai/" target="_blank">MN.IT AI Office</a>
+      <span class="brief-link-detail">Every AI bill in every state. Plus Minnesota&#x2019;s own AI program office. See where you stand relative to the field.</span>
+    </div>
+  </div>
+
+  <div class="brief-close">
+    <p class="brief-close-small">This project is not affiliated with any campaign, party, or organization.</p>
+    <button id="exit-brief-btn">\u2190 Back</button>
+  </div>
+
+</div><!-- /brief-content -->
+
+<style>
+.brief-content { display: none; }
+body.mode-brief .brief-content  { display: block; }
+body.mode-brief .pro-content    { display: none; }
+body.mode-brief .oppo-content   { display: none; }
+body.mode-brief #flip-btn       { display: none; }
+.brief-content { background: #0C0A08; color: #D4CCBE; font-family: 'Source Serif 4', Georgia, serif; font-size: 17px; line-height: 1.75; min-height: 100vh; }
+.brief-content a { color: #C0B49A; }
+.brief-content a:hover { color: #fff; }
+@keyframes glitch-seq {
+  0%   { filter: saturate(0) brightness(0.5); }
+  10%  { filter: hue-rotate(90deg) contrast(4) brightness(3); transform: skewX(4deg); }
+  12%  { filter: brightness(0.1); transform: none; }
+  25%  { filter: hue-rotate(200deg) invert(0.8); transform: translateX(6px); }
+  27%  { filter: brightness(0.05); transform: none; }
+  40%  { filter: blur(6px) brightness(0.02); }
+  44%  { filter: brightness(6); }
+  46%  { filter: none; transform: none; }
+  60%  { filter: hue-rotate(300deg) contrast(3) saturate(8); transform: skewX(-3deg); }
+  62%  { filter: none; transform: none; }
+  78%  { filter: blur(16px) brightness(0.01); }
+  82%  { filter: brightness(2); }
+  84%  { filter: none; }
+  100% { filter: none; transform: none; }
+}
+body.glitching { animation: glitch-seq 1.2s ease-in-out forwards; pointer-events: none; }
+.machine-stamp { background: #050505; border-top: 1px solid #111; padding: 16px 40px; text-align: center; }
+.machine-stamp-text { font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 0.22em; color: #222; text-transform: uppercase; animation: stamp-pulse 3s ease-in-out infinite; }
+@keyframes stamp-pulse { 0%, 100% { color: #222; } 50% { color: #4A3A2A; } }
+.brief-opening { max-width: 640px; margin: 0 auto; padding: 100px 40px 64px; }
+.brief-made-by { font-size: 20px; line-height: 1.65; color: #B8AE9C; margin-bottom: 20px; }
+.brief-chart-section { max-width: 740px; margin: 0 auto; padding: 48px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-chart-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 32px; font-style: italic; }
+.brief-chart-frame { background: #fff; border-radius: 4px; padding: 12px; margin-bottom: 12px; }
+.brief-metr-img { width: 100%; height: auto; display: block; }
+.brief-chart-fallback { padding: 40px; text-align: center; color: #666; font-size: 14px; }
+.brief-chart-source { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #5A5040; line-height: 1.6; margin-bottom: 28px; }
+.brief-chart-source a { color: #7A6A54; text-decoration: none; }
+.brief-chart-read { font-size: 17px; color: #B8AE9C; }
+.brief-so-what { max-width: 640px; margin: 0 auto; padding: 56px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-so-what-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 28px; font-style: italic; }
+.brief-so-what p { font-size: 17px; color: #B8AE9C; margin-bottom: 20px; }
+.brief-next { max-width: 640px; margin: 0 auto; padding: 56px 40px 48px; border-top: 1px solid #1E1A14; }
+.brief-next-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 14px; font-style: italic; }
+.brief-link-block { margin-bottom: 28px; line-height: 1.7; }
+.brief-link-tag { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.2em; color: #6A5A44; text-transform: uppercase; display: block; margin-bottom: 4px; }
+.brief-link-block a { font-weight: 600; color: #E0D6C4; text-decoration: underline; text-underline-offset: 3px; font-size: 16px; }
+.brief-link-block a:hover { color: #fff; }
+.brief-link-detail { display: block; font-size: 14px; color: #6A5E4C; margin-top: 2px; }
+.brief-close { max-width: 640px; margin: 0 auto; padding: 48px 40px 100px; border-top: 1px solid #1E1A14; }
+.brief-close p { font-family: 'Source Serif 4', Georgia, serif; font-size: 16px; color: #9A9080; margin-bottom: 32px; line-height: 1.7; }
+.brief-close-small { font-family: 'IBM Plex Mono', monospace !important; font-size: 11px !important; color: #3A3428 !important; letter-spacing: 0.04em; }
+#exit-brief-btn { background: none; border: 1px solid #2A2418; color: #5A5040; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; padding: 10px 20px; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
+#exit-brief-btn:hover { border-color: #8A7A64; color: #C0B49A; }
+@media (max-width: 900px) {
+  .brief-opening, .brief-so-what, .brief-next, .brief-close { padding-left: 24px; padding-right: 24px; }
+  .brief-chart-section { padding-left: 24px; padding-right: 24px; }
+  .brief-made-by { font-size: 18px; }
+  .brief-opening { padding-top: 64px; }
+  .machine-stamp { padding: 14px 20px; }
+}
+</style>
+
+<script>
+(function() {
+  let briefTriggered = false;
+  function startBriefTransition() {
+    if (briefTriggered) return;
+    if (!document.body.classList.contains('mode-oppo')) return;
+    briefTriggered = true;
+    const body = document.body;
+    body.style.transition = 'filter 2.5s ease-in';
+    body.style.filter = 'saturate(0) brightness(0.3)';
+    setTimeout(() => {
+      const hed = document.querySelector('.oppo-content h1') || document.querySelector('.oppo-content h2');
+      if (hed) {
+        const orig = hed.textContent; const chars = '\u2588\u2593\u2592\u2591\u25a0\u25a10123456789'; let n = 0;
+        const si = setInterval(() => { n++; hed.textContent = Array.from(orig).map(c => c === ' ' ? ' ' : chars[Math.floor(Math.random() * chars.length)]).join(''); if (n > 40) { clearInterval(si); hed.textContent = orig; } }, 40);
+      }
+    }, 1200);
+    setTimeout(() => {
+      body.style.transition = ''; body.style.filter = ''; body.classList.add('glitching');
+      setTimeout(() => { body.classList.remove('glitching'); body.classList.add('mode-brief'); window.scrollTo({ top: 0, behavior: 'instant' }); }, 1500);
+    }, 2500);
+  }
+  const sentinel = document.getElementById('brief-sentinel');
+  if (sentinel && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) { io.disconnect(); setTimeout(startBriefTransition, 1200); } }); }, { threshold: 0.5 });
+    io.observe(sentinel);
+  }
+  const flipBtn = document.getElementById('flip-btn');
+  if (flipBtn) { flipBtn.addEventListener('click', () => { if (document.body.classList.contains('mode-oppo')) briefTriggered = false; }); }
+})();
+document.addEventListener('click', (e) => {
+  if (e.target && e.target.id === 'exit-brief-btn') {
+    const body = document.body; body.style.opacity = '0'; body.style.transition = 'opacity 0.3s';
+    setTimeout(() => { body.classList.remove('mode-brief'); body.classList.add('mode-oppo'); window.scrollTo({ top: 0, behavior: 'instant' }); body.style.opacity = '1'; }, 300);
+  }
+});
+</script>
+
+</body>
+</html>

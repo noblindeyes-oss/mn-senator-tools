@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wright County Growth-Corridor Water Capacity Planner — SD-29</title>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Dashboard — large SVG schematic centerpiece surrounded by data readout panels in a CSS Grid
+   2. Navigation: Click nodes on the SVG schematic diagram to navigate between system components; corner legend/key
+   3. Typography: Franklin Gothic (headers), Calibri (body/labels), Lucida Console (data/monospace)
+   4. Hero moment: Large circular SVG gauge showing current capacity vs. projected demand, gap in orange
+   5. Color strategy: #7 Inverted / BLUEPRINT CYAN — dark navy (#0d1b2a) dominant, cyan (#00bcd4) lines, white text, orange (#ff6f00) threshold alerts
+   6. Entry experience: SVG schematic draws itself via stroke-dashoffset animation, then data panels fade in
+   Additional: No bordered callout boxes. No parchment. No emoji icons. Dense engineering-drawing aesthetic.
+*/
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+@font-face{font-family:'Franklin Gothic';src:local('Franklin Gothic Medium'),local('Franklin Gothic');font-weight:500}
+
+:root{
+  --navy:#0d1b2a;--navy-mid:#132238;--navy-light:#1b2d44;--cyan:#00bcd4;--cyan-dim:rgba(0,188,212,.25);
+  --cyan-glow:rgba(0,188,212,.12);--orange:#ff6f00;--orange-dim:rgba(255,111,0,.2);
+  --green:#00c853;--yellow:#ffd600;--red:#d50000;--white:#e8f4f8;--white-bright:#ffffff;
+  --grid-line:rgba(0,188,212,.08);--text-primary:#e8f4f8;--text-dim:rgba(232,244,248,.55);
+  --font-head:'Franklin Gothic Medium','Franklin Gothic','Arial Narrow',sans-serif;
+  --font-body:Calibri,'Segoe UI',sans-serif;
+  --font-data:'Lucida Console',Monaco,Consolas,monospace;
+}
+
+html{font-size:14px;scroll-behavior:smooth}
+body{
+  background:var(--navy);color:var(--text-primary);font-family:var(--font-body);
+  min-height:100vh;overflow-x:hidden;
+  background-image:
+    linear-gradient(var(--grid-line) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid-line) 1px,transparent 1px);
+  background-size:40px 40px;
+}
+
+/* ── ENTRY ANIMATION ── */
+.page-wrap{opacity:0;transition:opacity .8s ease .6s}
+.page-wrap.loaded{opacity:1}
+
+/* ── HEADER ── */
+.hdr{
+  background:linear-gradient(180deg,#091420 0%,var(--navy) 100%);
+  border-bottom:1px solid var(--cyan);padding:10px 24px;display:flex;
+  align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;
+}
+.hdr-title{font-family:var(--font-head);font-size:1rem;letter-spacing:2px;text-transform:uppercase;color:var(--cyan)}
+.hdr-sub{font-family:var(--font-data);font-size:.7rem;color:var(--text-dim);letter-spacing:1px}
+.hdr-right{display:flex;gap:12px;align-items:center}
+.btn-demo{
+  font-family:var(--font-data);font-size:.7rem;padding:5px 14px;
+  background:transparent;border:1px solid var(--cyan);color:var(--cyan);cursor:pointer;
+  letter-spacing:1px;text-transform:uppercase;transition:all .2s;
+}
+.btn-demo:hover{background:var(--cyan);color:var(--navy)}
+
+/* ── MAIN GRID ── */
+.dash{
+  display:grid;grid-template-columns:1fr 360px;grid-template-rows:auto 1fr;
+  gap:1px;padding:12px;max-width:1440px;margin:0 auto;min-height:calc(100vh - 52px);
+}
+
+/* ── SCHEMATIC (CENTER) ── */
+.schematic-panel{
+  grid-column:1;grid-row:1/3;background:var(--navy-mid);
+  border:1px solid rgba(0,188,212,.15);position:relative;overflow:hidden;
+  display:flex;flex-direction:column;
+}
+.schematic-panel .panel-label{
+  font-family:var(--font-head);font-size:.7rem;letter-spacing:3px;text-transform:uppercase;
+  color:var(--text-dim);padding:8px 14px;border-bottom:1px solid var(--cyan-dim);
+}
+.schematic-svg-wrap{flex:1;position:relative;display:flex;align-items:center;justify-content:center}
+.schematic-svg-wrap svg{width:100%;height:100%;max-height:520px}
+
+/* SVG draw animation */
+.draw-line{stroke-dasharray:1000;stroke-dashoffset:1000;animation:drawIn 2s ease forwards}
+.draw-line-d1{animation-delay:.2s}
+.draw-line-d2{animation-delay:.5s}
+.draw-line-d3{animation-delay:.8s}
+.draw-line-d4{animation-delay:1.1s}
+.draw-line-d5{animation-delay:1.4s}
+@keyframes drawIn{to{stroke-dashoffset:0}}
+
+.node-click{cursor:pointer;transition:all .25s}
+.node-click:hover .node-ring{stroke:var(--white-bright);stroke-width:2.5}
+.node-click.active .node-fill{fill:var(--cyan);fill-opacity:.3}
+.node-click.active .node-ring{stroke:var(--cyan);stroke-width:2.5}
+.node-click.locked{cursor:not-allowed;opacity:.35}
+.node-click.locked:hover .node-ring{stroke:#00bcd4;stroke-width:1.5}
+
+/* Tooltip on hover */
+.node-tooltip{
+  position:absolute;background:var(--navy);border:1px solid var(--cyan);
+  padding:6px 10px;font-family:var(--font-data);font-size:.62rem;
+  color:var(--text-primary);pointer-events:none;white-space:nowrap;
+  z-index:10;display:none;
+}
+.node-tooltip.show{display:block}
+
+/* Legend */
+.legend{
+  position:absolute;bottom:8px;left:8px;font-family:var(--font-data);font-size:.6rem;
+  color:var(--text-dim);display:flex;flex-direction:column;gap:3px;
+  background:rgba(13,27,42,.85);padding:6px 10px;border:1px solid var(--cyan-dim);
+}
+.legend-row{display:flex;align-items:center;gap:6px}
+.legend-swatch{width:14px;height:3px;flex-shrink:0}
+
+/* ── SIDE PANELS ── */
+.side-col{grid-column:2;grid-row:1/3;display:flex;flex-direction:column;gap:1px}
+.panel{
+  background:var(--navy-mid);border:1px solid rgba(0,188,212,.15);
+  padding:12px 14px;position:relative;
+  opacity:0;transform:translateY(8px);transition:all .5s ease;
+}
+.panel.visible{opacity:1;transform:translateY(0)}
+.panel-label{
+  font-family:var(--font-head);font-size:.65rem;letter-spacing:3px;text-transform:uppercase;
+  color:var(--text-dim);margin-bottom:8px;
+}
+
+/* ── HERO GAUGE ── */
+.gauge-wrap{display:flex;justify-content:center;align-items:center;padding:8px 0}
+.gauge-svg{width:200px;height:200px}
+.gauge-bg{fill:none;stroke:rgba(0,188,212,.1);stroke-width:14}
+.gauge-cap{fill:none;stroke:var(--cyan);stroke-width:14;stroke-linecap:round;
+  transition:stroke-dashoffset .8s ease,stroke .3s}
+.gauge-demand{fill:none;stroke:var(--orange);stroke-width:14;stroke-linecap:round;
+  transition:stroke-dashoffset .8s ease;opacity:.7}
+.gauge-center-val{font-family:var(--font-data);font-size:28px;fill:var(--white-bright);text-anchor:middle}
+.gauge-center-label{font-family:var(--font-body);font-size:10px;fill:var(--text-dim);text-anchor:middle}
+.gauge-legend{display:flex;justify-content:center;gap:16px;margin-top:4px}
+.gauge-legend span{font-family:var(--font-data);font-size:.65rem;display:flex;align-items:center;gap:4px}
+.gauge-legend .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+
+/* ── STEP CONTENT AREA (replaces schematic lower portion) ── */
+.step-content{
+  padding:14px;display:none;overflow-y:auto;max-height:460px;
+  border-top:1px solid var(--cyan-dim);
+}
+.step-content.active{display:block}
+.step-content h2{
+  font-family:var(--font-head);font-size:1.1rem;color:var(--cyan);
+  letter-spacing:1px;margin-bottom:10px;
+}
+.step-content h3{
+  font-family:var(--font-head);font-size:.85rem;color:var(--text-primary);
+  margin:12px 0 6px;letter-spacing:.5px;
+}
+
+/* Form styling */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px}
+.form-grid.cols-1{grid-template-columns:1fr}
+.form-group{display:flex;flex-direction:column;gap:3px}
+.form-group label{font-family:var(--font-data);font-size:.7rem;color:var(--text-dim);letter-spacing:.5px}
+.form-group input,.form-group select{
+  background:var(--navy);border:1px solid var(--cyan-dim);color:var(--white-bright);
+  font-family:var(--font-data);font-size:.8rem;padding:6px 8px;
+  transition:border-color .2s;
+}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 6px var(--cyan-dim)}
+.form-group select{cursor:pointer}
+.form-group select option{background:var(--navy);color:var(--white-bright)}
+.form-group .hint{font-size:.6rem;color:var(--text-dim);font-family:var(--font-body)}
+.form-group input[type=range]{-webkit-appearance:none;height:4px;background:var(--cyan-dim);border:none;border-radius:2px}
+.form-group input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--cyan);cursor:pointer}
+
+.chk-group{display:flex;flex-wrap:wrap;gap:6px}
+.chk-item{
+  display:flex;align-items:flex-start;gap:5px;font-size:.72rem;font-family:var(--font-body);
+  color:var(--text-primary);cursor:pointer;width:calc(50% - 4px);
+}
+.chk-item input[type=checkbox]{accent-color:var(--cyan);margin-top:2px;flex-shrink:0}
+
+.btn-row{display:flex;gap:10px;margin-top:14px;justify-content:flex-end}
+.btn{
+  font-family:var(--font-data);font-size:.7rem;padding:7px 20px;cursor:pointer;
+  letter-spacing:1px;text-transform:uppercase;border:1px solid;transition:all .2s;
+}
+.btn-primary{background:var(--cyan);color:var(--navy);border-color:var(--cyan)}
+.btn-primary:hover{background:#00e5ff}
+.btn-secondary{background:transparent;color:var(--cyan);border-color:var(--cyan)}
+.btn-secondary:hover{background:rgba(0,188,212,.1)}
+.btn-warn{background:var(--orange);color:var(--navy);border-color:var(--orange)}
+.btn:disabled{opacity:.3;cursor:not-allowed}
+
+/* ── STATUS INDICATOR ── */
+.status-badge{
+  display:inline-flex;align-items:center;gap:5px;font-family:var(--font-data);
+  font-size:.7rem;padding:3px 10px;border:1px solid;
+}
+.status-green{color:var(--green);border-color:var(--green)}
+.status-yellow{color:var(--yellow);border-color:var(--yellow)}
+.status-orange{color:var(--orange);border-color:var(--orange)}
+.status-red{color:var(--red);border-color:var(--red)}
+
+/* ── DATA TABLE ── */
+.data-tbl{width:100%;border-collapse:collapse;font-family:var(--font-data);font-size:.68rem;margin:8px 0}
+.data-tbl th{
+  background:rgba(0,188,212,.08);color:var(--cyan);text-align:left;padding:5px 6px;
+  border-bottom:1px solid var(--cyan);font-weight:normal;letter-spacing:.5px;
+}
+.data-tbl td{padding:4px 6px;border-bottom:1px solid rgba(0,188,212,.06)}
+.data-tbl tr:nth-child(even) td{background:rgba(0,188,212,.03)}
+.data-tbl tr.row-warn td{background:var(--orange-dim);color:var(--orange)}
+.data-tbl tr.row-crit td{background:rgba(213,0,0,.15);color:var(--red)}
+.data-tbl .cap-bar{height:6px;background:var(--cyan-dim);position:relative;min-width:80px}
+.data-tbl .cap-bar-fill{height:100%;transition:width .3s}
+.data-tbl .cap-line{position:absolute;right:0;top:-2px;height:10px;width:2px;background:var(--red)}
+
+/* ── BAR CHART ── */
+.bar-chart{display:flex;flex-direction:column;gap:3px;margin:8px 0;position:relative}
+.bar-row{display:flex;align-items:center;gap:6px}
+.bar-year{font-family:var(--font-data);font-size:.65rem;width:36px;text-align:right;color:var(--text-dim);flex-shrink:0}
+.bar-track{flex:1;height:16px;background:rgba(0,188,212,.06);position:relative;border:1px solid rgba(0,188,212,.08)}
+.bar-fill{height:100%;transition:width .5s ease}
+.bar-pct{font-family:var(--font-data);font-size:.6rem;width:36px;flex-shrink:0}
+.bar-cap-line{position:absolute;top:0;bottom:0;width:2px;background:var(--red);z-index:2}
+.bar-cap-label{
+  position:absolute;top:-14px;font-family:var(--font-data);font-size:.55rem;color:var(--red);
+  transform:translateX(-50%);white-space:nowrap;
+}
+
+/* ── TIMELINE (Step 3) ── */
+.timeline{position:relative;padding-left:28px;margin:10px 0}
+.timeline::before{
+  content:'';position:absolute;left:10px;top:0;bottom:0;width:2px;background:var(--cyan-dim);
+}
+.tl-item{position:relative;padding:8px 0 8px 16px;font-size:.75rem}
+.tl-item::before{
+  content:'';position:absolute;left:-22px;top:12px;width:10px;height:10px;
+  border-radius:50%;border:2px solid var(--cyan);background:var(--navy);z-index:1;
+}
+.tl-item.tl-now::before{background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+.tl-item.tl-past::before{background:var(--red);border-color:var(--red)}
+.tl-item.tl-future::before{background:var(--navy)}
+.tl-year{font-family:var(--font-data);font-size:.75rem;color:var(--cyan)}
+.tl-desc{font-family:var(--font-body);font-size:.7rem;color:var(--text-dim);margin-top:2px}
+
+/* ── MEMO (Step 4) ── */
+.memo{
+  font-family:var(--font-data);font-size:.72rem;line-height:1.6;
+  background:rgba(0,0,0,.2);padding:16px;border:1px solid var(--cyan-dim);
+  white-space:pre-wrap;max-height:400px;overflow-y:auto;
+}
+.memo[contenteditable=true]:focus{outline:1px solid var(--cyan)}
+
+/* ── RUNNING SUMMARY (side panel) ── */
+.summary-row{display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid rgba(0,188,212,.06)}
+.summary-label{font-family:var(--font-data);font-size:.65rem;color:var(--text-dim)}
+.summary-val{font-family:var(--font-data);font-size:.75rem;color:var(--white-bright)}
+.summary-val.val-orange{color:var(--orange)}
+.summary-val.val-red{color:var(--red)}
+.summary-val.val-green{color:var(--green)}
+
+/* ── ALERT BANNER ── */
+.alert-banner{
+  font-family:var(--font-data);font-size:.7rem;padding:8px 12px;margin:8px 0;
+  border:1px solid;display:none;letter-spacing:.5px;
+}
+.alert-banner.show{display:block}
+.alert-red{background:rgba(213,0,0,.12);border-color:var(--red);color:var(--red)}
+.alert-orange{background:var(--orange-dim);border-color:var(--orange);color:var(--orange)}
+.alert-green{background:rgba(0,200,83,.1);border-color:var(--green);color:var(--green)}
+
+/* ── FUNDING CHECKLIST ── */
+.funding-item{
+  display:flex;align-items:flex-start;gap:8px;padding:6px 0;
+  border-bottom:1px solid rgba(0,188,212,.06);font-size:.72rem;
+}
+.funding-item input{accent-color:var(--cyan);margin-top:2px}
+.funding-item a{color:var(--cyan);text-decoration:none}
+.funding-item a:hover{text-decoration:underline}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--navy)}
+::-webkit-scrollbar-thumb{background:var(--cyan-dim);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--cyan)}
+.step-content{scrollbar-width:thin;scrollbar-color:rgba(0,188,212,.25) var(--navy)}
+
+/* ── PULSE ANIMATION for active node ── */
+@keyframes nodePulse{
+  0%,100%{filter:drop-shadow(0 0 3px rgba(0,188,212,.2))}
+  50%{filter:drop-shadow(0 0 8px rgba(0,188,212,.5))}
+}
+.node-click.active{animation:nodePulse 2.5s ease-in-out infinite}
+
+/* ── STEP NUMBER BADGES ── */
+.step-num{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:20px;height:20px;border-radius:50%;border:1.5px solid var(--cyan);
+  font-family:var(--font-data);font-size:.6rem;color:var(--cyan);
+  margin-right:6px;flex-shrink:0;
+}
+.step-num.complete{background:var(--cyan);color:var(--navy)}
+
+/* ── HEALTH INDICATOR DOT ── */
+.health-dot{
+  display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;
+  vertical-align:middle;
+}
+.health-dot.dot-green{background:var(--green)}
+.health-dot.dot-yellow{background:var(--yellow)}
+.health-dot.dot-orange{background:var(--orange)}
+.health-dot.dot-red{background:var(--red)}
+
+/* ── FOOTER ── */
+.ftr{
+  font-family:var(--font-data);font-size:.6rem;color:var(--text-dim);
+  text-align:center;padding:10px 24px;border-top:1px solid var(--cyan-dim);
+  letter-spacing:.5px;margin-top:12px;
+}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .dash{grid-template-columns:1fr;grid-template-rows:auto auto}
+  .side-col{grid-column:1;grid-row:2}
+  .schematic-panel{min-height:420px}
+}
+@media(max-width:600px){
+  .form-grid{grid-template-columns:1fr}
+  .chk-item{width:100%}
+  .hdr{flex-direction:column;gap:6px;text-align:center}
+}
+
+/* ── PRINT ── */
+@media print{
+  body{background:#fff;color:#000;font-size:12pt}
+  .hdr,.schematic-svg-wrap,.legend,.side-col,.btn-row,.btn-demo,.ftr,.step-content:not(.step-4){display:none!important}
+  .dash{display:block}
+  .schematic-panel{border:none;background:none}
+  .step-content.step-4{display:block!important;max-height:none;overflow:visible}
+  .step-content.step-4 .memo{
+    background:#fff;color:#000;border:none;font-family:Georgia,serif;
+    font-size:12pt;line-height:1.5;max-height:none;white-space:pre-wrap;
+    padding:0;
+  }
+  .panel-label{display:none}
+  @page{margin:1in;size:letter}
+}
+</style>
+</head>
+<body>
+<div class="page-wrap" id="pageWrap">
+
+<!-- HEADER -->
+<header class="hdr">
+  <div>
+    <div class="hdr-title">SD-29 Water Capacity Planner</div>
+    <div class="hdr-sub">Wright County Growth Corridor &middot; "When Will We Run Out?"</div>
+  </div>
+  <div class="hdr-right">
+    <button class="btn-demo" id="btnDemo" title="Load Howard Lake example data">Load Demo: Howard Lake</button>
+    <button class="btn-demo" id="btnPrint" style="display:none" title="Print the council memo">Print Memo</button>
+  </div>
+</header>
+
+<!-- DASHBOARD GRID -->
+<main class="dash">
+
+<!-- LEFT: SCHEMATIC + STEP CONTENT -->
+<section class="schematic-panel">
+  <div class="panel-label">System Schematic &mdash; Click a Node</div>
+
+  <div class="schematic-svg-wrap">
+    <svg viewBox="0 0 700 340" xmlns="http://www.w3.org/2000/svg" id="schematicSvg">
+      <!-- Background grid dots -->
+      <defs>
+        <pattern id="bpGrid" width="20" height="20" patternUnits="userSpaceOnUse">
+          <circle cx="10" cy="10" r=".5" fill="rgba(0,188,212,.15)"/>
+        </pattern>
+      </defs>
+      <rect width="700" height="340" fill="url(#bpGrid)"/>
+
+      <!-- PIPES (draw-animated lines) -->
+      <!-- Well to Treatment -->
+      <line x1="120" y1="170" x2="260" y2="170" stroke="#00bcd4" stroke-width="2" class="draw-line draw-line-d1"/>
+      <line x1="120" y1="168" x2="260" y2="168" stroke="none" stroke-width="0"/>
+      <!-- Treatment to Storage -->
+      <line x1="370" y1="170" x2="500" y2="170" stroke="#00bcd4" stroke-width="2" class="draw-line draw-line-d2"/>
+      <!-- Storage to Distribution -->
+      <line x1="560" y1="210" x2="560" y2="280" stroke="#00bcd4" stroke-width="2" class="draw-line draw-line-d3"/>
+      <line x1="560" y1="280" x2="620" y2="280" stroke="#00bcd4" stroke-width="2" class="draw-line draw-line-d4"/>
+      <!-- Branch pipes -->
+      <line x1="620" y1="260" x2="620" y2="300" stroke="#00bcd4" stroke-width="1.5" stroke-dasharray="4 3" class="draw-line draw-line-d5"/>
+      <line x1="120" y1="170" x2="120" y2="240" stroke="#00bcd4" stroke-width="1.5" stroke-dasharray="4 3" class="draw-line draw-line-d3"/>
+      <!-- Pump symbols -->
+      <circle cx="190" cy="170" r="8" fill="none" stroke="#00bcd4" stroke-width="1.5" class="draw-line draw-line-d1"/>
+      <line x1="185" y1="164" x2="195" y2="176" stroke="#00bcd4" stroke-width="1.5" class="draw-line draw-line-d1"/>
+      <circle cx="435" cy="170" r="8" fill="none" stroke="#00bcd4" stroke-width="1.5" class="draw-line draw-line-d2"/>
+      <line x1="430" y1="164" x2="440" y2="176" stroke="#00bcd4" stroke-width="1.5" class="draw-line draw-line-d2"/>
+
+      <!-- NODE 1: WELLS (Step 1 - System Profile) -->
+      <g class="node-click active" data-step="1" id="node1">
+        <circle cx="80" cy="170" r="32" class="node-fill" fill="rgba(0,188,212,.08)"/>
+        <circle cx="80" cy="170" r="32" class="node-ring" fill="none" stroke="#00bcd4" stroke-width="1.5"/>
+        <!-- Well icon -->
+        <line x1="80" y1="148" x2="80" y2="192" stroke="#00bcd4" stroke-width="2"/>
+        <line x1="68" y1="192" x2="92" y2="192" stroke="#00bcd4" stroke-width="2"/>
+        <line x1="72" y1="196" x2="88" y2="196" stroke="#00bcd4" stroke-width="1.5"/>
+        <text x="80" y="218" text-anchor="middle" fill="#e8f4f8" font-family="'Lucida Console',monospace" font-size="9" letter-spacing="1">WELLS</text>
+        <text x="80" y="230" text-anchor="middle" fill="rgba(232,244,248,.45)" font-family="Calibri,sans-serif" font-size="7">System Profile</text>
+      </g>
+
+      <!-- NODE 2: TREATMENT (Step 2 - Growth Projection) -->
+      <g class="node-click" data-step="2" id="node2">
+        <rect x="280" y="138" width="70" height="64" rx="4" class="node-fill" fill="rgba(0,188,212,.08)"/>
+        <rect x="280" y="138" width="70" height="64" rx="4" class="node-ring" fill="none" stroke="#00bcd4" stroke-width="1.5"/>
+        <!-- Treatment icon (filter lines) -->
+        <line x1="295" y1="158" x2="335" y2="158" stroke="#00bcd4" stroke-width="1"/>
+        <line x1="295" y1="165" x2="335" y2="165" stroke="#00bcd4" stroke-width="1"/>
+        <line x1="295" y1="172" x2="335" y2="172" stroke="#00bcd4" stroke-width="1"/>
+        <line x1="295" y1="179" x2="335" y2="179" stroke="#00bcd4" stroke-width="1"/>
+        <line x1="295" y1="186" x2="335" y2="186" stroke="#00bcd4" stroke-width="1"/>
+        <text x="315" y="218" text-anchor="middle" fill="#e8f4f8" font-family="'Lucida Console',monospace" font-size="9" letter-spacing="1">TREATMENT</text>
+        <text x="315" y="230" text-anchor="middle" fill="rgba(232,244,248,.45)" font-family="Calibri,sans-serif" font-size="7">Growth Projection</text>
+      </g>
+
+      <!-- NODE 3: STORAGE / TOWER (Step 3 - Bonding Timeline) -->
+      <g class="node-click" data-step="3" id="node3">
+        <circle cx="530" cy="170" r="32" class="node-fill" fill="rgba(0,188,212,.08)"/>
+        <circle cx="530" cy="170" r="32" class="node-ring" fill="none" stroke="#00bcd4" stroke-width="1.5"/>
+        <!-- Tower icon -->
+        <rect x="522" y="152" width="16" height="28" fill="none" stroke="#00bcd4" stroke-width="1.5"/>
+        <line x1="518" y1="152" x2="542" y2="152" stroke="#00bcd4" stroke-width="2"/>
+        <line x1="530" y1="180" x2="530" y2="195" stroke="#00bcd4" stroke-width="2"/>
+        <text x="530" y="218" text-anchor="middle" fill="#e8f4f8" font-family="'Lucida Console',monospace" font-size="9" letter-spacing="1">STORAGE</text>
+        <text x="530" y="230" text-anchor="middle" fill="rgba(232,244,248,.45)" font-family="Calibri,sans-serif" font-size="7">Bonding Timeline</text>
+      </g>
+
+      <!-- NODE 4: DISTRIBUTION (Step 4 - Summary/Memo) -->
+      <g class="node-click" data-step="4" id="node4">
+        <circle cx="620" cy="280" r="24" class="node-fill" fill="rgba(0,188,212,.08)"/>
+        <circle cx="620" cy="280" r="24" class="node-ring" fill="none" stroke="#00bcd4" stroke-width="1.5"/>
+        <!-- House icon -->
+        <polygon points="620,264 608,274 632,274" fill="none" stroke="#00bcd4" stroke-width="1.5"/>
+        <rect x="613" y="274" width="14" height="10" fill="none" stroke="#00bcd4" stroke-width="1.5"/>
+        <text x="620" y="312" text-anchor="middle" fill="#e8f4f8" font-family="'Lucida Console',monospace" font-size="9" letter-spacing="1">REPORT</text>
+        <text x="620" y="324" text-anchor="middle" fill="rgba(232,244,248,.45)" font-family="Calibri,sans-serif" font-size="7">Council Memo</text>
+      </g>
+
+      <!-- Flow arrows -->
+      <polygon points="255,166 255,174 264,170" fill="#00bcd4" class="draw-line draw-line-d1"/>
+      <polygon points="495,166 495,174 504,170" fill="#00bcd4" class="draw-line draw-line-d2"/>
+      <polygon points="556,275 564,275 560,284" fill="#00bcd4" class="draw-line draw-line-d4"/>
+
+      <!-- Valve symbols (butterfly valve = bowtie shape) -->
+      <g class="draw-line draw-line-d1" opacity=".6">
+        <line x1="152" y1="164" x2="158" y2="176" stroke="#00bcd4" stroke-width="1.2"/>
+        <line x1="158" y1="164" x2="152" y2="176" stroke="#00bcd4" stroke-width="1.2"/>
+        <text x="155" y="160" text-anchor="middle" fill="rgba(0,188,212,.35)" font-family="'Lucida Console',monospace" font-size="5">V1</text>
+      </g>
+      <g class="draw-line draw-line-d2" opacity=".6">
+        <line x1="462" y1="164" x2="468" y2="176" stroke="#00bcd4" stroke-width="1.2"/>
+        <line x1="468" y1="164" x2="462" y2="176" stroke="#00bcd4" stroke-width="1.2"/>
+        <text x="465" y="160" text-anchor="middle" fill="rgba(0,188,212,.35)" font-family="'Lucida Console',monospace" font-size="5">V2</text>
+      </g>
+
+      <!-- Pressure gauge indicators -->
+      <g class="draw-line draw-line-d2" opacity=".5">
+        <circle cx="230" cy="158" r="5" fill="none" stroke="#00bcd4" stroke-width=".8"/>
+        <line x1="230" y1="158" x2="233" y2="155" stroke="#00bcd4" stroke-width=".8"/>
+        <text x="230" y="150" text-anchor="middle" fill="rgba(0,188,212,.3)" font-family="'Lucida Console',monospace" font-size="4">PSI</text>
+      </g>
+      <g class="draw-line draw-line-d3" opacity=".5">
+        <circle cx="480" cy="158" r="5" fill="none" stroke="#00bcd4" stroke-width=".8"/>
+        <line x1="480" y1="158" x2="483" y2="155" stroke="#00bcd4" stroke-width=".8"/>
+        <text x="480" y="150" text-anchor="middle" fill="rgba(0,188,212,.3)" font-family="'Lucida Console',monospace" font-size="4">PSI</text>
+      </g>
+
+      <!-- Dimension annotations -->
+      <g opacity=".2">
+        <line x1="120" y1="130" x2="260" y2="130" stroke="#00bcd4" stroke-width=".5"/>
+        <line x1="120" y1="128" x2="120" y2="132" stroke="#00bcd4" stroke-width=".5"/>
+        <line x1="260" y1="128" x2="260" y2="132" stroke="#00bcd4" stroke-width=".5"/>
+        <text x="190" y="128" text-anchor="middle" fill="#00bcd4" font-family="'Lucida Console',monospace" font-size="5">RAW WATER MAIN</text>
+      </g>
+      <g opacity=".2">
+        <line x1="370" y1="130" x2="500" y2="130" stroke="#00bcd4" stroke-width=".5"/>
+        <line x1="370" y1="128" x2="370" y2="132" stroke="#00bcd4" stroke-width=".5"/>
+        <line x1="500" y1="128" x2="500" y2="132" stroke="#00bcd4" stroke-width=".5"/>
+        <text x="435" y="128" text-anchor="middle" fill="#00bcd4" font-family="'Lucida Console',monospace" font-size="5">TREATED WATER MAIN</text>
+      </g>
+
+      <!-- Secondary distribution branches -->
+      <line x1="620" y1="280" x2="670" y2="260" stroke="#00bcd4" stroke-width="1" stroke-dasharray="3 3" class="draw-line draw-line-d5" opacity=".4"/>
+      <line x1="620" y1="280" x2="670" y2="300" stroke="#00bcd4" stroke-width="1" stroke-dasharray="3 3" class="draw-line draw-line-d5" opacity=".4"/>
+      <!-- End-user service dots -->
+      <circle cx="670" cy="260" r="3" fill="rgba(0,188,212,.2)" stroke="#00bcd4" stroke-width=".5" class="draw-line draw-line-d5"/>
+      <circle cx="670" cy="300" r="3" fill="rgba(0,188,212,.2)" stroke="#00bcd4" stroke-width=".5" class="draw-line draw-line-d5"/>
+      <text x="682" y="262" fill="rgba(0,188,212,.3)" font-family="'Lucida Console',monospace" font-size="5" class="draw-line draw-line-d5">RES</text>
+      <text x="682" y="302" fill="rgba(0,188,212,.3)" font-family="'Lucida Console',monospace" font-size="5" class="draw-line draw-line-d5">C/I</text>
+
+      <!-- Ground level line -->
+      <line x1="40" y1="200" x2="110" y2="200" stroke="rgba(0,188,212,.12)" stroke-width="1" stroke-dasharray="2 4"/>
+      <text x="42" y="208" fill="rgba(0,188,212,.15)" font-family="'Lucida Console',monospace" font-size="4">GRADE</text>
+
+      <!-- Title in schematic -->
+      <text x="350" y="26" text-anchor="middle" fill="rgba(0,188,212,.35)" font-family="'Franklin Gothic Medium',sans-serif" font-size="14" letter-spacing="4">MUNICIPAL WATER SYSTEM — SD-29</text>
+      <text x="350" y="42" text-anchor="middle" fill="rgba(0,188,212,.2)" font-family="'Lucida Console',monospace" font-size="8" letter-spacing="2">WRIGHT COUNTY GROWTH CORRIDOR</text>
+
+      <!-- Drawing number / revision block -->
+      <g opacity=".25">
+        <rect x="560" y="18" width="120" height="36" fill="none" stroke="#00bcd4" stroke-width=".5"/>
+        <line x1="560" y1="30" x2="680" y2="30" stroke="#00bcd4" stroke-width=".5"/>
+        <line x1="560" y1="42" x2="680" y2="42" stroke="#00bcd4" stroke-width=".5"/>
+        <text x="620" y="28" text-anchor="middle" fill="#00bcd4" font-family="'Lucida Console',monospace" font-size="5">DWG: SD29-WTR-001</text>
+        <text x="620" y="39" text-anchor="middle" fill="#00bcd4" font-family="'Lucida Console',monospace" font-size="5">REV: A — 2026</text>
+        <text x="620" y="50" text-anchor="middle" fill="#00bcd4" font-family="'Lucida Console',monospace" font-size="5">CAPACITY PLANNER</text>
+      </g>
+
+      <!-- Flow direction labels -->
+      <text x="190" y="158" text-anchor="middle" fill="rgba(0,188,212,.4)" font-family="'Lucida Console',monospace" font-size="6">PUMP</text>
+      <text x="435" y="158" text-anchor="middle" fill="rgba(0,188,212,.4)" font-family="'Lucida Console',monospace" font-size="6">PUMP</text>
+      <text x="80" y="256" text-anchor="middle" fill="rgba(0,188,212,.25)" font-family="'Lucida Console',monospace" font-size="6">AQUIFER</text>
+
+      <!-- Flow rate annotation (appears after demo) -->
+      <text x="190" y="186" text-anchor="middle" fill="rgba(0,188,212,.2)" font-family="'Lucida Console',monospace" font-size="5" id="svgFlowRate"></text>
+      <text x="530" y="140" text-anchor="middle" fill="rgba(0,188,212,.2)" font-family="'Lucida Console',monospace" font-size="5" id="svgStorageLabel"></text>
+    </svg>
+
+    <div class="legend">
+      <div class="legend-row"><span class="legend-swatch" style="background:#00bcd4"></span> Pipe / flow path</div>
+      <div class="legend-row"><span class="legend-swatch" style="background:#00bcd4;border:1px dashed #00bcd4;height:1px"></span> Branch / lateral</div>
+      <div class="legend-row"><span class="legend-swatch" style="background:#ff6f00"></span> Capacity warning</div>
+      <div class="legend-row"><span class="legend-swatch" style="background:#d50000"></span> Threshold exceeded</div>
+    </div>
+  </div>
+
+  <!-- STEP CONTENT PANELS (below schematic) -->
+
+  <!-- STEP 1: SYSTEM PROFILE -->
+  <div class="step-content step-1 active" id="step1">
+    <h2>Step 1 &mdash; System Profile</h2>
+    <p style="font-size:.72rem;color:var(--text-dim);margin-bottom:10px">What does your current water system look like?</p>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="cityName">City Name</label>
+        <input type="text" id="cityName" list="cityList" placeholder="Type or select...">
+        <datalist id="cityList">
+          <option value="Howard Lake"><option value="South Haven"><option value="Monticello">
+          <option value="Buffalo"><option value="Maple Lake"><option value="Clearwater">
+          <option value="Otsego"><option value="Rockford"><option value="Delano">
+          <option value="Big Lake"><option value="Hanover"><option value="Albertville">
+          <option value="St. Michael">
+        </datalist>
+      </div>
+      <div class="form-group">
+        <label for="ratedCap">Rated Daily Production (gpd)</label>
+        <input type="number" id="ratedCap" placeholder="e.g. 800000">
+      </div>
+      <div class="form-group">
+        <label for="storageCap">Storage Capacity (gallons)</label>
+        <input type="number" id="storageCap" placeholder="e.g. 325000">
+      </div>
+      <div class="form-group">
+        <label for="connections">Active Service Connections</label>
+        <input type="number" id="connections" placeholder="e.g. 950">
+      </div>
+      <div class="form-group">
+        <label for="avgDemand">Avg Daily Demand (gpd)</label>
+        <input type="number" id="avgDemand" placeholder="e.g. 450000">
+      </div>
+      <div class="form-group">
+        <label for="peakDemand">Peak Daily Demand (gpd)</label>
+        <input type="number" id="peakDemand" placeholder="e.g. 990000">
+        <span class="hint">Highest single-day usage in last 3 years. If unknown, enter 2.2 x avg demand.</span>
+      </div>
+    </div>
+
+    <h3>System Condition Flags</h3>
+    <div class="chk-group">
+      <label class="chk-item"><input type="checkbox" id="flag1"> Treatment facility 20+ years old</label>
+      <label class="chk-item"><input type="checkbox" id="flag2"> Distribution pipes 40+ years old</label>
+      <label class="chk-item"><input type="checkbox" id="flag3"> Water tower built before 1980</label>
+      <label class="chk-item"><input type="checkbox" id="flag4"> Peak demand exceeds 80% of capacity</label>
+      <label class="chk-item"><input type="checkbox" id="flag5"> Boil-water advisory in last 5 years</label>
+      <label class="chk-item"><input type="checkbox" id="flag6"> MDH/MPCA compliance notice in last 3 years</label>
+    </div>
+
+    <h3>Bonding / Debt Status</h3>
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="bondDebt">Outstanding Water/Sewer Bond Debt ($)</label>
+        <input type="number" id="bondDebt" placeholder="e.g. 2000000">
+      </div>
+      <div class="form-group">
+        <label for="debtService">Annual Debt Service ($)</label>
+        <input type="number" id="debtService" placeholder="e.g. 180000">
+      </div>
+      <div class="form-group" style="grid-column:1/-1">
+        <label for="utilRevenue">Annual Water/Sewer Utility Revenue ($)</label>
+        <input type="number" id="utilRevenue" placeholder="e.g. 600000">
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btnStep1">Complete Step 1 &#9654;</button>
+    </div>
+  </div>
+
+  <!-- STEP 2: GROWTH PROJECTION -->
+  <div class="step-content step-2" id="step2">
+    <h2>Step 2 &mdash; Growth Projection</h2>
+    <p style="font-size:.72rem;color:var(--text-dim);margin-bottom:10px">How fast is your community growing?</p>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="curPop">Current Population</label>
+        <input type="number" id="curPop" placeholder="e.g. 2326">
+      </div>
+      <div class="form-group">
+        <label for="growthPreset">Growth Rate Preset</label>
+        <select id="growthPreset">
+          <option value="">-- Select or enter custom --</option>
+          <option value="2.7">Wright County high-growth avg (2.7%/yr)</option>
+          <option value="2.0">Monticello/Buffalo commuter suburb (2.0%/yr)</option>
+          <option value="1.5">Smaller city — Howard Lake/South Haven (1.5%/yr)</option>
+          <option value="1.0">Conservative/low-growth estimate (1.0%/yr)</option>
+        </select>
+        <span class="hint">Wright County: ~141,337 (2020) to ~154,593 (2024) = ~10.8% in 4 years</span>
+      </div>
+      <div class="form-group">
+        <label for="growthRate">Annual Growth Rate (%)</label>
+        <input type="number" id="growthRate" step="0.1" placeholder="e.g. 1.5">
+      </div>
+      <div class="form-group">
+        <label for="demandMult">Demand Growth Multiplier: <span id="multVal">1.1</span>x</label>
+        <input type="range" id="demandMult" min="0.8" max="1.4" step="0.05" value="1.1">
+        <span class="hint">Water demand often grows slightly faster than population in developing suburbs.</span>
+      </div>
+      <div class="form-group">
+        <label for="peakFactor">Peak-Day Factor: <span id="peakFactorVal">2.2</span>x</label>
+        <input type="range" id="peakFactor" min="1.5" max="3.0" step="0.1" value="2.2">
+        <span class="hint">Typical range: 2.0 - 2.5x average daily demand.</span>
+      </div>
+    </div>
+
+    <h3>Development Pipeline (optional)</h3>
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="newLots">Approved Residential Lots (not yet built)</label>
+        <input type="number" id="newLots" value="0">
+      </div>
+      <div class="form-group">
+        <label for="newComm">Approved Commercial Connections</label>
+        <input type="number" id="newComm" value="0">
+      </div>
+      <div class="form-group">
+        <label for="gpdRes">GPD per Residential Connection</label>
+        <input type="number" id="gpdRes" value="200">
+      </div>
+      <div class="form-group">
+        <label for="gpdComm">GPD per Commercial Connection</label>
+        <input type="number" id="gpdComm" value="400">
+      </div>
+    </div>
+
+    <div id="projAlert" class="alert-banner"></div>
+    <div id="projTableWrap"></div>
+    <div id="projChartWrap"></div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" id="btnBack2">&#9664; Back</button>
+      <button class="btn btn-primary" id="btnStep2">Compute &amp; Continue &#9654;</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: BONDING LEAD-TIME -->
+  <div class="step-content step-3" id="step3">
+    <h2>Step 3 &mdash; Bonding Lead-Time Calculator</h2>
+    <p style="font-size:.72rem;color:var(--text-dim);margin-bottom:10px">When does your city council need to start the process?</p>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="constMonths">Construction Duration (months)</label>
+        <select id="constMonths"><option value="12">12</option><option value="18">18</option><option value="24" selected>24</option><option value="36">36</option></select>
+      </div>
+      <div class="form-group">
+        <label for="designMonths">Engineering/Design (months)</label>
+        <select id="designMonths"><option value="12" selected>12</option><option value="15">15</option><option value="18">18</option></select>
+      </div>
+      <div class="form-group">
+        <label for="bondMonths">Bonding Bill Process (months)</label>
+        <select id="bondMonths"><option value="18">18</option><option value="24" selected>24</option></select>
+        <span class="hint">MN passes bonding bills primarily in even years. A missed cycle = 2-year wait.</span>
+      </div>
+      <div class="form-group">
+        <label for="mmbMonths">MMB/MDH Review (months)</label>
+        <select id="mmbMonths"><option value="6">6</option><option value="9" selected>9</option></select>
+      </div>
+    </div>
+
+    <div id="timelineWrap"></div>
+
+    <h3>Funding Stack</h3>
+    <div class="form-grid cols-1">
+      <div class="form-group">
+        <label for="projCost">Estimated Total Project Cost ($)</label>
+        <input type="number" id="projCost" placeholder="e.g. 15000000">
+        <span class="hint">Water treatment plant: $8-15M (cities under 5,000). Tower replacement: $2-4M. Distribution mains: $500K-$2M/mile.</span>
+      </div>
+    </div>
+
+    <div style="margin-top:10px">
+      <div class="funding-item"><input type="checkbox" id="fundBond" checked> <div><strong>MN Capital Investment (bonding)</strong> — typical share: 20-60% of project cost<br><a href="https://mn.gov/mmb/budget/capital-budget/" target="_blank">mn.gov/mmb/budget/capital-budget/</a></div></div>
+      <div class="funding-item"><input type="checkbox" id="fundDWRF" checked> <div><strong>MPFA Drinking Water Revolving Fund (DWRF)</strong> — low-interest loans; no income limits for growth cities<br><a href="https://mn.gov/deed/pfa/funds-programs/drinking-water.jsp" target="_blank">mn.gov/deed/pfa/funds-programs/drinking-water.jsp</a><!-- VERIFY: URL from software brief — not independently confirmed --></div></div>
+      <div class="funding-item"><input type="checkbox" id="fundCWRF"> <div><strong>MPFA Clean Water Revolving Fund</strong> — wastewater side if applicable</div></div>
+      <div class="funding-item"><input type="checkbox" id="fundEPA"> <div><strong>EPA Emerging Contaminants</strong> — grants for PFAS/manganese treatment upgrades</div></div>
+      <div class="funding-item"><input type="checkbox" id="fundLocal"> <div><strong>Local Utility Revenue Bonds</strong> — requires DSCR &ge; 1.25</div></div>
+    </div>
+    <p style="font-size:.65rem;color:var(--text-dim);margin-top:8px">
+      The MN Drinking Water State Revolving Fund (DWRF) is administered jointly by the MN Public Facilities Authority and MN Dept. of Health. Unlike USDA rural programs, it has no income-limit eligibility threshold &mdash; making it the primary debt vehicle for fast-growing Wright County cities that exceed USDA median household income caps.
+    </p>
+
+    <div id="dscrWrap" style="margin-top:8px"></div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" id="btnBack3">&#9664; Back</button>
+      <button class="btn btn-primary" id="btnStep3">Generate Report &#9654;</button>
+    </div>
+  </div>
+
+  <!-- STEP 4: SUMMARY REPORT -->
+  <div class="step-content step-4" id="step4">
+    <h2>Step 4 &mdash; Council Briefing Memo</h2>
+    <p style="font-size:.72rem;color:var(--text-dim);margin-bottom:8px">Edit inline if needed, then print.</p>
+    <div class="memo" id="memoContent" contenteditable="true"></div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" id="btnBack4">&#9664; Back</button>
+      <button class="btn btn-warn" id="btnPrintMemo">Print Memo</button>
+    </div>
+  </div>
+
+</section>
+
+<!-- RIGHT: SIDE PANELS -->
+<div class="side-col">
+  <!-- HERO GAUGE -->
+  <div class="panel visible" id="gaugePanel">
+    <div class="panel-label">Capacity vs. Demand</div>
+    <div class="gauge-wrap">
+      <svg class="gauge-svg" viewBox="0 0 200 200">
+        <circle cx="100" cy="100" r="80" class="gauge-bg" transform="rotate(-90 100 100)"
+                stroke-dasharray="502.65" stroke-dashoffset="0"/>
+        <circle cx="100" cy="100" r="80" class="gauge-cap" id="gaugeCap"
+                transform="rotate(-90 100 100)" stroke-dasharray="502.65" stroke-dashoffset="502.65"/>
+        <circle cx="100" cy="100" r="65" class="gauge-demand" id="gaugeDemand"
+                transform="rotate(-90 100 100)" stroke-dasharray="408.41" stroke-dashoffset="408.41"/>
+        <text x="100" y="96" class="gauge-center-val" id="gaugeVal">--%</text>
+        <text x="100" y="114" class="gauge-center-label" id="gaugeLabel">peak utilization</text>
+      </svg>
+    </div>
+    <div class="gauge-legend">
+      <span><span class="dot" style="background:var(--cyan)"></span> Capacity</span>
+      <span><span class="dot" style="background:var(--orange)"></span> Peak Demand</span>
+    </div>
+  </div>
+
+  <!-- RUNNING SUMMARY -->
+  <div class="panel visible" id="summaryPanel" style="transition-delay:.15s">
+    <div class="panel-label">Running Summary</div>
+    <div class="summary-row"><span class="summary-label">City</span><span class="summary-val" id="sumCity">&mdash;</span></div>
+    <div class="summary-row"><span class="summary-label">System Health</span><span class="summary-val" id="sumHealth">&mdash;</span></div>
+    <div class="summary-row"><span class="summary-label">Current Utilization</span><span class="summary-val" id="sumUtil">&mdash;</span></div>
+    <div class="summary-row"><span class="summary-label">Planning Trigger Year</span><span class="summary-val" id="sumTrigger">&mdash;</span></div>
+    <div class="summary-row"><span class="summary-label">Crisis Year</span><span class="summary-val" id="sumCrisis">&mdash;</span></div>
+    <div class="summary-row"><span class="summary-label">Action Deadline</span><span class="summary-val" id="sumDeadline">&mdash;</span></div>
+  </div>
+
+  <!-- CONTEXT PANEL -->
+  <div class="panel visible" id="contextPanel" style="transition-delay:.3s">
+    <div class="panel-label">SD-29 Context</div>
+    <p style="font-size:.68rem;line-height:1.5;color:var(--text-dim)">
+      Wright County grew from 141,337 (2020 Census) to approximately 154,593 by mid-2024 &mdash; roughly 10.8% in four years, the fastest county growth rate in Minnesota.
+    </p>
+    <p style="font-size:.68rem;line-height:1.5;color:var(--text-dim);margin-top:6px">
+      Senator Holmstrom's bonding priorities include $15M for Howard Lake (SF2582), $10M for Monticello (SF2223), and additional requests totaling $37.5M for the 2026 cycle.
+    </p>
+  </div>
+
+  <!-- CASE STUDIES PANEL -->
+  <div class="panel visible" id="casePanel" style="transition-delay:.38s">
+    <div class="panel-label">SD-29 Case Studies</div>
+    <div style="font-size:.65rem;line-height:1.5;color:var(--text-dim)">
+      <!-- VERIFY: Population and funding figures from software brief -->
+      <div style="margin-bottom:6px">
+        <strong style="color:var(--cyan);font-family:var(--font-data);font-size:.63rem;letter-spacing:.5px">MONTICELLO</strong>
+        <span style="color:var(--text-dim);font-family:var(--font-data);font-size:.58rem"> (pop. ~14,000)</span><br>
+        Received $11M state bonding in 2023 for new water treatment facility. Holmstrom's 2026 priority adds $10M more (SF2223). Total project financed partly through ~$32M+ MPFA loan. Demonstrates that large growth-city projects require multiple funding cycles over multiple years.
+      </div>
+      <div style="margin-bottom:6px">
+        <strong style="color:var(--orange);font-family:var(--font-data);font-size:.63rem;letter-spacing:.5px">SOUTH HAVEN</strong>
+        <span style="color:var(--text-dim);font-family:var(--font-data);font-size:.58rem"> (cautionary case)</span><br>
+        December 2025 Capital Investment Committee site visit documented bacterial contamination in distribution system, with simultaneous failures in water tower, sanitary sewer, and storm sewer. A city that reached crisis before bonding was secured &mdash; the case for early planning.
+      </div>
+      <div>
+        <strong style="color:var(--green);font-family:var(--font-data);font-size:.63rem;letter-spacing:.5px">HOWARD LAKE</strong>
+        <span style="color:var(--text-dim);font-family:var(--font-data);font-size:.58rem"> (pop. ~2,326)</span><br>
+        SF2582 (2025): $15M for new well, trunk water-main upgrades, and water tower improvements. Manganese contamination was the documented water quality driver. Storage: 250,000-gal tower (1999) + 75,000-gal tower (1947).
+      </div>
+    </div>
+  </div>
+
+  <!-- BONDING PROCESS PANEL -->
+  <div class="panel visible" id="bondPanel" style="transition-delay:.45s">
+    <div class="panel-label">MN Bonding Process</div>
+    <div style="font-family:var(--font-data);font-size:.62rem;color:var(--text-dim);line-height:1.6">
+      Capital Investment Committee site visits: ongoing<br>
+      Governor's bonding proposal: January (even year)<br>
+      Legislative hearings: February&ndash;April (even year)<br>
+      Floor vote (3/5 supermajority): May (even year)<br>
+      Governor signs / MMB releases proceeds: June&ndash;August<br>
+      <span style="color:var(--orange)">A failed bonding bill = 2-year wait for next opportunity.</span>
+    </div>
+  </div>
+
+  <!-- LINKS -->
+  <div class="panel visible" id="linksPanel" style="transition-delay:.6s">
+    <div class="panel-label">Resources</div>
+    <div style="font-family:var(--font-data);font-size:.62rem;line-height:1.8">
+      <!-- VERIFY: URLs from software brief — not independently confirmed -->
+      <a href="https://mn.gov/deed/pfa/funds-programs/drinking-water.jsp" target="_blank" style="color:var(--cyan)">MPFA — DWRF</a><br>
+      <a href="https://www.health.state.mn.us/communities/environment/water/dwrf/index.html" target="_blank" style="color:var(--cyan)">MDH — Drinking Water Fund</a><br>
+      <a href="https://mn.gov/mmb/budget/capital-budget/" target="_blank" style="color:var(--cyan)">MN Capital Investment</a><br>
+      <a href="https://www.lmc.org" target="_blank" style="color:var(--cyan)">League of MN Cities</a>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<footer class="ftr">
+  A planning resource for SD-29 communities. Built with AI. Based on Wright County growth data through 2024 and Minnesota bonding process timelines as of 2026. Not a substitute for engineering or legal advice.
+</footer>
+
+</div><!-- /page-wrap -->
+
+<script>
+(function(){
+'use strict';
+
+// ═══ STATE ═══
+const S = {
+  step: 1,
+  city:'', ratedCap:0, storageCap:0, connections:0, avgDemand:0, peakDemand:0,
+  flags:[false,false,false,false,false,false],
+  bondDebt:0, debtService:0, utilRevenue:0,
+  curPop:0, growthRate:0, demandMult:1.1, peakFactor:2.2,
+  newLots:0, newComm:0, gpdRes:200, gpdComm:400,
+  constMonths:24, designMonths:12, bondMonths:24, mmbMonths:9,
+  projCost:0,
+  fundingSources:[],
+  // Computed
+  healthStatus:'', triggerYear:null, crisisYear:null, startYear:null,
+  projections:[]
+};
+
+const $ = id => document.getElementById(id);
+const numFmt = n => n != null ? Number(n).toLocaleString('en-US') : '—';
+const pctFmt = n => n != null ? (n*100).toFixed(1)+'%' : '—';
+const currentYear = 2026;
+
+// ═══ ENTRY ANIMATION ═══
+window.addEventListener('load', () => {
+  setTimeout(() => $('pageWrap').classList.add('loaded'), 100);
+  // Panels stagger via CSS transition-delay
+  document.querySelectorAll('.panel').forEach(p => p.classList.add('visible'));
+  loadState();
+});
+
+// ═══ NODE NAVIGATION ═══
+document.querySelectorAll('.node-click').forEach(node => {
+  node.addEventListener('click', () => {
+    const step = parseInt(node.dataset.step);
+    if(step > 1 && !isStepUnlocked(step)) return;
+    goToStep(step);
+  });
+});
+
+function isStepUnlocked(step) {
+  if(step === 1) return true;
+  if(step === 2) return S.ratedCap > 0 && S.peakDemand > 0;
+  if(step === 3) return S.projections.length > 0;
+  if(step === 4) return S.startYear != null;
+  return false;
+}
+
+function goToStep(step) {
+  S.step = step;
+  document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.node-click').forEach(n => {
+    n.classList.remove('active');
+    n.classList.remove('locked');
+  });
+  $('step'+step).classList.add('active');
+  $('node'+step).classList.add('active');
+  // Mark locked nodes
+  for(let i = 2; i <= 4; i++) {
+    if(!isStepUnlocked(i) && i !== step) {
+      $('node'+i).classList.add('locked');
+    }
+  }
+  $('btnPrint').style.display = step === 4 ? 'inline-block' : 'none';
+  saveState();
+}
+
+function updateSvgAnnotations() {
+  // Update flow rate and storage labels on the schematic when data is available
+  const flowEl = $('svgFlowRate');
+  const storEl = $('svgStorageLabel');
+  if(flowEl && S.avgDemand > 0) {
+    flowEl.textContent = Math.round(S.avgDemand/1000)+'K GPD AVG';
+  }
+  if(storEl && S.storageCap > 0) {
+    storEl.textContent = Math.round(S.storageCap/1000)+'K GAL';
+  }
+}
+
+// ═══ STEP 1: SYSTEM PROFILE ═══
+$('btnStep1').addEventListener('click', () => {
+  S.city = $('cityName').value.trim();
+  S.ratedCap = parseFloat($('ratedCap').value) || 0;
+  S.storageCap = parseFloat($('storageCap').value) || 0;
+  S.connections = parseInt($('connections').value) || 0;
+  S.avgDemand = parseFloat($('avgDemand').value) || 0;
+  S.peakDemand = parseFloat($('peakDemand').value) || 0;
+  S.flags = [
+    $('flag1').checked,$('flag2').checked,$('flag3').checked,
+    $('flag4').checked,$('flag5').checked,$('flag6').checked
+  ];
+  S.bondDebt = parseFloat($('bondDebt').value) || 0;
+  S.debtService = parseFloat($('debtService').value) || 0;
+  S.utilRevenue = parseFloat($('utilRevenue').value) || 0;
+
+  if(!S.ratedCap || !S.peakDemand) {
+    alert('Please enter at least Rated Daily Production Capacity and Peak Daily Demand.');
+    return;
+  }
+
+  computeHealth();
+  updateGauge();
+  updateSvgAnnotations();
+  updateSummary();
+  goToStep(2);
+});
+
+function computeHealth() {
+  const peakPct = S.peakDemand / S.ratedCap;
+  const flagCount = S.flags.filter(Boolean).length;
+  const hasCompliance = S.flags[4] || S.flags[5]; // boil advisory or compliance notice
+
+  if(peakPct > 0.9 || hasCompliance) S.healthStatus = 'RED';
+  else if(peakPct > 0.8 || flagCount >= 3) S.healthStatus = 'ORANGE';
+  else if(peakPct > 0.65 || flagCount >= 1) S.healthStatus = 'YELLOW';
+  else S.healthStatus = 'GREEN';
+}
+
+function updateGauge() {
+  const capCirc = 502.65; // 2*PI*80
+  const demCirc = 408.41; // 2*PI*65
+  const utilPct = S.ratedCap > 0 ? Math.min(S.peakDemand / S.ratedCap, 1.5) : 0;
+  // Capacity ring: always 100%
+  $('gaugeCap').setAttribute('stroke-dashoffset', 0);
+  // Demand ring: proportional
+  const demandOffset = demCirc * (1 - Math.min(utilPct, 1));
+  $('gaugeDemand').setAttribute('stroke-dashoffset', demandOffset);
+  // Color the demand ring
+  let col = utilPct > 0.95 ? 'var(--red)' : utilPct > 0.85 ? 'var(--orange)' : 'var(--cyan)';
+  $('gaugeDemand').style.stroke = col;
+  $('gaugeVal').textContent = (utilPct * 100).toFixed(1) + '%';
+  $('gaugeLabel').textContent = 'peak utilization';
+}
+
+function updateSummary() {
+  $('sumCity').textContent = S.city || '—';
+  const h = $('sumHealth');
+  if(S.healthStatus) {
+    const dotClass = S.healthStatus === 'RED' ? 'dot-red' : S.healthStatus === 'ORANGE' ? 'dot-orange' : S.healthStatus === 'YELLOW' ? 'dot-yellow' : 'dot-green';
+    h.innerHTML = '<span class="health-dot '+dotClass+'"></span>' + S.healthStatus;
+  } else {
+    h.textContent = '—';
+  }
+  h.className = 'summary-val' + (S.healthStatus === 'RED' ? ' val-red' : S.healthStatus === 'ORANGE' ? ' val-orange' : S.healthStatus === 'GREEN' ? ' val-green' : '');
+  $('sumUtil').textContent = S.ratedCap > 0 ? ((S.peakDemand/S.ratedCap)*100).toFixed(1)+'%' : '—';
+  $('sumTrigger').textContent = S.triggerYear || '—';
+  $('sumTrigger').className = 'summary-val' + (S.triggerYear && S.triggerYear <= currentYear+2 ? ' val-orange' : '');
+  $('sumCrisis').textContent = S.crisisYear || '—';
+  $('sumCrisis').className = 'summary-val' + (S.crisisYear && S.crisisYear <= currentYear+3 ? ' val-red' : '');
+  $('sumDeadline').textContent = S.startYear || '—';
+  $('sumDeadline').className = 'summary-val' + (S.startYear && S.startYear <= currentYear ? ' val-red' : S.startYear && S.startYear <= currentYear+2 ? ' val-orange' : '');
+}
+
+// ═══ STEP 2: GROWTH PROJECTION ═══
+$('growthPreset').addEventListener('change', function(){
+  if(this.value) $('growthRate').value = this.value;
+});
+$('demandMult').addEventListener('input', function(){
+  $('multVal').textContent = parseFloat(this.value).toFixed(2);
+});
+$('peakFactor').addEventListener('input', function(){
+  $('peakFactorVal').textContent = parseFloat(this.value).toFixed(1);
+});
+
+$('btnStep2').addEventListener('click', () => {
+  S.curPop = parseInt($('curPop').value) || 0;
+  S.growthRate = parseFloat($('growthRate').value) || 0;
+  S.demandMult = parseFloat($('demandMult').value) || 1.1;
+  S.peakFactor = parseFloat($('peakFactor').value) || 2.2;
+  S.newLots = parseInt($('newLots').value) || 0;
+  S.newComm = parseInt($('newComm').value) || 0;
+  S.gpdRes = parseInt($('gpdRes').value) || 200;
+  S.gpdComm = parseInt($('gpdComm').value) || 400;
+
+  if(!S.curPop || !S.growthRate) {
+    alert('Please enter current population and a growth rate.');
+    return;
+  }
+
+  computeProjections();
+  renderProjectionTable();
+  renderBarChart();
+  updateGaugeProjected();
+  updateSummary();
+  goToStep(3);
+});
+
+$('btnBack2').addEventListener('click', () => goToStep(1));
+
+function computeProjections() {
+  const rows = [];
+  const r = S.growthRate / 100;
+  const m = S.demandMult;
+  const pipelineGpd = (S.newLots * S.gpdRes) + (S.newComm * S.gpdComm);
+  S.triggerYear = null;
+  S.crisisYear = null;
+
+  for(let n = 0; n <= 10; n++) {
+    const year = currentYear + n;
+    const pop = Math.round(S.curPop * Math.pow(1 + r, n));
+    // Demand grows by (r * multiplier) annually, plus pipeline spread over first 5 years
+    const pipeAdd = n <= 5 ? (pipelineGpd * n / 5) : pipelineGpd;
+    const avgD = Math.round(S.avgDemand * Math.pow(1 + r * m, n) + pipeAdd);
+    const peakD = Math.round(avgD * S.peakFactor);
+    const util = S.ratedCap > 0 ? peakD / S.ratedCap : 0;
+
+    let status = 'OK';
+    if(util >= 0.95) { status = 'CRITICAL'; if(!S.crisisYear) S.crisisYear = year; }
+    else if(util >= 0.85) { status = 'WARNING'; if(!S.triggerYear) S.triggerYear = year; }
+    else if(util >= 0.70) status = 'WATCH';
+
+    // If we found crisis but not trigger, trigger is the same or earlier
+    if(S.crisisYear && !S.triggerYear) S.triggerYear = S.crisisYear;
+
+    rows.push({year, pop, avgD, peakD, util, status});
+  }
+  S.projections = rows;
+}
+
+function renderProjectionTable() {
+  const wrap = $('projTableWrap');
+  // Alert banner
+  const alert = $('projAlert');
+  if(S.crisisYear && S.crisisYear <= currentYear + 5) {
+    alert.className = 'alert-banner show alert-red';
+    alert.textContent = 'WARNING: Capacity threshold reached within this planning window (' + S.crisisYear + ').';
+  } else if(S.triggerYear && S.triggerYear <= currentYear + 5) {
+    alert.className = 'alert-banner show alert-orange';
+    alert.textContent = 'NOTICE: Planning trigger year is ' + S.triggerYear + '. Begin the bonding process soon.';
+  } else {
+    alert.className = 'alert-banner show alert-green';
+    alert.textContent = 'System capacity is adequate through the 10-year projection window.';
+  }
+
+  let html = '<h3>10-Year Demand Projection</h3><table class="data-tbl"><thead><tr>';
+  html += '<th>Year</th><th>Pop.</th><th>Avg GPD</th><th>Peak GPD</th><th>% Capacity</th><th>Status</th>';
+  html += '</tr></thead><tbody>';
+  S.projections.forEach(r => {
+    let cls = '';
+    if(r.status === 'CRITICAL') cls = 'row-crit';
+    else if(r.status === 'WARNING') cls = 'row-warn';
+    const isSpecial = (r.year === S.triggerYear && r.status === 'WARNING') ||
+                      (r.year === S.crisisYear && r.status === 'CRITICAL');
+    html += '<tr class="'+cls+'">';
+    html += '<td>'+(isSpecial ? '<strong>'+r.year+'</strong>' : r.year)+'</td>';
+    html += '<td>'+numFmt(r.pop)+'</td>';
+    html += '<td>'+numFmt(r.avgD)+'</td>';
+    html += '<td>'+numFmt(r.peakD)+'</td>';
+    html += '<td>'+(r.util*100).toFixed(1)+'%</td>';
+    html += '<td>'+r.status+'</td>';
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+}
+
+function renderBarChart() {
+  const wrap = $('projChartWrap');
+  if(!S.projections.length) { wrap.innerHTML = ''; return; }
+
+  const maxUtil = Math.max(...S.projections.map(r=>r.util), 1);
+  const scale = 100 / Math.max(maxUtil, 1.1); // Scale so capacity line is visible
+
+  let html = '<h3>Peak Demand vs. Capacity</h3><div class="bar-chart">';
+  // Capacity line position
+  const capPos = (1.0 / Math.max(maxUtil, 1.1)) * 100;
+
+  S.projections.forEach(r => {
+    const w = Math.min((r.util / Math.max(maxUtil, 1.1)) * 100, 100);
+    let color = 'var(--cyan)';
+    if(r.util >= 0.95) color = 'var(--red)';
+    else if(r.util >= 0.85) color = 'var(--orange)';
+    else if(r.util >= 0.70) color = 'var(--yellow)';
+    const pctLabel = (r.util*100).toFixed(0)+'%';
+
+    html += '<div class="bar-row">';
+    html += '<span class="bar-year">'+r.year+'</span>';
+    html += '<div class="bar-track">';
+    html += '<div class="bar-fill" style="width:'+w.toFixed(1)+'%;background:'+color+'"></div>';
+    html += '<div class="bar-cap-line" style="left:'+capPos.toFixed(1)+'%"></div>';
+    if(r === S.projections[0]) html += '<span class="bar-cap-label" style="left:'+capPos.toFixed(1)+'%">100% CAPACITY</span>';
+    html += '</div>';
+    html += '<span class="bar-pct" style="color:'+color+'">'+pctLabel+'</span>';
+    html += '</div>';
+  });
+  html += '</div>';
+  wrap.innerHTML = html;
+}
+
+function updateGaugeProjected() {
+  // Update gauge to show projected crisis-year utilization
+  if(S.crisisYear) {
+    const crisisRow = S.projections.find(r => r.year === S.crisisYear);
+    if(crisisRow) {
+      const utilPct = Math.min(crisisRow.util, 1.5);
+      const demCirc = 408.41;
+      const demandOffset = demCirc * (1 - Math.min(utilPct, 1));
+      $('gaugeDemand').setAttribute('stroke-dashoffset', demandOffset);
+      $('gaugeDemand').style.stroke = 'var(--red)';
+      $('gaugeVal').textContent = (utilPct*100).toFixed(1)+'%';
+      $('gaugeLabel').textContent = 'projected '+S.crisisYear+' peak';
+    }
+  }
+}
+
+// ═══ STEP 3: BONDING LEAD-TIME ═══
+$('btnStep3').addEventListener('click', () => {
+  S.constMonths = parseInt($('constMonths').value);
+  S.designMonths = parseInt($('designMonths').value);
+  S.bondMonths = parseInt($('bondMonths').value);
+  S.mmbMonths = parseInt($('mmbMonths').value);
+  S.projCost = parseFloat($('projCost').value) || 0;
+
+  S.fundingSources = [];
+  if($('fundBond').checked) S.fundingSources.push('MN Capital Investment (bonding)');
+  if($('fundDWRF').checked) S.fundingSources.push('MPFA Drinking Water Revolving Fund (DWRF)');
+  if($('fundCWRF').checked) S.fundingSources.push('MPFA Clean Water Revolving Fund');
+  if($('fundEPA').checked) S.fundingSources.push('EPA Emerging Contaminants');
+  if($('fundLocal').checked) S.fundingSources.push('Local Utility Revenue Bonds');
+
+  computeTimeline();
+  computeDSCR();
+  updateSummary();
+  generateMemo();
+  goToStep(4);
+});
+
+$('btnBack3').addEventListener('click', () => goToStep(2));
+
+// Also compute timeline when step 3 is shown
+function computeTimelineOnShow() {
+  S.constMonths = parseInt($('constMonths').value);
+  S.designMonths = parseInt($('designMonths').value);
+  S.bondMonths = parseInt($('bondMonths').value);
+  S.mmbMonths = parseInt($('mmbMonths').value);
+  computeTimeline();
+}
+
+// Recompute on input changes
+['constMonths','designMonths','bondMonths','mmbMonths'].forEach(id => {
+  $(id).addEventListener('change', computeTimelineOnShow);
+});
+
+function computeTimeline() {
+  const targetYear = S.crisisYear || (currentYear + 10);
+  const totalMonths = S.constMonths + S.designMonths + S.bondMonths + S.mmbMonths;
+  const totalYears = totalMonths / 12;
+  let rawStart = targetYear - totalYears;
+
+  // Snap to even year for bonding cycle (round down to nearest even)
+  let snapYear = Math.floor(rawStart);
+  if(snapYear % 2 !== 0) snapYear -= 1;
+  S.startYear = snapYear;
+
+  renderTimeline(targetYear, totalMonths);
+  updateSummary();
+}
+
+function renderTimeline(targetYear, totalMonths) {
+  const wrap = $('timelineWrap');
+  const items = [];
+
+  // Work backward from target
+  let y = targetYear;
+  items.push({year: y, label: 'New capacity online', type: 'future'});
+  y = targetYear - (S.constMonths / 12);
+  items.push({year: Math.round(y*10)/10, label: 'Construction begins ('+S.constMonths+' mo)', type: 'future'});
+  y -= (S.designMonths / 12);
+  items.push({year: Math.round(y*10)/10, label: 'Engineering/design starts ('+S.designMonths+' mo)', type: 'future'});
+  y -= (S.bondMonths / 12);
+  items.push({year: Math.round(y*10)/10, label: 'Bonding bill process ('+S.bondMonths+' mo)', type: y <= currentYear ? 'past' : 'future'});
+  y -= (S.mmbMonths / 12);
+  const startDecimal = Math.round(y*10)/10;
+  items.push({year: startDecimal, label: 'Begin MMB/MDH review ('+S.mmbMonths+' mo)', type: startDecimal <= currentYear ? 'past' : 'future'});
+  items.push({year: S.startYear, label: 'BONDING SUBMISSION DEADLINE (snapped to even year)', type: S.startYear <= currentYear ? 'past' : S.startYear <= currentYear+2 ? 'now' : 'future'});
+
+  // Reverse to show earliest first
+  items.reverse();
+
+  let html = '<h3>Reverse Countdown to Capacity</h3>';
+
+  // Status alert
+  if(S.startYear <= currentYear) {
+    html += '<div class="alert-banner show alert-red">IMMEDIATE ACTION REQUIRED: The bonding submission deadline has already passed ('+S.startYear+'). Your city is inside the planning window.</div>';
+  } else if(S.startYear <= currentYear + 2) {
+    html += '<div class="alert-banner show alert-orange">CAUTION: Bonding submission needed by '+S.startYear+'. Begin the process now.</div>';
+  } else {
+    html += '<div class="alert-banner show alert-green">Bonding submission target: '+S.startYear+'. You have time to plan, but start early.</div>';
+  }
+
+  html += '<div class="timeline">';
+  items.forEach(item => {
+    const cls = item.type === 'past' ? 'tl-past' : item.type === 'now' ? 'tl-now' : 'tl-future';
+    html += '<div class="tl-item '+cls+'">';
+    html += '<span class="tl-year">'+item.year+'</span>';
+    html += '<div class="tl-desc">'+item.label+'</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  html += '<p style="font-size:.62rem;color:var(--text-dim);margin-top:6px">';
+  html += 'Total lead time: '+(totalMonths/12).toFixed(1)+' years ('+totalMonths+' months). ';
+  html += 'MN Legislature passes bonding bills primarily in even years. A failed bonding bill means a 2-year wait.</p>';
+
+  wrap.innerHTML = html;
+}
+
+function computeDSCR() {
+  const wrap = $('dscrWrap');
+  if(!S.projCost || !S.utilRevenue) { wrap.innerHTML = ''; return; }
+
+  const omEstimate = S.utilRevenue * 0.4;
+  const netRevenue = S.utilRevenue - omEstimate;
+  // New debt: assume 50% of project cost financed via revenue bonds, 4%, 20yr
+  const newDebtPrincipal = S.projCost * 0.5;
+  const monthlyRate = 0.04 / 12;
+  const nPayments = 20 * 12;
+  const monthlyPayment = newDebtPrincipal * (monthlyRate * Math.pow(1+monthlyRate, nPayments)) / (Math.pow(1+monthlyRate, nPayments)-1);
+  const annualNewDebt = monthlyPayment * 12;
+  const totalDebtService = S.debtService + annualNewDebt;
+  const dscr = totalDebtService > 0 ? netRevenue / totalDebtService : 0;
+
+  let cls = dscr >= 1.25 ? 'alert-green' : dscr >= 1.0 ? 'alert-orange' : 'alert-red';
+  let msg = 'Estimated DSCR: ' + dscr.toFixed(2);
+  if(dscr < 1.0) msg += ' — BELOW 1.0: Revenue does not cover projected debt service.';
+  else if(dscr < 1.25) msg += ' — Below 1.25 threshold for revenue bond issuance.';
+  else msg += ' — Adequate for revenue bond issuance.';
+
+  wrap.innerHTML = '<div class="alert-banner show '+cls+'">'+msg+'</div>' +
+    '<div style="font-size:.6rem;color:var(--text-dim);margin-top:4px">' +
+    'Assumes: 40% O&M ratio, 50% of $'+numFmt(S.projCost)+' financed via revenue bonds at 4.0% / 20yr. ' +
+    'Est. new annual debt service: $'+numFmt(Math.round(annualNewDebt))+'. ' +
+    'Existing debt service: $'+numFmt(S.debtService)+'. Net revenue: $'+numFmt(Math.round(netRevenue))+'.</div>';
+}
+
+// ═══ STEP 4: MEMO ═══
+$('btnBack4').addEventListener('click', () => goToStep(3));
+$('btnPrintMemo').addEventListener('click', () => window.print());
+$('btnPrint').addEventListener('click', () => { goToStep(4); setTimeout(()=>window.print(), 200); });
+
+function generateMemo() {
+  const today = new Date();
+  const dateStr = today.toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'});
+
+  const flagLabels = [
+    'Treatment facility 20+ years old',
+    'Distribution pipes 40+ years old',
+    'Water tower built before 1980',
+    'Peak demand exceeds 80% of capacity',
+    'Boil-water advisory in last 5 years',
+    'MDH/MPCA compliance notice in last 3 years'
+  ];
+  const activeFlags = S.flags.map((f,i) => f ? '  * '+flagLabels[i] : null).filter(Boolean).join('\n');
+
+  const peakUtil = S.ratedCap > 0 ? ((S.peakDemand/S.ratedCap)*100).toFixed(1) : '—';
+  const avgUtil = S.ratedCap > 0 ? ((S.avgDemand/S.ratedCap)*100).toFixed(1) : '—';
+
+  let projSummary = '';
+  if(S.projections.length) {
+    const trigRow = S.projections.find(r => r.year === S.triggerYear);
+    const crisisRow = S.projections.find(r => r.year === S.crisisYear);
+    if(trigRow) projSummary += '  Planning trigger year (85%): '+trigRow.year+' — peak demand '+numFmt(trigRow.peakD)+' gpd ('+((trigRow.util*100).toFixed(1))+'%)\n';
+    if(crisisRow) projSummary += '  Crisis year (95%):          '+crisisRow.year+' — peak demand '+numFmt(crisisRow.peakD)+' gpd ('+((crisisRow.util*100).toFixed(1))+'%)\n';
+    if(!trigRow && !crisisRow) projSummary = '  System capacity adequate through '+S.projections[S.projections.length-1].year+'.\n';
+  }
+
+  // Reverse timeline summary
+  const totalMonths = S.constMonths + S.designMonths + S.bondMonths + S.mmbMonths;
+  let timelineSummary = '';
+  if(S.crisisYear) {
+    timelineSummary = '  1. MMB/MDH review and bonding submission: '+ S.startYear +'\n';
+    timelineSummary += '  2. Legislative bonding process:           '+ (S.startYear + Math.ceil(S.mmbMonths/12)) +'\n';
+    timelineSummary += '  3. Engineering and design:                '+ (S.crisisYear - Math.ceil((S.constMonths+S.designMonths)/12)) +'\n';
+    timelineSummary += '  4. Construction:                          '+ (S.crisisYear - Math.ceil(S.constMonths/12)) +'\n';
+    timelineSummary += '  5. New capacity online:                   '+ S.crisisYear +'\n';
+    timelineSummary += '  Total lead time: '+(totalMonths/12).toFixed(1)+' years ('+totalMonths+' months)\n';
+  }
+
+  const fundingLines = S.fundingSources.map(f => '  * '+f).join('\n');
+
+  const memo = `TO:    ${S.city || '[City Name]'} City Council
+FROM:  Public Works / City Administrator
+RE:    Municipal Water System Capacity Planning Assessment
+DATE:  ${dateStr}
+
+══════════════════════════════════════════════════════
+
+SYSTEM STATUS:             ${S.healthStatus || '—'}
+PLANNING TRIGGER YEAR:     ${S.triggerYear || '—'}
+CRISIS YEAR:               ${S.crisisYear || '—'}
+BONDING SUBMISSION DEADLINE: ${S.startYear || '—'}
+ESTIMATED PROJECT COST:    ${S.projCost ? '$'+numFmt(S.projCost) : '—'}
+
+──────────────────────────────────────────────────────
+CURRENT SYSTEM UTILIZATION
+──────────────────────────────────────────────────────
+  Average daily demand:  ${numFmt(S.avgDemand)} gpd / ${numFmt(S.ratedCap)} gpd = ${avgUtil}%
+  Peak daily demand:     ${numFmt(S.peakDemand)} gpd / ${numFmt(S.ratedCap)} gpd = ${peakUtil}%
+  Storage capacity:      ${numFmt(S.storageCap)} gallons
+  Service connections:   ${numFmt(S.connections)}
+
+──────────────────────────────────────────────────────
+10-YEAR DEMAND PROJECTION SUMMARY
+──────────────────────────────────────────────────────
+  Growth rate: ${S.growthRate}% annually (demand multiplier: ${S.demandMult}x)
+  Population: ${numFmt(S.curPop)} (${currentYear})
+${projSummary}
+──────────────────────────────────────────────────────
+RECOMMENDED ACTION TIMELINE
+──────────────────────────────────────────────────────
+${timelineSummary}
+──────────────────────────────────────────────────────
+FUNDING PATH NOTES
+──────────────────────────────────────────────────────
+${fundingLines || '  (No funding sources selected)'}
+
+──────────────────────────────────────────────────────
+CONDITION FLAGS
+──────────────────────────────────────────────────────
+${activeFlags || '  (No condition flags checked)'}
+
+──────────────────────────────────────────────────────
+CONTEXT: District 29 Infrastructure Background
+──────────────────────────────────────────────────────
+Senate District 29 includes some of the fastest-growing municipalities in Minnesota. Wright County has grown by approximately 10% since the 2020 Census, reaching an estimated 154,593 residents by 2024. Senator Holmstrom has prioritized water infrastructure bonding for the district, including a $15 million appropriation for Howard Lake's new water treatment facility (SF2582) and a $10 million bonding request for Monticello's treatment plant expansion. Communities that begin capacity planning now — before their systems reach critical thresholds — are best positioned to compete for state bonding in the 2026 and 2028 capital investment cycles.
+
+══════════════════════════════════════════════════════
+This assessment was generated using the SD-29 Water Capacity Planner. All projections are estimates based on user-provided inputs. Verify all figures with engineering consultants and relevant state agencies before making capital investment decisions.`;
+
+  $('memoContent').textContent = memo;
+}
+
+// ═══ DEMO DATA ═══
+$('btnDemo').addEventListener('click', loadDemo);
+
+function loadDemo() {
+  // Howard Lake demo data
+  $('cityName').value = 'Howard Lake';
+  $('ratedCap').value = '800000'; // estimate for small city
+  $('storageCap').value = '325000';
+  $('connections').value = '950';
+  $('avgDemand').value = '450000'; // estimate
+  $('peakDemand').value = '990000'; // estimate
+  $('flag1').checked = false;
+  $('flag2').checked = false;
+  $('flag3').checked = true; // 1947 tower
+  $('flag4').checked = true; // peak > 80%
+  $('flag5').checked = false;
+  $('flag6').checked = false;
+  $('bondDebt').value = '2000000';
+  $('debtService').value = '180000';
+  $('utilRevenue').value = '600000';
+  // Step 2
+  $('curPop').value = '2326';
+  $('growthPreset').value = '1.5';
+  $('growthRate').value = '1.5';
+  $('demandMult').value = '1.1';
+  $('multVal').textContent = '1.10';
+  $('peakFactor').value = '2.2';
+  $('peakFactorVal').textContent = '2.2';
+  $('newLots').value = '0';
+  $('newComm').value = '0';
+  // Step 3
+  $('projCost').value = '15000000';
+
+  // Trigger step 1 completion
+  S.city = 'Howard Lake';
+  S.ratedCap = 800000;
+  S.storageCap = 325000;
+  S.connections = 950;
+  S.avgDemand = 450000;
+  S.peakDemand = 990000;
+  S.flags = [false,false,true,true,false,false];
+  S.bondDebt = 2000000;
+  S.debtService = 180000;
+  S.utilRevenue = 600000;
+  S.curPop = 2326;
+  S.growthRate = 1.5;
+  S.demandMult = 1.1;
+  S.peakFactor = 2.2;
+  S.projCost = 15000000;
+
+  computeHealth();
+  computeProjections();
+  updateGauge();
+  updateSvgAnnotations();
+  updateSummary();
+  renderProjectionTable();
+  renderBarChart();
+  updateGaugeProjected();
+
+  goToStep(1);
+}
+
+// ═══ LOCAL STORAGE ═══
+function saveState() {
+  try { localStorage.setItem('sd29water', JSON.stringify(S)); } catch(e){}
+}
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem('sd29water');
+    if(saved) {
+      const data = JSON.parse(saved);
+      Object.assign(S, data);
+      // Restore form values
+      $('cityName').value = S.city;
+      $('ratedCap').value = S.ratedCap || '';
+      $('storageCap').value = S.storageCap || '';
+      $('connections').value = S.connections || '';
+      $('avgDemand').value = S.avgDemand || '';
+      $('peakDemand').value = S.peakDemand || '';
+      S.flags.forEach((f,i) => $('flag'+(i+1)).checked = f);
+      $('bondDebt').value = S.bondDebt || '';
+      $('debtService').value = S.debtService || '';
+      $('utilRevenue').value = S.utilRevenue || '';
+      $('curPop').value = S.curPop || '';
+      $('growthRate').value = S.growthRate || '';
+      $('demandMult').value = S.demandMult;
+      $('multVal').textContent = S.demandMult.toFixed(2);
+      $('peakFactor').value = S.peakFactor;
+      $('peakFactorVal').textContent = S.peakFactor.toFixed(1);
+      $('newLots').value = S.newLots;
+      $('newComm').value = S.newComm;
+      $('gpdRes').value = S.gpdRes;
+      $('gpdComm').value = S.gpdComm;
+      $('projCost').value = S.projCost || '';
+      $('constMonths').value = S.constMonths;
+      $('designMonths').value = S.designMonths;
+      $('bondMonths').value = S.bondMonths;
+      $('mmbMonths').value = S.mmbMonths;
+
+      if(S.ratedCap > 0) {
+        computeHealth();
+        updateGauge();
+      }
+      if(S.projections.length) {
+        renderProjectionTable();
+        renderBarChart();
+        updateGaugeProjected();
+      }
+      if(S.startYear) {
+        computeTimeline();
+        computeDSCR();
+        generateMemo();
+      }
+      updateSummary();
+      if(S.step > 1) goToStep(S.step);
+    }
+  } catch(e){}
+}
+
+})();
+</script>
+</body>
+</html>

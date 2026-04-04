@@ -1,0 +1,1619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>West-Central MN Rural EMS Coverage Tool — Sen. Jordan Rasmusson, SD-9</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Horizontal scrolling sections — each module is a full-viewport-width panel
+   2. Navigation: Floating pill buttons anchored bottom-center
+   3. Typography: Century Gothic (headers), Verdana (body), Lucida Console (data/numbers)
+   4. Hero moment: Giant "12:47" countdown number showing avg rural response time
+   5. Color strategy: #6 — color-blocked sections: navy entry, white calculator, forest green modeler, gold narrative
+   6. Entry experience: Pulsing radar/sonar animation with concentric EMS coverage rings
+   Additional: No bordered callout boxes, no parchment, no emoji icons, no card stacks
+*/
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --navy:#1B2A4A;
+  --navy-light:#253A5E;
+  --white:#FFFFFF;
+  --forest:#2A5C3F;
+  --forest-light:#3D6B4F;
+  --forest-pale:#E8F0EB;
+  --gold:#C48B1A;
+  --gold-light:#F5E6C4;
+  --silo-silver:#8A9BA8;
+  --brown:#7C5C3E;
+  --near-black:#1C1C1C;
+  --alert:#B5282A;
+  --panel-bg:#EAECEE;
+  --amber:#C48B1A;
+}
+
+html{scroll-behavior:smooth;overflow:hidden;height:100%}
+body{
+  font-family:'Century Gothic','Apple Gothic',Verdana,Geneva,sans-serif;
+  color:var(--near-black);
+  height:100%;
+  overflow:hidden;
+  background:var(--navy);
+}
+
+/* ── HORIZONTAL SCROLL CONTAINER ── */
+.hscroll{
+  display:flex;
+  width:400vw;
+  height:100vh;
+  transition:transform 0.65s cubic-bezier(0.4,0,0.2,1);
+}
+.panel{
+  width:100vw;
+  height:100vh;
+  overflow-y:auto;
+  flex-shrink:0;
+  position:relative;
+}
+
+/* ── PANEL BACKGROUNDS (color-blocked) ── */
+.panel-entry{background:var(--navy);color:var(--white)}
+.panel-calc{background:var(--white);color:var(--near-black)}
+.panel-modeler{background:var(--forest);color:var(--white)}
+.panel-narrative{background:var(--gold-light);color:var(--near-black)}
+
+/* ── FLOATING PILL NAV ── */
+.pill-nav{
+  position:fixed;
+  bottom:24px;
+  left:50%;
+  transform:translateX(-50%);
+  display:flex;
+  gap:6px;
+  background:rgba(27,42,74,0.92);
+  padding:6px 10px;
+  border-radius:40px;
+  z-index:1000;
+  backdrop-filter:blur(8px);
+}
+.pill-nav button{
+  font-family:'Century Gothic','Apple Gothic',sans-serif;
+  font-size:12px;
+  letter-spacing:0.5px;
+  padding:8px 18px;
+  border:none;
+  border-radius:30px;
+  background:transparent;
+  color:rgba(255,255,255,0.6);
+  cursor:pointer;
+  transition:all 0.3s;
+  white-space:nowrap;
+}
+.pill-nav button:hover{color:#fff}
+.pill-nav button.active{
+  background:var(--forest-light);
+  color:#fff;
+  font-weight:700;
+}
+
+/* ── ENTRY PANEL ── */
+.entry-inner{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  height:100%;
+  text-align:center;
+  padding:40px 20px 80px;
+  position:relative;
+  overflow:hidden;
+}
+
+/* Radar / sonar animation */
+.radar-wrap{position:relative;width:420px;height:420px;margin-bottom:30px}
+.radar-ring{
+  position:absolute;
+  border-radius:50%;
+  border:2px solid rgba(255,255,255,0.15);
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+}
+.radar-ring.r1{width:120px;height:120px;border-color:var(--forest-light);border-width:3px}
+.radar-ring.r2{width:240px;height:240px;border-color:var(--amber);border-width:2px}
+.radar-ring.r3{width:360px;height:360px;border-color:var(--alert);border-width:2px}
+.radar-ring-label{
+  position:absolute;
+  font-family:'Lucida Console',Monaco,monospace;
+  font-size:10px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+}
+.radar-ring-label.l1{top:calc(50% - 60px - 16px);left:50%;transform:translateX(-50%);color:var(--forest-light)}
+.radar-ring-label.l2{top:calc(50% - 120px - 16px);left:50%;transform:translateX(-50%);color:var(--amber)}
+.radar-ring-label.l3{top:calc(50% - 180px - 16px);left:50%;transform:translateX(-50%);color:var(--alert)}
+
+/* Pulse rings */
+.pulse-ring{
+  position:absolute;
+  border-radius:50%;
+  border:2px solid rgba(61,107,79,0.6);
+  top:50%;left:50%;
+  transform:translate(-50%,-50%) scale(0.1);
+  width:420px;height:420px;
+  animation:pulse-out 3s ease-out infinite;
+  opacity:0;
+}
+.pulse-ring:nth-child(2){animation-delay:1s}
+.pulse-ring:nth-child(3){animation-delay:2s}
+@keyframes pulse-out{
+  0%{transform:translate(-50%,-50%) scale(0.1);opacity:0.7}
+  100%{transform:translate(-50%,-50%) scale(1.1);opacity:0}
+}
+
+/* Center dot */
+.radar-center{
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:14px;height:14px;
+  background:var(--forest-light);
+  border-radius:50%;
+  box-shadow:0 0 20px rgba(61,107,79,0.6);
+  z-index:2;
+}
+.radar-center-label{
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,14px);
+  font-family:'Lucida Console',Monaco,monospace;
+  font-size:9px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--silo-silver);
+  z-index:2;
+  white-space:nowrap;
+}
+
+/* Hero number */
+.hero-number{
+  font-family:'Lucida Console',Monaco,monospace;
+  font-size:96px;
+  font-weight:700;
+  letter-spacing:-2px;
+  color:var(--white);
+  line-height:1;
+  margin-bottom:6px;
+  text-shadow:0 0 40px rgba(196,139,26,0.3);
+}
+.hero-unit{
+  font-family:Verdana,Geneva,sans-serif;
+  font-size:13px;
+  letter-spacing:4px;
+  text-transform:uppercase;
+  color:var(--silo-silver);
+  margin-bottom:28px;
+}
+.entry-tagline{
+  font-family:Verdana,Geneva,sans-serif;
+  font-size:15px;
+  line-height:1.7;
+  color:rgba(255,255,255,0.75);
+  max-width:560px;
+}
+.entry-tagline strong{color:#fff}
+.entry-cta{
+  margin-top:24px;
+  padding:12px 32px;
+  background:var(--forest-light);
+  color:#fff;
+  border:none;
+  border-radius:30px;
+  font-family:'Century Gothic','Apple Gothic',sans-serif;
+  font-size:14px;
+  letter-spacing:1px;
+  cursor:pointer;
+  transition:background 0.3s;
+}
+.entry-cta:hover{background:var(--forest)}
+
+/* ── MODULE PANELS SHARED ── */
+.module-inner{
+  padding:40px 5vw 100px;
+  max-width:1100px;
+  margin:0 auto;
+}
+.module-header{
+  font-family:'Century Gothic','Apple Gothic',sans-serif;
+  font-size:28px;
+  font-weight:700;
+  letter-spacing:-0.5px;
+  margin-bottom:6px;
+}
+.module-sub{
+  font-family:Verdana,Geneva,sans-serif;
+  font-size:13px;
+  margin-bottom:32px;
+  opacity:0.7;
+}
+
+/* ── FORM STYLES ── */
+.form-row{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+.form-group{display:flex;flex-direction:column;flex:1;min-width:200px}
+.form-group label{
+  font-family:Verdana,Geneva,sans-serif;
+  font-size:11px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  margin-bottom:4px;
+  font-weight:700;
+}
+.panel-calc .form-group label{color:var(--navy)}
+.panel-modeler .form-group label{color:rgba(255,255,255,0.8)}
+.panel-narrative .form-group label{color:var(--brown)}
+
+.form-group input,.form-group select,.form-group textarea{
+  font-family:Verdana,Geneva,sans-serif;
+  font-size:14px;
+  padding:10px 12px;
+  border-radius:4px;
+  border:2px solid transparent;
+  transition:border-color 0.2s;
+}
+.panel-calc .form-group input,
+.panel-calc .form-group select{
+  background:var(--panel-bg);
+  border-color:var(--panel-bg);
+  color:var(--near-black);
+}
+.panel-calc .form-group input:focus,
+.panel-calc .form-group select:focus{border-color:var(--forest-light);outline:none}
+
+.panel-modeler .form-group input,
+.panel-modeler .form-group select{
+  background:rgba(255,255,255,0.12);
+  border-color:rgba(255,255,255,0.15);
+  color:#fff;
+}
+.panel-modeler .form-group input:focus,
+.panel-modeler .form-group select:focus{border-color:var(--gold);outline:none}
+.panel-modeler .form-group input::placeholder{color:rgba(255,255,255,0.4)}
+
+.panel-narrative .form-group textarea{
+  background:#fff;
+  border-color:#e0d5c0;
+  color:var(--near-black);
+  font-size:13px;
+  line-height:1.6;
+  resize:vertical;
+}
+.panel-narrative .form-group textarea:focus{border-color:var(--brown);outline:none}
+
+/* Slider */
+.slider-wrap{display:flex;align-items:center;gap:10px}
+.slider-wrap input[type=range]{flex:1;accent-color:var(--forest-light)}
+.slider-val{
+  font-family:'Lucida Console',Monaco,monospace;
+  font-size:14px;
+  min-width:40px;
+  text-align:right;
+}
+
+/* ── STATION BLOCKS ── */
+.station-block{
+  padding:16px;
+  margin-bottom:12px;
+  border-radius:6px;
+}
+.panel-calc .station-block{background:var(--panel-bg)}
+.station-block-title{
+  font-family:'Century Gothic','Apple Gothic',sans-serif;
+  font-size:14px;
+  font-weight:700;
+  margin-bottom:10px;
+}
+
+/* ── RESULTS DISPLAY ── */
+.results-band{
+  padding:24px 28px;
+  border-radius:6px;
+  margin:24px 0;
+}
+.panel-calc .results-band{background:var(--navy);color:#fff}
+.panel-modeler .results-band{background:rgba(0,0,0,0.25);color:#fff}
+.results-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:20px;
+}
+.result-item .ri-value{
+  font-family:'Lucida Console',Monaco,monospace;
+  font-size:28px;
+  font-weight:700;
+  line-height:1.2;
+}
+.result-item .ri-label{
+  font-family:Verdana,Geneva,sans-serif;
+  font-size:10px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  opacity:0.7;
+  margin-top:2px;
+}
+.status-good{color:#6FCF97}
+.status-warn{color:var(--gold)}
+.status-bad{color:#F87171}
+
+/* Flags */
+.flag-row{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-top:16px;
+}
+.flag{
+  font-family:Verdana,Geneva,sans-serif;
+  font-size:11px;
+  padding:6px 14px;
+  border-radius:20px;
+  font-weight:700;
+  letter-spacing:0.5px;
+}
+.flag-red{background:rgba(181,40,42,0.15);color:var(--alert)}
+.flag-amber{background:rgba(196,139,26,0.15);color:var(--amber)}
+.flag-green{background:rgba(42,92,63,0.15);color:var(--forest)}
+.panel-modeler .flag-red{background:rgba(248,113,113,0.2);color:#F87171}
+.panel-modeler .flag-amber{background:rgba(196,139,26,0.2);color:var(--gold)}
+.panel-modeler .flag-green{background:rgba(111,207,151,0.2);color:#6FCF97}
+
+/* ── SVG COVERAGE DIAGRAM ── */
+.svg-coverage-wrap{
+  display:flex;
+  justify-content:center;
+  margin:24px 0;
+}
+
+/* ── CHART CONTAINER ── */
+.chart-wrap{
+  background:rgba(0,0,0,0.2);
+  border-radius:8px;
+  padding:20px;
+  margin:24px 0;
+  max-width:600px;
+}
+.chart-wrap canvas{max-height:300px}
+.chart-note{
+  font-family:Verdana,Geneva,sans-serif;
+  font-size:10px;
+  opacity:0.6;
+  margin-top:10px;
+  line-height:1.5;
+}
+
+/* ── FUNDING SIDEBAR (inline on modeler) ── */
+.funding-ref{
+  margin-top:28px;
+  padding:20px;
+  background:rgba(0,0,0,0.2);
+  border-radius:6px;
+}
+.funding-ref h3{
+  font-family:'Century Gothic','Apple Gothic',sans-serif;
+  font-size:14px;
+  margin-bottom:12px;
+  color:var(--gold);
+  letter-spacing:1px;
+  text-transform:uppercase;
+}
+.funding-item{
+  font-family:Verdana,Geneva,sans-serif;
+  font-size:12px;
+  line-height:1.6;
+  margin-bottom:10px;
+  padding-left:14px;
+  border-left:3px solid var(--gold);
+  color:rgba(255,255,255,0.85);
+}
+
+/* ── SPRINT MEDIC INFO TOGGLE ── */
+.info-toggle{
+  font-family:Verdana,Geneva,sans-serif;
+  font-size:12px;
+  background:none;
+  border:none;
+  color:var(--gold);
+  cursor:pointer;
+  text-decoration:underline;
+  margin-bottom:16px;
+  display:inline-block;
+}
+.info-box{
+  display:none;
+  font-family:Verdana,Geneva,sans-serif;
+  font-size:12px;
+  line-height:1.7;
+  padding:16px;
+  background:rgba(0,0,0,0.2);
+  border-radius:6px;
+  margin-bottom:20px;
+  color:rgba(255,255,255,0.85);
+}
+.info-box.open{display:block}
+
+/* ── ABOUT TOGGLE ── */
+.about-toggle{
+  font-family:Verdana,Geneva,sans-serif;
+  font-size:11px;
+  background:none;
+  border:none;
+  color:var(--silo-silver);
+  cursor:pointer;
+  text-decoration:underline;
+  margin-top:16px;
+}
+.about-box{
+  display:none;
+  font-family:Verdana,Geneva,sans-serif;
+  font-size:12px;
+  line-height:1.7;
+  color:rgba(255,255,255,0.65);
+  max-width:560px;
+  margin-top:12px;
+  text-align:left;
+}
+.about-box.open{display:block}
+.about-box p{margin-bottom:8px}
+
+/* ── GRANT NARRATIVE PANEL ── */
+.narrative-output{
+  background:#fff;
+  padding:32px;
+  border-radius:6px;
+  margin-top:20px;
+  font-family:Verdana,Geneva,sans-serif;
+  font-size:13px;
+  line-height:1.8;
+  color:var(--near-black);
+  min-height:300px;
+}
+.narrative-output h2{
+  font-family:'Century Gothic','Apple Gothic',sans-serif;
+  font-size:20px;
+  color:var(--navy);
+  margin-bottom:16px;
+}
+.narrative-output h3{
+  font-family:'Century Gothic','Apple Gothic',sans-serif;
+  font-size:15px;
+  color:var(--forest);
+  margin:20px 0 8px;
+}
+.narrative-output table{
+  width:100%;
+  border-collapse:collapse;
+  margin:16px 0;
+  font-size:12px;
+}
+.narrative-output th{
+  background:var(--navy);
+  color:#fff;
+  text-align:left;
+  padding:8px 12px;
+  font-family:'Century Gothic','Apple Gothic',sans-serif;
+  font-size:11px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+}
+.narrative-output td{
+  padding:8px 12px;
+  border-bottom:1px solid #e0d5c0;
+}
+.narrative-output tr:nth-child(even) td{background:var(--gold-light)}
+
+.btn-row{display:flex;gap:12px;margin-top:20px;flex-wrap:wrap}
+.btn{
+  font-family:'Century Gothic','Apple Gothic',sans-serif;
+  font-size:13px;
+  letter-spacing:0.5px;
+  padding:10px 24px;
+  border:none;
+  border-radius:30px;
+  cursor:pointer;
+  transition:all 0.2s;
+}
+.btn-primary{background:var(--forest);color:#fff}
+.btn-primary:hover{background:var(--forest-light)}
+.btn-gold{background:var(--brown);color:#fff}
+.btn-gold:hover{background:var(--navy)}
+.btn-outline{background:transparent;border:2px solid var(--brown);color:var(--brown)}
+.btn-outline:hover{background:var(--brown);color:#fff}
+
+/* Load example button */
+.load-example{
+  font-family:Verdana,Geneva,sans-serif;
+  font-size:11px;
+  background:rgba(255,255,255,0.1);
+  border:1px solid rgba(255,255,255,0.2);
+  color:rgba(255,255,255,0.7);
+  padding:6px 16px;
+  border-radius:20px;
+  cursor:pointer;
+  transition:all 0.2s;
+}
+.panel-calc .load-example{
+  background:var(--panel-bg);
+  border-color:var(--silo-silver);
+  color:var(--navy);
+}
+.load-example:hover{opacity:0.8}
+
+/* Footer */
+.tool-footer{
+  font-family:Verdana,Geneva,sans-serif;
+  font-size:10px;
+  text-align:center;
+  padding:16px 20px;
+  opacity:0.5;
+  line-height:1.6;
+}
+
+/* ── PRINT STYLES ── */
+@media print{
+  html,body{overflow:visible;height:auto}
+  .hscroll{display:block;width:auto;height:auto;transform:none !important}
+  .panel{width:auto;height:auto;overflow:visible;page-break-after:always}
+  .panel-entry,.pill-nav,.entry-cta,.load-example,.btn-row,.info-toggle,.about-toggle,.about-box{display:none !important}
+  .panel-calc,.panel-modeler,.panel-narrative{
+    background:#fff !important;
+    color:#000 !important;
+  }
+  .panel-modeler .form-group input,
+  .panel-modeler .form-group select{
+    background:#f5f5f5 !important;
+    color:#000 !important;
+    border-color:#ccc !important;
+  }
+  .results-band{background:#f0f0f0 !important;color:#000 !important}
+  .result-item .ri-value{color:#000 !important}
+  .funding-ref{background:#f5f5f5 !important}
+  .funding-ref h3{color:var(--forest) !important}
+  .funding-item{color:#000 !important}
+  .chart-wrap{background:#f5f5f5 !important}
+  .print-header{display:block !important;font-family:Verdana,Geneva,sans-serif;font-size:12px;margin-bottom:20px;color:#666}
+  .narrative-output{box-shadow:none;border:1px solid #ccc}
+}
+.print-header{display:none}
+
+/* ── ILLUSTRATIVE LABEL ── */
+.illustrative-label{
+  display:inline-block;
+  font-family:'Lucida Console',Monaco,monospace;
+  font-size:9px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  background:var(--amber);
+  color:#fff;
+  padding:3px 10px;
+  border-radius:3px;
+  margin-left:8px;
+  vertical-align:middle;
+}
+
+/* ── SECTION DIVIDERS ── */
+.section-rule{
+  border:none;
+  height:2px;
+  background:linear-gradient(90deg,transparent,var(--silo-silver),transparent);
+  margin:28px 0;
+}
+.panel-modeler .section-rule{
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent);
+}
+
+/* ── COVERAGE LEGEND ── */
+.svg-legend{
+  display:flex;
+  justify-content:center;
+  gap:20px;
+  margin-top:8px;
+  flex-wrap:wrap;
+}
+.svg-legend-item{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-family:Verdana,Geneva,sans-serif;
+  font-size:10px;
+  color:var(--silo-silver);
+}
+.svg-legend-dot{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  flex-shrink:0;
+}
+
+/* ── COMPACT STAT LINE ── */
+.stat-line{
+  font-family:'Lucida Console',Monaco,monospace;
+  font-size:12px;
+  padding:8px 0;
+  display:flex;
+  justify-content:space-between;
+  border-bottom:1px solid rgba(255,255,255,0.08);
+}
+.panel-calc .stat-line{border-color:var(--panel-bg)}
+.stat-line .sl-label{
+  font-family:Verdana,Geneva,sans-serif;
+  font-size:11px;
+  opacity:0.7;
+}
+.stat-line .sl-value{font-weight:700}
+
+/* ── DENSITY ZONE: tight data table ── */
+.dense-table{
+  width:100%;
+  border-collapse:collapse;
+  font-family:Verdana,Geneva,sans-serif;
+  font-size:11px;
+  margin:16px 0;
+}
+.dense-table th{
+  font-family:'Century Gothic','Apple Gothic',sans-serif;
+  font-size:10px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  text-align:left;
+  padding:6px 10px;
+  border-bottom:2px solid var(--navy);
+  color:var(--navy);
+}
+.dense-table td{
+  padding:6px 10px;
+  border-bottom:1px solid var(--panel-bg);
+}
+.dense-table tr:last-child td{border-bottom:none}
+.dense-table .td-mono{font-family:'Lucida Console',Monaco,monospace;font-size:12px}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .hero-number{font-size:64px}
+  .radar-wrap{width:300px;height:300px}
+  .radar-ring.r1{width:90px;height:90px}
+  .radar-ring.r2{width:180px;height:180px}
+  .radar-ring.r3{width:270px;height:270px}
+  .pulse-ring{width:300px;height:300px}
+  .module-inner{padding:24px 4vw 100px}
+  .form-row{flex-direction:column}
+  .form-group{min-width:100%}
+  .results-grid{grid-template-columns:1fr 1fr}
+  .pill-nav button{font-size:10px;padding:6px 12px}
+  .svg-legend{gap:10px}
+  .dense-table{font-size:10px}
+}
+</style>
+</head>
+<body>
+
+<div class="hscroll" id="hscroll">
+
+  <!-- ═══════ PANEL 0: ENTRY ═══════ -->
+  <section class="panel panel-entry" id="panel-entry">
+    <div class="entry-inner">
+      <div class="radar-wrap" role="img" aria-label="Pulsing radar animation showing EMS coverage radii for 8-minute, 15-minute, and 20-plus minute response zones centered on Senate District 9">
+        <div class="pulse-ring"></div>
+        <div class="pulse-ring"></div>
+        <div class="pulse-ring"></div>
+        <div class="radar-ring r3"></div>
+        <div class="radar-ring r2"></div>
+        <div class="radar-ring r1"></div>
+        <span class="radar-ring-label l1">8 min &mdash; AHA threshold</span>
+        <span class="radar-ring-label l2">15 min</span>
+        <span class="radar-ring-label l3">20+ min</span>
+        <div class="radar-center"></div>
+        <span class="radar-center-label">SD-9 Coverage Zone</span>
+      </div>
+      <div class="hero-number">12:47</div>
+      <div class="hero-unit">avg rural response &middot; minutes</div>
+      <p class="entry-tagline">
+        <strong>Senator Rasmusson's EMS legislation</strong> launched the Sprint Medic Pilot in Otter Tail and Grant counties &mdash; this tool helps every other rural zone make the same case.
+      </p>
+      <button class="entry-cta" onclick="goTo(1)">Open Coverage Tool</button>
+      <button class="about-toggle" onclick="this.nextElementSibling.classList.toggle('open')">About This Issue</button>
+      <div class="about-box">
+        <!-- VERIFY: All facts below from software_brief.txt -->
+        <p>Minnesota has approximately 700 EMS agencies; roughly 80% rely on volunteer staff.</p>
+        <p>West Central MN EMS agencies report average response times of 14&ndash;22 minutes for rural calls. The national urban average is approximately 7 minutes.</p>
+        <p>The 2023 Minnesota EMS legislation provided $30 million statewide. Sen. Rasmusson co-authored the bill and secured more than $4 million for West Central Minnesota.</p>
+        <p>Sprint Medic pilots in Otter Tail and Grant counties launched under that package.</p>
+        <p>Minnesota's rural population is aging faster than the national average; counties with 20%+ age-65+ share face 40% higher cardiac call rates per capita.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ PANEL 1: COVERAGE ZONE CALCULATOR ═══════ -->
+  <section class="panel panel-calc" id="panel-calc">
+    <div class="module-inner">
+      <div class="print-header">Prepared by: _________________ &nbsp;&nbsp; Date: ________</div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px">
+        <div>
+          <h1 class="module-header" style="color:var(--navy)">Coverage Zone Calculator</h1>
+          <p class="module-sub" style="color:var(--silo-silver)">Define your EMS service area to quantify coverage gaps</p>
+        </div>
+        <button class="load-example" onclick="loadExample()">Load Example: Otter Tail South Zone</button>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="areaName">Service Area Name</label>
+          <input type="text" id="areaName" placeholder="e.g. Otter Tail County South Zone">
+        </div>
+        <div class="form-group" style="max-width:180px">
+          <label for="sqMiles">Total Square Miles</label>
+          <input type="number" id="sqMiles" min="1" max="5000" placeholder="420">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group" style="max-width:180px">
+          <label for="population">Residents in Area</label>
+          <input type="number" id="population" min="100" max="500000" placeholder="18500">
+        </div>
+        <div class="form-group" style="max-width:220px">
+          <label for="age65">Population Over 65</label>
+          <div class="slider-wrap">
+            <input type="range" id="age65" min="0" max="50" value="20">
+            <span class="slider-val" id="age65Val">20%</span>
+          </div>
+        </div>
+        <div class="form-group" style="max-width:240px">
+          <label for="roadCond">Road Condition Factor</label>
+          <select id="roadCond">
+            <option value="0">Paved network</option>
+            <option value="5" selected>Mixed paved/unpaved</option>
+            <option value="12">Significant unpaved/seasonal</option>
+          </select>
+        </div>
+      </div>
+
+      <h2 style="font-family:'Century Gothic','Apple Gothic',sans-serif;font-size:16px;color:var(--navy);margin:24px 0 12px;letter-spacing:1px">AMBULANCE STATIONS</h2>
+
+      <div id="stationsContainer">
+        <div class="station-block" data-idx="0">
+          <div class="station-block-title" style="color:var(--navy)">Station 1</div>
+          <div class="form-row">
+            <div class="form-group"><label>Station Name</label><input type="text" class="st-name" placeholder="e.g. Fergus Falls Main"></div>
+            <div class="form-group" style="max-width:180px"><label>Crew Type</label>
+              <select class="st-crew"><option value="ALS">ALS</option><option value="BLS">BLS</option><option value="VOL">Volunteer-only</option></select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group" style="max-width:200px"><label>Avg Response to Farthest Pt (min)</label><input type="number" class="st-resp" min="1" max="60" placeholder="11"></div>
+            <div class="form-group" style="max-width:160px"><label>Daily Call Volume</label><input type="number" class="st-calls" min="0" max="100" step="0.1" placeholder="0.5"></div>
+            <div class="form-group" style="max-width:160px"><label>Active Crew Members</label><input type="number" class="st-crew-count" min="1" max="100" placeholder="8"></div>
+            <div class="form-group" style="max-width:160px"><label>Sprint Medic?</label>
+              <select class="st-sprint"><option value="no">No</option><option value="yes">Yes</option></select>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-outline" style="margin-bottom:16px;font-size:11px" onclick="addStation()">+ Add Station</button>
+
+      <!-- SVG Coverage Diagram -->
+      <div class="svg-coverage-wrap">
+        <svg id="coverageSVG" width="360" height="360" viewBox="0 0 360 360" role="img" aria-label="Schematic coverage zone diagram showing response time rings and station positions">
+          <defs>
+            <radialGradient id="rg20" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#B5282A" stop-opacity="0.08"/><stop offset="100%" stop-color="#B5282A" stop-opacity="0.18"/></radialGradient>
+            <radialGradient id="rg15" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#C48B1A" stop-opacity="0.1"/><stop offset="100%" stop-color="#C48B1A" stop-opacity="0.2"/></radialGradient>
+            <radialGradient id="rg8" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#2A5C3F" stop-opacity="0.15"/><stop offset="100%" stop-color="#2A5C3F" stop-opacity="0.25"/></radialGradient>
+          </defs>
+          <circle cx="180" cy="180" r="170" fill="url(#rg20)" stroke="#B5282A" stroke-width="1.5" stroke-dasharray="4,3"/>
+          <circle cx="180" cy="180" r="120" fill="url(#rg15)" stroke="#C48B1A" stroke-width="1.5" stroke-dasharray="4,3"/>
+          <circle id="svg8ring" cx="180" cy="180" r="65" fill="url(#rg8)" stroke="#2A5C3F" stroke-width="2"/>
+          <text x="180" y="25" text-anchor="middle" fill="#B5282A" font-family="Lucida Console,Monaco,monospace" font-size="9" letter-spacing="1">20+ MIN</text>
+          <text x="180" y="70" text-anchor="middle" fill="#C48B1A" font-family="Lucida Console,Monaco,monospace" font-size="9" letter-spacing="1">15 MIN</text>
+          <text x="180" y="125" text-anchor="middle" fill="#2A5C3F" font-family="Lucida Console,Monaco,monospace" font-size="9" letter-spacing="1">8 MIN (AHA)</text>
+          <g id="svgStations"></g>
+          <g id="svgSprintMedics"></g>
+        </svg>
+      </div>
+      <div class="svg-legend">
+        <div class="svg-legend-item"><div class="svg-legend-dot" style="background:var(--forest)"></div>ALS Station</div>
+        <div class="svg-legend-item"><div class="svg-legend-dot" style="background:var(--amber)"></div>BLS Station</div>
+        <div class="svg-legend-item"><div class="svg-legend-dot" style="background:var(--alert)"></div>Volunteer-only</div>
+        <div class="svg-legend-item"><div class="svg-legend-dot" style="background:#6FCF97;border:1px dashed var(--forest)"></div>Sprint Medic Effect</div>
+      </div>
+
+      <!-- Station Summary Table (dense zone) -->
+      <table class="dense-table" id="stationSummary" style="display:none">
+        <thead>
+          <tr><th>Station</th><th>Type</th><th>Resp. Time</th><th>Crew</th><th>Calls/Yr</th><th>Calls/Crew/Yr</th></tr>
+        </thead>
+        <tbody id="stationSummaryBody"></tbody>
+      </table>
+
+      <hr class="section-rule">
+
+      <!-- Results band -->
+      <div class="results-band" id="calcResults" style="display:none">
+        <div class="results-grid">
+          <div class="result-item">
+            <div class="ri-value" id="rGapScore">--</div>
+            <div class="ri-label">Coverage Gap Score (0&ndash;100)</div>
+          </div>
+          <div class="result-item">
+            <div class="ri-value" id="rPctIn8">--</div>
+            <div class="ri-label">Est. % Within 8 Min</div>
+          </div>
+          <div class="result-item">
+            <div class="ri-value" id="rPopOut">--</div>
+            <div class="ri-label">Population Outside 8 Min</div>
+          </div>
+          <div class="result-item">
+            <div class="ri-value" id="rCardiac">--</div>
+            <div class="ri-label">Est. Cardiac Events/Year</div>
+          </div>
+          <div class="result-item">
+            <div class="ri-value" id="rCardiacOut">--</div>
+            <div class="ri-label">Events Outside 8-Min Window</div>
+          </div>
+        </div>
+        <div class="flag-row" id="calcFlags"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ PANEL 2: SPRINT MEDIC MODELER ═══════ -->
+  <section class="panel panel-modeler" id="panel-modeler">
+    <div class="module-inner">
+      <h1 class="module-header">Sprint Medic Placement Modeler</h1>
+      <p class="module-sub">Model the impact of adding sprint medic positions to your coverage zone</p>
+
+      <button class="info-toggle" onclick="document.getElementById('sprintInfo').classList.toggle('open')">What is a Sprint Medic?</button>
+      <div class="info-box" id="sprintInfo">
+        An advanced EMT or paramedic who lives within the coverage zone and responds immediately in a personal vehicle with a jump bag (AED, airway kit, IV supplies) while the ambulance is en route. The sprint medic provides first-contact care in the critical window before the ambulance arrives, compressing effective response time by 4&ndash;10 minutes on average. Minnesota's Sprint Medic Pilot Program, funded through the 2023 EMS legislation, deployed this model in Otter Tail and Grant counties.
+      </div>
+
+      <!-- Sprint Medic 1 -->
+      <h2 style="font-size:15px;margin-bottom:12px;color:var(--gold);letter-spacing:1px">SPRINT MEDIC POSITION 1</h2>
+      <div class="form-row">
+        <div class="form-group"><label>Home Location</label><input type="text" id="sm1Loc" placeholder="e.g. Rural Pelican Rapids corridor"></div>
+        <div class="form-group" style="max-width:220px"><label>Home-to-Farthest Patient (mi)</label><input type="number" id="sm1Dist" min="1" max="100" placeholder="15"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="max-width:240px"><label>Drive Time Reduction (min)</label><input type="number" id="sm1Reduction" min="0" max="30" step="0.5" placeholder="7"></div>
+        <div class="form-group" style="max-width:240px"><label>Annual Cost ($)</label><input type="number" id="sm1Cost" min="0" max="500000" placeholder="38000"></div>
+        <div class="form-group" style="max-width:260px"><label>Funding Source</label>
+          <select id="sm1Fund">
+            <option value="county">County EMS levy</option>
+            <option value="state" selected>State grant &mdash; Sprint Medic Program</option>
+            <option value="hospital">Hospital district partnership</option>
+            <option value="combo">Combination</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Sprint Medic 2 (optional) -->
+      <div style="margin-top:20px">
+        <button class="info-toggle" id="sm2Toggle" onclick="toggleSM2()">+ Add Sprint Medic Position 2</button>
+      </div>
+      <div id="sm2Block" style="display:none;margin-top:12px">
+        <h2 style="font-size:15px;margin-bottom:12px;color:var(--gold);letter-spacing:1px">SPRINT MEDIC POSITION 2</h2>
+        <div class="form-row">
+          <div class="form-group"><label>Home Location</label><input type="text" id="sm2Loc" placeholder="e.g. Eastern Grant County"></div>
+          <div class="form-group" style="max-width:220px"><label>Home-to-Farthest Patient (mi)</label><input type="number" id="sm2Dist" min="1" max="100"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group" style="max-width:240px"><label>Drive Time Reduction (min)</label><input type="number" id="sm2Reduction" min="0" max="30" step="0.5"></div>
+          <div class="form-group" style="max-width:240px"><label>Annual Cost ($)</label><input type="number" id="sm2Cost" min="0" max="500000"></div>
+          <div class="form-group" style="max-width:260px"><label>Funding Source</label>
+            <select id="sm2Fund">
+              <option value="county">County EMS levy</option>
+              <option value="state">State grant &mdash; Sprint Medic Program</option>
+              <option value="hospital">Hospital district partnership</option>
+              <option value="combo">Combination</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modeler Results -->
+      <div class="results-band" id="modelerResults" style="display:none">
+        <div class="results-grid">
+          <div class="result-item">
+            <div class="ri-value" id="mNewPct">--</div>
+            <div class="ri-label">Revised % Within 8 Min</div>
+          </div>
+          <div class="result-item">
+            <div class="ri-value" id="mGapChange">--</div>
+            <div class="ri-label">Gap Score Change</div>
+          </div>
+          <div class="result-item">
+            <div class="ri-value" id="mLivesReached">--</div>
+            <div class="ri-label">Add'l Lives Reached / Decade</div>
+          </div>
+          <div class="result-item">
+            <div class="ri-value" id="mCostPerLife">--</div>
+            <div class="ri-label">Cost per Life Reached (10 yr)</div>
+          </div>
+        </div>
+        <div class="flag-row" id="modelerFlags"></div>
+      </div>
+
+      <!-- Legislative Language Helper -->
+      <div id="legRationaleWrap" style="display:none;margin:20px 0">
+        <h2 style="font-size:14px;margin-bottom:8px;color:var(--gold);letter-spacing:1px;text-transform:uppercase">Legislative Rationale (auto-generated)</h2>
+        <div id="legRationale" style="font-family:Verdana,Geneva,sans-serif;font-size:12px;line-height:1.8;background:rgba(0,0,0,0.2);padding:16px;border-radius:6px;color:rgba(255,255,255,0.85)"></div>
+        <p style="font-family:Verdana,Geneva,sans-serif;font-size:10px;opacity:0.5;margin-top:6px">This text is generated from your inputs. Copy and adapt for grant applications or Capitol briefings.</p>
+      </div>
+
+      <hr class="section-rule">
+
+      <!-- 5-Year Chart -->
+      <div class="chart-wrap" id="chartWrap" style="display:none">
+        <canvas id="costChart"></canvas>
+        <p class="chart-note">
+          Estimates only. Sprint medic cost = annual stipend/salary cumulated. Avoided transport cost uses $12,000 per air medical transport (editable assumption). Actual savings depend on local transport patterns. Consult your county EMS coordinator.
+        </p>
+        <div class="form-row" style="margin-top:10px">
+          <div class="form-group" style="max-width:220px">
+            <label style="color:rgba(255,255,255,0.6)">Air Transport Cost ($)</label>
+            <input type="number" id="airCost" value="12000" min="0" max="100000" style="font-size:12px">
+          </div>
+        </div>
+      </div>
+
+      <!-- Funding Reference -->
+      <div class="funding-ref">
+        <h3>Funding Reference</h3>
+        <!-- VERIFY: All funding details below from software_brief.txt -->
+        <div class="funding-item">
+          <strong>MN EMS Workforce Stabilization Grant Program:</strong> Up to $200,000 per eligible agency per biennium; administered by MN EMS Regulatory Board.
+        </div>
+        <div class="funding-item">
+          <strong>Sprint Medic Pilot Expansion:</strong> Funded under 2023 legislation (Rasmusson co-authored); $30M statewide package; approximately $4M directed to West Central MN.
+        </div>
+        <div class="funding-item">
+          <strong>HRSA Rural Health Care Services Outreach Grant:</strong> Federal program, avg $300K/year, 3-year project periods; eligible for rural EMS workforce development.
+        </div>
+        <div class="funding-item">
+          <strong>MN Office of Rural Health:</strong> Technical assistance for Health Professional Shortage Area (HPSA) designation, which unlocks additional federal resources.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ PANEL 3: GRANT NARRATIVE ═══════ -->
+  <section class="panel panel-narrative" id="panel-narrative">
+    <div class="module-inner">
+      <div class="print-header">Prepared by: _________________ &nbsp;&nbsp; Date: ________</div>
+      <h1 class="module-header" style="color:var(--brown)">Grant Narrative Generator</h1>
+      <p class="module-sub" style="color:var(--brown)">Auto-generated from your inputs &mdash; edit inline, then print</p>
+
+      <div class="btn-row" style="margin-bottom:20px">
+        <button class="btn btn-primary" onclick="generateNarrative()">Generate Narrative</button>
+        <button class="btn btn-gold" onclick="window.print()">Print Document</button>
+      </div>
+
+      <div class="narrative-output" id="narrativeOutput" contenteditable="true">
+        <p style="color:var(--silo-silver);font-style:italic">Complete Module 1 and Module 2, then click "Generate Narrative" to produce a formatted grant application document.</p>
+      </div>
+
+      <div class="tool-footer" style="color:var(--brown)">
+        A resource for SD-9 communities and rural Minnesota EMS systems. Built with AI. Data reflects Minnesota EMS programs as of 2025. Calculations are illustrative &mdash; consult your county EMS coordinator and the MN EMS Regulatory Board for official figures.
+      </div>
+    </div>
+  </section>
+
+</div><!-- /hscroll -->
+
+<!-- ═══════ FLOATING PILL NAV ═══════ -->
+<nav class="pill-nav" aria-label="Module navigation">
+  <button class="active" onclick="goTo(0)">Home</button>
+  <button onclick="goTo(1)">Coverage Calc</button>
+  <button onclick="goTo(2)">Sprint Medic</button>
+  <button onclick="goTo(3)">Grant Narrative</button>
+</nav>
+
+<script>
+/* ═══════════════════════════════════════════════
+   NAVIGATION
+   ═══════════════════════════════════════════════ */
+let currentPanel = 0;
+const hscroll = document.getElementById('hscroll');
+const pills = document.querySelectorAll('.pill-nav button');
+
+function goTo(idx) {
+  currentPanel = idx;
+  hscroll.style.transform = `translateX(-${idx * 100}vw)`;
+  pills.forEach((p, i) => p.classList.toggle('active', i === idx));
+}
+
+/* Keyboard nav */
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' && currentPanel < 3) goTo(currentPanel + 1);
+  if (e.key === 'ArrowLeft' && currentPanel > 0) goTo(currentPanel - 1);
+});
+
+/* ═══════════════════════════════════════════════
+   STATION MANAGEMENT
+   ═══════════════════════════════════════════════ */
+let stationCount = 1;
+
+function addStation() {
+  if (stationCount >= 5) return;
+  stationCount++;
+  const c = document.getElementById('stationsContainer');
+  const div = document.createElement('div');
+  div.className = 'station-block';
+  div.dataset.idx = stationCount - 1;
+  div.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div class="station-block-title" style="color:var(--navy)">Station ${stationCount}</div>
+      <button class="load-example" onclick="removeStation(this)" style="font-size:10px;padding:4px 12px">Remove</button>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Station Name</label><input type="text" class="st-name" placeholder="Station name"></div>
+      <div class="form-group" style="max-width:180px"><label>Crew Type</label>
+        <select class="st-crew"><option value="ALS">ALS</option><option value="BLS" selected>BLS</option><option value="VOL">Volunteer-only</option></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="max-width:200px"><label>Avg Response to Farthest Pt (min)</label><input type="number" class="st-resp" min="1" max="60"></div>
+      <div class="form-group" style="max-width:160px"><label>Daily Call Volume</label><input type="number" class="st-calls" min="0" max="100" step="0.1"></div>
+      <div class="form-group" style="max-width:160px"><label>Active Crew Members</label><input type="number" class="st-crew-count" min="1" max="100"></div>
+      <div class="form-group" style="max-width:160px"><label>Sprint Medic?</label>
+        <select class="st-sprint"><option value="no">No</option><option value="yes">Yes</option></select>
+      </div>
+    </div>`;
+  c.appendChild(div);
+  attachListeners();
+}
+
+function removeStation(btn) {
+  btn.closest('.station-block').remove();
+  stationCount--;
+  recalc();
+}
+
+/* ═══════════════════════════════════════════════
+   SPRINT MEDIC 2 TOGGLE
+   ═══════════════════════════════════════════════ */
+let sm2Visible = false;
+function toggleSM2() {
+  sm2Visible = !sm2Visible;
+  document.getElementById('sm2Block').style.display = sm2Visible ? 'block' : 'none';
+  document.getElementById('sm2Toggle').textContent = sm2Visible ? '- Remove Position 2' : '+ Add Sprint Medic Position 2';
+  recalc();
+}
+
+/* ═══════════════════════════════════════════════
+   CALCULATIONS
+   ═══════════════════════════════════════════════ */
+function getStations() {
+  const blocks = document.querySelectorAll('.station-block');
+  const stations = [];
+  blocks.forEach(b => {
+    stations.push({
+      name: b.querySelector('.st-name')?.value || '',
+      crew: b.querySelector('.st-crew')?.value || 'BLS',
+      resp: parseFloat(b.querySelector('.st-resp')?.value) || 0,
+      calls: parseFloat(b.querySelector('.st-calls')?.value) || 0,
+      crewCount: parseInt(b.querySelector('.st-crew-count')?.value) || 0,
+      sprint: b.querySelector('.st-sprint')?.value || 'no'
+    });
+  });
+  return stations;
+}
+
+function recalc() {
+  const pop = parseInt(document.getElementById('population').value) || 0;
+  const age65 = parseInt(document.getElementById('age65').value) || 0;
+  const roadFactor = parseInt(document.getElementById('roadCond').value) || 0;
+  const stations = getStations();
+
+  document.getElementById('age65Val').textContent = age65 + '%';
+
+  if (!pop || stations.length === 0 || !stations[0].resp) {
+    document.getElementById('calcResults').style.display = 'none';
+    document.getElementById('modelerResults').style.display = 'none';
+    document.getElementById('chartWrap').style.display = 'none';
+    return;
+  }
+
+  // Weighted average response time across stations (weighted by calls, or equal if no calls)
+  let totalCalls = stations.reduce((s, st) => s + (st.calls || 0.1), 0);
+  let avgResp = stations.reduce((s, st) => s + st.resp * ((st.calls || 0.1) / totalCalls), 0);
+
+  // Coverage gap estimate
+  let pctIn8 = Math.max(0, Math.min(100, 100 - ((avgResp - 8) * 12)));
+  let popOut = Math.round(pop * (1 - pctIn8 / 100));
+
+  // Gap score
+  let base = Math.min(60, Math.max(0, (avgResp - 8) * 3));
+  let agePenalty = age65 * 0.6;
+  let roadPenalty = roadFactor;
+  // BLS penalty: use worst station
+  let hasBLS = stations.some(s => s.crew === 'BLS' || s.crew === 'VOL');
+  let blsPenalty = hasBLS ? 8 : 0;
+  let gapScore = Math.min(100, base + agePenalty + roadPenalty + blsPenalty);
+
+  // Cardiac events
+  let cardiacPerYear = pop * 0.0015;
+  let cardiacOutside = cardiacPerYear * (1 - pctIn8 / 100);
+
+  // Display results
+  document.getElementById('calcResults').style.display = 'block';
+  document.getElementById('rGapScore').textContent = gapScore.toFixed(0);
+  document.getElementById('rGapScore').className = 'ri-value ' + (gapScore > 60 ? 'status-bad' : gapScore > 35 ? 'status-warn' : 'status-good');
+  document.getElementById('rPctIn8').textContent = pctIn8.toFixed(1) + '%';
+  document.getElementById('rPctIn8').className = 'ri-value ' + (pctIn8 < 40 ? 'status-bad' : pctIn8 < 70 ? 'status-warn' : 'status-good');
+  document.getElementById('rPopOut').textContent = popOut.toLocaleString();
+  document.getElementById('rCardiac').textContent = cardiacPerYear.toFixed(1);
+  document.getElementById('rCardiacOut').textContent = cardiacOutside.toFixed(1);
+  document.getElementById('rCardiacOut').className = 'ri-value ' + (cardiacOutside > 10 ? 'status-bad' : cardiacOutside > 5 ? 'status-warn' : 'status-good');
+
+  // Station summary table
+  const summaryTable = document.getElementById('stationSummary');
+  const summaryBody = document.getElementById('stationSummaryBody');
+  if (stations.some(s => s.name || s.resp)) {
+    summaryTable.style.display = 'table';
+    summaryBody.innerHTML = stations.map(st => {
+      let annCalls = (st.calls * 365).toFixed(0);
+      let perCrew = st.crewCount ? (st.calls * 365 / st.crewCount).toFixed(1) : '--';
+      let perCrewCls = (st.crewCount && st.calls * 365 / st.crewCount > 80) ? 'status-bad' : '';
+      let crewCls = (st.crewCount && st.crewCount < 4) ? 'status-bad' : '';
+      return `<tr>
+        <td>${st.name || '--'}</td>
+        <td>${st.crew}</td>
+        <td class="td-mono">${st.resp || '--'} min</td>
+        <td class="td-mono ${crewCls}">${st.crewCount || '--'}</td>
+        <td class="td-mono">${annCalls}</td>
+        <td class="td-mono ${perCrewCls}">${perCrew}</td>
+      </tr>`;
+    }).join('');
+  } else {
+    summaryTable.style.display = 'none';
+  }
+
+  // Flags
+  let flags = [];
+  stations.forEach(st => {
+    if (st.crewCount && st.crewCount < 4) {
+      flags.push({ text: `${st.name || 'Station'}: <4 crew (below MN EMS min guidance)`, cls: 'flag-red' });
+    }
+    let annualCalls = st.calls * 365;
+    if (st.crewCount && annualCalls / st.crewCount > 80) {
+      flags.push({ text: `${st.name || 'Station'}: ${(annualCalls / st.crewCount).toFixed(0)} calls/crew/yr (burnout risk >80)`, cls: 'flag-amber' });
+    }
+  });
+  if (gapScore > 60) flags.push({ text: 'Coverage gap score is critical', cls: 'flag-red' });
+  document.getElementById('calcFlags').innerHTML = flags.map(f => `<span class="flag ${f.cls}">${f.text}</span>`).join('');
+
+  // Update SVG
+  updateSVG(stations, avgResp, pctIn8);
+
+  // Sprint medic calculations
+  calcModeler(avgResp, pctIn8, gapScore, pop, age65, roadFactor, stations);
+
+  // Persist to localStorage
+  saveState();
+}
+
+function calcModeler(avgResp, pctIn8Before, gapBefore, pop, age65, roadFactor, stations) {
+  const r1 = parseFloat(document.getElementById('sm1Reduction').value) || 0;
+  const c1 = parseFloat(document.getElementById('sm1Cost').value) || 0;
+  const r2 = sm2Visible ? (parseFloat(document.getElementById('sm2Reduction').value) || 0) : 0;
+  const c2 = sm2Visible ? (parseFloat(document.getElementById('sm2Cost').value) || 0) : 0;
+
+  if (!r1 && !r2) {
+    document.getElementById('modelerResults').style.display = 'none';
+    document.getElementById('chartWrap').style.display = 'none';
+    return;
+  }
+
+  // Combined reduction (diminishing returns for second)
+  let totalReduction = r1 + r2 * 0.6;
+  let newAvgResp = avgResp - (totalReduction * 0.7);
+  let newPctIn8 = Math.max(0, Math.min(100, 100 - ((newAvgResp - 8) * 12)));
+
+  // Revised gap score
+  let newBase = Math.min(60, Math.max(0, (newAvgResp - 8) * 3));
+  let hasBLS = stations.some(s => s.crew === 'BLS' || s.crew === 'VOL');
+  let newGap = Math.min(100, newBase + age65 * 0.6 + roadFactor + (hasBLS ? 8 : 0));
+  let gapChange = newGap - gapBefore;
+
+  // Cardiac survival
+  let cardiacPerYear = pop * 0.0015;
+  let eventsOutBefore = cardiacPerYear * (1 - pctIn8Before / 100);
+  let eventsOutAfter = cardiacPerYear * (1 - newPctIn8 / 100);
+  let improvement = eventsOutBefore - eventsOutAfter;
+  let survivalGain = improvement * 0.10;
+
+  let totalAnnualCost = c1 + c2;
+  let costPerLife = survivalGain > 0 ? (totalAnnualCost * 10) / Math.max(1, survivalGain * 10) : 0;
+
+  // Display
+  document.getElementById('modelerResults').style.display = 'block';
+  document.getElementById('mNewPct').textContent = newPctIn8.toFixed(1) + '%';
+  document.getElementById('mNewPct').className = 'ri-value ' + (newPctIn8 > 70 ? 'status-good' : newPctIn8 > 40 ? 'status-warn' : 'status-bad');
+  document.getElementById('mGapChange').textContent = (gapChange >= 0 ? '' : '') + gapChange.toFixed(1);
+  document.getElementById('mGapChange').className = 'ri-value ' + (gapChange < -10 ? 'status-good' : 'status-warn');
+
+  let livesLo = Math.max(0, (survivalGain * 10 * 0.7)).toFixed(1);
+  let livesHi = Math.max(0, (survivalGain * 10 * 1.3)).toFixed(1);
+  document.getElementById('mLivesReached').textContent = livesLo + '–' + livesHi;
+  document.getElementById('mCostPerLife').textContent = costPerLife > 0 ? '$' + Math.round(costPerLife).toLocaleString() : '--';
+
+  let mFlags = [];
+  if (newPctIn8 - pctIn8Before > 15) mFlags.push({ text: 'Significant coverage improvement', cls: 'flag-green' });
+  if (gapChange < -15) mFlags.push({ text: 'Major gap score reduction', cls: 'flag-green' });
+  document.getElementById('modelerFlags').innerHTML = mFlags.map(f => `<span class="flag ${f.cls}">${f.text}</span>`).join('');
+
+  // Update SVG with sprint medic ring
+  updateSVGsprint(newPctIn8);
+
+  // Legislative rationale
+  const legWrap = document.getElementById('legRationaleWrap');
+  const legDiv = document.getElementById('legRationale');
+  if (r1 || r2) {
+    legWrap.style.display = 'block';
+    legDiv.textContent = generateLegislativeRationale();
+  } else {
+    legWrap.style.display = 'none';
+  }
+
+  // 5-year chart
+  renderChart(totalAnnualCost, survivalGain);
+}
+
+/* ═══════════════════════════════════════════════
+   SVG DIAGRAM
+   ═══════════════════════════════════════════════ */
+function updateSVG(stations, avgResp, pctIn8) {
+  const g = document.getElementById('svgStations');
+  g.innerHTML = '';
+  const cx = 180, cy = 180;
+  stations.forEach((st, i) => {
+    if (!st.resp) return;
+    // Place station radially based on response time (8min=65px, 20min=170px)
+    let r = 65 + (st.resp - 8) * (105 / 12);
+    r = Math.max(20, Math.min(170, r));
+    let angle = -Math.PI / 2 + (i * 2 * Math.PI / Math.max(stations.length, 1));
+    let sx = cx + r * Math.cos(angle);
+    let sy = cy + r * Math.sin(angle);
+    let color = st.crew === 'ALS' ? '#2A5C3F' : st.crew === 'BLS' ? '#C48B1A' : '#B5282A';
+    g.innerHTML += `<circle cx="${sx}" cy="${sy}" r="7" fill="${color}" stroke="#fff" stroke-width="1.5"/>`;
+    g.innerHTML += `<text x="${sx}" y="${sy + 18}" text-anchor="middle" fill="${color}" font-family="Verdana,sans-serif" font-size="8" font-weight="700">${st.name || 'Stn ' + (i+1)}</text>`;
+  });
+
+  // Update 8-min ring size based on pctIn8
+  let ringR = 30 + (pctIn8 / 100) * 80;
+  document.getElementById('svg8ring').setAttribute('r', ringR);
+}
+
+function updateSVGsprint(newPctIn8) {
+  const g = document.getElementById('svgSprintMedics');
+  let ringR = 30 + (newPctIn8 / 100) * 80;
+  g.innerHTML = `<circle cx="180" cy="180" r="${ringR}" fill="none" stroke="#6FCF97" stroke-width="2.5" stroke-dasharray="6,4" opacity="0.8"/>
+    <text x="180" y="${180 - ringR - 6}" text-anchor="middle" fill="#6FCF97" font-family="Lucida Console,Monaco,monospace" font-size="8" letter-spacing="1">WITH SPRINT MEDIC</text>`;
+}
+
+/* ═══════════════════════════════════════════════
+   CHART.JS — 5-YEAR COST PROJECTION
+   ═══════════════════════════════════════════════ */
+let costChartInstance = null;
+
+function renderChart(annualCost, survivalGain) {
+  const airCost = parseFloat(document.getElementById('airCost').value) || 12000;
+  if (!annualCost) {
+    document.getElementById('chartWrap').style.display = 'none';
+    return;
+  }
+  document.getElementById('chartWrap').style.display = 'block';
+  const years = [1, 2, 3, 4, 5];
+  const sprintCosts = years.map(y => annualCost * y);
+  const avoidedCosts = years.map(y => survivalGain * airCost * y);
+
+  if (costChartInstance) costChartInstance.destroy();
+  const ctx = document.getElementById('costChart').getContext('2d');
+  costChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: years.map(y => 'Year ' + y),
+      datasets: [
+        {
+          label: 'Sprint Medic Cost (cumulative)',
+          data: sprintCosts,
+          backgroundColor: '#3D6B4F',
+          borderRadius: 3
+        },
+        {
+          label: 'Est. Avoided Transport Cost',
+          data: avoidedCosts,
+          backgroundColor: '#7C5C3E',
+          borderRadius: 3
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { labels: { color: 'rgba(255,255,255,0.7)', font: { family: 'Verdana', size: 11 } } }
+      },
+      scales: {
+        x: { ticks: { color: 'rgba(255,255,255,0.6)', font: { family: 'Lucida Console', size: 10 } }, grid: { display: false } },
+        y: {
+          ticks: {
+            color: 'rgba(255,255,255,0.6)',
+            font: { family: 'Lucida Console', size: 10 },
+            callback: v => '$' + (v / 1000).toFixed(0) + 'K'
+          },
+          grid: { color: 'rgba(255,255,255,0.08)' }
+        }
+      }
+    }
+  });
+}
+
+/* ═══════════════════════════════════════════════
+   GRANT NARRATIVE GENERATOR
+   ═══════════════════════════════════════════════ */
+function generateNarrative() {
+  const areaName = document.getElementById('areaName').value || '[Service Area]';
+  const sqMi = document.getElementById('sqMiles').value || '--';
+  const pop = document.getElementById('population').value || '--';
+  const age65 = document.getElementById('age65').value || '--';
+  const roadCond = document.getElementById('roadCond');
+  const roadLabel = roadCond.options[roadCond.selectedIndex].text;
+  const stations = getStations();
+
+  const gapEl = document.getElementById('rGapScore');
+  const gapScore = gapEl ? gapEl.textContent : '--';
+  const pctIn8 = document.getElementById('rPctIn8')?.textContent || '--';
+  const popOut = document.getElementById('rPopOut')?.textContent || '--';
+  const cardiacOut = document.getElementById('rCardiacOut')?.textContent || '--';
+  const cardiac = document.getElementById('rCardiac')?.textContent || '--';
+
+  const newPct = document.getElementById('mNewPct')?.textContent || '--';
+  const gapChange = document.getElementById('mGapChange')?.textContent || '--';
+  const livesReached = document.getElementById('mLivesReached')?.textContent || '--';
+  const costPerLife = document.getElementById('mCostPerLife')?.textContent || '--';
+
+  const sm1Loc = document.getElementById('sm1Loc').value || '[Location TBD]';
+  const sm1Cost = document.getElementById('sm1Cost').value || '--';
+  const sm1Red = document.getElementById('sm1Reduction').value || '--';
+  const sm1FundEl = document.getElementById('sm1Fund');
+  const sm1FundLabel = sm1FundEl.options[sm1FundEl.selectedIndex].text;
+
+  let sm2Section = '';
+  let sm2CostNum = 0;
+  if (sm2Visible) {
+    const sm2Loc = document.getElementById('sm2Loc').value || '[Location TBD]';
+    const sm2Cost = document.getElementById('sm2Cost').value || '--';
+    sm2CostNum = parseFloat(sm2Cost) || 0;
+    const sm2Red = document.getElementById('sm2Reduction').value || '--';
+    sm2Section = ` A second position based in ${sm2Loc} would reduce response time by an additional ${sm2Red} minutes, at an annual cost of $${parseInt(sm2Cost || 0).toLocaleString()}.`;
+  }
+
+  let totalAnnual = (parseFloat(sm1Cost) || 0) + sm2CostNum;
+  let fiveYearTotal = totalAnnual * 5;
+
+  // Station descriptions
+  let stationDesc = stations.filter(s => s.name).map(s =>
+    `${s.name} (${s.crew}, avg response ${s.resp} min, ${s.crewCount} crew, ${(s.calls * 365).toFixed(0)} calls/year)`
+  ).join('; ');
+
+  const out = document.getElementById('narrativeOutput');
+  out.innerHTML = `
+<h2>Sprint Medic Pilot Expansion &mdash; ${areaName}</h2>
+
+<h3>Service Area Need</h3>
+<p>${areaName} encompasses approximately ${sqMi} square miles with a population of ${parseInt(pop || 0).toLocaleString()} residents, of whom an estimated ${age65}% are age 65 or older. The road network is characterized as ${roadLabel.toLowerCase()}. The area's Coverage Gap Score is <strong>${gapScore} out of 100</strong>, indicating ${parseFloat(gapScore) > 60 ? 'a critical gap in emergency medical coverage' : parseFloat(gapScore) > 35 ? 'a significant gap in emergency medical coverage' : 'a moderate gap in emergency medical coverage'}. An estimated ${popOut} residents cannot be reached within the 8-minute American Heart Association cardiac survival threshold. This population faces approximately ${cardiac} cardiac events per year, of which ${cardiacOut} are projected to occur outside the 8-minute response window.</p>
+
+<h3>Current Capacity</h3>
+<p>The service area is currently served by ${stations.length} ambulance station${stations.length > 1 ? 's' : ''}: ${stationDesc || '[No station data entered]'}. ${stations.some(s => s.crewCount < 4) ? 'One or more stations fall below the MN EMS minimum guidance of 4 active crew members for sustainable volunteer service.' : ''}</p>
+
+<h3>Proposed Intervention</h3>
+<p>We propose deploying a Sprint Medic position based in ${sm1Loc}. This advanced EMT or paramedic would live within the coverage zone and respond immediately in a personal vehicle with AED, airway kit, and IV supplies while the ambulance is en route. The estimated response time reduction is ${sm1Red} minutes, at an annual cost of $${parseInt(sm1Cost || 0).toLocaleString()} funded through ${sm1FundLabel.toLowerCase()}.${sm2Section}</p>
+<p>With this intervention, the estimated population reachable within 8 minutes increases to ${newPct}, a gap score change of ${gapChange} points. Over a decade, an estimated ${livesReached} additional lives would be reached with ALS-level care in the critical survival window.</p>
+
+<h3>Financial Summary</h3>
+<table>
+  <thead><tr><th>Metric</th><th>Value</th></tr></thead>
+  <tbody>
+    <tr><td>Annual Sprint Medic Cost</td><td>$${totalAnnual.toLocaleString()}</td></tr>
+    <tr><td>5-Year Total Cost</td><td>$${fiveYearTotal.toLocaleString()}</td></tr>
+    <tr><td>Cost per Life Reached (10 yr)</td><td>${costPerLife}</td></tr>
+    <tr><td>Funding Source(s)</td><td>${sm1FundLabel}${sm2Visible ? ' + additional' : ''}</td></tr>
+  </tbody>
+</table>
+
+<h3>Outcome Metrics</h3>
+<table>
+  <thead><tr><th>Metric</th><th>Before</th><th>After</th></tr></thead>
+  <tbody>
+    <tr><td>Coverage Gap Score</td><td>${gapScore}</td><td>${(parseFloat(gapScore) + parseFloat(gapChange || 0)).toFixed(1)}</td></tr>
+    <tr><td>Population Within 8 Min</td><td>${pctIn8}</td><td>${newPct}</td></tr>
+    <tr><td>Cardiac Events Outside Window/Yr</td><td>${cardiacOut}</td><td>${(parseFloat(cardiacOut || 0) - (parseFloat(cardiacOut || 0) * (parseFloat(newPct) - parseFloat(pctIn8)) / 100)).toFixed(1)}</td></tr>
+  </tbody>
+</table>
+
+<h3>District Context</h3>
+<p>Senate District 9 encompasses five counties in west-central Minnesota: Douglas, Grant, Otter Tail, Traverse, and Wilkin. The Sprint Medic model was piloted in Otter Tail and Grant counties with state support beginning in 2023, funded through the $30 million EMS legislation co-authored by Senator Jordan Rasmusson. That legislation directed more than $4 million to West Central Minnesota. Expanding the Sprint Medic model to additional zones within the district builds on proven results and addresses the persistent challenge of geographic coverage in rural EMS systems.</p>
+
+<h3>Legislative Rationale</h3>
+<p>${generateLegislativeRationale()}</p>
+`;
+}
+
+/* ═══════════════════════════════════════════════
+   LOAD EXAMPLE DATA
+   ═══════════════════════════════════════════════ */
+function loadExample() {
+  document.getElementById('areaName').value = 'Otter Tail County South Zone';
+  document.getElementById('sqMiles').value = 420;
+  document.getElementById('population').value = 18500;
+  document.getElementById('age65').value = 22;
+  document.getElementById('roadCond').value = '5';
+
+  // Ensure we have exactly 2 stations
+  while (stationCount > 1) {
+    const blocks = document.querySelectorAll('.station-block');
+    if (blocks.length > 1) {
+      blocks[blocks.length - 1].remove();
+      stationCount--;
+    } else break;
+  }
+  if (stationCount < 2) addStation();
+
+  const blocks = document.querySelectorAll('.station-block');
+  // Station 1
+  blocks[0].querySelector('.st-name').value = 'Fergus Falls Area';
+  blocks[0].querySelector('.st-crew').value = 'ALS';
+  blocks[0].querySelector('.st-resp').value = 11;
+  blocks[0].querySelector('.st-calls').value = 0.5;
+  blocks[0].querySelector('.st-crew-count').value = 8;
+  blocks[0].querySelector('.st-sprint').value = 'no';
+  // Station 2
+  blocks[1].querySelector('.st-name').value = 'Pelican Rapids Volunteer';
+  blocks[1].querySelector('.st-crew').value = 'BLS';
+  blocks[1].querySelector('.st-resp').value = 19;
+  blocks[1].querySelector('.st-calls').value = 0.16;
+  blocks[1].querySelector('.st-crew-count').value = 4;
+  blocks[1].querySelector('.st-sprint').value = 'no';
+
+  // Sprint medic 1
+  document.getElementById('sm1Loc').value = 'Rural Pelican Rapids corridor';
+  document.getElementById('sm1Dist').value = 15;
+  document.getElementById('sm1Reduction').value = 7;
+  document.getElementById('sm1Cost').value = 38000;
+  document.getElementById('sm1Fund').value = 'state';
+
+  // Add illustrative label
+  let existingLabel = document.querySelector('.illustrative-label');
+  if (!existingLabel) {
+    const hdr = document.querySelector('.panel-calc .module-header');
+    const lbl = document.createElement('span');
+    lbl.className = 'illustrative-label';
+    lbl.textContent = 'ILLUSTRATIVE DATA';
+    hdr.appendChild(lbl);
+  }
+
+  recalc();
+}
+
+/* ═══════════════════════════════════════════════
+   LOCALSTORAGE PERSISTENCE
+   ═══════════════════════════════════════════════ */
+function saveState() {
+  try {
+    const state = {
+      areaName: document.getElementById('areaName').value,
+      sqMiles: document.getElementById('sqMiles').value,
+      population: document.getElementById('population').value,
+      age65: document.getElementById('age65').value,
+      roadCond: document.getElementById('roadCond').value,
+      sm1Loc: document.getElementById('sm1Loc').value,
+      sm1Dist: document.getElementById('sm1Dist').value,
+      sm1Reduction: document.getElementById('sm1Reduction').value,
+      sm1Cost: document.getElementById('sm1Cost').value,
+      sm1Fund: document.getElementById('sm1Fund').value,
+      sm2Visible: sm2Visible,
+      airCost: document.getElementById('airCost').value
+    };
+    localStorage.setItem('rasmusson-ems-tool', JSON.stringify(state));
+  } catch (e) { /* silently fail */ }
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem('rasmusson-ems-tool');
+    if (!raw) return;
+    const s = JSON.parse(raw);
+    if (s.areaName) document.getElementById('areaName').value = s.areaName;
+    if (s.sqMiles) document.getElementById('sqMiles').value = s.sqMiles;
+    if (s.population) document.getElementById('population').value = s.population;
+    if (s.age65) document.getElementById('age65').value = s.age65;
+    if (s.roadCond) document.getElementById('roadCond').value = s.roadCond;
+    if (s.sm1Loc) document.getElementById('sm1Loc').value = s.sm1Loc;
+    if (s.sm1Dist) document.getElementById('sm1Dist').value = s.sm1Dist;
+    if (s.sm1Reduction) document.getElementById('sm1Reduction').value = s.sm1Reduction;
+    if (s.sm1Cost) document.getElementById('sm1Cost').value = s.sm1Cost;
+    if (s.sm1Fund) document.getElementById('sm1Fund').value = s.sm1Fund;
+    if (s.airCost) document.getElementById('airCost').value = s.airCost;
+    if (s.sm2Visible) toggleSM2();
+    recalc();
+  } catch (e) { /* silently fail */ }
+}
+
+/* ═══════════════════════════════════════════════
+   EVENT LISTENERS
+   ═══════════════════════════════════════════════ */
+function attachListeners() {
+  document.querySelectorAll('#panel-calc input, #panel-calc select').forEach(el => {
+    el.removeEventListener('input', recalc);
+    el.addEventListener('input', recalc);
+  });
+  document.querySelectorAll('#panel-modeler input, #panel-modeler select').forEach(el => {
+    el.removeEventListener('input', recalc);
+    el.addEventListener('input', recalc);
+  });
+}
+
+/* ═══════════════════════════════════════════════
+   TOUCH / SWIPE SUPPORT
+   ═══════════════════════════════════════════════ */
+let touchStartX = 0;
+let touchEndX = 0;
+document.addEventListener('touchstart', e => {
+  touchStartX = e.changedTouches[0].screenX;
+}, { passive: true });
+document.addEventListener('touchend', e => {
+  touchEndX = e.changedTouches[0].screenX;
+  let diff = touchStartX - touchEndX;
+  if (Math.abs(diff) > 60) {
+    if (diff > 0 && currentPanel < 3) goTo(currentPanel + 1);
+    if (diff < 0 && currentPanel > 0) goTo(currentPanel - 1);
+  }
+}, { passive: true });
+
+/* ═══════════════════════════════════════════════
+   LEGISLATIVE LANGUAGE HELPER
+   (auto-generates a one-paragraph rationale)
+   ═══════════════════════════════════════════════ */
+function generateLegislativeRationale() {
+  const areaName = document.getElementById('areaName').value || '[Service Area]';
+  const pop = document.getElementById('population').value || 0;
+  const age65 = document.getElementById('age65').value || 0;
+  const gapScore = document.getElementById('rGapScore')?.textContent || '--';
+  const sm1Loc = document.getElementById('sm1Loc').value || '[Location]';
+  const sm1Cost = document.getElementById('sm1Cost').value || 0;
+  const sm1Red = document.getElementById('sm1Reduction').value || 0;
+  const newPct = document.getElementById('mNewPct')?.textContent || '--';
+
+  return `The ${areaName} service area, serving approximately ${parseInt(pop).toLocaleString()} residents ` +
+    `(${age65}% age 65+), currently scores ${gapScore} on the Coverage Gap Index, ` +
+    `indicating a ${parseFloat(gapScore) > 60 ? 'critical' : 'significant'} deficit in emergency medical ` +
+    `response capacity. Deploying a Sprint Medic position in the ${sm1Loc} area at an ` +
+    `annual cost of $${parseInt(sm1Cost).toLocaleString()} would reduce effective response time by ` +
+    `approximately ${sm1Red} minutes, increasing the population reachable within the ` +
+    `8-minute AHA cardiac survival threshold to ${newPct}. This intervention ` +
+    `replicates the Sprint Medic model successfully piloted in Otter Tail and Grant ` +
+    `counties under the 2023 EMS legislation co-authored by Senator Rasmusson, and ` +
+    `is eligible for funding through the MN EMS Workforce Stabilization Grant Program ` +
+    `(up to $200,000 per agency per biennium) or the HRSA Rural Health Care Services ` +
+    `Outreach Grant (avg $300,000/year, 3-year project periods).`;
+}
+
+/* ═══════════════════════════════════════════════
+   INIT
+   ═══════════════════════════════════════════════ */
+attachListeners();
+loadState();
+</script>
+</body>
+</html>

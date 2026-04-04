@@ -1,0 +1,1787 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Karin Housley — Senate District 33</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Barlow+Condensed:wght@400;600;700;800&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ─── RESET ──────────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    /* ─── MODE SWITCHING ─────────────────────────────────────────────────── */
+    .pro-content  { display: block; }
+    .oppo-content { display: none; }
+    body.mode-oppo .pro-content  { display: none; }
+    body.mode-oppo .oppo-content { display: block; }
+
+    body {
+      transition: opacity 0.22s ease;
+    }
+    body.fading { opacity: 0; }
+
+    /* ─── FLIP BUTTON ────────────────────────────────────────────────────── */
+    #flip-btn {
+      position: fixed;
+      top: 22px; right: 22px;
+      z-index: 9999;
+      border: none;
+      cursor: pointer;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      padding: 12px 20px;
+      transition: transform 0.18s, box-shadow 0.18s;
+    }
+    body:not(.mode-oppo) #flip-btn {
+      background: #1E3A5F;
+      color: #F7F3EC;
+      box-shadow: 0 2px 12px rgba(30,58,95,0.28);
+    }
+    body.mode-oppo #flip-btn {
+      background: #F7F3EC;
+      color: #1A1A1A;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.22);
+    }
+    #flip-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.28);
+    }
+    .btn-pro-label, .btn-oppo-label { pointer-events: none; }
+    body:not(.mode-oppo) .btn-oppo-label { display: none; }
+    body.mode-oppo .btn-pro-label  { display: none; }
+
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       PRO SITE — "The Spare Room"
+       St. Croix Valley neighbor notice, warm civic bulletin elevated to print.
+       Palette: river blue #1E3A5F · brick red #A63B2E · winter white #F7F3EC
+                warm sand #E8DEC8 · dark ink #1A1A1A · soft gold #C4954A
+    ═══════════════════════════════════════════════════════════════════════ */
+
+    .pro-content {
+      background: #F7F3EC;
+      font-family: 'Space Grotesk', sans-serif;
+      color: #1A1A1A;
+    }
+
+    /* ── PRO HERO ────────────────────────────────────────────────────────── */
+    .pro-hero {
+      display: grid;
+      grid-template-columns: 55% 45%;
+      min-height: 100vh;
+      border-bottom: 5px solid #1A1A1A;
+    }
+
+    .pro-hero-left {
+      background: #1E3A5F;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 72px 60px 64px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* River texture overlay — subtle horizontal ripples */
+    .pro-hero-left::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: repeating-linear-gradient(
+        0deg,
+        transparent, transparent 44px,
+        rgba(255,255,255,0.028) 44px, rgba(255,255,255,0.028) 45px
+      );
+      pointer-events: none;
+    }
+
+    /* Warm light from upper-right corner */
+    .pro-hero-left::after {
+      content: '';
+      position: absolute;
+      top: -80px; right: -80px;
+      width: 420px; height: 420px;
+      background: radial-gradient(circle, rgba(196,149,74,0.18) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .pro-district-stamp {
+      display: inline-block;
+      border: 1.5px solid rgba(247,243,236,0.38);
+      color: rgba(247,243,236,0.62);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      margin-bottom: 36px;
+      width: fit-content;
+    }
+
+    .pro-hero-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #C4954A;
+      margin-bottom: 16px;
+    }
+
+    .pro-hero-name {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(46px, 5.5vw, 78px);
+      font-weight: 900;
+      color: #F7F3EC;
+      line-height: 1.0;
+      margin-bottom: 24px;
+    }
+
+    .pro-hero-tagline {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(15px, 1.6vw, 19px);
+      font-weight: 400;
+      color: rgba(247,243,236,0.80);
+      line-height: 1.6;
+      max-width: 420px;
+      margin-bottom: 48px;
+      border-left: 3px solid #C4954A;
+      padding-left: 18px;
+    }
+
+    .pro-hero-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .pro-hero-meta span {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: rgba(247,243,236,0.5);
+      letter-spacing: 0.08em;
+    }
+
+    /* Right panel — photo + stat */
+    .pro-hero-right {
+      position: relative;
+      background: #E8DEC8;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .pro-photo-wrap {
+      position: relative;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .pro-senator-photo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 15%;
+      filter: sepia(12%) contrast(1.05) brightness(1.02);
+    }
+
+    .pro-photo-placeholder {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(145deg, #C4954A 0%, #A63B2E 60%, #1E3A5F 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pro-photo-placeholder span {
+      font-family: 'Playfair Display', serif;
+      font-size: 72px;
+      font-weight: 900;
+      color: rgba(247,243,236,0.7);
+      letter-spacing: -2px;
+    }
+
+    .pro-photo-caption {
+      background: #A63B2E;
+      padding: 16px 28px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #F7F3EC;
+    }
+
+    /* ── PRO STAT RAIL ───────────────────────────────────────────────────── */
+    .pro-stat-rail {
+      background: #A63B2E;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-bottom: 4px solid #1A1A1A;
+    }
+
+    .pro-stat {
+      padding: 36px 32px;
+      border-right: 2px solid rgba(26,26,26,0.25);
+      position: relative;
+    }
+    .pro-stat:last-child { border-right: none; }
+
+    .pro-stat-number {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(38px, 4.5vw, 58px);
+      font-weight: 900;
+      color: #F7F3EC;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .pro-stat-label {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      color: rgba(247,243,236,0.72);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      line-height: 1.4;
+    }
+
+    .pro-stat-source {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      color: rgba(247,243,236,0.42);
+      margin-top: 8px;
+      letter-spacing: 0.06em;
+    }
+
+    /* ── PRO MAIN STORY ─────────────────────────────────────────────────── */
+    .pro-main {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      border-bottom: 4px solid #1A1A1A;
+    }
+
+    .pro-story-panel {
+      padding: 72px 60px;
+      border-right: 2px solid #1A1A1A;
+    }
+
+    .pro-section-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #A63B2E;
+      margin-bottom: 20px;
+    }
+
+    .pro-story-headline {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(28px, 3.2vw, 44px);
+      font-weight: 900;
+      color: #1E3A5F;
+      line-height: 1.15;
+      margin-bottom: 28px;
+    }
+
+    .pro-story-headline em {
+      font-style: italic;
+      color: #A63B2E;
+    }
+
+    .pro-body {
+      font-size: 16px;
+      line-height: 1.75;
+      color: #2A2A2A;
+      margin-bottom: 20px;
+      font-weight: 400;
+    }
+
+    .pro-body strong {
+      color: #1E3A5F;
+      font-weight: 600;
+    }
+
+    /* Bill block */
+    .pro-bill-block {
+      background: #1E3A5F;
+      padding: 28px 32px;
+      margin-top: 36px;
+    }
+
+    .pro-bill-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: #C4954A;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .pro-bill-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: #F7F3EC;
+      margin-bottom: 12px;
+      font-style: italic;
+    }
+
+    .pro-bill-detail {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px;
+      color: rgba(247,243,236,0.80);
+      line-height: 1.6;
+    }
+
+    /* Right panel — district visual + pull quote */
+    .pro-context-panel {
+      padding: 72px 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+      background: #F7F3EC;
+    }
+
+    .pro-district-visual {
+      position: relative;
+      height: 280px;
+      overflow: hidden;
+      background: linear-gradient(160deg, #1E3A5F 0%, #2B5C8A 50%, #E8DEC8 100%);
+    }
+
+    /* St. Croix River SVG sketch */
+    .pro-district-visual svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.9;
+    }
+
+    .pro-district-visual-label {
+      position: absolute;
+      bottom: 16px;
+      left: 20px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      color: rgba(247,243,236,0.7);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+
+    .pro-pull-quote {
+      border-left: 5px solid #C4954A;
+      padding: 24px 28px;
+      background: #E8DEC8;
+    }
+
+    .pro-pull-quote blockquote {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(17px, 2vw, 22px);
+      font-style: italic;
+      font-weight: 700;
+      color: #1E3A5F;
+      line-height: 1.45;
+      margin-bottom: 14px;
+    }
+
+    .pro-pull-quote cite {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      color: #A63B2E;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-style: normal;
+    }
+
+    /* District map placeholder */
+    .pro-district-box {
+      background: #1E3A5F;
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .pro-district-box-title {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: #C4954A;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+
+    .pro-district-communities {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .pro-community-chip {
+      background: rgba(247,243,236,0.12);
+      border: 1px solid rgba(196,149,74,0.4);
+      color: #F7F3EC;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 12px;
+      padding: 4px 12px;
+      font-weight: 500;
+    }
+
+    /* ── PRO RECORD BAND ─────────────────────────────────────────────────── */
+    .pro-record-band {
+      background: #E8DEC8;
+      padding: 64px 60px;
+      border-bottom: 4px solid #1A1A1A;
+    }
+
+    .pro-record-band-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(24px, 3vw, 38px);
+      font-weight: 900;
+      color: #1E3A5F;
+      margin-bottom: 40px;
+    }
+
+    .pro-record-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    .pro-record-card {
+      background: #F7F3EC;
+      border-top: 4px solid #1E3A5F;
+      padding: 28px 24px;
+    }
+
+    .pro-record-card-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      color: #A63B2E;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .pro-record-card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: #1A1A1A;
+      margin-bottom: 12px;
+      line-height: 1.3;
+    }
+
+    .pro-record-card-body {
+      font-size: 14px;
+      line-height: 1.65;
+      color: #3A3A3A;
+    }
+
+    /* ── PRO FOOTNOTES ───────────────────────────────────────────────────── */
+    .pro-footnotes {
+      background: #1A1A1A;
+      padding: 40px 60px;
+    }
+
+    .pro-footnotes-title {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: #C4954A;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .pro-fn {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: rgba(247,243,236,0.52);
+      line-height: 1.8;
+      margin-bottom: 6px;
+    }
+
+    .pro-fn a {
+      color: rgba(196,149,74,0.7);
+      text-decoration: none;
+    }
+
+    .pro-fn a:hover { color: #C4954A; }
+
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       OPPO SITE — "Legislative Case File: SF2817"
+       Cold government document aesthetic. Clinical, deliberate, accusing.
+       Palette: file gray #E8E4DC · hearing-room white #F4F2EE
+                enforcement red #B91C1C · cold ink #0F1923 · stamp charcoal #3D3D3D
+    ═══════════════════════════════════════════════════════════════════════ */
+
+    .oppo-content {
+      background: #F4F2EE;
+      font-family: 'IBM Plex Mono', monospace;
+      color: #0F1923;
+    }
+
+    /* ── OPPO HEADER / CASE LABEL ───────────────────────────────────────── */
+    .oppo-header {
+      background: #0F1923;
+      padding: 0;
+      border-bottom: 4px solid #B91C1C;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .oppo-header-inner {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: start;
+      padding: 40px 60px;
+      gap: 40px;
+    }
+
+    /* Faint grid paper texture */
+    .oppo-header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        repeating-linear-gradient(0deg,
+          transparent, transparent 28px,
+          rgba(255,255,255,0.022) 28px, rgba(255,255,255,0.022) 29px),
+        repeating-linear-gradient(90deg,
+          transparent, transparent 28px,
+          rgba(255,255,255,0.022) 28px, rgba(255,255,255,0.022) 29px);
+      pointer-events: none;
+    }
+
+    .oppo-case-number {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      color: #B91C1C;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .oppo-header-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: clamp(32px, 4.5vw, 64px);
+      font-weight: 800;
+      color: #F4F2EE;
+      line-height: 1.05;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      margin-bottom: 20px;
+    }
+
+    .oppo-header-title span {
+      color: #B91C1C;
+    }
+
+    .oppo-accusation {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(15px, 1.6vw, 18px);
+      color: rgba(244,242,238,0.78);
+      line-height: 1.6;
+      max-width: 620px;
+      border-left: 3px solid #B91C1C;
+      padding-left: 20px;
+      margin-bottom: 28px;
+    }
+
+    .oppo-header-meta {
+      display: flex;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+
+    .oppo-meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .oppo-meta-label {
+      font-size: 9px;
+      color: rgba(244,242,238,0.38);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+
+    .oppo-meta-value {
+      font-size: 12px;
+      color: rgba(244,242,238,0.72);
+      font-weight: 600;
+    }
+
+    /* Photo panel — desaturated */
+    .oppo-photo-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .oppo-photo-wrap {
+      width: 200px;
+      height: 240px;
+      overflow: hidden;
+      position: relative;
+      border: 2px solid rgba(185,28,28,0.5);
+    }
+
+    .oppo-senator-photo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 15%;
+      filter: grayscale(100%) contrast(1.15) brightness(0.88);
+    }
+
+    .oppo-photo-placeholder {
+      width: 100%;
+      height: 100%;
+      background: #2A2A2A;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .oppo-photo-placeholder span {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 48px;
+      font-weight: 800;
+      color: rgba(244,242,238,0.3);
+    }
+
+    .oppo-photo-stamp {
+      background: #B91C1C;
+      padding: 5px 14px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      color: #F4F2EE;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    /* ── OPPO SEQUENCE ──────────────────────────────────────────────────── */
+    .oppo-sequence {
+      background: #E8E4DC;
+      border-bottom: 3px solid #0F1923;
+      padding: 56px 60px;
+    }
+
+    .oppo-sequence-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      color: #B91C1C;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      margin-bottom: 36px;
+    }
+
+    .oppo-sequence-steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+      border: 2px solid #0F1923;
+    }
+
+    .oppo-step {
+      padding: 28px 24px;
+      border-right: 2px solid #0F1923;
+      position: relative;
+    }
+    .oppo-step:last-child { border-right: none; }
+
+    .oppo-step-num {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 48px;
+      font-weight: 800;
+      color: rgba(15,25,35,0.12);
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+
+    .oppo-step-date {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: #B91C1C;
+      letter-spacing: 0.12em;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .oppo-step-text {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px;
+      color: #0F1923;
+      line-height: 1.6;
+      font-weight: 500;
+    }
+
+    .oppo-step-connector {
+      position: absolute;
+      top: 50%;
+      right: -13px;
+      transform: translateY(-50%);
+      width: 22px;
+      height: 22px;
+      background: #B91C1C;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .oppo-step-connector svg { width: 10px; height: 10px; }
+    .oppo-step:last-child .oppo-step-connector { display: none; }
+
+    /* ── OPPO BILL DOCUMENT ─────────────────────────────────────────────── */
+    .oppo-bill-section {
+      padding: 64px 60px;
+      border-bottom: 3px solid #0F1923;
+      background: #F4F2EE;
+    }
+
+    .oppo-bill-section-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      color: #B91C1C;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      margin-bottom: 36px;
+    }
+
+    .oppo-document {
+      background: white;
+      border: 1.5px solid #0F1923;
+      padding: 44px 48px;
+      position: relative;
+      max-width: 780px;
+      margin: 0 auto;
+      box-shadow: 4px 4px 0 rgba(15,25,35,0.15);
+    }
+
+    .oppo-doc-header {
+      border-bottom: 2px solid #0F1923;
+      padding-bottom: 20px;
+      margin-bottom: 24px;
+    }
+
+    .oppo-doc-number {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: #B91C1C;
+      letter-spacing: 0.15em;
+      margin-bottom: 6px;
+    }
+
+    .oppo-doc-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: #0F1923;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .oppo-doc-body {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12.5px;
+      line-height: 1.85;
+      color: #2A2A2A;
+    }
+
+    .oppo-doc-body p {
+      margin-bottom: 16px;
+    }
+
+    /* Hover-reveal highlight */
+    .oppo-highlight {
+      background: rgba(185,28,28,0.18);
+      border-bottom: 2px solid #B91C1C;
+      cursor: pointer;
+      transition: background 0.2s;
+      position: relative;
+    }
+    .oppo-highlight:hover {
+      background: rgba(185,28,28,0.38);
+    }
+    .oppo-highlight::after {
+      content: attr(data-note);
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #0F1923;
+      color: #F4F2EE;
+      font-size: 10px;
+      padding: 6px 12px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      z-index: 10;
+    }
+    .oppo-highlight:hover::after {
+      opacity: 1;
+    }
+
+    .oppo-doc-annotation {
+      background: rgba(185,28,28,0.06);
+      border-left: 3px solid #B91C1C;
+      padding: 16px 20px;
+      margin-top: 24px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px;
+      color: #0F1923;
+      line-height: 1.65;
+    }
+
+    .oppo-doc-annotation strong {
+      color: #B91C1C;
+      font-weight: 700;
+    }
+
+    /* ── OPPO EVIDENCE CARDS ─────────────────────────────────────────────── */
+    .oppo-evidence-section {
+      background: #E8E4DC;
+      padding: 64px 60px;
+      border-bottom: 3px solid #0F1923;
+    }
+
+    .oppo-evidence-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      color: #B91C1C;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      margin-bottom: 36px;
+    }
+
+    .oppo-evidence-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .oppo-evidence-card {
+      background: #F4F2EE;
+      border: 1.5px solid #0F1923;
+      padding: 28px 24px;
+      cursor: default;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+      position: relative;
+    }
+
+    .oppo-evidence-card::before {
+      content: 'EXHIBIT';
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px;
+      color: rgba(15,25,35,0.25);
+      letter-spacing: 0.2em;
+    }
+
+    .oppo-evidence-card:hover {
+      border-color: #B91C1C;
+      box-shadow: 0 0 0 2px rgba(185,28,28,0.2);
+      background: white;
+    }
+
+    .oppo-evidence-card-num {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 56px;
+      font-weight: 800;
+      color: rgba(15,25,35,0.08);
+      line-height: 1;
+      position: absolute;
+      bottom: 20px;
+      right: 18px;
+    }
+
+    .oppo-evidence-tag {
+      display: inline-block;
+      background: #B91C1C;
+      color: #F4F2EE;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      margin-bottom: 16px;
+    }
+
+    .oppo-evidence-headline {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: #0F1923;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      line-height: 1.2;
+      margin-bottom: 14px;
+    }
+
+    .oppo-evidence-body {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px;
+      color: #2A2A2A;
+      line-height: 1.65;
+    }
+
+    .oppo-evidence-source {
+      margin-top: 16px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      color: rgba(15,25,35,0.42);
+      letter-spacing: 0.08em;
+    }
+
+    /* ── OPPO BRAND VS RECORD ────────────────────────────────────────────── */
+    .oppo-contrast-section {
+      background: #0F1923;
+      padding: 64px 60px;
+      border-bottom: 3px solid #B91C1C;
+    }
+
+    .oppo-contrast-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      color: #B91C1C;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      margin-bottom: 36px;
+    }
+
+    .oppo-contrast-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3px;
+    }
+
+    .oppo-contrast-col {
+      padding: 36px 36px;
+    }
+
+    .oppo-contrast-col.says {
+      background: rgba(244,242,238,0.06);
+    }
+
+    .oppo-contrast-col.does {
+      background: rgba(185,28,28,0.12);
+      border-left: 3px solid #B91C1C;
+    }
+
+    .oppo-contrast-col-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .oppo-contrast-col.says .oppo-contrast-col-title { color: rgba(244,242,238,0.45); }
+    .oppo-contrast-col.does .oppo-contrast-col-title { color: #B91C1C; }
+
+    .oppo-contrast-item {
+      margin-bottom: 20px;
+    }
+
+    .oppo-contrast-quote {
+      font-family: 'Playfair Display', serif;
+      font-size: 16px;
+      font-style: italic;
+      color: rgba(244,242,238,0.78);
+      line-height: 1.55;
+      margin-bottom: 8px;
+    }
+
+    .oppo-contrast-cite {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      color: rgba(244,242,238,0.32);
+      letter-spacing: 0.1em;
+    }
+
+    .oppo-contrast-fact {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px;
+      color: rgba(244,242,238,0.85);
+      line-height: 1.65;
+      margin-bottom: 8px;
+    }
+
+    .oppo-contrast-fact strong {
+      color: #F4F2EE;
+      font-weight: 700;
+    }
+
+    /* ── OPPO FUNDING BLOCK ──────────────────────────────────────────────── */
+    .oppo-stakes-section {
+      background: #F4F2EE;
+      padding: 64px 60px;
+      border-bottom: 3px solid #0F1923;
+    }
+
+    .oppo-stakes-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      color: #B91C1C;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      margin-bottom: 36px;
+    }
+
+    .oppo-stakes-grid {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 48px;
+      align-items: start;
+    }
+
+    .oppo-stakes-number {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: clamp(48px, 7vw, 88px);
+      font-weight: 800;
+      color: #B91C1C;
+      line-height: 1.0;
+      text-transform: uppercase;
+    }
+
+    .oppo-stakes-sub {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: rgba(15,25,35,0.5);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-top: 6px;
+    }
+
+    .oppo-stakes-body {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 16px;
+      line-height: 1.72;
+      color: #1A1A1A;
+    }
+
+    .oppo-stakes-body p {
+      margin-bottom: 16px;
+    }
+
+    .oppo-stakes-body strong {
+      color: #B91C1C;
+      font-weight: 700;
+    }
+
+    /* ── OPPO FOOTNOTES ──────────────────────────────────────────────────── */
+    .oppo-footnotes {
+      background: #0F1923;
+      padding: 40px 60px;
+    }
+
+    .oppo-footnotes-title {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: #B91C1C;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .oppo-fn {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: rgba(244,242,238,0.45);
+      line-height: 1.8;
+      margin-bottom: 6px;
+    }
+
+    .oppo-fn a {
+      color: rgba(185,28,28,0.7);
+      text-decoration: none;
+    }
+
+    .oppo-fn a:hover { color: #B91C1C; }
+
+    /* ── TYPEWRITER EFFECT ───────────────────────────────────────────────── */
+    .typewriter {
+      border-right: 3px solid #B91C1C;
+      white-space: nowrap;
+      overflow: hidden;
+      width: 0;
+      animation: typing 1.8s steps(40, end) 0.4s forwards,
+                 blink 0.8s step-end 2.2s infinite;
+    }
+    @keyframes typing {
+      from { width: 0; }
+      to   { width: 100%; }
+    }
+    @keyframes blink {
+      50% { border-color: transparent; }
+    }
+
+    /* ── RESPONSIVE ──────────────────────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .pro-hero { grid-template-columns: 1fr; }
+      .pro-hero-right { min-height: 360px; }
+      .pro-hero-left { padding: 48px 28px; }
+      .pro-stat-rail { grid-template-columns: 1fr 1fr; }
+      .pro-stat:nth-child(2) { border-right: none; }
+      .pro-stat:nth-child(3) { border-right: none; grid-column: span 2; }
+      .pro-main { grid-template-columns: 1fr; }
+      .pro-story-panel { border-right: none; border-bottom: 2px solid #1A1A1A; padding: 48px 28px; }
+      .pro-context-panel { padding: 48px 28px; }
+      .pro-record-grid { grid-template-columns: 1fr; }
+      .pro-record-band { padding: 48px 28px; }
+      .pro-footnotes { padding: 32px 28px; }
+
+      .oppo-header-inner { grid-template-columns: 1fr; }
+      .oppo-photo-panel { align-items: flex-start; flex-direction: row; }
+      .oppo-sequence-steps { grid-template-columns: 1fr 1fr; }
+      .oppo-sequence { padding: 48px 28px; }
+      .oppo-bill-section { padding: 48px 28px; }
+      .oppo-document { padding: 28px 24px; }
+      .oppo-evidence-grid { grid-template-columns: 1fr; }
+      .oppo-evidence-section { padding: 48px 28px; }
+      .oppo-contrast-grid { grid-template-columns: 1fr; }
+      .oppo-contrast-section { padding: 48px 28px; }
+      .oppo-stakes-grid { grid-template-columns: 1fr; gap: 24px; }
+      .oppo-stakes-section { padding: 48px 28px; }
+      .oppo-footnotes { padding: 32px 28px; }
+      #flip-btn { top: 14px; right: 14px; padding: 10px 14px; font-size: 9px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── FLIP BUTTON ──────────────────────────────────────────────────── -->
+  <button id="flip-btn" aria-label="Switch between supporter and opposition views">
+    <span class="btn-oppo-label">&#9664; View Supporter Site</span>
+    <span class="btn-pro-label">View Opposition File &#9654;</span>
+  </button>
+
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       PRO SITE — "The Spare Room"
+  ═══════════════════════════════════════════════════════════════════════════ -->
+  <div class="pro-content" aria-label="Supporter site for Senator Karin Housley">
+
+    <!-- HERO -->
+    <section class="pro-hero">
+      <div class="pro-hero-left">
+        <div class="pro-district-stamp">Minnesota Senate &middot; District 33</div>
+        <div class="pro-hero-label">Stillwater &middot; Forest Lake &middot; St. Croix Valley</div>
+        <h1 class="pro-hero-name">Karin<br>Housley</h1>
+        <p class="pro-hero-tagline">Thirteen years of work for the people who built this valley. A proposed program that would let seniors stay in the homes they earned, in the communities they love.</p>
+        <div class="pro-hero-meta">
+          <span>Republican &middot; Senate District 33</span>
+          <span>Assistant Minority Leader &middot; 4th Term</span>
+          <span>In office since January 2013</span>
+        </div>
+      </div>
+      <div class="pro-hero-right">
+        <div class="pro-photo-wrap">
+          <img
+            class="pro-senator-photo"
+            src="https://www.senate.mn/graphics/39Housley.jpg"
+            alt="Senator Karin Housley"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+          />
+          <div class="pro-photo-placeholder" style="display:none;">
+            <span>KH</span>
+          </div>
+        </div>
+        <div class="pro-photo-caption">Senator Karin Housley &middot; District 33 &middot; Washington County</div>
+      </div>
+    </section>
+
+    <!-- STAT RAIL -->
+    <div class="pro-stat-rail">
+      <div class="pro-stat">
+        <div class="pro-stat-number" data-target="13">0</div>
+        <div class="pro-stat-label">Years Serving<br>District 33</div>
+        <div class="pro-stat-source">Since Jan. 2013<sup>[1]</sup></div>
+      </div>
+      <div class="pro-stat">
+        <div class="pro-stat-number" data-target="150" data-suffix="K">0</div>
+        <div class="pro-stat-label">Proposed for<br>HomeShare Pilot</div>
+        <div class="pro-stat-source">SF2085, as introduced<sup>[2]</sup></div>
+      </div>
+      <div class="pro-stat">
+        <div class="pro-stat-number" data-target="55" data-suffix="+">0</div>
+        <div class="pro-stat-label">Age Eligible for<br>HomeShare Program</div>
+        <div class="pro-stat-source">SF2085, Sec. 1<sup>[2]</sup></div>
+      </div>
+    </div>
+
+    <!-- MAIN STORY -->
+    <section class="pro-main">
+      <div class="pro-story-panel">
+        <div class="pro-section-label">The Program</div>
+        <h2 class="pro-story-headline">A Spare Room.<br><em>A Real Solution.</em></h2>
+        <p class="pro-body">
+          Seniors across Washington County are sitting in houses that are too large and too expensive to maintain alone. Young workers and families in the same county can't find housing they can afford. These are two separate problems that have one shared answer.
+        </p>
+        <p class="pro-body">
+          Housley's <strong>Minnesota Nice HomeShare Act (SF2085)</strong> would create a state pilot program to formally connect the two. Seniors age 55 and older who have spare rooms would be matched with adults who need affordable housing. Both sides could benefit. Neither would have to move far from their community.
+        </p>
+        <p class="pro-body">
+          The bill places the program under the Minnesota Housing Finance Agency. It names AARP Minnesota and the Arrowhead Area Agency on Aging as partners. It would start where the need is most visible: Lake County, St. Louis County, and <strong>Washington County</strong> — Housley's home district.
+        </p>
+
+        <div class="pro-bill-block">
+          <div class="pro-bill-label">SF2085 &middot; 94th Legislature &middot; 2025&ndash;2026</div>
+          <div class="pro-bill-name">Minnesota Nice HomeShare Pilot Program</div>
+          <div class="pro-bill-detail">
+            Would appropriate $150,000 from the general fund to the Minnesota Housing Finance Agency for fiscal year 2026. Eligible seniors: age 55 and older with spare rooms. Named counties: Lake, St. Louis, Washington. Partners: AARP Minnesota, Arrowhead Area Agency on Aging.
+          </div>
+        </div>
+      </div>
+
+      <div class="pro-context-panel">
+        <!-- St. Croix River district visual (SVG illustration) -->
+        <div class="pro-district-visual">
+          <svg viewBox="0 0 560 280" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <!-- Sky -->
+            <rect width="560" height="280" fill="#1E3A5F"/>
+            <!-- River horizon -->
+            <rect y="168" width="560" height="112" fill="#2B5C8A" opacity="0.7"/>
+            <!-- River shimmer lines -->
+            <path d="M0 200 Q140 190 280 205 Q420 220 560 198" stroke="rgba(196,149,74,0.5)" stroke-width="1.5" fill="none"/>
+            <path d="M0 220 Q120 208 280 222 Q440 236 560 218" stroke="rgba(196,149,74,0.3)" stroke-width="1" fill="none"/>
+            <path d="M0 240 Q160 228 280 240 Q400 252 560 236" stroke="rgba(196,149,74,0.2)" stroke-width="1" fill="none"/>
+            <!-- Tree line left -->
+            <ellipse cx="60" cy="168" rx="38" ry="32" fill="#0F2A45"/>
+            <ellipse cx="100" cy="158" rx="30" ry="26" fill="#0F2A45"/>
+            <ellipse cx="30" cy="172" rx="24" ry="20" fill="#0F2A45"/>
+            <!-- Tree line right -->
+            <ellipse cx="490" cy="165" rx="40" ry="30" fill="#0F2A45"/>
+            <ellipse cx="530" cy="172" rx="26" ry="22" fill="#0F2A45"/>
+            <ellipse cx="460" cy="170" rx="28" ry="24" fill="#0F2A45"/>
+            <!-- House silhouette Stillwater style -->
+            <rect x="240" y="136" width="80" height="52" fill="#C4954A" opacity="0.8"/>
+            <polygon points="230,136 280,104 330,136" fill="#A63B2E" opacity="0.9"/>
+            <rect x="258" y="158" width="14" height="30" fill="#1E3A5F" opacity="0.6"/>
+            <rect x="278" y="150" width="16" height="16" fill="rgba(196,149,74,0.4)"/>
+            <!-- Second house -->
+            <rect x="170" y="148" width="58" height="40" fill="#C4954A" opacity="0.5"/>
+            <polygon points="163,148 199,124 235,148" fill="#A63B2E" opacity="0.6"/>
+            <!-- Stars/sky dots -->
+            <circle cx="180" cy="40" r="1.5" fill="rgba(247,243,236,0.5)"/>
+            <circle cx="320" cy="28" r="1" fill="rgba(247,243,236,0.4)"/>
+            <circle cx="420" cy="56" r="1.5" fill="rgba(247,243,236,0.5)"/>
+            <circle cx="100" cy="64" r="1" fill="rgba(247,243,236,0.3)"/>
+            <circle cx="480" cy="36" r="1" fill="rgba(247,243,236,0.4)"/>
+          </svg>
+          <div class="pro-district-visual-label">St. Croix River Valley &middot; District 33</div>
+        </div>
+
+        <div class="pro-pull-quote">
+          <blockquote>"Minnesota seniors built these neighborhoods. They shouldn't have to leave them because they can no longer afford to stay."</blockquote>
+          <cite>Karin Housley &middot; Senate District 33</cite>
+        </div>
+
+        <div class="pro-district-box">
+          <div class="pro-district-box-title">Communities in District 33</div>
+          <div class="pro-district-communities">
+            <span class="pro-community-chip">Stillwater</span>
+            <span class="pro-community-chip">Forest Lake</span>
+            <span class="pro-community-chip">Hugo</span>
+            <span class="pro-community-chip">Mahtomedi</span>
+            <span class="pro-community-chip">Oak Park Heights</span>
+            <span class="pro-community-chip">Bayport</span>
+            <span class="pro-community-chip">Scandia</span>
+            <span class="pro-community-chip">Marine on St. Croix</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RECORD BAND -->
+    <section class="pro-record-band">
+      <h2 class="pro-record-band-title">A Record Built on Seniors, Families, and the District</h2>
+      <div class="pro-record-grid">
+        <div class="pro-record-card">
+          <div class="pro-record-card-label">Elder Care Law &middot; Passed</div>
+          <div class="pro-record-card-title">Elder Care and Vulnerable Adult Protection Act</div>
+          <p class="pro-record-card-body">Housley authored landmark legislation giving seniors in assisted living facilities enhanced legal protections for the first time in Minnesota. Minnesota was the final state to codify these rights.<sup>[3]</sup></p>
+        </div>
+        <div class="pro-record-card">
+          <div class="pro-record-card-label">Financial Protection &middot; Two Bills Passed</div>
+          <div class="pro-record-card-title">Safe Seniors Financial Protection Acts</div>
+          <p class="pro-record-card-body">Two separate bills Housley authored gave older and vulnerable adults additional legal tools to prevent and address financial exploitation. Both passed with bipartisan support.<sup>[3]</sup></p>
+        </div>
+        <div class="pro-record-card">
+          <div class="pro-record-card-label">Leadership Role &middot; 2025</div>
+          <div class="pro-record-card-title">Assistant Minority Leader, Minnesota Senate</div>
+          <p class="pro-record-card-body">Housley was selected as Assistant Minority Leader in February 2025, one of the top Republican leadership positions in the Senate. She leads as the Senate's fourth-term voice from the St. Croix Valley.<sup>[4]</sup></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTNOTES -->
+    <footer class="pro-footnotes">
+      <div class="pro-footnotes-title">Sources &amp; Citations</div>
+      <p class="pro-fn">[1] Minnesota Senate member record: <a href="https://www.senate.mn/members/member_bio.html?mem_id=1214" target="_blank">senate.mn/members/member_bio.html?mem_id=1214</a>. Housley first took office January 2013.</p>
+      <p class="pro-fn">[2] SF2085, 94th Legislature (2025&ndash;2026), Minnesota Nice HomeShare Pilot Program. Chief author: Housley. Appropriation: $150,000 FY2026 from general fund to Minnesota Housing Finance Agency. Eligible counties: Lake, St. Louis, Washington. Age threshold: 55+. Partners: AARP Minnesota, Arrowhead Area Agency on Aging. Bill text: <a href="https://www.revisor.mn.gov" target="_blank">revisor.mn.gov</a>.</p>
+      <p class="pro-fn">[3] Housley legislative record: Elder Care and Vulnerable Adult Protection Act; Safe Seniors Financial Protection Acts (two bills). Source: <a href="https://www.housleyforsenate.com/meet-karin/" target="_blank">housleyforsenate.com/meet-karin/</a> and MN Senate Republicans press releases.</p>
+      <p class="pro-fn">[4] Housley selected as Assistant Minority Leader: <a href="https://www.mnsenaterepublicans.com/senator-housley-selected-assistant-senate-republican-leader/" target="_blank">mnsenaterepublicans.com &mdash; "Senator Housley Selected Assistant Senate Republican Leader"</a> (February 2025).</p>
+    </footer>
+
+  </div><!-- end .pro-content -->
+
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       OPPO SITE — "Legislative Case File: SF2817"
+  ═══════════════════════════════════════════════════════════════════════════ -->
+  <div class="oppo-content" aria-label="Opposition accountability file for Senator Karin Housley">
+
+    <!-- CASE HEADER -->
+    <header class="oppo-header">
+      <div class="oppo-header-inner">
+        <div>
+          <div class="oppo-case-number">Case File &middot; MN-SD33 &middot; SF2817 &middot; 94th Legislature</div>
+          <h1 class="oppo-header-title">
+            She Calls Herself<br>a Champion for Kids.<br>
+            <span>Her Bill Dropped Her</span><br>
+            into a Federal Title IX Fight.
+          </h1>
+          <p class="oppo-accusation">Senator Housley authored SF2817, a bill requiring Minnesota school sports teams to be designated by biological sex at birth. A year later, federal agencies and the Justice Department escalated separate Title IX enforcement against Minnesota over the same issue.</p>
+          <div class="oppo-header-meta">
+            <div class="oppo-meta-item">
+              <span class="oppo-meta-label">Subject</span>
+              <span class="oppo-meta-value">Karin Housley (R-33)</span>
+            </div>
+            <div class="oppo-meta-item">
+              <span class="oppo-meta-label">Bill</span>
+              <span class="oppo-meta-value">SF2817</span>
+            </div>
+            <div class="oppo-meta-item">
+              <span class="oppo-meta-label">Introduced</span>
+              <span class="oppo-meta-value">March 20, 2025</span>
+            </div>
+            <div class="oppo-meta-item">
+              <span class="oppo-meta-label">Federal Action</span>
+              <span class="oppo-meta-value">Title IX Finding + DOJ Suit</span>
+            </div>
+          </div>
+        </div>
+        <div class="oppo-photo-panel">
+          <div class="oppo-photo-wrap">
+            <img
+              class="oppo-senator-photo"
+              src="https://www.senate.mn/graphics/39Housley.jpg"
+              alt="Senator Karin Housley"
+              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+            />
+            <div class="oppo-photo-placeholder" style="display:none;">
+              <span>KH</span>
+            </div>
+          </div>
+          <div class="oppo-photo-stamp">SF2817 Author</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- SEQUENCE OF EVENTS -->
+    <section class="oppo-sequence">
+      <div class="oppo-sequence-label">Sequence of Events &middot; Verified</div>
+      <div class="oppo-sequence-steps">
+        <div class="oppo-step">
+          <div class="oppo-step-num">01</div>
+          <div class="oppo-step-date">Mar. 20, 2025</div>
+          <div class="oppo-step-text">Housley introduces SF2817, requiring all school athletic teams to designate participation by biological sex at birth. Referred to Senate Education Policy Committee.</div>
+          <div class="oppo-step-connector">
+            <svg viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2 5h6M6 2l4 3-4 3" stroke="#F4F2EE" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
+        <div class="oppo-step">
+          <div class="oppo-step-num">02</div>
+          <div class="oppo-step-date">Early 2025</div>
+          <div class="oppo-step-text">The U.S. Department of Education opens a Title IX investigation into the Minnesota Department of Education and the Minnesota State High School League over transgender athlete participation.</div>
+          <div class="oppo-step-connector">
+            <svg viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2 5h6M6 2l4 3-4 3" stroke="#F4F2EE" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
+        <div class="oppo-step">
+          <div class="oppo-step-num">03</div>
+          <div class="oppo-step-date">Sept.&ndash;Oct. 2025</div>
+          <div class="oppo-step-text">The U.S. Departments of Education and Health and Human Services issue a formal finding: Minnesota violated Title IX. Federal officials cite specific sports competitions in multiple Minnesota schools.</div>
+          <div class="oppo-step-connector">
+            <svg viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2 5h6M6 2l4 3-4 3" stroke="#F4F2EE" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
+        <div class="oppo-step">
+          <div class="oppo-step-num">04</div>
+          <div class="oppo-step-date">Mar. 30, 2026</div>
+          <div class="oppo-step-text">The U.S. Department of Justice files a federal lawsuit against the Minnesota Department of Education and MSHSL. The school-sports dispute is now a formal federal enforcement case.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BILL DOCUMENT BLOCK -->
+    <section class="oppo-bill-section">
+      <div class="oppo-bill-section-label">Primary Evidence &middot; Bill Text &middot; SF2817</div>
+      <div class="oppo-document">
+        <div class="oppo-doc-header">
+          <div class="oppo-doc-number">SF 2817 &middot; 94th Legislature (2025&ndash;2026) &middot; As Introduced March 20, 2025</div>
+          <div class="oppo-doc-title">An Act Relating to Education Policy; Requiring Athletic Team Designations Based on Biological Sex at Birth</div>
+        </div>
+        <div class="oppo-doc-body">
+          <p>Chief Author: <strong>Karin Housley</strong>. Co-Authors: Julia Coleman, Michael Kreun, Carla Nelson, Eric Pratt.</p>
+          <p>The bill amends Minnesota Statutes 2024, section 123B.49, by adding a subdivision requiring that <span class="oppo-highlight" data-note="This language bars transgender girls from female teams">school-sponsored athletic teams must be designated and composed based solely on a student's biological sex at birth.</span></p>
+          <p>Teams designated as <span class="oppo-highlight" data-note="The operative exclusion: female = biological female at birth only">"female" may only include participants who were biologically female at birth.</span> Teams are to be categorized as male, female, or coed.</p>
+          <p>The bill covers <span class="oppo-highlight" data-note="Scope: every school team — interscholastic, intramural, and club">interscholastic, intramural, and club athletic teams</span> at Minnesota elementary and secondary schools.</p>
+        </div>
+        <div class="oppo-doc-annotation">
+          <strong>The legal problem:</strong> SF2817 places Housley on the same side of the sports-eligibility fight that later drew a federal Title IX finding and a DOJ lawsuit against Minnesota. Her bill did not cause that litigation. It did align her with the underlying position federal enforcers pressed in court.
+        </div>
+      </div>
+    </section>
+
+    <!-- EVIDENCE CARDS -->
+    <section class="oppo-evidence-section">
+      <div class="oppo-evidence-label">Evidence Record &middot; Three Exhibits</div>
+      <div class="oppo-evidence-grid">
+
+        <div class="oppo-evidence-card">
+          <div class="oppo-evidence-card-num">1</div>
+          <div class="oppo-evidence-tag">Bill Authorship</div>
+          <div class="oppo-evidence-headline">Housley Authored the Bill</div>
+          <p class="oppo-evidence-body">SF2817 lists Karin Housley as chief author. She introduced it March 20, 2025. The bill's language mirrors the federal legal theory used by the DOJ in its lawsuit against Minnesota. Housley is not a co-signer on someone else's bill. She led it.</p>
+          <div class="oppo-evidence-source">Source: revisor.mn.gov &mdash; SF2817 status page</div>
+        </div>
+
+        <div class="oppo-evidence-card">
+          <div class="oppo-evidence-card-num">2</div>
+          <div class="oppo-evidence-tag">Federal Finding</div>
+          <div class="oppo-evidence-headline">Feds Found Minnesota in Violation of Title IX</div>
+          <p class="oppo-evidence-body">The U.S. Departments of Education and Health and Human Services formally found Minnesota in violation of Title IX in fall 2025. Investigators identified specific sports — softball, track, volleyball, ski — where they said the state's policy disadvantaged female athletes.</p>
+          <div class="oppo-evidence-source">Source: ed.gov press release; Minnesota Reformer (Sept. 30, 2025)</div>
+        </div>
+
+        <div class="oppo-evidence-card">
+          <div class="oppo-evidence-card-num">3</div>
+          <div class="oppo-evidence-tag">Federal Escalation</div>
+          <div class="oppo-evidence-headline">The fight became a DOJ case</div>
+          <p class="oppo-evidence-body">The sports-policy dispute did not stay rhetorical. Federal investigators elevated it to a Title IX finding in September 2025, referred it to DOJ in January 2026, and sued Minnesota in March 2026. Housley's bill sits squarely inside that same argument.</p>
+          <div class="oppo-evidence-source">Source: ed.gov Title IX findings and referral; DOJ press release, March 30, 2026</div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- BRAND VS RECORD CONTRAST -->
+    <section class="oppo-contrast-section">
+      <div class="oppo-contrast-label">Brand vs. Record</div>
+      <div class="oppo-contrast-grid">
+        <div class="oppo-contrast-col says">
+          <div class="oppo-contrast-col-title">What She Says</div>
+          <div class="oppo-contrast-item">
+            <p class="oppo-contrast-quote">"Passionate advocacy for seniors, veterans, and families."</p>
+            <p class="oppo-contrast-cite">housleyforsenate.com &mdash; Meet Karin</p>
+          </div>
+          <div class="oppo-contrast-item">
+            <p class="oppo-contrast-quote">"Protecting and providing for the most vulnerable."</p>
+            <p class="oppo-contrast-cite">MN Senate Republicans profile</p>
+          </div>
+          <div class="oppo-contrast-item">
+            <p class="oppo-contrast-quote">Runs on a brand built around protecting kids and elders in the community.</p>
+            <p class="oppo-contrast-cite">Campaign messaging, District 33</p>
+          </div>
+        </div>
+        <div class="oppo-contrast-col does">
+          <div class="oppo-contrast-col-title">What She Did</div>
+          <div class="oppo-contrast-item">
+            <p class="oppo-contrast-fact">Authored SF2817, a bill targeting student athletes by biological sex, introduced the same year federal enforcers opened a Title IX investigation into Minnesota schools.<sup>[A]</sup></p>
+          </div>
+          <div class="oppo-contrast-item">
+            <p class="oppo-contrast-fact">The federal DOJ used the same legal theory as SF2817 to file a 45-page lawsuit against Minnesota's Department of Education, citing harm to female student athletes in <strong>specific Minnesota schools</strong>.<sup>[B]</sup></p>
+          </div>
+          <div class="oppo-contrast-item">
+            <p class="oppo-contrast-fact">The position Housley championed at the state level placed her inside the same sports-policy fight that later produced a federal Title IX finding and a DOJ lawsuit against Minnesota.<sup>[C]</sup></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FUNDING STAKES -->
+    <section class="oppo-stakes-section">
+      <div class="oppo-stakes-label">What's at Stake &middot; District Consequence</div>
+      <div class="oppo-stakes-grid">
+        <div>
+          <div class="oppo-stakes-number">Title IX</div>
+          <div class="oppo-stakes-sub">A live federal<br>school-sports<br>enforcement fight</div>
+        </div>
+        <div class="oppo-stakes-body">
+            <p>When Washington sues a state school system under Title IX, the stakes are political and legal even before any funding question is resolved. Minnesota's education agencies and sports associations are forced into a national enforcement fight over student eligibility rules.</p>
+            <p>Housley's bill did not become law. But it put her on record for the same underlying sports-policy position federal agencies later used to press Minnesota. That is a fair line of political accountability even without overstating causation.</p>
+            <p>Washington County families may not care about federal legal phrasing. They do care when their senator chooses the front line of a national culture-war case.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTNOTES -->
+    <footer class="oppo-footnotes">
+      <div class="oppo-footnotes-title">Sources &amp; Citations</div>
+      <p class="oppo-fn">[A] SF2817 as introduced, March 20, 2025. Chief author: Karin Housley. Bill text and status: <a href="https://revisor.mn.gov/bills/bill.php?b=Senate&f=SF2817&ssn=0&y=2025" target="_blank">revisor.mn.gov/bills/bill.php?b=Senate&f=SF2817&ssn=0&y=2025</a></p>
+      <p class="oppo-fn">[B] U.S. Department of Education and HHS formal Title IX finding against Minnesota. Press release: <a href="https://www.ed.gov/about/news/press-release/us-department-of-education-and-us-department-of-health-and-human-services-find-minnesota-violated-title-ix" target="_blank">ed.gov</a>. Coverage: Minnesota Reformer (Sept. 30, 2025), KSTP, CBS Minnesota.</p>
+      <p class="oppo-fn">[C] DOJ lawsuit filed March 30, 2026, against the Minnesota Department of Education and MSHSL. DOJ press release: <a href="https://www.justice.gov/opa/pr/justice-department-sues-minnesota-protect-girls-sports-and-intimate-spaces" target="_blank">justice.gov</a>. Title IX referral and findings: <a href="https://www.ed.gov/about/news/press-release/us-departments-of-education-and-health-and-human-services-refer-minnesota-case-us-department-of-justice-title-ix-non-compliance" target="_blank">ed.gov</a>.</p>
+      <p class="oppo-fn">[D] MSHSL transgender policy history and federal probe: <a href="https://varsity.startribune.com/mshsl-not-changing-transgender-policy-amid-federal-probe/601576620" target="_blank">Strib Varsity &mdash; "MSHSL stands firm on not changing transgender athlete policy"</a>; FOX 9 Minneapolis; Valley News Live (March 4, 2025).</p>
+      <p class="oppo-fn">[E] Housley campaign and legislative biography: <a href="https://www.housleyforsenate.com/meet-karin/" target="_blank">housleyforsenate.com/meet-karin/</a>; MN Senate Republicans: <a href="https://www.mnsenaterepublicans.com/karin-housley/" target="_blank">mnsenaterepublicans.com/karin-housley/</a></p>
+    </footer>
+
+  <!-- Auto-transition sentinel — observed by IntersectionObserver -->
+  <div id="brief-sentinel" style="height:1px;width:100%;"></div>
+
+  <!-- Subtle stamp — visible as user nears the bottom -->
+  <div class="machine-stamp">
+    <span class="machine-stamp-text">AI-GENERATED &nbsp;·&nbsp; 67 SENATORS &nbsp;·&nbsp; 63 PARALLEL AGENTS &nbsp;·&nbsp; ~4 HRS &nbsp;·&nbsp; ~$47</span>
+  </div>
+
+  </div><!-- end .oppo-content -->
+
+
+  <!-- ─── JAVASCRIPT ─────────────────────────────────────────────────────── -->
+  <script>
+    /* ── FLIP TOGGLE ────────────────────────────────────────────────────── */
+    const body    = document.body;
+    const flipBtn = document.getElementById('flip-btn');
+
+    flipBtn.addEventListener('click', () => {
+      body.classList.add('fading');
+      setTimeout(() => {
+        body.classList.toggle('mode-oppo');
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        body.classList.remove('fading');
+      }, 220);
+    });
+
+    /* ── SCROLL-TRIGGERED NUMBER COUNTERS (pro side) ───────────────────── */
+    function animateCounter(el) {
+      const target  = parseInt(el.dataset.target, 10);
+      const suffix  = el.dataset.suffix || '';
+      const dur     = 1400;
+      const fps     = 60;
+      const steps   = (dur / 1000) * fps;
+      let   current = 0;
+      const inc     = target / steps;
+
+      const timer = setInterval(() => {
+        current += inc;
+        if (current >= target) {
+          current = target;
+          clearInterval(timer);
+        }
+        el.textContent = Math.round(current) + suffix;
+      }, 1000 / fps);
+    }
+
+    const counters = document.querySelectorAll('[data-target]');
+    const counterObs = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !entry.target.dataset.animated) {
+          entry.target.dataset.animated = 'true';
+          animateCounter(entry.target);
+        }
+      });
+    }, { threshold: 0.5 });
+
+    counters.forEach(c => counterObs.observe(c));
+
+    /* ── TYPEWRITER (oppo header title — on first oppo view) ─────────────── */
+    let typewriterFired = false;
+
+    function fireTypewriter() {
+      if (typewriterFired) return;
+      typewriterFired = true;
+      // Already built into CSS animation; this just ensures it replays if needed
+    }
+
+    /* ── EVIDENCE CARD HOVER SOUND CUES (subtle visual) ─────────────────── */
+    // No audio — just visual hover handled entirely in CSS
+  </script>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     THE BRIEF — AI capabilities briefing
+═══════════════════════════════════════════════════════ -->
+<div class="brief-content">
+
+  <div class="brief-opening">
+    <p class="brief-made-by">Sixty-seven of these pages were made using one AI account in about thirty minutes. Six months ago an automated project like this would have been impossible.</p>
+  </div>
+
+  <div class="brief-chart-section">
+    <h2 class="brief-chart-title">This is the trend that made it possible.</h2>
+    <div class="brief-chart-frame">
+      <img src="https://metr.org/assets/images/measuring-ai-ability-to-complete-long-tasks/length-of-tasks-log.png" alt="METR chart" class="brief-metr-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+      <div class="brief-chart-fallback" style="display:none;"><p>Chart unavailable. See the original at <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">metr.org</a>.</p></div>
+    </div>
+    <p class="brief-chart-source">Source: <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR</a>, an independent AI evaluation lab.</p>
+    <p class="brief-chart-read">This chart tracks how long a task an AI agent can finish on its own. In 2019, the answer was about three seconds. By early 2023, it was six minutes. by mid 2025, over two hours. As of early 2026, Claude Opus 4.6 completes tasks that take a skilled human roughly twelve hours.</p>
+    <p class="brief-chart-read">The overall doubling time has been about seven months. But it is getting faster. <a href="https://metr.org/time-horizons/" target="_blank">When researchers fit only the most recent data</a>, the doubling time drops to four months. At that rate, AI agents capable of completing month-long autonomous projects arrive not in the early 2030s but around 2028.</p>
+  </div>
+
+  <div class="brief-so-what">
+    <h2 class="brief-so-what-title">What that means for lawmakers.</h2>
+    <p>Urgency. There was a narrative last year that AI had hit a wall in capabilities. It was a plausible perspective at the time. It isn't anymore. After breakthroughs late last year, AI systems' ability to automate cyberattacks, pathogen design, misinformation, mass surveillance, and vast swaths of white-collar work is advancing faster than ever.</p>
+    <p>The world will soon change faster than the typical pace of policymaking. The only solution is to act with atypical speed: AI regulations, data center moratoriums, calling for a federal pause on AI development, worker displacement funds. Some of these ideas already have bills introduced this session. Others should be explored soon. Time is limited, so if you feel behind on AI, the sources below are a good place to start.</p>
+    
+  </div>
+
+  <div class="brief-next">
+    <h2 class="brief-next-title">Start here.</h2>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">USE</span>
+      <a href="https://claude.ai/cowork" target="_blank">Claude Cowork</a> · <a href="https://claude.ai/code" target="_blank">Claude Code</a>
+      <span class="brief-link-detail">The tools that built this page. Cowork handles research and writing. Code is the agent that runs tasks, spawns sub-agents, and makes decisions on its own. Spend thirty minutes with one of these on a real problem from your week. That will teach you more than any briefing.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR: Measuring AI Ability to Complete Long Tasks</a>
+      <span class="brief-link-detail">The source for the chart above. The METR trend is based on software tasks, but <a href="https://futuretech.mit.edu/publication/crashing-waves-vs-rising-tides-preliminary-findings-on-ai-automation-from-thousands-of-worker-evaluations-of-labor-market-tasks" target="_blank">MIT research on worker evaluations of labor market tasks</a> finds similar patterns across white-collar work broadly.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://aiindex.stanford.edu/report/" target="_blank">Stanford HAI AI Index 2025</a>
+      <span class="brief-link-detail">The most comprehensive annual report on AI capabilities, economics, and policy across all 50 states.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.imdb.com/title/tt39150120/" target="_blank">The AI Doc: Or How I Became an Apocaloptimist</a>
+      <span class="brief-link-detail">Daniel Roher's 2026 documentary, in theaters now. Roher interviews Amodei, Altman, Hassabis, and dozens more. If you see one thing on this list, see this.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.youtube.com/watch?v=xoVJKj8lcNQ" target="_blank">The A.I. Dilemma</a>
+      <span class="brief-link-detail">Center for Humane Technology. 60 min, free on YouTube. Made for people with institutional power who need to understand AI quickly.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">TRACK</span>
+      <a href="https://www.ncsl.org/technology-and-communication/artificial-intelligence" target="_blank">NCSL AI Legislation Tracker</a> · <a href="https://mn.gov/mnit/about-mnit/oit-programs/ai/" target="_blank">MN.IT AI Office</a>
+      <span class="brief-link-detail">Every AI bill in every state. Plus Minnesota's own AI program office. See where you stand relative to the field.</span>
+    </div>
+  </div>
+
+  <div class="brief-close">
+    <p class="brief-close-small">This project is not affiliated with any campaign, party, or organization.</p>
+    <button id="exit-brief-btn">← Back</button>
+  </div>
+
+</div><!-- /brief-content -->
+
+<style>
+.brief-content { display: none; }
+body.mode-brief .brief-content { display: block; }
+body.mode-brief .pro-content { display: none; }
+body.mode-brief .oppo-content { display: none; }
+body.mode-brief #flip-btn { display: none; }
+.brief-content { background: #0C0A08; color: #D4CCBE; font-family: 'Source Serif 4', Georgia, serif; font-size: 17px; line-height: 1.75; min-height: 100vh; }
+.brief-content a { color: #C0B49A; }
+.brief-content a:hover { color: #fff; }
+@keyframes glitch-seq { 0% { filter: saturate(0) brightness(0.5); } 10% { filter: hue-rotate(90deg) contrast(4) brightness(3); transform: skewX(4deg); } 12% { filter: brightness(0.1); transform: none; } 25% { filter: hue-rotate(200deg) invert(0.8); transform: translateX(6px); } 27% { filter: brightness(0.05); transform: none; } 40% { filter: blur(6px) brightness(0.02); } 44% { filter: brightness(6); } 46% { filter: none; transform: none; } 60% { filter: hue-rotate(300deg) contrast(3) saturate(8); transform: skewX(-3deg); } 62% { filter: none; transform: none; } 78% { filter: blur(16px) brightness(0.01); } 82% { filter: brightness(2); } 84% { filter: none; } 100% { filter: none; transform: none; } }
+body.glitching { animation: glitch-seq 1.2s ease-in-out forwards; pointer-events: none; }
+.machine-stamp { background: #050505; border-top: 1px solid #111; padding: 16px 40px; text-align: center; }
+.machine-stamp-text { font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 0.22em; color: #222; text-transform: uppercase; animation: stamp-pulse 3s ease-in-out infinite; }
+@keyframes stamp-pulse { 0%, 100% { color: #222; } 50% { color: #4A3A2A; } }
+.brief-opening { max-width: 640px; margin: 0 auto; padding: 100px 40px 64px; }
+.brief-made-by { font-size: 20px; line-height: 1.65; color: #B8AE9C; margin-bottom: 20px; }
+.brief-chart-section { max-width: 740px; margin: 0 auto; padding: 48px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-chart-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 32px; font-style: italic; }
+.brief-chart-frame { background: #fff; border-radius: 4px; padding: 12px; margin-bottom: 12px; }
+.brief-metr-img { width: 100%; height: auto; display: block; }
+.brief-chart-fallback { padding: 40px; text-align: center; color: #666; font-size: 14px; }
+.brief-chart-source { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #5A5040; line-height: 1.6; margin-bottom: 28px; }
+.brief-chart-source a { color: #7A6A54; text-decoration: none; }
+.brief-chart-read { font-size: 17px; color: #B8AE9C; margin-bottom: 16px; }
+.brief-so-what { max-width: 640px; margin: 0 auto; padding: 56px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-so-what-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 28px; font-style: italic; }
+.brief-so-what p { font-size: 17px; color: #B8AE9C; margin-bottom: 20px; }
+.brief-next { max-width: 640px; margin: 0 auto; padding: 56px 40px 48px; border-top: 1px solid #1E1A14; }
+.brief-next-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 14px; font-style: italic; }
+.brief-link-block { margin-bottom: 28px; line-height: 1.7; }
+.brief-link-tag { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.2em; color: #6A5A44; text-transform: uppercase; display: block; margin-bottom: 4px; }
+.brief-link-block a { font-weight: 600; color: #E0D6C4; text-decoration: underline; text-underline-offset: 3px; font-size: 16px; }
+.brief-link-block a:hover { color: #fff; }
+.brief-link-detail { display: block; font-size: 14px; color: #6A5E4C; margin-top: 2px; }
+.brief-close { max-width: 640px; margin: 0 auto; padding: 48px 40px 100px; border-top: 1px solid #1E1A14; }
+.brief-close p { font-family: 'Source Serif 4', Georgia, serif; font-size: 16px; color: #9A9080; margin-bottom: 32px; line-height: 1.7; }
+.brief-close-small { font-family: 'IBM Plex Mono', monospace !important; font-size: 11px !important; color: #3A3428 !important; letter-spacing: 0.04em; }
+#exit-brief-btn { background: none; border: 1px solid #2A2418; color: #5A5040; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; padding: 10px 20px; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
+#exit-brief-btn:hover { border-color: #8A7A64; color: #C0B49A; }
+@media (max-width: 900px) { .brief-opening, .brief-so-what, .brief-next, .brief-close { padding-left: 24px; padding-right: 24px; } .brief-chart-section { padding-left: 24px; padding-right: 24px; } .brief-made-by { font-size: 18px; } .brief-opening { padding-top: 64px; } .machine-stamp { padding: 14px 20px; } }
+</style>
+
+<script>
+(function() {
+  let briefTriggered = false;
+  function startBriefTransition() {
+    if (briefTriggered) return;
+    if (!document.body.classList.contains('mode-oppo')) return;
+    briefTriggered = true;
+    const body = document.body;
+    body.style.transition = 'filter 2.5s ease-in';
+    body.style.filter = 'saturate(0) brightness(0.3)';
+    setTimeout(() => {
+      const hed = document.querySelector('.oppo-content h1') || document.querySelector('.oppo-content h2');
+      if (hed) { const orig = hed.textContent; const chars = '█▓▒░■□0123456789'; let n = 0; const si = setInterval(() => { n++; hed.textContent = Array.from(orig).map(c => c === ' ' ? ' ' : chars[Math.floor(Math.random() * chars.length)]).join(''); if (n > 40) { clearInterval(si); hed.textContent = orig; } }, 40); }
+    }, 1200);
+    setTimeout(() => {
+      body.style.transition = ''; body.style.filter = ''; body.classList.add('glitching');
+      setTimeout(() => { body.classList.remove('glitching'); body.classList.add('mode-brief'); window.scrollTo({ top: 0, behavior: 'instant' }); }, 1500);
+    }, 2500);
+  }
+  const sentinel = document.getElementById('brief-sentinel');
+  if (sentinel && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => { entries.forEach(e => { if (e.isIntersecting) { io.disconnect(); setTimeout(startBriefTransition, 1200); } }); }, { threshold: 0.5 });
+    io.observe(sentinel);
+  }
+  const flipBtn = document.getElementById('flip-btn');
+  if (flipBtn) { flipBtn.addEventListener('click', () => { if (document.body.classList.contains('mode-oppo')) briefTriggered = false; }); }
+})();
+document.addEventListener('click', (e) => {
+  if (e.target && e.target.id === 'exit-brief-btn') {
+    const body = document.body; body.style.opacity = '0'; body.style.transition = 'opacity 0.3s';
+    setTimeout(() => { body.classList.remove('mode-brief'); body.classList.add('mode-oppo'); window.scrollTo({ top: 0, behavior: 'instant' }); body.style.opacity = '1'; }, 300);
+  }
+});
+</script>
+
+</body>
+</html>

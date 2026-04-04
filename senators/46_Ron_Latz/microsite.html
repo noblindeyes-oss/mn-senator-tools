@@ -1,0 +1,1822 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ron Latz — Senate District 46</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=DM+Sans:wght@400;500;600&display=swap&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400" rel="stylesheet" />
+
+  <style>
+    /* ─── RESET ──────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; overflow-x: hidden; }
+
+    /* ─── MODE SWITCHING ─────────────────────────────────────── */
+    .pro-content  { display: block; }
+    .oppo-content { display: none; }
+    body.mode-oppo .pro-content  { display: none; }
+    body.mode-oppo .oppo-content { display: block; }
+
+    /* ─── FLIP BUTTON ────────────────────────────────────────── */
+    #flip-btn {
+      position: fixed;
+      top: 20px; right: 20px;
+      z-index: 9999;
+      border: 2px solid currentColor;
+      cursor: pointer;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      padding: 11px 18px;
+      transition: opacity 0.22s, transform 0.18s, box-shadow 0.18s;
+      line-height: 1.2;
+    }
+    body:not(.mode-oppo) #flip-btn {
+      background: #1C2B3A;
+      color: #E8D5B0;
+      border-color: #E8D5B0;
+    }
+    body.mode-oppo #flip-btn {
+      background: #E8D5B0;
+      color: #1C2B3A;
+      border-color: #1C2B3A;
+    }
+    #flip-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.28);
+    }
+    .btn-pro-label, .btn-oppo-label { pointer-events: none; display: block; }
+    body:not(.mode-oppo) .btn-oppo-label { display: none; }
+    body.mode-oppo .btn-pro-label  { display: none; }
+
+    /* ════════════════════════════════════════════════════════════
+       PRO SITE — "The Case for District 46"
+       Legal dossier aesthetic: attorney-legislator who works
+       through statutes to solve problems others won't touch.
+       Palette: concrete #3D3D3D · brick red #8C2C1A
+                lake steel #1C4E6B · parchment #F5EED9
+    ════════════════════════════════════════════════════════════ */
+
+    /* --- PRO GLOBALS --- */
+    .pro-content {
+      background: #F5EED9;
+      font-family: 'Source Serif 4', Georgia, serif;
+      color: #1A1A1A;
+      min-height: 100vh;
+    }
+
+    /* --- PRO HEADER / DOSSIER COVER --- */
+    .pro-header {
+      background: #1C4E6B;
+      color: #F5EED9;
+      padding: 0;
+      border-bottom: 6px solid #8C2C1A;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Blueprint grid overlay */
+    .pro-header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        repeating-linear-gradient(0deg,
+          transparent, transparent 47px,
+          rgba(255,255,255,0.04) 47px, rgba(255,255,255,0.04) 48px),
+        repeating-linear-gradient(90deg,
+          transparent, transparent 47px,
+          rgba(255,255,255,0.04) 47px, rgba(255,255,255,0.04) 48px);
+      pointer-events: none;
+    }
+
+    .pro-header-inner {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      min-height: 100vh;
+      position: relative;
+      z-index: 1;
+    }
+
+    .pro-header-left {
+      padding: 64px 64px 64px 72px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border-right: 1px solid rgba(245,238,217,0.15);
+    }
+
+    .pro-case-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      color: rgba(245,238,217,0.55);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .pro-docket-number {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: rgba(245,238,217,0.4);
+      letter-spacing: 0.1em;
+      margin-bottom: 48px;
+    }
+
+    .pro-headline {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 700;
+      font-size: clamp(52px, 6vw, 92px);
+      line-height: 0.92;
+      text-transform: uppercase;
+      letter-spacing: -0.02em;
+      color: #F5EED9;
+      margin-bottom: 32px;
+    }
+
+    .pro-headline span.accent {
+      color: #E8923A;
+      display: block;
+    }
+
+    .pro-sub {
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 18px;
+      font-weight: 300;
+      line-height: 1.55;
+      color: rgba(245,238,217,0.82);
+      max-width: 520px;
+      margin-bottom: 56px;
+    }
+
+    .pro-stat-row {
+      display: flex;
+      gap: 40px;
+      flex-wrap: wrap;
+    }
+
+    .pro-stat-item {
+      border-left: 3px solid #8C2C1A;
+      padding-left: 16px;
+    }
+
+    .pro-stat-num {
+      font-family: 'Oswald', sans-serif;
+      font-size: 38px;
+      font-weight: 700;
+      color: #F5EED9;
+      line-height: 1;
+    }
+
+    .pro-stat-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.16em;
+      color: rgba(245,238,217,0.5);
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    /* Photo panel */
+    .pro-header-right {
+      background: #152F42;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 0 0 0 0;
+      position: relative;
+    }
+
+    .pro-photo-wrap {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .pro-photo-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 15%;
+      filter: sepia(0.12) contrast(1.05) brightness(0.95);
+      display: block;
+    }
+
+    .pro-photo-placeholder {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(160deg, #1C4E6B 0%, #0e2e40 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pro-photo-placeholder-text {
+      font-family: 'Oswald', sans-serif;
+      font-size: 64px;
+      font-weight: 700;
+      color: rgba(245,238,217,0.15);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .pro-photo-caption {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(transparent, rgba(28,46,66,0.92));
+      padding: 40px 28px 24px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: rgba(245,238,217,0.6);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    /* --- PRO NAVIGATION TABS --- */
+    .pro-tabs {
+      background: #F5EED9;
+      border-bottom: 3px solid #1A1A1A;
+      display: flex;
+      gap: 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .pro-tab {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      padding: 16px 28px;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: #3D3D3D;
+      border-right: 1px solid rgba(0,0,0,0.1);
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .pro-tab.active {
+      background: #8C2C1A;
+      color: #F5EED9;
+    }
+
+    .pro-tab:hover:not(.active) {
+      background: rgba(140,44,26,0.08);
+    }
+
+    .pro-panel { display: none; }
+    .pro-panel.active { display: block; }
+
+    /* --- PRO SECTION LAYOUT --- */
+    .pro-section {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 72px 48px;
+    }
+
+    .pro-section-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #8C2C1A;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .pro-section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(140,44,26,0.25);
+    }
+
+    .pro-section-title {
+      font-family: 'Oswald', sans-serif;
+      font-size: clamp(28px, 3.5vw, 48px);
+      font-weight: 600;
+      text-transform: uppercase;
+      color: #1A1A1A;
+      line-height: 1.05;
+      margin-bottom: 32px;
+      max-width: 760px;
+    }
+
+    /* --- THE BILL: FILING BLOCK --- */
+    .pro-filing-block {
+      background: #1C4E6B;
+      color: #F5EED9;
+      padding: 48px 56px;
+      margin: 40px 0;
+      position: relative;
+      border-left: 6px solid #8C2C1A;
+    }
+
+    .pro-filing-block::before {
+      content: 'SF 1063 · 2025 MN LEGISLATURE';
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      color: rgba(245,238,217,0.45);
+      display: block;
+      margin-bottom: 20px;
+    }
+
+    .pro-filing-title {
+      font-family: 'Oswald', sans-serif;
+      font-size: 28px;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      color: #F5EED9;
+    }
+
+    .pro-filing-body {
+      font-size: 16px;
+      line-height: 1.65;
+      color: rgba(245,238,217,0.85);
+      max-width: 620px;
+    }
+
+    .pro-filing-meta {
+      display: flex;
+      gap: 48px;
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(245,238,217,0.15);
+      flex-wrap: wrap;
+    }
+
+    .pro-filing-meta-item {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: rgba(245,238,217,0.5);
+      letter-spacing: 0.1em;
+    }
+
+    .pro-filing-meta-item strong {
+      color: rgba(245,238,217,0.85);
+      display: block;
+      font-size: 16px;
+      font-family: 'Oswald', sans-serif;
+      font-weight: 600;
+    }
+
+    /* --- EVIDENCE CARDS --- */
+    .pro-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+      border: 2px solid #1A1A1A;
+      margin: 40px 0;
+    }
+
+    .pro-card {
+      padding: 36px 32px;
+      border-right: 2px solid #1A1A1A;
+      position: relative;
+    }
+
+    .pro-card:last-child { border-right: none; }
+
+    .pro-card-num {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      color: #8C2C1A;
+      letter-spacing: 0.18em;
+      margin-bottom: 16px;
+    }
+
+    .pro-card-stat {
+      font-family: 'Oswald', sans-serif;
+      font-size: 52px;
+      font-weight: 700;
+      color: #1C4E6B;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .pro-card-title {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #1A1A1A;
+      margin-bottom: 12px;
+    }
+
+    .pro-card-body {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #3D3D3D;
+    }
+
+    /* --- PULL QUOTE --- */
+    .pro-pull-quote {
+      border-left: 6px solid #8C2C1A;
+      padding: 32px 48px;
+      margin: 48px 0;
+      background: rgba(28,78,107,0.05);
+    }
+
+    .pro-pull-quote blockquote {
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: clamp(20px, 2.4vw, 28px);
+      font-weight: 300;
+      line-height: 1.45;
+      color: #1A1A1A;
+      font-style: italic;
+    }
+
+    .pro-pull-quote cite {
+      display: block;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      color: #8C2C1A;
+      text-transform: uppercase;
+      margin-top: 20px;
+      font-style: normal;
+    }
+
+    /* --- DISTRICT BAND --- */
+    .pro-district-band {
+      background: #3D3D3D;
+      color: #F5EED9;
+      padding: 64px 72px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: center;
+    }
+
+    .pro-district-band-left {
+      border-right: 1px solid rgba(245,238,217,0.15);
+      padding-right: 64px;
+    }
+
+    .pro-district-title {
+      font-family: 'Oswald', sans-serif;
+      font-size: 40px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #F5EED9;
+      margin-bottom: 20px;
+      line-height: 1;
+    }
+
+    .pro-district-body {
+      font-size: 16px;
+      line-height: 1.7;
+      color: rgba(245,238,217,0.75);
+    }
+
+    .pro-district-list {
+      list-style: none;
+      margin-top: 24px;
+    }
+
+    .pro-district-list li {
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(245,238,217,0.1);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      color: rgba(245,238,217,0.65);
+      letter-spacing: 0.08em;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .pro-district-list li::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: #8C2C1A;
+      flex-shrink: 0;
+    }
+
+    /* --- PRO FOOTER --- */
+    .pro-footer {
+      background: #1A1A1A;
+      color: rgba(245,238,217,0.45);
+      padding: 40px 72px;
+    }
+
+    .pro-footer-inner {
+      max-width: 1160px;
+      margin: 0 auto;
+    }
+
+    .pro-footnotes {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9.5px;
+      line-height: 1.9;
+      letter-spacing: 0.04em;
+    }
+
+    .pro-footnotes p {
+      margin-bottom: 4px;
+    }
+
+    .pro-footnotes a {
+      color: rgba(232,146,58,0.7);
+      text-decoration: none;
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       OPPO SITE — "File No. 46-VCET"
+       The case against: reform brand, enforcement spending.
+       Palette: document cream #F0EAD6 · charcoal #1E1E1E
+                enforcement red #A31C1C · redaction #1E1E1E
+    ════════════════════════════════════════════════════════════ */
+
+    .oppo-content {
+      background: #F0EAD6;
+      font-family: 'Source Serif 4', Georgia, serif;
+      color: #1E1E1E;
+      min-height: 100vh;
+    }
+
+    /* --- OPPO CASE HEADER --- */
+    .oppo-header {
+      background: #1E1E1E;
+      color: #F0EAD6;
+      padding: 0;
+      border-bottom: 5px solid #A31C1C;
+    }
+
+    .oppo-header-inner {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      min-height: 100vh;
+    }
+
+    .oppo-header-left {
+      padding: 56px 64px 56px 72px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border-right: 1px solid rgba(240,234,214,0.1);
+    }
+
+    .oppo-file-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: #A31C1C;
+      border: 1px solid #A31C1C;
+      display: inline-block;
+      padding: 6px 14px;
+      margin-bottom: 48px;
+    }
+
+    .oppo-main-headline {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 700;
+      font-size: clamp(44px, 5.5vw, 80px);
+      line-height: 0.94;
+      text-transform: uppercase;
+      color: #F0EAD6;
+      margin-bottom: 36px;
+    }
+
+    .oppo-main-headline .redact {
+      background: #A31C1C;
+      color: #A31C1C;
+      position: relative;
+      cursor: default;
+      transition: all 0.3s;
+      padding: 0 4px;
+    }
+
+    .oppo-main-headline .redact:hover {
+      background: transparent;
+      color: #E8923A;
+    }
+
+    .oppo-main-headline .redact:hover::after {
+      content: ' [REVEALED]';
+      font-size: 14px;
+      font-weight: 400;
+      color: #A31C1C;
+      vertical-align: middle;
+    }
+
+    .oppo-lede {
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 17px;
+      line-height: 1.65;
+      color: rgba(240,234,214,0.75);
+      max-width: 560px;
+      margin-bottom: 48px;
+    }
+
+    .oppo-indictment-line {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: rgba(240,234,214,0.35);
+      letter-spacing: 0.1em;
+      padding-top: 32px;
+      border-top: 1px solid rgba(240,234,214,0.1);
+    }
+
+    /* Photo panel oppo */
+    .oppo-header-right {
+      background: #111;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .oppo-photo-wrap {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    .oppo-photo-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 15%;
+      filter: grayscale(1) contrast(1.35) brightness(0.6);
+      display: block;
+    }
+
+    .oppo-photo-placeholder {
+      width: 100%;
+      height: 100%;
+      background: #111;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .oppo-photo-overlay {
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 3px,
+        rgba(0,0,0,0.15) 3px,
+        rgba(0,0,0,0.15) 4px
+      );
+      pointer-events: none;
+    }
+
+    .oppo-photo-stamp {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) rotate(-8deg);
+      border: 3px solid #A31C1C;
+      color: #A31C1C;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      padding: 8px 18px;
+      text-transform: uppercase;
+      opacity: 0.85;
+      white-space: nowrap;
+    }
+
+    /* --- OPPO STICKY CHARGE BAR --- */
+    .oppo-charge-bar {
+      background: #A31C1C;
+      color: #F0EAD6;
+      padding: 14px 72px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .oppo-charge-bar::before {
+      content: 'CHARGE';
+      opacity: 0.55;
+    }
+
+    /* --- OPPO BODY --- */
+    .oppo-section {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 64px 48px;
+    }
+
+    .oppo-section-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: #A31C1C;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .oppo-section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(163,28,28,0.3);
+    }
+
+    .oppo-section-title {
+      font-family: 'Oswald', sans-serif;
+      font-size: clamp(26px, 3vw, 44px);
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #1E1E1E;
+      line-height: 1.05;
+      margin-bottom: 28px;
+      max-width: 700px;
+    }
+
+    /* --- THE SEQUENCE / TIMELINE --- */
+    .oppo-sequence {
+      margin: 40px 0;
+      position: relative;
+    }
+
+    .oppo-sequence::before {
+      content: '';
+      position: absolute;
+      left: 23px;
+      top: 28px;
+      bottom: 0;
+      width: 2px;
+      background: rgba(163,28,28,0.2);
+    }
+
+    .oppo-seq-item {
+      display: grid;
+      grid-template-columns: 48px 1fr;
+      gap: 28px;
+      margin-bottom: 40px;
+      align-items: start;
+    }
+
+    .oppo-seq-marker {
+      width: 48px;
+      height: 48px;
+      background: #1E1E1E;
+      border: 2px solid #A31C1C;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      color: #A31C1C;
+      flex-shrink: 0;
+    }
+
+    .oppo-seq-date {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.16em;
+      color: #A31C1C;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .oppo-seq-title {
+      font-family: 'Oswald', sans-serif;
+      font-size: 20px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: #1E1E1E;
+      margin-bottom: 10px;
+    }
+
+    .oppo-seq-body {
+      font-size: 15px;
+      line-height: 1.65;
+      color: #3D3D3D;
+    }
+
+    /* --- PROOF BLOCK --- */
+    .oppo-proof-block {
+      background: #1E1E1E;
+      color: #F0EAD6;
+      padding: 40px 48px;
+      margin: 40px 0;
+      border-left: 5px solid #A31C1C;
+      position: relative;
+    }
+
+    .oppo-proof-block::before {
+      content: 'EXHIBIT A — SF 2228 · 94th Legislature · Introduced March 6, 2025';
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8.5px;
+      letter-spacing: 0.2em;
+      color: rgba(240,234,214,0.35);
+      display: block;
+      margin-bottom: 24px;
+      text-transform: uppercase;
+    }
+
+    .oppo-proof-highlight {
+      font-family: 'Oswald', sans-serif;
+      font-size: clamp(32px, 4vw, 56px);
+      font-weight: 700;
+      color: #F0EAD6;
+      line-height: 1;
+      margin-bottom: 16px;
+    }
+
+    .oppo-proof-highlight span {
+      color: #E8923A;
+    }
+
+    .oppo-proof-body {
+      font-size: 15px;
+      line-height: 1.65;
+      color: rgba(240,234,214,0.72);
+      max-width: 580px;
+      margin-bottom: 24px;
+    }
+
+    .oppo-proof-line {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: rgba(240,234,214,0.35);
+      letter-spacing: 0.08em;
+      border-top: 1px solid rgba(240,234,214,0.1);
+      padding-top: 16px;
+    }
+
+    /* --- EVIDENCE CARDS --- */
+    .oppo-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+      border: 2px solid #1E1E1E;
+      margin: 40px 0;
+    }
+
+    .oppo-card {
+      padding: 32px 28px;
+      border-right: 2px solid #1E1E1E;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      position: relative;
+    }
+
+    .oppo-card:last-child { border-right: none; }
+
+    .oppo-card:hover {
+      background: #1E1E1E;
+      color: #F0EAD6;
+    }
+
+    .oppo-card-num {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      color: #A31C1C;
+      letter-spacing: 0.18em;
+      margin-bottom: 20px;
+    }
+
+    .oppo-card-stat {
+      font-family: 'Oswald', sans-serif;
+      font-size: 48px;
+      font-weight: 700;
+      color: #A31C1C;
+      line-height: 1;
+      margin-bottom: 10px;
+      transition: color 0.2s;
+    }
+
+    .oppo-card:hover .oppo-card-stat {
+      color: #E8923A;
+    }
+
+    .oppo-card-title {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 12px;
+      transition: color 0.2s;
+    }
+
+    .oppo-card-body {
+      font-size: 13.5px;
+      line-height: 1.6;
+      color: #3D3D3D;
+      transition: color 0.2s;
+    }
+
+    .oppo-card:hover .oppo-card-body {
+      color: rgba(240,234,214,0.75);
+    }
+
+    .oppo-card:hover .oppo-card-title {
+      color: #F0EAD6;
+    }
+
+    .oppo-card-hover-reveal {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(240,234,214,0.15);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      color: #A31C1C;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      display: none;
+    }
+
+    .oppo-card:hover .oppo-card-hover-reveal {
+      display: block;
+    }
+
+    /* --- CONTRADICTION BLOCK --- */
+    .oppo-contradiction {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      border: 2px solid #1E1E1E;
+      margin: 40px 0;
+    }
+
+    .oppo-contra-side {
+      padding: 40px 40px;
+    }
+
+    .oppo-contra-side:first-child {
+      border-right: 2px solid #1E1E1E;
+      background: rgba(28,78,107,0.06);
+    }
+
+    .oppo-contra-side:last-child {
+      background: rgba(163,28,28,0.05);
+    }
+
+    .oppo-contra-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8.5px;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .oppo-contra-side:first-child .oppo-contra-label {
+      color: #1C4E6B;
+    }
+
+    .oppo-contra-side:last-child .oppo-contra-label {
+      color: #A31C1C;
+    }
+
+    .oppo-contra-title {
+      font-family: 'Oswald', sans-serif;
+      font-size: 22px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: #1E1E1E;
+      margin-bottom: 14px;
+      line-height: 1.1;
+    }
+
+    .oppo-contra-body {
+      font-size: 14px;
+      line-height: 1.65;
+      color: #3D3D3D;
+    }
+
+    /* --- OPPO FOOTER --- */
+    .oppo-footer {
+      background: #1E1E1E;
+      color: rgba(240,234,214,0.4);
+      padding: 40px 72px;
+    }
+
+    .oppo-footer-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .oppo-footnotes {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9.5px;
+      line-height: 1.9;
+      letter-spacing: 0.04em;
+    }
+
+    .oppo-footnotes p { margin-bottom: 4px; }
+
+    .oppo-footnotes a {
+      color: rgba(232,146,58,0.65);
+      text-decoration: none;
+    }
+
+    /* ─── RESPONSIVE ─────────────────────────────────────────── */
+    @media (max-width: 960px) {
+      .pro-header-inner,
+      .oppo-header-inner {
+        grid-template-columns: 1fr;
+      }
+
+      .pro-header-right,
+      .oppo-header-right {
+        height: 380px;
+      }
+
+      .pro-header-left,
+      .oppo-header-left {
+        padding: 48px 32px;
+        border-right: none;
+        border-bottom: 1px solid rgba(245,238,217,0.15);
+      }
+
+      .pro-cards,
+      .oppo-cards {
+        grid-template-columns: 1fr;
+      }
+
+      .pro-card,
+      .oppo-card {
+        border-right: none;
+        border-bottom: 2px solid #1A1A1A;
+      }
+
+      .pro-district-band {
+        grid-template-columns: 1fr;
+        padding: 48px 32px;
+        gap: 40px;
+      }
+
+      .pro-district-band-left {
+        border-right: none;
+        border-bottom: 1px solid rgba(245,238,217,0.15);
+        padding-right: 0;
+        padding-bottom: 40px;
+      }
+
+      .oppo-contradiction {
+        grid-template-columns: 1fr;
+      }
+
+      .oppo-contra-side:first-child {
+        border-right: none;
+        border-bottom: 2px solid #1E1E1E;
+      }
+
+      .pro-section,
+      .oppo-section {
+        padding: 48px 24px;
+      }
+
+      .pro-footer,
+      .oppo-footer {
+        padding: 32px 24px;
+      }
+
+      .pro-filing-block {
+        padding: 32px 28px;
+      }
+
+      .pro-tabs {
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+
+      .pro-stat-row {
+        gap: 24px;
+      }
+
+      .oppo-charge-bar {
+        padding: 14px 24px;
+      }
+
+      #flip-btn {
+        top: 12px;
+        right: 12px;
+        padding: 9px 14px;
+        font-size: 8px;
+      }
+    }
+
+    /* ─── TRANSITIONS ────────────────────────────────────────── */
+    .pro-content, .oppo-content {
+      animation: fadeIn 0.22s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    /* Counter animation */
+    .count-up {
+      display: inline-block;
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FLIP BUTTON
+════════════════════════════════════════════════════════════ -->
+<button id="flip-btn" aria-label="Switch between supporter and accountability views">
+  <span class="btn-pro-label">Accountability&nbsp;View&nbsp;&#8594;</span>
+  <span class="btn-oppo-label">&#8592;&nbsp;Supporter&nbsp;View</span>
+</button>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     PRO SITE
+════════════════════════════════════════════════════════════ -->
+<div class="pro-content">
+
+  <!-- HEADER / DOSSIER COVER -->
+  <header class="pro-header">
+    <div class="pro-header-inner">
+      <div class="pro-header-left">
+        <div>
+          <div class="pro-case-label">Minnesota State Senate &middot; District 46 &middot; DFL</div>
+          <div class="pro-docket-number">SENATOR FILE &mdash; LEGISLATIVE RECORD &mdash; 2006&ndash;PRESENT</div>
+        </div>
+        <div>
+          <h1 class="pro-headline">
+            Ron<br>
+            <span class="accent">Latz</span>
+          </h1>
+          <p class="pro-sub">
+            The attorney-legislator for St. Louis Park, Hopkins, and Edina. Two decades of making complicated systems work for the people caught inside them.
+          </p>
+          <div class="pro-stat-row">
+            <div class="pro-stat-item">
+              <div class="pro-stat-num count-up" data-target="20">0</div>
+              <div class="pro-stat-label">Years in office</div>
+            </div>
+            <div class="pro-stat-item">
+              <div class="pro-stat-num">SF&nbsp;1063</div>
+              <div class="pro-stat-label">Consumer-protection office, enacted 2025</div>
+            </div>
+            <div class="pro-stat-item">
+              <div class="pro-stat-num">46</div>
+              <div class="pro-stat-label">Senate District</div>
+            </div>
+          </div>
+        </div>
+        <div></div>
+      </div>
+      <div class="pro-header-right">
+        <div class="pro-photo-wrap">
+          <img
+            src="https://www.senate.mn/graphics/46Latz.jpg"
+            alt="Senator Ron Latz"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+          />
+          <div class="pro-photo-placeholder" style="display:none;">
+            <span class="pro-photo-placeholder-text">RL</span>
+          </div>
+          <div class="pro-photo-caption">Sen. Ron Latz &middot; District 46 &middot; Harvard Law '89</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- TAB NAVIGATION -->
+  <nav class="pro-tabs" role="tablist">
+    <button class="pro-tab active" role="tab" aria-selected="true" data-panel="filing">The Bill</button>
+    <button class="pro-tab" role="tab" aria-selected="false" data-panel="district">District Case</button>
+    <button class="pro-tab" role="tab" aria-selected="false" data-panel="record">Full Record</button>
+  </nav>
+
+  <!-- PANEL: THE BILL -->
+  <div class="pro-panel active" id="panel-filing">
+    <div class="pro-section">
+      <div class="pro-section-label">District Problem &middot; 2025</div>
+      <h2 class="pro-section-title">A rules-heavy housing problem finally has a state office</h2>
+
+      <div class="pro-filing-block">
+        <div class="pro-filing-title">Common Interest Community Ombudsperson Act</div>
+        <p class="pro-filing-body">
+          SF 1063 created a new state office inside the Minnesota Department of Commerce. The ombudsperson helps condo owners and HOA residents understand their legal rights, navigate disputes with their association, and access mediation. The office became operational July 1, 2025. It is the first office of its kind in Minnesota, and it serves exactly the sort of rules-heavy housing disputes common in District 46.
+        </p>
+        <div class="pro-filing-meta">
+          <div class="pro-filing-meta-item">
+            <strong>SF 1063</strong>
+            Senate File Number
+          </div>
+          <div class="pro-filing-meta-item">
+            <strong>July 1, 2025</strong>
+            Effective date
+          </div>
+          <div class="pro-filing-meta-item">
+            <strong>Dept. of Commerce</strong>
+            Administering agency
+          </div>
+          <div class="pro-filing-meta-item">
+            <strong>Chapter 515B</strong>
+            Governing statute
+          </div>
+        </div>
+      </div>
+
+        <div class="pro-pull-quote">
+          <blockquote>
+          When a condo owner has a dispute with their association, the state now offers a third path beyond hiring a lawyer or giving up.
+          </blockquote>
+        <cite>Analysis of SF 1063 function &middot; Framing based on bill text, MN Dept. of Commerce</cite>
+      </div>
+
+      <div class="pro-cards">
+        <div class="pro-card">
+          <div class="pro-card-num">FINDING 01</div>
+          <div class="pro-card-stat">1st</div>
+          <div class="pro-card-title">Office of its kind in Minnesota</div>
+          <p class="pro-card-body">
+            No state office existed before SF 1063 to help condo and HOA residents navigate disputes. Residents had to pay legal fees or drop the matter.
+          </p>
+        </div>
+        <div class="pro-card">
+          <div class="pro-card-num">FINDING 02</div>
+          <div class="pro-card-stat">Free</div>
+          <div class="pro-card-title">Access to dispute resolution</div>
+          <p class="pro-card-body">
+            The ombudsperson provides no-cost information, resources, complaint tracking, and voluntary informal mediation. Residents also still have preexisting court, private-counsel, and ADR or community-mediation options.
+          </p>
+        </div>
+        <div class="pro-card">
+          <div class="pro-card-num">FINDING 03</div>
+          <div class="pro-card-stat">D46</div>
+          <div class="pro-card-title">District consequence</div>
+          <p class="pro-card-body">
+            District 46 spans St. Louis Park, Hopkins, and Edina. The district's apartment corridors and dense condo stock mean this office matters most in exactly the kinds of neighborhoods Latz represents.
+          </p>
+        </div>
+      </div>
+
+      <p style="font-size:14px;color:#5A5A5A;font-family:'IBM Plex Mono',monospace;margin-top:16px;">
+        See footnotes for source citations.
+      </p>
+    </div>
+  </div>
+
+  <!-- PANEL: DISTRICT CASE -->
+  <div class="pro-panel" id="panel-district">
+    <div class="pro-district-band">
+      <div class="pro-district-band-left">
+        <div class="pro-district-title">St. Louis Park. Hopkins. Edina.</div>
+        <p class="pro-district-body">
+          District 46 is first-ring suburb. Not rural, not downtown. The residents here own condos, rent in apartment corridors, or live in established single-family neighborhoods. They deal with homeowner associations. They pay assessments. They navigate property rules written by boards they often cannot access.
+        </p>
+        <p class="pro-district-body" style="margin-top:16px;">
+          This is exactly the kind of constituency a west-metro legal-process senator hears from.
+        </p>
+      </div>
+      <div>
+        <ul class="pro-district-list">
+          <li>Dense condo and multi-family housing stock</li>
+          <li>Active HOA and common interest community presence</li>
+          <li>High rate of owner-occupancy in condos</li>
+          <li>Residents facing rules-heavy property systems daily</li>
+          <li>West-metro location with strong civic-participation culture</li>
+          <li>Transit corridors linking to downtown Minneapolis</li>
+        </ul>
+      </div>
+    </div>
+    <div class="pro-section">
+      <div class="pro-section-label">Why This District Needed This Bill</div>
+      <h2 class="pro-section-title">The problem was local before it was statewide</h2>
+      <p style="font-size:16px;line-height:1.7;color:#3D3D3D;max-width:720px;margin-bottom:24px;">
+        HOA disputes are not abstract. Residents in Latz's district face real conflicts: assessment disputes, rule enforcement they cannot challenge, and boards with legal resources they cannot match. The ombudsperson does not take sides. It opens an official channel for the sort of casework this district generates.
+      </p>
+      <p style="font-size:16px;line-height:1.7;color:#3D3D3D;max-width:720px;">
+        For a senator who spent 20 years building expertise in legal systems, this is the kind of bill that takes patience. It is structural, not performative. It does not get a press conference. It gets residents an answer.
+      </p>
+    </div>
+  </div>
+
+  <!-- PANEL: FULL RECORD -->
+  <div class="pro-panel" id="panel-record">
+    <div class="pro-section">
+      <div class="pro-section-label">Legislative Record &middot; 2006&ndash;Present</div>
+      <h2 class="pro-section-title">The file on 20 years of work</h2>
+
+      <div class="pro-cards">
+        <div class="pro-card">
+          <div class="pro-card-num">RECORD 01</div>
+          <div class="pro-card-stat" style="font-size:36px;">HF3983</div>
+          <div class="pro-card-title">Drug Sentencing Reform</div>
+          <p class="pro-card-body">
+            Latz-sponsored drug sentencing reform passed 129-0 in the House. When implemented, it would free more than 700 prison beds per year from non-violent offenders and save approximately $12 million annually in corrections costs.
+          </p>
+        </div>
+        <div class="pro-card">
+          <div class="pro-card-num">RECORD 02</div>
+          <div class="pro-card-stat" style="font-size:36px;">Chair</div>
+          <div class="pro-card-title">Judiciary Committee</div>
+          <p class="pro-card-body">
+            Latz chaired the Senate Judiciary and Public Safety Committee during multiple sessions. He holds the gavel on the legislation Minnesota uses to structure its courts, prosecution, and corrections systems.
+          </p>
+        </div>
+        <div class="pro-card">
+          <div class="pro-card-num">RECORD 03</div>
+          <div class="pro-card-stat" style="font-size:36px;">PIR</div>
+          <div class="pro-card-title">Prosecutor-Initiated Resentencing</div>
+          <p class="pro-card-body">
+            Latz co-authored Prosecutor-Initiated Resentencing legislation, giving prosecutors the authority to review past sentences for fairness and consistency. A reform that moves through the existing institutional structure.
+          </p>
+        </div>
+      </div>
+
+      <p style="font-size:15px;line-height:1.7;color:#3D3D3D;max-width:760px;margin-top:16px;">
+        Latz holds a law degree from Harvard and worked as an Assistant Attorney General in Minnesota before entering the legislature. His record reads as a career built inside legal institutions, not against them. He uses statutes and hearings the way other politicians use speeches.
+      </p>
+    </div>
+  </div>
+
+  <!-- FOOTER / FOOTNOTES -->
+  <footer class="pro-footer">
+    <div class="pro-footer-inner">
+      <div class="pro-footnotes">
+        <p>[1] SF 1063, 94th Minnesota Legislature (2025). Senate authors listed on the official record are Pha, Marty, and Lucero; Ron Latz is not listed as an author. This pro file therefore treats the ombudsperson office as a district-relevant consumer-protection development, not as a Latz-authored bill. <a href="https://www.revisor.mn.gov/bills/94/2025/0/SF/1063/versions/latest/" target="_blank">revisor.mn.gov</a></p>
+        <p>[2] Minnesota CIC Ombudsperson Office, effective July 1, 2025. <a href="https://mn.gov/commerce/consumer/realestate/cic/welcome.jsp" target="_blank">mn.gov/commerce</a></p>
+        <p>[3] "Legislature creates new state office to mediate HOA disputes." Minnesota Reformer, June 12, 2025. <a href="https://minnesotareformer.com/2025/06/12/legislature-creates-new-state-office-to-mediate-hoa-disputes/" target="_blank">minnesotareformer.com</a></p>
+        <p>[4] Drug sentencing reform HF3983/SF3481, passage 129-0 in House. Minnesota Session Daily. <a href="https://house.leg.state.mn.us/SessionDaily/Story/10304" target="_blank">house.leg.state.mn.us</a></p>
+        <p>[5] Ron Latz, biography and committee assignments. <a href="https://www.senate.mn/members/member_bio.html?mem_id=1102" target="_blank">senate.mn</a></p>
+        <p>[6] District 46 boundaries: St. Louis Park, Hopkins, Edina (post-2022 redistricting). Minnesota Legislative Reference Library.</p>
+        <p>This site is for informational and educational purposes. All factual claims are sourced above.</p>
+      </div>
+    </div>
+  </footer>
+
+</div><!-- /pro-content -->
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     OPPO SITE
+════════════════════════════════════════════════════════════ -->
+<div class="oppo-content">
+
+  <!-- HEADER / CASE FILE COVER -->
+  <header class="oppo-header">
+    <div class="oppo-header-inner">
+      <div class="oppo-header-left">
+        <div>
+          <div class="oppo-file-label">Accountability File &mdash; District 46 &mdash; SF 2228</div>
+        </div>
+        <div>
+          <h1 class="oppo-main-headline">
+            The Reform<br>
+            Lawyer<br>
+            Wrote A<br>
+            <span class="redact" title="Hover to reveal">$3.5M</span><br>
+            Enforcement<br>
+            Check
+          </h1>
+          <p class="oppo-lede">
+            Ron Latz spent two decades building a brand around criminal justice reform. Then he joined a bill appropriating $3.5 million for violent crime enforcement teams after it had already been introduced by other senators. The bill exists. The number is in the text.
+          </p>
+        </div>
+        <div class="oppo-indictment-line">
+          CHARGE: Brand contradiction &mdash; enforcement spending vs. reform record &mdash; SF 2228 &mdash; March 6, 2025
+        </div>
+      </div>
+      <div class="oppo-header-right">
+        <div class="oppo-photo-wrap">
+          <img
+            src="https://www.senate.mn/graphics/46Latz.jpg"
+            alt="Senator Ron Latz"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+          />
+          <div class="oppo-photo-placeholder" style="display:none;width:100%;height:100%;background:#111;align-items:center;justify-content:center;">
+            <span style="font-family:'Oswald',sans-serif;font-size:64px;font-weight:700;color:rgba(240,234,214,0.1);">RL</span>
+          </div>
+          <div class="oppo-photo-overlay"></div>
+          <div class="oppo-photo-stamp">On Record</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- CHARGE BAR -->
+  <div class="oppo-charge-bar">
+    SF 2228 &mdash; $3,500,000 &mdash; Violent Crime Enforcement Teams &mdash; Senate authors include Ron Latz &mdash; March 2025
+  </div>
+
+  <!-- SEQUENCE OF EVENTS -->
+  <div class="oppo-section">
+    <div class="oppo-section-label">Sequence of Events</div>
+    <h2 class="oppo-section-title">The contradiction, in order</h2>
+
+    <div class="oppo-sequence">
+      <div class="oppo-seq-item">
+        <div class="oppo-seq-marker">01</div>
+        <div>
+          <div class="oppo-seq-date">2012 &ndash; 2016</div>
+          <div class="oppo-seq-title">Latz chairs Judiciary. Reform brand established.</div>
+          <p class="oppo-seq-body">
+            As Senate Judiciary and Public Safety Committee chair, Latz builds his public identity around drug sentencing reform, prison population reduction, and compensation for the wrongfully convicted. He is described as a careful reform lawyer. The brand holds through multiple election cycles.
+          </p>
+        </div>
+      </div>
+      <div class="oppo-seq-item">
+        <div class="oppo-seq-marker">02</div>
+        <div>
+          <div class="oppo-seq-date">2015</div>
+          <div class="oppo-seq-title">Drug reform passes 129-0. The identity is sealed.</div>
+          <p class="oppo-seq-body">
+            HF3983/SF3481 passes the Minnesota House 129-0. Latz is the author. The bill reduces sentences for non-violent drug offenders and frees more than 700 prison beds annually. This becomes the cornerstone of his reform credential.
+          </p>
+        </div>
+      </div>
+      <div class="oppo-seq-item">
+        <div class="oppo-seq-marker">03</div>
+        <div>
+          <div class="oppo-seq-date">March 6, 2025</div>
+          <div class="oppo-seq-title">SF 2228 introduced. $3.5 million for enforcement teams.</div>
+          <p class="oppo-seq-body">
+            Senate File 2228 is introduced in the 94th Legislature. The introduced bill puts a one-time $3.5 million appropriation on the table for Violent Crime Enforcement Teams. The money goes to the Department of Public Safety to fund law enforcement operations. Ron Latz appears among the Senate authors on the introduced text.
+          </p>
+        </div>
+      </div>
+      <div class="oppo-seq-item">
+        <div class="oppo-seq-marker">04</div>
+        <div>
+          <div class="oppo-seq-date">2025 Session</div>
+          <div class="oppo-seq-title">No explanation. No press release. Just the number.</div>
+          <p class="oppo-seq-body">
+            Latz's public communications during the 2025 session do not address the gap between his reform record and the enforcement spending. The public record shows SF 2228 was referred to Judiciary and Public Safety, scheduled for March 17, 2025, and marked "Not heard." The public status pages do not show a conference committee.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROOF BLOCK -->
+    <div class="oppo-proof-block">
+      <div class="oppo-proof-highlight">$<span>3,500,000</span></div>
+      <p class="oppo-proof-body">
+        That is the appropriation amount in SF 2228. One-time. Directed to the Department of Public Safety. Earmarked for Violent Crime Enforcement Teams. Listed on a bill supported by the senator who spent a decade telling voters he was the reform alternative.
+      </p>
+      <div class="oppo-proof-line">
+        SOURCE: SF 2228, 94th Minnesota Legislature &middot; introduced March 6, 2025 &middot; official Revisor bill text and status page
+      </div>
+    </div>
+
+    <!-- EVIDENCE CARDS -->
+    <div class="oppo-section-label" style="margin-top:56px;">Evidence Cards &mdash; Hover to Activate</div>
+    <h2 class="oppo-section-title">Three facts that don't move</h2>
+
+    <div class="oppo-cards">
+      <div class="oppo-card">
+        <div class="oppo-card-num">EXHIBIT 01</div>
+        <div class="oppo-card-stat">$3.5M</div>
+        <div class="oppo-card-title">One-time enforcement appropriation</div>
+        <p class="oppo-card-body">
+          SF 2228 puts a $3.5 million single-year appropriation on the table for Violent Crime Enforcement Teams. This is not a grant program. It is a direct law enforcement funding increase.
+        </p>
+        <div class="oppo-card-hover-reveal">
+          Source: SF 2228 bill text &middot; 94th Legislature &middot; revisor.mn.gov
+        </div>
+      </div>
+      <div class="oppo-card">
+        <div class="oppo-card-num">EXHIBIT 02</div>
+        <div class="oppo-card-stat">129-0</div>
+        <div class="oppo-card-title">Drug reform bill Latz authored</div>
+        <p class="oppo-card-body">
+          The bill Latz used to build his reform brand passed 129-0. A decade later he is authoring enforcement team funding. The gap between these two positions is the argument.
+        </p>
+        <div class="oppo-card-hover-reveal">
+          Source: HF3983/SF3481 &middot; Minnesota House Session Daily &middot; 2015
+        </div>
+      </div>
+      <div class="oppo-card">
+        <div class="oppo-card-num">EXHIBIT 03</div>
+        <div class="oppo-card-stat">Chair</div>
+        <div class="oppo-card-title">He runs the committee that heard his own bill</div>
+        <p class="oppo-card-body">
+          Latz chairs the Senate Judiciary and Public Safety Committee. SF 2228 went before that committee. He is not a passive author. He controls the room where enforcement spending gets approved.
+        </p>
+        <div class="oppo-card-hover-reveal">
+          Source: Senate committee assignments &middot; senate.mn &middot; 2025
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTRADICTION BLOCK -->
+    <div class="oppo-section-label" style="margin-top:56px;">The Contradiction</div>
+    <h2 class="oppo-section-title">What he said vs. what he did</h2>
+
+    <div class="oppo-contradiction">
+      <div class="oppo-contra-side">
+        <div class="oppo-contra-label">The Reform Brand</div>
+        <div class="oppo-contra-title">Drug reform. Prison reduction. Wrongful conviction compensation.</div>
+        <p class="oppo-contra-body">
+          Latz spent two decades cultivating a specific credential: the careful attorney who writes smart criminal justice reform. Reduced mandatory minimums. Freed prison beds from non-violent offenders. Compensation for those wrongly convicted. His campaign materials and public record are built on this.
+        </p>
+      </div>
+      <div class="oppo-contra-side">
+        <div class="oppo-contra-label">The Enforcement Spending</div>
+        <div class="oppo-contra-title">$3.5 million. Violent Crime Enforcement Teams. March 2025.</div>
+        <p class="oppo-contra-body">
+          SF 2228 is not rhetorical. It names the dollar figure. It directs money to law enforcement operations. As judiciary chair, Latz did not need to author this bill. He chose to. The reform lawyer put his name on an enforcement check. Both things are true.
+        </p>
+      </div>
+    </div>
+
+    <p style="font-size:15px;line-height:1.7;color:#3D3D3D;max-width:760px;margin-top:32px;">
+      This is not an argument that enforcement spending is wrong. It is an argument that Latz's brand and his record have a gap. Voters in District 46 should know both sides of the file.
+    </p>
+  </div>
+
+  <!-- OPPO FOOTER / FOOTNOTES -->
+  <footer class="oppo-footer">
+    <div class="oppo-footer-inner">
+      <div class="oppo-footnotes">
+        <p>[1] SF 2228, 94th Minnesota Legislature. Introduced March 6, 2025. The introduced text lists Limmer, Kreun, Howe, Anderson, and Latz as Senate authors. <a href="https://www.revisor.mn.gov/bills/94/2025/0/SF/2228/versions/0/pdf/" target="_blank">revisor.mn.gov</a></p>
+        <p>[2] Appropriation: $3.5 million to the Department of Public Safety for Violent Crime Enforcement Teams. Bill text, SF 2228. <a href="https://www.revisor.mn.gov/bills/94/2025/0/SF/2228/?body=senate" target="_blank">revisor.mn.gov</a></p>
+        <p>[3] Drug sentencing reform HF3983/SF3481, 2015. House vote 129-0. <a href="https://house.leg.state.mn.us/SessionDaily/Story/10304" target="_blank">house.leg.state.mn.us</a></p>
+        <p>[4] Latz's reform record: drug sentencing, prison population reduction, wrongful conviction compensation. <a href="https://www.ronlatz.org/about" target="_blank">ronlatz.org/about</a></p>
+        <p>[5] Senate Judiciary and Public Safety Committee chair: <a href="https://www.senate.mn/committees/committee_bio.html?cmte_id=3128&ls=93" target="_blank">senate.mn committee record</a></p>
+        <p>[6] Conference committee co-chair (Judiciary/Public Safety), 2025. <a href="https://www.house.mn.gov/SessionDaily/Story/18773" target="_blank">house.mn.gov/SessionDaily</a></p>
+        <p>This site is for informational and educational purposes. All factual claims are sourced above. No claims are made about intent or motivation.</p>
+      </div>
+    </div>
+  </footer>
+
+
+  <!-- Auto-transition sentinel — observed by IntersectionObserver -->
+  <div id="brief-sentinel" style="height:1px;width:100%;"></div>
+
+  <!-- Subtle stamp — visible as user nears the bottom -->
+  <div class="machine-stamp">
+    <span class="machine-stamp-text">AI-GENERATED &nbsp;·&nbsp; 67 SENATORS &nbsp;·&nbsp; 63 PARALLEL AGENTS &nbsp;·&nbsp; ~4 HRS &nbsp;·&nbsp; ~$47</span>
+  </div>
+
+</div><!-- /oppo-content -->
+
+
+<script>
+  /* ─── FLIP TOGGLE ───────────────────────────────────────── */
+  const flipBtn = document.getElementById('flip-btn');
+  flipBtn.addEventListener('click', () => {
+    document.body.classList.toggle('mode-oppo');
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  });
+
+  /* ─── PRO TAB NAVIGATION ────────────────────────────────── */
+  const tabs   = document.querySelectorAll('.pro-tab');
+  const panels = document.querySelectorAll('.pro-panel');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const target = tab.dataset.panel;
+      tabs.forEach(t => {
+        t.classList.remove('active');
+        t.setAttribute('aria-selected', 'false');
+      });
+      panels.forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      tab.setAttribute('aria-selected', 'true');
+      const targetPanel = document.getElementById('panel-' + target);
+      if (targetPanel) targetPanel.classList.add('active');
+    });
+  });
+
+  /* ─── COUNT-UP ANIMATION ────────────────────────────────── */
+  function animateCount(el) {
+    const target = parseInt(el.dataset.target, 10);
+    const duration = 1200;
+    const start = performance.now();
+    function step(now) {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = Math.round(eased * target);
+      if (progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  const counters = document.querySelectorAll('.count-up');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        animateCount(entry.target);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.5 });
+
+  counters.forEach(c => observer.observe(c));
+</script>
+
+
+<!-- \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+     THE BRIEF \u2014 AI capabilities briefing
+\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 -->
+<div class="brief-content">
+
+  <div class="brief-opening">
+    <p class="brief-made-by">Sixty-seven of these pages were made using one AI account in about thirty minutes. Six months ago an automated project like this would have been impossible.</p>
+  </div>
+
+  <div class="brief-chart-section">
+    <h2 class="brief-chart-title">This is the trend that made it possible.</h2>
+    <div class="brief-chart-frame">
+      <img
+        src="https://metr.org/assets/images/measuring-ai-ability-to-complete-long-tasks/length-of-tasks-log.png"
+        alt="METR chart: length of tasks AI agents can complete autonomously, doubling roughly every 7 months since 2019"
+        class="brief-metr-img"
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+      >
+      <div class="brief-chart-fallback" style="display:none;">
+        <p>Chart unavailable. See the original at <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">metr.org</a>.</p>
+      </div>
+    </div>
+    <p class="brief-chart-source">Source: <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR</a>, an independent AI evaluation lab.</p>
+    <p class="brief-chart-read">This chart tracks how long a task an AI agent can finish on its own. In 2019, the answer was about three seconds. By early 2023, it was six minutes. by mid 2025, over two hours. As of early 2026, Claude Opus 4.6 completes tasks that take a skilled human roughly twelve hours.</p>
+    <p class="brief-chart-read">The overall doubling time has been about seven months. But it is getting faster. <a href="https://metr.org/time-horizons/" target="_blank">When researchers fit only the most recent data</a>, the doubling time drops to four months. At that rate, AI agents capable of completing month-long autonomous projects arrive not in the early 2030s but around 2028.</p>
+  </div>
+
+  <div class="brief-so-what">
+    <h2 class="brief-so-what-title">What that means for lawmakers.</h2>
+    <p>Urgency. There was a narrative last year that AI had hit a wall in capabilities. It was a plausible perspective at the time. It isn&#x2019;t anymore. After breakthroughs late last year, AI systems&#x2019; ability to automate cyberattacks, pathogen design, misinformation, mass surveillance, and vast swaths of white-collar work is advancing faster than ever.</p>
+    <p>The world will soon change faster than the typical pace of policymaking. The only solution is to act with atypical speed: AI regulations, data center moratoriums, calling for a federal pause on AI development, worker displacement funds. Some of these ideas already have bills introduced this session. Others should be explored soon. Time is limited, so if you feel behind on AI, the sources below are a good place to start.</p>
+    
+  </div>
+
+  <div class="brief-next">
+    <h2 class="brief-next-title">Start here.</h2>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">USE</span>
+      <a href="https://claude.ai/cowork" target="_blank">Claude Cowork</a> &middot; <a href="https://claude.ai/code" target="_blank">Claude Code</a>
+      <span class="brief-link-detail">The tools that built this page. Cowork handles research and writing. Code is the agent that runs tasks, spawns sub-agents, and makes decisions on its own. Spend thirty minutes with one of these on a real problem from your week. That will teach you more than any briefing.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR: Measuring AI Ability to Complete Long Tasks</a>
+      <span class="brief-link-detail">The source for the chart above. The METR trend is based on software tasks, but <a href="https://futuretech.mit.edu/publication/crashing-waves-vs-rising-tides-preliminary-findings-on-ai-automation-from-thousands-of-worker-evaluations-of-labor-market-tasks" target="_blank">MIT research on worker evaluations of labor market tasks</a> finds similar patterns across white-collar work broadly.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://aiindex.stanford.edu/report/" target="_blank">Stanford HAI AI Index 2025</a>
+      <span class="brief-link-detail">The most comprehensive annual report on AI capabilities, economics, and policy across all 50 states.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.imdb.com/title/tt39150120/" target="_blank">The AI Doc: Or How I Became an Apocaloptimist</a>
+      <span class="brief-link-detail">Daniel Roher&#x2019;s 2026 documentary, in theaters now. Roher interviews Amodei, Altman, Hassabis, and dozens more. If you see one thing on this list, see this.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.youtube.com/watch?v=xoVJKj8lcNQ" target="_blank">The A.I. Dilemma</a>
+      <span class="brief-link-detail">Center for Humane Technology. 60 min, free on YouTube. Made for people with institutional power who need to understand AI quickly.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">TRACK</span>
+      <a href="https://www.ncsl.org/technology-and-communication/artificial-intelligence" target="_blank">NCSL AI Legislation Tracker</a> &middot;
+      <a href="https://mn.gov/mnit/about-mnit/oit-programs/ai/" target="_blank">MN.IT AI Office</a>
+      <span class="brief-link-detail">Every AI bill in every state. Plus Minnesota&#x2019;s own AI program office. See where you stand relative to the field.</span>
+    </div>
+  </div>
+
+  <div class="brief-close">
+    <p class="brief-close-small">This project is not affiliated with any campaign, party, or organization.</p>
+    <button id="exit-brief-btn">\u2190 Back</button>
+  </div>
+
+</div><!-- /brief-content -->
+
+<style>
+.brief-content { display: none; }
+body.mode-brief .brief-content  { display: block; }
+body.mode-brief .pro-content    { display: none; }
+body.mode-brief .oppo-content   { display: none; }
+body.mode-brief #flip-btn       { display: none; }
+.brief-content { background: #0C0A08; color: #D4CCBE; font-family: 'Source Serif 4', Georgia, serif; font-size: 17px; line-height: 1.75; min-height: 100vh; }
+.brief-content a { color: #C0B49A; }
+.brief-content a:hover { color: #fff; }
+@keyframes glitch-seq {
+  0%   { filter: saturate(0) brightness(0.5); }
+  10%  { filter: hue-rotate(90deg) contrast(4) brightness(3); transform: skewX(4deg); }
+  12%  { filter: brightness(0.1); transform: none; }
+  25%  { filter: hue-rotate(200deg) invert(0.8); transform: translateX(6px); }
+  27%  { filter: brightness(0.05); transform: none; }
+  40%  { filter: blur(6px) brightness(0.02); }
+  44%  { filter: brightness(6); }
+  46%  { filter: none; transform: none; }
+  60%  { filter: hue-rotate(300deg) contrast(3) saturate(8); transform: skewX(-3deg); }
+  62%  { filter: none; transform: none; }
+  78%  { filter: blur(16px) brightness(0.01); }
+  82%  { filter: brightness(2); }
+  84%  { filter: none; }
+  100% { filter: none; transform: none; }
+}
+body.glitching { animation: glitch-seq 1.2s ease-in-out forwards; pointer-events: none; }
+.machine-stamp { background: #050505; border-top: 1px solid #111; padding: 16px 40px; text-align: center; }
+.machine-stamp-text { font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 0.22em; color: #222; text-transform: uppercase; animation: stamp-pulse 3s ease-in-out infinite; }
+@keyframes stamp-pulse { 0%, 100% { color: #222; } 50% { color: #4A3A2A; } }
+.brief-opening { max-width: 640px; margin: 0 auto; padding: 100px 40px 64px; }
+.brief-made-by { font-size: 20px; line-height: 1.65; color: #B8AE9C; margin-bottom: 20px; }
+.brief-chart-section { max-width: 740px; margin: 0 auto; padding: 48px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-chart-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 32px; font-style: italic; }
+.brief-chart-frame { background: #fff; border-radius: 4px; padding: 12px; margin-bottom: 12px; }
+.brief-metr-img { width: 100%; height: auto; display: block; }
+.brief-chart-fallback { padding: 40px; text-align: center; color: #666; font-size: 14px; }
+.brief-chart-source { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #5A5040; line-height: 1.6; margin-bottom: 28px; }
+.brief-chart-source a { color: #7A6A54; text-decoration: none; }
+.brief-chart-read { font-size: 17px; color: #B8AE9C; }
+.brief-so-what { max-width: 640px; margin: 0 auto; padding: 56px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-so-what-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 28px; font-style: italic; }
+.brief-so-what p { font-size: 17px; color: #B8AE9C; margin-bottom: 20px; }
+.brief-next { max-width: 640px; margin: 0 auto; padding: 56px 40px 48px; border-top: 1px solid #1E1A14; }
+.brief-next-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 14px; font-style: italic; }
+.brief-link-block { margin-bottom: 28px; line-height: 1.7; }
+.brief-link-tag { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.2em; color: #6A5A44; text-transform: uppercase; display: block; margin-bottom: 4px; }
+.brief-link-block a { font-weight: 600; color: #E0D6C4; text-decoration: underline; text-underline-offset: 3px; font-size: 16px; }
+.brief-link-block a:hover { color: #fff; }
+.brief-link-detail { display: block; font-size: 14px; color: #6A5E4C; margin-top: 2px; }
+.brief-close { max-width: 640px; margin: 0 auto; padding: 48px 40px 100px; border-top: 1px solid #1E1A14; }
+.brief-close p { font-family: 'Source Serif 4', Georgia, serif; font-size: 16px; color: #9A9080; margin-bottom: 32px; line-height: 1.7; }
+.brief-close-small { font-family: 'IBM Plex Mono', monospace !important; font-size: 11px !important; color: #3A3428 !important; letter-spacing: 0.04em; }
+#exit-brief-btn { background: none; border: 1px solid #2A2418; color: #5A5040; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; padding: 10px 20px; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
+#exit-brief-btn:hover { border-color: #8A7A64; color: #C0B49A; }
+@media (max-width: 900px) {
+  .brief-opening, .brief-so-what, .brief-next, .brief-close { padding-left: 24px; padding-right: 24px; }
+  .brief-chart-section { padding-left: 24px; padding-right: 24px; }
+  .brief-made-by { font-size: 18px; }
+  .brief-opening { padding-top: 64px; }
+  .machine-stamp { padding: 14px 20px; }
+}
+</style>
+
+<script>
+(function() {
+  let briefTriggered = false;
+  function startBriefTransition() {
+    if (briefTriggered) return;
+    if (!document.body.classList.contains('mode-oppo')) return;
+    briefTriggered = true;
+    const body = document.body;
+    body.style.transition = 'filter 2.5s ease-in';
+    body.style.filter = 'saturate(0) brightness(0.3)';
+    setTimeout(() => {
+      const hed = document.querySelector('.oppo-content h1') || document.querySelector('.oppo-content h2');
+      if (hed) {
+        const orig = hed.textContent; const chars = '\u2588\u2593\u2592\u2591\u25a0\u25a10123456789'; let n = 0;
+        const si = setInterval(() => { n++; hed.textContent = Array.from(orig).map(c => c === ' ' ? ' ' : chars[Math.floor(Math.random() * chars.length)]).join(''); if (n > 40) { clearInterval(si); hed.textContent = orig; } }, 40);
+      }
+    }, 1200);
+    setTimeout(() => {
+      body.style.transition = ''; body.style.filter = ''; body.classList.add('glitching');
+      setTimeout(() => { body.classList.remove('glitching'); body.classList.add('mode-brief'); window.scrollTo({ top: 0, behavior: 'instant' }); }, 1500);
+    }, 2500);
+  }
+  const sentinel = document.getElementById('brief-sentinel');
+  if (sentinel && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) { io.disconnect(); setTimeout(startBriefTransition, 1200); } }); }, { threshold: 0.5 });
+    io.observe(sentinel);
+  }
+  const flipBtn = document.getElementById('flip-btn');
+  if (flipBtn) { flipBtn.addEventListener('click', () => { if (document.body.classList.contains('mode-oppo')) briefTriggered = false; }); }
+})();
+document.addEventListener('click', (e) => {
+  if (e.target && e.target.id === 'exit-brief-btn') {
+    const body = document.body; body.style.opacity = '0'; body.style.transition = 'opacity 0.3s';
+    setTimeout(() => { body.classList.remove('mode-brief'); body.classList.add('mode-oppo'); window.scrollTo({ top: 0, behavior: 'instant' }); body.style.opacity = '1'; }, 300);
+  }
+});
+</script>
+
+</body>
+</html>

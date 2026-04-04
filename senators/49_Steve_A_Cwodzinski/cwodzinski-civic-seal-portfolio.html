@@ -1,0 +1,1568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minnesota Civic Seal — Student Portfolio Builder</title>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Portfolio builder — narrow left panel (260px) with vertical card stack, wide right panel for active module. Asymmetric 260/rest split. Cards grow as sections complete.
+   2. Navigation: Portfolio cards on left ARE the navigation — click any completed card to review/edit. No tabs, no sidebar nav list.
+   3. Typography: Cambria (serif headers), Century Gothic (sans body/labels), Consolas (monospace data/counts)
+   4. Hero moment: Large SVG civic seal (200px+) with student name inscribed, gold on navy — wax-seal stamp animation on entry
+   5. Color strategy: #2 High contrast / two-tone — deep constitutional navy (#1a237e) + rich gold (#c5a355) + warm white (#fffef5). No mid-tones, no gray cards.
+   6. Entry experience: Wax-seal SVG stamps down with spring animation, revealing "SEAL OF CIVIC READINESS" in gold serif. No explanatory paragraph.
+*/
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --gold: #c5a355;
+  --gold-light: #d4b972;
+  --gold-dark: #a08236;
+  --navy: #1a237e;
+  --navy-light: #283593;
+  --navy-deep: #0d1451;
+  --warm-white: #fffef5;
+  --warm-white-dim: #f5f3e8;
+  --text-on-navy: #fffef5;
+  --text-dark: #1a1a2e;
+  --green-ready: #2e7d32;
+  --amber-progress: #c49a2a;
+}
+
+body {
+  font-family: 'Century Gothic', 'Apple Gothic', 'URW Gothic', sans-serif;
+  background: var(--navy-deep);
+  color: var(--text-dark);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ═══ ENTRY EXPERIENCE — WAX SEAL ═══ */
+#entry-screen {
+  position: fixed; inset: 0; z-index: 1000;
+  background: var(--navy-deep);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  transition: opacity 0.6s ease;
+}
+#entry-screen.fade-out { opacity: 0; pointer-events: none; }
+
+.seal-container {
+  position: relative; width: 260px; height: 260px;
+  cursor: pointer;
+}
+.seal-svg {
+  width: 100%; height: 100%;
+  filter: drop-shadow(0 0 30px rgba(197,163,85,0.3));
+  transform: scale(0.3) rotate(-30deg);
+  opacity: 0;
+  animation: sealStamp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.4s forwards;
+}
+@keyframes sealStamp {
+  0%   { transform: scale(0.3) rotate(-30deg); opacity: 0; }
+  60%  { transform: scale(1.08) rotate(2deg); opacity: 1; }
+  80%  { transform: scale(0.97) rotate(-1deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+.seal-title {
+  font-family: Cambria, 'Hoefler Text', serif;
+  color: var(--gold);
+  font-size: 15px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  margin-top: 30px;
+  opacity: 0;
+  animation: fadeUp 0.5s ease 1.2s forwards;
+}
+.seal-subtitle {
+  font-family: 'Century Gothic', sans-serif;
+  color: rgba(197,163,85,0.6);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-top: 8px;
+  opacity: 0;
+  animation: fadeUp 0.5s ease 1.5s forwards;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.entry-actions {
+  margin-top: 40px; display: flex; gap: 16px;
+  opacity: 0; animation: fadeUp 0.5s ease 1.8s forwards;
+}
+.entry-btn {
+  font-family: 'Century Gothic', sans-serif;
+  font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase;
+  padding: 12px 28px; border: 1.5px solid var(--gold);
+  background: transparent; color: var(--gold); cursor: pointer;
+  transition: all 0.25s ease;
+}
+.entry-btn:hover { background: var(--gold); color: var(--navy-deep); }
+.entry-btn.primary { background: var(--gold); color: var(--navy-deep); }
+.entry-btn.primary:hover { background: var(--gold-light); }
+
+/* ═══ MAIN APP SHELL ═══ */
+#app {
+  display: none; min-height: 100vh;
+}
+#app.visible { display: flex; }
+
+/* LEFT PANEL — PORTFOLIO CARD STACK */
+.left-panel {
+  width: 280px; min-width: 280px;
+  background: var(--navy);
+  min-height: 100vh; padding: 20px 16px;
+  display: flex; flex-direction: column;
+  position: sticky; top: 0; height: 100vh;
+  overflow-y: auto;
+}
+
+.student-info-bar {
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(197,163,85,0.2);
+  margin-bottom: 16px;
+}
+.student-info-bar label {
+  font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--gold); display: block; margin-bottom: 4px;
+}
+.student-info-bar input {
+  width: 100%; background: rgba(255,254,245,0.08);
+  border: 1px solid rgba(197,163,85,0.25);
+  color: var(--warm-white); padding: 6px 8px;
+  font-family: 'Century Gothic', sans-serif; font-size: 13px;
+  margin-bottom: 8px;
+}
+.student-info-bar input::placeholder { color: rgba(197,163,85,0.4); }
+.student-info-bar input:focus {
+  outline: none; border-color: var(--gold);
+  background: rgba(255,254,245,0.12);
+}
+
+.portfolio-label {
+  font-family: Cambria, serif; font-size: 12px;
+  letter-spacing: 3px; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 12px;
+}
+
+/* Portfolio Cards */
+.port-card {
+  background: rgba(255,254,245,0.05);
+  border: 1px solid rgba(197,163,85,0.15);
+  padding: 14px 12px; margin-bottom: 8px;
+  cursor: pointer; transition: all 0.25s ease;
+  position: relative;
+}
+.port-card::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px; background: rgba(197,163,85,0.15);
+  transition: background 0.25s ease;
+}
+.port-card:hover {
+  background: rgba(255,254,245,0.1);
+  border-color: rgba(197,163,85,0.35);
+}
+.port-card.active {
+  background: rgba(197,163,85,0.12);
+  border-color: var(--gold);
+}
+.port-card.active::before { background: var(--gold); }
+.port-card.has-data::before { background: var(--green-ready); }
+.port-card.has-data.active::before { background: var(--gold); }
+
+.port-card-num {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 10px; color: var(--gold); letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+.port-card-title {
+  font-family: Cambria, serif; font-size: 14px;
+  color: var(--warm-white); line-height: 1.3;
+}
+.port-card-status {
+  font-family: Consolas, monospace; font-size: 10px;
+  margin-top: 6px; letter-spacing: 0.5px;
+}
+.status-empty { color: rgba(197,163,85,0.4); }
+.status-progress { color: var(--amber-progress); }
+.status-ready { color: var(--green-ready); }
+
+.left-panel-footer {
+  margin-top: auto; padding-top: 16px;
+  border-top: 1px solid rgba(197,163,85,0.2);
+}
+.left-panel-footer button {
+  width: 100%; font-family: 'Century Gothic', sans-serif;
+  font-size: 11px; letter-spacing: 1px; text-transform: uppercase;
+  padding: 10px; background: var(--gold); color: var(--navy-deep);
+  border: none; cursor: pointer; margin-bottom: 6px;
+  transition: background 0.2s;
+}
+.left-panel-footer button:hover { background: var(--gold-light); }
+.btn-danger {
+  background: transparent !important; color: rgba(197,163,85,0.5) !important;
+  border: 1px solid rgba(197,163,85,0.2) !important; font-size: 10px !important;
+}
+.btn-danger:hover {
+  color: #e53935 !important; border-color: #e53935 !important;
+}
+
+/* RIGHT PANEL — CONTENT AREA */
+.right-panel {
+  flex: 1; background: var(--warm-white);
+  min-height: 100vh; padding: 0;
+}
+
+.module-header {
+  background: var(--navy);
+  padding: 32px 40px 24px;
+}
+.module-header h1 {
+  font-family: Cambria, serif; font-size: 26px;
+  color: var(--gold); letter-spacing: 1px;
+  font-weight: normal;
+}
+.module-header p {
+  color: rgba(255,254,245,0.6); font-size: 13px;
+  margin-top: 6px; line-height: 1.5;
+}
+
+.module-body { padding: 32px 40px 60px; }
+
+/* ═══ MODULE 1: COMPETENCY DOMAIN TRACKER ═══ */
+.domain-summary-bar {
+  display: flex; gap: 12px; margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+.domain-pip {
+  width: 40px; height: 40px; border-radius: 50%;
+  border: 2px solid var(--navy);
+  display: flex; align-items: center; justify-content: center;
+  font-family: Consolas, monospace; font-size: 11px;
+  color: var(--navy); cursor: pointer;
+  transition: all 0.25s ease;
+  position: relative;
+}
+.domain-pip.empty { border-color: #ccc; color: #aaa; background: transparent; }
+.domain-pip.developing { border-color: var(--amber-progress); color: var(--amber-progress); background: rgba(196,154,42,0.08); }
+.domain-pip.ready { border-color: var(--green-ready); color: #fff; background: var(--green-ready); }
+.domain-pip-label {
+  position: absolute; top: 46px; left: 50%; transform: translateX(-50%);
+  font-family: 'Century Gothic', sans-serif; font-size: 8px;
+  text-transform: uppercase; letter-spacing: 1px;
+  white-space: nowrap; color: var(--text-dark);
+}
+
+.domain-section { margin-bottom: 32px; }
+.domain-title-row {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 4px;
+}
+.domain-title {
+  font-family: Cambria, serif; font-size: 18px;
+  color: var(--navy); font-weight: normal;
+}
+.domain-badge {
+  font-family: Consolas, monospace; font-size: 10px;
+  padding: 3px 10px; letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.badge-insufficient { background: #e0e0e0; color: #666; }
+.badge-developing { background: rgba(196,154,42,0.15); color: var(--amber-progress); }
+.badge-ready { background: rgba(46,125,50,0.12); color: var(--green-ready); }
+
+.domain-desc {
+  font-size: 12px; color: #666; line-height: 1.5;
+  margin-bottom: 12px; max-width: 640px;
+}
+.evidence-list { margin-bottom: 12px; }
+.evidence-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(26,35,126,0.08);
+}
+.evidence-marker {
+  width: 8px; height: 8px; border-radius: 50%;
+  margin-top: 5px; flex-shrink: 0;
+}
+.marker-primary { background: var(--navy); }
+.marker-supporting { background: var(--gold); }
+.evidence-content { flex: 1; }
+.evidence-title-line {
+  font-family: Cambria, serif; font-size: 14px;
+  color: var(--text-dark);
+}
+.evidence-meta {
+  font-family: Consolas, monospace; font-size: 11px;
+  color: #888; margin-top: 2px;
+}
+.evidence-desc {
+  font-size: 12px; color: #555; margin-top: 4px;
+  line-height: 1.4;
+}
+.evidence-actions {
+  display: flex; gap: 8px; flex-shrink: 0;
+}
+.evidence-actions button {
+  font-family: Consolas, monospace; font-size: 10px;
+  background: none; border: 1px solid #ccc; color: #888;
+  padding: 2px 8px; cursor: pointer; transition: all 0.2s;
+}
+.evidence-actions button:hover { border-color: var(--navy); color: var(--navy); }
+.evidence-actions button.del:hover { border-color: #e53935; color: #e53935; }
+
+.add-evidence-btn {
+  font-family: 'Century Gothic', sans-serif; font-size: 12px;
+  letter-spacing: 1px; text-transform: uppercase;
+  padding: 8px 16px; background: var(--navy); color: var(--gold);
+  border: none; cursor: pointer; transition: background 0.2s;
+}
+.add-evidence-btn:hover { background: var(--navy-light); }
+
+/* Evidence Form (inline) */
+.evidence-form {
+  background: var(--navy); padding: 20px;
+  margin-top: 10px; display: none;
+}
+.evidence-form.open { display: block; }
+.evidence-form label {
+  display: block; font-size: 10px; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--gold);
+  margin-bottom: 4px; margin-top: 12px;
+}
+.evidence-form label:first-child { margin-top: 0; }
+.evidence-form input, .evidence-form textarea, .evidence-form select {
+  width: 100%; background: rgba(255,254,245,0.08);
+  border: 1px solid rgba(197,163,85,0.25);
+  color: var(--warm-white); padding: 8px 10px;
+  font-family: 'Century Gothic', sans-serif; font-size: 13px;
+}
+.evidence-form textarea { height: 60px; resize: vertical; }
+.evidence-form input:focus, .evidence-form textarea:focus, .evidence-form select:focus {
+  outline: none; border-color: var(--gold);
+}
+.evidence-form select { cursor: pointer; }
+.evidence-form select option { background: var(--navy); color: var(--warm-white); }
+.form-row { display: flex; gap: 12px; }
+.form-row > div { flex: 1; }
+.form-actions {
+  display: flex; gap: 10px; margin-top: 16px;
+}
+.form-actions button {
+  font-family: 'Century Gothic', sans-serif; font-size: 11px;
+  letter-spacing: 1px; text-transform: uppercase;
+  padding: 8px 20px; cursor: pointer; border: none;
+}
+.btn-save { background: var(--gold); color: var(--navy-deep); }
+.btn-save:hover { background: var(--gold-light); }
+.btn-cancel { background: transparent; color: var(--gold); border: 1px solid rgba(197,163,85,0.3) !important; }
+.btn-cancel:hover { border-color: var(--gold) !important; }
+
+/* ═══ MODULE 2: PROJECT TRACKER ═══ */
+.phase-bar {
+  display: flex; align-items: center; gap: 0;
+  margin-bottom: 32px;
+}
+.phase-pip {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: Consolas, monospace; font-size: 14px; font-weight: bold;
+  border: 2px solid #ccc; color: #aaa; background: transparent;
+  position: relative; z-index: 1;
+}
+.phase-pip.complete { background: var(--green-ready); border-color: var(--green-ready); color: #fff; }
+.phase-pip.current { border-color: var(--gold); color: var(--gold); }
+.phase-connector {
+  width: 50px; height: 2px; background: #ddd;
+}
+.phase-connector.complete { background: var(--green-ready); }
+
+.phase-section {
+  margin-bottom: 28px; padding: 24px;
+  background: rgba(26,35,126,0.03);
+  border-left: 3px solid #ddd;
+  transition: border-color 0.3s;
+}
+.phase-section.unlocked { border-left-color: var(--navy); }
+.phase-section.complete-phase { border-left-color: var(--green-ready); }
+.phase-label {
+  font-family: Consolas, monospace; font-size: 11px;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--gold-dark); margin-bottom: 4px;
+}
+.phase-title {
+  font-family: Cambria, serif; font-size: 18px;
+  color: var(--navy); margin-bottom: 12px;
+}
+.phase-section label {
+  display: block; font-size: 11px; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--navy);
+  margin-bottom: 4px; margin-top: 14px;
+}
+.phase-section label:first-of-type { margin-top: 0; }
+.phase-section input, .phase-section textarea, .phase-section select {
+  width: 100%; padding: 8px 10px;
+  border: 1px solid rgba(26,35,126,0.2);
+  background: var(--warm-white);
+  font-family: 'Century Gothic', sans-serif; font-size: 13px;
+  color: var(--text-dark);
+}
+.phase-section textarea { height: 70px; resize: vertical; }
+.phase-section input:focus, .phase-section textarea:focus, .phase-section select:focus {
+  outline: none; border-color: var(--navy);
+}
+.phase-check {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 16px; cursor: pointer;
+}
+.phase-check input[type="checkbox"] {
+  width: 18px; height: 18px; accent-color: var(--green-ready);
+  cursor: pointer;
+}
+.phase-check span {
+  font-family: Cambria, serif; font-size: 13px;
+  color: var(--navy);
+}
+
+.source-entry {
+  display: flex; gap: 8px; align-items: flex-end;
+  margin-top: 8px;
+}
+.source-entry input { flex: 1; }
+.source-remove {
+  font-family: Consolas, monospace; font-size: 12px;
+  background: none; border: 1px solid #ccc; color: #888;
+  padding: 6px 10px; cursor: pointer;
+}
+.source-remove:hover { border-color: #e53935; color: #e53935; }
+.add-source-btn {
+  font-size: 11px; letter-spacing: 1px; text-transform: uppercase;
+  padding: 6px 14px; background: rgba(26,35,126,0.08);
+  border: 1px solid rgba(26,35,126,0.15); color: var(--navy);
+  cursor: pointer; margin-top: 10px;
+  font-family: 'Century Gothic', sans-serif;
+}
+.add-source-btn:hover { background: rgba(26,35,126,0.15); }
+
+/* ═══ MODULE 3: REFLECTION COMPOSER ═══ */
+.reflection-panels {
+  display: flex; gap: 24px; min-height: 500px;
+}
+.reflection-panel { flex: 1; }
+.reflection-panel-label {
+  font-family: Consolas, monospace; font-size: 10px;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--gold-dark); margin-bottom: 12px;
+}
+
+.prompt-list { list-style: none; }
+.prompt-list li {
+  font-family: Cambria, serif; font-size: 13px;
+  color: var(--navy); line-height: 1.5;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(26,35,126,0.06);
+}
+.prompt-num {
+  font-family: Consolas, monospace; font-size: 11px;
+  color: var(--gold); margin-right: 6px;
+}
+
+#reflection-text {
+  width: 100%; height: 420px; resize: vertical;
+  padding: 16px; border: 2px solid var(--navy);
+  background: var(--warm-white);
+  font-family: Cambria, serif; font-size: 15px;
+  line-height: 1.7; color: var(--text-dark);
+}
+#reflection-text:focus { outline: none; border-color: var(--gold); }
+.word-count {
+  font-family: Consolas, monospace; font-size: 11px;
+  color: #888; margin-top: 6px;
+}
+
+.pull-quote-card {
+  background: var(--navy); padding: 14px;
+  margin-bottom: 10px;
+}
+.pull-quote-label {
+  font-family: Consolas, monospace; font-size: 9px;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 6px;
+}
+.pull-quote-text {
+  font-family: Cambria, serif; font-size: 13px;
+  color: var(--warm-white); line-height: 1.5;
+  font-style: italic;
+}
+
+/* ═══ MODULE 4: PORTFOLIO GENERATOR ═══ */
+.portfolio-preview {
+  background: #fff; max-width: 800px;
+  margin: 0 auto; padding: 40px;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+}
+.portfolio-cover {
+  text-align: center; padding: 60px 20px;
+  border-bottom: 3px solid var(--gold);
+  margin-bottom: 32px;
+}
+.portfolio-cover h1 {
+  font-family: Cambria, serif; font-size: 28px;
+  color: var(--navy); letter-spacing: 2px;
+  margin-top: 20px;
+}
+.portfolio-cover .cover-student {
+  font-family: Cambria, serif; font-size: 20px;
+  color: var(--gold-dark); margin-top: 12px;
+}
+.portfolio-cover .cover-meta {
+  font-family: Consolas, monospace; font-size: 12px;
+  color: #888; margin-top: 8px;
+}
+.portfolio-section-title {
+  font-family: Cambria, serif; font-size: 18px;
+  color: var(--navy); letter-spacing: 1px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--gold);
+  margin: 28px 0 16px;
+}
+.portfolio-table {
+  width: 100%; border-collapse: collapse;
+  font-size: 13px; margin-bottom: 16px;
+}
+.portfolio-table th {
+  background: var(--navy); color: var(--gold);
+  font-family: 'Century Gothic', sans-serif; font-size: 10px;
+  letter-spacing: 1px; text-transform: uppercase;
+  padding: 8px 10px; text-align: left;
+}
+.portfolio-table td {
+  padding: 8px 10px; border-bottom: 1px solid #eee;
+  font-family: 'Century Gothic', sans-serif;
+}
+.portfolio-evidence-group { margin-bottom: 16px; }
+.portfolio-evidence-group h4 {
+  font-family: Cambria, serif; font-size: 14px;
+  color: var(--navy); margin-bottom: 6px;
+}
+.portfolio-evidence-item {
+  font-size: 12px; line-height: 1.5;
+  padding: 4px 0 4px 16px;
+  position: relative;
+}
+.portfolio-evidence-item::before {
+  content: ''; position: absolute; left: 4px; top: 10px;
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--gold);
+}
+.portfolio-project { font-size: 13px; line-height: 1.7; }
+.portfolio-project dt {
+  font-family: Consolas, monospace; font-size: 11px;
+  letter-spacing: 1px; text-transform: uppercase;
+  color: var(--gold-dark); margin-top: 10px;
+}
+.portfolio-project dd { margin-left: 0; color: var(--text-dark); }
+.portfolio-reflection {
+  font-family: Cambria, serif; font-size: 14px;
+  line-height: 1.8; color: var(--text-dark);
+  white-space: pre-wrap;
+}
+.portfolio-checklist { list-style: none; margin-top: 12px; }
+.portfolio-checklist li {
+  font-size: 13px; padding: 6px 0;
+  border-bottom: 1px solid #eee;
+  display: flex; align-items: flex-start; gap: 8px;
+}
+.portfolio-checklist li::before {
+  content: ''; display: inline-block;
+  width: 14px; height: 14px; flex-shrink: 0;
+  border: 1.5px solid var(--navy); margin-top: 2px;
+}
+.sig-lines {
+  display: flex; gap: 40px; margin-top: 40px;
+}
+.sig-line {
+  flex: 1; padding-top: 30px;
+  border-top: 1px solid var(--text-dark);
+  font-family: Consolas, monospace; font-size: 10px;
+  letter-spacing: 1px; text-transform: uppercase;
+  color: #888;
+}
+
+.print-btn-area { text-align: center; margin-top: 24px; }
+.print-btn {
+  font-family: 'Century Gothic', sans-serif; font-size: 13px;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  padding: 14px 40px; background: var(--navy); color: var(--gold);
+  border: none; cursor: pointer; transition: background 0.2s;
+}
+.print-btn:hover { background: var(--navy-light); }
+
+/* ═══ FOOTER ═══ */
+.app-footer {
+  padding: 20px 40px;
+  font-family: Consolas, monospace; font-size: 10px;
+  color: #999; line-height: 1.5;
+  border-top: 1px solid rgba(26,35,126,0.08);
+}
+
+/* ═══ RESPONSIVE ═══ */
+@media (max-width: 900px) {
+  #app.visible { flex-direction: column; }
+  .left-panel {
+    width: 100%; min-width: 100%; height: auto;
+    position: relative; flex-direction: row; flex-wrap: wrap;
+    gap: 8px; padding: 12px;
+  }
+  .student-info-bar { width: 100%; }
+  .portfolio-label { width: 100%; margin-bottom: 4px; }
+  .port-card { flex: 1; min-width: 140px; }
+  .left-panel-footer { width: 100%; flex-direction: row; display: flex; gap: 8px; }
+  .left-panel-footer button { width: auto; flex: 1; }
+  .module-body { padding: 20px; }
+  .module-header { padding: 20px; }
+  .reflection-panels { flex-direction: column; }
+}
+
+/* ═══ PRINT ═══ */
+@media print {
+  body { background: #fff; }
+  #entry-screen, .left-panel, .module-header, .app-footer,
+  .print-btn-area, .add-evidence-btn, .evidence-form,
+  .form-actions, .evidence-actions { display: none !important; }
+  .right-panel { padding: 0; }
+  .module-body { padding: 0; }
+  .portfolio-preview { box-shadow: none; padding: 20px; }
+  .portfolio-section-title { page-break-before: auto; }
+  .portfolio-cover { page-break-after: always; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════ ENTRY SCREEN — WAX SEAL ═══════ -->
+<div id="entry-screen">
+  <div class="seal-container" onclick="enterApp()">
+    <svg class="seal-svg" viewBox="0 0 260 260" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="sealGrad" cx="50%" cy="45%" r="50%">
+          <stop offset="0%" stop-color="#d4b972"/>
+          <stop offset="100%" stop-color="#a08236"/>
+        </radialGradient>
+      </defs>
+      <!-- Outer ring -->
+      <circle cx="130" cy="130" r="125" fill="none" stroke="#c5a355" stroke-width="3"/>
+      <circle cx="130" cy="130" r="118" fill="none" stroke="#c5a355" stroke-width="1"/>
+      <!-- Decorative notches -->
+      <g id="seal-notches" stroke="#c5a355" stroke-width="1.5">
+        <line x1="130" y1="8" x2="130" y2="18" />
+        <line x1="130" y1="242" x2="130" y2="252" />
+        <line x1="8" y1="130" x2="18" y2="130" />
+        <line x1="242" y1="130" x2="252" y2="130" />
+        <line x1="43" y1="43" x2="50" y2="50" />
+        <line x1="210" y1="43" x2="217" y2="50" />
+        <line x1="43" y1="217" x2="50" y2="210" />
+        <line x1="210" y1="217" x2="217" y2="210" />
+      </g>
+      <!-- Star motif -->
+      <polygon points="130,50 140,90 180,90 148,112 160,152 130,128 100,152 112,112 80,90 120,90"
+               fill="url(#sealGrad)" stroke="#a08236" stroke-width="1"/>
+      <!-- Inner circle for text -->
+      <circle cx="130" cy="130" r="80" fill="none" stroke="rgba(197,163,85,0.3)" stroke-width="1"/>
+      <!-- Curved text paths -->
+      <path id="topArc" d="M 50,130 A 80,80 0 0,1 210,130" fill="none"/>
+      <path id="bottomArc" d="M 210,135 A 80,80 0 0,1 50,135" fill="none"/>
+      <text font-family="Cambria, serif" font-size="11" fill="#c5a355" letter-spacing="3">
+        <textPath href="#topArc" startOffset="50%" text-anchor="middle">MINNESOTA</textPath>
+      </text>
+      <text font-family="Cambria, serif" font-size="10" fill="#c5a355" letter-spacing="2">
+        <textPath href="#bottomArc" startOffset="50%" text-anchor="middle">CIVIC SEAL</textPath>
+      </text>
+      <!-- Student name area -->
+      <text id="seal-student-name" x="130" y="185" text-anchor="middle"
+            font-family="Cambria, serif" font-size="9" fill="rgba(197,163,85,0.6)"
+            letter-spacing="1">STUDENT PORTFOLIO</text>
+    </svg>
+  </div>
+  <div class="seal-title">Seal of Civic Readiness</div>
+  <div class="seal-subtitle">Minnesota Student Portfolio Builder &middot; SF2565</div>
+  <div class="entry-actions">
+    <button class="entry-btn primary" onclick="enterApp()">Begin Portfolio</button>
+    <button class="entry-btn" onclick="loadExample()">Load Example</button>
+  </div>
+</div>
+
+<!-- ═══════ MAIN APPLICATION ═══════ -->
+<div id="app">
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+    <div class="student-info-bar">
+      <label>Student Name</label>
+      <input type="text" id="student-name" placeholder="Your full name" oninput="saveData()">
+      <label>School</label>
+      <input type="text" id="student-school" placeholder="School name (optional)" oninput="saveData()">
+      <label>Academic Year</label>
+      <input type="text" id="student-year" placeholder="e.g. 2027-2028" oninput="saveData()">
+    </div>
+    <div class="portfolio-label">Portfolio Sections</div>
+    <div class="port-card active" data-module="1" onclick="switchModule(1)">
+      <div class="port-card-num">SECTION I</div>
+      <div class="port-card-title">Competency Domains</div>
+      <div class="port-card-status status-empty" id="card-status-1">No entries yet</div>
+    </div>
+    <div class="port-card" data-module="2" onclick="switchModule(2)">
+      <div class="port-card-num">SECTION II</div>
+      <div class="port-card-title">Civics Project</div>
+      <div class="port-card-status status-empty" id="card-status-2">Not started</div>
+    </div>
+    <div class="port-card" data-module="3" onclick="switchModule(3)">
+      <div class="port-card-num">SECTION III</div>
+      <div class="port-card-title">Civic Reflection</div>
+      <div class="port-card-status status-empty" id="card-status-3">Not started</div>
+    </div>
+    <div class="port-card" data-module="4" onclick="switchModule(4)">
+      <div class="port-card-num">SECTION IV</div>
+      <div class="port-card-title">Print Portfolio</div>
+      <div class="port-card-status status-empty" id="card-status-4">Generate &amp; print</div>
+    </div>
+    <div class="left-panel-footer">
+      <button onclick="switchModule(4)">Generate Portfolio</button>
+      <button class="btn-danger" onclick="clearAllData()">Clear All Data</button>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+
+    <!-- MODULE 1: COMPETENCY DOMAIN TRACKER -->
+    <div id="module-1" class="module-panel">
+      <div class="module-header">
+        <h1>Competency Domain Tracker</h1>
+        <p>Document evidence across all five SF2565 competency domains. At least 2 primary entries per domain to show "Ready."</p>
+      </div>
+      <div class="module-body">
+        <div class="domain-summary-bar" id="domain-summary-bar"></div>
+        <div id="domains-container"></div>
+      </div>
+    </div>
+
+    <!-- MODULE 2: CIVICS PROJECT TRACKER -->
+    <div id="module-2" class="module-panel" style="display:none">
+      <div class="module-header">
+        <h1>Civics Project Tracker</h1>
+        <p>SF2565 requires a civics project with research, planning, action, and measurable community impact.</p>
+      </div>
+      <div class="module-body">
+        <div class="phase-bar" id="phase-bar"></div>
+        <div id="phases-container"></div>
+      </div>
+    </div>
+
+    <!-- MODULE 3: CIVIC REFLECTION COMPOSER -->
+    <div id="module-3" class="module-panel" style="display:none">
+      <div class="module-header">
+        <h1>Civic Reflection Composer</h1>
+        <p>Write a reflection on your civic learning, growth, and impact. Suggested minimum: ~300 words. The bill does not set a formal minimum.</p>
+      </div>
+      <div class="module-body">
+        <div class="reflection-panels">
+          <div class="reflection-panel" style="max-width:260px; flex: 0 0 260px;">
+            <div class="reflection-panel-label">Prompts to Consider</div>
+            <ol class="prompt-list">
+              <li><span class="prompt-num">01</span> What did you learn about how your community makes decisions?</li>
+              <li><span class="prompt-num">02</span> Which of the five competency domains challenged you most, and why?</li>
+              <li><span class="prompt-num">03</span> What surprised you about your civics project — what went differently than planned?</li>
+              <li><span class="prompt-num">04</span> How has your understanding of media and information changed?</li>
+              <li><span class="prompt-num">05</span> Describe a moment when you had to listen seriously to a view you disagreed with.</li>
+              <li><span class="prompt-num">06</span> What does democratic engagement mean to you now versus at the start?</li>
+              <li><span class="prompt-num">07</span> How did your project address a real community need? What evidence do you have?</li>
+              <li><span class="prompt-num">08</span> What would you do differently, and what will you carry forward as a citizen?</li>
+            </ol>
+          </div>
+          <div class="reflection-panel" style="flex:2">
+            <div class="reflection-panel-label">Your Reflection</div>
+            <textarea id="reflection-text" placeholder="My civic journey this year taught me that..." maxlength="5000" oninput="onReflectionInput()"></textarea>
+            <div class="word-count" id="word-count">0 words / 5,000 characters</div>
+          </div>
+          <div class="reflection-panel" style="max-width:240px; flex: 0 0 240px;">
+            <div class="reflection-panel-label">Your Work — Pull Quotes</div>
+            <div id="pull-quotes-container">
+              <div style="font-size:12px; color:#999; font-style:italic;">Complete Sections I and II to see pull quotes from your documented work here.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODULE 4: PORTFOLIO GENERATOR -->
+    <div id="module-4" class="module-panel" style="display:none">
+      <div class="module-header">
+        <h1>Portfolio Generator</h1>
+        <p>Review your complete portfolio below, then print or save as PDF.</p>
+      </div>
+      <div class="module-body">
+        <div class="portfolio-preview" id="portfolio-preview"></div>
+        <div class="print-btn-area">
+          <button class="print-btn" onclick="window.print()">Print Portfolio</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="app-footer">
+      Built to support SF2565 (Minnesota Civic Seal). Data stays on your device — nothing is sent to any server. For the class of 2028 and beyond.
+      <!-- VERIFY: SF2565 bill details from software brief — co-authored with Senators Kunesh, Housley, Coleman, Maye Quade; companion HF2372 -->
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════
+   DATA LAYER
+   ═══════════════════════════════════════════ */
+const STORAGE_KEY = 'mn-civic-seal-v1';
+const DOMAIN_KEYS = ['democratic_engagement','civic_knowledge','media_literacy','community_service','bridge_building'];
+const DOMAIN_NAMES = {
+  democratic_engagement: 'Democratic Engagement',
+  civic_knowledge: 'Civic Knowledge',
+  media_literacy: 'Media Literacy',
+  community_service: 'Community Service',
+  bridge_building: 'Bridge-Building'
+};
+const DOMAIN_DESCS = {
+  democratic_engagement: 'Participating in the political and civic life of your community \u2014 voting simulations, attending government meetings, contacting representatives, following legislative processes.',
+  civic_knowledge: 'Understanding how government works at local, state, and federal levels \u2014 constitutional principles, how laws are made, rights and responsibilities of citizenship.',
+  media_literacy: 'Evaluating sources, identifying misinformation, understanding how media shapes public opinion, and distinguishing fact from interpretation.',
+  community_service: 'Volunteering or contributing labor to benefit your school, local neighborhood, or broader community \u2014 logged by hours and organization.',
+  bridge_building: 'Engaging in structured dialogue with people whose backgrounds or views differ from your own \u2014 civil discourse, conflict resolution, perspective-taking.'
+};
+
+function defaultData() {
+  return {
+    student: { name: '', school: '', year: '' },
+    domains: {
+      democratic_engagement: [],
+      civic_knowledge: [],
+      media_literacy: [],
+      community_service: [],
+      bridge_building: []
+    },
+    project: {
+      phase1: { issue: '', community: '', why: '', complete: false },
+      phase2: { summary: '', sources: [{ name: '', url: '', date: '' }], complete: false },
+      phase3: { title: '', action: '', partners: '', startDate: '', endDate: '', complete: false },
+      phase4: { measure: '', result: '', impactSummary: '', complete: false }
+    },
+    reflection: { text: '', lastSaved: null }
+  };
+}
+
+let data = defaultData();
+let saveTimeout = null;
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      data = Object.assign(defaultData(), parsed);
+      // Ensure all domain arrays exist
+      DOMAIN_KEYS.forEach(k => { if (!data.domains[k]) data.domains[k] = []; });
+      if (!data.project.phase2.sources || !data.project.phase2.sources.length)
+        data.project.phase2.sources = [{ name: '', url: '', date: '' }];
+    }
+  } catch(e) { data = defaultData(); }
+}
+
+function saveData() {
+  clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(() => {
+    data.student.name = document.getElementById('student-name').value;
+    data.student.school = document.getElementById('student-school').value;
+    data.student.year = document.getElementById('student-year').value;
+    data.reflection.text = document.getElementById('reflection-text').value;
+    data.reflection.lastSaved = new Date().toISOString();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    updateCardStatuses();
+    updatePullQuotes();
+  }, 300);
+}
+
+function saveImmediate() {
+  data.student.name = document.getElementById('student-name').value;
+  data.student.school = document.getElementById('student-school').value;
+  data.student.year = document.getElementById('student-year').value;
+  data.reflection.text = document.getElementById('reflection-text').value;
+  data.reflection.lastSaved = new Date().toISOString();
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  updateCardStatuses();
+}
+
+/* ═══════════════════════════════════════════
+   ENTRY SCREEN
+   ═══════════════════════════════════════════ */
+function enterApp() {
+  const entry = document.getElementById('entry-screen');
+  entry.classList.add('fade-out');
+  setTimeout(() => {
+    entry.style.display = 'none';
+    document.getElementById('app').classList.add('visible');
+    initApp();
+  }, 600);
+}
+
+function loadExample() {
+  if (localStorage.getItem(STORAGE_KEY)) {
+    if (!confirm('This will replace your current portfolio. Continue?')) return;
+  }
+  data = defaultData();
+  data.student = { name: 'Alex Chen', school: 'Eden Prairie High School', year: '2027-2028' };
+  data.domains.democratic_engagement = [{
+    title: 'Attended Eden Prairie City Council meeting',
+    date: '2025-03-12', hours: '2',
+    description: 'Observed public comment period on new trail development.',
+    isPrimary: true
+  }];
+  data.domains.civic_knowledge = [{
+    title: 'Completed iCivics "Do I Have a Right?" simulation',
+    date: '2025-02-20', hours: '1.5',
+    description: 'Documented 5 constitutional amendments and their court interpretations.',
+    isPrimary: true
+  }];
+  data.domains.media_literacy = [{
+    title: 'Fact-checked local news stories on school board redistricting',
+    date: '2025-03-05', hours: '2',
+    description: 'Used AP fact-check methodology to evaluate three local news stories.',
+    isPrimary: true
+  }];
+  data.domains.community_service = [{
+    title: 'Volunteered at PROP Food Shelf (Eden Prairie)',
+    date: '2025-02-01', hours: '6',
+    description: '6 hours over 3 Saturdays in February 2025.',
+    isPrimary: true
+  }];
+  /* VERIFY: PROP Food Shelf is a real Eden Prairie nonprofit per software brief */
+  data.domains.bridge_building = [{
+    title: 'Socratic seminar on immigration policy',
+    date: '2025-03-15', hours: '1.5',
+    description: 'School-organized seminar with students holding strongly opposing family experiences.',
+    isPrimary: true
+  }];
+  data.project.phase1 = {
+    issue: 'The Eden Prairie Public Library had no teen-accessible voter registration information despite serving hundreds of 17- and 18-year-olds.',
+    community: 'Eden Prairie teens and young voters',
+    why: 'Many of my classmates turn 18 before or during senior year but have no idea how to register. The library is the most-visited public space for teens outside of school.',
+    complete: true
+  };
+  /* VERIFY: Eden Prairie Public Library is a real institution per software brief */
+  data.project.phase2 = {
+    summary: 'Researched Minnesota voter pre-registration rules (eligible at 16, can register at 17 to vote at 18). Found that while the Secretary of State website has registration info, no local physical space in Eden Prairie had teen-focused materials.',
+    sources: [
+      { name: 'Minnesota Secretary of State — Voter Registration', url: 'sos.state.mn.us', date: '2025-01-15' },
+      { name: 'Eden Prairie Library teen services page', url: 'edenprairie.org/library', date: '2025-01-20' }
+    ],
+    complete: true
+  };
+  data.project.phase3 = {
+    title: 'Eden Prairie Library Voter Pre-Registration Display',
+    action: 'Created a bilingual (English/Spanish) voter pre-registration information display and collaborated with library staff to install it permanently.',
+    partners: 'Eden Prairie Public Library, EP High School Civics Club',
+    startDate: '2025-02-01', endDate: '2025-03-15',
+    complete: true
+  };
+  data.project.phase4 = {
+    measure: 'people reached',
+    result: '200+ library visitors in the first month',
+    impactSummary: 'Display reached an estimated 200+ library visitors in its first month. Three students reported using pre-registration forms.',
+    complete: true
+  };
+  data.reflection.text = 'My civic journey this year taught me that democracy is less a system you study than a practice you have to show up for. The hardest part was...';
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  enterApp();
+}
+
+/* ═══════════════════════════════════════════
+   APP INITIALIZATION
+   ═══════════════════════════════════════════ */
+let currentModule = 1;
+
+function initApp() {
+  loadData();
+  document.getElementById('student-name').value = data.student.name;
+  document.getElementById('student-school').value = data.student.school;
+  document.getElementById('student-year').value = data.student.year;
+  document.getElementById('reflection-text').value = data.reflection.text;
+  renderDomainSummary();
+  renderDomains();
+  renderProjectPhases();
+  onReflectionInput();
+  updatePullQuotes();
+  updateCardStatuses();
+  switchModule(1);
+  // Update seal name if student name exists
+  if (data.student.name) {
+    const sn = document.getElementById('seal-student-name');
+    if (sn) sn.textContent = data.student.name.toUpperCase();
+  }
+}
+
+function switchModule(n) {
+  currentModule = n;
+  for (let i = 1; i <= 4; i++) {
+    document.getElementById('module-' + i).style.display = i === n ? 'block' : 'none';
+  }
+  document.querySelectorAll('.port-card').forEach(c => {
+    c.classList.toggle('active', parseInt(c.dataset.module) === n);
+  });
+  if (n === 3) updatePullQuotes();
+  if (n === 4) renderPortfolio();
+}
+
+/* ═══════════════════════════════════════════
+   MODULE 1: DOMAIN TRACKER
+   ═══════════════════════════════════════════ */
+function getDomainStatus(key) {
+  const entries = data.domains[key];
+  const primaryCount = entries.filter(e => e.isPrimary).length;
+  if (primaryCount >= 2) return 'ready';
+  if (entries.length > 0) return 'developing';
+  return 'empty';
+}
+
+function renderDomainSummary() {
+  const bar = document.getElementById('domain-summary-bar');
+  const shortNames = { democratic_engagement:'DE', civic_knowledge:'CK', media_literacy:'ML', community_service:'CS', bridge_building:'BB' };
+  bar.innerHTML = DOMAIN_KEYS.map(k => {
+    const s = getDomainStatus(k);
+    return `<div class="domain-pip ${s === 'ready' ? 'ready' : s === 'developing' ? 'developing' : 'empty'}" onclick="scrollToDomain('${k}')">
+      ${shortNames[k]}
+      <span class="domain-pip-label">${DOMAIN_NAMES[k].split(' ')[0]}</span>
+    </div>`;
+  }).join('');
+}
+
+function scrollToDomain(key) {
+  const el = document.getElementById('domain-' + key);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function renderDomains() {
+  const container = document.getElementById('domains-container');
+  container.innerHTML = DOMAIN_KEYS.map(key => {
+    const status = getDomainStatus(key);
+    const badgeClass = status === 'ready' ? 'badge-ready' : status === 'developing' ? 'badge-developing' : 'badge-insufficient';
+    const badgeText = status === 'ready' ? 'Ready' : status === 'developing' ? 'Developing' : 'Insufficient';
+    const entries = data.domains[key];
+
+    let evidenceHTML = entries.map((e, i) => `
+      <div class="evidence-item">
+        <div class="evidence-marker ${e.isPrimary ? 'marker-primary' : 'marker-supporting'}"></div>
+        <div class="evidence-content">
+          <div class="evidence-title-line">${esc(e.title)} <span style="font-family:Consolas,monospace;font-size:10px;color:${e.isPrimary?'var(--navy)':'var(--gold)'}">${e.isPrimary?'PRIMARY':'SUPPORTING'}</span></div>
+          <div class="evidence-meta">${esc(e.date)} &middot; ${esc(e.hours)} hr</div>
+          <div class="evidence-desc">${esc(e.description)}</div>
+        </div>
+        <div class="evidence-actions">
+          <button onclick="editEvidence('${key}',${i})">edit</button>
+          <button class="del" onclick="deleteEvidence('${key}',${i})">del</button>
+        </div>
+      </div>
+    `).join('');
+
+    return `
+      <div class="domain-section" id="domain-${key}">
+        <div class="domain-title-row">
+          <div class="domain-title">${DOMAIN_NAMES[key]}</div>
+          <div class="domain-badge ${badgeClass}">${badgeText}</div>
+        </div>
+        <div class="domain-desc">${DOMAIN_DESCS[key]}</div>
+        <div class="evidence-list">${evidenceHTML || '<div style="font-size:12px;color:#999;padding:8px 0;">No evidence entries yet.</div>'}</div>
+        <button class="add-evidence-btn" onclick="openEvidenceForm('${key}')">+ Add Evidence</button>
+        <div class="evidence-form" id="form-${key}">
+          <label>Activity Name</label>
+          <input type="text" id="ef-title-${key}" placeholder="What did you do?">
+          <div class="form-row">
+            <div><label>Date</label><input type="date" id="ef-date-${key}"></div>
+            <div><label>Hours</label><input type="number" id="ef-hours-${key}" min="0" step="0.5" placeholder="0"></div>
+          </div>
+          <label>Description</label>
+          <textarea id="ef-desc-${key}" placeholder="Describe what you did and what competency it demonstrated..."></textarea>
+          <label>Classification</label>
+          <select id="ef-primary-${key}">
+            <option value="true">Primary (central to this domain)</option>
+            <option value="false">Supporting (secondary evidence)</option>
+          </select>
+          <input type="hidden" id="ef-edit-idx-${key}" value="-1">
+          <div class="form-actions">
+            <button class="btn-save" onclick="saveEvidence('${key}')">Save Entry</button>
+            <button class="btn-cancel" onclick="closeEvidenceForm('${key}')">Cancel</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function openEvidenceForm(key) {
+  document.getElementById('form-' + key).classList.add('open');
+  document.getElementById('ef-edit-idx-' + key).value = '-1';
+  document.getElementById('ef-title-' + key).value = '';
+  document.getElementById('ef-date-' + key).value = '';
+  document.getElementById('ef-hours-' + key).value = '';
+  document.getElementById('ef-desc-' + key).value = '';
+  document.getElementById('ef-primary-' + key).value = 'true';
+  document.getElementById('ef-title-' + key).focus();
+}
+
+function closeEvidenceForm(key) {
+  document.getElementById('form-' + key).classList.remove('open');
+}
+
+function saveEvidence(key) {
+  const title = document.getElementById('ef-title-' + key).value.trim();
+  if (!title) { alert('Please enter an activity name.'); return; }
+  const entry = {
+    title: title,
+    date: document.getElementById('ef-date-' + key).value,
+    hours: document.getElementById('ef-hours-' + key).value || '0',
+    description: document.getElementById('ef-desc-' + key).value.trim(),
+    isPrimary: document.getElementById('ef-primary-' + key).value === 'true'
+  };
+  const idx = parseInt(document.getElementById('ef-edit-idx-' + key).value);
+  if (idx >= 0) {
+    data.domains[key][idx] = entry;
+  } else {
+    data.domains[key].push(entry);
+  }
+  saveImmediate();
+  closeEvidenceForm(key);
+  renderDomainSummary();
+  renderDomains();
+}
+
+function editEvidence(key, idx) {
+  const e = data.domains[key][idx];
+  openEvidenceForm(key);
+  document.getElementById('ef-edit-idx-' + key).value = idx;
+  document.getElementById('ef-title-' + key).value = e.title;
+  document.getElementById('ef-date-' + key).value = e.date;
+  document.getElementById('ef-hours-' + key).value = e.hours;
+  document.getElementById('ef-desc-' + key).value = e.description;
+  document.getElementById('ef-primary-' + key).value = e.isPrimary ? 'true' : 'false';
+}
+
+function deleteEvidence(key, idx) {
+  if (!confirm('Delete this evidence entry?')) return;
+  data.domains[key].splice(idx, 1);
+  saveImmediate();
+  renderDomainSummary();
+  renderDomains();
+}
+
+/* ═══════════════════════════════════════════
+   MODULE 2: PROJECT TRACKER
+   ═══════════════════════════════════════════ */
+function renderProjectPhases() {
+  // Phase bar
+  const bar = document.getElementById('phase-bar');
+  let barHTML = '';
+  for (let i = 1; i <= 4; i++) {
+    const phase = data.project['phase' + i];
+    const complete = phase.complete;
+    barHTML += `<div class="phase-pip ${complete ? 'complete' : (i === 1 || data.project['phase'+(i-1)].complete ? 'current' : '')}">${i}</div>`;
+    if (i < 4) barHTML += `<div class="phase-connector ${complete ? 'complete' : ''}"></div>`;
+  }
+  bar.innerHTML = barHTML;
+
+  // Phase sections
+  const container = document.getElementById('phases-container');
+  const phaseLabels = ['PHASE 1 — IDENTIFY','PHASE 2 — RESEARCH','PHASE 3 — PLAN & ACT','PHASE 4 — MEASURE'];
+  const phaseTitles = ['Issue Selection','Background & Evidence','Project Design and Execution','Impact Evidence'];
+
+  let html = '';
+
+  // Phase 1
+  const p1 = data.project.phase1;
+  html += `<div class="phase-section ${p1.complete ? 'complete-phase' : 'unlocked'}">
+    <div class="phase-label">${phaseLabels[0]}</div>
+    <div class="phase-title">${phaseTitles[0]}</div>
+    <label>What community problem are you addressing?</label>
+    <textarea id="p1-issue" oninput="saveProject()">${esc(p1.issue)}</textarea>
+    <label>Community affected</label>
+    <input type="text" id="p1-community" value="${esc(p1.community)}" oninput="saveProject()">
+    <label>Why this issue matters to you (2-3 sentences)</label>
+    <textarea id="p1-why" oninput="saveProject()">${esc(p1.why)}</textarea>
+    <label class="phase-check"><input type="checkbox" id="p1-complete" ${p1.complete?'checked':''} onchange="saveProject()"><span>Issue identified</span></label>
+  </div>`;
+
+  // Phase 2
+  const p2 = data.project.phase2;
+  const unlocked2 = p1.complete;
+  html += `<div class="phase-section ${p2.complete ? 'complete-phase' : unlocked2 ? 'unlocked' : ''}">
+    <div class="phase-label">${phaseLabels[1]}</div>
+    <div class="phase-title">${phaseTitles[1]}</div>
+    <label>Summary of what you learned</label>
+    <textarea id="p2-summary" oninput="saveProject()">${esc(p2.summary)}</textarea>
+    <label>Sources</label>
+    <div id="p2-sources-list">${renderSources(p2.sources)}</div>
+    <button class="add-source-btn" onclick="addSource()">+ Add Source</button>
+    <label class="phase-check"><input type="checkbox" id="p2-complete" ${p2.complete?'checked':''} onchange="saveProject()"><span>Research complete</span></label>
+  </div>`;
+
+  // Phase 3
+  const p3 = data.project.phase3;
+  const unlocked3 = p2.complete;
+  html += `<div class="phase-section ${p3.complete ? 'complete-phase' : unlocked3 ? 'unlocked' : ''}">
+    <div class="phase-label">${phaseLabels[2]}</div>
+    <div class="phase-title">${phaseTitles[2]}</div>
+    <label>Project title</label>
+    <input type="text" id="p3-title" value="${esc(p3.title)}" oninput="saveProject()" placeholder='e.g. "Eden Prairie Food Shelf Drive"'>
+    <label>What action did you take?</label>
+    <textarea id="p3-action" oninput="saveProject()">${esc(p3.action)}</textarea>
+    <label>Partners or organizations involved</label>
+    <input type="text" id="p3-partners" value="${esc(p3.partners)}" oninput="saveProject()">
+    <div class="form-row">
+      <div><label>Start date</label><input type="date" id="p3-start" value="${p3.startDate}" oninput="saveProject()"></div>
+      <div><label>End date</label><input type="date" id="p3-end" value="${p3.endDate}" oninput="saveProject()"></div>
+    </div>
+    <label class="phase-check"><input type="checkbox" id="p3-complete" ${p3.complete?'checked':''} onchange="saveProject()"><span>Action completed</span></label>
+  </div>`;
+
+  // Phase 4
+  const p4 = data.project.phase4;
+  const unlocked4 = p3.complete;
+  html += `<div class="phase-section ${p4.complete ? 'complete-phase' : unlocked4 ? 'unlocked' : ''}">
+    <div class="phase-label">${phaseLabels[3]}</div>
+    <div class="phase-title">${phaseTitles[3]}</div>
+    <label>How did you measure impact?</label>
+    <select id="p4-measure" onchange="saveProject()">
+      <option value="">Select a metric...</option>
+      <option value="people reached" ${p4.measure==='people reached'?'selected':''}>People reached</option>
+      <option value="hours logged" ${p4.measure==='hours logged'?'selected':''}>Hours logged</option>
+      <option value="funds raised" ${p4.measure==='funds raised'?'selected':''}>Funds raised</option>
+      <option value="policy change" ${p4.measure==='policy change'?'selected':''}>Policy change</option>
+      <option value="awareness metric" ${p4.measure==='awareness metric'?'selected':''}>Awareness metric</option>
+      <option value="other" ${p4.measure==='other'?'selected':''}>Other</option>
+    </select>
+    <label>Impact result</label>
+    <input type="text" id="p4-result" value="${esc(p4.result)}" oninput="saveProject()" placeholder='e.g. "47 people / $830 raised / 3 school policies"'>
+    <label>One-sentence impact summary</label>
+    <textarea id="p4-impact" oninput="saveProject()" placeholder="This becomes a pull quote in your printed portfolio.">${esc(p4.impactSummary)}</textarea>
+    <label class="phase-check"><input type="checkbox" id="p4-complete" ${p4.complete?'checked':''} onchange="saveProject()"><span>Impact documented</span></label>
+  </div>`;
+
+  container.innerHTML = html;
+}
+
+function renderSources(sources) {
+  return sources.map((s, i) => `
+    <div class="source-entry">
+      <input type="text" placeholder="Source name" value="${esc(s.name)}" oninput="updateSource(${i},'name',this.value)">
+      <input type="text" placeholder="URL or description" value="${esc(s.url)}" oninput="updateSource(${i},'url',this.value)">
+      <input type="date" value="${s.date}" oninput="updateSource(${i},'date',this.value)" style="max-width:150px">
+      ${sources.length > 1 ? `<button class="source-remove" onclick="removeSource(${i})">x</button>` : ''}
+    </div>
+  `).join('');
+}
+
+function addSource() {
+  if (data.project.phase2.sources.length >= 8) { alert('Maximum 8 sources.'); return; }
+  data.project.phase2.sources.push({ name: '', url: '', date: '' });
+  saveImmediate();
+  renderProjectPhases();
+}
+
+function removeSource(i) {
+  data.project.phase2.sources.splice(i, 1);
+  saveImmediate();
+  renderProjectPhases();
+}
+
+function updateSource(i, field, val) {
+  data.project.phase2.sources[i][field] = val;
+  saveData();
+}
+
+function saveProject() {
+  clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(() => {
+    data.project.phase1 = {
+      issue: document.getElementById('p1-issue').value,
+      community: document.getElementById('p1-community').value,
+      why: document.getElementById('p1-why').value,
+      complete: document.getElementById('p1-complete').checked
+    };
+    data.project.phase2.summary = document.getElementById('p2-summary').value;
+    data.project.phase2.complete = document.getElementById('p2-complete').checked;
+    data.project.phase3 = {
+      title: document.getElementById('p3-title').value,
+      action: document.getElementById('p3-action').value,
+      partners: document.getElementById('p3-partners').value,
+      startDate: document.getElementById('p3-start').value,
+      endDate: document.getElementById('p3-end').value,
+      complete: document.getElementById('p3-complete').checked
+    };
+    data.project.phase4 = {
+      measure: document.getElementById('p4-measure').value,
+      result: document.getElementById('p4-result').value,
+      impactSummary: document.getElementById('p4-impact').value,
+      complete: document.getElementById('p4-complete').checked
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    updateCardStatuses();
+    // Re-render to update visual states
+    renderProjectPhases();
+  }, 300);
+}
+
+/* ═══════════════════════════════════════════
+   MODULE 3: REFLECTION
+   ═══════════════════════════════════════════ */
+function onReflectionInput() {
+  const text = document.getElementById('reflection-text').value;
+  const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+  const chars = text.length;
+  document.getElementById('word-count').textContent = `${words} word${words!==1?'s':''} / ${chars.toLocaleString()} of 5,000 characters` + (words < 300 ? '  (suggested minimum: ~300 words)' : '');
+  saveData();
+}
+
+function updatePullQuotes() {
+  const container = document.getElementById('pull-quotes-container');
+  let cards = [];
+
+  // Impact summary from Module 2
+  if (data.project.phase4.impactSummary) {
+    cards.push(`<div class="pull-quote-card">
+      <div class="pull-quote-label">Project Impact</div>
+      <div class="pull-quote-text">"${esc(data.project.phase4.impactSummary)}"</div>
+    </div>`);
+  }
+
+  // Top 2 primary evidence entries
+  let primaryEntries = [];
+  DOMAIN_KEYS.forEach(k => {
+    data.domains[k].forEach(e => {
+      if (e.isPrimary && e.description) primaryEntries.push({ domain: DOMAIN_NAMES[k], ...e });
+    });
+  });
+  primaryEntries.slice(0, 2).forEach(e => {
+    cards.push(`<div class="pull-quote-card">
+      <div class="pull-quote-label">${esc(e.domain)}</div>
+      <div class="pull-quote-text">You wrote: "${esc(e.description)}"</div>
+    </div>`);
+  });
+
+  container.innerHTML = cards.length ? cards.join('') :
+    '<div style="font-size:12px;color:#999;font-style:italic;">Complete Sections I and II to see pull quotes from your documented work here.</div>';
+}
+
+/* ═══════════════════════════════════════════
+   MODULE 4: PORTFOLIO GENERATOR
+   ═══════════════════════════════════════════ */
+function renderPortfolio() {
+  const pp = document.getElementById('portfolio-preview');
+  const name = data.student.name || 'Student Name';
+  const school = data.student.school || '';
+  const year = data.student.year || '';
+  const today = new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+
+  // Cover page with inline seal SVG
+  let html = `
+    <div class="portfolio-cover">
+      <svg width="120" height="120" viewBox="0 0 260 260" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="130" cy="130" r="125" fill="none" stroke="#c5a355" stroke-width="3"/>
+        <circle cx="130" cy="130" r="118" fill="none" stroke="#c5a355" stroke-width="1"/>
+        <polygon points="130,50 140,90 180,90 148,112 160,152 130,128 100,152 112,112 80,90 120,90"
+                 fill="#c5a355" stroke="#a08236" stroke-width="1"/>
+        <circle cx="130" cy="130" r="80" fill="none" stroke="rgba(197,163,85,0.3)" stroke-width="1"/>
+        <path id="pTopArc" d="M 50,130 A 80,80 0 0,1 210,130" fill="none"/>
+        <path id="pBotArc" d="M 210,135 A 80,80 0 0,1 50,135" fill="none"/>
+        <text font-family="Cambria,serif" font-size="11" fill="#c5a355" letter-spacing="3">
+          <textPath href="#pTopArc" startOffset="50%" text-anchor="middle">MINNESOTA</textPath>
+        </text>
+        <text font-family="Cambria,serif" font-size="10" fill="#c5a355" letter-spacing="2">
+          <textPath href="#pBotArc" startOffset="50%" text-anchor="middle">CIVIC SEAL</textPath>
+        </text>
+      </svg>
+      <h1>Minnesota Civic Seal<br>Portfolio of Evidence</h1>
+      <div class="cover-student">${esc(name)}</div>
+      <div class="cover-meta">${school ? esc(school) + ' &middot; ' : ''}${year ? esc(year) + ' &middot; ' : ''}Generated ${today}</div>
+      <div class="cover-meta" style="margin-top:4px;">Prepared under Minnesota Statute establishing the Civic Seal, enacted pursuant to SF2565 (94th Legislature)</div>
+    </div>
+  `;
+
+  // Section 2: Competency Domain Summary
+  html += `<div class="portfolio-section-title">Competency Domain Summary</div>
+    <table class="portfolio-table">
+      <thead><tr><th>Domain</th><th>Entries</th><th>Status</th><th>Primary Evidence</th></tr></thead>
+      <tbody>`;
+  DOMAIN_KEYS.forEach(k => {
+    const entries = data.domains[k];
+    const status = getDomainStatus(k);
+    const statusLabel = status === 'ready' ? 'Ready' : status === 'developing' ? 'Developing' : 'Insufficient';
+    const primaries = entries.filter(e => e.isPrimary).map(e => esc(e.title)).join('; ') || '—';
+    html += `<tr><td>${DOMAIN_NAMES[k]}</td><td style="font-family:Consolas,monospace;text-align:center;">${entries.length}</td><td>${statusLabel}</td><td style="font-size:11px;">${primaries}</td></tr>`;
+  });
+  html += `</tbody></table>
+    <div style="font-size:11px;color:#888;margin-bottom:16px;">Readiness threshold: at least 2 primary entries per domain. Actual school/task force standard may differ.</div>`;
+
+  // Section 3: Full Evidence Log
+  html += `<div class="portfolio-section-title">Evidence Log</div>`;
+  DOMAIN_KEYS.forEach(k => {
+    const entries = data.domains[k];
+    if (entries.length === 0) return;
+    html += `<div class="portfolio-evidence-group"><h4>${DOMAIN_NAMES[k]}</h4>`;
+    entries.forEach(e => {
+      html += `<div class="portfolio-evidence-item"><strong>${esc(e.title)}</strong> &middot; ${esc(e.date)} &middot; ${esc(e.hours)} hr ${e.isPrimary ? '(Primary)' : '(Supporting)'}<br>${esc(e.description)}</div>`;
+    });
+    html += `</div>`;
+  });
+
+  // Section 4: Civics Project Summary
+  html += `<div class="portfolio-section-title">Civics Project Summary</div><dl class="portfolio-project">`;
+  if (data.project.phase1.issue) {
+    html += `<dt>Issue</dt><dd>${esc(data.project.phase1.issue)}</dd>`;
+    html += `<dt>Community</dt><dd>${esc(data.project.phase1.community)}</dd>`;
+    html += `<dt>Why It Matters</dt><dd>${esc(data.project.phase1.why)}</dd>`;
+  }
+  if (data.project.phase2.summary) {
+    html += `<dt>Research Summary</dt><dd>${esc(data.project.phase2.summary)}</dd>`;
+    const validSources = data.project.phase2.sources.filter(s => s.name);
+    if (validSources.length) {
+      html += `<dt>Sources</dt><dd>${validSources.map(s => esc(s.name) + (s.url ? ' (' + esc(s.url) + ')' : '')).join('; ')}</dd>`;
+    }
+  }
+  if (data.project.phase3.title) {
+    html += `<dt>Project Title</dt><dd>${esc(data.project.phase3.title)}</dd>`;
+    html += `<dt>Action Taken</dt><dd>${esc(data.project.phase3.action)}</dd>`;
+    html += `<dt>Partners</dt><dd>${esc(data.project.phase3.partners)}</dd>`;
+    html += `<dt>Timeline</dt><dd>${data.project.phase3.startDate} to ${data.project.phase3.endDate}</dd>`;
+  }
+  if (data.project.phase4.result) {
+    html += `<dt>Measurement</dt><dd>${esc(data.project.phase4.measure)}</dd>`;
+    html += `<dt>Impact Result</dt><dd>${esc(data.project.phase4.result)}</dd>`;
+    html += `<dt>Impact Summary</dt><dd><strong>${esc(data.project.phase4.impactSummary)}</strong></dd>`;
+  }
+  html += `</dl>`;
+
+  // Section 5: Civic Reflection
+  html += `<div class="portfolio-section-title">Civic Reflection</div>`;
+  const reflText = data.reflection.text || '(No reflection written yet.)';
+  html += `<div style="font-size:12px;color:#888;margin-bottom:4px;">${esc(name)}${year ? ' &middot; ' + esc(year) : ''}</div>`;
+  html += `<div class="portfolio-reflection">${esc(reflText)}</div>`;
+
+  // Section 6: Self-Assessment Checklist
+  html += `<div class="portfolio-section-title">Self-Assessment Checklist</div>
+    <ul class="portfolio-checklist">
+      <li>I have documented evidence in all five competency domains</li>
+      <li>My civics project addressed a real community issue</li>
+      <li>My project included research, action, and measurable impact</li>
+      <li>I have written a reflection on my learning and growth</li>
+      <li>I understand that my school will record this seal on my transcript if awarded</li>
+    </ul>
+    <div class="sig-lines">
+      <div class="sig-line">Student Signature / Date</div>
+      <div class="sig-line">Teacher / Advisor Signature / Date</div>
+    </div>`;
+
+  pp.innerHTML = html;
+}
+
+/* ═══════════════════════════════════════════
+   CARD STATUS UPDATES
+   ═══════════════════════════════════════════ */
+function updateCardStatuses() {
+  // Module 1
+  const totalEntries = DOMAIN_KEYS.reduce((sum, k) => sum + data.domains[k].length, 0);
+  const readyCount = DOMAIN_KEYS.filter(k => getDomainStatus(k) === 'ready').length;
+  const card1 = document.getElementById('card-status-1');
+  const cardEl1 = card1.closest('.port-card');
+  if (totalEntries === 0) {
+    card1.textContent = 'No entries yet';
+    card1.className = 'port-card-status status-empty';
+    cardEl1.classList.remove('has-data');
+  } else {
+    card1.textContent = `${totalEntries} entries \u00B7 ${readyCount}/5 domains ready`;
+    card1.className = 'port-card-status ' + (readyCount === 5 ? 'status-ready' : 'status-progress');
+    cardEl1.classList.add('has-data');
+  }
+
+  // Module 2
+  const phasesComplete = [1,2,3,4].filter(i => data.project['phase'+i].complete).length;
+  const card2 = document.getElementById('card-status-2');
+  const cardEl2 = card2.closest('.port-card');
+  if (phasesComplete === 0) {
+    card2.textContent = 'Not started';
+    card2.className = 'port-card-status status-empty';
+    cardEl2.classList.remove('has-data');
+  } else {
+    card2.textContent = `${phasesComplete}/4 phases complete`;
+    card2.className = 'port-card-status ' + (phasesComplete === 4 ? 'status-ready' : 'status-progress');
+    cardEl2.classList.add('has-data');
+  }
+
+  // Module 3
+  const wordCount = data.reflection.text.trim() ? data.reflection.text.trim().split(/\s+/).length : 0;
+  const card3 = document.getElementById('card-status-3');
+  const cardEl3 = card3.closest('.port-card');
+  if (wordCount === 0) {
+    card3.textContent = 'Not started';
+    card3.className = 'port-card-status status-empty';
+    cardEl3.classList.remove('has-data');
+  } else {
+    card3.textContent = `${wordCount} words`;
+    card3.className = 'port-card-status ' + (wordCount >= 300 ? 'status-ready' : 'status-progress');
+    cardEl3.classList.add('has-data');
+  }
+
+  // Module 4 — static
+  const card4 = document.getElementById('card-status-4');
+  card4.textContent = 'Generate & print';
+  card4.className = 'port-card-status status-empty';
+}
+
+/* ═══════════════════════════════════════════
+   UTILITY
+   ═══════════════════════════════════════════ */
+function esc(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function clearAllData() {
+  if (!confirm('This will permanently delete all portfolio data. Are you sure?')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  data = defaultData();
+  document.getElementById('student-name').value = '';
+  document.getElementById('student-school').value = '';
+  document.getElementById('student-year').value = '';
+  document.getElementById('reflection-text').value = '';
+  renderDomainSummary();
+  renderDomains();
+  renderProjectPhases();
+  onReflectionInput();
+  updatePullQuotes();
+  updateCardStatuses();
+  switchModule(1);
+}
+
+// Auto-load if returning user
+window.addEventListener('DOMContentLoaded', () => {
+  if (localStorage.getItem(STORAGE_KEY)) {
+    // Returning user — update seal name
+    try {
+      const d = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      if (d.student && d.student.name) {
+        document.getElementById('seal-student-name').textContent = d.student.name.toUpperCase();
+      }
+    } catch(e) {}
+  }
+});
+</script>
+</body>
+</html>

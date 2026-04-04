@@ -1,0 +1,1469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intersection Safety Scorer — SD-32</title>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Vertical scorecard — full-width horizontal bands alternating black/yellow (caution tape). Scrollable sidebar nav on left (200px, black bg) collapses to dropdown on mobile.
+   2. Navigation: Intersection list sidebar on left; modules advance via sidebar clicks. Collapses to top dropdown on mobile.
+   3. Typography: Century Gothic (headers), Trebuchet MS (body/labels), Consolas (data/numbers) — exact trio from mandatory assignments.
+   4. Hero moment: Giant SVG top-down 4-way intersection diagram with animated crash hotspot heat markers, dominating viewport.
+   5. Color strategy: #6 Color-blocked sections — CAUTION TAPE. Alternating black (#1a1a1a) and warning yellow (#ffc107) bands. White text on black, black text on yellow. Sharp, utilitarian.
+   6. Entry experience: Flashing amber warning light SVG pulses 3 times then fades to reveal tool title.
+   Additional: No bordered callout boxes. No parchment. No emoji icons. Dense data tables. Environmental color use (50%+ of page is saturated color).
+*/
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --black: #1a1a1a;
+  --yellow: #ffc107;
+  --yellow-dark: #e0a800;
+  --white: #ffffff;
+  --gray: #6B7280;
+  --highway-blue: #1D4E89;
+  --evergreen: #1B4332;
+  --red: #9B1C1C;
+  --red-bright: #dc2626;
+  --green: #166534;
+  --green-bright: #22c55e;
+  --yellow-status: #B45309;
+}
+
+body {
+  font-family: 'Trebuchet MS', 'Lucida Grande', sans-serif;
+  background: var(--black);
+  color: var(--white);
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+/* === ENTRY EXPERIENCE: FLASHING AMBER LIGHT === */
+#entry-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: var(--black);
+  display: flex; align-items: center; justify-content: center; flex-direction: column;
+  transition: opacity 0.8s ease;
+}
+#entry-overlay.fade-out { opacity: 0; pointer-events: none; }
+#entry-overlay svg { width: 120px; height: 120px; }
+#amber-glow { animation: pulse-amber 0.6s ease-in-out 3; fill: #ffc107; }
+@keyframes pulse-amber {
+  0%, 100% { opacity: 0.15; filter: drop-shadow(0 0 2px #ffc107); }
+  50% { opacity: 1; filter: drop-shadow(0 0 40px #ffc107) drop-shadow(0 0 80px #ffa000); }
+}
+#entry-title {
+  font-family: 'Century Gothic', 'Apple Gothic', sans-serif;
+  font-size: 28px; letter-spacing: 6px; text-transform: uppercase;
+  color: var(--yellow); margin-top: 30px;
+  opacity: 0; animation: title-in 0.6s ease forwards 1.9s;
+}
+@keyframes title-in { to { opacity: 1; } }
+
+/* === MAIN LAYOUT === */
+#app { display: none; }
+#app.visible { display: flex; min-height: 100vh; }
+
+/* === SIDEBAR NAV === */
+#sidebar {
+  width: 220px; min-width: 220px; background: var(--black);
+  border-right: 3px solid var(--yellow);
+  position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  display: flex; flex-direction: column;
+}
+#sidebar-header {
+  padding: 18px 14px 12px;
+  background: var(--yellow); color: var(--black);
+  font-family: 'Century Gothic', 'Apple Gothic', sans-serif;
+  font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
+}
+.nav-section-label {
+  padding: 14px 14px 6px;
+  font-family: 'Century Gothic', 'Apple Gothic', sans-serif;
+  font-size: 9px; letter-spacing: 2.5px; text-transform: uppercase;
+  color: var(--yellow); opacity: 0.7;
+}
+.nav-btn {
+  display: block; width: 100%; text-align: left;
+  padding: 10px 14px; border: none; background: transparent;
+  color: var(--gray); font-family: 'Trebuchet MS', sans-serif;
+  font-size: 13px; cursor: pointer; transition: all 0.15s;
+  border-left: 3px solid transparent;
+}
+.nav-btn:hover { color: var(--white); background: rgba(255,193,7,0.06); }
+.nav-btn.active {
+  color: var(--yellow); border-left-color: var(--yellow);
+  background: rgba(255,193,7,0.1); font-weight: 700;
+}
+.nav-btn .nav-num {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 10px; color: var(--yellow); margin-right: 6px; opacity: 0.6;
+}
+#load-example-btn {
+  margin: auto 14px 14px; padding: 10px;
+  background: var(--yellow); color: var(--black);
+  border: none; font-family: 'Century Gothic', 'Apple Gothic', sans-serif;
+  font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  cursor: pointer; transition: background 0.15s;
+}
+#load-example-btn:hover { background: var(--yellow-dark); }
+#mobile-dropdown {
+  display: none; width: 100%; padding: 10px 14px;
+  background: var(--yellow); color: var(--black);
+  border: none; font-family: 'Century Gothic', sans-serif;
+  font-size: 13px; font-weight: 700;
+}
+
+/* === MAIN CONTENT === */
+#main { flex: 1; overflow-y: auto; }
+
+/* === BAND SYSTEM (caution tape) === */
+.band-black {
+  background: var(--black); color: var(--white);
+  padding: 32px 40px;
+}
+.band-yellow {
+  background: var(--yellow); color: var(--black);
+  padding: 32px 40px;
+}
+.band-black + .band-black { border-top: 2px solid rgba(255,193,7,0.15); }
+.band-yellow + .band-yellow { border-top: 2px solid rgba(0,0,0,0.1); }
+
+.band-title {
+  font-family: 'Century Gothic', 'Apple Gothic', sans-serif;
+  font-size: 13px; letter-spacing: 4px; text-transform: uppercase;
+  margin-bottom: 16px; font-weight: 700;
+}
+.band-black .band-title { color: var(--yellow); }
+.band-yellow .band-title { color: var(--black); }
+
+/* === HERO INTERSECTION SVG === */
+#hero-band { padding: 40px; text-align: center; position: relative; }
+#hero-band .hero-label {
+  font-family: 'Century Gothic', 'Apple Gothic', sans-serif;
+  font-size: 40px; letter-spacing: 8px; text-transform: uppercase;
+  color: var(--yellow); margin-bottom: 6px; line-height: 1.1;
+}
+#hero-band .hero-sub {
+  font-family: 'Trebuchet MS', sans-serif;
+  font-size: 14px; color: var(--gray); margin-bottom: 24px;
+}
+#intersection-svg { max-width: 520px; width: 100%; height: auto; }
+.heat-dot { animation: heat-pulse 2s ease-in-out infinite; }
+.heat-dot:nth-child(2) { animation-delay: 0.4s; }
+.heat-dot:nth-child(3) { animation-delay: 0.8s; }
+.heat-dot:nth-child(4) { animation-delay: 1.2s; }
+@keyframes heat-pulse {
+  0%, 100% { opacity: 0.4; r: 12; }
+  50% { opacity: 0.9; r: 20; }
+}
+
+/* === MODULE PANELS === */
+.module-panel { display: none; }
+.module-panel.active { display: block; }
+
+/* === FORM STYLING === */
+label {
+  display: block; font-size: 12px; letter-spacing: 1px; text-transform: uppercase;
+  font-family: 'Century Gothic', 'Apple Gothic', sans-serif;
+  margin-bottom: 4px; font-weight: 700;
+}
+.band-black label { color: var(--yellow); }
+.band-yellow label { color: var(--black); }
+
+input[type="text"], input[type="number"], select, textarea {
+  width: 100%; padding: 8px 10px;
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 14px; border: 2px solid var(--yellow);
+  background: rgba(0,0,0,0.85); color: var(--yellow);
+  outline: none; transition: border-color 0.15s;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--white); }
+.band-yellow input, .band-yellow select, .band-yellow textarea {
+  background: var(--black); color: var(--yellow);
+}
+select option { background: var(--black); color: var(--yellow); }
+
+.input-row { display: flex; gap: 16px; margin-bottom: 14px; flex-wrap: wrap; }
+.input-group { flex: 1; min-width: 140px; }
+.input-group.full { flex-basis: 100%; }
+
+.help-text {
+  font-size: 11px; margin-top: 3px; opacity: 0.7;
+  font-family: 'Trebuchet MS', sans-serif;
+}
+
+/* === KABCO GRID === */
+.kabco-grid {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;
+  margin-bottom: 14px;
+}
+.kabco-cell {
+  text-align: center; padding: 8px 4px;
+  border: 2px solid var(--yellow); background: rgba(0,0,0,0.7);
+}
+.kabco-cell .kabco-letter {
+  font-family: Consolas, monospace; font-size: 22px; font-weight: 700;
+  color: var(--yellow); display: block;
+}
+.kabco-cell .kabco-label {
+  font-size: 9px; letter-spacing: 0.5px; color: var(--gray);
+  display: block; margin-bottom: 4px;
+}
+.kabco-cell input {
+  width: 60px; margin: 0 auto; text-align: center;
+  padding: 6px 4px; font-size: 16px;
+}
+
+/* === CHECKBOX STYLED === */
+.crash-type-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 6px; margin-bottom: 14px;
+}
+.crash-type-grid label {
+  display: flex; align-items: center; gap: 8px;
+  text-transform: none; letter-spacing: 0; font-size: 13px;
+  font-family: 'Trebuchet MS', sans-serif; font-weight: 400;
+  cursor: pointer; padding: 6px 8px;
+  border: 1px solid rgba(255,193,7,0.2);
+  transition: background 0.1s;
+}
+.crash-type-grid label:hover { background: rgba(255,193,7,0.08); }
+input[type="checkbox"] {
+  accent-color: var(--yellow); width: 16px; height: 16px;
+  cursor: pointer;
+}
+
+/* === RESULTS OUTPUT === */
+.results-strip {
+  display: flex; gap: 0; flex-wrap: wrap;
+  border: 2px solid var(--yellow); margin: 16px 0;
+}
+.result-cell {
+  flex: 1; min-width: 120px; padding: 14px 16px;
+  border-right: 1px solid rgba(255,193,7,0.3);
+  text-align: center;
+}
+.result-cell:last-child { border-right: none; }
+.result-val {
+  font-family: Consolas, monospace; font-size: 26px; font-weight: 700;
+  display: block; line-height: 1.2;
+}
+.result-label {
+  font-size: 10px; letter-spacing: 1px; text-transform: uppercase;
+  font-family: 'Century Gothic', sans-serif; opacity: 0.7;
+  display: block; margin-top: 4px;
+}
+.band-black .result-cell { background: rgba(255,193,7,0.05); }
+.band-yellow .result-cell { background: rgba(0,0,0,0.06); }
+
+.flag-green { color: var(--green-bright); }
+.flag-yellow { color: var(--yellow-status); }
+.flag-red { color: var(--red-bright); }
+
+/* === CMF TABLE === */
+.cmf-table {
+  width: 100%; border-collapse: collapse; margin: 14px 0;
+  font-size: 13px;
+}
+.cmf-table th {
+  font-family: 'Century Gothic', sans-serif; font-size: 10px;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  padding: 10px 8px; text-align: left;
+  border-bottom: 2px solid var(--yellow);
+}
+.cmf-table td {
+  padding: 10px 8px; border-bottom: 1px solid rgba(255,193,7,0.15);
+  vertical-align: top;
+}
+.band-yellow .cmf-table th { border-bottom-color: var(--black); }
+.band-yellow .cmf-table td { border-bottom-color: rgba(0,0,0,0.15); }
+.cmf-table tr:hover td { background: rgba(255,193,7,0.06); }
+.band-yellow .cmf-table tr:hover td { background: rgba(0,0,0,0.05); }
+.cmf-table .mono {
+  font-family: Consolas, monospace; font-weight: 700;
+}
+.cmf-cat-header td {
+  font-family: 'Century Gothic', sans-serif; font-size: 10px;
+  letter-spacing: 2px; text-transform: uppercase;
+  padding: 16px 8px 6px; font-weight: 700;
+  border-bottom: none;
+}
+.band-black .cmf-cat-header td { color: var(--yellow); }
+.stars { color: var(--yellow); letter-spacing: 2px; }
+.band-yellow .stars { color: var(--black); }
+
+/* === CMF SUMMARY === */
+.cmf-summary {
+  display: flex; gap: 0; border: 3px solid var(--yellow);
+  margin: 18px 0; flex-wrap: wrap;
+}
+.band-yellow .cmf-summary { border-color: var(--black); }
+.cmf-summary-cell {
+  flex: 1; min-width: 140px; padding: 16px;
+  text-align: center;
+  border-right: 1px solid rgba(255,193,7,0.3);
+}
+.cmf-summary-cell:last-child { border-right: none; }
+.cmf-big {
+  font-family: Consolas, monospace; font-size: 32px; font-weight: 700;
+  display: block;
+}
+
+/* === BC RATIO HERO === */
+#bc-hero {
+  text-align: center; padding: 48px 40px;
+  background: var(--black); border: 4px solid var(--yellow);
+  margin: 20px 0; position: relative;
+}
+#bc-hero::before, #bc-hero::after {
+  content: ''; position: absolute; left: 0; right: 0; height: 4px;
+  background: repeating-linear-gradient(90deg, var(--yellow) 0, var(--yellow) 20px, var(--black) 20px, var(--black) 40px);
+}
+#bc-hero::before { top: -8px; }
+#bc-hero::after { bottom: -8px; }
+#bc-ratio-value {
+  font-family: Consolas, monospace; font-size: 72px; font-weight: 700;
+  line-height: 1;
+}
+#bc-ratio-label {
+  font-family: 'Century Gothic', sans-serif;
+  font-size: 12px; letter-spacing: 4px; text-transform: uppercase;
+  margin-top: 8px; color: var(--gray);
+}
+#bc-status {
+  font-family: 'Century Gothic', sans-serif;
+  font-size: 14px; letter-spacing: 2px; text-transform: uppercase;
+  margin-top: 12px; font-weight: 700;
+}
+
+/* === NARRATIVE === */
+#narrative-toggle {
+  display: block; width: 100%; padding: 14px 20px;
+  background: var(--yellow); color: var(--black);
+  border: none; font-family: 'Century Gothic', sans-serif;
+  font-size: 12px; letter-spacing: 3px; text-transform: uppercase;
+  font-weight: 700; cursor: pointer; text-align: left;
+  transition: background 0.15s;
+}
+#narrative-toggle:hover { background: var(--yellow-dark); }
+#narrative-toggle .arrow { float: right; transition: transform 0.2s; }
+#narrative-toggle.open .arrow { transform: rotate(180deg); }
+#narrative-container { display: none; }
+#narrative-container.open { display: block; }
+#narrative-output {
+  background: var(--white); color: var(--black); padding: 40px;
+  font-family: 'Trebuchet MS', sans-serif; font-size: 14px;
+  line-height: 1.7; min-height: 200px;
+}
+#narrative-output h2 {
+  font-family: 'Century Gothic', sans-serif; font-size: 14px;
+  letter-spacing: 3px; text-transform: uppercase;
+  margin: 28px 0 10px; padding-bottom: 4px;
+  border-bottom: 2px solid var(--black);
+}
+#narrative-output h2:first-child { margin-top: 0; }
+#narrative-output table {
+  width: 100%; border-collapse: collapse; margin: 12px 0;
+  font-size: 13px;
+}
+#narrative-output th, #narrative-output td {
+  padding: 8px 10px; border: 1px solid #ccc; text-align: left;
+}
+#narrative-output th {
+  background: var(--black); color: var(--yellow);
+  font-family: 'Century Gothic', sans-serif; font-size: 10px;
+  letter-spacing: 1px; text-transform: uppercase;
+}
+#narrative-output .mono {
+  font-family: Consolas, monospace; font-weight: 700;
+}
+.readiness-check {
+  list-style: none; padding: 0;
+}
+.readiness-check li {
+  padding: 6px 0; display: flex; align-items: flex-start; gap: 8px;
+}
+.readiness-check input[type="checkbox"] { margin-top: 3px; }
+.readiness-check span { font-size: 14px; }
+#print-btn {
+  display: inline-block; margin: 16px 0; padding: 12px 32px;
+  background: var(--black); color: var(--yellow);
+  border: 2px solid var(--yellow);
+  font-family: 'Century Gothic', sans-serif;
+  font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+  font-weight: 700; cursor: pointer;
+}
+#print-btn:hover { background: var(--yellow); color: var(--black); }
+
+/* === WARNING INLINE === */
+.cmf-warning {
+  font-family: 'Trebuchet MS', sans-serif; font-size: 12px;
+  padding: 8px 12px; margin: 8px 0;
+  background: rgba(220,38,38,0.15); color: var(--red-bright);
+  font-weight: 700;
+}
+
+/* === FOOTER === */
+#footer {
+  padding: 20px 40px; font-size: 11px;
+  background: var(--black); color: var(--gray);
+  border-top: 3px solid var(--yellow);
+  font-family: 'Trebuchet MS', sans-serif;
+  line-height: 1.6;
+}
+
+/* === PRINT CSS === */
+@media print {
+  body { background: white; color: black; }
+  #sidebar, #mobile-dropdown, #entry-overlay, #hero-band,
+  .module-panel:not(.print-target), #footer,
+  #narrative-toggle, #print-btn, .nav-btn,
+  .band-black:not(.print-keep), .band-yellow:not(.print-keep),
+  #load-example-btn, button, input[type="number"], select { display: none !important; }
+  #app.visible { display: block; }
+  #main { overflow: visible; }
+  #narrative-container, #narrative-container.open { display: block !important; }
+  #narrative-output {
+    padding: 0; font-size: 12pt; line-height: 1.5;
+    background: white; color: black;
+  }
+  #narrative-output h2 { font-size: 11pt; margin: 20px 0 8px; }
+  #narrative-output table { font-size: 10pt; }
+  #narrative-output th { background: #333; color: white; -webkit-print-color-adjust: exact; }
+  @page { margin: 1in; }
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 800px) {
+  #sidebar { display: none; }
+  #mobile-dropdown { display: block; }
+  .band-black, .band-yellow { padding: 24px 18px; }
+  .kabco-grid { grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .kabco-cell input { width: 48px; }
+  .input-row { flex-direction: column; }
+  #bc-ratio-value { font-size: 48px; }
+  #hero-band .hero-label { font-size: 24px; letter-spacing: 4px; }
+  .results-strip { flex-direction: column; }
+  .result-cell { border-right: none; border-bottom: 1px solid rgba(255,193,7,0.3); }
+  .cmf-table { font-size: 11px; }
+  .cmf-table th, .cmf-table td { padding: 6px 4px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ENTRY EXPERIENCE -->
+<div id="entry-overlay">
+  <svg viewBox="0 0 120 120">
+    <circle cx="60" cy="60" r="50" fill="none" stroke="#333" stroke-width="4"/>
+    <circle id="amber-glow" cx="60" cy="60" r="38"/>
+  </svg>
+  <div id="entry-title">Intersection Safety</div>
+</div>
+
+<!-- MOBILE DROPDOWN -->
+<select id="mobile-dropdown" aria-label="Navigation">
+  <option value="hero">Intersection Diagram</option>
+  <option value="mod1">1 - Crash Analyzer</option>
+  <option value="mod2">2 - Countermeasures</option>
+  <option value="mod3">3 - B/C &amp; Report</option>
+</select>
+
+<div id="app">
+  <!-- SIDEBAR -->
+  <nav id="sidebar" aria-label="Main navigation">
+    <div id="sidebar-header">SD-32 Safety Tool</div>
+    <div class="nav-section-label">Modules</div>
+    <button class="nav-btn active" data-target="hero"><span class="nav-num">00</span>Diagram</button>
+    <button class="nav-btn" data-target="mod1"><span class="nav-num">01</span>Crash Analyzer</button>
+    <button class="nav-btn" data-target="mod2"><span class="nav-num">02</span>Countermeasures</button>
+    <button class="nav-btn" data-target="mod3"><span class="nav-num">03</span>B/C &amp; Report</button>
+    <div class="nav-section-label" style="margin-top:24px">Quick Load</div>
+    <button id="load-example-btn">TH 65 / Bunker Lake Example</button>
+  </nav>
+
+  <!-- MAIN -->
+  <div id="main">
+
+    <!-- HERO PANEL -->
+    <div class="module-panel active" id="panel-hero">
+      <div id="hero-band" class="band-black">
+        <div class="hero-label">Make the Case</div>
+        <div class="hero-sub">Suburban Intersection Safety Scorer &amp; HSIP Application Builder</div>
+        <!-- Giant 4-way intersection SVG -->
+        <svg id="intersection-svg" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+          <!-- Road surfaces -->
+          <rect x="0" y="190" width="500" height="120" fill="#333" rx="0"/>
+          <rect x="190" y="0" width="120" height="500" fill="#333" rx="0"/>
+          <!-- Intersection box -->
+          <rect x="190" y="190" width="120" height="120" fill="#444"/>
+          <!-- Lane markings - horizontal -->
+          <line x1="0" y1="250" x2="185" y2="250" stroke="#ffc107" stroke-width="2" stroke-dasharray="16,10"/>
+          <line x1="315" y1="250" x2="500" y2="250" stroke="#ffc107" stroke-width="2" stroke-dasharray="16,10"/>
+          <!-- Lane markings - vertical -->
+          <line x1="250" y1="0" x2="250" y2="185" stroke="#ffc107" stroke-width="2" stroke-dasharray="16,10"/>
+          <line x1="250" y1="315" x2="250" y2="500" stroke="#ffc107" stroke-width="2" stroke-dasharray="16,10"/>
+          <!-- Stop bars -->
+          <line x1="185" y1="190" x2="185" y2="250" stroke="white" stroke-width="3"/>
+          <line x1="315" y1="250" x2="315" y2="310" stroke="white" stroke-width="3"/>
+          <line x1="190" y1="315" x2="250" y2="315" stroke="white" stroke-width="3"/>
+          <line x1="250" y1="185" x2="310" y2="185" stroke="white" stroke-width="3"/>
+          <!-- Crosswalks -->
+          <g stroke="white" stroke-width="2" opacity="0.5">
+            <line x1="192" y1="187" x2="308" y2="187"/><line x1="192" y1="183" x2="308" y2="183"/>
+            <line x1="192" y1="313" x2="308" y2="313"/><line x1="192" y1="317" x2="308" y2="317"/>
+            <line x1="187" y1="192" x2="187" y2="308"/><line x1="183" y1="192" x2="183" y2="308"/>
+            <line x1="313" y1="192" x2="313" y2="308"/><line x1="317" y1="192" x2="317" y2="308"/>
+          </g>
+          <!-- Direction arrows (simple) -->
+          <polygon points="100,240 120,234 120,246" fill="white" opacity="0.5"/>
+          <polygon points="400,260 380,254 380,266" fill="white" opacity="0.5"/>
+          <polygon points="260,100 254,120 266,120" fill="white" opacity="0.5"/>
+          <polygon points="240,400 234,380 246,380" fill="white" opacity="0.5"/>
+          <!-- Crash hotspot heat markers -->
+          <circle class="heat-dot" cx="220" cy="220" r="14" fill="#dc2626" opacity="0.6"/>
+          <circle class="heat-dot" cx="280" cy="210" r="10" fill="#ff6b00" opacity="0.5"/>
+          <circle class="heat-dot" cx="210" cy="280" r="11" fill="#dc2626" opacity="0.5"/>
+          <circle class="heat-dot" cx="290" cy="285" r="8" fill="#ff6b00" opacity="0.4"/>
+          <!-- Corner labels -->
+          <text x="70" y="170" fill="#6B7280" font-family="Century Gothic, sans-serif" font-size="11" text-anchor="middle" letter-spacing="1">MINOR RD</text>
+          <text x="250" y="480" fill="#6B7280" font-family="Century Gothic, sans-serif" font-size="11" text-anchor="middle" letter-spacing="1">MAJOR RD</text>
+        </svg>
+        <div style="margin-top:18px; font-size:11px; color:var(--gray); max-width:520px; margin-left:auto; margin-right:auto;">
+          Red markers indicate crash concentration zones. Use this tool to quantify intersection safety problems and build HSIP federal funding applications.
+        </div>
+      </div>
+      <!-- Opening context band -->
+      <div class="band-yellow" style="font-size:15px; line-height:1.7;">
+        Senator Kreun's SF4789 secured $4.3 million to convert the TH 65 and Bunker Lake Boulevard intersection in Ham Lake to a grade-separated interchange. Dozens of other at-grade intersections across north Anoka County face the same congestion and safety pressure. The federal Highway Safety Improvement Program (HSIP) funds safety projects at 90-100% federal share, with approximately $33 million available statewide annually -- 60% reserved for local governments. This tool helps city engineers and county planners build the case.
+      </div>
+
+      <!-- TH 65 CORRIDOR CONTEXT PANEL -->
+      <div class="band-black">
+        <div class="band-title">TH 65 Corridor Context -- Senate District 32</div>
+        <div style="display:flex; gap:24px; flex-wrap:wrap;">
+          <div style="flex:1; min-width:280px;">
+            <p style="font-size:13px; line-height:1.7; color:var(--gray);">
+              Minnesota State Highway 65 is a principal arterial running from I-694 in Fridley through Blaine and Ham Lake northward. It carries four lanes through Anoka County as an expressway before transitioning to a two-lane rural highway north of Cambridge. The suburban segment through District 32 is among the highest-volume sections of the corridor and is subject to ongoing growth pressure from residential and commercial development in Blaine (70,000+ residents) and Ham Lake.
+            </p>
+            <!-- VERIFY: TH 65 corridor description sourced from software brief; verify lane counts and transition point -->
+            <p style="font-size:13px; line-height:1.7; color:var(--gray); margin-top:12px;">
+              SF4789, chief-authored by Sen. Kreun, appropriated $4,300,000 for interchange improvements at the TH 65 / Bunker Lake Boulevard intersection in 2024, covering engineering, environmental review, right-of-way acquisition, and construction.
+            </p>
+          </div>
+          <div style="flex:0 0 200px; min-width:180px;">
+            <div style="border:2px solid var(--yellow); padding:14px; text-align:center; margin-bottom:10px;">
+              <span style="font-family:Consolas,monospace; font-size:36px; font-weight:700; color:var(--yellow); display:block;">70,222</span>
+              <span style="font-family:'Century Gothic',sans-serif; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--gray);">Blaine Population (2020)</span>
+            </div>
+            <div style="border:2px solid var(--yellow); padding:14px; text-align:center; margin-bottom:10px;">
+              <span style="font-family:Consolas,monospace; font-size:36px; font-weight:700; color:var(--yellow); display:block;">16,464</span>
+              <span style="font-family:'Century Gothic',sans-serif; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--gray);">Ham Lake Population (2020)</span>
+            </div>
+            <div style="border:2px solid var(--yellow); padding:14px; text-align:center;">
+              <span style="font-family:Consolas,monospace; font-size:36px; font-weight:700; color:var(--yellow); display:block;">$33M</span>
+              <span style="font-family:'Century Gothic',sans-serif; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--gray);">HSIP Statewide Annual</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HOW THIS TOOL WORKS -->
+      <div class="band-yellow">
+        <div class="band-title">How to Use This Tool</div>
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:20px; font-size:13px;">
+          <div>
+            <div style="font-family:Consolas,monospace; font-size:48px; font-weight:700; line-height:1; margin-bottom:6px;">01</div>
+            <div style="font-weight:700; margin-bottom:4px;">Crash Analyzer</div>
+            <div>Enter intersection data, AADT volumes, and crash counts by KABCO severity. The tool calculates crash rate per million entering vehicles, EPDO index, and compares against MnDOT statewide averages.</div>
+          </div>
+          <div>
+            <div style="font-family:Consolas,monospace; font-size:48px; font-weight:700; line-height:1; margin-bottom:6px;">02</div>
+            <div style="font-weight:700; margin-bottom:4px;">Countermeasures</div>
+            <div>Select safety countermeasures from FHWA's CMF Clearinghouse library. Combined CMF and estimated crash reduction update live. Each countermeasure shows its quality star rating and typical cost range.</div>
+          </div>
+          <div>
+            <div style="font-family:Consolas,monospace; font-size:48px; font-weight:700; line-height:1; margin-bottom:6px;">03</div>
+            <div style="font-weight:700; margin-bottom:4px;">B/C &amp; Report</div>
+            <div>Calculate the 20-year benefit-cost ratio required for HSIP submissions, then generate an editable application narrative. Print the narrative as a clean government document for your submission package.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODULE 1: CRASH ANALYZER -->
+    <div class="module-panel" id="panel-mod1">
+      <div class="band-yellow">
+        <div class="band-title">Module 1 -- Intersection Crash Analyzer</div>
+        <div class="input-row">
+          <div class="input-group" style="flex:2">
+            <label for="int-name">Intersection Name / Location</label>
+            <input type="text" id="int-name" placeholder="e.g., TH 65 & Bunker Lake Blvd NE, Ham Lake">
+          </div>
+          <div class="input-group">
+            <label for="road-class">Roadway Classification</label>
+            <select id="road-class">
+              <option value="principal">Principal Arterial</option>
+              <option value="minor">Minor Arterial</option>
+              <option value="collector">Collector</option>
+            </select>
+          </div>
+        </div>
+        <div class="input-row">
+          <div class="input-group">
+            <label for="study-years">Study Period (years)</label>
+            <input type="number" id="study-years" value="3" min="1" max="5">
+          </div>
+          <div class="input-group">
+            <label for="aadt-major">AADT - Major Road</label>
+            <input type="number" id="aadt-major" placeholder="e.g., 32000">
+          </div>
+          <div class="input-group">
+            <label for="aadt-minor">AADT - Minor Road</label>
+            <input type="number" id="aadt-minor" placeholder="e.g., 8000">
+          </div>
+        </div>
+      </div>
+
+      <div class="band-black">
+        <div class="band-title">Crash Counts by KABCO Severity (Total for Study Period)</div>
+        <div class="kabco-grid">
+          <div class="kabco-cell">
+            <span class="kabco-letter">K</span>
+            <span class="kabco-label">Fatal</span>
+            <input type="number" id="k-count" value="0" min="0">
+          </div>
+          <div class="kabco-cell">
+            <span class="kabco-letter">A</span>
+            <span class="kabco-label">Incapacitating</span>
+            <input type="number" id="a-count" value="0" min="0">
+          </div>
+          <div class="kabco-cell">
+            <span class="kabco-letter">B</span>
+            <span class="kabco-label">Non-Incapacitating</span>
+            <input type="number" id="b-count" value="0" min="0">
+          </div>
+          <div class="kabco-cell">
+            <span class="kabco-letter">C</span>
+            <span class="kabco-label">Possible Injury</span>
+            <input type="number" id="c-count" value="0" min="0">
+          </div>
+          <div class="kabco-cell">
+            <span class="kabco-letter">O</span>
+            <span class="kabco-label">PDO</span>
+            <input type="number" id="o-count" value="0" min="0">
+          </div>
+        </div>
+      </div>
+
+      <div class="band-yellow">
+        <div class="band-title">Crash Type Breakdown (select all that apply)</div>
+        <div class="crash-type-grid">
+          <label><input type="checkbox" class="crash-type" value="angle"> Angle / Broadside</label>
+          <label><input type="checkbox" class="crash-type" value="rear-end"> Rear-end</label>
+          <label><input type="checkbox" class="crash-type" value="left-turn"> Left-turn</label>
+          <label><input type="checkbox" class="crash-type" value="right-angle"> Right-angle</label>
+          <label><input type="checkbox" class="crash-type" value="sideswipe"> Sideswipe</label>
+          <label><input type="checkbox" class="crash-type" value="fixed-object"> Fixed Object / Run-off-road</label>
+          <label><input type="checkbox" class="crash-type" value="ped-bike"> Pedestrian / Bicycle</label>
+        </div>
+        <button onclick="runAnalysis()" style="padding:10px 28px;background:var(--black);color:var(--yellow);border:2px solid var(--black);font-family:'Century Gothic',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:700;cursor:pointer;">Analyze Intersection</button>
+      </div>
+
+      <!-- RESULTS -->
+      <div class="band-black" id="mod1-results" style="display:none;">
+        <div class="band-title">Analysis Results</div>
+        <div class="results-strip">
+          <div class="result-cell">
+            <span class="result-val" id="r-total">--</span>
+            <span class="result-label">Total Crashes</span>
+          </div>
+          <div class="result-cell">
+            <span class="result-val" id="r-rate">--</span>
+            <span class="result-label">Crash Rate (MEV)</span>
+          </div>
+          <div class="result-cell">
+            <span class="result-val" id="r-epdo">--</span>
+            <span class="result-label">EPDO Index</span>
+          </div>
+          <div class="result-cell">
+            <span class="result-val" id="r-epdo-rate">--</span>
+            <span class="result-label">EPDO Rate (MEV)</span>
+          </div>
+          <div class="result-cell">
+            <span class="result-val" id="r-flag">--</span>
+            <span class="result-label">vs. Statewide Avg</span>
+          </div>
+        </div>
+        <div id="crash-pattern-summary" style="margin-top:12px; font-size:13px;"></div>
+
+        <!-- Formulas reference -->
+        <div style="margin-top:18px; padding-top:14px; border-top:1px solid rgba(255,193,7,0.15);">
+          <div style="font-family:'Century Gothic',sans-serif; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--yellow); opacity:0.6; margin-bottom:8px;">Calculation Reference</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; font-size:11px; color:var(--gray);">
+            <div>
+              <span style="font-family:Consolas,monospace; color:var(--yellow);">Crash Rate</span> = (Total Crashes x 1,000,000) / (AADT_major + AADT_minor) / 365 / Years
+            </div>
+            <div>
+              <span style="font-family:Consolas,monospace; color:var(--yellow);">EPDO</span> = (K x 500) + (A x 100) + (B x 30) + (C x 10) + (O x 1)
+            </div>
+            <div>
+              <span style="font-family:Consolas,monospace; color:var(--yellow);">EPDO Rate</span> = (EPDO x 1,000,000) / (AADT_major + AADT_minor) / 365 / Years
+            </div>
+            <div>
+              <span style="font-family:Consolas,monospace; color:var(--yellow);">Flag</span> = Green: at/below avg | Yellow: 10-50% above | Red: >50% above
+            </div>
+          </div>
+        </div>
+
+        <!-- Baseline reference table -->
+        <div style="margin-top:16px;">
+          <table style="width:100%; max-width:500px; border-collapse:collapse; font-size:12px;">
+            <thead>
+              <tr>
+                <th style="text-align:left; padding:6px 10px; font-family:'Century Gothic',sans-serif; font-size:9px; letter-spacing:1.5px; text-transform:uppercase; border-bottom:2px solid var(--yellow); color:var(--yellow);">Road Classification</th>
+                <th style="text-align:right; padding:6px 10px; font-family:'Century Gothic',sans-serif; font-size:9px; letter-spacing:1.5px; text-transform:uppercase; border-bottom:2px solid var(--yellow); color:var(--yellow);">Baseline Rate (MEV)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td style="padding:5px 10px; border-bottom:1px solid rgba(255,193,7,0.1);">Principal Arterial (urban)</td><td style="padding:5px 10px; text-align:right; font-family:Consolas,monospace; border-bottom:1px solid rgba(255,193,7,0.1);">~0.90</td></tr>
+              <tr><td style="padding:5px 10px; border-bottom:1px solid rgba(255,193,7,0.1);">Minor Arterial (urban)</td><td style="padding:5px 10px; text-align:right; font-family:Consolas,monospace; border-bottom:1px solid rgba(255,193,7,0.1);">~0.70</td></tr>
+              <tr><td style="padding:5px 10px;">Collector (urban)</td><td style="padding:5px 10px; text-align:right; font-family:Consolas,monospace;">~0.50</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <!-- VERIFY: Baseline crash rates are reference values sourced from general MnDOT guidance ranges, not exact current figures -->
+        <div class="help-text" style="margin-top:10px;">Baseline crash rates are reference values for context. Obtain current figures from MnDOT's crash data system for official submissions.</div>
+      </div>
+    </div>
+
+    <!-- MODULE 2: COUNTERMEASURE SELECTOR -->
+    <div class="module-panel" id="panel-mod2">
+      <div class="band-black">
+        <div class="band-title">Module 2 -- Countermeasure Selector &amp; CMF Calculator</div>
+        <div style="font-size:13px; color:var(--gray); margin-bottom:14px;">Select countermeasures below. Combined CMF and estimated effectiveness update live.</div>
+        <table class="cmf-table" id="cmf-table">
+          <thead>
+            <tr>
+              <th style="width:30px;"></th>
+              <th>Countermeasure</th>
+              <th>Crash Types</th>
+              <th>CMF</th>
+              <th>Stars</th>
+              <th>Typical Cost</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="cmf-cat-header"><td colspan="6">Signal / Control Improvements</td></tr>
+            <tr>
+              <td><input type="checkbox" class="cmf-check" data-cmf="0.67" data-stars="4" data-name="Add traffic signal" data-types="angle, left-turn, pedestrian" data-cost-low="150000" data-cost-high="400000"></td>
+              <td>Add traffic signal (at unsignalized intersection)</td>
+              <td style="font-size:11px;">Angle, left-turn, pedestrian</td>
+              <td class="mono">0.67</td>
+              <td class="stars">&#9733;&#9733;&#9733;&#9733;</td>
+              <td class="mono" style="font-size:11px;">$150K-$400K</td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" class="cmf-check" data-cmf="0.88" data-stars="3" data-name="Optimize signal timing" data-types="rear-end, angle" data-cost-low="5000" data-cost-high="20000"></td>
+              <td>Optimize existing signal timing / retiming</td>
+              <td style="font-size:11px;">Rear-end, angle</td>
+              <td class="mono">0.88</td>
+              <td class="stars">&#9733;&#9733;&#9733;</td>
+              <td class="mono" style="font-size:11px;">$5K-$20K</td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" class="cmf-check" data-cmf="0.72" data-stars="4" data-name="Protected left-turn phase" data-types="left-turn, angle" data-cost-low="20000" data-cost-high="80000"></td>
+              <td>Install protected left-turn phase</td>
+              <td style="font-size:11px;">Left-turn, angle</td>
+              <td class="mono">0.72</td>
+              <td class="stars">&#9733;&#9733;&#9733;&#9733;</td>
+              <td class="mono" style="font-size:11px;">$20K-$80K/appr.</td>
+            </tr>
+
+            <tr class="cmf-cat-header"><td colspan="6">Geometric / Channelization Improvements</td></tr>
+            <tr>
+              <td><input type="checkbox" class="cmf-check" data-cmf="0.82" data-stars="4" data-name="Add dedicated left-turn lane" data-types="left-turn, rear-end" data-cost-low="100000" data-cost-high="500000"></td>
+              <td>Add dedicated left-turn lane</td>
+              <td style="font-size:11px;">Left-turn, rear-end</td>
+              <td class="mono">0.82</td>
+              <td class="stars">&#9733;&#9733;&#9733;&#9733;</td>
+              <td class="mono" style="font-size:11px;">$100K-$500K/appr.</td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" class="cmf-check" data-cmf="0.86" data-stars="3" data-name="Add dedicated right-turn lane" data-types="rear-end, right-angle" data-cost-low="80000" data-cost-high="350000"></td>
+              <td>Add dedicated right-turn lane</td>
+              <td style="font-size:11px;">Rear-end, right-angle</td>
+              <td class="mono">0.86</td>
+              <td class="stars">&#9733;&#9733;&#9733;</td>
+              <td class="mono" style="font-size:11px;">$80K-$350K/appr.</td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" class="cmf-check" data-cmf="0.48" data-stars="5" data-name="Convert to roundabout" data-types="angle, left-turn, fatal/serious injury" data-cost-low="300000" data-cost-high="1500000"></td>
+              <td>Convert intersection to roundabout</td>
+              <td style="font-size:11px;">Angle, left-turn, fatal/injury</td>
+              <td class="mono">0.48</td>
+              <td class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</td>
+              <td class="mono" style="font-size:11px;">$300K-$1.5M</td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" class="cmf-check" data-cmf="0.21" data-stars="4" data-name="Grade-separate / convert to interchange" data-types="angle, left-turn, all severe" data-cost-low="3000000" data-cost-high="15000000"></td>
+              <td>Grade-separate / convert to interchange</td>
+              <td style="font-size:11px;">Angle, left-turn, all severe</td>
+              <td class="mono">0.21</td>
+              <td class="stars">&#9733;&#9733;&#9733;&#9733;</td>
+              <td class="mono" style="font-size:11px;">$3M-$15M+</td>
+            </tr>
+
+            <tr class="cmf-cat-header"><td colspan="6">Visibility and Lighting</td></tr>
+            <tr>
+              <td><input type="checkbox" class="cmf-check" data-cmf="0.72" data-stars="3" data-name="Install intersection lighting" data-types="nighttime, pedestrian" data-cost-low="30000" data-cost-high="120000"></td>
+              <td>Install intersection lighting</td>
+              <td style="font-size:11px;">Nighttime, pedestrian</td>
+              <td class="mono">0.72</td>
+              <td class="stars">&#9733;&#9733;&#9733;</td>
+              <td class="mono" style="font-size:11px;">$30K-$120K</td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" class="cmf-check" data-cmf="0.84" data-stars="3" data-name="Advance warning flashers / signs" data-types="angle, fixed-object" data-cost-low="5000" data-cost-high="40000"></td>
+              <td>Install advance warning flashers / signs</td>
+              <td style="font-size:11px;">Angle, fixed-object</td>
+              <td class="mono">0.84</td>
+              <td class="stars">&#9733;&#9733;&#9733;</td>
+              <td class="mono" style="font-size:11px;">$5K-$40K</td>
+            </tr>
+
+            <tr class="cmf-cat-header"><td colspan="6">Pedestrian / Bicycle</td></tr>
+            <tr>
+              <td><input type="checkbox" class="cmf-check" data-cmf="0.69" data-stars="4" data-name="Pedestrian countdown / HAWK beacon" data-types="pedestrian-involved" data-cost-low="30000" data-cost-high="150000"></td>
+              <td>Install pedestrian countdown signals / HAWK beacon</td>
+              <td style="font-size:11px;">Pedestrian-involved</td>
+              <td class="mono">0.69</td>
+              <td class="stars">&#9733;&#9733;&#9733;&#9733;</td>
+              <td class="mono" style="font-size:11px;">$30K-$150K</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="band-yellow" id="cmf-results">
+        <div class="band-title">Countermeasure Package Summary</div>
+        <div class="cmf-summary">
+          <div class="cmf-summary-cell">
+            <span class="cmf-big" id="cmf-combined">--</span>
+            <span class="result-label">Combined CMF</span>
+          </div>
+          <div class="cmf-summary-cell">
+            <span class="cmf-big" id="cmf-prevented">--</span>
+            <span class="result-label">Annual Crashes Prevented</span>
+          </div>
+          <div class="cmf-summary-cell">
+            <span class="cmf-big" id="cmf-cost-range">--</span>
+            <span class="result-label">Combined Cost Range</span>
+          </div>
+          <div class="cmf-summary-cell">
+            <span class="cmf-big" id="cmf-star-flag">--</span>
+            <span class="result-label">CMF Quality</span>
+          </div>
+        </div>
+        <div id="cmf-warning-box" class="cmf-warning" style="display:none;"></div>
+        <!-- VERIFY: CMF values sourced from FHWA CMF Clearinghouse reference ranges; users should verify current values -->
+        <div class="help-text">CMF values from FHWA CMF Clearinghouse. Verify current values before official HSIP submission.</div>
+      </div>
+    </div>
+
+    <!-- MODULE 3: B/C & REPORT -->
+    <div class="module-panel" id="panel-mod3">
+      <!-- HSIP PROGRAM CONTEXT BAND -->
+      <div class="band-yellow">
+        <div class="band-title">HSIP Federal Funding Program -- Quick Reference</div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px; font-size:12px;">
+          <div>
+            <div style="font-family:Consolas,monospace; font-size:28px; font-weight:700; line-height:1;">90-100%</div>
+            <div style="font-family:'Century Gothic',sans-serif; font-size:9px; letter-spacing:1.5px; text-transform:uppercase; margin-top:4px;">Federal Share</div>
+            <div style="margin-top:4px; color:rgba(0,0,0,0.6);">Most HSIP projects require no local match. Confirm with MnDOT district office for your specific project.</div>
+          </div>
+          <div>
+            <div style="font-family:Consolas,monospace; font-size:28px; font-weight:700; line-height:1;">$33M</div>
+            <div style="font-family:'Century Gothic',sans-serif; font-size:9px; letter-spacing:1.5px; text-transform:uppercase; margin-top:4px;">Statewide Annual</div>
+            <div style="margin-top:4px; color:rgba(0,0,0,0.6);">Approximately $33 million available statewide. 60% reserved for local government projects.</div>
+          </div>
+          <div>
+            <div style="font-family:Consolas,monospace; font-size:28px; font-weight:700; line-height:1;">B/C &ge; 1.0</div>
+            <div style="font-family:'Century Gothic',sans-serif; font-size:9px; letter-spacing:1.5px; text-transform:uppercase; margin-top:4px;">Minimum Threshold</div>
+            <div style="margin-top:4px; color:rgba(0,0,0,0.6);">Projects must demonstrate positive benefit-cost ratio. B/C &ge; 2.0 is strongly competitive.</div>
+          </div>
+          <div>
+            <div style="font-family:Consolas,monospace; font-size:28px; font-weight:700; line-height:1;">20 yr</div>
+            <div style="font-family:'Century Gothic',sans-serif; font-size:9px; letter-spacing:1.5px; text-transform:uppercase; margin-top:4px;">Analysis Period</div>
+            <div style="margin-top:4px; color:rgba(0,0,0,0.6);">Benefits discounted over 20-year project life at 7% federal discount rate (annuity factor: 10.594).</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="band-black">
+        <div class="band-title">Benefit-Cost Calculator</div>
+        <div class="input-row">
+          <div class="input-group">
+            <label for="project-cost">Project Cost ($)</label>
+            <input type="number" id="project-cost" placeholder="Enter project cost or use countermeasure midpoint">
+            <div class="help-text">Enter your engineer's estimate, or auto-fill from the countermeasure cost midpoint.</div>
+          </div>
+          <div class="input-group">
+            <label>Use Cost Midpoint</label>
+            <button onclick="useCostMidpoint()" style="padding:8px 16px;background:var(--yellow);color:var(--black);border:none;font-family:'Century Gothic',sans-serif;font-size:11px;letter-spacing:1px;text-transform:uppercase;font-weight:700;cursor:pointer;width:100%;">Auto-fill from Countermeasures</button>
+            <div class="help-text">Pulls midpoint of the combined cost range from your Module 2 selections.</div>
+          </div>
+        </div>
+        <button onclick="runBCA()" style="padding:10px 28px;background:var(--yellow);color:var(--black);border:none;font-family:'Century Gothic',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:700;cursor:pointer;">Calculate B/C Ratio</button>
+      </div>
+
+      <div class="band-yellow" id="bca-results" style="display:none;">
+        <div class="band-title">Benefit-Cost Analysis Results</div>
+        <div class="results-strip">
+          <div class="result-cell">
+            <span class="result-val" id="bca-annual">--</span>
+            <span class="result-label">Annual Benefit</span>
+          </div>
+          <div class="result-cell">
+            <span class="result-val" id="bca-20yr">--</span>
+            <span class="result-label">20-Yr Discounted Benefit</span>
+          </div>
+          <div class="result-cell">
+            <span class="result-val" id="bca-cost">--</span>
+            <span class="result-label">Project Cost</span>
+          </div>
+          <div class="result-cell">
+            <span class="result-val" id="bca-prevented-20">--</span>
+            <span class="result-label">Crashes Prevented (20 yr)</span>
+          </div>
+        </div>
+
+        <div id="bc-hero">
+          <div id="bc-ratio-value">--</div>
+          <div id="bc-ratio-label">Benefit-Cost Ratio</div>
+          <div id="bc-status">Enter data above</div>
+        </div>
+
+        <!-- Detailed crash prevention breakdown -->
+        <div id="bca-detail-table" style="margin-top:20px;">
+          <div style="font-family:'Century Gothic',sans-serif; font-size:9px; letter-spacing:2px; text-transform:uppercase; margin-bottom:8px;">Crash Prevention Breakdown by Severity</div>
+          <table style="width:100%; max-width:600px; border-collapse:collapse; font-size:12px;">
+            <thead>
+              <tr>
+                <th style="text-align:left; padding:6px 10px; border-bottom:2px solid var(--black); font-family:'Century Gothic',sans-serif; font-size:9px; letter-spacing:1px; text-transform:uppercase;">Severity</th>
+                <th style="text-align:right; padding:6px 10px; border-bottom:2px solid var(--black); font-family:'Century Gothic',sans-serif; font-size:9px; letter-spacing:1px; text-transform:uppercase;">Annual Prevented</th>
+                <th style="text-align:right; padding:6px 10px; border-bottom:2px solid var(--black); font-family:'Century Gothic',sans-serif; font-size:9px; letter-spacing:1px; text-transform:uppercase;">Unit Cost</th>
+                <th style="text-align:right; padding:6px 10px; border-bottom:2px solid var(--black); font-family:'Century Gothic',sans-serif; font-size:9px; letter-spacing:1px; text-transform:uppercase;">Annual Benefit</th>
+              </tr>
+            </thead>
+            <tbody id="bca-severity-rows">
+              <tr><td colspan="4" style="padding:10px; text-align:center; color:rgba(0,0,0,0.4);">Run calculation to see breakdown</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- VERIFY: KABCO crash cost unit values are FHWA reference figures; verify against current FHWA guidance -->
+        <div class="help-text" style="margin-top:12px;">KABCO crash costs: K=$12.5M, A=$1.35M, B=$530K, C=$165K, O=$11K. Discount rate: 7%. Annuity factor: 10.594. Verify current FHWA guidance before official submission.</div>
+      </div>
+
+      <!-- NARRATIVE GENERATOR -->
+      <div class="band-black">
+        <button id="narrative-toggle" onclick="toggleNarrative()">
+          Generate Application Narrative <span class="arrow">&#9660;</span>
+        </button>
+        <div id="narrative-container">
+          <div style="padding:14px 0 8px; font-size:12px; color:var(--gray);">
+            The narrative below is editable. Click any text to modify before printing. The print button will render only this narrative as a clean document.
+          </div>
+          <div id="narrative-output" contenteditable="true"></div>
+          <div style="padding:16px 0; display:flex; gap:12px; align-items:center;">
+            <button id="print-btn" onclick="window.print()">Print Narrative</button>
+            <span style="font-size:11px; color:var(--gray);">Prints narrative and B/C table only. Input panels are suppressed.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div id="footer">
+      A resource for SD-32 communities and north Anoka County. Built with AI.
+      HSIP data reflects MnDOT program structure as of 2025. CMF values sourced from FHWA CMF Clearinghouse. Crash cost unit values are reference figures -- verify current FHWA guidance before official submission. This tool is a planning aid, not an official MnDOT submission system.
+    </div>
+  </div>
+</div>
+
+<script>
+// ============ ENTRY ANIMATION ============
+(function() {
+  const overlay = document.getElementById('entry-overlay');
+  setTimeout(function() {
+    overlay.classList.add('fade-out');
+    setTimeout(function() {
+      overlay.style.display = 'none';
+      document.getElementById('app').classList.add('visible');
+    }, 800);
+  }, 2400);
+})();
+
+// ============ NAVIGATION ============
+const navBtns = document.querySelectorAll('.nav-btn');
+const panels = document.querySelectorAll('.module-panel');
+const mobileDD = document.getElementById('mobile-dropdown');
+
+function showPanel(target) {
+  panels.forEach(p => p.classList.remove('active'));
+  navBtns.forEach(b => b.classList.remove('active'));
+  const panel = document.getElementById('panel-' + target);
+  if (panel) panel.classList.add('active');
+  const btn = document.querySelector('.nav-btn[data-target="' + target + '"]');
+  if (btn) btn.classList.add('active');
+  mobileDD.value = target;
+}
+
+navBtns.forEach(function(btn) {
+  btn.addEventListener('click', function() { showPanel(this.dataset.target); });
+});
+mobileDD.addEventListener('change', function() { showPanel(this.value); });
+
+// ============ BASELINE CRASH RATES ============
+const baselines = {
+  principal: 0.9,
+  minor: 0.7,
+  collector: 0.5
+};
+
+// ============ KABCO COSTS ============
+const kabcoCosts = { K: 12500000, A: 1350000, B: 530000, C: 165000, O: 11000 };
+const epdoWeights = { K: 500, A: 100, B: 30, C: 10, O: 1 };
+
+// ============ STATE ============
+let analysisState = null;
+let cmfState = { combined: 1, prevented: 0, costLow: 0, costHigh: 0, avgStars: 0 };
+
+// ============ MODULE 1: CRASH ANALYZER ============
+function getVal(id) { return parseFloat(document.getElementById(id).value) || 0; }
+function getStr(id) { return document.getElementById(id).value || ''; }
+
+function runAnalysis() {
+  const K = getVal('k-count'), A = getVal('a-count'), B = getVal('b-count'),
+        C = getVal('c-count'), O = getVal('o-count');
+  const total = K + A + B + C + O;
+  const years = getVal('study-years') || 3;
+  const aadtMaj = getVal('aadt-major'), aadtMin = getVal('aadt-minor');
+  const roadClass = getStr('road-class');
+  const baselineRate = baselines[roadClass] || 0.9;
+
+  if (total === 0 || (aadtMaj + aadtMin) === 0) {
+    alert('Enter crash counts and AADT values.');
+    return;
+  }
+
+  const mev = (aadtMaj + aadtMin) * 365 * years;
+  const crashRate = (total * 1000000) / mev;
+  const epdo = K * 500 + A * 100 + B * 30 + C * 10 + O * 1;
+  const epdoRate = (epdo * 1000000) / mev;
+
+  let flagText, flagClass;
+  const ratio = crashRate / baselineRate;
+  if (ratio <= 1.0) { flagText = 'AT/BELOW AVG'; flagClass = 'flag-green'; }
+  else if (ratio <= 1.5) { flagText = (((ratio - 1) * 100).toFixed(0)) + '% ABOVE'; flagClass = 'flag-yellow'; }
+  else { flagText = (((ratio - 1) * 100).toFixed(0)) + '% ABOVE'; flagClass = 'flag-red'; }
+
+  document.getElementById('r-total').textContent = total;
+  document.getElementById('r-rate').textContent = crashRate.toFixed(2);
+  document.getElementById('r-epdo').textContent = epdo;
+  document.getElementById('r-epdo-rate').textContent = epdoRate.toFixed(2);
+  const flagEl = document.getElementById('r-flag');
+  flagEl.textContent = flagText;
+  flagEl.className = 'result-val ' + flagClass;
+  document.getElementById('mod1-results').style.display = 'block';
+
+  // Crash pattern summary
+  const types = [];
+  document.querySelectorAll('.crash-type:checked').forEach(function(cb) {
+    types.push(cb.parentElement.textContent.trim());
+  });
+  const patternEl = document.getElementById('crash-pattern-summary');
+  if (types.length > 0) {
+    patternEl.innerHTML = '<strong style="color:var(--yellow)">Dominant crash patterns:</strong> ' + types.join(', ');
+  } else {
+    patternEl.innerHTML = '<strong style="color:var(--yellow)">No crash types selected.</strong> Select crash types to drive countermeasure recommendations.';
+  }
+
+  analysisState = {
+    name: getStr('int-name'),
+    roadClass: roadClass,
+    years: years,
+    aadtMaj: aadtMaj,
+    aadtMin: aadtMin,
+    K: K, A: A, B: B, C: C, O: O,
+    total: total,
+    crashRate: crashRate,
+    epdo: epdo,
+    epdoRate: epdoRate,
+    baselineRate: baselineRate,
+    flagText: flagText,
+    crashTypes: types,
+    annualCrashes: total / years
+  };
+
+  updateCMF();
+  saveState();
+}
+
+// ============ MODULE 2: COUNTERMEASURE SELECTOR ============
+function updateCMF() {
+  const checks = document.querySelectorAll('.cmf-check:checked');
+  let combined = 1, totalStars = 0, count = 0, costLow = 0, costHigh = 0;
+  const selectedNames = [];
+
+  checks.forEach(function(cb) {
+    combined *= parseFloat(cb.dataset.cmf);
+    totalStars += parseInt(cb.dataset.stars);
+    costLow += parseInt(cb.dataset.costLow);
+    costHigh += parseInt(cb.dataset.costHigh);
+    selectedNames.push(cb.dataset.name);
+    count++;
+  });
+
+  const avgStars = count > 0 ? totalStars / count : 0;
+  const annualCrashes = analysisState ? analysisState.annualCrashes : 0;
+  const prevented = count > 0 ? annualCrashes * (1 - combined) : 0;
+
+  document.getElementById('cmf-combined').textContent = count > 0 ? combined.toFixed(3) : '--';
+  document.getElementById('cmf-prevented').textContent = count > 0 ? prevented.toFixed(1) : '--';
+  document.getElementById('cmf-cost-range').textContent = count > 0 ?
+    '$' + formatK(costLow) + ' - $' + formatK(costHigh) : '--';
+
+  const starFlagEl = document.getElementById('cmf-star-flag');
+  if (count === 0) {
+    starFlagEl.textContent = '--';
+    starFlagEl.className = 'cmf-big';
+  } else if (avgStars >= 4.0) {
+    starFlagEl.textContent = 'HIGH QUALITY';
+    starFlagEl.className = 'cmf-big flag-green';
+  } else if (avgStars >= 3.5) {
+    starFlagEl.textContent = 'ADEQUATE';
+    starFlagEl.className = 'cmf-big flag-yellow';
+  } else {
+    starFlagEl.textContent = 'VERIFY';
+    starFlagEl.className = 'cmf-big flag-red';
+  }
+
+  const warnBox = document.getElementById('cmf-warning-box');
+  if (combined < 0.30 && count > 0) {
+    warnBox.style.display = 'block';
+    warnBox.textContent = 'Combined CMF < 0.30 -- combined effectiveness may be overstated. FHWA recommends engineering judgment for aggressive countermeasure packages.';
+  } else {
+    warnBox.style.display = 'none';
+  }
+
+  cmfState = { combined, prevented, costLow, costHigh, avgStars, count, selectedNames };
+  saveState();
+}
+
+function formatK(n) {
+  if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+  if (n >= 1000) return (n / 1000).toFixed(0) + 'K';
+  return n.toString();
+}
+
+function formatDollars(n) {
+  return '$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 });
+}
+
+document.querySelectorAll('.cmf-check').forEach(function(cb) {
+  cb.addEventListener('change', updateCMF);
+});
+
+// ============ MODULE 3: B/C CALCULATOR ============
+function useCostMidpoint() {
+  if (cmfState.count > 0) {
+    const mid = Math.round((cmfState.costLow + cmfState.costHigh) / 2);
+    document.getElementById('project-cost').value = mid;
+  }
+}
+
+function runBCA() {
+  if (!analysisState) { alert('Complete Module 1 (Crash Analyzer) first.'); return; }
+  if (cmfState.count === 0) { alert('Select at least one countermeasure in Module 2.'); return; }
+  const projectCost = getVal('project-cost');
+  if (projectCost <= 0) { alert('Enter a project cost.'); return; }
+
+  const s = analysisState;
+  const cmf = cmfState.combined;
+  const annualCrashes = s.annualCrashes;
+  const totalCrashes = s.total;
+
+  // Proportions
+  const pK = totalCrashes > 0 ? s.K / totalCrashes : 0;
+  const pA = totalCrashes > 0 ? s.A / totalCrashes : 0;
+  const pB = totalCrashes > 0 ? s.B / totalCrashes : 0;
+  const pC = totalCrashes > 0 ? s.C / totalCrashes : 0;
+  const pO = totalCrashes > 0 ? s.O / totalCrashes : 0;
+
+  const prevented = annualCrashes * (1 - cmf);
+  const prevK = prevented * pK;
+  const prevA = prevented * pA;
+  const prevB = prevented * pB;
+  const prevC = prevented * pC;
+  const prevO = prevented * pO;
+
+  const annualBenefit = prevK * kabcoCosts.K + prevA * kabcoCosts.A +
+    prevB * kabcoCosts.B + prevC * kabcoCosts.C + prevO * kabcoCosts.O;
+
+  const annuityFactor = (1 - Math.pow(1.07, -20)) / 0.07;
+  const discountedBenefit = annualBenefit * annuityFactor;
+  const bcr = discountedBenefit / projectCost;
+
+  const prevented20 = prevented * 20;
+
+  document.getElementById('bca-results').style.display = 'block';
+  document.getElementById('bca-annual').textContent = formatDollars(Math.round(annualBenefit));
+  document.getElementById('bca-20yr').textContent = formatDollars(Math.round(discountedBenefit));
+  document.getElementById('bca-cost').textContent = formatDollars(projectCost);
+  document.getElementById('bca-prevented-20').textContent = prevented20.toFixed(1);
+
+  const bcrEl = document.getElementById('bc-ratio-value');
+  bcrEl.textContent = bcr.toFixed(2);
+  const statusEl = document.getElementById('bc-status');
+
+  if (bcr >= 2.0) {
+    bcrEl.className = 'flag-green';
+    bcrEl.style.color = '#22c55e';
+    statusEl.textContent = 'STRONG -- HSIP COMPETITIVE';
+    statusEl.className = 'flag-green';
+  } else if (bcr >= 1.0) {
+    bcrEl.style.color = '#ffc107';
+    statusEl.textContent = 'COMPETITIVE -- MEETS THRESHOLD';
+    statusEl.style.color = '#ffc107';
+  } else {
+    bcrEl.style.color = '#dc2626';
+    statusEl.textContent = 'BELOW THRESHOLD -- MAY NOT BE HSIP-ELIGIBLE';
+    statusEl.style.color = '#dc2626';
+  }
+
+  // Populate severity breakdown table
+  const sevRows = document.getElementById('bca-severity-rows');
+  const sevData = [
+    { label: 'K -- Fatal', prev: prevK, cost: kabcoCosts.K },
+    { label: 'A -- Incapacitating Injury', prev: prevA, cost: kabcoCosts.A },
+    { label: 'B -- Non-Incapacitating Injury', prev: prevB, cost: kabcoCosts.B },
+    { label: 'C -- Possible Injury', prev: prevC, cost: kabcoCosts.C },
+    { label: 'O -- Property Damage Only', prev: prevO, cost: kabcoCosts.O }
+  ];
+  let sevHTML = '';
+  const cellStyle = 'padding:5px 10px; border-bottom:1px solid rgba(0,0,0,0.1);';
+  const monoStyle = cellStyle + ' text-align:right; font-family:Consolas,monospace; font-weight:700;';
+  sevData.forEach(function(row) {
+    sevHTML += '<tr>';
+    sevHTML += '<td style="' + cellStyle + '">' + row.label + '</td>';
+    sevHTML += '<td style="' + monoStyle + '">' + row.prev.toFixed(3) + '</td>';
+    sevHTML += '<td style="' + monoStyle + '">' + formatDollars(row.cost) + '</td>';
+    sevHTML += '<td style="' + monoStyle + '">' + formatDollars(Math.round(row.prev * row.cost)) + '</td>';
+    sevHTML += '</tr>';
+  });
+  sevHTML += '<tr style="font-weight:700; border-top:2px solid var(--black);">';
+  sevHTML += '<td style="' + cellStyle + '">Total</td>';
+  sevHTML += '<td style="' + monoStyle + '">' + prevented.toFixed(3) + '</td>';
+  sevHTML += '<td style="' + monoStyle + '">--</td>';
+  sevHTML += '<td style="' + monoStyle + '">' + formatDollars(Math.round(annualBenefit)) + '</td>';
+  sevHTML += '</tr>';
+  sevRows.innerHTML = sevHTML;
+
+  // Store for narrative
+  window._bcaData = {
+    annualBenefit, discountedBenefit, projectCost, bcr,
+    prevK, prevA, prevB, prevC, prevO, prevented, prevented20,
+    annuityFactor
+  };
+
+  generateNarrative();
+  saveState();
+}
+
+// ============ NARRATIVE GENERATOR ============
+function toggleNarrative() {
+  const btn = document.getElementById('narrative-toggle');
+  const container = document.getElementById('narrative-container');
+  btn.classList.toggle('open');
+  container.classList.toggle('open');
+}
+
+function generateNarrative() {
+  if (!analysisState || !window._bcaData) return;
+  const s = analysisState;
+  const b = window._bcaData;
+  const cmfs = cmfState;
+  const pctAbove = ((s.crashRate / s.baselineRate - 1) * 100).toFixed(0);
+  const roadLabels = { principal: 'Principal Arterial', minor: 'Minor Arterial', collector: 'Collector' };
+  const roadLabel = roadLabels[s.roadClass] || s.roadClass;
+
+  let countermeasureList = '';
+  document.querySelectorAll('.cmf-check:checked').forEach(function(cb) {
+    countermeasureList += '<li><strong>' + cb.dataset.name + '</strong> -- CMF: ' +
+      cb.dataset.cmf + ', ' + cb.dataset.stars + '-star rating. Addresses: ' + cb.dataset.types + '.</li>';
+  });
+
+  const html = `
+<h2>1. Project Identification</h2>
+<table>
+<tr><th>Field</th><th>Value</th></tr>
+<tr><td>Intersection</td><td class="mono">${s.name || '(enter intersection name)'}</td></tr>
+<tr><td>Road Classification</td><td>${roadLabel}</td></tr>
+<tr><td>Study Period</td><td class="mono">${s.years} years</td></tr>
+<tr><td>AADT - Major Road</td><td class="mono">${s.aadtMaj.toLocaleString()}</td></tr>
+<tr><td>AADT - Minor Road</td><td class="mono">${s.aadtMin.toLocaleString()}</td></tr>
+</table>
+
+<h2>2. Safety Problem Statement</h2>
+<p>The intersection of <strong>${s.name || '[name]'}</strong> recorded <strong>${s.total}</strong> crashes over <strong>${s.years}</strong> years (${s.K} fatal, ${s.A} incapacitating injury, ${s.B} non-incapacitating injury, ${s.C} possible injury, ${s.O} property damage only), yielding a crash rate of <strong>${s.crashRate.toFixed(2)}</strong> crashes per million entering vehicles. This is ${pctAbove}% above the statewide average crash rate of ${s.baselineRate} for ${roadLabel} intersections. ${s.crashTypes.length > 0 ? 'The dominant crash patterns are: ' + s.crashTypes.join(', ') + '.' : ''}</p>
+
+<h2>3. Proposed Countermeasures</h2>
+<ul>${countermeasureList}</ul>
+<p>Combined CMF: <strong>${cmfs.combined.toFixed(3)}</strong> | Estimated annual crashes prevented: <strong>${cmfs.prevented.toFixed(1)}</strong></p>
+
+<h2>4. Benefit-Cost Analysis Summary</h2>
+<table>
+<tr><th>Metric</th><th>Value</th></tr>
+<tr><td>Annual Safety Benefit</td><td class="mono">${formatDollars(Math.round(b.annualBenefit))}</td></tr>
+<tr><td>20-Year Discounted Benefit (7% rate)</td><td class="mono">${formatDollars(Math.round(b.discountedBenefit))}</td></tr>
+<tr><td>Project Cost</td><td class="mono">${formatDollars(b.projectCost)}</td></tr>
+<tr><td>Benefit-Cost Ratio</td><td class="mono" style="font-size:18px;font-weight:700;">${b.bcr.toFixed(2)}</td></tr>
+<tr><td>Fatal Crashes Prevented (20 yr)</td><td class="mono">${(b.prevK * 20).toFixed(1)}</td></tr>
+<tr><td>Injury Crashes Prevented (20 yr)</td><td class="mono">${((b.prevA + b.prevB + b.prevC) * 20).toFixed(1)}</td></tr>
+<tr><td>PDO Crashes Prevented (20 yr)</td><td class="mono">${(b.prevO * 20).toFixed(1)}</td></tr>
+</table>
+<p style="font-size:12px;color:#666;">Crash cost unit values: K=$12,500,000; A=$1,350,000; B=$530,000; C=$165,000; O=$11,000. Annuity factor (7%, 20 yr): ${b.annuityFactor.toFixed(3)}. Verify current FHWA guidance before official submission.</p>
+
+<h2>5. Project Readiness Statement</h2>
+<ul class="readiness-check">
+  <li><input type="checkbox"><span>Crash data obtained from MnDOT crash records / local records</span></li>
+  <li><input type="checkbox"><span>Traffic volume data source: _______________</span></li>
+  <li><input type="checkbox"><span>Preliminary engineering assessment complete</span></li>
+  <li><input type="checkbox"><span>Right-of-way status: _______________</span></li>
+  <li><input type="checkbox"><span>Coordination with MnDOT District ___ completed</span></li>
+  <li><input type="checkbox"><span>Local match available (HSIP is 90-100% federal; local match not required for most projects -- confirm with MnDOT district office)</span></li>
+</ul>
+
+<h2>6. Legislative District Context</h2>
+<p>This intersection is located in Minnesota Senate District 32. The district has experienced significant growth pressure, with Blaine reaching 70,000+ residents and continued residential expansion in Ham Lake and surrounding communities. The TH 65 corridor has been identified as a key transportation priority for SD-32.</p>
+<p style="font-size:11px;color:#888;margin-top:24px;border-top:1px solid #ccc;padding-top:8px;">This document was generated using a planning aid tool. All data should be verified against current MnDOT, FHWA, and CMF Clearinghouse sources before official HSIP submission.</p>
+`;
+
+  document.getElementById('narrative-output').innerHTML = html;
+}
+
+// ============ LOAD EXAMPLE ============
+document.getElementById('load-example-btn').addEventListener('click', function() {
+  document.getElementById('int-name').value = 'Trunk Highway 65 & Bunker Lake Boulevard NE, Ham Lake';
+  document.getElementById('road-class').value = 'principal';
+  document.getElementById('study-years').value = 3;
+  document.getElementById('aadt-major').value = 32000;
+  document.getElementById('aadt-minor').value = 8000;
+  // <!-- VERIFY: AADT values are illustrative per the software brief; not from verified MnDOT count data -->
+  // Illustrative crash data for demonstration
+  document.getElementById('k-count').value = 1;
+  document.getElementById('a-count').value = 3;
+  document.getElementById('b-count').value = 8;
+  document.getElementById('c-count').value = 12;
+  document.getElementById('o-count').value = 26;
+
+  // Pre-select crash types: angle and left-turn
+  document.querySelectorAll('.crash-type').forEach(function(cb) {
+    cb.checked = (cb.value === 'angle' || cb.value === 'left-turn');
+  });
+
+  // Pre-select grade-separate countermeasure
+  document.querySelectorAll('.cmf-check').forEach(function(cb) {
+    cb.checked = (cb.dataset.name === 'Grade-separate / convert to interchange');
+  });
+
+  runAnalysis();
+  updateCMF();
+  document.getElementById('project-cost').value = 9000000;
+  showPanel('mod1');
+  saveState();
+});
+
+// ============ TH 65 CONTEXT (accessible via console/help) ============
+// Minnesota State Highway 65 is a principal arterial running from I-694 in Fridley
+// through Blaine and Ham Lake northward. It carries four lanes through Anoka County
+// as an expressway before transitioning to a two-lane rural highway north of Cambridge.
+// The suburban segment through District 32 is among the highest-volume sections of the
+// corridor and is subject to ongoing growth pressure from residential and commercial
+// development in Blaine (70,000+ residents) and Ham Lake.
+//
+// SF4789, chief-authored by Sen. Kreun, appropriated $4,300,000 for interchange
+// improvements at this location in 2024, covering engineering, environmental review,
+// right-of-way acquisition, and construction.
+//
+// AADT values shown in the example are illustrative for demonstration.
+// Use actual MnDOT traffic count data for official HSIP submissions.
+
+// ============ LOCAL STORAGE ============
+const STORAGE_KEY = 'kreun-hsip-tool-state';
+
+function saveState() {
+  try {
+    const data = {
+      intName: getStr('int-name'),
+      roadClass: getStr('road-class'),
+      studyYears: getVal('study-years'),
+      aadtMajor: getVal('aadt-major'),
+      aadtMinor: getVal('aadt-minor'),
+      K: getVal('k-count'), A: getVal('a-count'), B: getVal('b-count'),
+      C: getVal('c-count'), O: getVal('o-count'),
+      crashTypes: Array.from(document.querySelectorAll('.crash-type:checked')).map(c => c.value),
+      cmfChecked: Array.from(document.querySelectorAll('.cmf-check:checked')).map(c => c.dataset.name),
+      projectCost: getVal('project-cost')
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch(e) { /* localStorage may not be available */ }
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    if (d.intName) document.getElementById('int-name').value = d.intName;
+    if (d.roadClass) document.getElementById('road-class').value = d.roadClass;
+    if (d.studyYears) document.getElementById('study-years').value = d.studyYears;
+    if (d.aadtMajor) document.getElementById('aadt-major').value = d.aadtMajor;
+    if (d.aadtMinor) document.getElementById('aadt-minor').value = d.aadtMinor;
+    if (d.K) document.getElementById('k-count').value = d.K;
+    if (d.A) document.getElementById('a-count').value = d.A;
+    if (d.B) document.getElementById('b-count').value = d.B;
+    if (d.C) document.getElementById('c-count').value = d.C;
+    if (d.O) document.getElementById('o-count').value = d.O;
+    if (d.crashTypes) {
+      d.crashTypes.forEach(function(v) {
+        const cb = document.querySelector('.crash-type[value="' + v + '"]');
+        if (cb) cb.checked = true;
+      });
+    }
+    if (d.cmfChecked) {
+      d.cmfChecked.forEach(function(name) {
+        const cb = document.querySelector('.cmf-check[data-name="' + name + '"]');
+        if (cb) cb.checked = true;
+      });
+    }
+    if (d.projectCost) document.getElementById('project-cost').value = d.projectCost;
+  } catch(e) { /* fail silently */ }
+}
+
+// ============ AUTO-SAVE ON INPUT ============
+document.querySelectorAll('input, select').forEach(function(el) {
+  el.addEventListener('change', saveState);
+  el.addEventListener('input', saveState);
+});
+
+// ============ INIT ============
+loadState();
+</script>
+</body>
+</html>

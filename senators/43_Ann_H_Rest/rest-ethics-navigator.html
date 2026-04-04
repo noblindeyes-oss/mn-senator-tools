@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minnesota City Official Ethics & Disclosure Navigator</title>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Single-column legal document flow — numbered sections, indented subsections, marginal notes. Municipal code book aesthetic.
+   2. Navigation: Sticky table of contents at top, collapsing to single row on scroll. Section numbers as links.
+   3. Typography: Palatino (serif headers/body), Calibri (sans labels/nav), Lucida Console (monospace citations)
+   4. Hero moment: Large official-looking seal SVG with "ETHICS & DISCLOSURE" text surrounding it — dominates the opening viewport
+   5. Color strategy: #4 Warm dominant — Aged parchment (#f4edd3) as environmental background, dark ink (#1a1410), sealing-wax red (#8b0000) markers
+   6. Entry experience: The document is simply there. No animation. TOC at top, seal below, content flows like a printed code book.
+   Additional: No cards, no bordered callouts. Information separated by rules, indentation, and typographic weight. Dense legal-reference feel.
+*/
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --parchment: #f4edd3;
+  --parchment-dark: #e8dfc3;
+  --ink: #1a1410;
+  --ink-light: #3d352a;
+  --wax-red: #8b0000;
+  --wax-red-light: #a52a2a;
+  --steel-blue: #3A6186;
+  --steel-blue-tint: #d6e4ef;
+  --section-tint: #ece5cf;
+  --rule-color: #b8a97e;
+  --green: #2D6A4F;
+  --alert-red: #C1121F;
+  --gray: #707070;
+}
+
+html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+
+body {
+  background: var(--parchment);
+  color: var(--ink);
+  font-family: 'Palatino Linotype', Palatino, 'Book Antiqua', serif;
+  font-size: 15px;
+  line-height: 1.55;
+  min-height: 100vh;
+}
+
+/* === STICKY TABLE OF CONTENTS === */
+#toc {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--ink);
+  border-bottom: 3px solid var(--wax-red);
+  padding: 14px 24px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 20px;
+  transition: padding 0.2s ease;
+}
+#toc.collapsed { padding: 6px 24px; }
+#toc-title {
+  font-family: Calibri, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--parchment);
+  margin-right: 16px;
+  white-space: nowrap;
+}
+#toc.collapsed #toc-title { font-size: 11px; }
+#toc a {
+  font-family: Calibri, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--parchment-dark);
+  text-decoration: none;
+  letter-spacing: 0.5px;
+  padding: 2px 8px;
+  border-radius: 2px;
+  transition: color 0.15s, background 0.15s;
+  white-space: nowrap;
+}
+#toc a:hover { color: #fff; background: rgba(139,0,0,0.5); }
+#toc a.active { color: #fff; background: var(--wax-red); }
+#toc .toc-sep {
+  color: var(--rule-color);
+  font-size: 10px;
+  user-select: none;
+}
+
+/* === MAIN DOCUMENT BODY === */
+.doc-body {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 0 28px 60px;
+}
+
+/* === SEAL / HERO === */
+.seal-section {
+  text-align: center;
+  padding: 48px 0 32px;
+}
+.seal-section svg { max-width: 280px; height: auto; }
+.seal-subtitle {
+  font-family: Calibri, sans-serif;
+  font-size: 11px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--gray);
+  margin-top: 18px;
+}
+.doc-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-top: 14px;
+  letter-spacing: -0.3px;
+  line-height: 1.25;
+}
+.doc-subtitle {
+  font-size: 15px;
+  color: var(--ink-light);
+  margin-top: 6px;
+  font-style: italic;
+}
+
+/* === FRAMING TEXT === */
+.framing {
+  margin: 24px 0 12px;
+  padding: 18px 28px;
+  background: var(--section-tint);
+  border-top: 2px solid var(--rule-color);
+  border-bottom: 2px solid var(--rule-color);
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--ink-light);
+}
+
+/* === SECTION HEADINGS === */
+.section-number {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 13px;
+  color: var(--wax-red);
+  font-weight: 700;
+}
+h2.section-head {
+  font-family: Calibri, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ink);
+  margin-top: 44px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--wax-red);
+}
+h3.subsection-head {
+  font-family: Calibri, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--steel-blue);
+  margin-top: 28px;
+  margin-bottom: 6px;
+}
+.marginal-note {
+  font-family: Calibri, sans-serif;
+  font-size: 11px;
+  color: var(--gray);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.statutory-cite {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 12px;
+  color: var(--wax-red-light);
+  background: var(--parchment-dark);
+  padding: 1px 6px;
+  border-radius: 2px;
+}
+
+/* === HORIZONTAL RULES === */
+hr.section-rule {
+  border: none;
+  border-top: 1px solid var(--rule-color);
+  margin: 24px 0;
+}
+hr.heavy-rule {
+  border: none;
+  border-top: 3px double var(--rule-color);
+  margin: 36px 0;
+}
+
+/* === MODULE 1: SCREENER === */
+.wizard-container {
+  margin-top: 16px;
+}
+.wizard-progress {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 18px;
+}
+.wizard-progress .step-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 12px;
+  font-weight: 700;
+  border: 2px solid var(--rule-color);
+  color: var(--gray);
+  background: var(--parchment);
+  transition: all 0.15s;
+}
+.wizard-progress .step-dot.active {
+  border-color: var(--wax-red);
+  color: #fff;
+  background: var(--wax-red);
+}
+.wizard-progress .step-dot.done {
+  border-color: var(--green);
+  color: #fff;
+  background: var(--green);
+}
+.wizard-progress .step-line {
+  width: 18px;
+  height: 2px;
+  background: var(--rule-color);
+}
+.question-panel { display: none; }
+.question-panel.active { display: block; }
+.question-text {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 14px;
+}
+.option-list { list-style: none; }
+.option-list li {
+  margin-bottom: 6px;
+}
+.option-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font-family: 'Palatino Linotype', Palatino, serif;
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--parchment-dark);
+  border: 1px solid var(--rule-color);
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+.option-btn:hover {
+  background: var(--steel-blue-tint);
+  border-color: var(--steel-blue);
+}
+.option-btn.selected {
+  background: var(--steel-blue-tint);
+  border-color: var(--steel-blue);
+  font-weight: 700;
+}
+.wizard-nav {
+  margin-top: 18px;
+  display: flex;
+  gap: 12px;
+}
+.wizard-nav button {
+  font-family: Calibri, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 8px 24px;
+  border: 2px solid var(--ink);
+  background: var(--parchment);
+  color: var(--ink);
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.wizard-nav button:hover {
+  background: var(--ink);
+  color: var(--parchment);
+}
+.wizard-nav button.primary {
+  background: var(--wax-red);
+  border-color: var(--wax-red);
+  color: #fff;
+}
+.wizard-nav button.primary:hover {
+  background: #6d0000;
+  border-color: #6d0000;
+}
+.wizard-nav button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.number-input-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.number-input-row input[type="number"] {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 15px;
+  width: 160px;
+  padding: 8px 10px;
+  border: 1px solid var(--rule-color);
+  background: #fff;
+  color: var(--ink);
+}
+.number-input-row .pop-hint {
+  font-family: Calibri, sans-serif;
+  font-size: 12px;
+  color: var(--gray);
+}
+.pop-bands {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.pop-band-btn {
+  font-family: Calibri, sans-serif;
+  font-size: 12px;
+  padding: 4px 12px;
+  border: 1px solid var(--rule-color);
+  background: var(--parchment);
+  color: var(--ink-light);
+  cursor: pointer;
+}
+.pop-band-btn:hover { background: var(--parchment-dark); }
+
+/* === RESULT PANEL === */
+.result-panel {
+  display: none;
+  margin-top: 20px;
+  padding: 24px 0;
+  border-top: 3px double var(--wax-red);
+  border-bottom: 3px double var(--wax-red);
+}
+.result-panel.visible { display: block; }
+.result-heading {
+  font-family: Calibri, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--wax-red);
+  margin-bottom: 4px;
+}
+.result-body {
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 16px;
+  padding-left: 20px;
+}
+.result-status {
+  font-weight: 700;
+  font-size: 15px;
+}
+.result-status.required { color: var(--wax-red); }
+.result-status.not-required { color: var(--green); }
+.result-status.proposed { color: var(--steel-blue); }
+.result-note {
+  font-size: 13px;
+  color: var(--gray);
+  font-style: italic;
+  margin-top: 8px;
+}
+
+/* === MODULE 2: ACCORDION === */
+.accordion-item {
+  border-bottom: 1px solid var(--rule-color);
+}
+.accordion-trigger {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+  font-family: Calibri, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: var(--parchment-dark);
+  border: none;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.accordion-trigger:hover { background: var(--steel-blue-tint); }
+.accordion-trigger .acc-marker {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 12px;
+  color: var(--wax-red);
+  margin-right: 12px;
+  font-weight: 700;
+}
+.accordion-trigger .acc-arrow {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--gray);
+  transition: transform 0.2s;
+}
+.accordion-trigger[aria-expanded="true"] .acc-arrow { transform: rotate(90deg); }
+.accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.22s ease;
+}
+.accordion-content-inner {
+  padding: 16px 16px 20px 40px;
+  font-size: 14px;
+  line-height: 1.65;
+}
+.accordion-content-inner p { margin-bottom: 10px; }
+.accordion-content-inner strong { color: var(--ink); }
+.example-block {
+  margin: 10px 0;
+  padding: 10px 14px;
+  background: var(--parchment-dark);
+  border-left: none;
+  font-size: 13px;
+}
+.example-block .example-label {
+  font-family: Calibri, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--steel-blue);
+  margin-bottom: 4px;
+}
+.red-flag-block {
+  margin: 10px 0;
+  padding: 10px 14px;
+  background: #f9e8e8;
+  font-size: 13px;
+}
+.red-flag-block .rf-label {
+  font-family: Calibri, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--alert-red);
+  margin-bottom: 4px;
+}
+.consequence-line {
+  font-size: 12px;
+  color: var(--ink-light);
+  margin-top: 8px;
+}
+
+/* === MODULE 3: TABLE === */
+.table-section {
+  background: var(--section-tint);
+  margin-left: -28px;
+  margin-right: -28px;
+  padding: 0 28px 28px;
+}
+.table-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding-top: 16px;
+}
+.table-filter-row label {
+  font-family: Calibri, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--gray);
+}
+.table-filter-row input[type="text"] {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 13px;
+  padding: 6px 10px;
+  border: 1px solid var(--rule-color);
+  background: #fff;
+  color: var(--ink);
+  width: 260px;
+}
+.table-filter-row select {
+  font-family: Calibri, sans-serif;
+  font-size: 13px;
+  padding: 6px 8px;
+  border: 1px solid var(--rule-color);
+  background: #fff;
+  color: var(--ink);
+}
+.city-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.city-table thead th {
+  font-family: Calibri, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--parchment);
+  background: var(--ink);
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 2px solid var(--wax-red);
+}
+.city-table tbody td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--rule-color);
+  vertical-align: top;
+}
+.city-table tbody tr:nth-child(even) td { background: var(--parchment-dark); }
+.city-table tbody tr:nth-child(odd) td { background: var(--parchment); }
+.city-table tbody tr.sd43 td {
+  background: var(--steel-blue-tint);
+}
+.city-table tbody tr.sd43:nth-child(even) td {
+  background: #c6d8e8;
+}
+.sd43-badge {
+  font-family: Calibri, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--steel-blue);
+  background: #fff;
+  padding: 1px 5px;
+  border-radius: 2px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+.city-table .pop-cell {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 12px;
+  text-align: right;
+}
+.city-table .class-cell {
+  font-weight: 700;
+}
+.city-table .class-first { color: var(--wax-red); }
+.city-table .class-second { color: var(--steel-blue); }
+.city-table .class-third { color: var(--green); }
+.no-results-row { display: none; }
+.no-results-row td {
+  text-align: center;
+  padding: 20px;
+  color: var(--gray);
+  font-style: italic;
+}
+
+/* === TABLE EXPLAINER === */
+.table-explainer {
+  margin-top: 20px;
+  padding: 16px 20px;
+  background: var(--parchment-dark);
+  border-top: 2px solid var(--rule-color);
+  border-bottom: 2px solid var(--rule-color);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-light);
+}
+
+/* === CONFLICT EXPLAINER === */
+.explainer-section {
+  margin-top: 24px;
+  padding: 16px 0;
+}
+
+/* === FOOTER === */
+.doc-footer {
+  background: var(--ink);
+  color: var(--parchment-dark);
+  padding: 20px 28px;
+  font-size: 12px;
+  line-height: 1.6;
+  margin-top: 40px;
+}
+.doc-footer .footer-inner {
+  max-width: 820px;
+  margin: 0 auto;
+}
+.doc-footer strong { color: var(--parchment); }
+.doc-footer a { color: var(--steel-blue-tint); }
+
+/* === MARGINAL NOTES (side annotations) === */
+.margin-note {
+  float: right;
+  width: 160px;
+  margin: 0 -180px 12px 16px;
+  font-family: Calibri, sans-serif;
+  font-size: 11px;
+  color: var(--gray);
+  line-height: 1.4;
+  text-align: right;
+  border-right: 2px solid var(--wax-red);
+  padding-right: 10px;
+}
+
+/* === PRINT === */
+@media print {
+  #toc { display: none; }
+  .doc-body { max-width: 100%; padding: 0 20px; }
+  .table-section { margin: 0; padding: 0; }
+  .margin-note { float: none; width: auto; margin: 8px 0; text-align: left; border: none; padding: 0; font-style: italic; }
+  .wizard-nav button { border: 1px solid #000; }
+  body { font-size: 12px; }
+  .seal-section svg { max-width: 180px; }
+  .doc-footer { background: #fff; color: #000; border-top: 2px solid #000; }
+  a[href]::after { content: " (" attr(href) ")"; font-size: 10px; }
+}
+
+/* === MOBILE === */
+@media (max-width: 768px) {
+  .doc-body { padding: 0 16px 40px; }
+  .margin-note { float: none; width: auto; margin: 8px 0 12px; text-align: left; border-right: none; border-bottom: 1px solid var(--rule-color); padding: 0 0 6px; }
+  .table-section { margin-left: -16px; margin-right: -16px; padding: 0 16px 20px; }
+  .table-filter-row { flex-wrap: wrap; }
+  .table-filter-row input[type="text"] { width: 100%; }
+  .city-table { font-size: 12px; }
+  .seal-section svg { max-width: 200px; }
+  #toc { flex-wrap: nowrap; overflow-x: auto; gap: 4px 10px; }
+}
+</style>
+</head>
+<body>
+
+<!-- TABLE OF CONTENTS (sticky) -->
+<nav id="toc" role="navigation" aria-label="Table of contents">
+  <span id="toc-title">Contents</span>
+  <a href="#section-1" data-section="section-1">&#167; 1</a>
+  <span class="toc-sep">&#183;</span>
+  <a href="#section-2" data-section="section-2">&#167; 2</a>
+  <span class="toc-sep">&#183;</span>
+  <a href="#section-2a" data-section="section-2a">2A</a>
+  <span class="toc-sep">&#183;</span>
+  <a href="#section-2b" data-section="section-2b">2B</a>
+  <span class="toc-sep">&#183;</span>
+  <a href="#section-2c" data-section="section-2c">2C</a>
+  <span class="toc-sep">&#183;</span>
+  <a href="#section-2d" data-section="section-2d">2D</a>
+  <span class="toc-sep">&#183;</span>
+  <a href="#section-3" data-section="section-3">&#167; 3</a>
+</nav>
+
+<div class="doc-body">
+
+  <!-- SEAL / HERO -->
+  <div class="seal-section">
+    <svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Official seal — Ethics and Disclosure">
+      <!-- Outer ring -->
+      <circle cx="150" cy="150" r="145" fill="none" stroke="#1a1410" stroke-width="3"/>
+      <circle cx="150" cy="150" r="138" fill="none" stroke="#1a1410" stroke-width="1"/>
+      <!-- Decorative dots around outer ring -->
+      <g fill="#8b0000">
+        <circle cx="150" cy="8" r="3"/><circle cx="192" cy="12" r="2.5"/><circle cx="230" cy="25" r="2.5"/>
+        <circle cx="261" cy="47" r="2.5"/><circle cx="283" cy="76" r="2.5"/><circle cx="295" cy="110" r="2.5"/>
+        <circle cx="298" cy="150" r="3"/><circle cx="295" cy="190" r="2.5"/><circle cx="283" cy="224" r="2.5"/>
+        <circle cx="261" cy="253" r="2.5"/><circle cx="230" cy="275" r="2.5"/><circle cx="192" cy="288" r="2.5"/>
+        <circle cx="150" cy="292" r="3"/><circle cx="108" cy="288" r="2.5"/><circle cx="70" cy="275" r="2.5"/>
+        <circle cx="39" cy="253" r="2.5"/><circle cx="17" cy="224" r="2.5"/><circle cx="5" cy="190" r="2.5"/>
+        <circle cx="2" cy="150" r="3"/><circle cx="5" cy="110" r="2.5"/><circle cx="17" cy="76" r="2.5"/>
+        <circle cx="39" cy="47" r="2.5"/><circle cx="70" cy="25" r="2.5"/><circle cx="108" cy="12" r="2.5"/>
+      </g>
+      <!-- Text on arc — top -->
+      <defs>
+        <path id="topArc" d="M 40,150 a 110,110 0 1,1 220,0" fill="none"/>
+        <path id="bottomArc" d="M 260,150 a 110,110 0 1,1 -220,0" fill="none"/>
+      </defs>
+      <text font-family="Calibri, sans-serif" font-size="14" font-weight="700" letter-spacing="5" fill="#1a1410">
+        <textPath href="#topArc" startOffset="50%" text-anchor="middle">ETHICS &amp; DISCLOSURE</textPath>
+      </text>
+      <text font-family="Calibri, sans-serif" font-size="11" font-weight="600" letter-spacing="4" fill="#8b0000">
+        <textPath href="#bottomArc" startOffset="50%" text-anchor="middle">STATE OF MINNESOTA</textPath>
+      </text>
+      <!-- Inner ring -->
+      <circle cx="150" cy="150" r="82" fill="none" stroke="#1a1410" stroke-width="2"/>
+      <circle cx="150" cy="150" r="76" fill="none" stroke="#b8a97e" stroke-width="0.5"/>
+      <!-- Center: scales of justice icon -->
+      <g transform="translate(150,130)" fill="none" stroke="#1a1410" stroke-width="2" stroke-linecap="round">
+        <!-- Pillar -->
+        <line x1="0" y1="-30" x2="0" y2="32"/>
+        <!-- Base -->
+        <line x1="-18" y1="32" x2="18" y2="32"/>
+        <line x1="-10" y1="28" x2="10" y2="28"/>
+        <!-- Beam -->
+        <line x1="-32" y1="-26" x2="32" y2="-26"/>
+        <!-- Left pan -->
+        <line x1="-32" y1="-26" x2="-38" y2="-8"/>
+        <line x1="-32" y1="-26" x2="-26" y2="-8"/>
+        <path d="M -40,-8 Q -32,4 -24,-8" stroke="#8b0000" stroke-width="1.5"/>
+        <!-- Right pan -->
+        <line x1="32" y1="-26" x2="38" y2="-8"/>
+        <line x1="32" y1="-26" x2="26" y2="-8"/>
+        <path d="M 24,-8 Q 32,4 40,-8" stroke="#8b0000" stroke-width="1.5"/>
+        <!-- Top finial -->
+        <circle cx="0" cy="-34" r="4" fill="#8b0000" stroke="none"/>
+      </g>
+      <!-- Stars -->
+      <g fill="#8b0000" font-size="14">
+        <text x="108" y="156" text-anchor="middle">&#9733;</text>
+        <text x="192" y="156" text-anchor="middle">&#9733;</text>
+      </g>
+    </svg>
+    <div class="seal-subtitle">Campaign Finance and Public Disclosure Board</div>
+    <h1 class="doc-title">Minnesota City Official<br>Ethics &amp; Disclosure Navigator</h1>
+    <div class="doc-subtitle">"Does This Apply to Me?" &mdash; A Compliance Reference for Officials in Minnesota's Classified Cities</div>
+  </div>
+
+  <!-- FRAMING PARAGRAPH -->
+  <div class="framing">
+    Senator Ann Rest introduced SF2694 in the 2025 session to extend Minnesota's Statement of Economic Interest requirement to elected and appointed officials in cities of the first, second, and third class &mdash; the 100 largest cities in Minnesota, which include communities where Rest has worked for four decades. Under current law (<span class="statutory-cite">Minn. Stat. &sect; 10A.09</span>), state officials and officials of metropolitan governmental units must file with the Campaign Finance and Public Disclosure Board. SF2694 would bring the same standard to major-city officials statewide. This reference tool explains what that requirement means in practice.
+  </div>
+
+  <hr class="heavy-rule">
+
+  <!-- ===== SECTION 1: APPLICABILITY SCREENER ===== -->
+  <h2 class="section-head" id="section-1"><span class="section-number">&sect; 1.</span> Applicability Screener</h2>
+  <p class="marginal-note">Does This Apply to My Position?</p>
+  <p style="margin-top:10px; font-size:14px; color:var(--ink-light);">Answer each question. The navigator will determine your filing obligations under current law and under proposed SF2694.</p>
+
+  <div class="wizard-container" id="wizard">
+    <div class="wizard-progress" id="wizardProgress"></div>
+
+    <!-- Q1 -->
+    <div class="question-panel" id="q1" data-step="1">
+      <div class="question-text">1. What type of government entity do you serve?</div>
+      <ul class="option-list">
+        <li><button class="option-btn" data-value="state" onclick="selectOption(1, 'entityType', 'state', this)">State agency or department</button></li>
+        <li><button class="option-btn" data-value="metro" onclick="selectOption(1, 'entityType', 'metro', this)">Metropolitan governmental unit (Met Council, regional agency)</button></li>
+        <li><button class="option-btn" data-value="county" onclick="selectOption(1, 'entityType', 'county', this)">County government</button></li>
+        <li><button class="option-btn" data-value="city" onclick="selectOption(1, 'entityType', 'city', this)">City government</button></li>
+        <li><button class="option-btn" data-value="other" onclick="selectOption(1, 'entityType', 'other', this)">Special district / school board / other</button></li>
+      </ul>
+    </div>
+
+    <!-- Q2 -->
+    <div class="question-panel" id="q2" data-step="2">
+      <div class="question-text">2. What is your city's most recent census population?</div>
+      <div class="number-input-row">
+        <input type="number" id="popInput" placeholder="e.g. 53000" min="0" aria-label="City population">
+        <span class="pop-hint">Enter a number, or select a band below.</span>
+      </div>
+      <div class="pop-bands">
+        <button class="pop-band-btn" onclick="setPopBand(5000)">Under 10,000</button>
+        <button class="pop-band-btn" onclick="setPopBand(15000)">10,001&ndash;20,000</button>
+        <button class="pop-band-btn" onclick="setPopBand(50000)">20,001&ndash;100,000</button>
+        <button class="pop-band-btn" onclick="setPopBand(200000)">Over 100,000</button>
+      </div>
+    </div>
+
+    <!-- Q3 -->
+    <div class="question-panel" id="q3" data-step="3">
+      <div class="question-text">3. What is your role?</div>
+      <ul class="option-list">
+        <li><button class="option-btn" onclick="selectOption(3, 'role', 'elected', this)">Elected &mdash; mayor or council member</button></li>
+        <li><button class="option-btn" onclick="selectOption(3, 'role', 'manager', this)">Appointed &mdash; city manager or administrator</button></li>
+        <li><button class="option-btn" onclick="selectOption(3, 'role', 'attorney', this)">Appointed &mdash; city attorney</button></li>
+        <li><button class="option-btn" onclick="selectOption(3, 'role', 'clerk', this)">Appointed &mdash; city clerk or treasurer</button></li>
+        <li><button class="option-btn" onclick="selectOption(3, 'role', 'planning', this)">Appointed &mdash; planning or zoning board member</button></li>
+        <li><button class="option-btn" onclick="selectOption(3, 'role', 'other_appointed', this)">Other appointed official</button></li>
+        <li><button class="option-btn" onclick="selectOption(3, 'role', 'employee', this)">City employee (not an official)</button></li>
+      </ul>
+    </div>
+
+    <!-- Q4 -->
+    <div class="question-panel" id="q4" data-step="4">
+      <div class="question-text">4. How long have you been in your current role?</div>
+      <ul class="option-list">
+        <li><button class="option-btn" onclick="selectOption(4, 'tenure', 'new', this)">Just appointed / elected (within last 60 days)</button></li>
+        <li><button class="option-btn" onclick="selectOption(4, 'tenure', 'established', this)">More than 60 days</button></li>
+      </ul>
+    </div>
+
+    <!-- Q5 (conditional) -->
+    <div class="question-panel" id="q5" data-step="5">
+      <div class="question-text">5. Have you already filed your Statement of Economic Interest with the CFPB?</div>
+      <ul class="option-list">
+        <li><button class="option-btn" onclick="selectOption(5, 'filed', 'yes', this)">Yes</button></li>
+        <li><button class="option-btn" onclick="selectOption(5, 'filed', 'no', this)">No</button></li>
+        <li><button class="option-btn" onclick="selectOption(5, 'filed', 'unsure', this)">Not sure what this means</button></li>
+      </ul>
+    </div>
+
+    <div class="wizard-nav" id="wizardNav">
+      <button id="btnBack" onclick="wizardBack()" disabled>&#9668; Back</button>
+      <button id="btnNext" class="primary" onclick="wizardNext()" disabled>Next &#9658;</button>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="result-panel" id="resultPanel">
+    <div class="result-heading">A. Current Law Status</div>
+    <div class="result-body" id="resultCurrentLaw"></div>
+    <div class="result-heading">B. If SF2694 Passes</div>
+    <div class="result-body" id="resultSF2694"></div>
+    <div class="result-heading">C. Your Next Step</div>
+    <div class="result-body" id="resultNextStep"></div>
+    <p class="result-note">This navigator is informational, not legal advice. For complex situations, consult the Campaign Finance and Public Disclosure Board directly at <a href="https://cfb.mn.gov" target="_blank" rel="noopener">cfb.mn.gov</a>.</p>
+    <div style="margin-top:14px;">
+      <button onclick="resetWizard()" style="font-family:Calibri,sans-serif;font-size:12px;letter-spacing:1px;text-transform:uppercase;padding:6px 16px;border:1px solid var(--rule-color);background:var(--parchment-dark);color:var(--ink);cursor:pointer;">Start Over</button>
+    </div>
+  </div>
+
+  <hr class="heavy-rule">
+
+  <!-- ===== SECTION 2: WHAT MUST BE DISCLOSED ===== -->
+  <h2 class="section-head" id="section-2"><span class="section-number">&sect; 2.</span> What Must Be Disclosed</h2>
+  <p class="marginal-note">Understanding the Statement of Economic Interest</p>
+  <p style="margin-top:10px;font-size:14px;color:var(--ink-light);margin-bottom:16px;">The Statement of Economic Interest filed with the CFPB covers four categories. Each is explained below in plain language.</p>
+
+  <!-- 2A -->
+  <div class="accordion-item" id="section-2a">
+    <button class="accordion-trigger" aria-expanded="false" onclick="toggleAccordion(this)">
+      <span class="acc-marker">2A</span> Sources of Income
+      <span class="acc-arrow">&#9654;</span>
+    </button>
+    <div class="accordion-content" aria-hidden="true">
+      <div class="accordion-content-inner">
+        <p><strong>What it means.</strong> Any source that paid you more than $2,500 in the prior calendar year, other than your salary from the position you hold. This includes employers, clients, contracts, and board compensation.</p>
+        <p><strong>What it does NOT include.</strong> Your city salary, Social Security, pension payments, or investment dividends below threshold.</p>
+        <p><strong>Common confusion.</strong> Self-employed officials must list their clients or their business type if the business type could intersect with city decisions.</p>
+        <div class="example-block">
+          <div class="example-label">Example Scenario</div>
+          A council member in a second-class city also operates a small engineering consulting firm. The firm earned fees from three clients last year. The council member must list the firm and disclose the nature of the business &mdash; not individual client names &mdash; unless a specific client paid the firm more than $2,500 for work that intersects with city business.
+        </div>
+        <div class="red-flag-block">
+          <div class="rf-label">Red Flag Scenario</div>
+          A planning commissioner receives $5,000 in consulting fees from a developer who has a pending rezoning application before the commission. The income must be disclosed. Additionally, the commissioner should evaluate whether recusal from the rezoning vote is required under separate conflict-of-interest obligations.
+        </div>
+        <p class="consequence-line"><strong>Consequence of non-disclosure:</strong> Referral to CFPB; civil penalty up to $1,000 per violation under <span class="statutory-cite">Minn. Stat. &sect; 10A.02</span>.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2B -->
+  <div class="accordion-item" id="section-2b">
+    <button class="accordion-trigger" aria-expanded="false" onclick="toggleAccordion(this)">
+      <span class="acc-marker">2B</span> Financial Holdings
+      <span class="acc-arrow">&#9654;</span>
+    </button>
+    <div class="accordion-content" aria-hidden="true">
+      <div class="accordion-content-inner">
+        <p><strong>What it means.</strong> Ownership interest in any business (not publicly traded stock) that is greater than a de minimis threshold. For city officials considering SF2694's scope, this matters most when the business is a vendor, developer, or contractor that does business with the city.</p>
+        <p><strong>What it does NOT include.</strong> Publicly traded stock holdings or mutual funds.</p>
+        <div class="example-block">
+          <div class="example-label">Example Scenario</div>
+          A mayor holds a 25% ownership stake in a local excavation company. The city regularly contracts with excavation firms for utility work. The mayor must disclose the ownership interest in the statement. The disclosure does not prohibit the company from bidding on city contracts &mdash; but it allows the public and the CFPB to see the potential overlap.
+        </div>
+        <div class="red-flag-block">
+          <div class="rf-label">Red Flag Scenario</div>
+          A council member owns 50% of a property management company. The city is considering a new rental licensing ordinance that would directly affect the company's cost of operations. The financial holding must be disclosed, and the council member should consider recusal from the licensing vote.
+        </div>
+        <p class="consequence-line"><strong>Consequence of non-disclosure:</strong> Referral to CFPB; civil penalty up to $1,000 per violation under <span class="statutory-cite">Minn. Stat. &sect; 10A.02</span>.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2C -->
+  <div class="accordion-item" id="section-2c">
+    <button class="accordion-trigger" aria-expanded="false" onclick="toggleAccordion(this)">
+      <span class="acc-marker">2C</span> Real Property Interests (Non-Homestead)
+      <span class="acc-arrow">&#9654;</span>
+    </button>
+    <div class="accordion-content" aria-hidden="true">
+      <div class="accordion-content-inner">
+        <p><strong>What it means.</strong> Any real property you own other than your primary residence &mdash; rental properties, vacant land, commercial real estate, second homes.</p>
+        <p><strong>Why it matters.</strong> City officials frequently make zoning and assessment decisions that directly affect property values. The disclosure allows the public and the CFPB to flag potential conflicts before a vote occurs.</p>
+        <div class="example-block">
+          <div class="example-label">Example Scenario</div>
+          A city administrator owns a rental duplex two blocks from a proposed redevelopment site. Even though the administrator is not voting on the project, the property interest must be disclosed. If the redevelopment could materially affect the duplex's value, the administrator should also disclose the proximity to supervisors and legal counsel.
+        </div>
+        <div class="red-flag-block">
+          <div class="rf-label">Red Flag Scenario</div>
+          A zoning board member owns vacant land directly adjacent to a parcel for which a variance is being requested. The variance could significantly increase the value of the board member's land. This must be disclosed, and the board member must recuse from the variance decision.
+        </div>
+        <p class="consequence-line"><strong>Consequence of non-disclosure:</strong> Referral to CFPB; civil penalty up to $1,000 per violation under <span class="statutory-cite">Minn. Stat. &sect; 10A.02</span>.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2D -->
+  <div class="accordion-item" id="section-2d">
+    <button class="accordion-trigger" aria-expanded="false" onclick="toggleAccordion(this)">
+      <span class="acc-marker">2D</span> Interests in Horseracing
+      <span class="acc-arrow">&#9654;</span>
+    </button>
+    <div class="accordion-content" aria-hidden="true">
+      <div class="accordion-content-inner">
+        <p><strong>What it means.</strong> Any ownership or licensed interest in a horse used for racing in Minnesota, or in a racing license.</p>
+        <p>This category is a legacy provision in <span class="statutory-cite">Minn. Stat. &sect; 10A.09</span>. It appears narrow but reflects Minnesota's historic pari-mutuel regulation framework. Most city officials will have nothing to report here.</p>
+        <div class="example-block">
+          <div class="example-label">Example Scenario</div>
+          A council member co-owns a standardbred horse that races at Running Aces. The ownership interest must be disclosed, even if the council member's city has no direct involvement in racing regulation.
+        </div>
+        <div class="red-flag-block">
+          <div class="rf-label">Red Flag Scenario</div>
+          A city official with a racing interest votes on a land-use matter involving a racetrack facility. The racing interest must be disclosed, and the vote may trigger a conflict-of-interest review.
+        </div>
+        <p class="consequence-line"><strong>Consequence of non-disclosure:</strong> Referral to CFPB; civil penalty up to $1,000 per violation under <span class="statutory-cite">Minn. Stat. &sect; 10A.02</span>.</p>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- Conflict of Interest vs. Disclosure -->
+  <div class="explainer-section">
+    <h3 class="subsection-head">Conflict of Interest vs. Disclosure</h3>
+    <p style="font-size:14px;line-height:1.65;color:var(--ink-light);">
+      <strong>Disclosure does not prohibit a conflict &mdash; it makes it visible.</strong> Filing a Statement of Economic Interest tells the public what financial interests you hold. The separate obligation to <em>recuse</em> &mdash; to abstain from voting where you have a direct financial interest in the outcome &mdash; is a different legal requirement. Both work together: disclosure identifies potential conflicts; recusal prevents those conflicts from influencing decisions. An official who discloses properly but fails to recuse when required, or who recuses but fails to disclose, has met only half the obligation.
+    </p>
+    <p style="font-size:13px;color:var(--gray);margin-top:8px;">
+      Recusal obligations for city officials arise under <span class="statutory-cite">Minn. Stat. &sect; 471.87</span> and <span class="statutory-cite">&sect; 471.88</span>, in addition to any local ethics ordinance.
+    </p>
+  </div>
+
+  <hr class="heavy-rule">
+
+  <!-- ===== SECTION 3: CITY CLASS REFERENCE TABLE ===== -->
+  <h2 class="section-head" id="section-3"><span class="section-number">&sect; 3.</span> City Class Reference Table</h2>
+  <p class="marginal-note">What Class Is My City?</p>
+
+  <div class="table-section">
+    <div class="table-filter-row">
+      <label for="citySearch">Search:</label>
+      <input type="text" id="citySearch" placeholder="City name or county&hellip;" onkeyup="filterTable()">
+      <label for="classFilter">Class:</label>
+      <select id="classFilter" onchange="filterTable()">
+        <option value="all">All Classes</option>
+        <option value="First">First</option>
+        <option value="Second">Second</option>
+        <option value="Third">Third</option>
+      </select>
+    </div>
+
+    <table class="city-table" role="table">
+      <thead>
+        <tr>
+          <th scope="col">City</th>
+          <th scope="col">County</th>
+          <th scope="col">Class</th>
+          <th scope="col" style="text-align:right">2020 Pop.</th>
+          <th scope="col">SF2694 Filing</th>
+        </tr>
+      </thead>
+      <tbody id="cityTableBody">
+        <!-- Populated by JS -->
+      </tbody>
+      <tbody>
+        <tr class="no-results-row" id="noResults">
+          <td colspan="5">No matching cities found.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="table-explainer">
+      Minnesota classifies cities by population under <span class="statutory-cite">Minn. Stat. &sect; 410.01</span>. First-class cities have populations over 100,000 (Minneapolis, St.&nbsp;Paul, Rochester, and Duluth). Second-class cities have populations between 20,001 and 100,000. Third-class cities have populations between 10,001 and 20,000. Once classified as first class, a city keeps that status unless its population falls more than 25 percent below the qualifying threshold.
+      <!-- VERIFY: Duluth retained first-class status despite 2020 census pop of 90,872 — per brief -->
+    </div>
+  </div>
+
+  <hr class="heavy-rule">
+
+  <!-- SENATOR CONTEXT -->
+  <div class="explainer-section" style="font-size:13px;color:var(--ink-light);line-height:1.65;">
+    <p>Senator Rest has chaired both the Senate Taxes Committee and the Legislative Audit Commission. She has represented the cities of Crystal, Golden Valley, New Hope, Robbinsdale, and Plymouth in western Hennepin County since 2000, and is the only lawmaker in Minnesota history to have chaired the Taxes Committee in both the State House and the State Senate.</p>
+  </div>
+
+</div><!-- end doc-body -->
+
+<!-- FOOTER -->
+<footer class="doc-footer">
+  <div class="footer-inner">
+    <strong>Minnesota City Official Ethics &amp; Disclosure Navigator</strong> &mdash; A reference tool prepared in recognition of Senator Ann H. Rest's work on government transparency.<br>
+    SF2694 status: introduced in the 2025 session. Current law (<span class="statutory-cite" style="background:transparent;color:var(--steel-blue-tint);">Minn. Stat. &sect; 10A.09</span>) remains the operative standard until any change is enacted.<br>
+    All data should be verified with the <a href="https://cfb.mn.gov" target="_blank" rel="noopener">Campaign Finance and Public Disclosure Board</a> and relevant institutions before reliance.
+    <!-- VERIFY: All statutory references drawn from software brief; population figures per brief's House Research Department source -->
+  </div>
+</footer>
+
+<script>
+// ============================
+// CITY DATA
+// ============================
+const SD43_CITIES = ['Crystal', 'Golden Valley', 'New Hope', 'Robbinsdale', 'Plymouth'];
+
+const CITY_DATA = [
+  // First class
+  { city: 'Minneapolis', county: 'Hennepin', cls: 'First', pop: 429606 },
+  { city: 'St. Paul', county: 'Ramsey', cls: 'First', pop: 311527 },
+  { city: 'Rochester', county: 'Olmsted', cls: 'First', pop: 121395 },
+  { city: 'Duluth', county: 'St. Louis', cls: 'First', pop: 90872 },
+  // Second class
+  { city: 'Bloomington', county: 'Hennepin', cls: 'Second', pop: 89987 },
+  { city: 'Brooklyn Park', county: 'Hennepin', cls: 'Second', pop: 86478 },
+  { city: 'Plymouth', county: 'Hennepin', cls: 'Second', pop: 82985 },
+  { city: 'Woodbury', county: 'Washington', cls: 'Second', pop: 75102 },
+  { city: 'Maple Grove', county: 'Hennepin', cls: 'Second', pop: 70253 },
+  { city: 'Blaine', county: 'Anoka', cls: 'Second', pop: 70222 },
+  { city: 'Lakeville', county: 'Dakota', cls: 'Second', pop: 69490 },
+  { city: 'Eagan', county: 'Dakota', cls: 'Second', pop: 68885 },
+  { city: 'St. Cloud', county: 'Stearns', cls: 'Second', pop: 68881 },
+  { city: 'Eden Prairie', county: 'Hennepin', cls: 'Second', pop: 64198 },
+  { city: 'Coon Rapids', county: 'Anoka', cls: 'Second', pop: 63982 },
+  { city: 'Burnsville', county: 'Dakota', cls: 'Second', pop: 61434 },
+  { city: 'Apple Valley', county: 'Dakota', cls: 'Second', pop: 55135 },
+  { city: 'Minnetonka', county: 'Hennepin', cls: 'Second', pop: 53781 },
+  { city: 'Edina', county: 'Hennepin', cls: 'Second', pop: 53494 },
+  { city: 'St. Louis Park', county: 'Hennepin', cls: 'Second', pop: 48475 },
+  { city: 'Mankato', county: 'Blue Earth', cls: 'Second', pop: 44488 },
+  { city: 'Shakopee', county: 'Scott', cls: 'Second', pop: 43775 },
+  { city: 'Moorhead', county: 'Clay', cls: 'Second', pop: 42550 },
+  { city: 'Maplewood', county: 'Ramsey', cls: 'Second', pop: 41739 },
+  { city: 'Cottage Grove', county: 'Washington', cls: 'Second', pop: 40581 },
+  { city: 'Richfield', county: 'Hennepin', cls: 'Second', pop: 36994 },
+  { city: 'Roseville', county: 'Ramsey', cls: 'Second', pop: 35695 },
+  { city: 'Inver Grove Heights', county: 'Dakota', cls: 'Second', pop: 35791 },
+  { city: 'Brooklyn Center', county: 'Hennepin', cls: 'Second', pop: 30843 },
+  { city: 'Fridley', county: 'Anoka', cls: 'Second', pop: 29896 },
+  // Third class
+  { city: 'Faribault', county: 'Rice', cls: 'Third', pop: 23352 },
+  { city: 'Crystal', county: 'Hennepin', cls: 'Third', pop: 22715 },
+  { city: 'New Hope', county: 'Hennepin', cls: 'Third', pop: 20868 },
+  { city: 'Northfield', county: 'Rice', cls: 'Third', pop: 20675 },
+  { city: 'Golden Valley', county: 'Hennepin', cls: 'Third', pop: 20371 },
+  { city: 'Columbia Heights', county: 'Anoka', cls: 'Third', pop: 19496 },
+  { city: 'Hopkins', county: 'Hennepin', cls: 'Third', pop: 18642 },
+  { city: 'Robbinsdale', county: 'Hennepin', cls: 'Third', pop: 14242 },
+  { city: 'St. Peter', county: 'Nicollet', cls: 'Third', pop: 11196 },
+];
+// VERIFY: Robbinsdale at 14,242 may be near or above third-class threshold (10,001). Included per brief with note.
+
+// Populate table
+function buildTable() {
+  const tbody = document.getElementById('cityTableBody');
+  tbody.innerHTML = '';
+  CITY_DATA.forEach(c => {
+    const isSD43 = SD43_CITIES.includes(c.city);
+    const tr = document.createElement('tr');
+    if (isSD43) tr.className = 'sd43';
+    tr.setAttribute('data-city', c.city.toLowerCase());
+    tr.setAttribute('data-county', c.county.toLowerCase());
+    tr.setAttribute('data-class', c.cls);
+
+    const clsClass = c.cls === 'First' ? 'class-first' : c.cls === 'Second' ? 'class-second' : 'class-third';
+
+    tr.innerHTML = `
+      <td>${c.city}${isSD43 ? '<span class="sd43-badge">SD-43</span>' : ''}</td>
+      <td>${c.county}</td>
+      <td class="class-cell ${clsClass}">${c.cls}</td>
+      <td class="pop-cell">${c.pop.toLocaleString()}</td>
+      <td>Yes</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function filterTable() {
+  const search = document.getElementById('citySearch').value.toLowerCase().trim();
+  const clsFilter = document.getElementById('classFilter').value;
+  const rows = document.querySelectorAll('#cityTableBody tr');
+  let visible = 0;
+  rows.forEach(row => {
+    const city = row.getAttribute('data-city');
+    const county = row.getAttribute('data-county');
+    const cls = row.getAttribute('data-class');
+    const matchSearch = !search || city.includes(search) || county.includes(search);
+    const matchClass = clsFilter === 'all' || cls === clsFilter;
+    if (matchSearch && matchClass) {
+      row.style.display = '';
+      visible++;
+    } else {
+      row.style.display = 'none';
+    }
+  });
+  document.getElementById('noResults').style.display = visible === 0 ? '' : 'none';
+}
+
+// ============================
+// WIZARD LOGIC
+// ============================
+let currentStep = 1;
+let totalSteps = 5;
+let answers = {};
+
+function loadAnswers() {
+  try {
+    const saved = localStorage.getItem('rest-ethics-answers');
+    if (saved) {
+      answers = JSON.parse(saved);
+    }
+  } catch(e) {}
+}
+
+function saveAnswers() {
+  try {
+    localStorage.setItem('rest-ethics-answers', JSON.stringify(answers));
+  } catch(e) {}
+}
+
+function getTotalSteps() {
+  // Q5 only shows if entityType requires filing AND tenure is 'new'
+  if (needsQ5()) return 5;
+  return 4;
+}
+
+function needsQ5() {
+  return answers.tenure === 'new' && wouldRequireFiling();
+}
+
+function wouldRequireFiling() {
+  const et = answers.entityType;
+  if (!et) return false;
+  if (et === 'state' || et === 'metro' || et === 'county') return true;
+  if (et === 'city') {
+    const pop = answers.population || 0;
+    const cls = getCityClass(pop);
+    return ['first','second','third'].includes(cls);
+  }
+  return false;
+}
+
+function getCityClass(population) {
+  if (population > 100000) return 'first';
+  if (population > 20000) return 'second';
+  if (population > 10000) return 'third';
+  return 'fourth';
+}
+
+function currentLawRequires(entityType) {
+  if (entityType === 'state') return true;
+  if (entityType === 'metro') return true;
+  if (entityType === 'county') return true;
+  return false; // city and other — not currently required
+}
+
+function sf2694WouldRequire(entityType, cityClass) {
+  if (entityType !== 'city') return currentLawRequires(entityType);
+  return ['first', 'second', 'third'].includes(cityClass);
+}
+
+function selectOption(step, key, value, btn) {
+  answers[key] = value;
+  saveAnswers();
+  // Highlight selected
+  const panel = btn.closest('.question-panel');
+  panel.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  // Enable next
+  document.getElementById('btnNext').disabled = false;
+}
+
+function setPopBand(val) {
+  document.getElementById('popInput').value = val;
+  answers.population = val;
+  saveAnswers();
+  document.getElementById('btnNext').disabled = false;
+}
+
+function updateProgress() {
+  totalSteps = getTotalSteps();
+  const container = document.getElementById('wizardProgress');
+  let html = '';
+  for (let i = 1; i <= totalSteps; i++) {
+    const cls = i < currentStep ? 'done' : i === currentStep ? 'active' : '';
+    html += `<span class="step-dot ${cls}">${i}</span>`;
+    if (i < totalSteps) html += '<span class="step-line"></span>';
+  }
+  container.innerHTML = html;
+}
+
+function showStep(step) {
+  // Handle special cases
+  if (answers.entityType && answers.entityType !== 'city' && step === 2) {
+    // Skip Q2 (population) for non-city entities
+    if (currentStep < step) { currentStep = 3; showStep(3); return; }
+    else { currentStep = 1; showStep(1); return; }
+  }
+
+  // Q5 conditional
+  totalSteps = getTotalSteps();
+  if (step === 5 && !needsQ5()) {
+    showResults();
+    return;
+  }
+  if (step > totalSteps) {
+    showResults();
+    return;
+  }
+
+  currentStep = step;
+  document.querySelectorAll('.question-panel').forEach(p => p.classList.remove('active'));
+  const panel = document.getElementById('q' + step);
+  if (panel) panel.classList.add('active');
+
+  document.getElementById('btnBack').disabled = (step <= 1);
+
+  // Check if this step already has an answer
+  let hasAnswer = false;
+  if (step === 1 && answers.entityType) hasAnswer = true;
+  if (step === 2 && (answers.population || document.getElementById('popInput').value)) hasAnswer = true;
+  if (step === 3 && answers.role) hasAnswer = true;
+  if (step === 4 && answers.tenure) hasAnswer = true;
+  if (step === 5 && answers.filed) hasAnswer = true;
+  document.getElementById('btnNext').disabled = !hasAnswer;
+
+  // Restore selected states
+  if (panel) {
+    panel.querySelectorAll('.option-btn').forEach(btn => {
+      const key = step === 1 ? 'entityType' : step === 3 ? 'role' : step === 4 ? 'tenure' : step === 5 ? 'filed' : null;
+      if (key && btn.getAttribute('data-value') === answers[key]) {
+        btn.classList.add('selected');
+      }
+      // For steps without data-value, check by onclick text
+    });
+  }
+
+  updateProgress();
+  document.getElementById('resultPanel').classList.remove('visible');
+  document.getElementById('wizard').style.display = '';
+}
+
+function wizardNext() {
+  // Capture population from input
+  if (currentStep === 2) {
+    const val = parseInt(document.getElementById('popInput').value);
+    if (!val || val < 0) return;
+    answers.population = val;
+    saveAnswers();
+  }
+
+  let next = currentStep + 1;
+  // Skip Q2 for non-city
+  if (answers.entityType !== 'city' && next === 2) next = 3;
+  // Skip to results if past total
+  totalSteps = getTotalSteps();
+  if (next > totalSteps) {
+    showResults();
+    return;
+  }
+  showStep(next);
+}
+
+function wizardBack() {
+  let prev = currentStep - 1;
+  if (answers.entityType !== 'city' && prev === 2) prev = 1;
+  if (prev < 1) prev = 1;
+  showStep(prev);
+}
+
+function showResults() {
+  document.querySelectorAll('.question-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('wizard').style.display = 'none';
+
+  const et = answers.entityType;
+  const pop = answers.population || 0;
+  const cls = getCityClass(pop);
+  const role = answers.role || 'official';
+  const tenure = answers.tenure;
+  const filed = answers.filed;
+
+  const currentReq = currentLawRequires(et);
+  const proposedReq = sf2694WouldRequire(et, cls);
+
+  // A. Current Law
+  let currentHTML = '';
+  if (currentReq) {
+    currentHTML = `<span class="result-status required">Filing is required under current law.</span><br>`;
+    if (et === 'state') currentHTML += `As a state official, you are already subject to <span class="statutory-cite">Minn. Stat. &sect; 10A.09</span>.`;
+    else if (et === 'metro') currentHTML += `As an official of a metropolitan governmental unit, you are subject to <span class="statutory-cite">Minn. Stat. &sect; 10A.09</span>.`;
+    else if (et === 'county') currentHTML += `As a county official, you are subject to <span class="statutory-cite">Minn. Stat. &sect; 10A.09</span>.`;
+  } else if (et === 'city') {
+    currentHTML = `<span class="result-status not-required">No filing required under current law.</span><br>City officials are not currently subject to the Statement of Economic Interest requirement under <span class="statutory-cite">Minn. Stat. &sect; 10A.09</span>, regardless of city class.`;
+  } else {
+    currentHTML = `<span class="result-status not-required">No filing required under current law.</span><br>Your entity type is not currently subject to the Statement of Economic Interest filing requirement.`;
+  }
+
+  // B. SF2694
+  let sf2694HTML = '';
+  if (et === 'city') {
+    if (proposedReq) {
+      const clsLabel = cls.charAt(0).toUpperCase() + cls.slice(1);
+      sf2694HTML = `<span class="result-status proposed">SF2694 would require you to file.</span><br>Your city's population of ${pop.toLocaleString()} places it in the <strong>${clsLabel}-class</strong> category. SF2694 extends the filing requirement to elected and appointed officials in first-, second-, and third-class cities.`;
+    } else {
+      sf2694HTML = `<span class="result-status not-required">SF2694 would not apply.</span><br>Your city's population of ${pop.toLocaleString()} places it in the fourth-class category (10,000 or fewer). SF2694 covers first-, second-, and third-class cities only.`;
+    }
+  } else if (currentReq) {
+    sf2694HTML = `SF2694 does not change your existing obligation. You are already required to file under current law.`;
+  } else {
+    sf2694HTML = `SF2694 specifically targets city officials and would not affect your entity type.`;
+  }
+
+  if (role === 'employee') {
+    sf2694HTML += `<br><br><strong>Note:</strong> The filing requirement applies to elected and appointed <em>officials</em>, not to general employees. If you are a city employee who is not an appointed official, the requirement likely does not apply to you. Consult the CFPB for clarification.`;
+  }
+
+  // C. Next Step
+  let nextHTML = '';
+  if (currentReq || (et === 'city' && proposedReq)) {
+    if (currentReq) {
+      if (tenure === 'new' && filed !== 'yes') {
+        nextHTML = `<strong>File within 60 days of assuming office.</strong> Submit your Statement of Economic Interest at <a href="https://cfb.mn.gov" target="_blank" rel="noopener">cfb.mn.gov</a>. Annual filings are due each January for the prior calendar year.`;
+      } else if (tenure === 'new' && filed === 'yes') {
+        nextHTML = `Your initial filing appears to be complete. Your next annual filing is due each January for the prior calendar year. Review your filing at <a href="https://cfb.mn.gov" target="_blank" rel="noopener">cfb.mn.gov</a>.`;
+      } else {
+        nextHTML = `Ensure your annual Statement of Economic Interest is current. Annual filings are due each January for the prior calendar year. File or review at <a href="https://cfb.mn.gov" target="_blank" rel="noopener">cfb.mn.gov</a>.`;
+      }
+    } else {
+      // City official, proposed but not current
+      nextHTML = `<strong>No current filing required.</strong> SF2694 was introduced in the 2025 session. If enacted, you would need to file a Statement of Economic Interest with the CFPB. Check back for updates on the bill's status. If your city's population changes in the next census, your class status may also change.`;
+    }
+  } else {
+    nextHTML = `No filing is required under current law or under SF2694 as proposed. If your circumstances change (new position, city reclassification), revisit this navigator.`;
+  }
+
+  document.getElementById('resultCurrentLaw').innerHTML = currentHTML;
+  document.getElementById('resultSF2694').innerHTML = sf2694HTML;
+  document.getElementById('resultNextStep').innerHTML = nextHTML;
+  document.getElementById('resultPanel').classList.add('visible');
+}
+
+function resetWizard() {
+  answers = {};
+  currentStep = 1;
+  try { localStorage.removeItem('rest-ethics-answers'); } catch(e) {}
+  document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('popInput').value = '';
+  document.getElementById('resultPanel').classList.remove('visible');
+  document.getElementById('wizard').style.display = '';
+  showStep(1);
+}
+
+// ============================
+// ACCORDION LOGIC
+// ============================
+function toggleAccordion(trigger) {
+  const expanded = trigger.getAttribute('aria-expanded') === 'true';
+  // Close all
+  document.querySelectorAll('.accordion-trigger').forEach(t => {
+    t.setAttribute('aria-expanded', 'false');
+    const content = t.nextElementSibling;
+    content.style.maxHeight = null;
+    content.setAttribute('aria-hidden', 'true');
+  });
+  // Open clicked (if it was closed)
+  if (!expanded) {
+    trigger.setAttribute('aria-expanded', 'true');
+    const content = trigger.nextElementSibling;
+    content.setAttribute('aria-hidden', 'false');
+    content.style.maxHeight = content.scrollHeight + 'px';
+  }
+}
+
+// ============================
+// STICKY TOC COLLAPSE
+// ============================
+let lastScroll = 0;
+window.addEventListener('scroll', function() {
+  const toc = document.getElementById('toc');
+  if (window.scrollY > 120) {
+    toc.classList.add('collapsed');
+  } else {
+    toc.classList.remove('collapsed');
+  }
+  lastScroll = window.scrollY;
+}, { passive: true });
+
+// ============================
+// SCROLLSPY (IntersectionObserver)
+// ============================
+function initScrollspy() {
+  const sections = document.querySelectorAll('[id^="section-"]');
+  const tocLinks = document.querySelectorAll('#toc a[data-section]');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        tocLinks.forEach(link => {
+          link.classList.toggle('active', link.getAttribute('data-section') === id);
+        });
+      }
+    });
+  }, {
+    rootMargin: '-80px 0px -60% 0px',
+    threshold: 0
+  });
+
+  sections.forEach(s => observer.observe(s));
+}
+
+// ============================
+// INIT
+// ============================
+document.addEventListener('DOMContentLoaded', function() {
+  buildTable();
+  loadAnswers();
+  showStep(1);
+  initScrollspy();
+});
+</script>
+
+</body>
+</html>

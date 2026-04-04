@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>North Metro Spring Road Restriction Planner — SD-31</title>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Split-screen — left panel (55%) compact input/control area, right panel (45%) dramatic output/results. Both scroll independently. No traditional header.
+   2. Navigation: Segmented control pill toggle across top of left panel for 3 modules. No tabs, no sidebar.
+   3. Typography: Century Gothic (headers, wide letter-spacing: 2px), Verdana (body text), Consolas (data/numbers/status). No Georgia, Arial Narrow, Courier New.
+   4. Hero moment: The status indicator on the right panel — 64px CLEAR/VERIFY/RESTRICTED in Consolas caps with full-width color band background, visible instantly.
+   5. Color strategy: #7 (Inverted) — dark backgrounds are the norm (70%+ viewport dark). Light backgrounds only for form input fields. Pine black and charcoal dominate.
+   6. Entry experience: Immediate input — "Enter your load configuration:" is the first thing visible. Zero preamble, zero intro paragraph. Tool starts with interaction.
+*/
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --pine-black: #1A1F1A;
+  --road-salt: #8A9099;
+  --warning-yellow: #F5C400;
+  --charcoal: #23272A;
+  --gunmetal: #2E3338;
+  --off-white: #E8E8E4;
+  --go-green: #3A7D44;
+  --caution-yellow: #F5C400;
+  --stop-red: #C1121F;
+  --input-bg: #F0F0EC;
+  --input-border: #bbb;
+}
+
+html, body { height: 100%; overflow: hidden; background: var(--pine-black); color: var(--off-white); }
+
+body {
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  display: grid;
+  grid-template-columns: 55% 45%;
+}
+
+h1, h2, h3, h4 {
+  font-family: 'Century Gothic', 'Apple Gothic', sans-serif;
+  letter-spacing: 2px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.data, .num, .status-label, .mono {
+  font-family: Consolas, 'Liberation Mono', monospace;
+}
+
+/* LEFT PANEL */
+.left-panel {
+  background: var(--charcoal);
+  overflow-y: auto;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.left-panel::-webkit-scrollbar { width: 6px; }
+.left-panel::-webkit-scrollbar-track { background: var(--pine-black); }
+.left-panel::-webkit-scrollbar-thumb { background: var(--road-salt); }
+
+/* Module Segmented Control */
+.seg-control {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 2px;
+  background: var(--pine-black);
+  padding: 2px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.seg-btn {
+  background: var(--gunmetal);
+  color: var(--road-salt);
+  border: none;
+  padding: 10px 4px;
+  font-family: 'Century Gothic', 'Apple Gothic', sans-serif;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.seg-btn:hover { color: var(--off-white); }
+.seg-btn.active {
+  background: var(--warning-yellow);
+  color: var(--pine-black);
+  font-weight: 700;
+}
+
+/* Module containers */
+.module { display: none; padding: 16px 20px; flex: 1; }
+.module.active { display: block; }
+
+/* Form styling — compact */
+.field { margin-bottom: 10px; }
+.field label {
+  display: block;
+  font-family: 'Century Gothic', 'Apple Gothic', sans-serif;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--road-salt);
+  margin-bottom: 3px;
+}
+.field select, .field input[type="text"], .field input[type="number"], .field textarea {
+  width: 100%;
+  padding: 8px 10px;
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 14px;
+  background: var(--input-bg);
+  color: #1a1a1a;
+  border: 1px solid var(--input-border);
+  outline: none;
+}
+.field select:focus, .field input:focus, .field textarea:focus {
+  border-color: var(--warning-yellow);
+  box-shadow: 0 0 0 2px rgba(245, 196, 0, 0.25);
+}
+.field textarea { resize: vertical; min-height: 60px; }
+
+.field .range-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.field input[type="range"] {
+  flex: 1;
+  accent-color: var(--warning-yellow);
+  height: 6px;
+}
+.field .range-val {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 15px;
+  color: var(--warning-yellow);
+  min-width: 90px;
+  text-align: right;
+}
+
+/* Buttons */
+.btn {
+  display: inline-block;
+  padding: 10px 20px;
+  font-family: 'Century Gothic', 'Apple Gothic', sans-serif;
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-primary {
+  background: var(--warning-yellow);
+  color: var(--pine-black);
+  font-weight: 700;
+}
+.btn-primary:hover { background: #e0b300; }
+.btn-secondary {
+  background: var(--gunmetal);
+  color: var(--off-white);
+}
+.btn-secondary:hover { background: #3a4046; }
+
+/* Section dividers in left panel */
+.section-label {
+  font-family: 'Century Gothic', 'Apple Gothic', sans-serif;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--road-salt);
+  padding: 12px 0 6px;
+  border-top: 1px solid var(--gunmetal);
+  margin-top: 14px;
+}
+
+/* RIGHT PANEL */
+.right-panel {
+  background: var(--pine-black);
+  overflow-y: auto;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.right-panel::-webkit-scrollbar { width: 6px; }
+.right-panel::-webkit-scrollbar-track { background: var(--charcoal); }
+.right-panel::-webkit-scrollbar-thumb { background: var(--road-salt); }
+
+/* Status hero */
+.status-hero {
+  padding: 40px 30px;
+  text-align: center;
+  transition: background 0.4s;
+}
+.status-hero.clear { background: var(--go-green); }
+.status-hero.verify { background: var(--caution-yellow); }
+.status-hero.restricted { background: var(--stop-red); }
+
+.status-hero .status-word {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 64px;
+  font-weight: 700;
+  letter-spacing: 6px;
+  line-height: 1;
+}
+.status-hero.clear .status-word { color: #fff; }
+.status-hero.verify .status-word { color: var(--pine-black); }
+.status-hero.restricted .status-word { color: #fff; }
+
+.status-hero .status-sub {
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 13px;
+  margin-top: 10px;
+  line-height: 1.4;
+}
+.status-hero.clear .status-sub { color: rgba(255,255,255,0.85); }
+.status-hero.verify .status-sub { color: rgba(26,31,26,0.8); }
+.status-hero.restricted .status-sub { color: rgba(255,255,255,0.85); }
+
+/* Right panel content sections */
+.right-section {
+  padding: 24px 30px;
+}
+
+.right-section + .right-section {
+  border-top: 1px solid var(--gunmetal);
+}
+
+.right-section h3 {
+  font-size: 11px;
+  color: var(--road-salt);
+  margin-bottom: 12px;
+}
+
+/* Data table */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.data-table th {
+  font-family: 'Century Gothic', 'Apple Gothic', sans-serif;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--road-salt);
+  text-align: left;
+  padding: 6px 8px;
+  background: var(--charcoal);
+}
+.data-table td {
+  padding: 8px;
+  color: var(--off-white);
+  background: var(--gunmetal);
+}
+.data-table tr + tr td { border-top: 1px solid var(--charcoal); }
+.data-table .mono { color: var(--warning-yellow); }
+
+/* Jurisdiction diagram */
+.jurisdiction-stack { display: flex; flex-direction: column; gap: 3px; }
+.jur-layer {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 0;
+  min-height: 80px;
+}
+.jur-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #fff;
+  padding: 8px;
+  text-align: center;
+  line-height: 1.3;
+}
+.jur-layer-state .jur-badge { background: #2a5299; }
+.jur-layer-county .jur-badge { background: #6b3fa0; }
+.jur-layer-city .jur-badge { background: #1a6b4a; }
+
+.jur-content {
+  background: var(--gunmetal);
+  padding: 10px 14px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--off-white);
+}
+.jur-content strong { color: var(--warning-yellow); }
+.jur-content .contact {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 11px;
+  color: var(--road-salt);
+  margin-top: 4px;
+}
+
+/* Decision tree */
+.decision-tree { padding-left: 0; list-style: none; }
+.decision-tree li {
+  padding: 8px 12px;
+  font-size: 13px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  align-items: baseline;
+}
+.decision-tree li + li { border-top: 1px solid var(--charcoal); }
+.decision-tree li .arrow {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  color: var(--warning-yellow);
+  font-size: 14px;
+}
+.decision-tree li .answer {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  color: var(--warning-yellow);
+  font-size: 12px;
+}
+
+/* Card preview */
+.card-preview {
+  background: #fff;
+  color: #111;
+  padding: 20px;
+  max-width: 384px;
+  min-height: 240px;
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 11px;
+  line-height: 1.4;
+  margin: 0 auto;
+}
+.card-preview h4 {
+  font-family: 'Century Gothic', 'Apple Gothic', sans-serif;
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #111;
+  border-bottom: 2px solid #111;
+  padding-bottom: 4px;
+  margin-bottom: 8px;
+}
+.card-preview .card-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 0;
+}
+.card-preview .card-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #555;
+}
+.card-preview .card-val {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+}
+.card-preview .checklist { padding-left: 14px; margin-top: 8px; }
+.card-preview .checklist li {
+  font-size: 10px;
+  margin-bottom: 3px;
+  list-style: square;
+}
+.card-preview .checklist li.important { font-weight: 700; }
+.card-preview .card-calendar {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 2px;
+  margin-top: 8px;
+}
+.card-preview .cal-cell {
+  text-align: center;
+  padding: 3px 2px;
+  font-size: 9px;
+  font-family: Consolas, 'Liberation Mono', monospace;
+}
+.card-preview .cal-cell.hdr {
+  font-weight: 700;
+  background: #eee;
+}
+.card-preview .cal-green { background: #d4edda; }
+.card-preview .cal-yellow { background: #fff3cd; }
+.card-preview .cal-red { background: #f8d7da; }
+.card-preview .cal-blue { background: #d1ecf1; }
+
+/* Right panel info text */
+.info-text {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--off-white);
+}
+.info-text strong { color: var(--warning-yellow); }
+
+/* Light mode toggle */
+.mode-toggle {
+  position: fixed;
+  top: 8px;
+  right: 8px;
+  z-index: 100;
+  background: var(--gunmetal);
+  color: var(--road-salt);
+  border: none;
+  padding: 5px 10px;
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 10px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.mode-toggle:hover { color: var(--off-white); }
+
+/* Light mode */
+body.light-mode {
+  --pine-black: #f5f5f2;
+  --charcoal: #e8e8e4;
+  --gunmetal: #d8d8d4;
+  --off-white: #1a1f1a;
+  --road-salt: #555;
+  --input-bg: #fff;
+  --input-border: #999;
+}
+body.light-mode .seg-btn { color: #555; }
+body.light-mode .seg-btn.active { background: var(--warning-yellow); color: #1a1f1a; }
+body.light-mode .data-table th { background: #d0d0cc; color: #333; }
+body.light-mode .data-table td { background: #e0e0dc; color: #1a1a1a; }
+body.light-mode .mode-toggle { background: #ccc; color: #333; }
+body.light-mode .jur-content { color: #1a1a1a; }
+body.light-mode .jur-content .contact { color: #666; }
+body.light-mode .card-preview { box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+
+/* Footer */
+.footer-bar {
+  background: var(--gunmetal);
+  padding: 10px 20px;
+  font-size: 10px;
+  color: var(--road-salt);
+  line-height: 1.4;
+  flex-shrink: 0;
+}
+
+/* Seasonal calendar inline */
+.season-bar {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 2px;
+  margin: 12px 0;
+}
+.season-cell {
+  text-align: center;
+  padding: 6px 4px;
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 12px;
+}
+.season-cell.hdr {
+  background: var(--charcoal);
+  color: var(--road-salt);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.season-green { background: rgba(58, 125, 68, 0.3); color: var(--go-green); }
+.season-yellow { background: rgba(245, 196, 0, 0.2); color: var(--caution-yellow); }
+.season-blue { background: rgba(42, 82, 153, 0.25); color: #5b9bd5; }
+
+/* SF2145 reference band */
+.ref-band {
+  background: var(--gunmetal);
+  padding: 16px 30px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--road-salt);
+}
+.ref-band strong { color: var(--warning-yellow); }
+
+/* Mobile */
+@media (max-width: 768px) {
+  body {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+  .left-panel { max-height: 55vh; }
+  .right-panel { max-height: 45vh; }
+  .status-hero { padding: 24px 16px; }
+  .status-hero .status-word { font-size: 40px; letter-spacing: 3px; }
+  .right-section { padding: 16px; }
+  .jur-layer { grid-template-columns: 70px 1fr; }
+}
+
+/* Print */
+@media print {
+  body { display: block; background: #fff; color: #111; overflow: visible; }
+  .left-panel, .seg-control, .mode-toggle, .footer-bar { display: none !important; }
+  .right-panel { overflow: visible; background: #fff; }
+  .status-hero, .right-section, .ref-band { display: none !important; }
+  .card-preview-wrap { display: block !important; }
+  .card-preview {
+    border: 2px solid #111;
+    width: 4in;
+    height: 6in;
+    padding: 0.25in;
+    margin: 0;
+    page-break-inside: avoid;
+    font-size: 10px;
+  }
+  .card-preview h4 { font-size: 12px; }
+}
+.card-preview-wrap { display: none; }
+@media print {
+  .card-preview-wrap { display: block; }
+}
+</style>
+</head>
+<body>
+
+<button class="mode-toggle" onclick="toggleMode()" title="Toggle light/dark mode">LIGHT</button>
+
+<!-- LEFT PANEL: Controls -->
+<div class="left-panel">
+  <nav class="seg-control">
+    <button class="seg-btn active" data-module="mod1">Restriction Check</button>
+    <button class="seg-btn" data-module="mod2">Jurisdiction Map</button>
+    <button class="seg-btn" data-module="mod3">Permit Card</button>
+  </nav>
+
+  <!-- MODULE 1: Seasonal Restriction Checker -->
+  <div id="mod1" class="module active">
+    <div class="field">
+      <label for="roadType">Enter your road type:</label>
+      <select id="roadType">
+        <option value="mndot">MnDOT State Highway (TH-65, TH-10, TH-47...)</option>
+        <option value="county">Anoka County Road (CSAH / CR)</option>
+        <option value="city">City or Township Street</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="loadConfig">Load configuration:</label>
+      <select id="loadConfig">
+        <option value="single">Single-unit truck (straight / dump / tanker)</option>
+        <option value="semi">Semi-tractor + standard trailer</option>
+        <option value="semiHeavy">Semi-tractor + heavy/oversize trailer</option>
+        <option value="tandem" selected>Tandem-axle dump or aggregate hauler</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="gvwSlider">Gross vehicle weight (lbs):</label>
+      <div class="range-wrap">
+        <input type="range" id="gvwSlider" min="20000" max="105500" step="500" value="72000">
+        <span class="range-val mono" id="gvwVal">72,000</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="monthSelect">Planning month:</label>
+      <select id="monthSelect">
+        <option value="0">January</option>
+        <option value="1">February</option>
+        <option value="2">March</option>
+        <option value="3">April</option>
+        <option value="4">May</option>
+        <option value="5">June</option>
+      </select>
+    </div>
+
+    <div style="margin-top: 12px;">
+      <button class="btn btn-primary" onclick="checkRestriction()">Check Status</button>
+      <button class="btn btn-secondary" style="margin-left: 8px;" onclick="loadExample()">Load Example</button>
+    </div>
+
+    <div class="section-label">Reference Links</div>
+    <div style="font-size: 12px; color: var(--road-salt); line-height: 1.7;">
+      <strong style="color: var(--warning-yellow);">MnDOT Load Limits:</strong> dot.mn.gov/loadlimits<br>
+      <strong style="color: var(--warning-yellow);">MnDOT Phone:</strong> <span class="mono">651-366-5400</span> / <span class="mono">1-800-723-6543</span><br>
+      <strong style="color: var(--warning-yellow);">Anoka County:</strong> anokacountymn.gov<br>
+      <strong style="color: var(--warning-yellow);">County Transport:</strong> <span class="mono">763-324-3100</span><br>
+      <strong style="color: var(--warning-yellow);">OSOW Permits:</strong> anokacountymn.gov/317<br>
+      <strong style="color: var(--warning-yellow);">MnDOT OSOW:</strong> dot.state.mn.us/cvo/oversize/index.html<br>
+      <strong style="color: var(--warning-yellow);">Ham Lake:</strong> hamlakemn.gov
+    </div>
+
+    <div class="section-label">Metro Zone Seasonal Calendar</div>
+    <div class="season-bar">
+      <div class="season-cell hdr">Jan</div>
+      <div class="season-cell hdr">Feb</div>
+      <div class="season-cell hdr">Mar</div>
+      <div class="season-cell hdr">Apr</div>
+      <div class="season-cell hdr">May</div>
+      <div class="season-cell hdr">Jun</div>
+      <div class="season-cell season-blue">Winter+</div>
+      <div class="season-cell season-blue">Winter+</div>
+      <div class="season-cell season-yellow">Restrict</div>
+      <div class="season-cell season-yellow">Restrict</div>
+      <div class="season-cell season-yellow">Restrict</div>
+      <div class="season-cell season-green">Clear</div>
+    </div>
+    <div style="font-size: 10px; color: var(--road-salt);">
+      Winter+ = Winter weight increases active (10% above legal axle weight).<br>
+      Restrict = Spring thaw restriction window (mid-March to mid-May, weather-dependent).<br>
+      Clear = Standard legal limits apply.
+    </div>
+  </div>
+
+  <!-- MODULE 2: Jurisdiction Map -->
+  <div id="mod2" class="module">
+    <div style="font-size: 13px; color: var(--off-white); margin-bottom: 14px; line-height: 1.5;">
+      Three agencies control road restrictions in north Anoka County. Each sets its own posting dates. Here is who controls what.
+    </div>
+
+    <div class="jurisdiction-stack">
+      <div class="jur-layer jur-layer-state">
+        <div class="jur-badge">Layer 1<br>State</div>
+        <div class="jur-content">
+          <strong>MnDOT</strong> controls trunk highways: TH-65, TH-10, TH-47, and other numbered state routes.<br>
+          Posting by frost zone. Anoka County = Metro zone. Dates announced 3 days ahead.<br>
+          Standard restriction: 5-ton or 7-ton single-axle on posted routes. Window: mid-March to mid-May.<br>
+          OSOW permits: online at MnDOT.
+          <div class="contact">Phone: 651-366-5400 | dot.mn.gov/loadlimits</div>
+        </div>
+      </div>
+      <div class="jur-layer jur-layer-county">
+        <div class="jur-badge">Layer 2<br>County</div>
+        <div class="jur-content">
+          <strong>Anoka County</strong> controls CSAHs and County Roads: CSAH 22, CSAH 54, CSAH 116 (Bunker Lake Blvd), CR 60, CR 61.<br>
+          Posting date: March 3 at 12:01 AM (2025 and 2026; verify each year).<br>
+          Oversize/overweight loads require a Transportation Permit (online only).<br>
+          <strong>Key project:</strong> TH-65 / Bunker Lake Blvd interchange -- grade separation underway (~$46.8M). SF2145 funded frontage road realignment.
+          <div class="contact">Phone: 763-324-3100 | anokacountymn.gov/317</div>
+        </div>
+      </div>
+      <div class="jur-layer jur-layer-city">
+        <div class="jur-badge">Layer 3<br>City</div>
+        <div class="jur-content">
+          <strong>Cities &amp; Townships</strong> set their own street postings.<br>
+          Ham Lake: all city streets default to 5-ton unless otherwise posted. Winter increases expire March 3 at 12:01 AM.<br>
+          East Bethel, Nowthen, Ramsey: check each city directly. Township roads (Linwood, etc.): call county for routing.
+          <div class="contact">Ham Lake: hamlakemn.gov</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-label" style="margin-top: 18px;">Which Road Am I On?</div>
+    <ul class="decision-tree" style="background: var(--gunmetal); margin-top: 6px;">
+      <li>
+        <span class="arrow">&#9654;</span>
+        <div>Numbered highway with a shield sign? <span class="answer">MnDOT (State)</span></div>
+      </li>
+      <li>
+        <span class="arrow">&#9654;</span>
+        <div>Sign says CSAH or CR with a number? <span class="answer">Anoka County</span></div>
+      </li>
+      <li>
+        <span class="arrow">&#9654;</span>
+        <div>Named street inside a city? <span class="answer">City jurisdiction</span></div>
+      </li>
+      <li>
+        <span class="arrow">&#9654;</span>
+        <div>Unmarked rural road? <span class="answer">Likely township -- call county for routing</span></div>
+      </li>
+    </ul>
+  </div>
+
+  <!-- MODULE 3: Permit Reference Card -->
+  <div id="mod3" class="module">
+    <div class="field">
+      <label for="companyName">Company / operator name:</label>
+      <input type="text" id="companyName" placeholder="e.g., Bahr Trucking LLC">
+    </div>
+    <div class="field">
+      <label for="loadType">Typical load type:</label>
+      <select id="loadType">
+        <option value="aggregate">Aggregate</option>
+        <option value="construction">Construction Equipment</option>
+        <option value="utility">Utility</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="typicalGVW">Typical GVW range (lbs):</label>
+      <input type="text" id="typicalGVW" placeholder="e.g., 60,000 - 80,000">
+    </div>
+    <div class="field">
+      <label for="commonRoutes">Routes commonly driven:</label>
+      <textarea id="commonRoutes" placeholder="e.g., TH-65, CSAH 116, CR 60"></textarea>
+    </div>
+    <div class="field">
+      <label for="homeBase">Home base city:</label>
+      <select id="homeBase">
+        <option value="Ham Lake">Ham Lake</option>
+        <option value="East Bethel">East Bethel</option>
+        <option value="Nowthen">Nowthen</option>
+        <option value="Ramsey">Ramsey</option>
+        <option value="Linwood Township">Linwood Township</option>
+      </select>
+    </div>
+    <div style="margin-top: 12px; display: flex; gap: 8px;">
+      <button class="btn btn-primary" onclick="generateCard()">Generate Card</button>
+      <button class="btn btn-secondary" onclick="printCard()">Print Card</button>
+      <button class="btn btn-secondary" onclick="saveProfile()">Save Profile</button>
+    </div>
+    <div style="font-size: 10px; color: var(--road-salt); margin-top: 8px;">Profile auto-saves to browser storage.</div>
+  </div>
+
+  <div class="footer-bar">
+    A reference tool for SD-31 truckers and contractors. Built with AI. Verify current posting status with the relevant jurisdiction before operating. Data reflects MnDOT and Anoka County seasonal restrictions as of 2025-2026.
+  </div>
+</div>
+
+<!-- RIGHT PANEL: Results -->
+<div class="right-panel">
+  <!-- Module 1 output -->
+  <div id="out1" class="right-output">
+    <div class="status-hero verify" id="statusHero">
+      <div class="status-word" id="statusWord">VERIFY</div>
+      <div class="status-sub" id="statusSub">Select your load configuration and check status.</div>
+    </div>
+
+    <div class="right-section" id="statusDetail">
+      <h3>Status Detail</h3>
+      <div class="info-text" id="statusExplain">
+        Use the controls on the left to check restriction status for your road type, load, and time of year.
+      </div>
+    </div>
+
+    <div class="right-section" id="jurisdictionInfo">
+      <h3>Jurisdiction &amp; Contact</h3>
+      <table class="data-table" id="jurisdictionTable">
+        <tr>
+          <th>Authority</th>
+          <th>Contact</th>
+          <th>Online</th>
+        </tr>
+        <tr>
+          <td>--</td>
+          <td class="mono">--</td>
+          <td>--</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="right-section">
+      <h3>Your Configuration</h3>
+      <table class="data-table" id="configTable">
+        <tr><th>Parameter</th><th>Value</th></tr>
+        <tr><td>Road type</td><td id="cfgRoad" class="mono">--</td></tr>
+        <tr><td>Load config</td><td id="cfgLoad">--</td></tr>
+        <tr><td>GVW</td><td id="cfgGVW" class="mono">--</td></tr>
+        <tr><td>Month</td><td id="cfgMonth">--</td></tr>
+        <tr><td>Single-axle equiv.</td><td id="cfgAxle" class="mono">--</td></tr>
+      </table>
+    </div>
+
+    <div class="ref-band">
+      <strong>SF2145 Reference:</strong> Senator Bahr secured $2.27M to fix the TH-65 / CR 60 intersection in Ham Lake -- one of Anoka County's most dangerous truck-corridor chokepoints. The Bunker Lake interchange has received an additional $10M in federal funding; design and environmental planning underway 2025-2026. Full interchange estimated at ~$46.8M.
+    </div>
+  </div>
+
+  <!-- Module 2 output -->
+  <div id="out2" class="right-output" style="display: none;">
+    <div style="background: var(--gunmetal); padding: 24px 30px;">
+      <h2 style="font-size: 16px; color: var(--warning-yellow); margin-bottom: 4px;">Three Layers, Three Agencies</h2>
+      <p style="font-size: 12px; color: var(--road-salt);">Every road in District 31 falls under one jurisdiction for weight restrictions. Getting it wrong costs money.</p>
+    </div>
+    <div class="right-section">
+      <h3>How Posting Works</h3>
+      <table class="data-table">
+        <tr><th>Layer</th><th>Posts When</th><th>How Announced</th><th>Permit System</th></tr>
+        <tr>
+          <td style="color: #5b9bd5;">State (MnDOT)</td>
+          <td>3 days' notice</td>
+          <td class="mono">Phone / web</td>
+          <td>Online OSOW</td>
+        </tr>
+        <tr>
+          <td style="color: #a77dd5;">County (Anoka)</td>
+          <td class="mono">Mar 3, 12:01 AM</td>
+          <td>Annual map (PDF)</td>
+          <td>Online only</td>
+        </tr>
+        <tr>
+          <td style="color: #4db87a;">City / Township</td>
+          <td class="mono">Varies by city</td>
+          <td>City website</td>
+          <td>Contact city</td>
+        </tr>
+      </table>
+    </div>
+    <div class="right-section">
+      <h3>Standard Legal Limits (Before Permit)</h3>
+      <table class="data-table">
+        <tr><th>Dimension</th><th>Limit</th></tr>
+        <tr><td>Width</td><td class="mono">8'6"</td></tr>
+        <tr><td>Height</td><td class="mono">13'6"</td></tr>
+        <tr><td>GVW</td><td class="mono">80,000 lbs</td></tr>
+      </table>
+    </div>
+    <div class="right-section">
+      <h3>OSOW Permit Quick Facts</h3>
+      <div class="info-text" style="font-size: 12px;">
+        <strong>Single Trip Permit:</strong> Valid 7 days. $15 base + Damage Assessment Fee.<br>
+        <strong>Annual Permit:</strong> Available for repetitive moves on established routes.<br>
+        <strong>Apply:</strong> dot.state.mn.us/cvo/oversize/index.html
+      </div>
+    </div>
+    <div class="ref-band">
+      <strong>District 31 Key Routes:</strong> TH-65 (north-south trunk), CSAH 116 / Bunker Lake Blvd (east-west arterial), CR 60 (local connector), CSAH 22, CSAH 54, CR 61. The TH-65/CSAH 116 interchange is the most critical truck-corridor intersection in the district.
+    </div>
+  </div>
+
+  <!-- Module 3 output -->
+  <div id="out3" class="right-output" style="display: none;">
+    <div style="background: var(--gunmetal); padding: 24px 30px;">
+      <h2 style="font-size: 16px; color: var(--warning-yellow); margin-bottom: 4px;">Permit Quick Reference Card</h2>
+      <p style="font-size: 12px; color: var(--road-salt);">Fill in the form, then print this card for your cab or glove box. 4" x 6" format.</p>
+    </div>
+    <div class="right-section" style="display: flex; justify-content: center; padding: 30px;">
+      <div class="card-preview" id="cardPreview">
+        <h4>Road Restriction Quick Ref</h4>
+        <div class="card-row">
+          <span class="card-label">Operator</span>
+          <span class="card-val" id="cardCompany">--</span>
+        </div>
+        <div class="card-row">
+          <span class="card-label">Load Type</span>
+          <span class="card-val" id="cardLoadType">--</span>
+        </div>
+        <div class="card-row">
+          <span class="card-label">Typical GVW</span>
+          <span class="card-val" id="cardGVW">--</span>
+        </div>
+        <div class="card-row">
+          <span class="card-label">Common Routes</span>
+          <span class="card-val" id="cardRoutes" style="font-size: 9px; max-width: 200px; text-align: right;">--</span>
+        </div>
+        <div class="card-row">
+          <span class="card-label">Home Base</span>
+          <span class="card-val" id="cardHome">--</span>
+        </div>
+        <div style="border-top: 1px solid #ccc; margin-top: 8px; padding-top: 6px;">
+          <div style="font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: #555; margin-bottom: 4px;">Contacts</div>
+          <div style="font-size: 10px; line-height: 1.5;" id="cardContacts">
+            MnDOT Load Limits: 651-366-5400<br>
+            Anoka County Transport: 763-324-3100<br>
+            MnDOT OSOW: dot.state.mn.us/cvo/oversize<br>
+            County Permits: anokacountymn.gov/317
+          </div>
+        </div>
+        <div style="border-top: 1px solid #ccc; margin-top: 8px; padding-top: 6px;">
+          <div style="font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: #555; margin-bottom: 4px;">Metro Zone Seasonal Calendar</div>
+          <div class="card-calendar">
+            <div class="cal-cell hdr">Jan</div>
+            <div class="cal-cell hdr">Feb</div>
+            <div class="cal-cell hdr">Mar</div>
+            <div class="cal-cell hdr">Apr</div>
+            <div class="cal-cell hdr">May</div>
+            <div class="cal-cell hdr">Jun</div>
+            <div class="cal-cell cal-blue">W+</div>
+            <div class="cal-cell cal-blue">W+</div>
+            <div class="cal-cell cal-yellow">RST</div>
+            <div class="cal-cell cal-red">RST</div>
+            <div class="cal-cell cal-yellow">RST</div>
+            <div class="cal-cell cal-green">CLR</div>
+          </div>
+        </div>
+        <div style="border-top: 1px solid #ccc; margin-top: 8px; padding-top: 6px;">
+          <div style="font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: #555; margin-bottom: 4px;">Before You Run</div>
+          <ul class="checklist" id="cardChecklist">
+            <li>Check MnDOT load limits line or website for state highway status</li>
+            <li>Check Anoka County Transportation for county road posting status</li>
+            <li>Check city website if running city streets</li>
+            <li>Confirm OSOW permit is valid and route-approved if load exceeds legal limits</li>
+            <li class="important">Spring restrictions can be posted with only 3 days' notice</li>
+            <li class="important">Winter weight increases expire at 12:01 AM on posting date -- not end of business day</li>
+          </ul>
+        </div>
+        <div style="margin-top: 10px; font-size: 8px; color: #888; text-align: center;">
+          SD-31 Reference Tool | Verify with jurisdiction before operating | 2025-2026 data
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Print-only card -->
+  <div class="card-preview-wrap" id="printCard">
+    <div class="card-preview" id="printCardContent"></div>
+  </div>
+</div>
+
+<script>
+// Navigation
+const segBtns = document.querySelectorAll('.seg-btn');
+const modules = document.querySelectorAll('.module');
+const outputs = document.querySelectorAll('.right-output');
+
+segBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const target = btn.dataset.module;
+    segBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    modules.forEach(m => m.classList.remove('active'));
+    document.getElementById(target).classList.add('active');
+    outputs.forEach(o => o.style.display = 'none');
+    document.getElementById(target.replace('mod', 'out')).style.display = '';
+  });
+});
+
+// GVW slider
+const gvwSlider = document.getElementById('gvwSlider');
+const gvwVal = document.getElementById('gvwVal');
+gvwSlider.addEventListener('input', () => {
+  gvwVal.textContent = Number(gvwSlider.value).toLocaleString();
+});
+
+// Auto-detect month
+(function() {
+  const now = new Date();
+  const m = now.getMonth(); // 0-based
+  if (m <= 5) {
+    document.getElementById('monthSelect').value = m;
+  } else {
+    document.getElementById('monthSelect').value = 5; // default to June if Jul-Dec
+  }
+})();
+
+// Restriction logic
+function checkRestriction() {
+  const roadType = document.getElementById('roadType').value;
+  const loadConfig = document.getElementById('loadConfig').value;
+  const gvw = parseInt(gvwSlider.value);
+  const month = parseInt(document.getElementById('monthSelect').value);
+
+  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June'];
+  const roadNames = { mndot: 'MnDOT State Highway', county: 'Anoka County Road', city: 'City/Township Street' };
+  const loadNames = {
+    single: 'Single-unit truck',
+    semi: 'Semi-tractor + standard trailer',
+    semiHeavy: 'Semi-tractor + heavy/oversize trailer',
+    tandem: 'Tandem-axle dump / aggregate hauler'
+  };
+
+  // Estimate single-axle equivalent (simplified)
+  let axleCount;
+  switch(loadConfig) {
+    case 'single': axleCount = 2; break;
+    case 'semi': axleCount = 5; break;
+    case 'semiHeavy': axleCount = 6; break;
+    case 'tandem': axleCount = 3; break;
+    default: axleCount = 3;
+  }
+  const singleAxleEquiv = Math.round(gvw / axleCount);
+
+  // Update config display
+  document.getElementById('cfgRoad').textContent = roadNames[roadType];
+  document.getElementById('cfgLoad').textContent = loadNames[loadConfig];
+  document.getElementById('cfgGVW').textContent = gvw.toLocaleString() + ' lbs';
+  document.getElementById('cfgMonth').textContent = monthNames[month];
+  document.getElementById('cfgAxle').textContent = singleAxleEquiv.toLocaleString() + ' lbs';
+
+  const hero = document.getElementById('statusHero');
+  const word = document.getElementById('statusWord');
+  const sub = document.getElementById('statusSub');
+  const explain = document.getElementById('statusExplain');
+
+  // Spring restriction window: March (2), April (3), May (4) — mid-March to mid-May
+  const isSpring = (month >= 2 && month <= 4);
+  // Winter weight increase: Jan (0), Feb (1)
+  const isWinter = (month <= 1);
+  // Summer: June (5) and beyond
+  const isSummer = (month === 5);
+
+  // 5-ton = 10,000 lbs single axle; 7-ton = 14,000 lbs
+  const fiveTonLimit = 10000;
+  const sevenTonLimit = 14000;
+
+  let status, statusText, detail;
+  let authority, phone, website;
+
+  // Set jurisdiction info
+  switch(roadType) {
+    case 'mndot':
+      authority = 'MnDOT (State)';
+      phone = '651-366-5400 / 1-800-723-6543';
+      website = 'dot.mn.gov/loadlimits';
+      break;
+    case 'county':
+      authority = 'Anoka County Transportation';
+      phone = '763-324-3100';
+      website = 'anokacountymn.gov/317';
+      break;
+    case 'city':
+      authority = 'City of Ham Lake / Local Municipality';
+      phone = 'Check city website';
+      website = 'hamlakemn.gov';
+      break;
+  }
+
+  if (isWinter) {
+    // Winter weight increases active
+    if (gvw > 80000) {
+      status = 'verify';
+      statusText = 'VERIFY';
+      detail = 'Winter weight increases are active (10% above legal axle weight). However, your GVW of ' + gvw.toLocaleString() + ' lbs exceeds the standard 80,000 lb legal GVW limit. You may need an OSOW permit. Confirm with ' + authority + ' before operating.';
+    } else {
+      status = 'clear';
+      statusText = 'CLEAR';
+      detail = 'Winter weight increases are active through end of February. Your load of ' + gvw.toLocaleString() + ' lbs is within limits with the 10% winter increase. Important: winter increases expire at 12:01 AM on the spring posting date -- not at end of business day.';
+    }
+  } else if (isSpring) {
+    // Spring restriction window
+    if (roadType === 'mndot') {
+      if (singleAxleEquiv > sevenTonLimit) {
+        status = 'restricted';
+        statusText = 'RESTRICTED';
+        detail = 'Metro zone state highways may be posted at 5-ton or 7-ton single-axle limits during the spring thaw window (mid-March to mid-May). Your estimated single-axle equivalent of ' + singleAxleEquiv.toLocaleString() + ' lbs exceeds both thresholds. Call the MnDOT load limits line to confirm current posting status before running.';
+      } else if (singleAxleEquiv > fiveTonLimit) {
+        status = 'verify';
+        statusText = 'VERIFY';
+        detail = 'Metro zone state highways may be posted at 5-ton single-axle during spring thaw. Your estimated single-axle equivalent of ' + singleAxleEquiv.toLocaleString() + ' lbs exceeds the 5-ton limit but may be under the 7-ton posting. Check MnDOT for current posting level.';
+      } else {
+        status = 'clear';
+        statusText = 'CLEAR';
+        detail = 'Your estimated single-axle equivalent of ' + singleAxleEquiv.toLocaleString() + ' lbs is under the 5-ton spring posting limit. You should still verify posting status with MnDOT, as restrictions are announced with only 3 days\' notice.';
+      }
+    } else if (roadType === 'county') {
+      if (singleAxleEquiv > fiveTonLimit) {
+        status = 'restricted';
+        statusText = 'RESTRICTED';
+        detail = 'Anoka County roads are posted at 5-ton single-axle starting March 3 at 12:01 AM. Your estimated single-axle equivalent of ' + singleAxleEquiv.toLocaleString() + ' lbs exceeds this limit. You will need a Transportation Permit for overweight loads on county roads.';
+      } else {
+        status = 'verify';
+        statusText = 'VERIFY';
+        detail = 'Your load is near or under the 5-ton county posting limit. Verify the current posting map at Anoka County Transportation, as specific road segments may have different restrictions.';
+      }
+    } else { // city
+      if (singleAxleEquiv > fiveTonLimit) {
+        status = 'restricted';
+        statusText = 'RESTRICTED';
+        detail = 'Ham Lake city streets default to 5-ton year-round. Your estimated single-axle equivalent of ' + singleAxleEquiv.toLocaleString() + ' lbs exceeds this. Winter load increases expired March 3 at 12:01 AM. Check with the city for any exceptions on your route.';
+      } else {
+        status = 'verify';
+        statusText = 'VERIFY';
+        detail = 'Your load appears to be near the 5-ton city street limit. Ham Lake streets are 5-ton unless otherwise posted. Verify specific route postings with the city.';
+      }
+    }
+  } else {
+    // Summer — standard limits
+    if (gvw > 80000) {
+      status = 'verify';
+      statusText = 'VERIFY';
+      detail = 'No seasonal restrictions in effect for ' + monthNames[month] + '. However, your GVW of ' + gvw.toLocaleString() + ' lbs exceeds the standard 80,000 lb legal limit. An OSOW permit is required. City streets may still enforce 5-ton default limits.';
+    } else if (roadType === 'city' && singleAxleEquiv > fiveTonLimit) {
+      status = 'verify';
+      statusText = 'VERIFY';
+      detail = 'Seasonal restrictions are not in effect, but Ham Lake city streets default to 5-ton year-round. Your single-axle equivalent of ' + singleAxleEquiv.toLocaleString() + ' lbs may exceed city limits on non-exempt streets.';
+    } else {
+      status = 'clear';
+      statusText = 'CLEAR';
+      detail = 'No seasonal restrictions in effect for ' + monthNames[month] + '. Standard legal limits apply: 80,000 lbs GVW, 8\'6" width, 13\'6" height. Your load of ' + gvw.toLocaleString() + ' lbs is within standard limits.';
+    }
+  }
+
+  // Update display
+  hero.className = 'status-hero ' + status;
+  word.textContent = statusText;
+  sub.textContent = status === 'clear' ? 'No restrictions detected for your configuration.' :
+                    status === 'verify' ? 'Check posting status before running this route.' :
+                    'Current restrictions likely apply to your load.';
+  explain.innerHTML = detail;
+
+  // Update jurisdiction table
+  document.getElementById('jurisdictionTable').innerHTML =
+    '<tr><th>Authority</th><th>Contact</th><th>Online</th></tr>' +
+    '<tr><td>' + authority + '</td><td class="mono">' + phone + '</td><td>' + website + '</td></tr>';
+
+  // Add OSOW row if overweight
+  if (gvw > 80000) {
+    document.getElementById('jurisdictionTable').innerHTML +=
+      '<tr><td>MnDOT OSOW Permits</td><td class="mono">Online application</td><td>dot.state.mn.us/cvo/oversize</td></tr>';
+  }
+}
+
+// Load example
+function loadExample() {
+  document.getElementById('roadType').value = 'county';
+  document.getElementById('loadConfig').value = 'tandem';
+  gvwSlider.value = 72000;
+  gvwVal.textContent = '72,000';
+  document.getElementById('monthSelect').value = 3; // April
+  checkRestriction();
+}
+
+// Generate card
+function generateCard() {
+  const company = document.getElementById('companyName').value || '--';
+  const loadType = document.getElementById('loadType').value;
+  const typGVW = document.getElementById('typicalGVW').value || '--';
+  const routes = document.getElementById('commonRoutes').value || '--';
+  const home = document.getElementById('homeBase').value;
+
+  const loadTypeNames = { aggregate: 'Aggregate', construction: 'Construction Equipment', utility: 'Utility', other: 'Other' };
+
+  document.getElementById('cardCompany').textContent = company;
+  document.getElementById('cardLoadType').textContent = loadTypeNames[loadType];
+  document.getElementById('cardGVW').textContent = typGVW;
+  document.getElementById('cardRoutes').textContent = routes;
+  document.getElementById('cardHome').textContent = home;
+
+  // Update contacts based on home base
+  let contacts = 'MnDOT Load Limits: 651-366-5400\n';
+  contacts += 'Anoka County Transport: 763-324-3100\n';
+  contacts += 'MnDOT OSOW: dot.state.mn.us/cvo/oversize\n';
+  contacts += 'County Permits: anokacountymn.gov/317\n';
+  if (home === 'Ham Lake') contacts += 'Ham Lake: hamlakemn.gov';
+  document.getElementById('cardContacts').innerHTML = contacts.replace(/\n/g, '<br>');
+
+  saveProfile();
+}
+
+// Print card
+function printCard() {
+  generateCard();
+  const cardHTML = document.getElementById('cardPreview').innerHTML;
+  document.getElementById('printCardContent').innerHTML = cardHTML;
+  window.print();
+}
+
+// LocalStorage
+function saveProfile() {
+  const profile = {
+    companyName: document.getElementById('companyName').value,
+    loadType: document.getElementById('loadType').value,
+    typicalGVW: document.getElementById('typicalGVW').value,
+    commonRoutes: document.getElementById('commonRoutes').value,
+    homeBase: document.getElementById('homeBase').value
+  };
+  try {
+    localStorage.setItem('bahr_permit_profile', JSON.stringify(profile));
+  } catch(e) { /* silently fail if storage unavailable */ }
+}
+
+function loadProfile() {
+  try {
+    const data = localStorage.getItem('bahr_permit_profile');
+    if (data) {
+      const profile = JSON.parse(data);
+      if (profile.companyName) document.getElementById('companyName').value = profile.companyName;
+      if (profile.loadType) document.getElementById('loadType').value = profile.loadType;
+      if (profile.typicalGVW) document.getElementById('typicalGVW').value = profile.typicalGVW;
+      if (profile.commonRoutes) document.getElementById('commonRoutes').value = profile.commonRoutes;
+      if (profile.homeBase) document.getElementById('homeBase').value = profile.homeBase;
+    }
+  } catch(e) { /* silently fail */ }
+}
+
+// Light/dark toggle
+function toggleMode() {
+  document.body.classList.toggle('light-mode');
+  const btn = document.querySelector('.mode-toggle');
+  btn.textContent = document.body.classList.contains('light-mode') ? 'DARK' : 'LIGHT';
+}
+
+// Init
+loadProfile();
+// Auto-check with defaults on load
+checkRestriction();
+</script>
+</body>
+</html>

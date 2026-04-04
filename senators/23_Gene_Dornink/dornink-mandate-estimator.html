@@ -1,0 +1,1589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MN Small Employer Mandate Cost Estimator — SD-23</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Split-screen — left 42% fixed input panel (black bg), right 58% scrollable results (white bg). Asymmetric, high contrast.
+   2. Navigation: None. Single continuous scroll on right panel. Inputs always visible on left.
+   3. Typography: Impact for headers, Calibri for body/labels, Lucida Console for data/numbers.
+   4. Hero moment: Massive red dollar figure (#b71c1c) showing estimated annual mandate cost, updating live.
+   5. Color strategy: #7 Inverted/two-tone — pure #000 and #fff only, single accent #b71c1c for key numbers/alerts.
+   6. Entry experience: Zero animation. Blinking cursor in first input field on load. Ready in <1s.
+   Additional: No bordered callout boxes. No cards. No emoji. No parchment. Dense data on right, spacious inputs on left.
+*/
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+  color: #fff;
+}
+
+/* ── SPLIT SCREEN ── */
+.split-container {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+}
+
+.panel-left {
+  width: 42%;
+  min-width: 380px;
+  max-width: 520px;
+  background: #000;
+  color: #fff;
+  overflow-y: auto;
+  padding: 28px 32px 40px;
+  border-right: 2px solid #b71c1c;
+  flex-shrink: 0;
+}
+
+.panel-right {
+  flex: 1;
+  background: #fff;
+  color: #000;
+  overflow-y: auto;
+  padding: 32px 40px 60px;
+}
+
+/* ── TYPOGRAPHY ── */
+h1, h2, h3, .section-title {
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-weight: normal;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+body, label, select, input, button, textarea, p, li, td, th, dd, dt {
+  font-family: Calibri, 'Segoe UI', sans-serif;
+}
+
+.mono, .result-value, .hero-cost, .stat-number, code, .calc-detail {
+  font-family: 'Lucida Console', Monaco, monospace;
+}
+
+/* ── LEFT PANEL ── */
+.panel-left h1 {
+  font-size: 22px;
+  letter-spacing: 3px;
+  line-height: 1.15;
+  margin-bottom: 4px;
+  color: #fff;
+}
+
+.panel-left .subtitle {
+  font-family: Calibri, sans-serif;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #b71c1c;
+  margin-bottom: 24px;
+}
+
+.input-group {
+  margin-bottom: 14px;
+}
+
+.input-group label {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: #999;
+  margin-bottom: 3px;
+}
+
+.input-group input,
+.input-group select {
+  width: 100%;
+  background: #111;
+  border: 1px solid #333;
+  color: #fff;
+  padding: 7px 10px;
+  font-size: 14px;
+  font-family: 'Lucida Console', Monaco, monospace;
+  outline: none;
+}
+
+.input-group input:focus,
+.input-group select:focus {
+  border-color: #b71c1c;
+}
+
+.input-group select option {
+  background: #111;
+  color: #fff;
+}
+
+.input-row {
+  display: flex;
+  gap: 10px;
+}
+
+.input-row .input-group { flex: 1; }
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.toggle-row label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #999;
+  cursor: pointer;
+}
+
+.toggle-btn {
+  width: 44px;
+  height: 22px;
+  background: #333;
+  border: none;
+  border-radius: 11px;
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.toggle-btn::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  background: #666;
+  border-radius: 50%;
+  transition: left 0.15s, background 0.15s;
+}
+
+.toggle-btn.on {
+  background: #b71c1c;
+}
+
+.toggle-btn.on::after {
+  left: 25px;
+  background: #fff;
+}
+
+.slider-row {
+  margin-bottom: 14px;
+}
+
+.slider-row label {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: #999;
+  margin-bottom: 3px;
+}
+
+.slider-row .slider-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.slider-row input[type="range"] {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  background: #333;
+  outline: none;
+  border-radius: 0;
+}
+
+.slider-row input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  background: #b71c1c;
+  cursor: pointer;
+  border-radius: 0;
+}
+
+.slider-row input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  background: #b71c1c;
+  cursor: pointer;
+  border: none;
+  border-radius: 0;
+}
+
+.slider-val {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 14px;
+  color: #b71c1c;
+  min-width: 60px;
+  text-align: right;
+}
+
+.section-divider {
+  border: none;
+  border-top: 1px solid #222;
+  margin: 18px 0;
+}
+
+.mandate-checks {
+  margin-bottom: 14px;
+}
+
+.mandate-checks .section-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: #999;
+  margin-bottom: 8px;
+}
+
+.mandate-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: #ccc;
+  cursor: pointer;
+}
+
+.mandate-check input[type="checkbox"] {
+  accent-color: #b71c1c;
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+}
+
+.example-btns {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.example-btn {
+  background: transparent;
+  border: 1px solid #333;
+  color: #999;
+  font-family: Calibri, sans-serif;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.example-btn:hover {
+  border-color: #b71c1c;
+  color: #fff;
+}
+
+.pfml-split-row {
+  margin-bottom: 14px;
+}
+
+.pfml-split-row label {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: #999;
+  margin-bottom: 3px;
+}
+
+.left-footer {
+  margin-top: 24px;
+  font-size: 10px;
+  color: #444;
+  line-height: 1.5;
+  letter-spacing: 0.5px;
+}
+
+/* ── RIGHT PANEL ── */
+.panel-right h2 {
+  font-size: 16px;
+  letter-spacing: 2px;
+  color: #000;
+  margin-bottom: 16px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid #000;
+}
+
+.hero-block {
+  text-align: center;
+  padding: 36px 0 28px;
+}
+
+.hero-label {
+  font-family: Calibri, sans-serif;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: #666;
+  margin-bottom: 6px;
+}
+
+.hero-cost {
+  font-size: 72px;
+  font-weight: bold;
+  color: #b71c1c;
+  line-height: 1;
+  letter-spacing: -2px;
+}
+
+.hero-sub {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 13px;
+  color: #666;
+  margin-top: 8px;
+}
+
+.hero-sub span {
+  color: #000;
+  font-weight: bold;
+}
+
+/* ── STAT BARS ── */
+.stat-bar-section {
+  margin: 24px 0;
+}
+
+.stat-bar-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 10px;
+}
+
+.stat-bar-label {
+  width: 160px;
+  flex-shrink: 0;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #444;
+  text-align: right;
+}
+
+.stat-bar-track {
+  flex: 1;
+  height: 26px;
+  background: #f0f0f0;
+  position: relative;
+}
+
+.stat-bar-fill {
+  height: 100%;
+  background: #000;
+  position: absolute;
+  left: 0;
+  top: 0;
+  min-width: 2px;
+}
+
+.stat-bar-value {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 13px;
+  color: #000;
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+}
+
+.stat-bar-fill + .stat-bar-value { color: #fff; }
+
+.stat-bar-pct {
+  width: 60px;
+  flex-shrink: 0;
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 12px;
+  color: #b71c1c;
+  text-align: right;
+}
+
+/* ── SECONDARY STATS ── */
+.secondary-stats {
+  display: flex;
+  gap: 32px;
+  margin: 20px 0;
+  padding: 16px 0;
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+}
+
+.secondary-stat {
+  text-align: center;
+  flex: 1;
+}
+
+.secondary-stat .ss-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #888;
+  margin-bottom: 4px;
+}
+
+.secondary-stat .ss-value {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 22px;
+  color: #000;
+  font-weight: bold;
+}
+
+/* ── CHART ── */
+.chart-container {
+  margin: 28px 0;
+  max-width: 550px;
+}
+
+.chart-container canvas {
+  max-height: 260px;
+}
+
+/* ── MANDATE REFERENCE TABLE ── */
+.ref-table-wrap {
+  overflow-x: auto;
+  margin: 20px 0;
+}
+
+.ref-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.ref-table thead th {
+  background: #000;
+  color: #fff;
+  font-family: Calibri, sans-serif;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 8px 10px;
+  text-align: left;
+  font-weight: normal;
+}
+
+.ref-table tbody td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #ddd;
+  vertical-align: top;
+  line-height: 1.4;
+}
+
+.ref-table tbody tr:nth-child(even) td {
+  background: #f5f5f5;
+}
+
+.ref-table tbody tr:nth-child(odd) td {
+  background: #fff;
+}
+
+.ref-table a {
+  color: #b71c1c;
+  text-decoration: none;
+  font-size: 11px;
+}
+
+.ref-table a:hover { text-decoration: underline; }
+
+.policy-note {
+  font-size: 14px;
+  line-height: 1.7;
+  color: #333;
+  margin: 20px 0;
+  max-width: 680px;
+}
+
+/* ── TESTIMONY ── */
+.testimony-doc {
+  max-width: 700px;
+  margin: 0 auto;
+  font-family: Calibri, sans-serif;
+  font-size: 14px;
+  line-height: 1.7;
+  color: #000;
+}
+
+.testimony-doc h3 {
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 16px;
+  letter-spacing: 2px;
+  margin-top: 24px;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.testimony-header {
+  text-align: center;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #000;
+  margin-bottom: 20px;
+}
+
+.testimony-header h2 {
+  border: none;
+  padding: 0;
+  margin: 0;
+  font-size: 18px;
+}
+
+.testimony-header p {
+  font-size: 13px;
+  color: #444;
+  margin-top: 4px;
+}
+
+.testimony-editable {
+  border: 1px dashed #ccc;
+  padding: 10px;
+  min-height: 40px;
+  outline: none;
+  background: #fafafa;
+  margin-bottom: 12px;
+}
+
+.testimony-editable:focus {
+  border-color: #b71c1c;
+  background: #fff;
+}
+
+.testimony-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 13px;
+}
+
+.testimony-table th {
+  background: #000;
+  color: #fff;
+  padding: 6px 10px;
+  text-align: left;
+  font-family: Calibri, sans-serif;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.testimony-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.testimony-table tr:last-child td {
+  border-bottom: 2px solid #000;
+  font-weight: bold;
+}
+
+.policy-checkboxes label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
+.policy-checkboxes input[type="checkbox"] {
+  accent-color: #b71c1c;
+  margin-right: 6px;
+}
+
+.print-btn {
+  background: #b71c1c;
+  color: #fff;
+  border: none;
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 14px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 12px 32px;
+  cursor: pointer;
+  margin-top: 20px;
+}
+
+.print-btn:hover {
+  background: #d32f2f;
+}
+
+/* ── SECTIONS / MODULES ── */
+.module { display: none; }
+.module.active { display: block; }
+
+.module-nav {
+  display: flex;
+  gap: 0;
+  margin-bottom: 20px;
+}
+
+.module-nav button {
+  flex: 1;
+  background: #fff;
+  border: 2px solid #000;
+  border-right: none;
+  color: #000;
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.module-nav button:last-child { border-right: 2px solid #000; }
+
+.module-nav button.active {
+  background: #000;
+  color: #fff;
+}
+
+.module-nav button:hover:not(.active) {
+  background: #f0f0f0;
+}
+
+/* ── WARNING ── */
+.wage-warning {
+  background: #b71c1c;
+  color: #fff;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: bold;
+  display: none;
+  margin-bottom: 10px;
+}
+
+.large-emp-warning {
+  background: #000;
+  color: #b71c1c;
+  padding: 6px 12px;
+  font-size: 12px;
+  display: none;
+  margin-bottom: 10px;
+  border: 1px solid #b71c1c;
+}
+
+.calc-assumptions {
+  font-size: 11px;
+  color: #888;
+  line-height: 1.5;
+  margin-top: 20px;
+  max-width: 600px;
+}
+
+.calc-assumptions strong { color: #000; }
+
+.tooltip {
+  position: relative;
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  background: #333;
+  color: #fff;
+  font-size: 10px;
+  text-align: center;
+  line-height: 14px;
+  cursor: help;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
+.tooltip .tip-text {
+  display: none;
+  position: absolute;
+  bottom: 20px;
+  left: -80px;
+  width: 220px;
+  background: #000;
+  color: #fff;
+  font-size: 11px;
+  padding: 8px 10px;
+  z-index: 100;
+  line-height: 1.4;
+  font-family: Calibri, sans-serif;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.tooltip:hover .tip-text { display: block; }
+
+.years-input {
+  display: inline-block;
+  width: 60px;
+  background: #fafafa;
+  border: 1px solid #ccc;
+  padding: 2px 6px;
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 13px;
+  text-align: center;
+}
+
+/* ── MOBILE ── */
+@media (max-width: 800px) {
+  .split-container {
+    flex-direction: column;
+    height: auto;
+    overflow: auto;
+  }
+  html, body { overflow: auto; }
+  .panel-left {
+    width: 100%;
+    min-width: unset;
+    max-width: unset;
+    border-right: none;
+    border-bottom: 2px solid #b71c1c;
+    padding: 20px;
+  }
+  .panel-right { padding: 20px; }
+  .hero-cost { font-size: 48px; }
+  .stat-bar-label { width: 100px; font-size: 10px; }
+  .secondary-stats { flex-direction: column; gap: 12px; }
+}
+
+/* ── PRINT ── */
+@media print {
+  .split-container { display: block; }
+  .panel-left { display: none !important; }
+  .panel-right {
+    width: 100%;
+    padding: 0;
+    overflow: visible;
+  }
+  .module-nav { display: none !important; }
+  .module { display: none !important; }
+  .module.print-active { display: block !important; }
+  .print-btn { display: none !important; }
+  .hero-cost { color: #000 !important; font-size: 48px; }
+  .stat-bar-fill { background: #666 !important; }
+  .stat-bar-pct { color: #000 !important; }
+  .testimony-editable {
+    border: none;
+    background: none;
+    padding: 0;
+  }
+  .testimony-doc { max-width: 100%; }
+  body { background: #fff; color: #000; }
+  @page { margin: 1in; }
+}
+</style>
+</head>
+<body>
+
+<div class="split-container">
+
+<!-- ═══════════════ LEFT PANEL — INPUTS ═══════════════ -->
+<div class="panel-left">
+  <h1>Mandate Cost Estimator</h1>
+  <div class="subtitle">SD-23 Small Employer Tool</div>
+
+  <div class="example-btns">
+    <button class="example-btn" onclick="loadExample('farm')">Example: Freeborn Farm</button>
+    <button class="example-btn" onclick="loadExample('contractor')">Example: Steele Contractor</button>
+    <button class="example-btn" onclick="clearForm()">Clear All</button>
+  </div>
+
+  <div class="input-group">
+    <label>Business Name</label>
+    <input type="text" id="bizName" placeholder="Your business name" autofocus>
+  </div>
+
+  <div class="input-group">
+    <label>Business Type</label>
+    <select id="bizType">
+      <option value="seasonal_crop">Seasonal crop / vegetable farm</option>
+      <option value="livestock">Livestock / dairy operation</option>
+      <option value="food_processing">Food processing or packing facility</option>
+      <option value="retail">Retail / hardware / farm supply</option>
+      <option value="trades">Carpentry, construction, or trades contractor</option>
+      <option value="restaurant">Restaurant or food service</option>
+      <option value="care">Child care or elder care facility</option>
+      <option value="other">Other small employer</option>
+    </select>
+  </div>
+
+  <div class="input-row">
+    <div class="input-group">
+      <label>County</label>
+      <select id="county">
+        <option value="Dodge">Dodge</option>
+        <option value="Faribault">Faribault</option>
+        <option value="Freeborn" selected>Freeborn</option>
+        <option value="Mower">Mower</option>
+        <option value="Steele">Steele</option>
+        <option value="Waseca">Waseca</option>
+      </select>
+    </div>
+    <div class="input-group">
+      <label>Total Employees</label>
+      <input type="number" id="totalEmp" min="1" max="9999" value="" placeholder="e.g. 14">
+    </div>
+  </div>
+
+  <div class="large-emp-warning" id="largeEmpWarn">Warning: Employers with 500+ employees may be subject to different rules. These estimates are designed for small employers.</div>
+
+  <div class="input-row">
+    <div class="input-group">
+      <label>Full-Time Equivalents (FTE)
+        <span class="tooltip">?<span class="tip-text">Count part-time workers at their proportionate hours relative to full-time (2,080 hrs/year).</span></span>
+      </label>
+      <input type="number" id="fte" min="0" max="9999" value="" placeholder="e.g. 8">
+    </div>
+  </div>
+
+  <div class="toggle-row">
+    <label>Any Seasonal Employees?</label>
+    <button class="toggle-btn" id="seasonalToggle" onclick="toggleSeasonal()" aria-label="Toggle seasonal employees"></button>
+  </div>
+
+  <div id="seasonalFields" style="display:none;">
+    <div class="input-row">
+      <div class="input-group">
+        <label>Seasonal Employees</label>
+        <input type="number" id="seasonalCount" min="0" value="" placeholder="e.g. 6">
+      </div>
+      <div class="input-group">
+        <label>Avg Months / Seasonal Worker</label>
+        <input type="number" id="seasonalMonths" min="1" max="12" value="" placeholder="e.g. 5">
+      </div>
+    </div>
+  </div>
+
+  <div class="slider-row">
+    <label>Average Hourly Wage (Blended)</label>
+    <div class="slider-wrap">
+      <input type="range" id="wageSlider" min="7" max="35" step="0.25" value="15">
+      <span class="slider-val" id="wageDisplay">$15.00</span>
+    </div>
+  </div>
+
+  <div class="wage-warning" id="wageWarn">Below MN minimum wage ($11.41). Cost to bring workers to minimum will be calculated.</div>
+
+  <div class="input-group">
+    <label>Estimated Annual Payroll
+      <span class="tooltip">?<span class="tip-text">Auto-calculated from employees x avg wage x 2,080 hrs. You can override this value.</span></span>
+    </label>
+    <input type="text" id="payroll" placeholder="Auto-calculated">
+  </div>
+
+  <hr class="section-divider">
+
+  <div class="toggle-row">
+    <label>Currently Offer Paid Sick Leave?</label>
+    <button class="toggle-btn" id="hasSickToggle" onclick="toggleHasSick()" aria-label="Toggle existing sick leave"></button>
+  </div>
+  <div id="sickHoursField" style="display:none;">
+    <div class="input-group">
+      <label>Hours/Year Per Employee</label>
+      <input type="number" id="sickHours" min="0" max="200" value="48" placeholder="e.g. 48">
+    </div>
+  </div>
+
+  <div class="toggle-row">
+    <label>Currently Offer Paid Family/Medical Leave?</label>
+    <button class="toggle-btn" id="hasFamilyToggle" onclick="toggleHasFamily()" aria-label="Toggle existing family leave"></button>
+  </div>
+
+  <hr class="section-divider">
+
+  <div class="mandate-checks">
+    <div class="section-label">Include in Analysis</div>
+    <label class="mandate-check"><input type="checkbox" id="chkESST" checked onchange="recalc()"> Earned Sick and Safe Time (ESST)</label>
+    <label class="mandate-check"><input type="checkbox" id="chkPFML" checked onchange="recalc()"> Paid Family &amp; Medical Leave (PFML)</label>
+    <label class="mandate-check"><input type="checkbox" id="chkMinWage" checked onchange="recalc()"> Minimum Wage Indexing</label>
+    <label class="mandate-check"><input type="checkbox" id="chkBreaks" checked onchange="recalc()"> Meal &amp; Rest Break Changes</label>
+    <label class="mandate-check"><input type="checkbox" id="chkAdmin" checked onchange="recalc()"> Administrative Compliance Overhead</label>
+  </div>
+
+  <div class="pfml-split-row">
+    <label>PFML Employer Premium Share
+      <span class="tooltip">?<span class="tip-text">Standard is 50/50 split between employer and employee. Adjust if your business pays more or less of the premium.</span></span>
+    </label>
+    <div class="slider-wrap">
+      <input type="range" id="pfmlSplit" min="0" max="100" step="5" value="50">
+      <span class="slider-val" id="pfmlSplitDisplay">50%</span>
+    </div>
+  </div>
+
+  <div class="left-footer">
+    A resource for SD-23 employers and rural Minnesota. Built with AI. Reflects Minnesota law as enacted through the 2025-2026 session. Not legal or accounting advice.
+  </div>
+</div>
+
+<!-- ═══════════════ RIGHT PANEL — RESULTS ═══════════════ -->
+<div class="panel-right">
+
+  <div class="module-nav">
+    <button class="active" onclick="showModule(0, this)">1. Cost Calculator</button>
+    <button onclick="showModule(1, this)">2. Mandate Reference</button>
+    <button onclick="showModule(2, this)">3. Testimony Builder</button>
+  </div>
+
+  <!-- ──── MODULE 1: CALCULATOR ──── -->
+  <div class="module active" id="mod0">
+
+    <div class="hero-block">
+      <div class="hero-label">Estimated Annual Mandate Cost</div>
+      <div class="hero-cost" id="heroTotal">$0</div>
+      <div class="hero-sub">
+        <span id="heroPct">0.0%</span> of payroll &nbsp;|&nbsp; <span id="heroPerEmp">$0</span> per employee
+      </div>
+    </div>
+
+    <h2>Cost Breakdown by Mandate</h2>
+
+    <div class="stat-bar-section" id="statBars">
+      <!-- Populated by JS -->
+    </div>
+
+    <div class="secondary-stats">
+      <div class="secondary-stat">
+        <div class="ss-label">Annual Payroll</div>
+        <div class="ss-value" id="ssPayroll">$0</div>
+      </div>
+      <div class="secondary-stat">
+        <div class="ss-label">5-Year Cumulative</div>
+        <div class="ss-value" id="ssFiveYear">$0</div>
+      </div>
+      <div class="secondary-stat">
+        <div class="ss-label">Per Employee / Year</div>
+        <div class="ss-value" id="ssPerEmp">$0</div>
+      </div>
+    </div>
+
+    <div class="chart-container">
+      <canvas id="mandateChart"></canvas>
+    </div>
+
+    <div class="calc-assumptions">
+      <strong>Important:</strong> These estimates use conservative, industry-average assumptions. Your actual costs depend on your employees' actual leave usage, your current benefit offerings, and your payroll structure. This tool is designed for planning and testimony preparation — not legal or accounting advice.
+    </div>
+  </div>
+
+  <!-- ──── MODULE 2: MANDATE REFERENCE ──── -->
+  <div class="module" id="mod1">
+    <h2>Mandate Reference Guide</h2>
+
+    <div class="ref-table-wrap">
+      <table class="ref-table">
+        <thead>
+          <tr>
+            <th>Mandate</th>
+            <th>Effective</th>
+            <th>Who's Covered</th>
+            <th>Employer Exemption?</th>
+            <th>Accrual / Rate</th>
+            <th>Key Requirement</th>
+            <th>Penalty</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>ESST</strong><br>Earned Sick &amp; Safe Time</td>
+            <td>Jan 1, 2024</td>
+            <td>All employees expected to work 80+ hrs/year in MN</td>
+            <td>None — applies to all employer sizes</td>
+            <td>1 hr per 30 worked; max 48/year; carryover cap 80 hrs</td>
+            <td>Written policy, notice to employees, accurate time tracking</td>
+            <td>Civil lawsuit by employee + DLI enforcement; double damages possible<br><a href="https://www.revisor.mn.gov/statutes/cite/181.9446" target="_blank">MN Stat. 181.9446</a></td>
+          </tr>
+          <tr>
+            <td><strong>PFML</strong><br>Paid Family &amp; Medical Leave</td>
+            <td>Benefits Jan 1, 2026; premiums collected before</td>
+            <td>Most employees; federal entity workers exempt</td>
+            <td>Small employer (&lt;30, lower avg wage) gets reduced rate (0.66% vs 0.88%) — not a full exemption</td>
+            <td>0.88% of wages (0.66% small); employer/employee split</td>
+            <td>Premium withholding, remittance to state, notice to employees</td>
+            <td>Civil penalties for failure to pay premiums; retaliation prohibited<br><!-- VERIFY: PFML penalty specifics from DLI guidance --><a href="https://www.dli.mn.gov/" target="_blank">MN DLI</a></td>
+          </tr>
+          <tr>
+            <td><strong>Minimum Wage</strong><br>Indexed Annually</td>
+            <td>Jan 1, 2026</td>
+            <td>All non-exempt employees</td>
+            <td>None — tiered system eliminated; uniform $11.41/hr</td>
+            <td>$11.41/hr; training wage $9.31 (under 20, first 90 days)</td>
+            <td>Pay at or above indexed rate; Minneapolis/St. Paul have higher local rates — not applicable in SD-23</td>
+            <td>Back pay + civil penalties<br><a href="https://www.dli.mn.gov/business/employment-practices/minimum-wage-minnesota" target="_blank">MN DLI Min Wage</a></td>
+          </tr>
+          <tr>
+            <td><strong>Meal/Rest Breaks</strong><br>Expanded Coverage</td>
+            <td>Jan 1, 2026</td>
+            <td>Additional covered worker categories</td>
+            <td>None specified</td>
+            <td>Meal period + rest breaks for expanded categories</td>
+            <td>Provide required meal and rest breaks per schedule</td>
+            <td>Wage and hour violation<br><!-- VERIFY: Break law statute reference --><a href="https://www.revisor.mn.gov/statutes/cite/177" target="_blank">MN Stat. Ch. 177</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="policy-note">
+      Sen. Dornink's core concern with these mandates is the absence of differentiation between large corporations and small employers, seasonal farm operations, and micro-businesses. His public record shows consistent advocacy for flexibility provisions — allowing employers with part-time, seasonal, or low-hour workers to structure benefits differently from those designed for year-round, full-time workforces. The data above reflects the laws as currently enacted. His legislative alternative proposals have focused on small employer carve-outs, flexible accrual systems, and removal of one-size-fits-all enforcement frameworks.
+    </p>
+  </div>
+
+  <!-- ──── MODULE 3: TESTIMONY BUILDER ──── -->
+  <div class="module" id="mod2">
+    <h2>Testimony Document Generator</h2>
+    <p style="font-size:12px; color:#888; margin-bottom:16px; letter-spacing:0.5px;">All text below is editable. Modify to fit your situation before printing.</p>
+
+    <div class="testimony-doc" id="testimonyDoc">
+      <div class="testimony-header">
+        <h2>Testimony — Minnesota Senate Labor Committee</h2>
+        <p>Submitted by: <strong id="testBizName">—</strong>, <span id="testCounty">—</span> County</p>
+        <p>Business Type: <span id="testBizType">—</span> &nbsp;|&nbsp; Date: <span id="testDate">—</span></p>
+      </div>
+
+      <h3>Business Description</h3>
+      <div class="testimony-editable" contenteditable="true" id="testDescBlock">
+        Enter your business information in the left panel to auto-generate this section.
+      </div>
+
+      <h3>Cost Impact</h3>
+      <div class="testimony-editable" contenteditable="true" id="testCostBlock">
+        Cost impact will appear here once you enter your data.
+      </div>
+
+      <h3>Breakdown</h3>
+      <table class="testimony-table" id="testBreakdownTable">
+        <thead>
+          <tr><th>Mandate</th><th>Annual Cost</th><th>% of Payroll</th></tr>
+        </thead>
+        <tbody id="testBreakdownBody">
+          <tr><td colspan="3" style="color:#888;">No data yet</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Policy Request</h3>
+      <div class="policy-checkboxes" id="policyChecks">
+        <label><input type="checkbox" checked> A small employer exemption or reduced-rate provision for businesses with fewer than <input type="number" class="years-input" value="30" style="width:50px;"> employees</label>
+        <label><input type="checkbox" checked> Seasonal worker provisions that allow proportionate accrual for employees working fewer than <input type="number" class="years-input" value="6" style="width:50px;"> months per year</label>
+        <label><input type="checkbox" checked> Flexible accrual alternatives for employers who offer equivalent benefits in non-standard forms (e.g., piece-rate or bonus structures)</label>
+        <label><input type="checkbox" checked> Compliance support resources (guidance, software, training) for small employers who cannot afford dedicated HR staff</label>
+      </div>
+
+      <h3>Closing</h3>
+      <div class="testimony-editable" contenteditable="true" id="testClosingBlock">
+        We are available to provide additional information or answer questions. <span id="testClosingBiz">Our business</span> has operated in District 23 for <input type="number" class="years-input" id="yearsInBiz" value="" placeholder="—"> years and represents the kind of employer these policies most directly affect.
+      </div>
+    </div>
+
+    <button class="print-btn" onclick="printTestimony()">Print Testimony</button>
+  </div>
+
+</div><!-- end panel-right -->
+</div><!-- end split-container -->
+
+<script>
+/* ═══════════════════════════════════════════════════
+   CORE STATE AND DOM REFS
+   ═══════════════════════════════════════════════════ */
+
+const $ = id => document.getElementById(id);
+let chartInstance = null;
+let seasonalOn = false;
+let hasSickOn = false;
+let hasFamilyOn = false;
+
+// Calculation results stored for testimony
+let calcResults = {
+  esst: 0, esstAdmin: 0, pfml: 0, pfmlReplace: 0,
+  minWage: 0, breaks: 0, admin: 0, total: 0,
+  payroll: 0, pctPayroll: 0, perEmployee: 0, fiveYear: 0
+};
+
+/* ═══════════════════════════════════════════════════
+   TOGGLE HELPERS
+   ═══════════════════════════════════════════════════ */
+
+function toggleSeasonal() {
+  seasonalOn = !seasonalOn;
+  $('seasonalToggle').classList.toggle('on', seasonalOn);
+  $('seasonalFields').style.display = seasonalOn ? 'block' : 'none';
+  recalc();
+}
+
+function toggleHasSick() {
+  hasSickOn = !hasSickOn;
+  $('hasSickToggle').classList.toggle('on', hasSickOn);
+  $('sickHoursField').style.display = hasSickOn ? 'block' : 'none';
+  recalc();
+}
+
+function toggleHasFamily() {
+  hasFamilyOn = !hasFamilyOn;
+  $('hasFamilyToggle').classList.toggle('on', hasFamilyOn);
+  recalc();
+}
+
+/* ═══════════════════════════════════════════════════
+   MODULE NAVIGATION
+   ═══════════════════════════════════════════════════ */
+
+function showModule(idx, btn) {
+  document.querySelectorAll('.module').forEach((m, i) => {
+    m.classList.toggle('active', i === idx);
+  });
+  document.querySelectorAll('.module-nav button').forEach((b, i) => {
+    b.classList.toggle('active', i === idx);
+  });
+  if (idx === 2) updateTestimony();
+}
+
+/* ═══════════════════════════════════════════════════
+   FORMATTING
+   ═══════════════════════════════════════════════════ */
+
+function fmt(n) {
+  return '$' + Math.round(n).toLocaleString('en-US');
+}
+
+function fmtPct(n) {
+  return n.toFixed(1) + '%';
+}
+
+/* ═══════════════════════════════════════════════════
+   PAYROLL AUTO-CALC
+   ═══════════════════════════════════════════════════ */
+
+let payrollOverride = false;
+
+$('payroll').addEventListener('focus', () => { payrollOverride = true; });
+
+function autoPayroll() {
+  const emp = parseInt($('totalEmp').value) || 0;
+  const wage = parseFloat($('wageSlider').value) || 0;
+  const auto = emp * wage * 2080;
+  if (!payrollOverride) {
+    $('payroll').value = auto > 0 ? fmt(auto) : '';
+  }
+  return payrollOverride ? parsePayroll() : auto;
+}
+
+function parsePayroll() {
+  return parseFloat(($('payroll').value || '0').replace(/[$,]/g, '')) || 0;
+}
+
+/* ═══════════════════════════════════════════════════
+   MAIN CALCULATION
+   ═══════════════════════════════════════════════════ */
+
+function recalc() {
+  const totalEmp = parseInt($('totalEmp').value) || 0;
+  const fte = parseInt($('fte').value) || 0;
+  const wage = parseFloat($('wageSlider').value) || 0;
+  const payroll = autoPayroll();
+  const seasonalCount = seasonalOn ? (parseInt($('seasonalCount').value) || 0) : 0;
+  const seasonalMonths = seasonalOn ? (parseInt($('seasonalMonths').value) || 12) : 12;
+  const pfmlSplitPct = (parseInt($('pfmlSplit').value) || 50) / 100;
+  const existingSickHrs = hasSickOn ? (parseInt($('sickHours').value) || 0) : 0;
+
+  // Wage warning
+  $('wageWarn').style.display = wage < 11.41 ? 'block' : 'none';
+
+  // Large employer warning
+  $('largeEmpWarn').style.display = totalEmp > 500 ? 'block' : 'none';
+
+  // ── ESST ──
+  let esstDirect = 0;
+  let esstAdmin = 0;
+  if ($('chkESST').checked && totalEmp > 0) {
+    if (existingSickHrs >= 48) {
+      esstDirect = 0; // Existing policy satisfies requirement
+    } else {
+      const fullTimeEmp = totalEmp - seasonalCount;
+      const fullTimeHoursUsed = fullTimeEmp * 48 * 0.40;
+      const seasonalFraction = seasonalMonths / 12;
+      const seasonalHoursUsed = seasonalCount * 48 * 0.40 * seasonalFraction;
+      esstDirect = (fullTimeHoursUsed + seasonalHoursUsed) * wage;
+    }
+    esstAdmin = totalEmp * 150;
+  }
+
+  // ── PFML ──
+  let pfmlEmployer = 0;
+  let pfmlReplace = 0;
+  if ($('chkPFML').checked && totalEmp > 0) {
+    const avgAnnual = wage * 2080;
+    const isSmall = (totalEmp <= 30 && avgAnnual <= 87000);
+    const premRate = isSmall ? 0.0066 : 0.0088;
+    pfmlEmployer = payroll * premRate * pfmlSplitPct;
+    const replaceEvents = Math.floor(fte / 10);
+    pfmlReplace = replaceEvents * 800;
+  }
+
+  // ── Minimum Wage ──
+  let minWageCost = 0;
+  if ($('chkMinWage').checked && wage < 11.41 && totalEmp > 0) {
+    const minWageWorkers = Math.round(totalEmp * 0.4);
+    minWageCost = minWageWorkers * (11.41 - wage) * 2080;
+  }
+
+  // ── Breaks ──
+  let breakCost = 0;
+  if ($('chkBreaks').checked && fte > 0) {
+    const breakHours = fte * (10 / 60) * 250;
+    breakCost = breakHours * wage;
+  }
+
+  // ── Admin ──
+  let adminCost = 0;
+  if ($('chkAdmin').checked && totalEmp > 0) {
+    adminCost = totalEmp * 250;
+    if (totalEmp <= 5) adminCost += 500;
+  }
+
+  const total = esstDirect + esstAdmin + pfmlEmployer + pfmlReplace + minWageCost + breakCost + adminCost;
+  const pctPayroll = payroll > 0 ? (total / payroll) * 100 : 0;
+  const perEmployee = totalEmp > 0 ? total / totalEmp : 0;
+  const fiveYear = total * 5;
+
+  // Store
+  calcResults = {
+    esst: esstDirect, esstAdmin, pfml: pfmlEmployer, pfmlReplace,
+    minWage: minWageCost, breaks: breakCost, admin: adminCost,
+    total, payroll, pctPayroll, perEmployee, fiveYear
+  };
+
+  // ── UPDATE HERO ──
+  $('heroTotal').textContent = fmt(total);
+  $('heroPct').textContent = fmtPct(pctPayroll);
+  $('heroPerEmp').textContent = fmt(perEmployee);
+
+  // ── SECONDARY STATS ──
+  $('ssPayroll').textContent = fmt(payroll);
+  $('ssFiveYear').textContent = fmt(fiveYear);
+  $('ssPerEmp').textContent = fmt(perEmployee);
+
+  // ── STAT BARS ──
+  const mandates = [
+    { label: 'ESST (Direct)', cost: esstDirect, on: $('chkESST').checked },
+    { label: 'ESST (Admin)', cost: esstAdmin, on: $('chkESST').checked },
+    { label: 'PFML Premium', cost: pfmlEmployer, on: $('chkPFML').checked },
+    { label: 'PFML Replace', cost: pfmlReplace, on: $('chkPFML').checked },
+    { label: 'Min Wage Gap', cost: minWageCost, on: $('chkMinWage').checked },
+    { label: 'Break Changes', cost: breakCost, on: $('chkBreaks').checked },
+    { label: 'Admin Overhead', cost: adminCost, on: $('chkAdmin').checked }
+  ];
+
+  const maxCost = Math.max(...mandates.map(m => m.cost), 1);
+  let barsHtml = '';
+  mandates.forEach(m => {
+    if (!m.on) return;
+    const pct = (m.cost / maxCost) * 100;
+    const payPct = payroll > 0 ? ((m.cost / payroll) * 100) : 0;
+    const valInBar = pct > 40;
+    barsHtml += `<div class="stat-bar-row">
+      <div class="stat-bar-label">${m.label}</div>
+      <div class="stat-bar-track">
+        <div class="stat-bar-fill" style="width:${pct}%"></div>
+        <span class="stat-bar-value" style="color:${valInBar ? '#fff' : '#000'}; ${valInBar ? '' : 'right:auto; left:' + Math.max(pct + 1, 2) + '%;'}">${fmt(m.cost)}</span>
+      </div>
+      <div class="stat-bar-pct">${fmtPct(payPct)}</div>
+    </div>`;
+  });
+  $('statBars').innerHTML = barsHtml;
+
+  // ── CHART ──
+  updateChart(mandates.filter(m => m.on));
+
+  // ── SAVE TO LOCAL STORAGE ──
+  saveState();
+}
+
+/* ═══════════════════════════════════════════════════
+   CHART
+   ═══════════════════════════════════════════════════ */
+
+function updateChart(mandates) {
+  const ctx = $('mandateChart');
+  if (!ctx) return;
+  if (typeof Chart === 'undefined') return;
+
+  const labels = mandates.map(m => m.label);
+  const data = mandates.map(m => Math.round(m.cost));
+  const colors = ['#000', '#333', '#b71c1c', '#666', '#b71c1c', '#000', '#444'];
+
+  if (chartInstance) chartInstance.destroy();
+
+  chartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        data,
+        backgroundColor: colors.slice(0, mandates.length),
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return fmt(context.raw);
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: v => fmt(v),
+            font: { family: "'Lucida Console', Monaco, monospace", size: 11 }
+          },
+          grid: { color: '#eee' }
+        },
+        x: {
+          ticks: {
+            font: { family: "Calibri, sans-serif", size: 10 },
+            maxRotation: 45
+          },
+          grid: { display: false }
+        }
+      }
+    }
+  });
+}
+
+/* ═══════════════════════════════════════════════════
+   TESTIMONY BUILDER
+   ═══════════════════════════════════════════════════ */
+
+function getBizTypeLabel() {
+  const sel = $('bizType');
+  return sel.options[sel.selectedIndex].text;
+}
+
+function updateTestimony() {
+  const name = $('bizName').value || '[Business Name]';
+  const county = $('county').value || '[County]';
+  const type = getBizTypeLabel();
+  const emp = parseInt($('totalEmp').value) || 0;
+  const fte = parseInt($('fte').value) || 0;
+  const wage = parseFloat($('wageSlider').value) || 0;
+  const seasonalCount = seasonalOn ? (parseInt($('seasonalCount').value) || 0) : 0;
+  const seasonalMonths = seasonalOn ? (parseInt($('seasonalMonths').value) || 0) : 0;
+
+  $('testBizName').textContent = name;
+  $('testCounty').textContent = county;
+  $('testBizType').textContent = type;
+  $('testDate').textContent = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+  // Business description
+  let desc = `We operate a ${type.toLowerCase()} in ${county} County, Minnesota, employing ${emp} workers`;
+  if (seasonalCount > 0) {
+    desc += ` (with ${seasonalCount} seasonal employees averaging ${seasonalMonths} months of employment per year)`;
+  }
+  desc += `. Our blended average wage is $${wage.toFixed(2)}/hour. Our total annual payroll is approximately ${fmt(calcResults.payroll)}.`;
+  $('testDescBlock').textContent = desc;
+
+  // Cost impact
+  const r = calcResults;
+  let costText = `Based on current Minnesota employer mandates — including Earned Sick and Safe Time, Paid Family and Medical Leave premiums, minimum wage indexing, and new break law requirements — our estimated annual compliance cost impact is ${fmt(r.total)}, representing ${fmtPct(r.pctPayroll)} of our annual payroll and ${fmt(r.perEmployee)} per employee per year.`;
+  costText += `\n\nOver five years, this represents an estimated cumulative cost of ${fmt(r.fiveYear)} — a figure that for a ${seasonalCount > 0 ? 'seasonal operation like ours' : 'business like ours'} is not absorbed the way it might be for a large metro corporation with hundreds of employees and stable year-round revenue.`;
+  $('testCostBlock').textContent = costText;
+
+  // Breakdown table
+  const rows = [
+    ['ESST (Direct + Admin)', r.esst + r.esstAdmin, r.payroll],
+    ['PFML (Premium + Replacement)', r.pfml + r.pfmlReplace, r.payroll],
+    ['Minimum Wage Gap', r.minWage, r.payroll],
+    ['Break Law Changes', r.breaks, r.payroll],
+    ['Admin Overhead', r.admin, r.payroll],
+    ['TOTAL', r.total, r.payroll]
+  ];
+  let tbody = '';
+  rows.forEach(([label, cost, pay]) => {
+    const pct = pay > 0 ? fmtPct((cost / pay) * 100) : '0.0%';
+    tbody += `<tr><td>${label}</td><td>${fmt(cost)}</td><td>${pct}</td></tr>`;
+  });
+  $('testBreakdownBody').innerHTML = tbody;
+
+  // Closing
+  $('testClosingBiz').textContent = name;
+}
+
+function printTestimony() {
+  updateTestimony();
+  document.querySelectorAll('.module').forEach(m => m.classList.remove('print-active'));
+  $('mod2').classList.add('print-active');
+  window.print();
+}
+
+/* ═══════════════════════════════════════════════════
+   EXAMPLES
+   ═══════════════════════════════════════════════════ */
+
+function loadExample(type) {
+  payrollOverride = false;
+  if (type === 'farm') {
+    $('bizName').value = 'Example: Freeborn County Seasonal Crop Operation';
+    $('bizType').value = 'seasonal_crop';
+    $('county').value = 'Freeborn';
+    $('totalEmp').value = 14;
+    $('fte').value = 8;
+    $('wageSlider').value = 14.50;
+    $('wageDisplay').textContent = '$14.50';
+    if (!seasonalOn) toggleSeasonal();
+    $('seasonalCount').value = 6;
+    $('seasonalMonths').value = 5;
+    if (hasSickOn) toggleHasSick();
+    if (hasFamilyOn) toggleHasFamily();
+    $('pfmlSplit').value = 50;
+    $('pfmlSplitDisplay').textContent = '50%';
+  } else if (type === 'contractor') {
+    $('bizName').value = 'Example: Steele County Small Contractor';
+    $('bizType').value = 'trades';
+    $('county').value = 'Steele';
+    $('totalEmp').value = 8;
+    $('fte').value = 8;
+    $('wageSlider').value = 22;
+    $('wageDisplay').textContent = '$22.00';
+    if (seasonalOn) toggleSeasonal();
+    if (hasSickOn) toggleHasSick();
+    if (hasFamilyOn) toggleHasFamily();
+    $('pfmlSplit').value = 50;
+    $('pfmlSplitDisplay').textContent = '50%';
+  }
+  recalc();
+}
+
+function clearForm() {
+  payrollOverride = false;
+  $('bizName').value = '';
+  $('bizType').value = 'seasonal_crop';
+  $('county').value = 'Freeborn';
+  $('totalEmp').value = '';
+  $('fte').value = '';
+  $('wageSlider').value = 15;
+  $('wageDisplay').textContent = '$15.00';
+  $('payroll').value = '';
+  $('pfmlSplit').value = 50;
+  $('pfmlSplitDisplay').textContent = '50%';
+  if (seasonalOn) toggleSeasonal();
+  if (hasSickOn) toggleHasSick();
+  if (hasFamilyOn) toggleHasFamily();
+  $('seasonalCount').value = '';
+  $('seasonalMonths').value = '';
+  recalc();
+}
+
+/* ═══════════════════════════════════════════════════
+   LOCAL STORAGE
+   ═══════════════════════════════════════════════════ */
+
+function saveState() {
+  try {
+    const state = {
+      bizName: $('bizName').value,
+      bizType: $('bizType').value,
+      county: $('county').value,
+      totalEmp: $('totalEmp').value,
+      fte: $('fte').value,
+      wage: $('wageSlider').value,
+      payroll: $('payroll').value,
+      payrollOverride,
+      seasonalOn,
+      seasonalCount: $('seasonalCount').value,
+      seasonalMonths: $('seasonalMonths').value,
+      hasSickOn,
+      sickHours: $('sickHours').value,
+      hasFamilyOn,
+      pfmlSplit: $('pfmlSplit').value,
+      chkESST: $('chkESST').checked,
+      chkPFML: $('chkPFML').checked,
+      chkMinWage: $('chkMinWage').checked,
+      chkBreaks: $('chkBreaks').checked,
+      chkAdmin: $('chkAdmin').checked
+    };
+    localStorage.setItem('dornink_mandate_calc', JSON.stringify(state));
+  } catch (e) { /* silent */ }
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem('dornink_mandate_calc');
+    if (!raw) return false;
+    const s = JSON.parse(raw);
+    $('bizName').value = s.bizName || '';
+    $('bizType').value = s.bizType || 'seasonal_crop';
+    $('county').value = s.county || 'Freeborn';
+    $('totalEmp').value = s.totalEmp || '';
+    $('fte').value = s.fte || '';
+    $('wageSlider').value = s.wage || 15;
+    $('wageDisplay').textContent = '$' + parseFloat(s.wage || 15).toFixed(2);
+    payrollOverride = s.payrollOverride || false;
+    if (payrollOverride) $('payroll').value = s.payroll || '';
+    $('pfmlSplit').value = s.pfmlSplit || 50;
+    $('pfmlSplitDisplay').textContent = (s.pfmlSplit || 50) + '%';
+    if (s.seasonalOn && !seasonalOn) toggleSeasonal();
+    $('seasonalCount').value = s.seasonalCount || '';
+    $('seasonalMonths').value = s.seasonalMonths || '';
+    if (s.hasSickOn && !hasSickOn) toggleHasSick();
+    $('sickHours').value = s.sickHours || 48;
+    if (s.hasFamilyOn && !hasFamilyOn) toggleHasFamily();
+    $('chkESST').checked = s.chkESST !== false;
+    $('chkPFML').checked = s.chkPFML !== false;
+    $('chkMinWage').checked = s.chkMinWage !== false;
+    $('chkBreaks').checked = s.chkBreaks !== false;
+    $('chkAdmin').checked = s.chkAdmin !== false;
+    return true;
+  } catch (e) { return false; }
+}
+
+/* ═══════════════════════════════════════════════════
+   EVENT LISTENERS
+   ═══════════════════════════════════════════════════ */
+
+$('wageSlider').addEventListener('input', function() {
+  $('wageDisplay').textContent = '$' + parseFloat(this.value).toFixed(2);
+  recalc();
+});
+
+$('pfmlSplit').addEventListener('input', function() {
+  $('pfmlSplitDisplay').textContent = this.value + '%';
+  recalc();
+});
+
+['totalEmp', 'fte', 'seasonalCount', 'seasonalMonths', 'sickHours'].forEach(id => {
+  $(id).addEventListener('input', recalc);
+});
+
+$('payroll').addEventListener('input', recalc);
+$('bizType').addEventListener('change', recalc);
+$('county').addEventListener('change', recalc);
+$('bizName').addEventListener('input', saveState);
+
+/* ═══════════════════════════════════════════════════
+   INIT
+   ═══════════════════════════════════════════════════ */
+
+(function init() {
+  const hadState = loadState();
+  if (!hadState) {
+    // Load the farm example by default for demonstration
+    loadExample('farm');
+  }
+  recalc();
+})();
+</script>
+
+</body>
+</html>

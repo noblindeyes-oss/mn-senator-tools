@@ -1,0 +1,1492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>District 57 Suburban Growth Service-Cost Calculator</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Calculator-first — large input form dominates top half, results scroll below. No tabs, no sidebar. Single continuous page.
+   2. Navigation: Anchor links within results section (jump to Cost Summary, Revenue Projection, Gap Analysis).
+   3. Typography: Impact (headers), Trebuchet MS (body), Lucida Console (data/numbers) — suburban signage feel.
+   4. Hero moment: A large "NET COST PER LOT: $X,XXX" figure in property-tax red on asphalt dark, updating live. 48px+ type.
+   5. Color strategy: #8 — Saturated accent. Fresh lawn green (#43a047) dominates as environmental color across section bands; asphalt dark (#2c2c2c) and sidewalk gray (#bdbdbd) are structural; property-tax red (#c62828) for cost alerts.
+   6. Entry experience: Subdivision plat map SVG (grid of lots) fills in lot by lot, then transitions to the calculator. No intro paragraph.
+   Additional: Suburban green and concrete palette. Subdivision-development feel. Dense data tables contrasted with spacious hero number.
+*/
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --lawn: #43a047;
+  --lawn-light: #66bb6a;
+  --lawn-dark: #2e7d32;
+  --sidewalk: #bdbdbd;
+  --sidewalk-light: #e0e0e0;
+  --asphalt: #2c2c2c;
+  --asphalt-mid: #424242;
+  --red: #c62828;
+  --red-light: #ef5350;
+  --yellow: #f9a825;
+  --white: #fafafa;
+  --bg: #f5f5f5;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Trebuchet MS', 'Segoe UI', sans-serif;
+  background: var(--asphalt);
+  color: var(--asphalt);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* ── ENTRY EXPERIENCE: PLAT MAP ── */
+#plat-overlay {
+  position: fixed; inset: 0;
+  z-index: 9999;
+  background: var(--asphalt);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  transition: opacity 0.6s ease;
+}
+#plat-overlay.fade-out { opacity: 0; pointer-events: none; }
+#plat-overlay h1 {
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 28px;
+  color: var(--lawn);
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  margin-bottom: 12px;
+}
+#plat-overlay p {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 12px;
+  color: var(--sidewalk);
+  margin-bottom: 24px;
+  letter-spacing: 1px;
+}
+#plat-svg { width: 420px; height: 320px; }
+#plat-svg .lot {
+  fill: var(--asphalt-mid);
+  stroke: var(--sidewalk);
+  stroke-width: 0.5;
+  transition: fill 0.3s ease;
+}
+#plat-svg .lot.filled { fill: var(--lawn); }
+#plat-svg .road { fill: var(--sidewalk); opacity: 0.3; }
+#skip-btn {
+  margin-top: 20px;
+  background: none; border: 1px solid var(--sidewalk);
+  color: var(--sidewalk); font-family: 'Lucida Console', monospace;
+  font-size: 11px; padding: 6px 18px; cursor: pointer;
+  letter-spacing: 1px; text-transform: uppercase;
+}
+#skip-btn:hover { border-color: var(--lawn); color: var(--lawn); }
+
+/* ── HERO BANNER ── */
+#hero-banner {
+  background: var(--asphalt);
+  padding: 32px 24px 20px;
+  text-align: center;
+}
+#hero-banner h1 {
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 22px;
+  color: var(--lawn);
+  text-transform: uppercase;
+  letter-spacing: 6px;
+  margin-bottom: 6px;
+}
+#hero-banner .subtitle {
+  font-family: 'Lucida Console', monospace;
+  font-size: 11px;
+  color: var(--sidewalk);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* ── NET COST HERO ── */
+#net-hero {
+  background: linear-gradient(180deg, var(--asphalt) 0%, #1a1a1a 100%);
+  padding: 28px 24px 32px;
+  text-align: center;
+}
+#net-hero .label {
+  font-family: 'Trebuchet MS', sans-serif;
+  font-size: 13px;
+  color: var(--sidewalk);
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  margin-bottom: 4px;
+}
+#net-hero .amount {
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 64px;
+  color: var(--red);
+  line-height: 1;
+  letter-spacing: 2px;
+}
+#net-hero .per-unit {
+  font-family: 'Lucida Console', monospace;
+  font-size: 12px;
+  color: var(--sidewalk);
+  margin-top: 4px;
+  letter-spacing: 1px;
+}
+#net-hero .amount.positive { color: var(--lawn); }
+#net-hero .amount.near-zero { color: var(--yellow); }
+
+/* ── ANCHOR NAV ── */
+#results-nav {
+  background: var(--lawn-dark);
+  padding: 10px 24px;
+  display: flex; gap: 0; justify-content: center;
+  flex-wrap: wrap;
+  position: sticky; top: 0; z-index: 100;
+}
+#results-nav a {
+  font-family: 'Lucida Console', monospace;
+  font-size: 11px;
+  color: #fff;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  padding: 6px 18px;
+  border-right: 1px solid rgba(255,255,255,0.2);
+  transition: background 0.2s;
+}
+#results-nav a:last-child { border-right: none; }
+#results-nav a:hover { background: rgba(255,255,255,0.15); }
+
+/* ── MAIN CONTENT AREA ── */
+#main-content { background: var(--bg); }
+
+/* ── INPUT FORM ── */
+#calculator-form {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 28px 24px 16px;
+}
+.form-section {
+  margin-bottom: 20px;
+}
+.form-section-title {
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: var(--lawn-dark);
+  padding-bottom: 6px;
+  border-bottom: 3px solid var(--lawn);
+  margin-bottom: 14px;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px 20px;
+}
+.form-grid.two-col { grid-template-columns: 1fr 1fr; }
+.form-grid.four-col { grid-template-columns: 1fr 1fr 1fr 1fr; }
+.field {
+  display: flex; flex-direction: column;
+}
+.field label {
+  font-family: 'Trebuchet MS', sans-serif;
+  font-size: 12px;
+  font-weight: bold;
+  color: var(--asphalt-mid);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 3px;
+}
+.field input, .field select {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 14px;
+  padding: 8px 10px;
+  border: 2px solid var(--sidewalk);
+  background: #fff;
+  color: var(--asphalt);
+  border-radius: 2px;
+  transition: border-color 0.2s;
+}
+.field input:focus, .field select:focus {
+  outline: none;
+  border-color: var(--lawn);
+  box-shadow: 0 0 0 2px rgba(67,160,71,0.2);
+}
+.field .hint {
+  font-size: 10px;
+  color: #888;
+  margin-top: 2px;
+  font-style: italic;
+  line-height: 1.3;
+}
+.field-inline {
+  display: flex; align-items: center; gap: 8px;
+}
+.field-inline label { margin-bottom: 0; white-space: nowrap; }
+.toggle-group {
+  display: flex; gap: 0;
+}
+.toggle-group button {
+  font-family: 'Lucida Console', monospace;
+  font-size: 12px;
+  padding: 8px 16px;
+  border: 2px solid var(--sidewalk);
+  background: #fff;
+  color: var(--asphalt);
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.toggle-group button:first-child { border-radius: 2px 0 0 2px; }
+.toggle-group button:last-child { border-radius: 0 2px 2px 0; border-left: none; }
+.toggle-group button.active {
+  background: var(--lawn);
+  border-color: var(--lawn);
+  color: #fff;
+}
+.toggle-group button.active-red {
+  background: var(--red);
+  border-color: var(--red);
+  color: #fff;
+}
+
+.btn-row {
+  display: flex; gap: 10px;
+  margin: 16px 0 8px;
+}
+.btn {
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  padding: 10px 24px;
+  border: none;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 0.2s, transform 0.1s;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--lawn); color: #fff; }
+.btn-primary:hover { background: var(--lawn-dark); }
+.btn-secondary { background: var(--sidewalk); color: var(--asphalt); }
+.btn-secondary:hover { background: #a0a0a0; }
+.btn-outline {
+  background: transparent;
+  color: var(--lawn-dark);
+  border: 2px solid var(--lawn);
+}
+.btn-outline:hover { background: var(--lawn); color: #fff; }
+
+/* ── RESULTS SECTIONS ── */
+.results-section {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px 24px 8px;
+}
+.section-band {
+  padding: 28px 0;
+}
+.section-band.green-band {
+  background: var(--lawn-dark);
+  color: #fff;
+}
+.section-band.gray-band {
+  background: var(--sidewalk-light);
+}
+.section-band.dark-band {
+  background: var(--asphalt);
+  color: #fff;
+}
+.section-heading {
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 18px;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  margin-bottom: 16px;
+}
+.green-band .section-heading { color: #fff; }
+.dark-band .section-heading { color: var(--lawn); }
+
+/* ── SUMMARY TABLE ── */
+.fiscal-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 13px;
+}
+.fiscal-table th {
+  font-family: 'Trebuchet MS', sans-serif;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  padding: 8px 10px;
+  text-align: right;
+  border-bottom: 2px solid var(--lawn);
+  color: var(--asphalt-mid);
+}
+.fiscal-table th:first-child { text-align: left; }
+.fiscal-table td {
+  padding: 7px 10px;
+  text-align: right;
+  border-bottom: 1px solid #ddd;
+}
+.fiscal-table td:first-child {
+  text-align: left;
+  font-family: 'Trebuchet MS', sans-serif;
+  font-size: 13px;
+  font-weight: bold;
+  color: var(--asphalt);
+}
+.fiscal-table tr.revenue td { color: var(--lawn-dark); }
+.fiscal-table tr.cost td { color: var(--red); }
+.fiscal-table tr.cost td:first-child { color: var(--asphalt); }
+.fiscal-table tr.revenue td:first-child { color: var(--asphalt); }
+.fiscal-table tr.net-row {
+  border-top: 3px solid var(--asphalt);
+  border-bottom: 3px solid var(--asphalt);
+}
+.fiscal-table tr.net-row td {
+  font-size: 15px;
+  font-weight: bold;
+  padding: 10px 10px;
+}
+.fiscal-table tr.net-row.deficit td { color: var(--red); background: rgba(198,40,40,0.08); }
+.fiscal-table tr.net-row.surplus td { color: var(--lawn-dark); background: rgba(67,160,71,0.08); }
+.fiscal-table tr.net-row.near td { color: var(--yellow); background: rgba(249,168,37,0.08); }
+
+/* ── VERDICT ── */
+.verdict-box {
+  background: var(--asphalt);
+  color: #fff;
+  padding: 20px 24px;
+  margin-top: 20px;
+  border-left: 6px solid var(--red);
+  font-family: 'Trebuchet MS', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.verdict-box.surplus { border-left-color: var(--lawn); }
+.verdict-box strong { color: var(--lawn-light); }
+.verdict-box .deficit-num { color: var(--red-light); font-weight: bold; }
+.verdict-box .surplus-num { color: var(--lawn-light); font-weight: bold; }
+
+/* ── CHART ── */
+.chart-wrap {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 16px 24px;
+  background: #fff;
+}
+.chart-wrap canvas { max-height: 340px; }
+.chart-title {
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--asphalt-mid);
+  margin-bottom: 8px;
+}
+
+/* ── POLICY CONTEXT ── */
+.policy-section {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 20px 24px;
+}
+.policy-section h3 {
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--lawn-dark);
+  margin: 18px 0 6px;
+}
+.policy-section h3:first-child { margin-top: 0; }
+.policy-section p {
+  font-size: 13px;
+  line-height: 1.7;
+  color: #444;
+  margin-bottom: 10px;
+}
+
+/* ── FOOTER ── */
+#site-footer {
+  background: var(--asphalt);
+  padding: 20px 24px;
+  text-align: center;
+}
+#site-footer p {
+  font-family: 'Lucida Console', monospace;
+  font-size: 10px;
+  color: var(--sidewalk);
+  line-height: 1.6;
+  max-width: 700px;
+  margin: 0 auto;
+  letter-spacing: 0.5px;
+}
+
+/* ── CAPACITY FLAGS ── */
+.flag-yellow {
+  background: rgba(249,168,37,0.15);
+  color: #b77c00;
+  font-size: 11px;
+  font-family: 'Lucida Console', monospace;
+  padding: 2px 8px;
+  display: inline-block;
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.flag-red {
+  background: rgba(198,40,40,0.15);
+  color: var(--red);
+  font-size: 11px;
+  font-family: 'Lucida Console', monospace;
+  padding: 2px 8px;
+  display: inline-block;
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* ── DISCLAIMER ── */
+.disclaimer {
+  font-size: 11px;
+  color: #777;
+  line-height: 1.5;
+  padding: 12px 0;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+/* ── PRINT ── */
+@media print {
+  #plat-overlay, #hero-banner, #results-nav, #calculator-form,
+  .btn-row, #skip-btn, .no-print { display: none !important; }
+  body { background: #fff; color: #000; font-size: 11pt; }
+  .section-band { background: #fff !important; color: #000 !important; padding: 12px 0; }
+  .section-heading { color: #000 !important; font-size: 14pt; }
+  #net-hero { background: #fff !important; padding: 12px 0; }
+  #net-hero .amount { color: #000 !important; font-size: 36pt; }
+  #net-hero .label, #net-hero .per-unit { color: #555 !important; }
+  .fiscal-table { font-size: 10pt; }
+  .fiscal-table tr.net-row td { background: none !important; }
+  .verdict-box { background: #f5f5f5 !important; color: #000 !important; border-left-color: #000 !important; }
+  .verdict-box strong, .verdict-box .deficit-num, .verdict-box .surplus-num { color: #000 !important; }
+  .chart-wrap { page-break-before: always; }
+  #site-footer { background: #fff !important; }
+  #site-footer p { color: #555 !important; }
+  .policy-section p { color: #000 !important; }
+  .policy-section h3 { color: #000 !important; }
+  @page { margin: 0.75in; }
+}
+
+@media (max-width: 768px) {
+  .form-grid, .form-grid.two-col, .form-grid.four-col { grid-template-columns: 1fr; }
+  #net-hero .amount { font-size: 40px; }
+  #results-nav { flex-direction: column; align-items: stretch; }
+  #results-nav a { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.2); text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════ -->
+<!-- ENTRY EXPERIENCE: PLAT MAP SVG        -->
+<!-- ══════════════════════════════════════ -->
+<div id="plat-overlay">
+  <h1>District 57 Growth Calculator</h1>
+  <p>Mapping your subdivision&hellip;</p>
+  <svg id="plat-svg" viewBox="0 0 420 320" xmlns="http://www.w3.org/2000/svg">
+    <!-- Roads -->
+    <rect class="road" x="0" y="150" width="420" height="20"/>
+    <rect class="road" x="195" y="0" width="20" height="320"/>
+    <!-- Lots: Row 1 -->
+    <rect class="lot" x="10" y="10" width="55" height="60"/>
+    <rect class="lot" x="70" y="10" width="55" height="60"/>
+    <rect class="lot" x="130" y="10" width="55" height="60"/>
+    <rect class="lot" x="225" y="10" width="55" height="60"/>
+    <rect class="lot" x="285" y="10" width="55" height="60"/>
+    <rect class="lot" x="345" y="10" width="65" height="60"/>
+    <!-- Lots: Row 2 -->
+    <rect class="lot" x="10" y="80" width="55" height="60"/>
+    <rect class="lot" x="70" y="80" width="55" height="60"/>
+    <rect class="lot" x="130" y="80" width="55" height="60"/>
+    <rect class="lot" x="225" y="80" width="55" height="60"/>
+    <rect class="lot" x="285" y="80" width="55" height="60"/>
+    <rect class="lot" x="345" y="80" width="65" height="60"/>
+    <!-- Lots: Row 3 -->
+    <rect class="lot" x="10" y="180" width="55" height="60"/>
+    <rect class="lot" x="70" y="180" width="55" height="60"/>
+    <rect class="lot" x="130" y="180" width="55" height="60"/>
+    <rect class="lot" x="225" y="180" width="55" height="60"/>
+    <rect class="lot" x="285" y="180" width="55" height="60"/>
+    <rect class="lot" x="345" y="180" width="65" height="60"/>
+    <!-- Lots: Row 4 -->
+    <rect class="lot" x="10" y="250" width="55" height="60"/>
+    <rect class="lot" x="70" y="250" width="55" height="60"/>
+    <rect class="lot" x="130" y="250" width="55" height="60"/>
+    <rect class="lot" x="225" y="250" width="55" height="60"/>
+    <rect class="lot" x="285" y="250" width="55" height="60"/>
+    <rect class="lot" x="345" y="250" width="65" height="60"/>
+    <!-- Lot labels -->
+    <text x="37" y="45" fill="#666" font-size="8" font-family="Lucida Console" text-anchor="middle">LOT 1</text>
+    <text x="97" y="45" fill="#666" font-size="8" font-family="Lucida Console" text-anchor="middle">LOT 2</text>
+    <text x="157" y="45" fill="#666" font-size="8" font-family="Lucida Console" text-anchor="middle">LOT 3</text>
+    <text x="252" y="45" fill="#666" font-size="8" font-family="Lucida Console" text-anchor="middle">LOT 4</text>
+    <text x="312" y="45" fill="#666" font-size="8" font-family="Lucida Console" text-anchor="middle">LOT 5</text>
+    <text x="377" y="45" fill="#666" font-size="8" font-family="Lucida Console" text-anchor="middle">LOT 6</text>
+  </svg>
+  <button id="skip-btn" onclick="skipIntro()">Skip &#9654;</button>
+</div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- HERO BANNER                            -->
+<!-- ══════════════════════════════════════ -->
+<div id="hero-banner">
+  <h1>Suburban Growth Service-Cost Calculator</h1>
+  <div class="subtitle">District 57 &mdash; Lakeville &amp; South Metro</div>
+</div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- NET COST HERO                          -->
+<!-- ══════════════════════════════════════ -->
+<div id="net-hero">
+  <div class="label">Net Fiscal Position Per Unit / Year</div>
+  <div class="amount" id="hero-amount">$0</div>
+  <div class="per-unit" id="hero-subtext">Enter development details below</div>
+</div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- ANCHOR NAVIGATION                      -->
+<!-- ══════════════════════════════════════ -->
+<nav id="results-nav">
+  <a href="#cost-summary">Cost Summary</a>
+  <a href="#revenue-projection">Revenue Detail</a>
+  <a href="#gap-analysis">Gap Analysis</a>
+  <a href="#twenty-year">20-Year Projection</a>
+  <a href="#policy-context">Policy Context</a>
+  <a href="#calculator-form" class="no-print">Back to Inputs</a>
+</nav>
+
+<!-- ══════════════════════════════════════ -->
+<!-- CALCULATOR INPUT FORM                  -->
+<!-- ══════════════════════════════════════ -->
+<div id="main-content">
+<form id="calculator-form" autocomplete="off">
+
+  <!-- DEVELOPMENT BASICS -->
+  <div class="form-section">
+    <div class="form-section-title">Development Basics</div>
+    <div class="form-grid">
+      <div class="field">
+        <label for="cityName">City Name</label>
+        <input type="text" id="cityName" value="Lakeville">
+      </div>
+      <div class="field">
+        <label for="devName">Development Name</label>
+        <input type="text" id="devName" placeholder="e.g., Autumn Ridge 4th Addition">
+      </div>
+      <div class="field">
+        <label for="totalUnits">Total Residential Units</label>
+        <input type="number" id="totalUnits" min="1" max="5000" step="1" value="220">
+      </div>
+    </div>
+    <div class="form-grid four-col" style="margin-top:12px;">
+      <div class="field">
+        <label for="pctSF">Single-Family %</label>
+        <input type="number" id="pctSF" min="0" max="100" step="1" value="80">
+      </div>
+      <div class="field">
+        <label for="pctTH">Townhome %</label>
+        <input type="number" id="pctTH" min="0" max="100" step="1" value="20">
+      </div>
+      <div class="field">
+        <label for="pctApt">Apartment %</label>
+        <input type="number" id="pctApt" min="0" max="100" step="1" value="0">
+      </div>
+      <div class="field" style="align-self:end;">
+        <span id="mixTotal" style="font-family:'Lucida Console',monospace;font-size:13px;color:var(--lawn-dark);">Total: 100%</span>
+      </div>
+    </div>
+    <div class="form-grid" style="margin-top:12px;">
+      <div class="field">
+        <label for="priceSF">Avg Sale Price &mdash; Single Family ($)</label>
+        <input type="number" id="priceSF" min="0" step="1000" value="450000">
+      </div>
+      <div class="field">
+        <label for="priceTH">Avg Sale Price &mdash; Townhome ($)</label>
+        <input type="number" id="priceTH" min="0" step="1000" value="310000">
+      </div>
+      <div class="field">
+        <label for="rentApt">Avg Monthly Rent &mdash; Apartment ($)</label>
+        <input type="number" id="rentApt" min="0" step="50" value="1600">
+        <span class="hint">Converted to assessed value using 12x gross rent multiplier</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CITY BASELINE -->
+  <div class="form-section">
+    <div class="form-section-title">City Tax Rates</div>
+    <div class="form-grid four-col">
+      <div class="field">
+        <label for="cityRate">City Tax Rate (%)</label>
+        <input type="number" id="cityRate" min="0" max="200" step="0.1" value="42">
+        <!-- VERIFY: 42% approximate for Lakeville; user should verify against current Dakota County tax statements -->
+        <span class="hint">Tax capacity rate; verify with Dakota County</span>
+      </div>
+      <div class="field">
+        <label for="schoolRate">School District Rate (%)</label>
+        <input type="number" id="schoolRate" min="0" max="200" step="0.1" value="28">
+      </div>
+      <div class="field">
+        <label for="countyRate">County Rate (%)</label>
+        <input type="number" id="countyRate" min="0" max="200" step="0.1" value="18">
+      </div>
+      <div class="field" style="align-self:end;">
+        <span id="combinedRate" style="font-family:'Lucida Console',monospace;font-size:13px;color:var(--asphalt-mid);">Combined: 88%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- GROWTH CONTEXT -->
+  <div class="form-section">
+    <div class="form-section-title">Growth Context</div>
+    <div class="form-grid">
+      <div class="field">
+        <label for="cityPop">Current City Population</label>
+        <input type="number" id="cityPop" min="0" step="100" value="74000">
+      </div>
+      <div class="field">
+        <label for="cityUnits">Current Residential Units in City</label>
+        <input type="number" id="cityUnits" min="0" step="100" value="26000">
+      </div>
+      <div class="field">
+        <label for="annualPermits">Avg Annual Building Permits (3yr)</label>
+        <input type="number" id="annualPermits" min="0" step="10" value="350">
+      </div>
+    </div>
+  </div>
+
+  <!-- WATER & SEWER -->
+  <div class="form-section">
+    <div class="form-section-title">A &mdash; Water &amp; Sewer Infrastructure</div>
+    <div class="form-grid">
+      <div class="field">
+        <label for="waterMain">Water Main Extension ($/unit)</label>
+        <input type="number" id="waterMain" min="0" step="100" value="4200">
+      </div>
+      <div class="field">
+        <label for="sewerMain">Sewer Main Extension ($/unit)</label>
+        <input type="number" id="sewerMain" min="0" step="100" value="3800">
+      </div>
+      <div class="field">
+        <label for="treatmentTotal">Treatment Expansion Total Cost ($)</label>
+        <input type="number" id="treatmentTotal" min="0" step="100000" value="5400000">
+        <!-- VERIFY: $5.4M from SF24 for Lakeville water treatment property acquisition -->
+        <span class="hint">SF24 allocated $5.4M for Lakeville water treatment land</span>
+      </div>
+    </div>
+    <div class="form-grid" style="margin-top:12px;">
+      <div class="field">
+        <label for="treatmentUnits">Units Served by Expansion</label>
+        <input type="number" id="treatmentUnits" min="1" step="100" value="6000">
+      </div>
+      <div class="field">
+        <label for="connFee">Connection Fee ($/unit, one-time)</label>
+        <input type="number" id="connFee" min="0" step="100" value="8500">
+      </div>
+      <div class="field">
+        <label for="parkFee">Park Dedication Fee ($/unit, one-time)</label>
+        <input type="number" id="parkFee" min="0" step="100" value="3200">
+      </div>
+    </div>
+  </div>
+
+  <!-- SCHOOLS -->
+  <div class="form-section">
+    <div class="form-section-title">B &mdash; Schools</div>
+    <div class="form-grid">
+      <div class="field">
+        <label for="districtName">School District</label>
+        <input type="text" id="districtName" value="Lakeville Area Schools ISD 194">
+        <!-- VERIFY: ISD 194 name from brief -->
+      </div>
+      <div class="field">
+        <label for="studSF">Students/Unit &mdash; SF</label>
+        <input type="number" id="studSF" min="0" max="3" step="0.01" value="0.55">
+        <span class="hint">National suburban average; editable</span>
+      </div>
+      <div class="field">
+        <label for="studTH">Students/Unit &mdash; Townhome</label>
+        <input type="number" id="studTH" min="0" max="3" step="0.01" value="0.35">
+      </div>
+    </div>
+    <div class="form-grid" style="margin-top:12px;">
+      <div class="field">
+        <label for="studApt">Students/Unit &mdash; Apartment</label>
+        <input type="number" id="studApt" min="0" max="3" step="0.01" value="0.15">
+      </div>
+      <div class="field">
+        <label for="costPerPupil">Cost Per Pupil ($/yr)</label>
+        <input type="number" id="costPerPupil" min="0" step="100" value="12500">
+      </div>
+      <div class="field">
+        <label for="stateAid">State Aid Per Pupil ($/yr)</label>
+        <input type="number" id="stateAid" min="0" step="100" value="7224">
+        <!-- VERIFY: $7,224 is MN FY2024 basic formula allowance per brief -->
+        <span class="hint">MN FY2024 basic formula allowance</span>
+      </div>
+    </div>
+    <div class="form-grid" style="margin-top:12px;">
+      <div class="field">
+        <label for="capUtil">District Capacity Utilization (%)</label>
+        <input type="number" id="capUtil" min="0" max="120" step="1" value="88">
+        <span id="capFlag"></span>
+      </div>
+      <div class="field">
+        <label for="costPerSeat">Cost Per Seat &mdash; New Construction ($)</label>
+        <input type="number" id="costPerSeat" min="0" step="1000" value="28000">
+        <span class="hint">Typical MN elementary construction cost per student station</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FIRE & EMS -->
+  <div class="form-section">
+    <div class="form-section-title">C &mdash; Fire &amp; EMS Coverage</div>
+    <div class="form-grid">
+      <div class="field">
+        <label for="fireDist">Distance to Nearest Station (mi)</label>
+        <input type="number" id="fireDist" min="0" max="30" step="0.1" value="5.2">
+      </div>
+      <div class="field">
+        <label for="responseTarget">Target Response Time (min)</label>
+        <input type="number" id="responseTarget" min="1" max="15" step="0.5" value="4">
+      </div>
+      <div class="field">
+        <label>Within Current 4-Min Response Zone?</label>
+        <div class="toggle-group" id="fireZoneToggle">
+          <button type="button" onclick="setFireZone(true)">Yes</button>
+          <button type="button" class="active-red" onclick="setFireZone(false)">No</button>
+        </div>
+      </div>
+    </div>
+    <div class="form-grid" id="fireExpanded" style="margin-top:12px;">
+      <div class="field">
+        <label for="stationCost">New Station Cost ($)</label>
+        <input type="number" id="stationCost" min="0" step="100000" value="8500000">
+        <span class="hint">Typical MN suburban fire station construction</span>
+      </div>
+      <div class="field">
+        <label for="stationUnits">Units New Station Serves</label>
+        <input type="number" id="stationUnits" min="1" step="100" value="3000">
+      </div>
+      <div class="field">
+        <label for="stationOps">Annual Station Operating Cost ($)</label>
+        <input type="number" id="stationOps" min="0" step="50000" value="1800000">
+      </div>
+    </div>
+    <div class="form-grid" id="fireInZone" style="margin-top:12px;display:none;">
+      <div class="field">
+        <label for="marginalCall">Marginal Call Volume Cost ($/unit/yr)</label>
+        <input type="number" id="marginalCall" min="0" step="10" value="180">
+      </div>
+    </div>
+  </div>
+
+  <!-- ROAD MAINTENANCE -->
+  <div class="form-section">
+    <div class="form-section-title">D &mdash; Road Maintenance</div>
+    <div class="form-grid">
+      <div class="field">
+        <label for="laneMiles">New Lane-Miles in Development</label>
+        <input type="number" id="laneMiles" min="0" max="50" step="0.01" value="">
+        <span class="hint">Auto-estimated at 0.005 lane-miles/unit if blank</span>
+      </div>
+      <div class="field">
+        <label for="roadCostPerMile">Annual Maint. Cost Per Lane-Mile ($)</label>
+        <input type="number" id="roadCostPerMile" min="0" step="100" value="8500">
+      </div>
+      <div class="field">
+        <label>Include Developer Street Construction?</label>
+        <div class="toggle-group" id="devStreetToggle">
+          <button type="button" onclick="setDevStreet(false)" class="active">No</button>
+          <button type="button" onclick="setDevStreet(true)">Yes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTION BUTTONS -->
+  <div class="btn-row no-print">
+    <button type="button" class="btn btn-primary" onclick="calculate()">Calculate Fiscal Impact</button>
+    <button type="button" class="btn btn-outline" onclick="loadExample()">Load Lakeville Example</button>
+    <button type="button" class="btn btn-secondary" onclick="resetDefaults()">Reset Defaults</button>
+    <button type="button" class="btn btn-secondary" onclick="window.print()">Print Report</button>
+  </div>
+
+</form>
+
+<!-- ══════════════════════════════════════ -->
+<!-- RESULTS: COST SUMMARY                  -->
+<!-- ══════════════════════════════════════ -->
+<div id="cost-summary" class="section-band gray-band">
+  <div class="results-section">
+    <div class="section-heading">Fiscal Impact Summary</div>
+    <div id="devLabel" style="font-family:'Lucida Console',monospace;font-size:12px;color:var(--asphalt-mid);margin-bottom:12px;letter-spacing:1px;text-transform:uppercase;"></div>
+    <table class="fiscal-table" id="summaryTable">
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Per Unit / Year</th>
+          <th>Total / Year</th>
+          <th>One-Time</th>
+        </tr>
+      </thead>
+      <tbody id="summaryBody">
+        <tr><td colspan="4" style="text-align:center;color:#999;font-family:'Trebuchet MS',sans-serif;padding:20px;">Press "Calculate Fiscal Impact" to generate results.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- RESULTS: REVENUE DETAIL                -->
+<!-- ══════════════════════════════════════ -->
+<div id="revenue-projection" class="section-band green-band">
+  <div class="results-section">
+    <div class="section-heading">Revenue Projection Detail</div>
+    <div id="revenueDetail" style="font-size:13px;line-height:1.8;">
+      <p style="color:rgba(255,255,255,0.7);">Results will appear after calculation.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- RESULTS: GAP ANALYSIS                  -->
+<!-- ══════════════════════════════════════ -->
+<div id="gap-analysis" class="section-band dark-band">
+  <div class="results-section">
+    <div class="section-heading">Gap Analysis &amp; Fiscal Verdict</div>
+    <div id="verdictArea"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- 20-YEAR CHART                          -->
+<!-- ══════════════════════════════════════ -->
+<div id="twenty-year" class="section-band" style="background:#fff;">
+  <div class="chart-wrap">
+    <div class="chart-title">20-Year Cumulative Projection</div>
+    <canvas id="projectionChart"></canvas>
+    <p style="font-size:10px;color:#999;margin-top:8px;font-style:italic;">Simplifying assumption: annual revenue and costs held constant (no inflation adjustment). Verify local figures with city finance.</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- POLICY CONTEXT                         -->
+<!-- ══════════════════════════════════════ -->
+<div id="policy-context" class="section-band gray-band">
+  <div class="policy-section">
+    <div class="section-heading" style="color:var(--lawn-dark);">Policy Context</div>
+
+    <h3>Why Growth Management Math Matters in District 57</h3>
+    <p>Lakeville is one of the fastest-growing cities in Minnesota &mdash; ninth-largest by population, with 24% growth between 2010 and 2020. That growth is the reason the Legislature allocated $5.4 million in SF24 to acquire land for a new water treatment facility and fire station: the city's existing infrastructure was sized for a smaller community.</p>
+    <!-- VERIFY: SF24 $5.4M figure from software brief -->
+    <p>Lakeville Area Schools (ISD 194) serves more than 12,000 students and is currently conducting attendance area adjustments and a school referendum as enrollment from new development continues to arrive.</p>
+    <p>Fast-growing suburbs face a timing mismatch: property tax revenue from new homes takes years to compound, but schools need seats and fire stations need land on day one. This tool helps quantify that gap.</p>
+
+    <h3>About the School Funding Formula</h3>
+    <p>Minnesota funds schools through a per-pupil formula. The basic formula allowance for FY2024 is $7,224 per pupil. This state aid travels with the student &mdash; when a new family moves into a district, the district receives additional state aid for their children. However, state aid covers only a portion of the actual per-pupil operating cost; the remainder is funded through local property tax levies. In a fast-growing district, new students arrive faster than the property tax base matures.</p>
+    <!-- VERIFY: $7,224 FY2024 basic formula allowance from brief -->
+
+    <h3>About Water Infrastructure</h3>
+    <p>Minnesota cities are responsible for maintaining and expanding public water and sewer systems to serve new development. Connection fees partially offset new infrastructure costs, but large facilities &mdash; treatment plants, elevated storage, interceptor sewers &mdash; require debt financing spread across the entire rate base.</p>
+
+    <h3>About Fire Station Coverage</h3>
+    <p>Standard suburban fire response time goals are 4 minutes from dispatch to arrival. As cities expand geographically, new subdivisions at the urban edge may fall outside existing station coverage areas. Land for new fire stations must be acquired at the planning stage &mdash; not after the neighborhood is built.</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- DISCLAIMER                             -->
+<!-- ══════════════════════════════════════ -->
+<div style="padding:0 24px;">
+  <div class="disclaimer">
+    This calculator uses user-provided inputs and simplified fiscal assumptions. It is not a substitute for a professional fiscal impact analysis or city finance review. Verify local tax rates, per-pupil costs, and infrastructure figures with your city administrator and school district finance office. All default values are illustrative estimates.
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- FOOTER                                 -->
+<!-- ══════════════════════════════════════ -->
+<footer id="site-footer">
+  <p>A resource for SD-57 communities and fast-growing Minnesota suburbs. Built with AI.<br>
+  Analysis prepared using the District 57 Suburban Growth Calculator.<br>
+  Fiscal assumptions are illustrative defaults; verify local figures with city finance and school district staff.</p>
+</footer>
+
+</div><!-- #main-content -->
+
+<script>
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+let fireInZone = false;
+let devStreetIncluded = false;
+let chartInstance = null;
+const LS_KEY = 'duckworth_growth_calc_v1';
+
+// ══════════════════════════════════════════════
+// ENTRY ANIMATION
+// ══════════════════════════════════════════════
+(function runPlatAnimation() {
+  const lots = document.querySelectorAll('#plat-svg .lot');
+  const overlay = document.getElementById('plat-overlay');
+  let i = 0;
+  const order = Array.from({length: lots.length}, (_, k) => k);
+  // Shuffle for visual interest
+  for (let j = order.length - 1; j > 0; j--) {
+    const r = Math.floor(Math.random() * (j + 1));
+    [order[j], order[r]] = [order[r], order[j]];
+  }
+  const timer = setInterval(() => {
+    if (i >= order.length) {
+      clearInterval(timer);
+      setTimeout(() => {
+        overlay.classList.add('fade-out');
+        setTimeout(() => { overlay.style.display = 'none'; }, 600);
+      }, 400);
+      return;
+    }
+    lots[order[i]].classList.add('filled');
+    i++;
+  }, 90);
+})();
+
+function skipIntro() {
+  const overlay = document.getElementById('plat-overlay');
+  overlay.classList.add('fade-out');
+  setTimeout(() => { overlay.style.display = 'none'; }, 400);
+}
+
+// ══════════════════════════════════════════════
+// TOGGLE CONTROLS
+// ══════════════════════════════════════════════
+function setFireZone(inZone) {
+  fireInZone = inZone;
+  const btns = document.querySelectorAll('#fireZoneToggle button');
+  btns[0].className = inZone ? 'active' : '';
+  btns[1].className = inZone ? '' : 'active-red';
+  document.getElementById('fireExpanded').style.display = inZone ? 'none' : 'grid';
+  document.getElementById('fireInZone').style.display = inZone ? 'grid' : 'none';
+  autoCalc();
+}
+
+function setDevStreet(include) {
+  devStreetIncluded = include;
+  const btns = document.querySelectorAll('#devStreetToggle button');
+  btns[0].className = include ? '' : 'active';
+  btns[1].className = include ? 'active' : '';
+  autoCalc();
+}
+
+// ══════════════════════════════════════════════
+// MN HOMESTEAD MARKET VALUE EXCLUSION
+// MN Statute 273.13, subd. 35
+// ══════════════════════════════════════════════
+function homesteadExclusion(tmv) {
+  if (tmv <= 76000) return tmv * 0.40;
+  if (tmv <= 413800) {
+    const excl = 30400 - 0.09 * (tmv - 76000);
+    return Math.max(excl, 0);
+  }
+  return 0;
+}
+
+// ══════════════════════════════════════════════
+// TAX CAPACITY (MN residential homestead)
+// ══════════════════════════════════════════════
+function taxCapacity(tmv) {
+  const exclusion = homesteadExclusion(tmv);
+  const taxableVal = tmv - exclusion;
+  if (taxableVal <= 500000) return taxableVal * 0.01;
+  return 5000 + (taxableVal - 500000) * 0.0125;
+}
+
+// ══════════════════════════════════════════════
+// ANNUALIZED COST (mortgage-style amortization)
+// ══════════════════════════════════════════════
+function annualize(principal, rate, years) {
+  if (principal <= 0) return 0;
+  if (rate === 0) return principal / years;
+  const r = rate;
+  const n = years;
+  return principal * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+}
+
+// ══════════════════════════════════════════════
+// UTILITY
+// ══════════════════════════════════════════════
+function num(id) { return parseFloat(document.getElementById(id).value) || 0; }
+function txt(id) { return document.getElementById(id).value.trim(); }
+function fmt(n) {
+  if (n < 0) return '($' + Math.abs(n).toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0}) + ')';
+  return '$' + n.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+}
+function fmtSigned(n) {
+  if (n < 0) return '-$' + Math.abs(n).toLocaleString('en-US', {maximumFractionDigits: 0});
+  return '+$' + n.toLocaleString('en-US', {maximumFractionDigits: 0});
+}
+
+// ══════════════════════════════════════════════
+// MIX VALIDATION
+// ══════════════════════════════════════════════
+function updateMix() {
+  const total = num('pctSF') + num('pctTH') + num('pctApt');
+  const el = document.getElementById('mixTotal');
+  el.textContent = 'Total: ' + total + '%';
+  el.style.color = total === 100 ? 'var(--lawn-dark)' : 'var(--red)';
+}
+
+function updateCombined() {
+  const c = num('cityRate') + num('schoolRate') + num('countyRate');
+  document.getElementById('combinedRate').textContent = 'Combined: ' + c.toFixed(1) + '%';
+}
+
+function updateCapFlag() {
+  const u = num('capUtil');
+  const el = document.getElementById('capFlag');
+  if (u > 95) { el.innerHTML = '<span class="flag-red">Over 95% &mdash; new construction likely needed</span>'; }
+  else if (u > 85) { el.innerHTML = '<span class="flag-yellow">Above 85% &mdash; nearing capacity</span>'; }
+  else { el.innerHTML = ''; }
+}
+
+// ══════════════════════════════════════════════
+// MAIN CALCULATION
+// ══════════════════════════════════════════════
+function calculate() {
+  const units = num('totalUnits');
+  if (units <= 0) return;
+
+  const pctSF = num('pctSF') / 100;
+  const pctTH = num('pctTH') / 100;
+  const pctApt = num('pctApt') / 100;
+  const unitsSF = Math.round(units * pctSF);
+  const unitsTH = Math.round(units * pctTH);
+  const unitsApt = units - unitsSF - unitsTH;
+
+  const priceSF = num('priceSF');
+  const priceTH = num('priceTH');
+  const rentApt = num('rentApt');
+  const priceApt = rentApt * 12; // gross rent multiplier
+
+  const cityRate = num('cityRate');
+  const schoolRate = num('schoolRate');
+  const countyRate = num('countyRate');
+  const combinedRate = (cityRate + schoolRate + countyRate) / 100;
+
+  // ── REVENUE ──
+  function taxPerUnit(marketVal) {
+    const tc = taxCapacity(marketVal);
+    return tc * combinedRate;
+  }
+
+  const taxSF = taxPerUnit(priceSF);
+  const taxTH = taxPerUnit(priceTH);
+  const taxApt = taxPerUnit(priceApt);
+
+  const annualRevenue = unitsSF * taxSF + unitsTH * taxTH + unitsApt * taxApt;
+  const revenuePerUnit = annualRevenue / units;
+
+  const connFee = num('connFee');
+  const parkFee = num('parkFee');
+  const oneTimeRevenue = units * (connFee + parkFee);
+
+  // ── COST A: WATER/SEWER ──
+  const waterPerUnit = num('waterMain');
+  const sewerPerUnit = num('sewerMain');
+  const treatmentPerUnit = num('treatmentTotal') / Math.max(num('treatmentUnits'), 1);
+  const waterCapitalPerUnit = waterPerUnit + sewerPerUnit + treatmentPerUnit;
+  const waterAnnualPerUnit = annualize(waterCapitalPerUnit, 0.045, 30);
+  const waterOneTime = units * waterCapitalPerUnit;
+
+  // ── COST B: SCHOOLS ──
+  const studPerSF = num('studSF');
+  const studPerTH = num('studTH');
+  const studPerApt = num('studApt');
+  const newStudents = unitsSF * studPerSF + unitsTH * studPerTH + unitsApt * studPerApt;
+  const localCostPerPupil = Math.max(num('costPerPupil') - num('stateAid'), 0);
+  const schoolAnnual = newStudents * localCostPerPupil;
+  const schoolPerUnit = schoolAnnual / units;
+
+  // School capital flag
+  const capUtil = num('capUtil') / 100;
+  // Rough: assume district has ~12000 students, so capacity = students / utilization
+  const districtStudents = 12000; // approximate; from brief
+  const districtCapacity = districtStudents / Math.max(capUtil, 0.5);
+  const newUtil = (districtStudents + newStudents) / districtCapacity;
+  let schoolCapitalPerUnit = 0;
+  let schoolCapitalFlag = false;
+  if (newUtil > 0.95) {
+    schoolCapitalFlag = true;
+    const seatsNeeded = Math.ceil(newStudents);
+    schoolCapitalPerUnit = (seatsNeeded * num('costPerSeat')) / units;
+  }
+  const schoolCapitalTotal = schoolCapitalPerUnit * units;
+
+  // ── COST C: FIRE/EMS ──
+  let fireAnnualPerUnit = 0;
+  let fireOneTimePerUnit = 0;
+  if (fireInZone) {
+    fireAnnualPerUnit = num('marginalCall');
+  } else {
+    const stCost = num('stationCost');
+    const stUnits = Math.max(num('stationUnits'), 1);
+    const proRataCapital = stCost / stUnits;
+    const annualizedCapital = annualize(proRataCapital, 0.045, 30);
+    const opsPerUnit = num('stationOps') / stUnits;
+    fireAnnualPerUnit = annualizedCapital + opsPerUnit;
+    fireOneTimePerUnit = proRataCapital;
+  }
+  const fireAnnualTotal = fireAnnualPerUnit * units;
+  const fireOneTimeTotal = fireInZone ? 0 : fireOneTimePerUnit * units;
+
+  // ── COST D: ROADS ──
+  let lm = num('laneMiles');
+  if (!lm || lm <= 0) lm = units * 0.005;
+  const roadAnnual = lm * num('roadCostPerMile');
+  const roadPerUnit = roadAnnual / units;
+
+  // ── TOTALS ──
+  const totalCostPerUnit = waterAnnualPerUnit + schoolPerUnit + fireAnnualPerUnit + roadPerUnit;
+  const totalCostAnnual = totalCostPerUnit * units;
+  const netPerUnit = revenuePerUnit - totalCostPerUnit;
+  const netAnnual = annualRevenue - totalCostAnnual;
+
+  const totalOneTimeCosts = waterOneTime + (schoolCapitalFlag ? schoolCapitalTotal : 0) + fireOneTimeTotal;
+  const netOneTime = oneTimeRevenue - totalOneTimeCosts;
+
+  // 20-year cumulative
+  const cumulative20 = netAnnual * 20 + netOneTime;
+
+  // ── UPDATE HERO ──
+  const heroEl = document.getElementById('hero-amount');
+  const heroSub = document.getElementById('hero-subtext');
+  heroEl.textContent = (netPerUnit < 0 ? '-' : '+') + '$' + Math.abs(Math.round(netPerUnit)).toLocaleString();
+  heroEl.className = 'amount' + (netPerUnit > 0 ? ' positive' : (Math.abs(netPerUnit) < revenuePerUnit * 0.1 ? ' near-zero' : ''));
+  const devN = txt('devName') || 'This Development';
+  heroSub.textContent = devN + ' — ' + units + ' units in ' + (txt('cityName') || 'City');
+
+  // ── BUILD SUMMARY TABLE ──
+  const body = document.getElementById('summaryBody');
+  const dash = '—';
+
+  function row(cls, label, perUnit, total, oneTime) {
+    return `<tr class="${cls}"><td>${label}</td><td>${perUnit !== null ? fmt(Math.round(perUnit)) : dash}</td><td>${total !== null ? fmt(Math.round(total)) : dash}</td><td>${oneTime !== null ? fmt(Math.round(oneTime)) : dash}</td></tr>`;
+  }
+
+  let html = '';
+  html += row('revenue', 'Property Tax Revenue', revenuePerUnit, annualRevenue, null);
+  html += row('revenue', 'Connection Fees (one-time)', null, null, units * connFee);
+  html += row('revenue', 'Park Dedication Fees (one-time)', null, null, units * parkFee);
+  html += `<tr><td colspan="4" style="padding:2px;border:none;"></td></tr>`;
+  html += row('cost', 'Water/Sewer Infrastructure', -waterAnnualPerUnit, -waterAnnualPerUnit * units, -waterOneTime);
+  html += row('cost', 'Schools — Operating', -schoolPerUnit, -schoolAnnual, null);
+  if (schoolCapitalFlag) {
+    html += row('cost', 'Schools — Capital (capacity flag)', null, null, -schoolCapitalTotal);
+  }
+  html += row('cost', 'Fire/EMS Coverage', -fireAnnualPerUnit, -fireAnnualTotal, fireInZone ? null : -fireOneTimeTotal);
+  html += row('cost', 'Road Maintenance', -roadPerUnit, -roadAnnual, null);
+
+  // Net row
+  const netCls = netPerUnit > 0 ? 'surplus' : (Math.abs(netPerUnit) < revenuePerUnit * 0.1 ? 'near' : 'deficit');
+  html += `<tr class="net-row ${netCls}"><td>NET FISCAL POSITION</td><td>${fmtSigned(Math.round(netPerUnit))}/yr</td><td>${fmtSigned(Math.round(netAnnual))}/yr</td><td>${fmtSigned(Math.round(netOneTime))}</td></tr>`;
+
+  body.innerHTML = html;
+
+  // Dev label
+  document.getElementById('devLabel').textContent = (txt('devName') || 'Development') + ' — ' + units + ' units (' + (pctSF*100) + '% SF / ' + (pctTH*100) + '% TH / ' + (pctApt*100) + '% Apt) — ' + (txt('cityName') || 'City');
+
+  // ── REVENUE DETAIL ──
+  const rd = document.getElementById('revenueDetail');
+  function taxDetail(label, mv, count) {
+    if (count <= 0) return '';
+    const excl = homesteadExclusion(mv);
+    const tmv = mv - excl;
+    const tc = taxCapacity(mv);
+    const tax = tc * combinedRate;
+    return `<div style="margin-bottom:10px;">
+      <strong style="color:#fff;">${label} (${count} units @ ${fmt(mv)})</strong><br>
+      Market Value: ${fmt(mv)} &rarr; Exclusion: ${fmt(Math.round(excl))} &rarr; Taxable MV: ${fmt(Math.round(tmv))}<br>
+      Tax Capacity (1% of first $500K): ${fmt(Math.round(tc))} &times; ${(combinedRate*100).toFixed(1)}% = <strong style="color:#fff;">${fmt(Math.round(tax))}/unit/yr</strong> &times; ${count} = ${fmt(Math.round(tax * count))}/yr
+    </div>`;
+  }
+  rd.innerHTML =
+    taxDetail('Single-Family Detached', priceSF, unitsSF) +
+    taxDetail('Townhome/Attached', priceTH, unitsTH) +
+    taxDetail('Apartment (assessed at ' + fmt(priceApt) + ')', priceApt, unitsApt) +
+    `<div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.3);"><strong style="color:#fff;">Total Annual Property Tax Revenue: ${fmt(Math.round(annualRevenue))}</strong> (${fmt(Math.round(revenuePerUnit))}/unit)<br>
+    One-Time Fees: ${fmt(oneTimeRevenue)} (connection: ${fmt(units * connFee)} + park: ${fmt(units * parkFee)})</div>`;
+
+  // ── VERDICT ──
+  const va = document.getElementById('verdictArea');
+  const cityN = txt('cityName') || 'the city';
+  const surplus = netPerUnit >= 0;
+  va.innerHTML = `<div class="verdict-box ${surplus ? 'surplus' : ''}">
+    At these inputs, <strong>${devN}</strong> generates approximately <span class="${surplus ? 'surplus' : 'deficit'}-num">${fmt(Math.round(revenuePerUnit))}</span> in annual property tax revenue per unit but requires approximately <span class="deficit-num">${fmt(Math.round(totalCostPerUnit))}</span> in annual public services &mdash; a net <strong>${surplus ? 'surplus' : 'deficit'}</strong> of <span class="${surplus ? 'surplus' : 'deficit'}-num">${fmtSigned(Math.round(netPerUnit))}/unit/year</span>.<br><br>
+    Over 20 years, the cumulative fiscal position is approximately <span class="${cumulative20 >= 0 ? 'surplus' : 'deficit'}-num">${fmtSigned(Math.round(cumulative20))}</span> for ${cityN} (including one-time fees and capital costs).
+    ${schoolCapitalFlag ? '<br><br><span class="flag-red" style="font-size:12px;">SCHOOL CAPACITY FLAG: District utilization exceeds 95% with new students. Estimated capital cost for new classroom capacity: ' + fmt(Math.round(schoolCapitalTotal)) + '</span>' : ''}
+    ${!fireInZone ? '<br><br><span class="flag-red" style="font-size:12px;">FIRE STATION FLAG: Development outside current 4-minute response zone. Pro-rata station cost included in analysis.</span>' : ''}
+  </div>`;
+
+  // ── 20-YEAR CHART ──
+  buildChart(annualRevenue, totalCostAnnual, netOneTime);
+
+  // Save to localStorage
+  saveState();
+}
+
+// ══════════════════════════════════════════════
+// CHART
+// ══════════════════════════════════════════════
+function buildChart(annualRev, annualCost, oneTimeNet) {
+  const canvas = document.getElementById('projectionChart');
+  if (typeof Chart === 'undefined') {
+    canvas.parentElement.innerHTML += '<p style="color:var(--red);font-size:12px;">Chart.js not loaded (offline?). Chart unavailable.</p>';
+    return;
+  }
+  if (chartInstance) chartInstance.destroy();
+
+  const labels = [];
+  const revData = [];
+  const costData = [];
+  const cumData = [];
+  let cum = oneTimeNet;
+
+  for (let y = 1; y <= 20; y++) {
+    labels.push('Year ' + y);
+    revData.push(Math.round(annualRev));
+    costData.push(Math.round(annualCost));
+    cum += (annualRev - annualCost);
+    cumData.push(Math.round(cum));
+  }
+
+  chartInstance = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Annual Revenue',
+          data: revData,
+          backgroundColor: '#43a047',
+          borderRadius: 2,
+          order: 2
+        },
+        {
+          label: 'Annual Costs',
+          data: costData,
+          backgroundColor: '#c62828',
+          borderRadius: 2,
+          order: 2
+        },
+        {
+          label: 'Cumulative Net Position',
+          data: cumData,
+          type: 'line',
+          borderColor: '#bdbdbd',
+          backgroundColor: 'rgba(189,189,189,0.1)',
+          borderWidth: 2,
+          pointRadius: 3,
+          pointBackgroundColor: cumData.map(v => v >= 0 ? '#43a047' : '#c62828'),
+          fill: false,
+          yAxisID: 'y1',
+          order: 1
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          labels: { font: { family: 'Trebuchet MS', size: 11 }, color: '#666' }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              return ctx.dataset.label + ': $' + ctx.parsed.y.toLocaleString();
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { font: { family: 'Lucida Console', size: 9 }, color: '#999' },
+          grid: { display: false }
+        },
+        y: {
+          position: 'left',
+          title: { display: true, text: 'Annual ($)', font: { family: 'Trebuchet MS', size: 11 } },
+          ticks: {
+            font: { family: 'Lucida Console', size: 10 },
+            callback: v => '$' + (v/1000).toFixed(0) + 'K'
+          },
+          grid: { color: '#eee' }
+        },
+        y1: {
+          position: 'right',
+          title: { display: true, text: 'Cumulative ($)', font: { family: 'Trebuchet MS', size: 11 } },
+          ticks: {
+            font: { family: 'Lucida Console', size: 10 },
+            callback: v => (v < 0 ? '-' : '') + '$' + (Math.abs(v)/1000000).toFixed(1) + 'M'
+          },
+          grid: { display: false }
+        }
+      }
+    }
+  });
+}
+
+// ══════════════════════════════════════════════
+// AUTO-CALCULATE ON INPUT CHANGE
+// ══════════════════════════════════════════════
+let autoCalcTimer = null;
+function autoCalc() {
+  clearTimeout(autoCalcTimer);
+  autoCalcTimer = setTimeout(calculate, 300);
+}
+
+document.querySelectorAll('#calculator-form input').forEach(inp => {
+  inp.addEventListener('input', () => {
+    updateMix();
+    updateCombined();
+    updateCapFlag();
+    autoCalc();
+  });
+});
+
+// ══════════════════════════════════════════════
+// LOAD EXAMPLE
+// ══════════════════════════════════════════════
+function loadExample() {
+  document.getElementById('cityName').value = 'Lakeville';
+  document.getElementById('devName').value = 'Example: South Creek Estates (hypothetical)';
+  document.getElementById('totalUnits').value = 220;
+  document.getElementById('pctSF').value = 80;
+  document.getElementById('pctTH').value = 20;
+  document.getElementById('pctApt').value = 0;
+  document.getElementById('priceSF').value = 450000;
+  document.getElementById('priceTH').value = 310000;
+  document.getElementById('rentApt').value = 1600;
+  document.getElementById('cityRate').value = 42;
+  document.getElementById('schoolRate').value = 28;
+  document.getElementById('countyRate').value = 18;
+  document.getElementById('cityPop').value = 74000;
+  document.getElementById('cityUnits').value = 26000;
+  document.getElementById('annualPermits').value = 350;
+  document.getElementById('waterMain').value = 4200;
+  document.getElementById('sewerMain').value = 3800;
+  document.getElementById('treatmentTotal').value = 5400000;
+  document.getElementById('treatmentUnits').value = 6000;
+  document.getElementById('connFee').value = 8500;
+  document.getElementById('parkFee').value = 3200;
+  document.getElementById('districtName').value = 'Lakeville Area Schools ISD 194';
+  document.getElementById('studSF').value = 0.55;
+  document.getElementById('studTH').value = 0.35;
+  document.getElementById('studApt').value = 0.15;
+  document.getElementById('costPerPupil').value = 12500;
+  document.getElementById('stateAid').value = 7224;
+  document.getElementById('capUtil').value = 88;
+  document.getElementById('costPerSeat').value = 28000;
+  document.getElementById('fireDist').value = 5.2;
+  document.getElementById('responseTarget').value = 4;
+  setFireZone(false);
+  document.getElementById('stationCost').value = 8500000;
+  document.getElementById('stationUnits').value = 3000;
+  document.getElementById('stationOps').value = 1800000;
+  document.getElementById('laneMiles').value = '';
+  document.getElementById('roadCostPerMile').value = 8500;
+  setDevStreet(false);
+  updateMix();
+  updateCombined();
+  updateCapFlag();
+  calculate();
+}
+
+// ══════════════════════════════════════════════
+// RESET DEFAULTS
+// ══════════════════════════════════════════════
+function resetDefaults() {
+  localStorage.removeItem(LS_KEY);
+  loadExample();
+  document.getElementById('devName').value = '';
+}
+
+// ══════════════════════════════════════════════
+// LOCAL STORAGE PERSISTENCE
+// ══════════════════════════════════════════════
+function saveState() {
+  try {
+    const fields = [
+      'cityName','devName','totalUnits','pctSF','pctTH','pctApt',
+      'priceSF','priceTH','rentApt','cityRate','schoolRate','countyRate',
+      'cityPop','cityUnits','annualPermits','waterMain','sewerMain',
+      'treatmentTotal','treatmentUnits','connFee','parkFee','districtName',
+      'studSF','studTH','studApt','costPerPupil','stateAid','capUtil',
+      'costPerSeat','fireDist','responseTarget','stationCost','stationUnits',
+      'stationOps','marginalCall','laneMiles','roadCostPerMile'
+    ];
+    const data = {};
+    fields.forEach(f => { data[f] = document.getElementById(f).value; });
+    data.fireInZone = fireInZone;
+    data.devStreetIncluded = devStreetIncluded;
+    localStorage.setItem(LS_KEY, JSON.stringify(data));
+  } catch(e) {}
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    Object.keys(data).forEach(k => {
+      if (k === 'fireInZone') { setFireZone(data[k]); return; }
+      if (k === 'devStreetIncluded') { setDevStreet(data[k]); return; }
+      const el = document.getElementById(k);
+      if (el) el.value = data[k];
+    });
+    updateMix();
+    updateCombined();
+    updateCapFlag();
+    return true;
+  } catch(e) { return false; }
+}
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+(function init() {
+  const restored = loadState();
+  updateMix();
+  updateCombined();
+  updateCapFlag();
+  if (restored) {
+    setTimeout(calculate, 500);
+  } else {
+    // Load example on first visit
+    setTimeout(() => { loadExample(); }, 100);
+  }
+})();
+</script>
+
+</body>
+</html>

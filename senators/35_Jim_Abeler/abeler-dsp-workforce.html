@@ -1,0 +1,1761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MN DSP Workforce Readiness Tool — Sen. Jim Abeler, SD-35</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Card-based masonry stagger — varied card widths (full, half, third), no uniform grid
+   2. Navigation: Floating action button (bottom-right) expanding into radial menu with module icons
+   3. Typography: Cambria (serif headers), Franklin Gothic Medium (sans body/labels), Consolas (data/numbers)
+   4. Hero moment: Giant "~44%" vacancy rate in plum on cream, with subtle pulse animation
+   5. Color strategy: #8 Saturated accent — soft purple/lavender dominant, cream base, plum for dark sections
+   6. Entry experience: Striking vacancy rate number fills viewport first — no explanatory paragraph
+   Additional: Cards cascade in from left/right/bottom on load; thick colored top-edge blocks on cards
+*/
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --lavender: #7b6fa6;
+  --cream: #fdf6e3;
+  --plum: #2d1b4e;
+  --plum-light: #3d2b5e;
+  --lavender-light: #ebe7f4;
+  --lavender-muted: #a99cc8;
+  --amber: #D4860A;
+  --cedar: #4A7C59;
+  --cedar-dark: #2E5E3C;
+  --alert: #B81C1C;
+  --text: #1C1C1E;
+  --text-light: #f0eaff;
+}
+
+body {
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', sans-serif;
+  background: var(--cream);
+  color: var(--text);
+  line-height: 1.5;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4 { font-family: Cambria, serif; }
+.mono, .stat-value, .calc-output { font-family: Consolas, 'Liberation Mono', monospace; }
+
+/* ═══════ HERO SECTION ═══════ */
+.hero {
+  background: var(--cream);
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 60px 20px 40px;
+  position: relative;
+}
+.hero-label {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 13px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--lavender);
+  margin-bottom: 12px;
+}
+.hero-number {
+  font-family: Consolas, monospace;
+  font-size: clamp(100px, 18vw, 200px);
+  font-weight: 700;
+  color: var(--plum);
+  line-height: 1;
+  animation: pulse-vacancy 3s ease-in-out infinite;
+}
+@keyframes pulse-vacancy {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.015); }
+}
+.hero-caption {
+  font-family: Cambria, serif;
+  font-size: 20px;
+  color: var(--lavender);
+  margin-top: 16px;
+  max-width: 500px;
+}
+.hero-cite {
+  font-size: 11px;
+  color: var(--lavender-muted);
+  margin-top: 8px;
+  letter-spacing: 1px;
+}
+.hero-intro {
+  margin-top: 32px;
+  max-width: 640px;
+  font-size: 15px;
+  color: var(--plum);
+  line-height: 1.7;
+}
+.hero-intro strong { color: var(--plum); }
+
+/* ═══════ MASONRY CARD LAYOUT ═══════ */
+.masonry-wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px 80px;
+  column-count: 2;
+  column-gap: 24px;
+}
+.card {
+  break-inside: avoid;
+  margin-bottom: 24px;
+  background: #fff;
+  border-radius: 0 0 6px 6px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(45,27,78,0.08);
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.card.visible { opacity: 1; transform: translateY(0); }
+.card.from-left { transform: translateX(-60px) translateY(20px); }
+.card.from-left.visible { transform: translateX(0) translateY(0); }
+.card.from-right { transform: translateX(60px) translateY(20px); }
+.card.from-right.visible { transform: translateX(0) translateY(0); }
+.card.from-bottom { transform: translateY(60px); }
+.card.from-bottom.visible { transform: translateY(0); }
+
+.card-top { height: 6px; }
+.card-top.plum { background: var(--plum); }
+.card-top.lavender { background: var(--lavender); }
+.card-top.amber { background: var(--amber); }
+.card-top.cedar { background: var(--cedar); }
+.card-top.alert { background: var(--alert); }
+
+.card-body { padding: 24px; }
+.card-body h2 {
+  font-size: 20px;
+  color: var(--plum);
+  margin-bottom: 12px;
+}
+.card-body h3 {
+  font-size: 16px;
+  color: var(--lavender);
+  margin-bottom: 10px;
+}
+
+.card.full-width {
+  column-span: all;
+}
+
+/* ═══════ MODULE SECTIONS (shown/hidden) ═══════ */
+.module { display: none; }
+.module.active { display: block; }
+
+/* ═══════ MODULE 1: CAREER PATHWAY ═══════ */
+.intake-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.intake-grid .full-row { grid-column: 1 / -1; }
+
+label.field-label {
+  display: block;
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--lavender);
+  margin-bottom: 4px;
+  font-family: 'Franklin Gothic Medium', sans-serif;
+}
+
+select, input[type="number"], input[type="text"] {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid var(--lavender-light);
+  border-radius: 4px;
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 14px;
+  background: var(--cream);
+  color: var(--text);
+  transition: border-color 0.2s;
+}
+select:focus, input:focus {
+  outline: none;
+  border-color: var(--lavender);
+}
+
+.checkbox-group { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.checkbox-group input[type="checkbox"] {
+  accent-color: var(--lavender);
+  width: 16px;
+  height: 16px;
+}
+
+button.primary-btn {
+  background: var(--lavender);
+  color: #fff;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 4px;
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 14px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+button.primary-btn:hover { background: var(--plum); }
+
+/* Career Track SVG */
+.career-track-wrap {
+  padding: 32px 16px;
+  overflow-x: auto;
+}
+.career-track-wrap svg text {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+}
+
+/* Roadmap result panel */
+.roadmap-panel {
+  background: var(--lavender-light);
+  border-radius: 6px;
+  padding: 24px;
+  margin-top: 16px;
+}
+.roadmap-panel h3 { color: var(--plum); margin-bottom: 12px; }
+.roadmap-step {
+  margin-bottom: 16px;
+  padding-left: 20px;
+  position: relative;
+}
+.roadmap-step::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--amber);
+}
+.roadmap-step.completed::before { background: var(--cedar); }
+.roadmap-step .step-title {
+  font-family: Cambria, serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--plum);
+}
+.roadmap-step .step-detail {
+  font-size: 13px;
+  color: #555;
+  margin-top: 2px;
+}
+
+/* Credential cards */
+.cred-card {
+  border: 2px solid var(--lavender-light);
+  border-radius: 6px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.cred-card-header {
+  padding: 12px 16px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--cream);
+  transition: background 0.2s;
+}
+.cred-card-header:hover { background: var(--lavender-light); }
+.cred-card-header h4 {
+  font-size: 14px;
+  color: var(--plum);
+  margin: 0;
+}
+.cred-card-header .toggle-arrow {
+  font-family: Consolas, monospace;
+  color: var(--lavender);
+  font-size: 16px;
+  transition: transform 0.3s;
+}
+.cred-card.open .toggle-arrow { transform: rotate(90deg); }
+.cred-card-body {
+  display: none;
+  padding: 16px;
+  font-size: 13px;
+  line-height: 1.6;
+  border-top: 1px solid var(--lavender-light);
+}
+.cred-card.open .cred-card-body { display: block; }
+.cred-card-body dt {
+  font-weight: 700;
+  color: var(--lavender);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 8px;
+}
+.cred-card-body dd { margin-left: 0; margin-bottom: 4px; }
+
+/* ═══════ MODULE 2: AGENCY PLANNER ═══════ */
+.agency-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.agency-inputs .full-row { grid-column: 1 / -1; }
+
+.cost-panels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 16px;
+}
+.cost-panel {
+  background: var(--cream);
+  border-radius: 6px;
+  padding: 20px;
+}
+.cost-panel.current { border-left: 5px solid var(--alert); }
+.cost-panel.projected { border-left: 5px solid var(--cedar); }
+.cost-panel h3 {
+  font-size: 15px;
+  margin-bottom: 12px;
+}
+.cost-line {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(123,111,166,0.15);
+  font-size: 13px;
+}
+.cost-line .cost-val {
+  font-family: Consolas, monospace;
+  font-weight: 700;
+}
+.net-savings {
+  text-align: center;
+  padding: 20px;
+  margin-top: 16px;
+  border-radius: 6px;
+}
+.net-savings.positive { background: rgba(74,124,89,0.12); }
+.net-savings.negative { background: rgba(212,134,10,0.12); }
+.net-savings .savings-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--lavender);
+}
+.net-savings .savings-value {
+  font-family: Consolas, monospace;
+  font-size: 36px;
+  font-weight: 700;
+  margin-top: 4px;
+}
+.net-savings .savings-note {
+  font-size: 12px;
+  color: #777;
+  margin-top: 6px;
+}
+
+.chart-container {
+  max-width: 600px;
+  margin: 20px auto 0;
+  position: relative;
+  height: 300px;
+}
+
+/* Checklist */
+.checklist-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--lavender-light);
+  font-size: 13px;
+}
+.checklist-item input[type="checkbox"] {
+  accent-color: var(--cedar);
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.checklist-item.checked { color: var(--cedar-dark); }
+
+/* ═══════ MODULE 3: WORKFORCE FACTS ═══════ */
+.stat-row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.stat-block {
+  flex: 1;
+  min-width: 140px;
+  text-align: center;
+  padding: 16px 12px;
+  background: var(--plum);
+  color: var(--text-light);
+  border-radius: 6px;
+}
+.stat-block .stat-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: #fff;
+  display: block;
+}
+.stat-block .stat-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-top: 4px;
+  color: var(--lavender-muted);
+}
+
+.fact-section { margin-bottom: 24px; }
+.fact-section h3 {
+  font-size: 17px;
+  color: var(--plum);
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 2px solid var(--lavender);
+}
+.fact-section p, .fact-section li {
+  font-size: 14px;
+  line-height: 1.7;
+}
+.fact-section ul {
+  margin-left: 20px;
+  margin-top: 6px;
+}
+
+.resource-link {
+  display: block;
+  padding: 10px 14px;
+  background: var(--lavender-light);
+  border-radius: 4px;
+  margin-bottom: 8px;
+  text-decoration: none;
+  color: var(--plum);
+  font-size: 13px;
+  transition: background 0.2s;
+}
+.resource-link:hover { background: var(--lavender-muted); color: #fff; }
+.resource-link .resource-org {
+  font-weight: 700;
+  display: block;
+}
+.resource-link .resource-url {
+  font-family: Consolas, monospace;
+  font-size: 11px;
+  color: var(--lavender);
+}
+
+/* ═══════ FLOATING ACTION BUTTON / RADIAL MENU ═══════ */
+.fab-container {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 1000;
+}
+.fab-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--plum);
+  color: #fff;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(45,27,78,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s, background 0.3s;
+  position: relative;
+  z-index: 10;
+}
+.fab-btn:hover { background: var(--lavender); }
+.fab-btn.open { transform: rotate(45deg); }
+
+.radial-menu {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 56px;
+  height: 56px;
+  pointer-events: none;
+}
+.radial-item {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--lavender);
+  color: #fff;
+  border: none;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  opacity: 0;
+  transform: scale(0.5);
+  transition: all 0.3s ease;
+  pointer-events: none;
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  letter-spacing: 0.5px;
+}
+.radial-item.show {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+.radial-item:hover { background: var(--plum); }
+/* Positions for 4 radial items — spaced in an arc to upper-left */
+.radial-item:nth-child(1).show { bottom: 70px; right: 6px; }
+.radial-item:nth-child(2).show { bottom: 58px; right: 56px; }
+.radial-item:nth-child(3).show { bottom: 20px; right: 72px; }
+.radial-item:nth-child(4).show { bottom: -16px; right: 72px; }
+
+.radial-tooltip {
+  position: absolute;
+  right: 52px;
+  white-space: nowrap;
+  background: var(--plum);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 3px;
+  font-size: 11px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+.radial-item:hover .radial-tooltip { opacity: 1; }
+
+/* ═══════ FOOTER ═══════ */
+.site-footer {
+  background: var(--plum);
+  color: var(--lavender-muted);
+  text-align: center;
+  padding: 28px 20px;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.site-footer strong { color: #fff; }
+
+/* ═══════ SLIDER STYLING ═══════ */
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  background: var(--lavender-light);
+  border-radius: 3px;
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  background: var(--lavender);
+  border-radius: 50%;
+  cursor: pointer;
+}
+.range-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--lavender-muted);
+  margin-top: 2px;
+}
+
+/* ═══════ RESPONSIVE ═══════ */
+@media (max-width: 768px) {
+  .masonry-wrap { column-count: 1; }
+  .intake-grid, .agency-inputs, .cost-panels { grid-template-columns: 1fr; }
+  .stat-row { flex-direction: column; }
+  .hero-number { font-size: 80px; }
+}
+
+/* ═══════ PRINT ═══════ */
+@media print {
+  .fab-container, .hero, .site-footer { display: none; }
+  .module { display: block !important; page-break-before: always; }
+  .module:first-child { page-break-before: auto; }
+  .card { break-inside: avoid; box-shadow: none; border: 1px solid #ccc; opacity: 1 !important; transform: none !important; }
+  .masonry-wrap { column-count: 1; }
+  body { background: #fff; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════ HERO: VACANCY RATE ═══════ -->
+<section class="hero" id="hero">
+  <div class="hero-label">Minnesota DSP Vacancy Rate</div>
+  <div class="hero-number" aria-label="Approximately 44 percent">~44%</div>
+  <div class="hero-caption">of direct support positions sit unfilled across the state</div>
+  <div class="hero-cite">Source: ANCOR 2024</div>
+  <div class="hero-intro">
+    <strong>Senator Abeler's SF1062</strong> proposes a certification pilot for Minnesota's direct support workforce. This tool shows what that career looks like, what it pays, and what it would take for an agency in SD-35 to build it.
+  </div>
+</section>
+
+<!-- ═══════ MODULE 1: CAREER PATHWAY EXPLORER ═══════ -->
+<section class="module active" id="mod-career">
+  <div class="masonry-wrap">
+
+    <!-- Intake Card -->
+    <div class="card full-width from-bottom" data-delay="100">
+      <div class="card-top plum"></div>
+      <div class="card-body">
+        <h2>My Career Path</h2>
+        <p style="font-size:14px;color:#666;margin-bottom:16px;">Answer a few questions to see your personalized DSP career roadmap.</p>
+
+        <div class="intake-grid">
+          <div>
+            <label class="field-label" for="currentRole">Current Role</label>
+            <select id="currentRole">
+              <option value="exploring">Exploring — Not Yet Hired</option>
+              <option value="new">Unlicensed — New</option>
+              <option value="experienced">DSP — Experienced</option>
+              <option value="lead">Lead DSP / Senior DSP</option>
+              <option value="supervisor">Frontline Supervisor</option>
+              <option value="coordinator">Program Coordinator</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label" for="experience">Months of DSP Experience</label>
+            <input type="number" id="experience" min="0" max="480" placeholder="e.g., 24">
+          </div>
+          <div>
+            <label class="field-label" for="currentWage">Current Hourly Wage (optional)</label>
+            <input type="number" id="currentWage" min="0" step="0.25" placeholder="e.g., 16.50">
+          </div>
+          <div>
+            <label class="field-label" for="empSetting">Employment Setting</label>
+            <select id="empSetting">
+              <option value="idd-group">IDD Group Residential</option>
+              <option value="in-home">In-Home Waiver</option>
+              <option value="day-program">Day Program</option>
+              <option value="host-home">Family Residential Host Home</option>
+              <option value="pca-cfss">PCA or CFSS</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="full-row">
+            <label class="field-label">Current Credentials Held</label>
+            <div class="checkbox-group">
+              <label><input type="checkbox" name="cred" value="orientation"> 40-Hour MN DHS Orientation</label>
+              <label><input type="checkbox" name="cred" value="cds"> College of Direct Support (CDS)</label>
+              <label><input type="checkbox" name="cred" value="dsp1"> NADSP DSP-I</label>
+              <label><input type="checkbox" name="cred" value="dsp2"> NADSP DSP-II</label>
+              <label><input type="checkbox" name="cred" value="dsp3"> NADSP DSP-III</label>
+              <label><input type="checkbox" name="cred" value="fls"> Frontline Supervisor</label>
+              <label><input type="checkbox" name="cred" value="none"> None yet</label>
+            </div>
+          </div>
+          <div class="full-row">
+            <label class="field-label">Interest Areas</label>
+            <div class="checkbox-group">
+              <label><input type="checkbox" name="interest" value="behavioral"> Behavioral Support Needs</label>
+              <label><input type="checkbox" name="interest" value="medical"> Medical/Health Care Supports</label>
+              <label><input type="checkbox" name="interest" value="employment"> Employment Supports</label>
+              <label><input type="checkbox" name="interest" value="community"> Community Integration</label>
+              <label><input type="checkbox" name="interest" value="supervision"> Supervision/Leadership</label>
+              <label><input type="checkbox" name="interest" value="training"> Training and Mentoring</label>
+            </div>
+          </div>
+          <div class="full-row" style="text-align:center;margin-top:8px;">
+            <button class="primary-btn" onclick="generateRoadmap()">Build My Roadmap</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Career Track Visual Card -->
+    <div class="card full-width from-left" data-delay="300">
+      <div class="card-top lavender"></div>
+      <div class="card-body">
+        <h2>Career Track</h2>
+        <div class="career-track-wrap" id="careerTrackWrap">
+          <svg id="careerTrackSvg" width="100%" height="120" viewBox="0 0 800 120" preserveAspectRatio="xMidYMid meet">
+            <!-- Connector line -->
+            <line x1="80" y1="50" x2="720" y2="50" stroke="#ebe7f4" stroke-width="4" />
+            <!-- Stations -->
+            <circle id="st0" cx="80"  cy="50" r="18" fill="#8A9198" stroke="#fff" stroke-width="3"/>
+            <circle id="st1" cx="240" cy="50" r="18" fill="#8A9198" stroke="#fff" stroke-width="3"/>
+            <circle id="st2" cx="400" cy="50" r="18" fill="#8A9198" stroke="#fff" stroke-width="3"/>
+            <circle id="st3" cx="560" cy="50" r="18" fill="#8A9198" stroke="#fff" stroke-width="3"/>
+            <circle id="st4" cx="720" cy="50" r="18" fill="#8A9198" stroke="#fff" stroke-width="3"/>
+            <!-- Labels -->
+            <text x="80"  y="95" text-anchor="middle" font-size="11" fill="#2d1b4e">Entry</text>
+            <text x="240" y="95" text-anchor="middle" font-size="11" fill="#2d1b4e">Experienced</text>
+            <text x="240" y="108" text-anchor="middle" font-size="11" fill="#2d1b4e">DSP</text>
+            <text x="400" y="95" text-anchor="middle" font-size="11" fill="#2d1b4e">Senior /</text>
+            <text x="400" y="108" text-anchor="middle" font-size="11" fill="#2d1b4e">Lead</text>
+            <text x="560" y="95" text-anchor="middle" font-size="11" fill="#2d1b4e">Supervisor</text>
+            <text x="720" y="95" text-anchor="middle" font-size="11" fill="#2d1b4e">Coordinator</text>
+            <text x="720" y="108" text-anchor="middle" font-size="11" fill="#2d1b4e">/ Trainer</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Roadmap Results Card (hidden until generated) -->
+    <div class="card from-right" data-delay="400" id="roadmapCard" style="display:none;">
+      <div class="card-top amber"></div>
+      <div class="card-body">
+        <h2>Your Roadmap</h2>
+        <div id="roadmapResults"></div>
+      </div>
+    </div>
+
+    <!-- Wage Context Card -->
+    <div class="card from-left" data-delay="500" id="wageCard" style="display:none;">
+      <div class="card-top cedar"></div>
+      <div class="card-body">
+        <h3>Wage Context</h3>
+        <div id="wageContext"></div>
+      </div>
+    </div>
+
+    <!-- Credential Detail Cards -->
+    <div class="card full-width from-bottom" data-delay="600">
+      <div class="card-top plum"></div>
+      <div class="card-body">
+        <h2>Credential Details</h2>
+        <p style="font-size:13px;color:#777;margin-bottom:14px;">Click a credential to expand details.</p>
+
+        <div class="cred-card" id="cred-orientation">
+          <div class="cred-card-header" onclick="toggleCred(this)">
+            <h4>40-Hour MN DHS Orientation Training</h4>
+            <span class="toggle-arrow">&#9654;</span>
+          </div>
+          <div class="cred-card-body">
+            <dl>
+              <dt>What It Is</dt>
+              <dd>Required orientation training for all DSP workers in Minnesota. Mandated by MN DHS for staff working in licensed settings.</dd>
+              <dt>Issuing Body</dt>
+              <dd>Minnesota Department of Human Services</dd>
+              <dt>Time to Complete</dt>
+              <dd>40 hours (typically completed within first weeks of employment)</dd>
+              <dt>Cost to Worker</dt>
+              <dd>Generally employer-paid; voluntary orientation stipend of $100 available (MN SEIU/state contract)</dd>
+              <dt>Relevance to SF1062</dt>
+              <dd>Baseline requirement; the certification pilot would build upon this foundation.</dd>
+            </dl>
+          </div>
+        </div>
+
+        <div class="cred-card" id="cred-cds">
+          <div class="cred-card-header" onclick="toggleCred(this)">
+            <h4>College of Direct Support (CDS) Certificate</h4>
+            <span class="toggle-arrow">&#9654;</span>
+          </div>
+          <div class="cred-card-body">
+            <dl>
+              <dt>What It Is</dt>
+              <dd>Online curriculum covering core DSP competency areas. Offered through the Institute on Community Integration at the University of Minnesota and licensed nationally.</dd>
+              <dt>Issuing Body</dt>
+              <dd>College of Direct Support / ICI at UMN (via directcourse.com)</dd>
+              <dt>Competency Areas</dt>
+              <dd>Community living, person-centered supports, communication, health and wellness, documentation, professional ethics</dd>
+              <dt>Approximate Cost</dt>
+              <!-- VERIFY: CDS cost is an estimate from the software brief -->
+              <dd>~$150/employee for employer-purchased access (often employer-paid); training completion stipend of $750 may be available (MN SEIU/state contract)</dd>
+              <dt>Wage Impact</dt>
+              <dd>CDS completion is a foundation for NADSP credentialing; certified DSPs earn an estimated $1-$3/hour more than non-certified peers at the same experience level (CQL/Anne Carlsen Center data).</dd>
+            </dl>
+          </div>
+        </div>
+
+        <div class="cred-card" id="cred-dsp1">
+          <div class="cred-card-header" onclick="toggleCred(this)">
+            <h4>NADSP DSP-I (Entry-Level National Credential)</h4>
+            <span class="toggle-arrow">&#9654;</span>
+          </div>
+          <div class="cred-card-body">
+            <dl>
+              <dt>What It Is</dt>
+              <dd>Entry-level national credential recognizing demonstrated competency in direct support work.</dd>
+              <dt>Issuing Body</dt>
+              <dd>National Alliance for Direct Support Professionals (nadsp.org)</dd>
+              <dt>Requirements</dt>
+              <dd>Competency area documentation required; portfolio-based evidence of skill application.</dd>
+              <!-- VERIFY: NADSP credential fee from software brief estimate -->
+              <dt>Approximate Cost</dt>
+              <dd>~$100 application fee (verify current fee at nadsp.org); employer may cover</dd>
+              <dt>Wage Impact</dt>
+              <dd>Certified DSPs earn an estimated $1-$3/hour more than non-certified peers (CQL data).</dd>
+              <dt>Relevance to SF1062</dt>
+              <dd>SF1062's certification pilot would formalize recognition of NADSP credentials within Minnesota's service system.</dd>
+            </dl>
+          </div>
+        </div>
+
+        <div class="cred-card" id="cred-dsp2">
+          <div class="cred-card-header" onclick="toggleCred(this)">
+            <h4>NADSP DSP-II (Intermediate Credential)</h4>
+            <span class="toggle-arrow">&#9654;</span>
+          </div>
+          <div class="cred-card-body">
+            <dl>
+              <dt>What It Is</dt>
+              <dd>Intermediate national credential requiring additional competency documentation beyond DSP-I.</dd>
+              <dt>Issuing Body</dt>
+              <dd>NADSP</dd>
+              <dt>Requirements</dt>
+              <dd>Additional competency documentation; expanded portfolio demonstrating deeper skill application.</dd>
+              <dt>Approximate Cost</dt>
+              <dd>~$100 application fee (verify at nadsp.org)</dd>
+              <dt>Wage Impact</dt>
+              <dd>Within the $1-$3/hour premium range; specific tier differentiation varies by employer.</dd>
+            </dl>
+          </div>
+        </div>
+
+        <div class="cred-card" id="cred-dsp3">
+          <div class="cred-card-header" onclick="toggleCred(this)">
+            <h4>NADSP DSP-III (Advanced Credential)</h4>
+            <span class="toggle-arrow">&#9654;</span>
+          </div>
+          <div class="cred-card-body">
+            <dl>
+              <dt>What It Is</dt>
+              <dd>Advanced national credential; the highest level of DSP professional recognition through NADSP.</dd>
+              <dt>Issuing Body</dt>
+              <dd>NADSP</dd>
+              <dt>Requirements</dt>
+              <dd>Portfolio-based assessment demonstrating advanced competencies across all NADSP areas.</dd>
+              <dt>Approximate Cost</dt>
+              <dd>~$100 application fee (verify at nadsp.org)</dd>
+              <dt>Typical Roles at This Level</dt>
+              <dd>Senior/Lead DSP, mentor, training specialist — positions that influence organizational quality.</dd>
+            </dl>
+          </div>
+        </div>
+
+        <div class="cred-card" id="cred-fls">
+          <div class="cred-card-header" onclick="toggleCred(this)">
+            <h4>Frontline Supervisor Certification</h4>
+            <span class="toggle-arrow">&#9654;</span>
+          </div>
+          <div class="cred-card-body">
+            <dl>
+              <dt>What It Is</dt>
+              <dd>Separate NADSP/CFSM credentialing track for those supervising direct support staff.</dd>
+              <dt>Issuing Body</dt>
+              <dd>NADSP (Credentialing for Frontline Supervisor Management — CFSM)</dd>
+              <dt>Who It's For</dt>
+              <dd>DSPs who have moved into supervisory roles; covers competency-based performance review, team leadership, and quality assurance.</dd>
+              <dt>Relevance to SF1062</dt>
+              <dd>A key component of the certification ecosystem; agencies need trained supervisors to support credentialed DSPs.</dd>
+            </dl>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- masonry-wrap -->
+</section>
+
+<!-- ═══════ MODULE 2: AGENCY PLANNER ═══════ -->
+<section class="module" id="mod-agency">
+  <div class="masonry-wrap">
+
+    <!-- Agency Inputs Card -->
+    <div class="card full-width from-bottom" data-delay="100">
+      <div class="card-top plum"></div>
+      <div class="card-body">
+        <h2>Agency Retention Program Builder</h2>
+        <p style="font-size:14px;color:#666;margin-bottom:16px;">For small providers in SD-35: model the cost of turnover vs. the cost of a credential program.</p>
+
+        <div class="agency-inputs">
+          <div class="full-row">
+            <label class="field-label" for="empCount">Number of DSP Employees</label>
+            <input type="range" id="empCount" min="1" max="200" value="25">
+            <div class="range-labels"><span>1</span><span>10</span><span>25</span><span>50</span><span>100</span><span>200</span></div>
+            <div style="text-align:center;margin-top:4px;font-family:Consolas,monospace;font-size:18px;color:var(--plum);" id="empCountDisplay">25</div>
+          </div>
+          <div>
+            <label class="field-label" for="avgWage">Current Avg Hourly DSP Wage ($)</label>
+            <input type="number" id="avgWage" value="16.22" min="10" max="40" step="0.25">
+          </div>
+          <div>
+            <label class="field-label" for="turnoverRate">Current Annual Turnover Rate (%)</label>
+            <input type="number" id="turnoverRate" value="44" min="0" max="100">
+            <span style="font-size:11px;color:var(--lavender-muted);">National average: ~44%</span>
+          </div>
+          <div>
+            <label class="field-label" for="replaceCost">Cost to Replace One DSP ($)</label>
+            <input type="number" id="replaceCost" value="2500" min="0" step="100">
+            <span style="font-size:11px;color:var(--lavender-muted);">Industry range: $2,000-$5,000</span>
+          </div>
+          <div>
+            <label class="field-label" for="trainBudget">Current Training Spend ($/employee/yr)</label>
+            <input type="number" id="trainBudget" value="0" min="0" step="50">
+          </div>
+          <div>
+            <label class="field-label" for="certPct">% of Staff Pursuing Credentials</label>
+            <input type="number" id="certPct" value="25" min="0" max="100">
+          </div>
+          <div>
+            <label class="field-label" for="targetTurnover">Target Turnover for Certified Staff (%)</label>
+            <input type="number" id="targetTurnover" value="20" min="0" max="100">
+          </div>
+          <div>
+            <label class="field-label" for="seiuWage">Participating in MN Tiered Wage Schedule?</label>
+            <select id="seiuWage">
+              <option value="no">No</option>
+              <option value="yes">Yes</option>
+            </select>
+          </div>
+        </div>
+        <div style="text-align:center;margin-top:16px;">
+          <button class="primary-btn" onclick="runAgencyCalc()">Calculate</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cost Comparison Card -->
+    <div class="card full-width from-left" data-delay="300" id="costCard" style="display:none;">
+      <div class="card-top amber"></div>
+      <div class="card-body">
+        <h2>Cost Comparison</h2>
+        <div class="cost-panels" id="costPanels"></div>
+        <div id="netSavingsBox"></div>
+        <div class="chart-container">
+          <canvas id="agencyChart"></canvas>
+        </div>
+        <noscript>
+          <p style="text-align:center;color:var(--alert);">Chart requires JavaScript and Chart.js CDN access. A table fallback is shown below.</p>
+        </noscript>
+        <div id="chartFallback" style="display:none;margin-top:16px;">
+          <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <thead><tr style="background:var(--plum);color:#fff;">
+              <th style="padding:8px;text-align:left;">Category</th>
+              <th style="padding:8px;text-align:right;">Amount</th>
+            </tr></thead>
+            <tbody id="fallbackBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- SF1062 Readiness Checklist Card -->
+    <div class="card full-width from-right" data-delay="500">
+      <div class="card-top cedar"></div>
+      <div class="card-body">
+        <h2>SF1062 Pilot Readiness Checklist</h2>
+        <p style="font-size:13px;color:#666;margin-bottom:14px;">What a provider agency should have in place to participate in a formal certification pilot. Your progress is saved automatically.</p>
+        <div id="checklistContainer"></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════ MODULE 3: WORKFORCE FACTS ═══════ -->
+<section class="module" id="mod-facts">
+  <div class="masonry-wrap">
+
+    <!-- Key Numbers Card -->
+    <div class="card full-width from-bottom" data-delay="100">
+      <div class="card-top plum"></div>
+      <div class="card-body">
+        <h2>The Numbers</h2>
+        <div class="stat-row">
+          <div class="stat-block">
+            <span class="stat-value">40-60%</span>
+            <span class="stat-label">National DSP Turnover</span>
+          </div>
+          <div class="stat-block">
+            <span class="stat-value">~44%</span>
+            <span class="stat-label">National DSP Vacancy</span>
+          </div>
+          <div class="stat-block">
+            <span class="stat-value">$16.22</span>
+            <span class="stat-label">MN Median DSP Wage/Hr</span>
+          </div>
+          <div class="stat-block">
+            <span class="stat-value">7.7%</span>
+            <span class="stat-label">Certified DSP Turnover</span>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--lavender-muted);text-align:center;margin-top:8px;">
+          Sources: ANCOR/ICI at UMN (turnover/vacancy), MN DHS 2024-2025 (wage), CQL/Anne Carlsen Center (certified turnover)
+        </div>
+      </div>
+    </div>
+
+    <!-- SF1062 Card -->
+    <div class="card from-left" data-delay="300">
+      <div class="card-top lavender"></div>
+      <div class="card-body">
+        <div class="fact-section">
+          <h3>What SF1062 Proposes</h3>
+          <p>Filed February 4, 2025, by Senator Jim Abeler (SD-35), SF1062 would establish a direct support professional certification pilot project and require a legislative report on outcomes.</p>
+          <p style="margin-top:8px;">It is a concrete, testable approach: create a certification framework for DSPs, pilot it in select settings, and report back to the Legislature on whether credentialing improves recruitment, retention, and service quality. Not a mandate. A pilot.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Certification Impact Card -->
+    <div class="card from-right" data-delay="400">
+      <div class="card-top amber"></div>
+      <div class="card-body">
+        <div class="fact-section">
+          <h3>How Certification Addresses Turnover</h3>
+          <p>Workers who can see a career structure stay longer. Organizations that have implemented NADSP credentialing have seen dramatic retention improvements.</p>
+          <div class="stat-row" style="margin-top:12px;">
+            <div class="stat-block" style="background:var(--alert);">
+              <span class="stat-value">~44%</span>
+              <span class="stat-label">National DSP Turnover</span>
+            </div>
+            <div class="stat-block" style="background:var(--cedar-dark);">
+              <span class="stat-value">7.7%</span>
+              <span class="stat-label">NADSP-Certified Turnover</span>
+            </div>
+          </div>
+          <p style="font-size:12px;color:#777;margin-top:8px;">Anne Carlsen Center data (CQL). Approximately 10+ states have formal DSP credentialing programs as of 2025. Estimated wage premium for certified DSPs: $1-$3/hour above uncertified peers.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- CNA Wage Context -->
+    <div class="card from-left" data-delay="450">
+      <div class="card-top cedar"></div>
+      <div class="card-body">
+        <div class="fact-section">
+          <h3>Wage Context</h3>
+          <p style="font-size:13px;">Minnesota CNA median wage: <strong class="mono">$20.65/hr</strong> (BLS May 2023). Minnesota DSP median wage: <strong class="mono">$16.22/hr</strong> (MN DHS 2024-25). DSPs provide comparable direct care but earn significantly less, contributing to recruitment challenges.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- District Connection Card -->
+    <div class="card from-bottom" data-delay="500">
+      <div class="card-top plum"></div>
+      <div class="card-body">
+        <div class="fact-section">
+          <h3>The District Connection</h3>
+          <p>SD-35 sits in Anoka County's outer-ring suburbs: Coon Rapids, Andover, Ramsey, and part of Anoka. These working-class and middle-class communities are heavily served by home and community-based providers — group homes, in-home services, county human services offices.</p>
+          <p style="margin-top:8px;">Anoka County has a large population of working-age adults with disabilities receiving waiver services. Workforce shortages directly affect whether those residents can stay in community settings or face institutional alternatives.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- MN DHS Quote Card -->
+    <div class="card full-width from-bottom" data-delay="550">
+      <div class="card-top lavender"></div>
+      <div class="card-body" style="background:var(--plum);border-radius:0 0 6px 6px;">
+        <div style="text-align:center;padding:20px 10px;">
+          <div style="font-family:Cambria,serif;font-size:22px;color:#fff;line-height:1.6;max-width:600px;margin:0 auto;">
+            "Minnesotans in every region of the state are struggling to recruit and retain direct support professionals."
+          </div>
+          <div style="margin-top:12px;font-size:12px;color:var(--lavender-muted);letter-spacing:1px;">
+            MINNESOTA DEPARTMENT OF HUMAN SERVICES
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resources Card -->
+    <div class="card full-width from-left" data-delay="600">
+      <div class="card-top amber"></div>
+      <div class="card-body">
+        <div class="fact-section">
+          <h3>Resources</h3>
+          <!-- VERIFY: URLs are institutional main domains as specified in software brief -->
+          <a href="https://mn.gov/dhs" target="_blank" class="resource-link">
+            <span class="resource-org">MN DHS Direct Support Workforce</span>
+            <span class="resource-url">mn.gov/dhs</span>
+          </a>
+          <a href="https://nadsp.org" target="_blank" class="resource-link">
+            <span class="resource-org">NADSP Credentialing</span>
+            <span class="resource-url">nadsp.org</span>
+          </a>
+          <a href="https://directcourse.com" target="_blank" class="resource-link">
+            <span class="resource-org">College of Direct Support</span>
+            <span class="resource-url">directcourse.com</span>
+          </a>
+          <a href="https://arcminnesota.org" target="_blank" class="resource-link">
+            <span class="resource-org">The Arc Minnesota — DSP Position Statement</span>
+            <span class="resource-url">arcminnesota.org</span>
+          </a>
+          <!-- VERIFY: Tiered wage schedule URL is a general reference -->
+          <a href="https://mn.gov/dhs" target="_blank" class="resource-link">
+            <span class="resource-org">MN DHS Tiered Wage Schedule</span>
+            <span class="resource-url">mn.gov/dhs (search: tiered wage schedule)</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════ FOOTER ═══════ -->
+<footer class="site-footer">
+  A resource for <strong>SD-35</strong> communities and direct care professionals. Built with AI.<br>
+  Data reflects Minnesota DHS policy and national DSP workforce research as of 2025.
+</footer>
+
+<!-- ═══════ FLOATING ACTION BUTTON ═══════ -->
+<div class="fab-container" id="fabContainer">
+  <div class="radial-menu" id="radialMenu">
+    <button class="radial-item" onclick="switchModule('hero')" title="Home">
+      <span class="radial-tooltip">Home</span>
+      <svg width="18" height="18" viewBox="0 0 18 18"><polygon points="9,2 16,10 13,10 13,16 5,16 5,10 2,10" fill="#fff"/></svg>
+    </button>
+    <button class="radial-item" onclick="switchModule('mod-career')" title="Career Path">
+      <span class="radial-tooltip">Career Path</span>
+      <svg width="18" height="18" viewBox="0 0 18 18"><path d="M2 14 L6 6 L10 10 L16 3" stroke="#fff" stroke-width="2" fill="none"/></svg>
+    </button>
+    <button class="radial-item" onclick="switchModule('mod-agency')" title="Agency Planner">
+      <span class="radial-tooltip">Agency Planner</span>
+      <svg width="18" height="18" viewBox="0 0 18 18"><rect x="2" y="8" width="4" height="8" fill="#fff"/><rect x="7" y="4" width="4" height="12" fill="#fff"/><rect x="12" y="1" width="4" height="15" fill="#fff"/></svg>
+    </button>
+    <button class="radial-item" onclick="switchModule('mod-facts')" title="Workforce Facts">
+      <span class="radial-tooltip">Workforce Facts</span>
+      <svg width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="7" stroke="#fff" stroke-width="2" fill="none"/><line x1="9" y1="5" x2="9" y2="10" stroke="#fff" stroke-width="2"/><circle cx="9" cy="13" r="1" fill="#fff"/></svg>
+    </button>
+  </div>
+  <button class="fab-btn" id="fabBtn" onclick="toggleFab()" aria-label="Navigation menu">
+    <svg width="24" height="24" viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18" stroke="#fff" stroke-width="2.5" stroke-linecap="round" style="display:none" class="fab-x1"/><line x1="18" y1="6" x2="6" y2="18" stroke="#fff" stroke-width="2.5" stroke-linecap="round" style="display:none" class="fab-x2"/><rect x="4" y="5" width="16" height="2" rx="1" fill="#fff" class="fab-bar1"/><rect x="4" y="11" width="16" height="2" rx="1" fill="#fff" class="fab-bar2"/><rect x="4" y="17" width="16" height="2" rx="1" fill="#fff" class="fab-bar3"/></svg>
+  </button>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   INITIALIZATION & LOCAL STORAGE
+   ═══════════════════════════════════════════════════════════ */
+
+const LS_KEY = 'abeler-dsp-tool';
+
+function saveState() {
+  const state = {
+    mod1: {
+      currentRole: document.getElementById('currentRole').value,
+      experience: document.getElementById('experience').value,
+      currentWage: document.getElementById('currentWage').value,
+      empSetting: document.getElementById('empSetting').value,
+      creds: getCheckedValues('cred'),
+      interests: getCheckedValues('interest')
+    },
+    mod2: {
+      empCount: document.getElementById('empCount').value,
+      avgWage: document.getElementById('avgWage').value,
+      turnoverRate: document.getElementById('turnoverRate').value,
+      replaceCost: document.getElementById('replaceCost').value,
+      trainBudget: document.getElementById('trainBudget').value,
+      certPct: document.getElementById('certPct').value,
+      targetTurnover: document.getElementById('targetTurnover').value,
+      seiuWage: document.getElementById('seiuWage').value
+    },
+    checklist: getChecklistState()
+  };
+  try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch(e) {}
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return;
+    const state = JSON.parse(raw);
+
+    if (state.mod1) {
+      document.getElementById('currentRole').value = state.mod1.currentRole || 'exploring';
+      document.getElementById('experience').value = state.mod1.experience || '';
+      document.getElementById('currentWage').value = state.mod1.currentWage || '';
+      document.getElementById('empSetting').value = state.mod1.empSetting || 'idd-group';
+      setCheckedValues('cred', state.mod1.creds || []);
+      setCheckedValues('interest', state.mod1.interests || []);
+    }
+    if (state.mod2) {
+      document.getElementById('empCount').value = state.mod2.empCount || 25;
+      document.getElementById('empCountDisplay').textContent = state.mod2.empCount || 25;
+      document.getElementById('avgWage').value = state.mod2.avgWage || 16.22;
+      document.getElementById('turnoverRate').value = state.mod2.turnoverRate || 44;
+      document.getElementById('replaceCost').value = state.mod2.replaceCost || 2500;
+      document.getElementById('trainBudget').value = state.mod2.trainBudget || 0;
+      document.getElementById('certPct').value = state.mod2.certPct || 25;
+      document.getElementById('targetTurnover').value = state.mod2.targetTurnover || 20;
+      document.getElementById('seiuWage').value = state.mod2.seiuWage || 'no';
+    }
+    if (state.checklist) {
+      restoreChecklistState(state.checklist);
+    }
+  } catch(e) {}
+}
+
+function getCheckedValues(name) {
+  return Array.from(document.querySelectorAll('input[name="'+name+'"]:checked')).map(c => c.value);
+}
+function setCheckedValues(name, vals) {
+  document.querySelectorAll('input[name="'+name+'"]').forEach(c => {
+    c.checked = vals.includes(c.value);
+  });
+}
+function getChecklistState() {
+  const items = document.querySelectorAll('#checklistContainer input[type="checkbox"]');
+  return Array.from(items).map(c => c.checked);
+}
+function restoreChecklistState(arr) {
+  const items = document.querySelectorAll('#checklistContainer input[type="checkbox"]');
+  items.forEach((c, i) => { if (arr[i] !== undefined) c.checked = arr[i]; });
+}
+
+// Auto-save on any input change
+document.addEventListener('input', saveState);
+document.addEventListener('change', saveState);
+
+/* ═══════════════════════════════════════════════════════════
+   FLOATING ACTION BUTTON & NAVIGATION
+   ═══════════════════════════════════════════════════════════ */
+
+let fabOpen = false;
+
+function toggleFab() {
+  fabOpen = !fabOpen;
+  const btn = document.getElementById('fabBtn');
+  const items = document.querySelectorAll('.radial-item');
+  const bars = btn.querySelectorAll('.fab-bar1,.fab-bar2,.fab-bar3');
+  const xs = btn.querySelectorAll('.fab-x1,.fab-x2');
+
+  if (fabOpen) {
+    btn.classList.add('open');
+    items.forEach((item, i) => {
+      setTimeout(() => item.classList.add('show'), i * 60);
+    });
+    bars.forEach(b => b.style.display = 'none');
+    xs.forEach(x => x.style.display = 'block');
+  } else {
+    btn.classList.remove('open');
+    items.forEach(item => item.classList.remove('show'));
+    bars.forEach(b => b.style.display = 'block');
+    xs.forEach(x => x.style.display = 'none');
+  }
+}
+
+function switchModule(id) {
+  // Close FAB
+  if (fabOpen) toggleFab();
+
+  // Handle hero
+  const hero = document.getElementById('hero');
+  const modules = document.querySelectorAll('.module');
+
+  if (id === 'hero') {
+    hero.style.display = 'flex';
+    modules.forEach(m => m.classList.remove('active'));
+  } else {
+    hero.style.display = 'none';
+    modules.forEach(m => {
+      m.classList.toggle('active', m.id === id);
+    });
+  }
+
+  // Re-trigger card animations for the active module
+  setTimeout(() => animateCards(), 50);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CARD CASCADE ANIMATION
+   ═══════════════════════════════════════════════════════════ */
+
+function animateCards() {
+  const cards = document.querySelectorAll('.module.active .card, .hero .card');
+  cards.forEach(card => {
+    card.classList.remove('visible');
+    const delay = parseInt(card.dataset.delay) || 0;
+    setTimeout(() => card.classList.add('visible'), delay);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MODULE 1: CAREER ROADMAP GENERATION
+   ═══════════════════════════════════════════════════════════ */
+
+const ROLE_LEVELS = {
+  'exploring': 0,
+  'new': 0,
+  'experienced': 1,
+  'lead': 2,
+  'supervisor': 3,
+  'coordinator': 4
+};
+
+const STATION_COLORS = {
+  completed: '#4A7C59',
+  current: '#D4860A',
+  future: '#8A9198',
+  currentGlow: '#D4860A'
+};
+
+function generateRoadmap() {
+  const role = document.getElementById('currentRole').value;
+  const exp = parseInt(document.getElementById('experience').value) || 0;
+  const wage = parseFloat(document.getElementById('currentWage').value) || 0;
+  const creds = getCheckedValues('cred');
+  const interests = getCheckedValues('interest');
+  const level = ROLE_LEVELS[role];
+
+  // Update SVG career track
+  updateCareerTrack(level);
+
+  // Build roadmap text
+  const results = document.getElementById('roadmapResults');
+  let html = '';
+
+  // Current position
+  const roleNames = ['Entry/New DSP', 'Experienced DSP', 'Senior/Lead DSP', 'Frontline Supervisor', 'Program Coordinator/Trainer'];
+  html += '<div class="roadmap-step completed"><span class="step-title">Current: ' + roleNames[level] + '</span>';
+  html += '<span class="step-detail">' + exp + ' months experience';
+  if (wage > 0) html += ' | $' + wage.toFixed(2) + '/hr';
+  html += '</span></div>';
+
+  // Next step recommendation
+  const nextCred = getNextCredential(creds, level);
+  html += '<div class="roadmap-step"><span class="step-title">Next Step: ' + nextCred.name + '</span>';
+  html += '<span class="step-detail">' + nextCred.description + '</span>';
+  html += '<span class="step-detail">Estimated time: ' + nextCred.time + ' | Approximate cost: ' + nextCred.cost + '</span>';
+  html += '<span class="step-detail">Wage impact: Certified DSPs earn an estimated $1-$3/hr more than non-certified peers</span>';
+  html += '<span class="step-detail" style="color:var(--lavender);">SF1062 relevance: ' + nextCred.sf1062 + '</span></div>';
+
+  // Two-year projection
+  const twoYear = getProjection(level, creds, 2, interests);
+  html += '<div class="roadmap-step"><span class="step-title">2-Year Projection</span>';
+  html += '<span class="step-detail">Target credentials: ' + twoYear.creds + '</span>';
+  html += '<span class="step-detail">Estimated wage range: ' + twoYear.wage + ' (Anoka County area; verify with employer)</span>';
+  html += '<span class="step-detail">Potential role: ' + twoYear.role + '</span></div>';
+
+  // Five-year projection
+  const fiveYear = getProjection(level, creds, 5, interests);
+  html += '<div class="roadmap-step"><span class="step-title">5-Year Projection</span>';
+  html += '<span class="step-detail">Target credentials: ' + fiveYear.creds + '</span>';
+  html += '<span class="step-detail">Estimated wage range: ' + fiveYear.wage + ' (Anoka County area; verify with employer)</span>';
+  html += '<span class="step-detail">Potential role: ' + fiveYear.role + '</span></div>';
+
+  // Interest-based note
+  if (interests.length > 0) {
+    const interestLabels = {
+      behavioral: 'behavioral support',
+      medical: 'medical/health care supports',
+      employment: 'employment supports',
+      community: 'community integration',
+      supervision: 'supervision/leadership',
+      training: 'training and mentoring'
+    };
+    const interestList = interests.map(i => interestLabels[i]).join(', ');
+    html += '<div style="margin-top:12px;font-size:13px;color:var(--lavender);padding:12px;background:var(--lavender-light);border-radius:4px;">';
+    html += 'Your interest areas (' + interestList + ') align with specialized roles as you advance. NADSP competency areas include these focus tracks.';
+    html += '</div>';
+  }
+
+  results.innerHTML = html;
+
+  // Show the roadmap card
+  const roadmapCard = document.getElementById('roadmapCard');
+  roadmapCard.style.display = 'block';
+  setTimeout(() => roadmapCard.classList.add('visible'), 50);
+
+  // Show wage context card if wage entered
+  if (wage > 0) {
+    const wageCard = document.getElementById('wageCard');
+    const wageCtx = document.getElementById('wageContext');
+    const gap = 16.22 - wage;
+    const cnaGap = 20.65 - wage;
+    let whtml = '<div style="font-size:14px;">';
+    whtml += '<div class="cost-line"><span>Your current wage</span><span class="cost-val">$' + wage.toFixed(2) + '/hr</span></div>';
+    whtml += '<div class="cost-line"><span>MN median DSP wage</span><span class="cost-val">$16.22/hr</span></div>';
+    whtml += '<div class="cost-line"><span>MN median CNA wage</span><span class="cost-val">$20.65/hr</span></div>';
+    if (gap > 0) {
+      whtml += '<div style="margin-top:8px;font-size:12px;color:var(--alert);">You are $' + gap.toFixed(2) + '/hr below the state DSP median.</div>';
+    } else if (gap < 0) {
+      whtml += '<div style="margin-top:8px;font-size:12px;color:var(--cedar);">You are $' + Math.abs(gap).toFixed(2) + '/hr above the state DSP median.</div>';
+    }
+    whtml += '<div style="margin-top:4px;font-size:11px;color:#999;">Sources: MN DHS 2024-25 (DSP), BLS May 2023 (CNA)</div>';
+    whtml += '</div>';
+    wageCtx.innerHTML = whtml;
+    wageCard.style.display = 'block';
+    setTimeout(() => wageCard.classList.add('visible'), 100);
+  }
+
+  saveState();
+}
+
+function updateCareerTrack(level) {
+  for (let i = 0; i < 5; i++) {
+    const circle = document.getElementById('st' + i);
+    if (i < level) {
+      circle.setAttribute('fill', STATION_COLORS.completed);
+    } else if (i === level) {
+      circle.setAttribute('fill', STATION_COLORS.current);
+      circle.setAttribute('r', '22');
+    } else {
+      circle.setAttribute('fill', STATION_COLORS.future);
+      circle.setAttribute('r', '18');
+    }
+  }
+  // Add glow to next station
+  if (level < 4) {
+    const next = document.getElementById('st' + (level + 1));
+    next.setAttribute('stroke', STATION_COLORS.currentGlow);
+    next.setAttribute('stroke-width', '3');
+  }
+}
+
+function getNextCredential(creds, level) {
+  if (!creds.includes('orientation') && !creds.includes('cds') && !creds.includes('dsp1')) {
+    return {
+      name: '40-Hour MN DHS Orientation + CDS Certificate',
+      description: 'Complete the required orientation training, then pursue the College of Direct Support online curriculum.',
+      time: '40 hours orientation + self-paced CDS modules',
+      cost: 'Orientation typically employer-paid ($100 stipend available); CDS ~$150 (often employer-paid)',
+      sf1062: 'Establishes the training foundation that the certification pilot builds upon.'
+    };
+  }
+  if (!creds.includes('dsp1')) {
+    return {
+      name: 'NADSP DSP-I Credential',
+      description: 'Entry-level national credential. Document competency areas through portfolio evidence.',
+      time: 'Varies; typically 3-6 months of documentation alongside work',
+      cost: '~$100 application fee (verify at nadsp.org)',
+      sf1062: 'DSP-I would be recognized under the certification pilot framework.'
+    };
+  }
+  if (!creds.includes('dsp2')) {
+    return {
+      name: 'NADSP DSP-II Credential',
+      description: 'Intermediate credential demonstrating deeper competency application.',
+      time: 'Typically 6-12 months beyond DSP-I',
+      cost: '~$100 application fee (verify at nadsp.org)',
+      sf1062: 'Builds the credentialing ladder that SF1062 seeks to formalize.'
+    };
+  }
+  if (!creds.includes('dsp3') && level < 3) {
+    return {
+      name: 'NADSP DSP-III Credential',
+      description: 'Advanced credential with portfolio-based assessment across all competency areas.',
+      time: 'Typically 12+ months beyond DSP-II',
+      cost: '~$100 application fee (verify at nadsp.org)',
+      sf1062: 'Represents the top tier of DSP professional recognition in the pilot framework.'
+    };
+  }
+  if (!creds.includes('fls') && level >= 2) {
+    return {
+      name: 'Frontline Supervisor Certification (CFSM)',
+      description: 'NADSP supervisory track covering competency-based performance review and team leadership.',
+      time: 'Varies by program; includes coursework and applied leadership documentation',
+      cost: 'Verify current fee at nadsp.org; employer-sponsored programs common',
+      sf1062: 'Agencies need trained supervisors to support credentialed DSPs — a key component of the pilot ecosystem.'
+    };
+  }
+  return {
+    name: 'Advanced Leadership / Program Development',
+    description: 'With your credentials, focus on organizational leadership: program coordination, training development, or quality assurance roles.',
+    time: 'Ongoing professional development',
+    cost: 'Varies; many employers support continuing education',
+    sf1062: 'Experienced credentialed leaders are essential to mentoring new DSPs entering the certification pipeline.'
+  };
+}
+
+function getProjection(level, creds, years, interests) {
+  const hasSupervisionInterest = interests.includes('supervision') || interests.includes('training');
+
+  if (years === 2) {
+    if (level <= 1) {
+      return {
+        creds: 'CDS Certificate, NADSP DSP-I (and working toward DSP-II)',
+        wage: '$17-$19/hr (estimate; verify with employer)',
+        role: 'Experienced DSP with specialization track'
+      };
+    } else if (level === 2) {
+      return {
+        creds: 'NADSP DSP-II or DSP-III, possible Frontline Supervisor track',
+        wage: '$18-$21/hr (estimate; verify with employer)',
+        role: hasSupervisionInterest ? 'Lead DSP moving toward Supervisor' : 'Senior DSP / Specialist'
+      };
+    } else {
+      return {
+        creds: 'Frontline Supervisor Certification, NADSP DSP-III if not held',
+        wage: '$20-$24/hr (estimate; verify with employer)',
+        role: 'Supervisor or Program Specialist'
+      };
+    }
+  }
+
+  // 5-year
+  if (level <= 1) {
+    return {
+      creds: 'NADSP DSP-II or DSP-III, potentially Frontline Supervisor',
+      wage: '$19-$23/hr (estimate; verify with employer)',
+      role: hasSupervisionInterest ? 'Frontline Supervisor or Training Coordinator' : 'Senior/Lead DSP with advanced certification'
+    };
+  } else if (level === 2) {
+    return {
+      creds: 'NADSP DSP-III, Frontline Supervisor Certification',
+      wage: '$21-$26/hr (estimate; verify with employer)',
+      role: 'Program Coordinator, Training Manager, or Quality Specialist'
+    };
+  } else {
+    return {
+      creds: 'Full NADSP credential stack, CFSM, organizational leadership development',
+      wage: '$24-$30/hr (estimate; verify with employer)',
+      role: 'Program Director, Workforce Development Coordinator, or Training Director'
+    };
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MODULE 2: AGENCY COST CALCULATOR
+   ═══════════════════════════════════════════════════════════ */
+
+let agencyChart = null;
+
+function runAgencyCalc() {
+  const empCount = parseInt(document.getElementById('empCount').value) || 25;
+  const avgWage = parseFloat(document.getElementById('avgWage').value) || 16.22;
+  const turnoverRate = parseFloat(document.getElementById('turnoverRate').value) || 44;
+  const replaceCost = parseFloat(document.getElementById('replaceCost').value) || 2500;
+  const certPct = parseFloat(document.getElementById('certPct').value) || 25;
+  const targetTurnover = parseFloat(document.getElementById('targetTurnover').value) || 20;
+
+  // Current cost of turnover
+  const annualTurnoverCount = Math.floor(empCount * turnoverRate / 100);
+  const annualTurnoverCost = annualTurnoverCount * replaceCost;
+
+  // Credentialing investment
+  const cdsAccess = 150;        // per employee
+  const credentialFee = 100;    // NADSP per application
+  const studyHours = 20;
+  const studyTimeCost = studyHours * avgWage;
+  const perEmployeeCost = cdsAccess + credentialFee + studyTimeCost;
+  const certifiedCount = Math.round(empCount * certPct / 100);
+  const totalInvestment = perEmployeeCost * certifiedCount;
+
+  // Projected turnover after program
+  const nonCertifiedCount = empCount - certifiedCount;
+  const projectedTurnover = Math.floor(
+    (certifiedCount * targetTurnover / 100) +
+    (nonCertifiedCount * turnoverRate / 100)
+  );
+  const projectedTurnoverCost = projectedTurnover * replaceCost;
+
+  // Net savings
+  const netSavings = annualTurnoverCost - projectedTurnoverCost - totalInvestment;
+
+  // Render cost panels
+  const panels = document.getElementById('costPanels');
+  panels.innerHTML = `
+    <div class="cost-panel current">
+      <h3 style="color:var(--alert);">Current Cost of Turnover</h3>
+      <div class="cost-line"><span>Employees</span><span class="cost-val">${empCount}</span></div>
+      <div class="cost-line"><span>Turnover rate</span><span class="cost-val">${turnoverRate}%</span></div>
+      <div class="cost-line"><span>Annual departures</span><span class="cost-val">${annualTurnoverCount}</span></div>
+      <div class="cost-line"><span>Cost per replacement</span><span class="cost-val">$${replaceCost.toLocaleString()}</span></div>
+      <div class="cost-line" style="border-bottom:2px solid var(--alert);font-weight:700;">
+        <span>Annual turnover cost</span>
+        <span class="cost-val" style="color:var(--alert);font-size:18px;">$${annualTurnoverCost.toLocaleString()}</span>
+      </div>
+      <p style="font-size:11px;color:#999;margin-top:8px;">Money spent finding and onboarding new people rather than developing existing staff.</p>
+    </div>
+    <div class="cost-panel projected">
+      <h3 style="color:var(--cedar);">Projected: With Credential Program</h3>
+      <div class="cost-line"><span>Staff pursuing credentials</span><span class="cost-val">${certifiedCount} (${certPct}%)</span></div>
+      <div class="cost-line"><span>CDS access/employee</span><span class="cost-val">$${cdsAccess}</span></div>
+      <div class="cost-line"><span>NADSP credential fee</span><span class="cost-val">$${credentialFee}</span></div>
+      <div class="cost-line"><span>Paid study time (${studyHours}hrs x $${avgWage.toFixed(2)})</span><span class="cost-val">$${studyTimeCost.toFixed(0)}</span></div>
+      <div class="cost-line"><span>Per-employee annual cost</span><span class="cost-val">$${perEmployeeCost.toFixed(0)}</span></div>
+      <div class="cost-line" style="font-weight:700;">
+        <span>Total credentialing investment</span>
+        <span class="cost-val" style="color:var(--lavender);font-size:16px;">$${totalInvestment.toLocaleString()}</span>
+      </div>
+      <div class="cost-line"><span>Certified staff turnover target</span><span class="cost-val">${targetTurnover}%</span></div>
+      <div class="cost-line"><span>Projected departures</span><span class="cost-val">${projectedTurnover}</span></div>
+      <div class="cost-line" style="border-bottom:2px solid var(--cedar);font-weight:700;">
+        <span>Projected turnover cost</span>
+        <span class="cost-val" style="color:var(--cedar);font-size:16px;">$${projectedTurnoverCost.toLocaleString()}</span>
+      </div>
+    </div>
+  `;
+
+  // Net savings box
+  const savingsBox = document.getElementById('netSavingsBox');
+  const isPositive = netSavings >= 0;
+  savingsBox.innerHTML = `
+    <div class="net-savings ${isPositive ? 'positive' : 'negative'}">
+      <div class="savings-label">Projected Annual Net Savings</div>
+      <div class="savings-value" style="color:${isPositive ? 'var(--cedar-dark)' : 'var(--amber)'};">
+        ${isPositive ? '' : '-'}$${Math.abs(netSavings).toLocaleString()}
+      </div>
+      ${!isPositive ? '<div class="savings-note">Investment may take 2+ years to recover; factor long-term retention gains.</div>' : '<div class="savings-note">Annual savings from reduced turnover, net of credentialing costs.</div>'}
+    </div>
+  `;
+
+  // Chart
+  renderChart(annualTurnoverCost, projectedTurnoverCost, totalInvestment);
+
+  // Show cost card
+  const costCard = document.getElementById('costCard');
+  costCard.style.display = 'block';
+  setTimeout(() => costCard.classList.add('visible'), 50);
+
+  saveState();
+}
+
+function renderChart(currentCost, projectedCost, investment) {
+  const canvas = document.getElementById('agencyChart');
+  if (!canvas) return;
+
+  // Check if Chart.js loaded
+  if (typeof Chart === 'undefined') {
+    document.getElementById('chartFallback').style.display = 'block';
+    document.getElementById('fallbackBody').innerHTML = `
+      <tr><td style="padding:8px;border-bottom:1px solid #ddd;">Current Annual Turnover Cost</td><td style="padding:8px;text-align:right;border-bottom:1px solid #ddd;font-family:Consolas,monospace;">$${currentCost.toLocaleString()}</td></tr>
+      <tr><td style="padding:8px;border-bottom:1px solid #ddd;">Projected Turnover Cost (with program)</td><td style="padding:8px;text-align:right;border-bottom:1px solid #ddd;font-family:Consolas,monospace;">$${projectedCost.toLocaleString()}</td></tr>
+      <tr><td style="padding:8px;">Annual Credentialing Investment</td><td style="padding:8px;text-align:right;font-family:Consolas,monospace;">$${investment.toLocaleString()}</td></tr>
+    `;
+    canvas.style.display = 'none';
+    return;
+  }
+
+  if (agencyChart) agencyChart.destroy();
+
+  agencyChart = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: ['Current Turnover Cost', 'Projected Turnover Cost', 'Credentialing Investment'],
+      datasets: [{
+        data: [currentCost, projectedCost, investment],
+        backgroundColor: ['#B81C1C', '#4A7C59', '#7b6fa6'],
+        borderRadius: 4,
+        barPercentage: 0.6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              return '$' + ctx.raw.toLocaleString();
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: function(value) { return '$' + value.toLocaleString(); },
+            font: { family: 'Consolas, monospace', size: 11 }
+          },
+          grid: { color: 'rgba(123,111,166,0.1)' }
+        },
+        x: {
+          ticks: {
+            font: { family: "'Franklin Gothic Medium', sans-serif", size: 11 },
+            maxRotation: 0
+          },
+          grid: { display: false }
+        }
+      }
+    }
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SF1062 READINESS CHECKLIST
+   ═══════════════════════════════════════════════════════════ */
+
+const CHECKLIST_ITEMS = [
+  'Written job descriptions aligned to NADSP competency areas',
+  'Orientation protocol (40 hours; MN DHS compliant)',
+  'Designated training coordinator or mentor DSP',
+  'CDS or equivalent training access for all employees',
+  'Wage schedule that rewards credential attainment',
+  'Supervisor trained in competency-based performance review',
+  'Documentation system for tracking credential progress',
+  'Signed employee development agreements'
+];
+
+function buildChecklist() {
+  const container = document.getElementById('checklistContainer');
+  container.innerHTML = CHECKLIST_ITEMS.map((item, i) =>
+    `<div class="checklist-item" id="cli-${i}">
+      <input type="checkbox" id="check-${i}" onchange="updateChecklistItem(${i})">
+      <label for="check-${i}">${item}</label>
+    </div>`
+  ).join('');
+}
+
+function updateChecklistItem(i) {
+  const el = document.getElementById('cli-' + i);
+  const cb = document.getElementById('check-' + i);
+  el.classList.toggle('checked', cb.checked);
+  saveState();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SLIDER DISPLAY UPDATE
+   ═══════════════════════════════════════════════════════════ */
+
+document.getElementById('empCount').addEventListener('input', function() {
+  document.getElementById('empCountDisplay').textContent = this.value;
+});
+
+/* ═══════════════════════════════════════════════════════════
+   CREDENTIAL CARD TOGGLE
+   ═══════════════════════════════════════════════════════════ */
+
+function toggleCred(header) {
+  const card = header.parentElement;
+  card.classList.toggle('open');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   INITIALIZATION
+   ═══════════════════════════════════════════════════════════ */
+
+document.addEventListener('DOMContentLoaded', function() {
+  buildChecklist();
+  loadState();
+
+  // Initial card animation
+  setTimeout(animateCards, 200);
+
+  // Animate hero on scroll for module cards
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.card').forEach(card => observer.observe(card));
+});
+
+</script>
+</body>
+</html>

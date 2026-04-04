@@ -1,0 +1,1613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SF2286 Corridor Decoder — Senator Doron Clark, SD-60</title>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Two-panel split — left is interactive SVG corridor diagram (40%), right is compliance detail (60%). Asymmetric, purposeful.
+   2. Navigation: Click zones on the SVG corridor diagram to navigate between modules. Small legend in corner. No tabs.
+   3. Typography: Franklin Gothic Medium for headers, Tahoma for body, Lucida Console for data/numbers — per mandatory assignment.
+   4. Hero moment: Large "UNITS REQUIRED: XXX" figure at 72px in coral on slate background — dominates right panel.
+   5. Color strategy: #5 Cool dominant — slate (#455a64) as primary environment, coral (#e57373) as warm accent for attention. Navy (#1a237e) for legal text.
+   6. Entry experience: SVG corridor cross-section draws itself left-to-right, buildings rise from ground, labels fade in. Tool-first, no intro paragraph.
+   Additional: No bordered callout boxes. No emoji. Status uses CSS circles + text. Dense data zones contrast with spacious hero areas.
+*/
+
+:root {
+  --coral: #e57373;
+  --coral-light: #ffcdd2;
+  --coral-dark: #c62828;
+  --slate: #455a64;
+  --slate-light: #607d8b;
+  --slate-dark: #263238;
+  --near-white: #fafafa;
+  --navy: #1a237e;
+  --success: #2D6A4F;
+  --warning: #D97706;
+  --alert: #C1121F;
+  --text: #1C1C1C;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: Tahoma, Geneva, sans-serif;
+  background: var(--slate-dark);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4 {
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', sans-serif;
+  letter-spacing: 0.5px;
+}
+
+.data-value, .mono {
+  font-family: 'Lucida Console', Monaco, monospace;
+}
+
+/* ── MAIN LAYOUT ── */
+.app-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+.left-panel {
+  width: 40%;
+  min-width: 380px;
+  background: var(--slate);
+  color: var(--near-white);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow-y: auto;
+}
+
+.right-panel {
+  width: 60%;
+  background: var(--near-white);
+  overflow-y: auto;
+  position: relative;
+}
+
+/* ── LEFT PANEL: SVG CORRIDOR ── */
+.corridor-header {
+  padding: 20px 24px 8px;
+  background: var(--slate-dark);
+}
+
+.corridor-header h1 {
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: var(--coral);
+  font-weight: 400;
+}
+
+.corridor-header .bill-tag {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 11px;
+  color: var(--slate-light);
+  margin-top: 4px;
+  letter-spacing: 1px;
+}
+
+.svg-container {
+  flex: 0 0 auto;
+  padding: 16px;
+  position: relative;
+}
+
+.svg-container svg {
+  width: 100%;
+  height: auto;
+  cursor: pointer;
+}
+
+/* SVG draw animation */
+.draw-line {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: drawIn 1.8s ease-out forwards;
+}
+
+.draw-line-delay {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: drawIn 1.5s ease-out 0.4s forwards;
+}
+
+@keyframes drawIn {
+  to { stroke-dashoffset: 0; }
+}
+
+.building-rise {
+  transform: scaleY(0);
+  transform-origin: bottom;
+  animation: riseUp 0.8s ease-out forwards;
+}
+
+.building-rise-1 { animation-delay: 0.6s; }
+.building-rise-2 { animation-delay: 0.9s; }
+.building-rise-3 { animation-delay: 1.2s; }
+.building-rise-4 { animation-delay: 1.5s; }
+.building-rise-5 { animation-delay: 1.0s; }
+
+@keyframes riseUp {
+  to { transform: scaleY(1); }
+}
+
+.fade-label {
+  opacity: 0;
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+.fade-label-1 { animation-delay: 1.6s; }
+.fade-label-2 { animation-delay: 1.9s; }
+.fade-label-3 { animation-delay: 2.2s; }
+.fade-label-4 { animation-delay: 2.5s; }
+.fade-label-5 { animation-delay: 2.0s; }
+
+@keyframes fadeIn {
+  to { opacity: 1; }
+}
+
+/* SVG zone hover */
+.zone-clickable {
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.zone-clickable:hover {
+  opacity: 0.8;
+}
+
+/* Legend */
+.legend {
+  padding: 10px 24px;
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  color: #b0bec5;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.legend-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* Module nav in left panel */
+.module-nav {
+  padding: 12px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.module-nav-btn {
+  background: transparent;
+  border: 1px solid var(--slate-light);
+  color: var(--near-white);
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', sans-serif;
+  font-size: 13px;
+  padding: 10px 16px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  position: relative;
+  overflow: hidden;
+}
+
+.module-nav-btn::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  background: var(--coral);
+  transition: width 0.2s;
+}
+
+.module-nav-btn:hover {
+  border-color: var(--coral);
+  color: #fff;
+}
+
+.module-nav-btn:hover::before {
+  width: 4px;
+}
+
+.module-nav-btn.active {
+  background: var(--coral);
+  border-color: var(--coral);
+  color: #fff;
+}
+
+.module-nav-btn.active::before {
+  width: 0;
+}
+
+.module-nav-btn .btn-num {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 11px;
+  margin-right: 8px;
+  opacity: 0.7;
+}
+
+/* Left panel context info */
+.context-block {
+  padding: 16px 24px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #b0bec5;
+  flex: 1;
+}
+
+.context-block strong {
+  color: var(--coral-light);
+}
+
+.infra-note {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  font-size: 11.5px;
+  color: #78909c;
+  line-height: 1.5;
+}
+
+/* ── RIGHT PANEL ── */
+.module-view {
+  display: none;
+  min-height: 100%;
+}
+
+.module-view.active {
+  display: block;
+}
+
+/* Hero banner */
+.hero-banner {
+  background: var(--slate);
+  padding: 40px 36px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-banner::after {
+  content: '';
+  position: absolute;
+  right: -30px;
+  top: -30px;
+  width: 200px;
+  height: 200px;
+  background: var(--coral);
+  opacity: 0.08;
+  border-radius: 50%;
+}
+
+.hero-label {
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', sans-serif;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: var(--slate-light);
+  margin-bottom: 8px;
+}
+
+.hero-number {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 72px;
+  font-weight: bold;
+  color: var(--coral);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.hero-sub {
+  font-size: 14px;
+  color: #b0bec5;
+  max-width: 380px;
+  line-height: 1.4;
+}
+
+/* Module 1 - Eligibility */
+.checker-form {
+  padding: 28px 36px;
+}
+
+.step-group {
+  margin-bottom: 28px;
+}
+
+.step-num {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 11px;
+  color: var(--slate-light);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 6px;
+}
+
+.step-title {
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', sans-serif;
+  font-size: 17px;
+  color: var(--slate-dark);
+  margin-bottom: 12px;
+}
+
+.form-row {
+  margin-bottom: 14px;
+}
+
+.form-row label {
+  display: block;
+  font-size: 13px;
+  color: var(--text);
+  margin-bottom: 5px;
+  line-height: 1.4;
+}
+
+.radio-group {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.radio-group label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 6px 12px;
+  border: 1px solid #cfd8dc;
+  background: #fff;
+  transition: all 0.15s;
+}
+
+.radio-group label:hover {
+  border-color: var(--coral);
+}
+
+.radio-group input[type="radio"] {
+  accent-color: var(--coral);
+}
+
+.radio-group input[type="radio"]:checked + span {
+  font-weight: 600;
+}
+
+input[type="number"], select {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 14px;
+  padding: 8px 12px;
+  border: 1px solid #b0bec5;
+  background: #fff;
+  color: var(--text);
+  width: 120px;
+  transition: border-color 0.15s;
+}
+
+input[type="number"]:focus, select:focus {
+  outline: none;
+  border-color: var(--coral);
+  box-shadow: 0 0 0 2px rgba(229, 115, 115, 0.15);
+}
+
+.help-text {
+  font-size: 11.5px;
+  color: var(--slate-light);
+  line-height: 1.5;
+  margin-top: 6px;
+  max-width: 520px;
+}
+
+.zoning-help {
+  margin-top: 10px;
+  padding: 12px 16px;
+  background: var(--slate);
+  color: var(--near-white);
+  font-size: 12px;
+  line-height: 1.6;
+  display: none;
+}
+
+.zoning-help a {
+  color: var(--coral-light);
+}
+
+/* Verdict */
+.verdict-area {
+  padding: 28px 36px;
+  background: var(--slate-dark);
+  color: var(--near-white);
+  display: none;
+}
+
+.verdict-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.status-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot.green { background: var(--success); }
+.status-dot.red { background: var(--alert); }
+.status-dot.yellow { background: var(--warning); }
+
+.verdict-label {
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', sans-serif;
+  font-size: 22px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.verdict-label.green { color: var(--success); }
+.verdict-label.red { color: var(--alert); }
+.verdict-label.yellow { color: var(--warning); }
+
+.verdict-text {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: #b0bec5;
+  max-width: 540px;
+}
+
+.verdict-advance {
+  margin-top: 16px;
+  background: var(--coral);
+  border: none;
+  color: #fff;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', sans-serif;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  padding: 10px 24px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.verdict-advance:hover {
+  background: var(--coral-dark);
+}
+
+/* Load example button */
+.load-example-btn {
+  background: transparent;
+  border: 1px solid var(--slate-light);
+  color: var(--slate);
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', sans-serif;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-bottom: 20px;
+}
+
+.load-example-btn:hover {
+  border-color: var(--coral);
+  color: var(--coral);
+}
+
+/* ── MODULE 2: STANDARDS TABLE ── */
+.standards-area {
+  padding: 28px 36px;
+}
+
+.standards-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.standards-table thead {
+  background: var(--slate);
+  color: var(--near-white);
+}
+
+.standards-table th {
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', sans-serif;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 400;
+}
+
+.standards-table td {
+  padding: 12px;
+  vertical-align: top;
+  border-bottom: 1px solid #eceff1;
+  line-height: 1.5;
+}
+
+.standards-table tr:hover td {
+  background: #f5f5f5;
+}
+
+.std-category {
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', sans-serif;
+  font-weight: 600;
+  color: var(--slate-dark);
+  font-size: 13px;
+}
+
+.std-input-cell input[type="number"] {
+  width: 90px;
+  font-size: 13px;
+  padding: 5px 8px;
+}
+
+.std-input-cell select {
+  width: 90px;
+  font-size: 12px;
+  padding: 5px 6px;
+}
+
+.conflict-flag {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+.conflict-flag .status-dot {
+  width: 10px;
+  height: 10px;
+  margin-top: 3px;
+}
+
+.conflict-text {
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.conflict-text.alert { color: var(--alert); }
+.conflict-text.success { color: var(--success); }
+.conflict-text.warn { color: var(--warning); }
+
+/* Summary */
+.summary-band {
+  background: var(--slate);
+  padding: 24px 36px;
+  color: var(--near-white);
+  margin-top: 20px;
+}
+
+.summary-band h3 {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--coral);
+  margin-bottom: 12px;
+}
+
+.summary-list {
+  list-style: none;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.summary-list li {
+  padding-left: 16px;
+  position: relative;
+  margin-bottom: 4px;
+}
+
+.summary-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.summary-list li.conflict::before { background: var(--alert); }
+.summary-list li.consistent::before { background: var(--success); }
+.summary-list li.verify::before { background: var(--warning); }
+
+.legal-note {
+  margin-top: 16px;
+  font-size: 11px;
+  color: var(--navy);
+  background: rgba(26, 35, 126, 0.06);
+  padding: 12px 16px;
+  line-height: 1.6;
+  font-family: Tahoma, Geneva, sans-serif;
+}
+
+/* ── MODULE 3: COMMUNITY CONTEXT ── */
+.audience-selector {
+  padding: 20px 36px;
+  background: var(--slate);
+  display: flex;
+  gap: 8px;
+}
+
+.audience-btn {
+  background: transparent;
+  border: 1px solid var(--slate-light);
+  color: #b0bec5;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', sans-serif;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.audience-btn:hover {
+  border-color: var(--coral);
+  color: #fff;
+}
+
+.audience-btn.active {
+  background: var(--coral);
+  border-color: var(--coral);
+  color: #fff;
+}
+
+.narrative-area {
+  padding: 28px 36px;
+}
+
+.narrative-section {
+  margin-bottom: 24px;
+}
+
+.narrative-section h3 {
+  font-size: 15px;
+  color: var(--slate-dark);
+  margin-bottom: 8px;
+}
+
+.narrative-section p, .narrative-section li {
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--text);
+}
+
+.narrative-section ul {
+  margin-left: 18px;
+  margin-top: 6px;
+}
+
+.narrative-section ul li {
+  margin-bottom: 4px;
+}
+
+.print-btn {
+  background: var(--slate);
+  border: none;
+  color: #fff;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', sans-serif;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: background 0.15s;
+  margin-top: 12px;
+}
+
+.print-btn:hover {
+  background: var(--coral);
+}
+
+/* Footer */
+.app-footer {
+  padding: 16px 36px;
+  font-size: 10.5px;
+  color: var(--navy);
+  line-height: 1.5;
+  border-top: 1px solid #eceff1;
+}
+
+/* ── MOBILE ── */
+@media (max-width: 768px) {
+  .app-container {
+    flex-direction: column;
+  }
+  .left-panel {
+    width: 100%;
+    min-width: auto;
+  }
+  .right-panel {
+    width: 100%;
+  }
+  .hero-number {
+    font-size: 48px;
+  }
+  .hero-banner {
+    padding: 28px 20px;
+  }
+  .checker-form, .standards-area, .narrative-area {
+    padding: 20px;
+  }
+  .audience-selector {
+    padding: 16px 20px;
+    flex-wrap: wrap;
+  }
+  .standards-table {
+    font-size: 12px;
+  }
+  .standards-table td, .standards-table th {
+    padding: 8px 6px;
+  }
+}
+
+/* ── PRINT ── */
+@media print {
+  body { background: #fff; color: #000; }
+  .left-panel, .module-nav, .load-example-btn, .verdict-advance, .print-btn,
+  .audience-selector, .checker-form, .corridor-header, .svg-container, .legend,
+  .context-block { display: none !important; }
+  .app-container { display: block; }
+  .right-panel { width: 100%; }
+  .module-view { display: block !important; }
+  .module-view#module1 { display: none !important; }
+  .hero-banner { background: #eee; -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 20px; }
+  .hero-number { font-size: 36px; color: #333; }
+  .standards-table thead { background: #333; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .summary-band { background: #f0f0f0; -webkit-print-color-adjust: exact; print-color-adjust: exact; color: #000; }
+  .summary-band h3 { color: #333; }
+  .verdict-area { background: #eee; color: #000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .verdict-text { color: #333; }
+  .legal-note { background: #f8f8f8; color: #000; }
+  .app-footer { color: #333; }
+  .narrative-area { padding: 20px 0; }
+}
+</style>
+</head>
+<body>
+
+<div class="app-container">
+  <!-- ════ LEFT PANEL ════ -->
+  <div class="left-panel">
+    <div class="corridor-header">
+      <h1>Corridor Decoder</h1>
+      <div class="bill-tag">SF2286 // SD-60 // Sen. Doron Clark</div>
+    </div>
+
+    <div class="svg-container">
+      <svg viewBox="0 0 400 260" xmlns="http://www.w3.org/2000/svg" id="corridorSVG">
+        <!-- Ground line -->
+        <line x1="0" y1="200" x2="400" y2="200" stroke="#78909c" stroke-width="2" class="draw-line"/>
+
+        <!-- Left sidewalk -->
+        <rect x="10" y="190" width="60" height="10" fill="#90a4ae" class="draw-line-delay" style="stroke-dasharray:0;stroke-dashoffset:0;opacity:0;animation:fadeIn 0.5s ease-out 0.5s forwards"/>
+
+        <!-- Left setback zone (clickable) -->
+        <rect x="10" y="80" width="60" height="110" fill="rgba(229,115,115,0.15)" stroke="var(--coral)" stroke-width="1" stroke-dasharray="4,3" class="zone-clickable" data-zone="setback" opacity="0" style="animation:fadeIn 0.5s ease-out 1.8s forwards"/>
+
+        <!-- Building 1 - existing low (left) -->
+        <rect x="15" y="140" width="50" height="60" fill="#546e7a" class="building-rise building-rise-1"/>
+        <rect x="22" y="150" width="12" height="15" fill="rgba(255,255,255,0.2)" class="building-rise building-rise-1"/>
+        <rect x="40" y="150" width="12" height="15" fill="rgba(255,255,255,0.2)" class="building-rise building-rise-1"/>
+
+        <!-- Building 2 - new tall (left, proposed) -->
+        <rect x="15" y="50" width="50" height="150" fill="var(--coral)" opacity="0.7" class="building-rise building-rise-2" stroke="var(--coral)" stroke-width="1"/>
+        <rect x="22" y="60" width="12" height="12" fill="rgba(255,255,255,0.3)" class="building-rise building-rise-2"/>
+        <rect x="40" y="60" width="12" height="12" fill="rgba(255,255,255,0.3)" class="building-rise building-rise-2"/>
+        <rect x="22" y="78" width="12" height="12" fill="rgba(255,255,255,0.3)" class="building-rise building-rise-2"/>
+        <rect x="40" y="78" width="12" height="12" fill="rgba(255,255,255,0.3)" class="building-rise building-rise-2"/>
+        <rect x="22" y="96" width="12" height="12" fill="rgba(255,255,255,0.3)" class="building-rise building-rise-2"/>
+        <rect x="40" y="96" width="12" height="12" fill="rgba(255,255,255,0.3)" class="building-rise building-rise-2"/>
+        <rect x="22" y="114" width="12" height="12" fill="rgba(255,255,255,0.3)" class="building-rise building-rise-2"/>
+        <rect x="40" y="114" width="12" height="12" fill="rgba(255,255,255,0.3)" class="building-rise building-rise-2"/>
+        <!-- Ground floor retail -->
+        <rect x="15" y="170" width="50" height="30" fill="#455a64" class="building-rise building-rise-2"/>
+        <rect x="20" y="175" width="40" height="18" fill="rgba(229,115,115,0.4)" class="building-rise building-rise-2"/>
+
+        <!-- Street lanes -->
+        <rect x="80" y="190" width="240" height="10" fill="#37474f"/>
+        <line x1="200" y1="192" x2="200" y2="198" stroke="#ffd54f" stroke-width="1" stroke-dasharray="8,6" class="draw-line"/>
+        <!-- Lane markings -->
+        <rect x="90" y="192" width="30" height="0.8" fill="rgba(255,255,255,0.3)"/>
+        <rect x="280" y="192" width="30" height="0.8" fill="rgba(255,255,255,0.3)"/>
+
+        <!-- Right sidewalk -->
+        <rect x="330" y="190" width="60" height="10" fill="#90a4ae" class="draw-line-delay" style="stroke-dasharray:0;stroke-dashoffset:0;opacity:0;animation:fadeIn 0.5s ease-out 0.5s forwards"/>
+
+        <!-- Right setback zone -->
+        <rect x="330" y="100" width="60" height="90" fill="rgba(229,115,115,0.15)" stroke="var(--coral)" stroke-width="1" stroke-dasharray="4,3" class="zone-clickable" data-zone="setback" opacity="0" style="animation:fadeIn 0.5s ease-out 1.8s forwards"/>
+
+        <!-- Building 3 - existing right -->
+        <rect x="335" y="130" width="50" height="70" fill="#546e7a" class="building-rise building-rise-3"/>
+        <rect x="342" y="140" width="12" height="15" fill="rgba(255,255,255,0.2)" class="building-rise building-rise-3"/>
+        <rect x="362" y="140" width="12" height="15" fill="rgba(255,255,255,0.2)" class="building-rise building-rise-3"/>
+
+        <!-- Height markers -->
+        <line x1="70" y1="200" x2="70" y2="50" stroke="var(--coral)" stroke-width="0.8" stroke-dasharray="3,3" class="fade-label fade-label-2"/>
+        <line x1="70" y1="125" x2="70" y2="125" stroke="var(--warning)" stroke-width="0.8" class="fade-label fade-label-2"/>
+
+        <!-- Parking zone (below street) -->
+        <rect x="90" y="208" width="220" height="22" fill="rgba(229,115,115,0.1)" stroke="var(--coral)" stroke-width="0.5" stroke-dasharray="3,2" class="zone-clickable" data-zone="parking" opacity="0" style="animation:fadeIn 0.5s ease-out 2.2s forwards"/>
+
+        <!-- FAR zone overlay (clickable) -->
+        <rect x="12" y="48" width="55" height="155" fill="transparent" class="zone-clickable" data-zone="far" style="cursor:pointer"/>
+
+        <!-- Height zone overlay (clickable) -->
+        <rect x="68" y="48" width="6" height="155" fill="transparent" class="zone-clickable" data-zone="height" style="cursor:pointer"/>
+
+        <!-- Labels -->
+        <text x="40" y="42" text-anchor="middle" fill="var(--coral)" font-family="Lucida Console, Monaco, monospace" font-size="8" class="fade-label fade-label-1">75 FT (SF2286)</text>
+        <text x="40" y="133" text-anchor="middle" fill="var(--warning)" font-family="Lucida Console, Monaco, monospace" font-size="7" class="fade-label fade-label-2">45 FT CURRENT</text>
+        <text x="200" y="197" text-anchor="middle" fill="#ffd54f" font-family="Lucida Console, Monaco, monospace" font-size="7" class="fade-label fade-label-3">COMMERCIAL CORRIDOR</text>
+        <text x="200" y="222" text-anchor="middle" fill="var(--coral)" font-family="Lucida Console, Monaco, monospace" font-size="7" class="fade-label fade-label-4">NO PARKING MANDATE</text>
+        <text x="40" y="185" text-anchor="middle" fill="#fff" font-family="Lucida Console, Monaco, monospace" font-size="6.5" class="fade-label fade-label-5">RETAIL</text>
+
+        <!-- Storm sewer hint below ground -->
+        <line x1="100" y1="240" x2="300" y2="240" stroke="#1B5299" stroke-width="2" stroke-dasharray="6,4" class="fade-label fade-label-4"/>
+        <text x="200" y="252" text-anchor="middle" fill="#1B5299" font-family="Lucida Console, Monaco, monospace" font-size="6.5" class="fade-label fade-label-4">SF3567 STORM SEWER</text>
+      </svg>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item"><div class="legend-swatch" style="background:var(--coral);opacity:0.7"></div> Proposed (SF2286)</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#546e7a"></div> Existing</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:rgba(229,115,115,0.15);border:1px solid var(--coral)"></div> Zone</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#1B5299"></div> Infrastructure</div>
+    </div>
+
+    <div class="module-nav">
+      <button class="module-nav-btn active" onclick="showModule(1)"><span class="btn-num">01</span> Parcel Eligibility</button>
+      <button class="module-nav-btn" onclick="showModule(2)"><span class="btn-num">02</span> Standards Comparison</button>
+      <button class="module-nav-btn" onclick="showModule(3)"><span class="btn-num">03</span> Community Context</button>
+    </div>
+
+    <div class="context-block">
+      <p>Senator Clark's SF2286 changes what Minneapolis must allow on commercial corridors -- and SF3567 funds the storm sewer infrastructure that makes that density buildable. The rules in SF2286 are dense. This tool translates them into a plain-language compliance check.</p>
+      <div class="infra-note">
+        <strong>SF3567:</strong> $25 million state bond for 2,100 feet of new storm sewer under 13th Avenue NE, from 2nd Street NE to a Mississippi River outfall. Storm sewer capacity is infrastructure that makes dense housing viable. SF3567 addresses the physical infrastructure; SF2286 addresses the legal framework.
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ RIGHT PANEL ════ -->
+  <div class="right-panel">
+
+    <!-- ── MODULE 1: ELIGIBILITY ── -->
+    <div class="module-view active" id="module1">
+      <div class="hero-banner">
+        <div class="hero-label">SF2286 Unit Threshold</div>
+        <div class="hero-number" id="heroUnits">13</div>
+        <div class="hero-sub">Minimum residential units for SF2286 protections to apply in a single residential building on a commercial corridor.</div>
+      </div>
+
+      <div class="checker-form">
+        <button class="load-example-btn" onclick="loadExample()">Load Example: NE Minneapolis C2 Corridor</button>
+
+        <!-- Step 1 -->
+        <div class="step-group">
+          <div class="step-num">Step 01</div>
+          <div class="step-title">Zoning Classification</div>
+
+          <div class="form-row">
+            <label>Is the parcel currently zoned for commercial uses?</label>
+            <div class="radio-group">
+              <label><input type="radio" name="isCommercial" value="yes" onchange="checkZoning()"> <span>Yes</span></label>
+              <label><input type="radio" name="isCommercial" value="no" onchange="checkZoning()"> <span>No</span></label>
+              <label><input type="radio" name="isCommercial" value="unknown" onchange="checkZoning()"> <span>I don't know</span></label>
+            </div>
+            <div class="zoning-help" id="zoningHelp">
+              <strong>How to find your zoning:</strong> Go to Minneapolis Maps (<a href="https://minneapolismn.gov/maps" target="_blank">minneapolismn.gov/maps</a>), search your address, and look for the Zoning layer. Commercial zones in Minneapolis are labeled C1, C2, C3, C3A, or B4. If your parcel is in one of those zones, answer YES above.
+            </div>
+          </div>
+
+          <div class="form-row" id="industrialRow" style="display:none">
+            <label>Does the zone also permit heavy industrial uses as a principal permitted use?</label>
+            <div class="radio-group">
+              <label><input type="radio" name="hasIndustrial" value="yes" onchange="runEligibility()"> <span>Yes</span></label>
+              <label><input type="radio" name="hasIndustrial" value="no" onchange="runEligibility()"> <span>No</span></label>
+              <label><input type="radio" name="hasIndustrial" value="unknown" onchange="runEligibility()"> <span>I don't know</span></label>
+            </div>
+            <div class="help-text">SF2286 applies to commercial zones only. If the zone also allows heavy industrial as a principal use, the bill's protections do not apply to that zone.</div>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="step-group">
+          <div class="step-num">Step 02</div>
+          <div class="step-title">Project Size</div>
+
+          <div class="form-row">
+            <label for="unitCount">How many residential units do you intend to build?</label>
+            <input type="number" id="unitCount" min="1" max="999" placeholder="16" oninput="updateHero(); runEligibility()">
+          </div>
+
+          <div class="form-row">
+            <label>Will the ground floor include commercial use?</label>
+            <div class="radio-group">
+              <label><input type="radio" name="hasCommercialGF" value="yes" onchange="runEligibility()"> <span>Yes</span></label>
+              <label><input type="radio" name="hasCommercialGF" value="no" onchange="runEligibility()"> <span>No</span></label>
+            </div>
+            <div class="help-text">SF2286 protections kick in for buildings with at least 13 units, or mixed-use buildings with commercial on the ground floor meeting that threshold. Projects under 13 units in a purely residential configuration are not covered.</div>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="step-group">
+          <div class="step-num">Step 03</div>
+          <div class="step-title">Location</div>
+
+          <div class="form-row">
+            <label>Is the parcel in a city with population 10,000+, or in a Twin Cities metropolitan area county?</label>
+            <div class="radio-group">
+              <label><input type="radio" name="isMetro" value="yes" onchange="runEligibility()"> <span>Yes</span></label>
+              <label><input type="radio" name="isMetro" value="no" onchange="runEligibility()"> <span>No</span></label>
+              <label><input type="radio" name="isMetro" value="unsure" onchange="runEligibility()"> <span>Not sure</span></label>
+            </div>
+            <div class="help-text">Minneapolis is within the Twin Cities metro area. If your parcel is in Minneapolis, answer Yes.</div>
+          </div>
+        </div>
+
+        <button class="verdict-advance" onclick="runEligibility()" style="background:var(--slate)">Check Eligibility</button>
+      </div>
+
+      <div class="verdict-area" id="verdictArea">
+        <div class="verdict-status">
+          <div class="status-dot" id="verdictDot"></div>
+          <div class="verdict-label" id="verdictLabel"></div>
+        </div>
+        <div class="verdict-text" id="verdictText"></div>
+        <button class="verdict-advance" id="advanceBtn" style="display:none" onclick="showModule(2)">Proceed to Standards Comparison</button>
+      </div>
+    </div>
+
+    <!-- ── MODULE 2: STANDARDS COMPARISON ── -->
+    <div class="module-view" id="module2">
+      <div class="hero-banner">
+        <div class="hero-label">Units Required Under SF2286</div>
+        <div class="hero-number" id="heroUnits2">--</div>
+        <div class="hero-sub">For this corridor zone. Enter current zoning standards below to see where they conflict with SF2286.</div>
+      </div>
+
+      <div class="standards-area">
+        <table class="standards-table">
+          <thead>
+            <tr>
+              <th style="width:22%">Standard</th>
+              <th style="width:28%">SF2286 Requires</th>
+              <th style="width:24%">Your Current Zoning</th>
+              <th style="width:26%">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- FAR -->
+            <tr>
+              <td><span class="std-category">Floor Area Ratio</span></td>
+              <td>Municipality must allow FAR of <span class="data-value" style="color:var(--coral);font-size:15px">2.5</span> or greater</td>
+              <td class="std-input-cell">
+                <label for="currentFAR" style="font-size:11px;color:var(--slate-light)">Current FAR</label>
+                <input type="number" id="currentFAR" step="0.1" min="0" max="10" placeholder="2.0" oninput="evaluateStandards()">
+              </td>
+              <td id="farStatus"></td>
+            </tr>
+            <!-- HEIGHT -->
+            <tr>
+              <td><span class="std-category">Building Height</span></td>
+              <td id="heightReqCell">Metro: at least <span class="data-value" style="color:var(--coral);font-size:15px">75 ft</span></td>
+              <td class="std-input-cell">
+                <label for="currentHeight" style="font-size:11px;color:var(--slate-light)">Height limit (ft)</label>
+                <input type="number" id="currentHeight" min="0" max="500" placeholder="45" oninput="evaluateStandards()">
+                <div style="margin-top:8px">
+                  <label for="adjacentHeight" style="font-size:11px;color:var(--slate-light)">Tallest adjacent bldg (ft)</label>
+                  <input type="number" id="adjacentHeight" min="0" max="500" placeholder="" oninput="evaluateStandards()">
+                </div>
+              </td>
+              <td id="heightStatus"></td>
+            </tr>
+            <!-- SETBACK -->
+            <tr>
+              <td><span class="std-category">Setbacks / Lot Coverage</span></td>
+              <td>No more restrictive than commercial building standards in same zone</td>
+              <td class="std-input-cell">
+                <label for="commSetback" style="font-size:11px;color:var(--slate-light)">Commercial setback (ft)</label>
+                <input type="number" id="commSetback" min="0" max="100" placeholder="10" oninput="evaluateStandards()">
+                <div style="margin-top:8px">
+                  <label for="resSetback" style="font-size:11px;color:var(--slate-light)">Residential setback (ft)</label>
+                  <input type="number" id="resSetback" min="0" max="100" placeholder="10" oninput="evaluateStandards()">
+                </div>
+                <div style="margin-top:8px">
+                  <label for="lotCoverage" style="font-size:11px;color:var(--slate-light)">Max lot coverage (%)</label>
+                  <input type="number" id="lotCoverage" min="0" max="100" placeholder="70" oninput="evaluateStandards()">
+                </div>
+              </td>
+              <td id="setbackStatus"></td>
+            </tr>
+            <!-- PARKING -->
+            <tr>
+              <td><span class="std-category">Parking Minimums</span></td>
+              <td>Municipality must <span style="color:var(--coral);font-weight:600">NOT</span> impose minimum parking requirements except disability access</td>
+              <td class="std-input-cell">
+                <label for="parkingReq" style="font-size:11px;color:var(--slate-light)">Requires min parking?</label>
+                <select id="parkingReq" onchange="evaluateStandards()">
+                  <option value="">Select</option>
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </select>
+                <div style="margin-top:8px" id="parkingCountRow" style="display:none">
+                  <label for="parkingSpaces" style="font-size:11px;color:var(--slate-light)">Spaces required</label>
+                  <input type="number" id="parkingSpaces" min="0" max="999" placeholder="25" oninput="evaluateStandards()">
+                </div>
+              </td>
+              <td id="parkingStatus"></td>
+            </tr>
+            <!-- ARCHITECTURAL -->
+            <tr>
+              <td><span class="std-category">Architectural Standards</span></td>
+              <td>City cannot require specifications beyond Minnesota State Building Code</td>
+              <td style="font-size:12px;color:var(--slate-light);padding:12px">No input needed. This is an informational standard.</td>
+              <td>
+                <div class="conflict-flag">
+                  <div class="status-dot" style="background:var(--slate-light);width:10px;height:10px;margin-top:3px"></div>
+                  <span class="conflict-text" style="color:var(--slate-light)">INFORMATIONAL -- A city cannot require your building to use specific materials, window configurations, or facade treatments that go beyond state code. This is a common cost driver in Minneapolis commercial corridor projects.</span>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="summary-band" id="summaryBand" style="display:none">
+          <h3>Analysis Summary</h3>
+          <ul class="summary-list" id="summaryList"></ul>
+          <div class="legal-note">
+            This analysis is based on the text of SF2286 as introduced in the 94th Minnesota legislative session (2025-2026). The bill must be enacted into law before these standards are enforceable. Consult a land-use attorney for advice specific to your project.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── MODULE 3: COMMUNITY CONTEXT ── -->
+    <div class="module-view" id="module3">
+      <div class="hero-banner" style="padding:28px 36px">
+        <div class="hero-label">Community Context</div>
+        <div class="hero-number" style="font-size:36px;letter-spacing:-1px">SF2286</div>
+        <div class="hero-sub">Select an audience mode below. Each generates a different summary for different readers.</div>
+      </div>
+
+      <div class="audience-selector">
+        <button class="audience-btn active" onclick="setAudience('owner')">Property Owner</button>
+        <button class="audience-btn" onclick="setAudience('resident')">Neighborhood Resident</button>
+        <button class="audience-btn" onclick="setAudience('organizer')">Community Organizer</button>
+      </div>
+
+      <div class="narrative-area" id="narrativeArea"></div>
+
+      <div style="padding: 0 36px 20px">
+        <button class="print-btn" onclick="window.print()">Print This Summary</button>
+      </div>
+
+      <div class="app-footer">
+        A resource for Senate District 60 and Minneapolis neighborhoods. Built with AI. Analysis based on SF2286 as introduced in the 94th Minnesota Legislature (2025-2026). Not legal advice. Consult a land-use attorney for project-specific guidance.
+        <!-- VERIFY: Bill session designation from software brief -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════
+   CLARK CORRIDOR DECODER — Core Logic
+   SF2286 Commercial Corridor Housing
+   ══════════════════════════════════════════ */
+
+// ── STATE ──
+let currentModule = 1;
+let currentAudience = 'owner';
+let eligibilityResult = null;
+
+// ── LOCAL STORAGE ──
+function saveInputs() {
+  const data = {
+    isCommercial: getRadio('isCommercial'),
+    hasIndustrial: getRadio('hasIndustrial'),
+    unitCount: document.getElementById('unitCount').value,
+    hasCommercialGF: getRadio('hasCommercialGF'),
+    isMetro: getRadio('isMetro'),
+    currentFAR: document.getElementById('currentFAR').value,
+    currentHeight: document.getElementById('currentHeight').value,
+    adjacentHeight: document.getElementById('adjacentHeight').value,
+    commSetback: document.getElementById('commSetback').value,
+    resSetback: document.getElementById('resSetback').value,
+    lotCoverage: document.getElementById('lotCoverage').value,
+    parkingReq: document.getElementById('parkingReq').value,
+    parkingSpaces: document.getElementById('parkingSpaces').value
+  };
+  try { localStorage.setItem('clark_corridor_decoder', JSON.stringify(data)); } catch(e) {}
+}
+
+function loadSaved() {
+  try {
+    const raw = localStorage.getItem('clark_corridor_decoder');
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    setRadio('isCommercial', d.isCommercial);
+    setRadio('hasIndustrial', d.hasIndustrial);
+    if (d.unitCount) document.getElementById('unitCount').value = d.unitCount;
+    setRadio('hasCommercialGF', d.hasCommercialGF);
+    setRadio('isMetro', d.isMetro);
+    if (d.currentFAR) document.getElementById('currentFAR').value = d.currentFAR;
+    if (d.currentHeight) document.getElementById('currentHeight').value = d.currentHeight;
+    if (d.adjacentHeight) document.getElementById('adjacentHeight').value = d.adjacentHeight;
+    if (d.commSetback) document.getElementById('commSetback').value = d.commSetback;
+    if (d.resSetback) document.getElementById('resSetback').value = d.resSetback;
+    if (d.lotCoverage) document.getElementById('lotCoverage').value = d.lotCoverage;
+    if (d.parkingReq) document.getElementById('parkingReq').value = d.parkingReq;
+    if (d.parkingSpaces) document.getElementById('parkingSpaces').value = d.parkingSpaces;
+    checkZoning();
+    updateHero();
+    runEligibility();
+    evaluateStandards();
+  } catch(e) {}
+}
+
+function getRadio(name) {
+  const el = document.querySelector('input[name="' + name + '"]:checked');
+  return el ? el.value : '';
+}
+
+function setRadio(name, value) {
+  if (!value) return;
+  const el = document.querySelector('input[name="' + name + '"][value="' + value + '"]');
+  if (el) el.checked = true;
+}
+
+// ── MODULE NAVIGATION ──
+function showModule(num) {
+  currentModule = num;
+  document.querySelectorAll('.module-view').forEach(v => v.classList.remove('active'));
+  document.getElementById('module' + num).classList.add('active');
+  document.querySelectorAll('.module-nav-btn').forEach((b, i) => {
+    b.classList.toggle('active', i === num - 1);
+  });
+  if (num === 2) {
+    const units = document.getElementById('unitCount').value;
+    document.getElementById('heroUnits2').textContent = units || '--';
+    evaluateStandards();
+  }
+  if (num === 3) {
+    renderNarrative();
+  }
+}
+
+// ── SVG ZONE CLICKS ──
+document.querySelectorAll('.zone-clickable').forEach(el => {
+  el.addEventListener('click', function() {
+    const zone = this.dataset.zone;
+    if (zone === 'far' || zone === 'height' || zone === 'setback') {
+      showModule(2);
+      setTimeout(() => {
+        const target = zone === 'far' ? 'currentFAR' : zone === 'height' ? 'currentHeight' : 'commSetback';
+        document.getElementById(target).focus();
+      }, 100);
+    } else if (zone === 'parking') {
+      showModule(2);
+      setTimeout(() => document.getElementById('parkingReq').focus(), 100);
+    }
+  });
+});
+
+// ── ZONING CHECK ──
+function checkZoning() {
+  const val = getRadio('isCommercial');
+  const helpEl = document.getElementById('zoningHelp');
+  const indRow = document.getElementById('industrialRow');
+
+  helpEl.style.display = val === 'unknown' ? 'block' : 'none';
+  indRow.style.display = val === 'yes' ? 'block' : 'none';
+
+  runEligibility();
+}
+
+// ── HERO UPDATE ──
+function updateHero() {
+  const units = document.getElementById('unitCount').value;
+  document.getElementById('heroUnits').textContent = units || '13';
+}
+
+// ── ELIGIBILITY LOGIC ──
+function runEligibility() {
+  saveInputs();
+
+  const isCommercial = getRadio('isCommercial');
+  const hasIndustrial = getRadio('hasIndustrial');
+  const units = parseInt(document.getElementById('unitCount').value) || 0;
+  const hasGF = getRadio('hasCommercialGF');
+  const isMetro = getRadio('isMetro');
+
+  // Must have enough info
+  if (!isCommercial) return hideVerdict();
+
+  const area = document.getElementById('verdictArea');
+  const dot = document.getElementById('verdictDot');
+  const label = document.getElementById('verdictLabel');
+  const text = document.getElementById('verdictText');
+  const advBtn = document.getElementById('advanceBtn');
+
+  area.style.display = 'block';
+
+  // Not commercial zone
+  if (isCommercial === 'no') {
+    setVerdict('red', 'NOT ELIGIBLE', 'SF2286 applies only to parcels zoned for commercial uses. Your parcel does not appear to be in a commercial zone. The bill\'s density and development standards would not apply.');
+    advBtn.style.display = 'none';
+    eligibilityResult = 'ineligible';
+    return;
+  }
+
+  // Unknown zoning
+  if (isCommercial === 'unknown') {
+    setVerdict('yellow', 'NEED MORE INFORMATION', 'You need to confirm your zoning classification. Use Minneapolis Maps (minneapolismn.gov/maps) to check. Commercial zones in Minneapolis include C1, C2, C3, C3A, and B4.');
+    advBtn.style.display = 'none';
+    eligibilityResult = 'unknown';
+    return;
+  }
+
+  // Heavy industrial exclusion
+  if (hasIndustrial === 'yes') {
+    setVerdict('red', 'NOT ELIGIBLE', 'SF2286 excludes zones that authorize heavy industrial uses as a principal permitted use. Even though your parcel is in a commercial zone, the heavy industrial allowance disqualifies it from SF2286 protections.');
+    advBtn.style.display = 'none';
+    eligibilityResult = 'ineligible';
+    return;
+  }
+
+  if (hasIndustrial === 'unknown') {
+    setVerdict('yellow', 'NEED MORE INFORMATION', 'You need to confirm whether your zone permits heavy industrial uses as a principal use. Check your city\'s zoning code or contact the planning department. If heavy industrial is allowed, SF2286 does not apply.');
+    advBtn.style.display = 'none';
+    eligibilityResult = 'unknown';
+    return;
+  }
+
+  // Unit threshold
+  if (units < 13 && hasGF !== 'yes') {
+    if (units > 0) {
+      setVerdict('red', 'NOT ELIGIBLE', 'SF2286 protections apply to single residential buildings with at least 13 units, or mixed-use buildings with commercial on the ground floor meeting that threshold. At ' + units + ' units without ground-floor commercial, your project falls below the threshold.');
+    } else {
+      setVerdict('yellow', 'ENTER UNIT COUNT', 'Enter the number of residential units you intend to build to check whether your project meets the 13-unit threshold.');
+    }
+    advBtn.style.display = 'none';
+    eligibilityResult = units > 0 ? 'ineligible' : 'unknown';
+    return;
+  }
+
+  // Mixed-use under 13 but with ground floor commercial
+  if (units < 13 && hasGF === 'yes' && units > 0) {
+    setVerdict('yellow', 'VERIFY ELIGIBILITY', 'Your project has ' + units + ' residential units with ground-floor commercial. SF2286 covers "a mixed-use building with commercial use on the ground floor" meeting the 13-unit threshold. At ' + units + ' units, your project may not meet this threshold. Consult the bill text or a land-use attorney.');
+    advBtn.style.display = 'none';
+    eligibilityResult = 'verify';
+    return;
+  }
+
+  // No unit count yet
+  if (!units && !hasGF) {
+    return hideVerdict();
+  }
+
+  // Location check
+  if (isMetro === 'unsure') {
+    setVerdict('yellow', 'VERIFY LOCATION', 'Your project appears to meet the zoning and unit requirements. Confirm whether your parcel is in a city of 10,000+ population or a Twin Cities metro county. This determines which height standard applies.');
+    advBtn.style.display = 'block';
+    eligibilityResult = 'eligible';
+    return;
+  }
+
+  // ELIGIBLE
+  setVerdict('green', 'ELIGIBLE', 'Your parcel appears to qualify for SF2286 protections. The bill would require your city to allow this ' + units + '-unit project under the standards shown in the comparison table.' + (isMetro === 'yes' ? ' As a metro-area parcel, the 75-foot height minimum applies.' : ' As a non-metro parcel, the height standard is the taller of the existing zone limit or adjacent building heights.'));
+  advBtn.style.display = 'block';
+  eligibilityResult = 'eligible';
+}
+
+function setVerdict(color, labelText, bodyText) {
+  const dot = document.getElementById('verdictDot');
+  const label = document.getElementById('verdictLabel');
+  const text = document.getElementById('verdictText');
+
+  dot.className = 'status-dot ' + color;
+  label.className = 'verdict-label ' + color;
+  label.textContent = labelText;
+  text.textContent = bodyText;
+}
+
+function hideVerdict() {
+  document.getElementById('verdictArea').style.display = 'none';
+}
+
+// ── MODULE 2: STANDARDS EVALUATION ──
+function evaluateStandards() {
+  saveInputs();
+
+  const isMetro = getRadio('isMetro');
+  const farVal = parseFloat(document.getElementById('currentFAR').value);
+  const heightVal = parseFloat(document.getElementById('currentHeight').value);
+  const adjHeight = parseFloat(document.getElementById('adjacentHeight').value);
+  const commSet = parseFloat(document.getElementById('commSetback').value);
+  const resSet = parseFloat(document.getElementById('resSetback').value);
+  const parkReq = document.getElementById('parkingReq').value;
+  const parkSpaces = parseInt(document.getElementById('parkingSpaces').value) || 0;
+
+  const summaryItems = [];
+  let hasAnyInput = false;
+
+  // Update height requirement display
+  const heightCell = document.getElementById('heightReqCell');
+  if (isMetro === 'no') {
+    heightCell.innerHTML = 'Non-metro: taller of zone limit or adjacent buildings (excl. pre-1975 nonconforming)';
+  } else {
+    heightCell.innerHTML = 'Metro: at least <span class="data-value" style="color:var(--coral);font-size:15px">75 ft</span>';
+  }
+
+  // FAR
+  const farStatus = document.getElementById('farStatus');
+  if (!isNaN(farVal)) {
+    hasAnyInput = true;
+    if (farVal < 2.5) {
+      farStatus.innerHTML = conflictHTML('red', 'CONFLICT', 'SF2286 requires FAR of 2.5 or greater. Your zone allows ' + farVal.toFixed(1) + '. If enacted, the city cannot enforce this restriction for qualifying projects.');
+      summaryItems.push({ cls: 'conflict', text: 'FAR: Current ' + farVal.toFixed(1) + ' is below the SF2286 minimum of 2.5' });
+    } else {
+      farStatus.innerHTML = conflictHTML('green', 'CONSISTENT', 'Your current FAR of ' + farVal.toFixed(1) + ' meets or exceeds the SF2286 minimum of 2.5.');
+      summaryItems.push({ cls: 'consistent', text: 'FAR: Current ' + farVal.toFixed(1) + ' meets SF2286 minimum' });
+    }
+  } else {
+    farStatus.innerHTML = '<span style="color:#90a4ae;font-size:12px">Enter current FAR</span>';
+  }
+
+  // HEIGHT
+  const heightStatus = document.getElementById('heightStatus');
+  if (!isNaN(heightVal)) {
+    hasAnyInput = true;
+    if (isMetro === 'yes' || isMetro === '' || isMetro === 'unsure') {
+      // Metro standard: 75 ft
+      if (heightVal < 75) {
+        heightStatus.innerHTML = conflictHTML('red', 'CONFLICT', 'SF2286 requires at least 75 feet in Twin Cities metro. Your zone allows ' + heightVal + ' ft.');
+        summaryItems.push({ cls: 'conflict', text: 'Height: Current ' + heightVal + ' ft is below the 75 ft metro minimum' });
+      } else {
+        heightStatus.innerHTML = conflictHTML('green', 'CONSISTENT', 'Your current height limit of ' + heightVal + ' ft meets the SF2286 metro standard of 75 ft.');
+        summaryItems.push({ cls: 'consistent', text: 'Height: Current ' + heightVal + ' ft meets 75 ft metro minimum' });
+      }
+    } else {
+      // Non-metro: taller of zone limit or adjacent
+      const adj = !isNaN(adjHeight) ? adjHeight : 0;
+      const sf2286Height = Math.max(heightVal, adj);
+      if (adj > heightVal && adj > 0) {
+        heightStatus.innerHTML = conflictHTML('yellow', 'VERIFY', 'Non-metro standard: SF2286 allows the taller of zone limit (' + heightVal + ' ft) or adjacent buildings (' + adj + ' ft). The applicable standard appears to be ' + sf2286Height + ' ft. Exclude pre-1975 nonconforming structures from adjacent calculation.');
+        summaryItems.push({ cls: 'verify', text: 'Height: Non-metro standard is ' + sf2286Height + ' ft (verify adjacent building ages)' });
+      } else {
+        heightStatus.innerHTML = conflictHTML('green', 'CONSISTENT', 'Your zone height of ' + heightVal + ' ft is the applicable standard for non-metro parcels.');
+        summaryItems.push({ cls: 'consistent', text: 'Height: Zone limit of ' + heightVal + ' ft is the applicable standard' });
+      }
+    }
+  } else {
+    heightStatus.innerHTML = '<span style="color:#90a4ae;font-size:12px">Enter height limit</span>';
+  }
+
+  // SETBACK
+  const setbackStatus = document.getElementById('setbackStatus');
+  if (!isNaN(commSet) && !isNaN(resSet)) {
+    hasAnyInput = true;
+    if (resSet > commSet) {
+      setbackStatus.innerHTML = conflictHTML('red', 'CONFLICT', 'The city applies a more restrictive setback to residential-over-commercial (' + resSet + ' ft) than to pure commercial (' + commSet + ' ft). SF2286 prohibits this. The binding setback is ' + commSet + ' ft.');
+      summaryItems.push({ cls: 'conflict', text: 'Setback: Residential setback (' + resSet + ' ft) exceeds commercial standard (' + commSet + ' ft)' });
+    } else {
+      setbackStatus.innerHTML = conflictHTML('green', 'CONSISTENT', 'Commercial setback of ' + commSet + ' ft is the binding standard. Your residential setback of ' + resSet + ' ft does not exceed it.');
+      summaryItems.push({ cls: 'consistent', text: 'Setback: Consistent at ' + commSet + ' ft commercial standard' });
+    }
+  } else if (!isNaN(commSet)) {
+    hasAnyInput = true;
+    setbackStatus.innerHTML = '<span style="color:#90a4ae;font-size:12px">The commercial setback of ' + commSet + ' ft becomes the binding maximum restriction. Enter residential setback to compare.</span>';
+  } else {
+    setbackStatus.innerHTML = '<span style="color:#90a4ae;font-size:12px">Enter setback values</span>';
+  }
+
+  // PARKING
+  const parkingStatus = document.getElementById('parkingStatus');
+  if (parkReq === 'yes') {
+    hasAnyInput = true;
+    const spacesNote = parkSpaces > 0 ? ' Your zone requires ' + parkSpaces + ' spaces.' : '';
+    parkingStatus.innerHTML = conflictHTML('red', 'CONFLICT', 'SF2286 prohibits parking minimums for qualifying projects except disability access.' + spacesNote + ' If enacted, the city cannot require off-street parking spaces beyond disability-access requirements.');
+    summaryItems.push({ cls: 'conflict', text: 'Parking: Current minimum' + (parkSpaces > 0 ? ' of ' + parkSpaces + ' spaces' : '') + ' prohibited by SF2286' });
+  } else if (parkReq === 'no') {
+    hasAnyInput = true;
+    parkingStatus.innerHTML = conflictHTML('green', 'CONSISTENT', 'No minimum parking requirement. This aligns with SF2286.');
+    summaryItems.push({ cls: 'consistent', text: 'Parking: No current minimum -- consistent with SF2286' });
+  } else {
+    parkingStatus.innerHTML = '<span style="color:#90a4ae;font-size:12px">Select parking status</span>';
+  }
+
+  // Show parking count field
+  const parkCountRow = document.getElementById('parkingCountRow');
+  if (parkReq === 'yes') {
+    parkCountRow.style.display = 'block';
+  }
+
+  // SUMMARY
+  const summaryBand = document.getElementById('summaryBand');
+  const summaryList = document.getElementById('summaryList');
+  if (hasAnyInput && summaryItems.length > 0) {
+    summaryBand.style.display = 'block';
+    summaryList.innerHTML = summaryItems.map(item =>
+      '<li class="' + item.cls + '">' + item.text + '</li>'
+    ).join('');
+  } else {
+    summaryBand.style.display = 'none';
+  }
+}
+
+function conflictHTML(color, label, text) {
+  const dotColor = color === 'red' ? 'var(--alert)' : color === 'green' ? 'var(--success)' : 'var(--warning)';
+  const textClass = color === 'red' ? 'alert' : color === 'green' ? 'success' : 'warn';
+  return '<div class="conflict-flag"><div class="status-dot" style="background:' + dotColor + ';width:10px;height:10px;margin-top:3px"></div><span class="conflict-text ' + textClass + '"><strong>' + label + '</strong> -- ' + text + '</span></div>';
+}
+
+// ── LOAD EXAMPLE ──
+function loadExample() {
+  // NE Minneapolis C2 corridor example from the brief
+  setRadio('isCommercial', 'yes');
+  setRadio('hasIndustrial', 'no');
+  document.getElementById('unitCount').value = 16;
+  setRadio('hasCommercialGF', 'yes');
+  setRadio('isMetro', 'yes');
+
+  document.getElementById('currentFAR').value = 2.0;
+  document.getElementById('currentHeight').value = 45;
+  document.getElementById('commSetback').value = 10;
+  document.getElementById('resSetback').value = 10;
+  document.getElementById('lotCoverage').value = 70;
+  document.getElementById('parkingReq').value = 'yes';
+  document.getElementById('parkingSpaces').value = 25;
+
+  checkZoning();
+  updateHero();
+  runEligibility();
+  evaluateStandards();
+}
+
+// ── MODULE 3: NARRATIVE CONTENT ──
+const narratives = {
+  owner: {
+    title: 'What SF2286 Means for Your Property',
+    sections: [
+      {
+        heading: 'Your Development Rights Under SF2286',
+        body: 'If you own a commercially-zoned lot in Minneapolis — on Central Avenue NE, Broadway, 13th Avenue, or any other commercial corridor — SF2286 establishes specific development rights that the city cannot restrict below certain thresholds. You can build at least 13 residential units (or a mixed-use building with ground-floor retail and residential above) and the city must allow a floor area ratio of at least 2.5, a building height of at least 75 feet in the metro area, and it cannot impose minimum parking requirements beyond disability access.'
+      },
+      {
+        heading: 'What This Means in Practice',
+        body: 'If your current zoning limits you to a 45-foot building with an FAR of 2.0 and 25 required parking spaces, SF2286 would change that. You could propose a 75-foot building, use the full 2.5 FAR, and eliminate the 25 parking spaces from your project budget. The city also cannot require architectural specifications beyond the state building code — meaning no costly facade mandates that add nothing to structural safety.'
+      },
+      {
+        heading: 'Important Limitations',
+        content: '<ul><li>SF2286 must be enacted into law before these standards are enforceable. As of this tool\'s build date, it has been introduced but not passed.</li><li>The bill does not apply to zones that permit heavy industrial uses as a principal use.</li><li>Projects under 13 residential units (without ground-floor commercial) are not covered.</li><li>Disability-access parking requirements still apply.</li><li>All other building code requirements remain in effect.</li></ul>'
+      }
+    ]
+  },
+  resident: {
+    title: 'What SF2286 Means for Your Neighborhood',
+    sections: [
+      {
+        heading: 'What Kinds of Buildings Could Be Proposed',
+        body: 'SF2286 allows taller, denser buildings on commercial corridors than current Minneapolis zoning permits. On a typical NE Minneapolis commercial corridor lot, a developer could propose a 75-foot building (roughly 6-7 stories) with 13 or more residential units above ground-floor retail. No minimum parking would be required.'
+      },
+      {
+        heading: 'What the City Can and Cannot Review',
+        body: 'The city retains authority over building code compliance, safety, and disability access. It cannot impose stricter setbacks on residential-over-commercial buildings than it requires for pure commercial buildings. It cannot mandate specific architectural materials or facade treatments beyond state code. It cannot require off-street parking minimums.'
+      },
+      {
+        heading: 'Key Questions to Ask a Developer',
+        content: '<ul><li>How many residential units are proposed? (Under 13 in a purely residential building means SF2286 may not apply.)</li><li>What is the proposed FAR and height? (Compare to SF2286 thresholds.)</li><li>Is disability-access parking included in the plan?</li><li>What discretionary reviews remain — is there a conditional use permit or variance involved?</li><li>How does the project address stormwater management? (Relevant given the corridor\'s infrastructure needs.)</li></ul>'
+      },
+      {
+        heading: 'The Local-Control Question',
+        body: 'SF2286 limits what cities can restrict. Some see this as removing barriers to needed housing. Others see it as reducing local control over neighborhood character. Both perspectives are legitimate. The bill reflects a state-level judgment that commercial corridor density should have a guaranteed floor, not a ceiling set by each city individually.'
+      }
+    ]
+  },
+  organizer: {
+    title: 'SF2286 Talking Points and Legislative Context',
+    sections: [
+      {
+        heading: 'Legislative Intent',
+        body: 'SF2286, authored by Senator Doron Clark (SD-60, DFL), addresses what Clark frames as a housing emergency. The bill establishes minimum development standards that cities must allow on commercial corridors — preventing cities from using zoning to block density below specific thresholds. It targets the gap between what commercial corridors could hold and what cities currently allow.'
+      },
+      {
+        heading: 'The Infrastructure Connection',
+        body: 'Clark\'s other major bill, SF3567, requests $25 million in state bonds for 2,100 feet of new storm sewer under 13th Avenue NE. The connection is direct: you cannot permit 50-unit buildings on a block if the storm drain handles only 10 units of runoff. SF3567 builds the pipe; SF2286 removes the zoning barriers. Together they represent a from-the-ground-up approach to housing production.'
+      },
+      {
+        heading: 'Talking Points',
+        content: '<ul><li>SF2286 sets a floor, not a ceiling. Cities can allow more density than the bill requires — they just cannot allow less.</li><li>The 13-unit threshold targets meaningful housing projects, not duplexes or small additions.</li><li>Eliminating parking mandates reduces per-unit construction costs and frees lot area for more housing.</li><li>The 2.5 FAR and 75-foot height standards enable 5-7 story mixed-use buildings — the building type that urbanists and housing advocates have identified as the most efficient for corridor housing.</li><li>The bill applies only to commercial zones, not residential neighborhoods. It targets corridors that are already zoned for business activity.</li><li>The architectural-standards provision prevents cities from using design review as a de facto veto on housing projects.</li></ul>'
+      },
+      {
+        heading: 'Interaction with Minneapolis 2040',
+        body: 'Minneapolis adopted its 2040 Comprehensive Plan with significant upzoning. SF2286 operates at the state level, establishing standards that apply regardless of local plan changes. Where Minneapolis 2040 already allows the density SF2286 requires, there is no conflict. Where it does not (or where future council action might roll back 2040 provisions), SF2286 provides a state-level backstop.'
+      }
+    ]
+  }
+};
+
+function setAudience(mode) {
+  currentAudience = mode;
+  document.querySelectorAll('.audience-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent.toLowerCase().includes(mode === 'owner' ? 'property' : mode === 'resident' ? 'neighborhood' : 'organizer'));
+  });
+  renderNarrative();
+}
+
+function renderNarrative() {
+  const data = narratives[currentAudience];
+  const area = document.getElementById('narrativeArea');
+
+  let html = '<div class="narrative-section"><h2 style="font-size:20px;color:var(--slate-dark);margin-bottom:20px">' + data.title + '</h2></div>';
+
+  data.sections.forEach(sec => {
+    html += '<div class="narrative-section"><h3>' + sec.heading + '</h3>';
+    if (sec.body) {
+      html += '<p>' + sec.body + '</p>';
+    }
+    if (sec.content) {
+      html += sec.content;
+    }
+    html += '</div>';
+  });
+
+  // Append standards from module 2 if available
+  const summaryList = document.getElementById('summaryList');
+  if (summaryList && summaryList.innerHTML.trim()) {
+    html += '<div class="narrative-section" style="padding-top:16px;border-top:2px solid var(--slate)">';
+    html += '<h3>Current Standards Analysis</h3>';
+    html += '<p style="font-size:12.5px;color:var(--slate-light);margin-bottom:8px">From the Standards Comparison module (if parcel details were entered):</p>';
+    html += '<ul class="summary-list">' + summaryList.innerHTML + '</ul>';
+    html += '</div>';
+  }
+
+  // Footer for print
+  html += '<div class="narrative-section" style="margin-top:24px;padding-top:12px;border-top:1px solid #cfd8dc">';
+  html += '<p style="font-size:11px;color:var(--navy);line-height:1.5">Prepared using the SF2286 Commercial Corridor Decoder, a resource for Senate District 60. Built with AI. Data reflects SF2286 as introduced in the 94th Minnesota Legislature (2025-2026).</p>';
+  html += '</div>';
+
+  area.innerHTML = html;
+}
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded', function() {
+  loadSaved();
+  renderNarrative();
+
+  // Monitor all inputs for auto-save
+  document.querySelectorAll('input, select').forEach(el => {
+    el.addEventListener('change', saveInputs);
+    el.addEventListener('input', saveInputs);
+  });
+});
+</script>
+
+</body>
+</html>

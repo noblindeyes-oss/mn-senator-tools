@@ -1,0 +1,1415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deeply Affordable Home Preservation — Acquisition Feasibility Tool</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Before/after split with draggable vertical divider — left="Without Preservation" vs right="With Preservation". Inputs fixed top.
+   2. Navigation: Input controls fixed at top bar; split-view IS the experience, scroll both sides together.
+   3. Typography: Century Gothic (headers), Franklin Gothic Medium (body/labels), Consolas (data/numbers).
+   4. Hero moment: Large "UNITS PRESERVED: XXX" vs "UNITS LOST: XXX" in split colors (green vs red) spanning the divider.
+   5. Color strategy: #4 Warm dominant — BRICK AND MORTAR. Exposed brick red (#8d4925), mortar cream (#ede0ce), structural steel (#424242), preservation green (#558b2f).
+   6. Entry experience: Building facade SVG with windows lighting up one by one, then tool appears inside building outline.
+   Additional: No bordered callout boxes. No parchment cards. No emoji icons. Dense data tables, environmental color.
+*/
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --brick:#8d4925;
+  --brick-dark:#6b3519;
+  --mortar:#ede0ce;
+  --mortar-light:#f5efe5;
+  --steel:#424242;
+  --steel-light:#6b6b6b;
+  --green:#558b2f;
+  --green-light:#7cb342;
+  --red:#c62828;
+  --red-light:#ef5350;
+  --yellow:#f9a825;
+  --white:#fff;
+  --text:#1c1c1c;
+}
+
+html{font-size:15px}
+body{
+  font-family:'Franklin Gothic Medium','Franklin Gothic','ITC Franklin Gothic',Arial,sans-serif;
+  color:var(--text);
+  background:var(--steel);
+  line-height:1.45;
+  overflow:hidden;
+  height:100vh;
+}
+
+/* ===== ENTRY ANIMATION ===== */
+#entry-screen{
+  position:fixed;inset:0;z-index:9999;
+  background:var(--steel);
+  display:flex;align-items:center;justify-content:center;
+  transition:opacity 0.8s ease;
+}
+#entry-screen.fade-out{opacity:0;pointer-events:none}
+#entry-screen svg{max-width:420px;width:90%}
+.window-pane{fill:var(--steel);transition:fill 0.3s ease}
+.window-pane.lit{fill:#ffe082}
+.window-pane.lit-warm{fill:#ffcc02}
+
+/* ===== MAIN APP ===== */
+#app{
+  display:none;
+  flex-direction:column;
+  height:100vh;
+  background:var(--mortar);
+}
+#app.visible{display:flex}
+
+/* TOP INPUT BAR */
+#input-bar{
+  background:var(--brick);
+  color:var(--mortar);
+  padding:10px 20px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px 16px;
+  align-items:end;
+  border-bottom:4px solid var(--brick-dark);
+  z-index:100;
+  position:relative;
+}
+#input-bar h1{
+  font-family:'Century Gothic','Apple Gothic','URW Gothic',sans-serif;
+  font-size:1.05rem;
+  font-weight:normal;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  width:100%;
+  margin-bottom:2px;
+  color:var(--mortar);
+}
+.input-group{display:flex;flex-direction:column;gap:2px}
+.input-group label{
+  font-size:0.68rem;
+  text-transform:uppercase;
+  letter-spacing:1px;
+  color:var(--mortar);
+  opacity:0.85;
+}
+.input-group input,.input-group select{
+  font-family:Consolas,'Liberation Mono',monospace;
+  font-size:0.82rem;
+  padding:4px 8px;
+  border:1px solid var(--brick-dark);
+  background:var(--mortar-light);
+  color:var(--text);
+  border-radius:2px;
+  width:auto;
+  min-width:90px;
+}
+.input-group select{min-width:110px}
+.input-group input:focus,.input-group select:focus{
+  outline:2px solid var(--green);
+  outline-offset:0;
+}
+#btn-example,#btn-reset,#btn-print{
+  font-family:'Century Gothic','Apple Gothic',sans-serif;
+  font-size:0.72rem;
+  text-transform:uppercase;
+  letter-spacing:1px;
+  padding:6px 14px;
+  border:none;
+  cursor:pointer;
+  border-radius:2px;
+  transition:background 0.2s;
+}
+#btn-example{background:var(--green);color:var(--white)}
+#btn-example:hover{background:var(--green-light)}
+#btn-reset{background:var(--steel);color:var(--white)}
+#btn-reset:hover{background:var(--steel-light)}
+#btn-print{background:var(--mortar);color:var(--brick)}
+#btn-print:hover{background:var(--white)}
+
+/* UNIT ROWS */
+#unit-config{
+  background:var(--brick-dark);
+  padding:8px 20px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px 20px;
+  align-items:end;
+}
+.unit-row{
+  display:flex;gap:8px;align-items:end;
+  padding:4px 0;
+}
+.unit-row .unit-label{
+  font-family:'Century Gothic','Apple Gothic',sans-serif;
+  font-size:0.72rem;
+  color:var(--mortar);
+  text-transform:uppercase;
+  letter-spacing:1px;
+  min-width:50px;
+  align-self:center;
+}
+#unit-config .input-group label{font-size:0.62rem}
+#unit-config .input-group input,#unit-config .input-group select{
+  font-size:0.78rem;padding:3px 6px;min-width:70px;
+}
+
+/* ADVANCED OPTIONS */
+#advanced-toggle{
+  background:var(--steel);
+  color:var(--mortar);
+  padding:4px 20px;
+  cursor:pointer;
+  font-size:0.7rem;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  font-family:'Century Gothic','Apple Gothic',sans-serif;
+  display:flex;align-items:center;gap:8px;
+  user-select:none;
+}
+#advanced-toggle .arrow{transition:transform 0.3s}
+#advanced-toggle .arrow.open{transform:rotate(90deg)}
+#advanced-panel{
+  background:var(--steel);
+  color:var(--mortar);
+  padding:0 20px;
+  max-height:0;
+  overflow:hidden;
+  transition:max-height 0.3s ease,padding 0.3s ease;
+  display:flex;flex-wrap:wrap;gap:6px 20px;align-items:end;
+}
+#advanced-panel.open{max-height:200px;padding:8px 20px}
+#advanced-panel .input-group label{color:var(--mortar);opacity:0.8}
+#advanced-panel .input-group input{background:var(--mortar-light)}
+
+/* FLAGS */
+#flags{
+  padding:0 20px;
+  display:flex;gap:12px;flex-wrap:wrap;
+}
+.flag-banner{
+  font-family:Consolas,'Liberation Mono',monospace;
+  font-size:0.72rem;
+  padding:5px 12px;
+  display:none;
+  letter-spacing:0.5px;
+}
+.flag-banner.visible{display:inline-block}
+.flag-lead{background:var(--yellow);color:var(--text)}
+.flag-lihtc{background:var(--steel);color:var(--mortar)}
+
+/* ===== HERO SPLIT ===== */
+#hero-split{
+  display:flex;
+  height:90px;
+  min-height:90px;
+  position:relative;
+  border-bottom:3px solid var(--steel);
+}
+#hero-left{
+  flex:1;
+  background:var(--red);
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  color:var(--white);
+  padding:8px;
+}
+#hero-right{
+  flex:1;
+  background:var(--green);
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  color:var(--white);
+  padding:8px;
+}
+.hero-label{
+  font-family:'Century Gothic','Apple Gothic',sans-serif;
+  font-size:0.65rem;
+  text-transform:uppercase;
+  letter-spacing:3px;
+  opacity:0.9;
+}
+.hero-number{
+  font-family:Consolas,'Liberation Mono',monospace;
+  font-size:2.8rem;
+  font-weight:bold;
+  line-height:1;
+}
+.hero-sub{
+  font-family:Consolas,monospace;
+  font-size:0.7rem;
+  opacity:0.8;
+}
+
+/* ===== SPLIT VIEW ===== */
+#split-container{
+  flex:1;
+  display:flex;
+  position:relative;
+  overflow:hidden;
+}
+#pane-left,#pane-right{
+  flex:1;
+  overflow-y:auto;
+  padding:16px 20px 40px;
+}
+#pane-left{
+  background:#f2e0d0;
+}
+#pane-right{
+  background:#e8f0e0;
+}
+#divider{
+  width:6px;
+  background:var(--steel);
+  cursor:col-resize;
+  position:relative;
+  z-index:50;
+  flex-shrink:0;
+}
+#divider::after{
+  content:'';
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:2px;height:40px;
+  background:var(--mortar);
+  border-radius:1px;
+}
+
+/* PANE HEADERS */
+.pane-header{
+  font-family:'Century Gothic','Apple Gothic',sans-serif;
+  text-transform:uppercase;
+  letter-spacing:2px;
+  font-size:0.8rem;
+  padding-bottom:8px;
+  margin-bottom:12px;
+}
+#pane-left .pane-header{
+  color:var(--red);
+  border-bottom:2px solid var(--red);
+}
+#pane-right .pane-header{
+  color:var(--green);
+  border-bottom:2px solid var(--green);
+}
+
+/* DATA TABLES */
+.data-section{margin-bottom:20px}
+.data-section h3{
+  font-family:'Century Gothic','Apple Gothic',sans-serif;
+  font-size:0.72rem;
+  text-transform:uppercase;
+  letter-spacing:1.5px;
+  color:var(--steel);
+  margin-bottom:6px;
+}
+table.data-tbl{
+  width:100%;
+  border-collapse:collapse;
+  font-size:0.8rem;
+}
+table.data-tbl td{
+  padding:4px 8px;
+  border-bottom:1px solid rgba(0,0,0,0.1);
+}
+table.data-tbl td:first-child{
+  font-family:'Franklin Gothic Medium',Arial,sans-serif;
+  color:var(--steel);
+  width:55%;
+}
+table.data-tbl td:last-child{
+  font-family:Consolas,'Liberation Mono',monospace;
+  text-align:right;
+  font-weight:bold;
+}
+.verdict-row td{
+  font-size:0.9rem !important;
+  padding:8px !important;
+}
+.verdict-green{background:rgba(85,139,47,0.15);color:var(--green)}
+.verdict-yellow{background:rgba(249,168,37,0.15);color:#e65100}
+.verdict-red{background:rgba(198,40,40,0.15);color:var(--red)}
+
+/* FUNDING STACK */
+.funding-item{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:5px 0;
+  border-bottom:1px solid rgba(0,0,0,0.08);
+  font-size:0.78rem;
+}
+.funding-item input[type="checkbox"]{
+  accent-color:var(--green);
+  width:16px;height:16px;
+}
+.funding-item .fund-name{flex:1;font-size:0.75rem}
+.funding-item .fund-amount{
+  font-family:Consolas,monospace;
+  font-size:0.78rem;
+  width:100px;
+  padding:2px 6px;
+  border:1px solid rgba(0,0,0,0.15);
+  background:var(--white);
+  text-align:right;
+}
+.funding-item .fund-max{
+  font-size:0.6rem;
+  color:var(--steel-light);
+  font-family:Consolas,monospace;
+}
+.funding-item .fund-flag{
+  font-size:0.6rem;
+  padding:2px 6px;
+  border-radius:2px;
+}
+.fund-flag-ok{background:rgba(85,139,47,0.2);color:var(--green)}
+.fund-flag-warn{background:rgba(249,168,37,0.2);color:#e65100}
+.fund-flag-no{background:rgba(198,40,40,0.15);color:var(--red)}
+
+/* PBV TOGGLES */
+.pbv-row{
+  display:flex;align-items:center;gap:8px;
+  padding:4px 0;font-size:0.75rem;
+}
+.pbv-row input[type="checkbox"]{accent-color:var(--green);width:14px;height:14px}
+
+/* CHART CONTAINER */
+.chart-wrap{
+  height:180px;
+  margin:12px 0;
+  position:relative;
+}
+
+/* SUMMARY TOTALS */
+.summary-band{
+  padding:10px 12px;
+  margin:12px 0;
+  font-family:Consolas,monospace;
+  font-size:0.82rem;
+}
+.summary-band-green{background:rgba(85,139,47,0.15);border-left:4px solid var(--green)}
+.summary-band-red{background:rgba(198,40,40,0.12);border-left:4px solid var(--red)}
+
+/* REPORT MODULE */
+#report-section{
+  display:none;
+  padding:20px;
+  background:var(--white);
+  font-size:0.85rem;
+  line-height:1.6;
+}
+#report-section.visible{display:block}
+#report-content{
+  max-width:700px;
+  margin:0 auto;
+}
+#report-content h2{
+  font-family:'Century Gothic','Apple Gothic',sans-serif;
+  font-size:1rem;
+  text-transform:uppercase;
+  letter-spacing:2px;
+  color:var(--brick);
+  margin:16px 0 8px;
+}
+#report-content table{
+  width:100%;border-collapse:collapse;
+  margin:8px 0;font-size:0.82rem;
+}
+#report-content td,#report-content th{
+  padding:4px 8px;
+  border-bottom:1px solid #ddd;
+  text-align:left;
+}
+#report-content td:last-child,#report-content th:last-child{
+  text-align:right;
+  font-family:Consolas,monospace;
+}
+#report-content [contenteditable]{
+  outline:1px dashed transparent;
+  transition:outline 0.2s;
+}
+#report-content [contenteditable]:hover{outline:1px dashed var(--brick)}
+#report-content [contenteditable]:focus{outline:2px solid var(--brick)}
+
+/* FOOTER */
+#footer{
+  background:var(--steel);
+  color:var(--mortar);
+  padding:6px 20px;
+  font-size:0.6rem;
+  letter-spacing:0.3px;
+  line-height:1.4;
+  font-family:Consolas,monospace;
+}
+
+/* PRINT */
+@media print{
+  #input-bar,#unit-config,#advanced-toggle,#advanced-panel,
+  #flags,#hero-split,#split-container,#divider,#footer,
+  #btn-example,#btn-reset,#btn-print,.no-print{display:none!important}
+  #report-section{display:block!important;padding:0}
+  #app{display:block!important;background:#fff;height:auto;overflow:visible}
+  body{background:#fff;overflow:visible;height:auto}
+  #report-content{max-width:100%}
+}
+
+/* RESPONSIVE */
+@media(max-width:800px){
+  #split-container{flex-direction:column}
+  #divider{width:100%;height:4px;cursor:row-resize}
+  #pane-left,#pane-right{flex:none;height:50%}
+  .hero-number{font-size:2rem}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== ENTRY EXPERIENCE: BUILDING FACADE ===== -->
+<div id="entry-screen">
+  <svg viewBox="0 0 400 500" xmlns="http://www.w3.org/2000/svg">
+    <!-- Building body -->
+    <rect x="60" y="80" width="280" height="380" fill="#8d4925" rx="2"/>
+    <!-- Roof peak -->
+    <polygon points="50,82 200,20 350,82" fill="#6b3519"/>
+    <!-- Mortar lines -->
+    <line x1="60" y1="140" x2="340" y2="140" stroke="#ede0ce" stroke-width="0.5" opacity="0.3"/>
+    <line x1="60" y1="200" x2="340" y2="200" stroke="#ede0ce" stroke-width="0.5" opacity="0.3"/>
+    <line x1="60" y1="260" x2="340" y2="260" stroke="#ede0ce" stroke-width="0.5" opacity="0.3"/>
+    <line x1="60" y1="320" x2="340" y2="320" stroke="#ede0ce" stroke-width="0.5" opacity="0.3"/>
+    <line x1="60" y1="380" x2="340" y2="380" stroke="#ede0ce" stroke-width="0.5" opacity="0.3"/>
+    <!-- Windows Row 1 -->
+    <rect class="window-pane" data-order="0" x="90" y="100" width="40" height="30" rx="1"/>
+    <rect class="window-pane" data-order="1" x="160" y="100" width="40" height="30" rx="1"/>
+    <rect class="window-pane" data-order="2" x="240" y="100" width="40" height="30" rx="1"/>
+    <rect class="window-pane" data-order="3" x="300" y="100" width="40" height="30" rx="1"/>
+    <!-- Windows Row 2 -->
+    <rect class="window-pane" data-order="4" x="90" y="160" width="40" height="30" rx="1"/>
+    <rect class="window-pane" data-order="5" x="160" y="160" width="40" height="30" rx="1"/>
+    <rect class="window-pane" data-order="6" x="240" y="160" width="40" height="30" rx="1"/>
+    <rect class="window-pane" data-order="7" x="300" y="160" width="40" height="30" rx="1"/>
+    <!-- Windows Row 3 -->
+    <rect class="window-pane" data-order="8" x="90" y="220" width="40" height="30" rx="1"/>
+    <rect class="window-pane" data-order="9" x="160" y="220" width="40" height="30" rx="1"/>
+    <rect class="window-pane" data-order="10" x="240" y="220" width="40" height="30" rx="1"/>
+    <rect class="window-pane" data-order="11" x="300" y="220" width="40" height="30" rx="1"/>
+    <!-- Windows Row 4 -->
+    <rect class="window-pane" data-order="12" x="90" y="280" width="40" height="30" rx="1"/>
+    <rect class="window-pane" data-order="13" x="160" y="280" width="40" height="30" rx="1"/>
+    <rect class="window-pane" data-order="14" x="240" y="280" width="40" height="30" rx="1"/>
+    <rect class="window-pane" data-order="15" x="300" y="280" width="40" height="30" rx="1"/>
+    <!-- Door -->
+    <rect x="170" y="390" width="60" height="70" fill="#6b3519" rx="2"/>
+    <circle cx="222" cy="425" r="3" fill="#ede0ce"/>
+    <!-- Foundation -->
+    <rect x="50" y="460" width="300" height="12" fill="#424242"/>
+    <!-- Title text -->
+    <text x="200" y="490" text-anchor="middle" fill="#ede0ce"
+      font-family="Century Gothic,Apple Gothic,sans-serif" font-size="11"
+      letter-spacing="3" text-transform="uppercase">IS THIS HOUSE WORTH SAVING?</text>
+  </svg>
+</div>
+
+<!-- ===== MAIN APPLICATION ===== -->
+<div id="app">
+
+  <!-- TOP INPUT BAR -->
+  <div id="input-bar">
+    <h1>Deeply Affordable Home Preservation Calculator</h1>
+    <div class="input-group">
+      <label for="inp-address">Address / Label</label>
+      <input type="text" id="inp-address" value="" placeholder="e.g. District 65 Duplex" style="min-width:160px">
+    </div>
+    <div class="input-group">
+      <label for="inp-type">Property Type</label>
+      <select id="inp-type">
+        <option value="1">Single-family</option>
+        <option value="2">Duplex</option>
+        <option value="3">Tri-plex</option>
+      </select>
+    </div>
+    <div class="input-group">
+      <label for="inp-units">Units</label>
+      <input type="number" id="inp-units" value="1" min="1" max="4" style="width:50px">
+    </div>
+    <div class="input-group">
+      <label for="inp-acq">Acquisition ($)</label>
+      <input type="number" id="inp-acq" value="185000" min="0" step="5000">
+    </div>
+    <div class="input-group">
+      <label for="inp-rehab">Rehab ($)</label>
+      <input type="number" id="inp-rehab" value="120000" min="0" step="5000">
+    </div>
+    <div class="input-group">
+      <label for="inp-sqft">Sq Ft</label>
+      <input type="number" id="inp-sqft" value="1400" min="100" step="100" style="width:70px">
+    </div>
+    <div class="input-group">
+      <label for="inp-year">Year Built</label>
+      <input type="number" id="inp-year" value="1923" min="1800" max="2026" style="width:70px">
+    </div>
+    <div class="input-group">
+      <label for="inp-market">Post-Rehab Value ($)</label>
+      <input type="number" id="inp-market" value="260000" min="0" step="5000">
+    </div>
+    <button id="btn-example">Load Example</button>
+    <button id="btn-reset">Reset</button>
+    <button id="btn-print" onclick="printReport()">Print Report</button>
+  </div>
+
+  <!-- UNIT CONFIGURATION -->
+  <div id="unit-config"></div>
+
+  <!-- ADVANCED OPTIONS TOGGLE -->
+  <div id="advanced-toggle" onclick="toggleAdvanced()">
+    <span class="arrow">&#9654;</span> Advanced Parameters
+  </div>
+  <div id="advanced-panel">
+    <div class="input-group">
+      <label for="inp-ami">HUD AMI (4-person)</label>
+      <!-- VERIFY: HUD FY2024 AMI for Minneapolis-St. Paul metro -->
+      <input type="number" id="inp-ami" value="113300" step="100">
+    </div>
+    <div class="input-group">
+      <label for="inp-utility">Utility Allow. ($/mo)</label>
+      <input type="number" id="inp-utility" value="150" step="10">
+    </div>
+    <div class="input-group">
+      <label for="inp-opex">OpEx Ratio (%)</label>
+      <input type="number" id="inp-opex" value="35" min="10" max="70" step="1" style="width:55px">
+    </div>
+    <div class="input-group">
+      <label for="inp-rate">Interest Rate (%)</label>
+      <input type="number" id="inp-rate" value="5.5" min="1" max="12" step="0.25" style="width:60px">
+    </div>
+    <div class="input-group">
+      <label for="inp-term">Loan Term (yrs)</label>
+      <input type="number" id="inp-term" value="30" min="5" max="40" step="1" style="width:55px">
+    </div>
+    <div class="input-group">
+      <label for="inp-dscr">Target DSCR</label>
+      <input type="number" id="inp-dscr" value="1.20" min="1" max="2" step="0.05" style="width:60px">
+    </div>
+    <div class="input-group">
+      <!-- VERIFY: HUD FY2024 FMR for 2BR in MSP metro -->
+      <label for="inp-fmr">2BR FMR (PBV)</label>
+      <input type="number" id="inp-fmr" value="1540" step="10" style="width:80px">
+    </div>
+  </div>
+
+  <!-- FLAGS -->
+  <div id="flags">
+    <span id="flag-lead" class="flag-banner flag-lead">
+      &#9888; Pre-1978 — lead-based paint assessment and abatement costs may apply. See EPA RRP Rule.
+    </span>
+    <span id="flag-lihtc" class="flag-banner flag-lihtc">
+      LIHTC generally not cost-effective for properties with 4 or fewer units.
+    </span>
+  </div>
+
+  <!-- HERO SPLIT -->
+  <div id="hero-split">
+    <div id="hero-left">
+      <span class="hero-label">Without Preservation — Units Lost</span>
+      <span class="hero-number" id="hero-lost">0</span>
+      <span class="hero-sub">demolished / displaced</span>
+    </div>
+    <div id="hero-right">
+      <span class="hero-label">With Preservation — Units Preserved</span>
+      <span class="hero-number" id="hero-preserved">0</span>
+      <span class="hero-sub">deeply affordable</span>
+    </div>
+  </div>
+
+  <!-- SPLIT PANES -->
+  <div id="split-container">
+    <div id="pane-left">
+      <div class="pane-header">Without Preservation</div>
+
+      <div class="data-section">
+        <h3>Demolition / Loss Scenario</h3>
+        <table class="data-tbl">
+          <tr><td>Property acquisition (lost investment)</td><td id="ol-acq">$0</td></tr>
+          <tr><td>Estimated demolition cost</td><td id="ol-demo">$0</td></tr>
+          <tr><td>Environmental remediation (pre-1978)</td><td id="ol-enviro">$0</td></tr>
+          <tr><td>Displacement of existing households</td><td id="ol-displace">0 units</td></tr>
+          <tr><td>Annual rent revenue lost</td><td id="ol-rent-lost">$0</td></tr>
+          <tr><td>10-year cumulative revenue lost</td><td id="ol-10yr">$0</td></tr>
+        </table>
+      </div>
+
+      <div class="data-section">
+        <h3>Community Cost</h3>
+        <table class="data-tbl">
+          <tr><td>Replacement cost (new construction per unit)</td><td id="ol-replace">$0</td></tr>
+          <tr><td>Total replacement cost (all units)</td><td id="ol-replace-total">$0</td></tr>
+          <tr><td>Net cost of inaction vs. preservation</td><td id="ol-net-cost">$0</td></tr>
+        </table>
+      </div>
+
+      <div class="data-section">
+        <h3>Market Outcome</h3>
+        <table class="data-tbl">
+          <tr><td>Affordable units remaining</td><td id="ol-remain" style="color:var(--red);font-size:1.1rem">0</td></tr>
+          <tr><td>Likely replacement use</td><td id="ol-likely">Market-rate or vacant lot</td></tr>
+        </table>
+      </div>
+
+      <div class="chart-wrap">
+        <canvas id="chart-loss"></canvas>
+      </div>
+    </div>
+
+    <div id="divider"></div>
+
+    <div id="pane-right">
+      <div class="pane-header">With Preservation (SF4557 Model)</div>
+
+      <div class="data-section">
+        <h3>Acquisition Feasibility</h3>
+        <table class="data-tbl">
+          <tr><td>Acquisition cost</td><td id="or-acq">$0</td></tr>
+          <tr><td>Rehabilitation cost</td><td id="or-rehab">$0</td></tr>
+          <tr><td>Total Development Cost (TDC)</td><td id="or-tdc">$0</td></tr>
+          <tr><td>TDC per unit</td><td id="or-tdc-unit">$0</td></tr>
+          <tr><td>TDC per sq ft</td><td id="or-tdc-sqft">$0</td></tr>
+        </table>
+      </div>
+
+      <div class="data-section">
+        <h3>Affordability by Unit</h3>
+        <table class="data-tbl" id="tbl-units">
+          <tr><th style="font-size:0.65rem;text-transform:uppercase;letter-spacing:1px">Unit</th><th style="text-align:right;font-size:0.65rem">Gross Rent</th><th style="text-align:right;font-size:0.65rem">Net Rent</th></tr>
+        </table>
+      </div>
+
+      <div class="data-section">
+        <h3>Income &amp; Debt Capacity</h3>
+        <table class="data-tbl">
+          <tr><td>Annual gross rental income</td><td id="or-gross">$0</td></tr>
+          <tr><td>Operating expenses (<span id="or-opex-pct">35</span>%)</td><td id="or-opex">$0</td></tr>
+          <tr><td>Net Operating Income (NOI)</td><td id="or-noi">$0</td></tr>
+          <tr><td>Debt constant (<span id="or-rate-show">5.5</span>%, <span id="or-term-show">30</span>yr)</td><td id="or-dc">0.0000</td></tr>
+          <tr><td>Max supportable mortgage (DSCR <span id="or-dscr-show">1.20</span>)</td><td id="or-mortgage">$0</td></tr>
+        </table>
+      </div>
+
+      <div class="data-section">
+        <h3>Subsidy Gap</h3>
+        <table class="data-tbl">
+          <tr class="verdict-row" id="gap-row"><td>Subsidy gap</td><td id="or-gap">$0</td></tr>
+          <tr><td>Gap per unit</td><td id="or-gap-unit">$0</td></tr>
+          <tr><td>Gap as % of TDC</td><td id="or-gap-pct">0%</td></tr>
+        </table>
+      </div>
+
+      <!-- PBV Section -->
+      <div class="data-section">
+        <h3>Project-Based Vouchers (Optional)</h3>
+        <div id="pbv-toggles"></div>
+      </div>
+
+      <!-- Funding Stack -->
+      <div class="data-section">
+        <h3>Minnesota Funding Stack</h3>
+        <div id="funding-list"></div>
+        <div class="summary-band summary-band-green" id="fund-summary-ok" style="display:none">
+          Gap fully covered. Remaining: <span id="fund-surplus">$0</span>
+        </div>
+        <div class="summary-band summary-band-red" id="fund-summary-gap" style="display:none">
+          Remaining unfunded gap: <span id="fund-remaining">$0</span>
+        </div>
+        <table class="data-tbl" style="margin-top:8px">
+          <tr><td>Total sources assembled</td><td id="fund-total">$0</td></tr>
+          <tr><td>Leverage ratio (debt : subsidy)</td><td id="fund-leverage">0.00</td></tr>
+        </table>
+      </div>
+
+      <div class="chart-wrap">
+        <canvas id="chart-stack"></canvas>
+      </div>
+
+      <div class="data-section">
+        <h3>Feasibility Verdict</h3>
+        <div id="verdict-text" style="font-size:0.82rem;line-height:1.5;color:var(--steel)"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REPORT (hidden until print) -->
+  <div id="report-section">
+    <div id="report-content" contenteditable="true"></div>
+  </div>
+
+  <!-- FOOTER -->
+  <div id="footer">
+    A resource for Saint Paul housing nonprofits and community development organizations. Built with AI.
+    AMI figures reflect HUD FY2024 data for the Minneapolis-St. Paul HMA. Verify program parameters annually.
+    This tool uses HUD FY2024 AMI figures ($113,300 for 4-person household). Not a substitute for legal or financial professional review.
+  </div>
+</div>
+
+<script>
+// ===== ENTRY ANIMATION =====
+(function(){
+  const panes = document.querySelectorAll('.window-pane');
+  const sorted = Array.from(panes).sort((a,b) => +a.dataset.order - +b.dataset.order);
+  sorted.forEach((p,i) => {
+    setTimeout(() => {
+      p.classList.add(i % 3 === 0 ? 'lit-warm' : 'lit');
+    }, 200 + i * 150);
+  });
+  setTimeout(() => {
+    document.getElementById('entry-screen').classList.add('fade-out');
+    document.getElementById('app').classList.add('visible');
+    setTimeout(() => {
+      document.getElementById('entry-screen').style.display = 'none';
+      recalculate();
+    }, 800);
+  }, 200 + sorted.length * 150 + 600);
+})();
+
+// ===== GLOBALS =====
+const BR_FACTORS = {0:0.70, 1:0.75, 2:0.90, 3:1.04, 4:1.16};
+const DEMO_COST_PER_SQFT = 12; // estimate for demolition
+const ENVIRO_BASE = 15000; // pre-1978 remediation estimate
+const NEW_CONSTRUCTION_PER_UNIT = 350000; // MN affordable new construction estimate
+
+let unitData = []; // {bedrooms, ami_pct, pbv}
+let fundingSources = [];
+let chartLoss = null, chartStack = null;
+
+// ===== FUNDING SOURCE DEFINITIONS =====
+const FUND_DEFS = [
+  {id:'cdbg', name:'Community Development Block Grant (CDBG)',
+   min:20000, max:150000, def:80000,
+   note:'Federal entitlement to City of Saint Paul. 80% AMI limit. Competitive annual process.',
+   eligible: () => true, flag:'Estimate only'},
+  {id:'home', name:'HOME Investment Partnerships',
+   min:10000, max:200000, def:50000,
+   note:'Federal via HUD. 80% AMI. 25% non-federal match required.',
+   eligible: () => true, flag:'25% match req.'},
+  {id:'mn_deferred', name:'MN Housing Deferred Loan (0%, 30yr)',
+   min:10000, max:300000, def:59400,
+   note:'For nonprofit rental housing owners. Competitive RFP.',
+   eligible: () => true, flag:'Competitive'},
+  {id:'mn_fixup', name:'MN Housing Fix Up Fund',
+   min:2000, max:75000, def:30000,
+   note:'Loan $2K-$75K. For existing homeowners — flag transition limitation for nonprofit acquisition.',
+   eligible: () => true, flag:'Homeowner only'},
+  {id:'mn_rehab', name:'MN Housing Rehab/Emergency Loan',
+   min:2000, max:37500, def:20000,
+   note:'Max $37,500. 15yr. Income/asset limits. Homeowner program — transition limitation applies.',
+   eligible: () => true, flag:'Homeowner only'},
+  {id:'lihtc', name:'LIHTC (Low-Income Housing Tax Credit)',
+   min:0, max:500000, def:0,
+   note:'9% or 4% credit. MN Housing allocates. Generally not cost-effective for 1-4 units.',
+   eligible: () => getUnits() > 4, flag:''},
+  {id:'sf4557', name:'SF4557 Preservation Fund (Pappas — if enacted)',
+   min:0, max:500000, def:0,
+   note:'Proposed $20M to SPPHA and Capital City Affordable Housing. Status: Proposed — SF4557 (2024 session).',
+   eligible: () => true, flag:'Proposed'}
+];
+
+// ===== HELPERS =====
+const $ = id => document.getElementById(id);
+const fmt = n => {
+  if(n === undefined || isNaN(n)) return '$0';
+  return '$' + Math.round(n).toLocaleString('en-US');
+};
+const fmtN = n => Math.round(n).toLocaleString('en-US');
+const getV = id => parseFloat($(id).value) || 0;
+const getUnits = () => parseInt($('inp-units').value) || 1;
+
+// ===== UNIT CONFIG RENDERING =====
+function renderUnits(){
+  const n = getUnits();
+  const container = $('unit-config');
+  container.innerHTML = '';
+  // Preserve existing data if possible
+  const old = unitData.slice();
+  unitData = [];
+  for(let i = 0; i < n; i++){
+    const prev = old[i] || {bedrooms:2, ami_pct:50, pbv:false};
+    unitData.push({bedrooms:prev.bedrooms, ami_pct:prev.ami_pct, pbv:prev.pbv});
+    const row = document.createElement('div');
+    row.className = 'unit-row';
+    row.innerHTML = `
+      <span class="unit-label">Unit ${i+1}</span>
+      <div class="input-group">
+        <label>Bedrooms</label>
+        <select data-unit="${i}" data-field="bedrooms">
+          ${[0,1,2,3,4].map(b => `<option value="${b}" ${b===prev.bedrooms?'selected':''}>${b}BR</option>`).join('')}
+        </select>
+      </div>
+      <div class="input-group">
+        <label>Target AMI</label>
+        <select data-unit="${i}" data-field="ami_pct">
+          ${[30,40,50,60,80].map(a => `<option value="${a}" ${a===prev.ami_pct?'selected':''}>${a}%</option>`).join('')}
+        </select>
+      </div>
+    `;
+    container.appendChild(row);
+    row.querySelectorAll('select').forEach(sel => {
+      sel.addEventListener('change', function(){
+        const ui = +this.dataset.unit;
+        const field = this.dataset.field;
+        unitData[ui][field] = +this.value;
+        recalculate();
+      });
+    });
+  }
+  renderPBVToggles();
+  recalculate();
+}
+
+function renderPBVToggles(){
+  const container = $('pbv-toggles');
+  container.innerHTML = '';
+  unitData.forEach((u,i) => {
+    const row = document.createElement('div');
+    row.className = 'pbv-row';
+    row.innerHTML = `
+      <input type="checkbox" id="pbv-${i}" ${u.pbv?'checked':''}>
+      <label for="pbv-${i}">Attach PBV to Unit ${i+1} (${u.ami_pct}% AMI, ${u.bedrooms}BR)</label>
+    `;
+    container.appendChild(row);
+    row.querySelector('input').addEventListener('change', function(){
+      unitData[i].pbv = this.checked;
+      recalculate();
+    });
+  });
+}
+
+// ===== FUNDING LIST RENDERING =====
+function renderFundingList(){
+  const container = $('funding-list');
+  container.innerHTML = '';
+  fundingSources = [];
+  FUND_DEFS.forEach(fd => {
+    const item = {id:fd.id, checked:false, amount:fd.def, def:fd};
+    fundingSources.push(item);
+    const row = document.createElement('div');
+    row.className = 'funding-item';
+    const isEligible = fd.eligible();
+    const flagClass = fd.id === 'sf4557' ? 'fund-flag-warn' :
+                      fd.id === 'lihtc' && !isEligible ? 'fund-flag-no' :
+                      fd.flag.includes('Homeowner') ? 'fund-flag-warn' : 'fund-flag-ok';
+    row.innerHTML = `
+      <input type="checkbox" id="fund-${fd.id}" ${fd.id==='cdbg'||fd.id==='mn_deferred'?'checked':''}>
+      <span class="fund-name">${fd.name}</span>
+      <input type="number" class="fund-amount" id="famt-${fd.id}" value="${fd.def}" min="0" max="${fd.max}" step="1000">
+      <span class="fund-max">max ${fmt(fd.max)}</span>
+      ${fd.flag ? `<span class="fund-flag ${flagClass}">${fd.flag}</span>` : ''}
+    `;
+    container.appendChild(row);
+    const cb = row.querySelector('input[type="checkbox"]');
+    const amt = row.querySelector('.fund-amount');
+    item.checked = cb.checked;
+    cb.addEventListener('change', function(){
+      item.checked = this.checked;
+      recalculate();
+    });
+    amt.addEventListener('input', function(){
+      let v = +this.value;
+      if(v > fd.max) { v = fd.max; this.value = v; }
+      if(v < 0) { v = 0; this.value = v; }
+      item.amount = v;
+      recalculate();
+    });
+  });
+}
+
+// ===== CORE CALCULATIONS =====
+function calcDebtConstant(annualRate, termYears){
+  const r = annualRate / 12;
+  const n = termYears * 12;
+  if(r === 0) return 1 / n * 12;
+  return (r * Math.pow(1+r, n)) / (Math.pow(1+r, n) - 1) * 12;
+}
+
+function calcUnitRent(ami4, amiPct, bedrooms, utilityAllow){
+  const grossRent = (ami4 * (amiPct/100) * BR_FACTORS[bedrooms] * 0.30) / 12;
+  const netRent = grossRent - utilityAllow;
+  return {grossRent, netRent: Math.max(0, netRent)};
+}
+
+function recalculate(){
+  const acq = getV('inp-acq');
+  const rehab = getV('inp-rehab');
+  const sqft = getV('inp-sqft') || 1;
+  const year = getV('inp-year');
+  const market = getV('inp-market');
+  const ami = getV('inp-ami');
+  const utility = getV('inp-utility');
+  const opexRatio = getV('inp-opex') / 100;
+  const rate = getV('inp-rate') / 100;
+  const term = getV('inp-term');
+  const dscr = getV('inp-dscr');
+  const fmr = getV('inp-fmr');
+  const units = getUnits();
+
+  // Update display labels
+  $('or-opex-pct').textContent = Math.round(opexRatio * 100);
+  $('or-rate-show').textContent = (rate*100).toFixed(1);
+  $('or-term-show').textContent = term;
+  $('or-dscr-show').textContent = dscr.toFixed(2);
+
+  // Flags
+  const preLead = year < 1978;
+  $('flag-lead').classList.toggle('visible', preLead);
+  $('flag-lihtc').classList.toggle('visible', units <= 4);
+
+  // TDC
+  const tdc = acq + rehab;
+
+  // Unit rents
+  const tblUnits = $('tbl-units');
+  tblUnits.innerHTML = '<tr><th style="font-size:0.65rem;text-transform:uppercase;letter-spacing:1px">Unit</th><th style="text-align:right;font-size:0.65rem">Gross Rent</th><th style="text-align:right;font-size:0.65rem">Net Rent</th></tr>';
+  let totalAnnualNet = 0;
+  let totalAnnualGross = 0;
+  let pbvAdditionalIncome = 0;
+
+  unitData.forEach((u, i) => {
+    const {grossRent, netRent} = calcUnitRent(ami, u.ami_pct, u.bedrooms, utility);
+    totalAnnualGross += grossRent * 12;
+    totalAnnualNet += netRent * 12;
+
+    // PBV calculation
+    if(u.pbv){
+      // Contract rent = FMR; tenant portion = 30% of household income
+      const hhIncome = ami * (u.ami_pct / 100);
+      const tenantPortion = (hhIncome * 0.30) / 12;
+      const hap = Math.max(0, fmr - tenantPortion);
+      pbvAdditionalIncome += hap * 12;
+    }
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td style="font-family:Consolas,monospace;font-size:0.78rem">Unit ${i+1} (${u.bedrooms}BR @ ${u.ami_pct}% AMI)${u.pbv?' +PBV':''}</td>
+      <td style="text-align:right;font-family:Consolas,monospace">${fmt(grossRent)}/mo</td>
+      <td style="text-align:right;font-family:Consolas,monospace">${fmt(netRent)}/mo</td>`;
+    tblUnits.appendChild(tr);
+  });
+
+  const grossIncome = totalAnnualNet + pbvAdditionalIncome;
+  const opex = grossIncome * opexRatio;
+  const noi = grossIncome - opex;
+  const dc = calcDebtConstant(rate, term);
+  const maxMortgage = noi > 0 && dc > 0 ? noi / dscr / dc : 0;
+  const gap = Math.max(0, tdc - maxMortgage);
+  const gapPct = tdc > 0 ? (gap / tdc * 100) : 0;
+
+  // Right pane
+  $('or-acq').textContent = fmt(acq);
+  $('or-rehab').textContent = fmt(rehab);
+  $('or-tdc').textContent = fmt(tdc);
+  $('or-tdc-unit').textContent = units > 0 ? fmt(tdc / units) : '$0';
+  $('or-tdc-sqft').textContent = fmt(tdc / sqft);
+  $('or-gross').textContent = fmt(grossIncome);
+  $('or-opex').textContent = fmt(opex);
+  $('or-noi').textContent = fmt(noi);
+  $('or-dc').textContent = dc.toFixed(4);
+  $('or-mortgage').textContent = fmt(maxMortgage);
+  $('or-gap').textContent = fmt(gap);
+  $('or-gap-unit').textContent = units > 0 ? fmt(gap / units) : '$0';
+  $('or-gap-pct').textContent = gapPct.toFixed(1) + '%';
+
+  // Verdict styling
+  const gapRow = $('gap-row');
+  gapRow.className = 'verdict-row';
+  if(gapPct < 60) gapRow.classList.add('verdict-green');
+  else if(gapPct < 80) gapRow.classList.add('verdict-yellow');
+  else gapRow.classList.add('verdict-red');
+
+  // Verdict text
+  let verdictLang;
+  if(gap <= 0){
+    verdictLang = 'requires no subsidy — NOI supports full development cost.';
+  } else if(gapPct < 60){
+    verdictLang = 'likely fundable with standard Minnesota housing tools (CDBG, MN Housing deferred loan).';
+  } else if(gapPct < 80){
+    verdictLang = 'requires stacking multiple funding sources. Consider adding a Project-Based Voucher to reduce the gap.';
+  } else {
+    verdictLang = 'deeply challenging. Consider a deed restriction or Section 8 project-based voucher to improve income.';
+  }
+
+  // Left pane — loss scenario
+  const demoCost = sqft * DEMO_COST_PER_SQFT;
+  const enviroCost = preLead ? ENVIRO_BASE * units : 0;
+  const annualRentLost = totalAnnualNet;
+  const tenYearLost = annualRentLost * 10;
+  const replaceCostPerUnit = NEW_CONSTRUCTION_PER_UNIT;
+  const replaceCostTotal = replaceCostPerUnit * units;
+  const netCostInaction = demoCost + enviroCost + replaceCostTotal;
+
+  $('ol-acq').textContent = fmt(acq);
+  $('ol-demo').textContent = fmt(demoCost) + ' (est.)';
+  $('ol-enviro').textContent = preLead ? fmt(enviroCost) + ' (est.)' : 'N/A';
+  $('ol-displace').textContent = units + ' unit' + (units > 1 ? 's' : '');
+  $('ol-rent-lost').textContent = fmt(annualRentLost);
+  $('ol-10yr').textContent = fmt(tenYearLost);
+  $('ol-replace').textContent = fmt(replaceCostPerUnit) + '/unit (est.)';
+  $('ol-replace-total').textContent = fmt(replaceCostTotal);
+  $('ol-net-cost').textContent = fmt(netCostInaction);
+  $('ol-remain').textContent = '0';
+
+  // Hero numbers
+  $('hero-lost').textContent = units;
+  $('hero-preserved').textContent = units;
+
+  // Funding calculations
+  let totalFunding = 0;
+  fundingSources.forEach(fs => {
+    if(fs.checked) totalFunding += fs.amount;
+  });
+  const remainingGap = Math.max(0, gap - totalFunding);
+  const surplus = Math.max(0, totalFunding - gap);
+
+  $('fund-total').textContent = fmt(totalFunding);
+  $('fund-leverage').textContent = totalFunding > 0 ? (maxMortgage / totalFunding).toFixed(2) : '—';
+
+  if(remainingGap <= 0 && gap > 0){
+    $('fund-summary-ok').style.display = 'block';
+    $('fund-summary-gap').style.display = 'none';
+    $('fund-surplus').textContent = fmt(surplus);
+  } else if(gap > 0){
+    $('fund-summary-ok').style.display = 'none';
+    $('fund-summary-gap').style.display = 'block';
+    $('fund-remaining').textContent = fmt(remainingGap);
+  } else {
+    $('fund-summary-ok').style.display = 'none';
+    $('fund-summary-gap').style.display = 'none';
+  }
+
+  // Verdict text with funding
+  const addr = $('inp-address').value || 'this property';
+  const typeLabel = $('inp-type').selectedOptions[0].text;
+  const lowestAMI = Math.min(...unitData.map(u => u.ami_pct));
+  const highestAMI = Math.max(...unitData.map(u => u.ami_pct));
+  const activeSources = fundingSources.filter(f => f.checked).map(f => f.def.name).join(' + ') ||
+    fundingSources.filter(f => f.checked).map(f => FUND_DEFS.find(d => d.id === f.id).name).join(' + ');
+
+  $('verdict-text').innerHTML = `This ${typeLabel.toLowerCase()} at <strong>${addr}</strong> has a total development cost of <strong>${fmt(tdc)}</strong>. ` +
+    `At target rents affordable to households at ${lowestAMI}%\u2013${highestAMI}% of area median income, the property supports a conventional mortgage of approximately <strong>${fmt(maxMortgage)}</strong>. ` +
+    `The estimated subsidy gap of <strong>${fmt(gap)}</strong> (${gapPct.toFixed(1)}% of TDC) ${verdictLang}` +
+    (totalFunding > 0 ? ` The proposed funding stack covers <strong>${fmt(totalFunding)}</strong> of the gap, leaving <strong>${fmt(remainingGap)}</strong> unfunded.` : '');
+
+  // Charts
+  updateCharts(tdc, maxMortgage, gap, totalFunding, remainingGap, demoCost, enviroCost, replaceCostTotal, acq);
+
+  // Report
+  generateReport(addr, typeLabel, units, year, tdc, maxMortgage, gap, gapPct, verdictLang, totalFunding, remainingGap, lowestAMI, highestAMI);
+
+  // LocalStorage
+  saveState();
+}
+
+// ===== CHARTS =====
+function updateCharts(tdc, mortgage, gap, funded, remaining, demo, enviro, replace, acq){
+  // Loss chart
+  if(chartLoss) chartLoss.destroy();
+  const ctxL = $('chart-loss').getContext('2d');
+  chartLoss = new Chart(ctxL, {
+    type: 'bar',
+    data: {
+      labels: ['Cost of Inaction'],
+      datasets: [
+        {label:'Demolition', data:[demo], backgroundColor:'#c62828'},
+        {label:'Remediation', data:[enviro], backgroundColor:'#ef5350'},
+        {label:'Replacement Construction', data:[replace], backgroundColor:'#b71c1c'},
+        {label:'Lost Investment', data:[acq], backgroundColor:'#e57373'}
+      ]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: {position:'bottom', labels:{font:{family:'Franklin Gothic Medium',size:10},boxWidth:12}},
+        tooltip: {callbacks:{label: ctx => ctx.dataset.label + ': ' + fmt(ctx.raw)}}
+      },
+      scales: {
+        x: {stacked:true, ticks:{callback: v => '$' + (v/1000).toFixed(0) + 'K', font:{family:'Consolas',size:10}}},
+        y: {stacked:true, display:false}
+      }
+    }
+  });
+
+  // Stack chart
+  if(chartStack) chartStack.destroy();
+  const ctxS = $('chart-stack').getContext('2d');
+  chartStack = new Chart(ctxS, {
+    type: 'bar',
+    data: {
+      labels: ['Total Dev. Cost', 'Funding Sources'],
+      datasets: [
+        {label:'Conventional Mortgage', data:[mortgage, 0], backgroundColor:'#558b2f'},
+        {label:'Funded Gap', data:[Math.min(gap, funded), funded], backgroundColor:'#7cb342'},
+        {label:'Unfunded Gap', data:[remaining, 0], backgroundColor:'#c62828'},
+        {label:'Surplus', data:[0, Math.max(0, funded - gap)], backgroundColor:'#ede0ce'}
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: {position:'bottom', labels:{font:{family:'Franklin Gothic Medium',size:10},boxWidth:12}},
+        tooltip: {callbacks:{label: ctx => ctx.dataset.label + ': ' + fmt(ctx.raw)}}
+      },
+      scales: {
+        x: {stacked:true},
+        y: {stacked:true, ticks:{callback: v => '$' + (v/1000).toFixed(0) + 'K', font:{family:'Consolas',size:10}}}
+      }
+    }
+  });
+}
+
+// ===== REPORT GENERATION =====
+function generateReport(addr, typeLabel, units, year, tdc, mortgage, gap, gapPct, verdictLang, totalFunding, remaining, lowestAMI, highestAMI){
+  const activeFunds = fundingSources.filter(f => f.checked);
+  let fundingRows = activeFunds.map(f => {
+    const d = FUND_DEFS.find(fd => fd.id === f.id);
+    return `<tr><td>${d.name}</td><td>${fmt(f.amount)}</td></tr>`;
+  }).join('');
+
+  let unitRows = unitData.map((u,i) => {
+    const {grossRent, netRent} = calcUnitRent(getV('inp-ami'), u.ami_pct, u.bedrooms, getV('inp-utility'));
+    return `<tr><td>Unit ${i+1}: ${u.bedrooms}BR @ ${u.ami_pct}% AMI</td><td>${fmt(grossRent)}/mo (net: ${fmt(netRent)})</td></tr>`;
+  }).join('');
+
+  $('report-content').innerHTML = `
+    <h2>Preservation Feasibility Report</h2>
+    <p><strong>${addr}</strong> &mdash; ${typeLabel}, ${units} unit(s), built ${year}</p>
+
+    <h2>Affordability Summary</h2>
+    <table>${unitRows}</table>
+
+    <h2>Financial Summary</h2>
+    <table>
+      <tr><td>Acquisition cost</td><td>${fmt(getV('inp-acq'))}</td></tr>
+      <tr><td>Rehabilitation</td><td>${fmt(getV('inp-rehab'))}</td></tr>
+      <tr><td>Total Development Cost</td><td>${fmt(tdc)}</td></tr>
+      <tr><td>Max. Supportable Mortgage</td><td>${fmt(mortgage)}</td></tr>
+      <tr><td><strong>Total Subsidy Gap</strong></td><td><strong>${fmt(gap)} (${gapPct.toFixed(1)}% of TDC)</strong></td></tr>
+    </table>
+
+    <h2>Funding Stack</h2>
+    <table>
+      ${fundingRows || '<tr><td colspan="2">No sources selected</td></tr>'}
+      <tr><td><strong>Total assembled</strong></td><td><strong>${fmt(totalFunding)}</strong></td></tr>
+      <tr><td><strong>Remaining gap</strong></td><td style="color:${remaining > 0 ? '#c62828' : '#558b2f'}"><strong>${fmt(remaining)}</strong></td></tr>
+    </table>
+
+    <h2>Feasibility Verdict</h2>
+    <p>This ${typeLabel.toLowerCase()} at ${addr} has a total development cost of ${fmt(tdc)}.
+    At target rents affordable to households at ${lowestAMI}%\u2013${highestAMI}% of area median income,
+    the property supports a conventional mortgage of approximately ${fmt(mortgage)}.
+    The estimated subsidy gap of ${fmt(gap)} (${gapPct.toFixed(1)}% of TDC) ${verdictLang}</p>
+    ${totalFunding > 0 ? `<p>The proposed funding stack covers ${fmt(totalFunding)} of the gap, leaving ${fmt(remaining)} unfunded.</p>` : ''}
+
+    <p style="font-size:0.7rem;color:#666;margin-top:20px">
+    This tool uses HUD FY2024 AMI figures for the Minneapolis\u2013St. Paul HMA.
+    Verify current AMI limits annually at hud.gov. Program parameters reflect MN Housing
+    and federal guidelines as of 2024\u20132025. Not a substitute for legal or financial professional review.
+    Built in the context of SF4557, Senator Pappas\u2019s proposal to direct $20 million toward deeply affordable preservation.</p>
+  `;
+}
+
+function printReport(){
+  $('report-section').classList.add('visible');
+  recalculate();
+  setTimeout(() => window.print(), 300);
+}
+
+// ===== DRAGGABLE DIVIDER =====
+(function(){
+  const divider = $('divider');
+  const container = $('split-container');
+  const left = $('pane-left');
+  const right = $('pane-right');
+  let dragging = false;
+
+  divider.addEventListener('mousedown', e => {
+    dragging = true;
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove', e => {
+    if(!dragging) return;
+    const rect = container.getBoundingClientRect();
+    let pct = ((e.clientX - rect.left) / rect.width) * 100;
+    pct = Math.max(20, Math.min(80, pct));
+    left.style.flex = 'none';
+    left.style.width = pct + '%';
+    right.style.flex = 'none';
+    right.style.width = (100 - pct) + '%';
+  });
+  document.addEventListener('mouseup', () => { dragging = false; });
+
+  // Synchronized scrolling
+  let syncing = false;
+  left.addEventListener('scroll', () => {
+    if(syncing) return;
+    syncing = true;
+    right.scrollTop = left.scrollTop;
+    syncing = false;
+  });
+  right.addEventListener('scroll', () => {
+    if(syncing) return;
+    syncing = true;
+    left.scrollTop = right.scrollTop;
+    syncing = false;
+  });
+})();
+
+// ===== ADVANCED TOGGLE =====
+function toggleAdvanced(){
+  const panel = $('advanced-panel');
+  const arrow = document.querySelector('#advanced-toggle .arrow');
+  panel.classList.toggle('open');
+  arrow.classList.toggle('open');
+}
+
+// ===== LOAD EXAMPLE =====
+function loadExample(){
+  $('inp-address').value = 'District 65 Duplex, Saint Paul (example)';
+  $('inp-type').value = '2';
+  $('inp-units').value = '2';
+  $('inp-acq').value = '185000';
+  $('inp-rehab').value = '120000';
+  $('inp-sqft').value = '1400';
+  $('inp-year').value = '1923';
+  $('inp-market').value = '260000';
+  $('inp-ami').value = '113300';
+  $('inp-utility').value = '150';
+  $('inp-opex').value = '35';
+  $('inp-rate').value = '5.5';
+  $('inp-term').value = '30';
+  $('inp-dscr').value = '1.20';
+  $('inp-fmr').value = '1540';
+  unitData = [
+    {bedrooms:2, ami_pct:50, pbv:false},
+    {bedrooms:2, ami_pct:30, pbv:false}
+  ];
+  renderUnits();
+  renderFundingList();
+  // Check CDBG and MN Deferred by default with example amounts
+  const cdbg = fundingSources.find(f => f.id === 'cdbg');
+  const mnDef = fundingSources.find(f => f.id === 'mn_deferred');
+  if(cdbg){cdbg.checked = true; cdbg.amount = 80000; $('fund-cdbg').checked = true; $('famt-cdbg').value = 80000;}
+  if(mnDef){mnDef.checked = true; mnDef.amount = 59400; $('fund-mn_deferred').checked = true; $('famt-mn_deferred').value = 59400;}
+  recalculate();
+}
+
+function resetAll(){
+  $('inp-address').value = '';
+  $('inp-type').value = '1';
+  $('inp-units').value = '1';
+  $('inp-acq').value = '0';
+  $('inp-rehab').value = '0';
+  $('inp-sqft').value = '1000';
+  $('inp-year').value = '1960';
+  $('inp-market').value = '0';
+  unitData = [{bedrooms:2, ami_pct:50, pbv:false}];
+  renderUnits();
+  renderFundingList();
+  localStorage.removeItem('pappas_calc_state');
+}
+
+// ===== EVENT LISTENERS =====
+$('btn-example').addEventListener('click', loadExample);
+$('btn-reset').addEventListener('click', resetAll);
+
+$('inp-type').addEventListener('change', function(){
+  const v = +this.value;
+  $('inp-units').value = v;
+  renderUnits();
+});
+
+// All inputs trigger recalculate
+document.querySelectorAll('#input-bar input, #input-bar select, #advanced-panel input').forEach(el => {
+  el.addEventListener('input', recalculate);
+  el.addEventListener('change', recalculate);
+});
+$('inp-units').addEventListener('change', renderUnits);
+
+// ===== LOCAL STORAGE =====
+function saveState(){
+  try{
+    const state = {
+      address: $('inp-address').value,
+      type: $('inp-type').value,
+      units: $('inp-units').value,
+      acq: $('inp-acq').value,
+      rehab: $('inp-rehab').value,
+      sqft: $('inp-sqft').value,
+      year: $('inp-year').value,
+      market: $('inp-market').value,
+      ami: $('inp-ami').value,
+      utility: $('inp-utility').value,
+      opex: $('inp-opex').value,
+      rate: $('inp-rate').value,
+      term: $('inp-term').value,
+      dscr: $('inp-dscr').value,
+      fmr: $('inp-fmr').value,
+      unitData: unitData,
+      funding: fundingSources.map(f => ({id:f.id, checked:f.checked, amount:f.amount}))
+    };
+    localStorage.setItem('pappas_calc_state', JSON.stringify(state));
+  } catch(e){}
+}
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem('pappas_calc_state');
+    if(!raw) return false;
+    const s = JSON.parse(raw);
+    $('inp-address').value = s.address || '';
+    $('inp-type').value = s.type || '1';
+    $('inp-units').value = s.units || '1';
+    $('inp-acq').value = s.acq || '0';
+    $('inp-rehab').value = s.rehab || '0';
+    $('inp-sqft').value = s.sqft || '1000';
+    $('inp-year').value = s.year || '1960';
+    $('inp-market').value = s.market || '0';
+    $('inp-ami').value = s.ami || '113300';
+    $('inp-utility').value = s.utility || '150';
+    $('inp-opex').value = s.opex || '35';
+    $('inp-rate').value = s.rate || '5.5';
+    $('inp-term').value = s.term || '30';
+    $('inp-dscr').value = s.dscr || '1.20';
+    $('inp-fmr').value = s.fmr || '1540';
+    if(s.unitData) unitData = s.unitData;
+    renderUnits();
+    renderFundingList();
+    if(s.funding){
+      s.funding.forEach(sf => {
+        const fs = fundingSources.find(f => f.id === sf.id);
+        if(fs){
+          fs.checked = sf.checked;
+          fs.amount = sf.amount;
+          const cb = $('fund-' + sf.id);
+          const amt = $('famt-' + sf.id);
+          if(cb) cb.checked = sf.checked;
+          if(amt) amt.value = sf.amount;
+        }
+      });
+    }
+    recalculate();
+    return true;
+  } catch(e){ return false; }
+}
+
+// ===== INIT =====
+(function init(){
+  if(!loadState()){
+    renderUnits();
+    renderFundingList();
+  }
+})();
+</script>
+</body>
+</html>

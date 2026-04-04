@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>First Responder Peer Support Program Builder — Senator Seeberger SD-41</title>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Three horizontal bands stacked vertically (dark/ivory/dark), each with 60/40 column split
+   2. Navigation: Three large rectangular buttons fixed at bottom of viewport (phone-app style bottom nav)
+   3. Typography: Trebuchet MS (body), Franklin Gothic Medium (headers), Consolas (data/scores)
+   4. Hero moment: Massive "1 IN 4" statistic in copper on midnight, dominates first viewport
+   5. Color strategy: #6 — Color-blocked sections; midnight blue, burnished copper, warm ivory as environmental colors
+   6. Entry experience: SVG heartbeat pulse that flatlines, then peer support message appears (2s max)
+   Additional: No bordered callout boxes; no cards; tables and typographic hierarchy only; dense assessment data vs. spacious hero
+*/
+
+:root {
+  --midnight: #0f1729;
+  --midnight-light: #1a2640;
+  --copper: #b87333;
+  --copper-glow: #d4944a;
+  --ivory: #faf3e0;
+  --ivory-dim: #f0e8d0;
+  --text-light: #e8e0d0;
+  --text-dark: #1a1a1a;
+  --success: #1F6B55;
+  --warning: #C4912A;
+  --alert: #B91C1C;
+  --gray: #6B7280;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Trebuchet MS', sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text-dark);
+  background: var(--midnight);
+  padding-bottom: 72px;
+}
+
+/* === ENTRY EXPERIENCE === */
+#entry-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: var(--midnight);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  transition: opacity 0.5s ease;
+}
+#entry-overlay.fade-out { opacity: 0; pointer-events: none; }
+#entry-overlay svg { width: 320px; height: 80px; }
+#entry-message {
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', sans-serif;
+  color: var(--copper);
+  font-size: 18px;
+  letter-spacing: 1px;
+  margin-top: 16px;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+#entry-message.visible { opacity: 1; }
+
+/* === BOTTOM NAV === */
+#bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  z-index: 1000;
+  display: flex;
+  height: 64px;
+  background: var(--midnight);
+  border-top: 2px solid var(--copper);
+}
+#bottom-nav button {
+  flex: 1;
+  background: var(--midnight);
+  border: none;
+  color: var(--gray);
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', sans-serif;
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  position: relative;
+}
+#bottom-nav button:hover { color: var(--copper-glow); }
+#bottom-nav button.active {
+  color: var(--ivory);
+  background: var(--midnight-light);
+}
+#bottom-nav button.active::before {
+  content: '';
+  position: absolute; top: 0; left: 20%; right: 20%;
+  height: 3px;
+  background: var(--copper);
+}
+#bottom-nav button + button { border-left: 1px solid rgba(184,115,51,0.2); }
+
+/* === MODULE VISIBILITY === */
+.module { display: none; }
+.module.active { display: block; }
+
+/* === BAND SYSTEM === */
+.band-dark {
+  background: var(--midnight);
+  color: var(--text-light);
+  padding: 48px 5% 56px;
+}
+.band-ivory {
+  background: var(--ivory);
+  color: var(--text-dark);
+  padding: 48px 5% 56px;
+}
+.band-inner {
+  display: grid;
+  grid-template-columns: 1fr 0.67fr;
+  gap: 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* === HERO === */
+.hero-stat {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 120px;
+  font-weight: 700;
+  color: var(--copper);
+  line-height: 1;
+  letter-spacing: -3px;
+}
+.hero-label {
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', sans-serif;
+  font-size: 22px;
+  color: var(--text-light);
+  margin-top: 8px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.hero-context {
+  font-size: 15px;
+  color: rgba(232,224,208,0.7);
+  margin-top: 20px;
+  line-height: 1.7;
+  max-width: 520px;
+}
+
+/* === SCORE RING === */
+.score-ring-wrap {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+.score-ring {
+  width: 180px; height: 180px;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--copper) calc(var(--score-pct, 0) * 1%),
+    rgba(255,255,255,0.08) calc(var(--score-pct, 0) * 1%)
+  );
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.score-ring-inner {
+  width: 140px; height: 140px;
+  border-radius: 50%;
+  background: var(--midnight);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+.score-ring-number {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 42px;
+  font-weight: 700;
+  color: var(--copper);
+}
+.score-ring-max {
+  font-family: Consolas, monospace;
+  font-size: 13px;
+  color: var(--gray);
+}
+.score-tier {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 14px;
+  color: var(--copper-glow);
+  margin-top: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  text-align: center;
+}
+
+/* === DOMAIN BARS === */
+.domain-bar-group { margin-top: 24px; width: 100%; }
+.domain-bar-row {
+  display: flex; align-items: center;
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+.domain-bar-label {
+  width: 90px;
+  font-family: Consolas, monospace;
+  color: var(--gray);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+.domain-bar-track {
+  flex: 1; height: 8px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.domain-bar-fill {
+  height: 100%;
+  background: var(--copper);
+  border-radius: 4px;
+  transition: width 0.4s ease;
+  width: 0%;
+}
+.domain-bar-score {
+  width: 50px; text-align: right;
+  font-family: Consolas, monospace;
+  font-size: 11px;
+  color: var(--text-light);
+}
+
+/* === HEADINGS === */
+h2.section-head {
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', sans-serif;
+  font-size: 28px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+.band-dark h2.section-head { color: var(--copper); }
+.band-ivory h2.section-head { color: var(--midnight); }
+
+h3.domain-head {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin: 28px 0 12px;
+  padding-bottom: 4px;
+}
+.band-dark h3.domain-head {
+  color: var(--copper-glow);
+  border-bottom: 1px solid rgba(184,115,51,0.25);
+}
+.band-ivory h3.domain-head {
+  color: var(--midnight);
+  border-bottom: 1px solid rgba(15,23,41,0.15);
+}
+
+/* === FORM ELEMENTS === */
+.form-group { margin-bottom: 16px; }
+.form-group label {
+  display: block;
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+.band-dark .form-group label { color: var(--copper-glow); }
+.band-ivory .form-group label { color: var(--midnight); }
+
+select, input[type="text"], input[type="number"] {
+  width: 100%;
+  padding: 8px 10px;
+  font-family: 'Trebuchet MS', sans-serif;
+  font-size: 14px;
+  border-radius: 3px;
+  border: 1px solid;
+  outline: none;
+}
+.band-dark select, .band-dark input[type="text"], .band-dark input[type="number"] {
+  background: var(--midnight-light);
+  border-color: rgba(184,115,51,0.3);
+  color: var(--text-light);
+}
+.band-dark select:focus, .band-dark input:focus {
+  border-color: var(--copper);
+  box-shadow: 0 0 0 2px rgba(184,115,51,0.15);
+}
+.band-ivory select, .band-ivory input[type="text"], .band-ivory input[type="number"] {
+  background: #fff;
+  border-color: rgba(15,23,41,0.2);
+  color: var(--text-dark);
+}
+.band-ivory select:focus, .band-ivory input:focus {
+  border-color: var(--midnight);
+  box-shadow: 0 0 0 2px rgba(15,23,41,0.1);
+}
+
+/* === RADIO BUTTONS === */
+.radio-group { margin-top: 6px; }
+.radio-option {
+  display: flex; align-items: flex-start;
+  margin-bottom: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.radio-option input[type="radio"] {
+  margin-top: 3px; margin-right: 8px;
+  accent-color: var(--copper);
+  flex-shrink: 0;
+}
+
+/* === ASSESSMENT CHECKLIST === */
+.checklist-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(15,23,41,0.08);
+  gap: 12px;
+}
+.checklist-item:last-child { border-bottom: none; }
+.checklist-text {
+  font-size: 14px;
+  line-height: 1.5;
+}
+.checklist-help {
+  font-size: 12px;
+  color: var(--gray);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+.checklist-choices {
+  display: flex; gap: 4px;
+  flex-shrink: 0;
+}
+.checklist-choices label {
+  display: flex; align-items: center;
+  padding: 4px 10px;
+  font-family: Consolas, monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: 1px solid rgba(15,23,41,0.15);
+  border-radius: 2px;
+  transition: all 0.15s;
+  background: transparent;
+}
+.checklist-choices label:hover { background: rgba(184,115,51,0.08); }
+.checklist-choices input[type="radio"] {
+  position: absolute; opacity: 0; pointer-events: none;
+}
+.checklist-choices input[type="radio"]:checked + span {
+  color: var(--copper);
+  font-weight: 700;
+}
+.checklist-choices label:has(input:checked) {
+  border-color: var(--copper);
+  background: rgba(184,115,51,0.1);
+}
+.checklist-choices label:has(input:focus-visible) {
+  outline: 2px solid var(--copper);
+  outline-offset: 1px;
+}
+
+/* === ACTION PLAN === */
+.action-item {
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(184,115,51,0.15);
+}
+.action-item:last-child { border-bottom: none; }
+.action-id {
+  font-family: Consolas, monospace;
+  font-size: 11px;
+  color: var(--copper);
+  letter-spacing: 1px;
+}
+.action-text {
+  font-size: 15px;
+  color: var(--text-light);
+  margin: 4px 0;
+  font-weight: 600;
+}
+.action-what {
+  font-size: 13px;
+  color: rgba(232,224,208,0.75);
+  margin: 6px 0;
+  line-height: 1.6;
+}
+.action-tags {
+  display: flex; gap: 12px;
+  font-family: Consolas, monospace;
+  font-size: 11px;
+  margin-top: 6px;
+}
+.tag-effort, .tag-cost {
+  padding: 2px 8px;
+  border-radius: 2px;
+}
+.tag-effort { background: rgba(184,115,51,0.15); color: var(--copper-glow); }
+.tag-cost { background: rgba(31,107,85,0.2); color: #4dd9a8; }
+.action-firststep {
+  font-size: 12px;
+  color: rgba(232,224,208,0.6);
+  margin-top: 6px;
+  line-height: 1.5;
+}
+.action-firststep strong { color: var(--copper-glow); }
+
+.quick-wins-label {
+  font-family: Consolas, monospace;
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: var(--copper);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  padding: 6px 12px;
+  background: rgba(184,115,51,0.08);
+  display: inline-block;
+}
+
+/* === RESOURCE SIDEBAR === */
+.resource-list { list-style: none; }
+.resource-list li {
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(184,115,51,0.12);
+  font-size: 13px;
+}
+.resource-list li:last-child { border-bottom: none; }
+.resource-name {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  color: var(--copper-glow);
+  font-size: 14px;
+}
+.resource-desc {
+  color: rgba(232,224,208,0.6);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+/* === REPORT === */
+#report-output {
+  background: #fff;
+  color: var(--text-dark);
+  padding: 40px;
+  max-width: 800px;
+  margin: 0 auto;
+  font-size: 14px;
+  line-height: 1.6;
+}
+#report-output h1 {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 22px;
+  color: var(--midnight);
+  border-bottom: 2px solid var(--copper);
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+}
+#report-output h2 {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 16px;
+  color: var(--midnight);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 24px 0 8px;
+}
+#report-output table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+  font-size: 13px;
+}
+#report-output th, #report-output td {
+  padding: 6px 10px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+#report-output th {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--midnight);
+  background: var(--ivory);
+}
+#report-output [contenteditable="true"] {
+  outline: 1px dashed rgba(184,115,51,0.3);
+  padding: 2px 4px;
+  border-radius: 2px;
+}
+#report-output [contenteditable="true"]:focus {
+  outline-color: var(--copper);
+  background: rgba(184,115,51,0.04);
+}
+
+.btn-primary {
+  display: inline-block;
+  padding: 10px 24px;
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 14px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  background: var(--copper);
+  color: var(--midnight);
+  border: none;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 0.2s;
+}
+.btn-primary:hover { background: var(--copper-glow); }
+.btn-secondary {
+  display: inline-block;
+  padding: 8px 20px;
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 13px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  background: transparent;
+  color: var(--copper);
+  border: 1px solid var(--copper);
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.2s;
+}
+.btn-secondary:hover { background: rgba(184,115,51,0.1); }
+
+.demo-btn {
+  font-family: Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--copper);
+  background: none;
+  border: 1px solid rgba(184,115,51,0.3);
+  padding: 4px 12px;
+  cursor: pointer;
+  border-radius: 2px;
+  margin-top: 12px;
+}
+.demo-btn:hover { border-color: var(--copper); background: rgba(184,115,51,0.05); }
+
+.edit-hint {
+  font-family: Consolas, monospace;
+  font-size: 11px;
+  color: var(--gray);
+  margin-bottom: 12px;
+}
+
+/* === FOOTER === */
+footer {
+  text-align: center;
+  padding: 20px 5% 80px;
+  background: var(--midnight);
+  color: var(--gray);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* === PRINT === */
+@media print {
+  #bottom-nav, #entry-overlay, footer, .no-print { display: none !important; }
+  body { background: #fff; padding: 0; color: #000; }
+  .module { display: none !important; }
+  #module-report { display: block !important; }
+  .band-dark, .band-ivory { background: #fff !important; color: #000 !important; padding: 0 !important; }
+  .band-inner { display: block !important; }
+  #report-output {
+    box-shadow: none;
+    padding: 0;
+    max-width: 100%;
+  }
+  #report-output [contenteditable] { outline: none; }
+  @page { margin: 1in; }
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+  .band-inner { grid-template-columns: 1fr; gap: 24px; }
+  .hero-stat { font-size: 80px; }
+  .band-dark, .band-ivory { padding: 32px 4% 40px; }
+  #bottom-nav { height: 56px; }
+  #bottom-nav button { font-size: 11px; letter-spacing: 1px; }
+  body { padding-bottom: 56px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ENTRY EXPERIENCE -->
+<div id="entry-overlay">
+  <svg viewBox="0 0 320 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path id="pulse-line" d="M0,40 L60,40 L70,40 L80,40 L90,40 L100,40 L110,40 L320,40"
+          stroke="#b87333" stroke-width="2" fill="none"
+          stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  <div id="entry-message">Peer support saves lives.</div>
+</div>
+
+<!-- ===== MODULE 1: ASSESSMENT ===== -->
+<div id="module-assess" class="module active">
+
+  <!-- BAND 1: HERO + AGENCY PROFILE (dark) -->
+  <div class="band-dark">
+    <div class="band-inner">
+      <div>
+        <div class="hero-stat">1 IN 4</div>
+        <div class="hero-label">First responders experience PTSD</div>
+        <p class="hero-context">
+          Senator Seeberger's SF679 directs $500,000 to Hometown Hero Outdoors — a Stillwater nonprofit doing peer support and outdoor recovery work with first responders. But the agencies those responders serve in often have no structured peer support program. This tool helps them build one.
+        </p>
+        <!-- VERIFY: PTSD prevalence statistic is a widely-cited estimate from multiple peer-reviewed studies; specific rates vary by discipline -->
+      </div>
+      <div>
+        <div class="score-ring-wrap">
+          <div class="score-ring" id="scoreRing" style="--score-pct: 0;">
+            <div class="score-ring-inner">
+              <div class="score-ring-number" id="scoreNum">0</div>
+              <div class="score-ring-max">/ 48</div>
+            </div>
+          </div>
+          <div class="score-tier" id="scoreTier">Not yet assessed</div>
+          <div class="domain-bar-group" id="domainBars"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BAND 2: AGENCY PROFILE FORM (ivory) -->
+  <div class="band-ivory">
+    <div class="band-inner">
+      <div>
+        <h2 class="section-head">Agency Profile</h2>
+        <div class="form-group">
+          <label for="agencyName">Agency Name</label>
+          <input type="text" id="agencyName" placeholder="e.g., Stillwater Fire Department">
+        </div>
+        <div class="form-group">
+          <label for="agencyType">Agency Type</label>
+          <select id="agencyType">
+            <option value="">— Select —</option>
+            <option value="Law Enforcement">Law Enforcement</option>
+            <option value="Fire Department">Fire Department</option>
+            <option value="EMS">EMS</option>
+            <option value="Combined">Combined Fire/EMS</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="agencySize">Full-Time Sworn / Career Personnel</label>
+          <input type="number" id="agencySize" min="1" placeholder="e.g., 45">
+        </div>
+        <div class="form-group">
+          <label for="hasVolunteers">Part-Time or Volunteer Personnel?</label>
+          <select id="hasVolunteers">
+            <option value="no">No</option>
+            <option value="yes">Yes</option>
+          </select>
+        </div>
+        <div class="form-group" id="volunteerCountGroup" style="display:none;">
+          <label for="volunteerCount">Approximate Count</label>
+          <input type="number" id="volunteerCount" min="0" placeholder="e.g., 20">
+        </div>
+        <div class="form-group">
+          <label for="agencyRegion">County / Region</label>
+          <input type="text" id="agencyRegion" placeholder="e.g., Washington County, MN">
+        </div>
+        <div class="form-group">
+          <label>Current Peer Support Program Status</label>
+          <div class="radio-group" id="programStatus">
+            <label class="radio-option"><input type="radio" name="programStatus" value="none"><span>No program exists</span></label>
+            <label class="radio-option"><input type="radio" name="programStatus" value="informal"><span>Informal — one or two wellness-minded individuals, no formal structure</span></label>
+            <label class="radio-option"><input type="radio" name="programStatus" value="partial"><span>Partial — some trained peer supporters, no written policy</span></label>
+            <label class="radio-option"><input type="radio" name="programStatus" value="structured"><span>Structured — trained team + written policy + referral pathway</span></label>
+            <label class="radio-option"><input type="radio" name="programStatus" value="comprehensive"><span>Comprehensive — all of the above + annual review + leadership buy-in</span></label>
+          </div>
+        </div>
+        <button class="demo-btn no-print" onclick="loadDemo()">Load Example: SD-41 Regional Agency</button>
+      </div>
+      <div>
+        <h2 class="section-head" style="font-size:18px;">Why This Matters</h2>
+        <p style="font-size:14px; line-height:1.7; color: var(--gray);">
+          Peer support programs are the evidence-based model for reducing suicide and behavioral health crises in first responder agencies. Most small and midsize Minnesota departments have no structured program. An informal check-in culture is not enough. What works is a trained team, a written policy, a referral pathway, and leadership that models help-seeking behavior.
+        </p>
+        <p style="font-size:14px; line-height:1.7; color: var(--gray); margin-top:12px;">
+          Minnesota Statutes &sect; 181.973 establishes confidentiality protections for peer support communications involving peace officers. Your legal counsel can advise on the specific application of these protections to your agency.
+        </p>
+        <!-- VERIFY: Minn. Stat. § 181.973 reference from software brief — confirm current statutory text -->
+      </div>
+    </div>
+  </div>
+
+  <!-- BAND 3: ASSESSMENT CHECKLIST (dark) -->
+  <div class="band-dark">
+    <div class="band-inner">
+      <div>
+        <h2 class="section-head">Readiness Assessment</h2>
+        <p style="font-size:13px; color: var(--gray); margin-bottom:20px;">
+          Rate each item. Your scores update the ring above in real time.
+        </p>
+        <div id="checklist-container"></div>
+      </div>
+      <div>
+        <div style="position:sticky; top: 24px;">
+          <h2 class="section-head" style="font-size:18px;">Score Interpretation</h2>
+          <dl style="font-size:13px; line-height:1.6;">
+            <dt style="font-family:Consolas,monospace; color:var(--copper); margin-top:12px;">0 – 12 &nbsp; Foundational</dt>
+            <dd style="color:rgba(232,224,208,0.6);">Significant gaps. Start with a written policy and one trained peer supporter.</dd>
+            <dt style="font-family:Consolas,monospace; color:var(--copper); margin-top:12px;">13 – 24 &nbsp; Developing</dt>
+            <dd style="color:rgba(232,224,208,0.6);">Structure exists but is incomplete. Prioritize training and activation protocols.</dd>
+            <dt style="font-family:Consolas,monospace; color:var(--copper); margin-top:12px;">25 – 36 &nbsp; Functional</dt>
+            <dd style="color:rgba(232,224,208,0.6);">Program is operating. Focus on sustainability, culture change, and annual review.</dd>
+            <dt style="font-family:Consolas,monospace; color:var(--copper); margin-top:12px;">37 – 48 &nbsp; Model</dt>
+            <dd style="color:rgba(232,224,208,0.6);">Strong program. Consider sharing your approach with peer agencies.</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODULE 2: ACTION PLAN ===== -->
+<div id="module-plan" class="module">
+
+  <div class="band-dark">
+    <div class="band-inner">
+      <div>
+        <h2 class="section-head">Action Plan</h2>
+        <p style="font-size:13px; color: var(--gray); margin-bottom:20px;">
+          Based on your assessment. Only gaps (No or Partial items) appear here.
+        </p>
+        <div id="quick-wins-container"></div>
+        <div id="action-plan-container"></div>
+        <p id="no-gaps-msg" style="display:none; color:var(--copper-glow); font-size:15px; margin-top:20px;">
+          No gaps identified. Your program is comprehensive. Consider mentoring peer agencies.
+        </p>
+      </div>
+      <div>
+        <div style="position:sticky; top: 24px;">
+          <h2 class="section-head" style="font-size:18px;">Resources</h2>
+          <ul class="resource-list">
+            <li>
+              <div class="resource-name">Hometown Hero Outdoors</div>
+              <div class="resource-desc">Stillwater, MN 501(c)(3). Outdoor recovery programming and mental health services for law enforcement, firefighters, and EMS personnel. Supported by Minnesota SF679 (2025).</div>
+            </li>
+            <li>
+              <div class="resource-name">MN Dept. of Public Safety</div>
+              <div class="resource-desc">First responder peer support resources and model policy templates. Contact through DPS Office of Justice Programs.</div>
+            </li>
+            <li>
+              <div class="resource-name">ICISF</div>
+              <div class="resource-desc">International Critical Incident Stress Foundation. CISM training nationally recognized for first responder peer support credentialing.</div>
+            </li>
+            <li>
+              <div class="resource-name">Safe Call Now</div>
+              <div class="resource-desc">24/7 confidential crisis line for first responders: 1-206-459-3020</div>
+              <!-- VERIFY: Safe Call Now phone number from software brief — confirm still active -->
+            </li>
+            <li>
+              <div class="resource-name">First H.E.L.P.</div>
+              <div class="resource-desc">National nonprofit focused on first responder suicide prevention. Heroes Enduring, Leading, and Protecting.</div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODULE 3: REPORT ===== -->
+<div id="module-report" class="module">
+
+  <div class="band-ivory">
+    <div class="band-inner" style="grid-template-columns: 1fr;">
+      <div>
+        <h2 class="section-head no-print">Program Report</h2>
+        <p class="edit-hint no-print">Click any text in the report to edit before printing.</p>
+        <div style="margin-bottom:16px;" class="no-print">
+          <button class="btn-primary" onclick="generateReport()">Generate Report</button>
+          <button class="btn-secondary" style="margin-left:8px;" onclick="window.print()">Print</button>
+        </div>
+        <div id="report-output"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav id="bottom-nav" class="no-print">
+  <button class="active" onclick="switchModule('assess')" id="nav-assess">Assessment</button>
+  <button onclick="switchModule('plan')" id="nav-plan">Action Plan</button>
+  <button onclick="switchModule('report')" id="nav-report">Report</button>
+</nav>
+
+<footer>
+  A resource for Minnesota first responder agencies. Built with AI.<br>
+  Reflects Minnesota peer support standards and resources as of 2025.<br>
+  Not a substitute for legal counsel or clinical consultation.
+</footer>
+
+<script>
+/* ================================================================
+   ASSESSMENT DATA — 24 items across 5 domains
+   ================================================================ */
+const DOMAINS = [
+  { key: 'A', name: 'Policy Foundation', max: 10 },
+  { key: 'B', name: 'Team Structure', max: 10 },
+  { key: 'C', name: 'Training & Credentialing', max: 10 },
+  { key: 'D', name: 'Activation & Protocols', max: 10 },
+  { key: 'E', name: 'Sustainability & Culture', max: 8 }
+];
+
+const ITEMS = [
+  // DOMAIN A: Policy Foundation
+  {
+    id:'A1', domain:'A', domainName:'Policy Foundation',
+    text:'Written peer support program policy adopted by agency leadership',
+    helpText:'A written policy is the legal and operational foundation. Without it, peer supporters operate in a gray area with no authority and no protections.',
+    impactWeight:3, costWeight:1,
+    whatToDo:'Adopt a formal peer support program policy. This does not require outside counsel — a template is available from the Minnesota Chiefs of Police Association and the MN Department of Public Safety.',
+    estimatedEffort:'Medium', costLabel:'Free',
+    firstStep:'Assign a peer support coordinator to draft a policy using the MN DPS model policy as a starting point. Bring to command staff within 60 days.'
+  },
+  {
+    id:'A2', domain:'A', domainName:'Policy Foundation',
+    text:'Policy defines peer support as voluntary and confidential',
+    helpText:'If participation is not explicitly voluntary, personnel will not trust the program. Confidentiality is what separates peer support from a supervisor wellness check.',
+    impactWeight:3, costWeight:1,
+    whatToDo:'Add explicit language to your policy stating that peer support participation is voluntary and that communications are confidential, subject to mandatory reporting exceptions.',
+    estimatedEffort:'Low', costLabel:'Free',
+    firstStep:'Review your existing policy (or draft) and ensure "voluntary" and "confidential" appear as defined terms. Use ICISF model language.'
+  },
+  {
+    id:'A3', domain:'A', domainName:'Policy Foundation',
+    text:'Policy references applicable Minnesota confidentiality statutes',
+    helpText:'Minnesota Statutes § 181.973 provides specific protections for peer support communications. Your policy should cite the statute so personnel know their legal standing.',
+    impactWeight:2, costWeight:1,
+    whatToDo:'Reference Minn. Stat. § 181.973 in your policy. Have your city or county attorney confirm its application to your agency type and personnel.',
+    estimatedEffort:'Low', costLabel:'Free',
+    firstStep:'Insert a statutory reference section in the policy. Consult your legal counsel to confirm applicability to your specific agency (peace officer vs. fire/EMS).'
+  },
+  {
+    id:'A4', domain:'A', domainName:'Policy Foundation',
+    text:'Peer support program is separate from EAP (Employee Assistance Program)',
+    helpText:'EAP records are not confidential in the same way peer support records are. Conflating the two creates a trust problem that undermines both programs.',
+    impactWeight:2, costWeight:1,
+    whatToDo:'Establish clear organizational separation between your peer support program and your EAP. Different coordinators, different documentation (or no documentation for peer support), different reporting lines.',
+    estimatedEffort:'Low', costLabel:'Free',
+    firstStep:'Create a one-page comparison document for your personnel explaining the difference between peer support and EAP — especially regarding confidentiality and record-keeping.'
+  },
+  {
+    id:'A5', domain:'A', domainName:'Policy Foundation',
+    text:'Annual review of policy is scheduled',
+    helpText:'Statutes change. Personnel change. A policy that is never reviewed becomes obsolete and loses credibility.',
+    impactWeight:1, costWeight:1,
+    whatToDo:'Add a review date to your policy. Assign responsibility for annual review to your peer support coordinator, with a report to command staff.',
+    estimatedEffort:'Low', costLabel:'Free',
+    firstStep:'Add a "Next Review Date" field to the policy header. Set a calendar reminder for the peer support coordinator 30 days before the review date.'
+  },
+
+  // DOMAIN B: Team Structure
+  {
+    id:'B1', domain:'B', domainName:'Team Structure',
+    text:'At least one trained peer support specialist per shift/station where feasible',
+    helpText:'Peer support only works if a trained person is accessible when a colleague needs help — not three shifts later or at a different station.',
+    impactWeight:3, costWeight:2,
+    whatToDo:'Identify and train peer support specialists to cover each shift or station. Start with volunteers who are already trusted by their peers and who demonstrate emotional resilience.',
+    estimatedEffort:'High', costLabel:'Budget required',
+    firstStep:'Survey your current staffing to identify existing peer support volunteers or wellness-minded individuals. Aim for a minimum ratio of 1 trained supporter per 15-20 personnel.'
+  },
+  {
+    id:'B2', domain:'B', domainName:'Team Structure',
+    text:'Team includes members from different ranks (not just supervisors)',
+    helpText:'A patrol officer or firefighter is far more likely to talk to a peer at their rank than to a lieutenant or captain in a "wellness" role.',
+    impactWeight:2, costWeight:1,
+    whatToDo:'Recruit peer supporters from line-level personnel, not just command staff. The team should include both senior and junior members.',
+    estimatedEffort:'Low', costLabel:'Free',
+    firstStep:'Review your current peer support roster (if any) for rank distribution. If all members are supervisors, actively recruit from line-level personnel.'
+  },
+  {
+    id:'B3', domain:'B', domainName:'Team Structure',
+    text:'Team has a designated coordinator or liaison to agency leadership',
+    helpText:'Without a coordinator, peer support drifts. Someone needs to own the program, track utilization (without identifying individuals), and communicate with leadership.',
+    impactWeight:2, costWeight:1,
+    whatToDo:'Designate a peer support coordinator. This person manages training schedules, tracks aggregate utilization data (no individual identifiers), and reports to agency leadership.',
+    estimatedEffort:'Low', costLabel:'Free',
+    firstStep:'Appoint a coordinator from your current team. Provide them a brief written role description and ensure they have direct access to agency leadership for program needs.'
+  },
+  {
+    id:'B4', domain:'B', domainName:'Team Structure',
+    text:'Team includes at least one mental health professional advisor or clinical consultant',
+    helpText:'Peer supporters are not therapists. A clinical consultant provides supervision, handles complex cases, and ensures peer supporters are not carrying more than they should.',
+    impactWeight:3, costWeight:2,
+    whatToDo:'Establish a relationship with a licensed mental health professional who has first responder experience. This person serves as a clinical consultant, not a team member on calls.',
+    estimatedEffort:'Medium', costLabel:'Low-cost',
+    firstStep:'Contact Hometown Hero Outdoors (Stillwater, MN) — they maintain relationships with first-responder-competent clinicians and can help connect your agency to an appropriate consultant.'
+  },
+  {
+    id:'B5', domain:'B', domainName:'Team Structure',
+    text:'Team composition reflects the diversity of the agency (gender, role type)',
+    helpText:'A peer support team of all senior male officers will not reach everyone in a mixed agency. Representativeness is not optional — it is functional.',
+    impactWeight:1, costWeight:1,
+    whatToDo:'Review team composition for gender, role type (sworn, civilian, dispatch), and background. Actively recruit members who represent underrepresented groups in your agency.',
+    estimatedEffort:'Low', costLabel:'Free',
+    firstStep:'Compare your peer support roster demographics to your overall agency demographics. Identify any significant gaps and reach out to potential recruits from those groups.'
+  },
+
+  // DOMAIN C: Training & Credentialing
+  {
+    id:'C1', domain:'C', domainName:'Training & Credentialing',
+    text:'Peer supporters completed a recognized training program (ICISF, MN DPS, or equivalent)',
+    helpText:'Good intentions are not training. Peer supporters must know how to listen without fixing, recognize suicidal ideation, and understand their confidentiality obligations.',
+    impactWeight:3, costWeight:2,
+    whatToDo:'Send peer support team members through a recognized training program. ICISF Group Crisis Intervention and Individual Crisis Intervention are the national standard. MN DPS also offers training.',
+    estimatedEffort:'High', costLabel:'Budget required',
+    firstStep:'Contact ICISF or MN DPS Office of Justice Programs to identify upcoming training dates. Budget for registration fees and backfill costs for attending personnel.'
+  },
+  {
+    id:'C2', domain:'C', domainName:'Training & Credentialing',
+    text:'Training covered: active listening, suicide risk recognition, trauma-informed communication, referral skills, confidentiality limits',
+    helpText:'These five competencies are the minimum standard. A program that teaches "active listening" but not suicide risk recognition is incomplete.',
+    impactWeight:3, costWeight:1,
+    whatToDo:'Verify that your training curriculum covers all five core competencies. If your team was trained through an older or abbreviated curriculum, supplement with targeted modules.',
+    estimatedEffort:'Medium', costLabel:'Low-cost',
+    firstStep:'Request a curriculum outline from your training provider and check it against the five competencies. Identify any gaps and arrange supplemental training.'
+  },
+  {
+    id:'C3', domain:'C', domainName:'Training & Credentialing',
+    text:'Refresher or continuing education is provided annually',
+    helpText:'Skills atrophy without practice. Annual refreshers keep peer supporters sharp and updated on statutory or procedural changes.',
+    impactWeight:2, costWeight:2,
+    whatToDo:'Schedule annual refresher training for all peer supporters. This can be a half-day in-service, not a full multi-day course. Include scenario practice and updates on referral resources.',
+    estimatedEffort:'Medium', costLabel:'Low-cost',
+    firstStep:'Add a recurring annual training date to the agency calendar. Coordinate with your clinical consultant to design a 4-hour refresher curriculum.'
+  },
+  {
+    id:'C4', domain:'C', domainName:'Training & Credentialing',
+    text:'Leadership (chief, command staff) has received at least an orientation on peer support roles and confidentiality',
+    helpText:'If the chief does not understand what peer supporters do and what they are legally prohibited from disclosing, leadership will inadvertently undermine the program.',
+    impactWeight:2, costWeight:1,
+    whatToDo:'Provide a 1-hour orientation briefing for command staff covering: what peer support is, what it is not, confidentiality boundaries, and how leadership can support the program.',
+    estimatedEffort:'Low', costLabel:'Free',
+    firstStep:'Schedule a one-hour command staff briefing. Have the peer support coordinator present with a simple slide deck covering program scope, confidentiality rules, and how to make a referral.'
+  },
+  {
+    id:'C5', domain:'C', domainName:'Training & Credentialing',
+    text:'New peer supporters are mentored before solo response',
+    helpText:'A newly trained peer supporter responding solo to a line-of-duty death on their first activation is set up to fail. Mentorship prevents that.',
+    impactWeight:2, costWeight:1,
+    whatToDo:'Pair new peer supporters with experienced mentors for their first 3-5 activations. New supporters should observe, then co-respond, before handling contacts independently.',
+    estimatedEffort:'Low', costLabel:'Free',
+    firstStep:'Establish a written mentorship protocol: new peer supporters complete at least 3 co-responses with an experienced team member before solo activation.'
+  },
+
+  // DOMAIN D: Activation & Protocols
+  {
+    id:'D1', domain:'D', domainName:'Activation & Protocols',
+    text:'Clear protocol exists for when peer support is activated (critical incident, line-of-duty death, on request)',
+    helpText:'Without activation criteria, peer support happens only when someone remembers to call. That means it does not happen when it is most needed.',
+    impactWeight:3, costWeight:1,
+    whatToDo:'Write a brief activation protocol specifying mandatory activation triggers (line-of-duty death, officer-involved shooting, pediatric fatality, etc.) and optional triggers (supervisor request, self-referral).',
+    estimatedEffort:'Medium', costLabel:'Free',
+    firstStep:'Draft a one-page activation protocol listing 5-7 mandatory triggers and the notification chain (who calls the peer support coordinator, and within what timeframe).'
+  },
+  {
+    id:'D2', domain:'D', domainName:'Activation & Protocols',
+    text:'Protocol covers self-referral (any employee can reach a peer supporter directly)',
+    helpText:'Many personnel in crisis will not ask a supervisor for help. Self-referral — going directly to a peer supporter without chain-of-command involvement — is essential.',
+    impactWeight:3, costWeight:1,
+    whatToDo:'Ensure your protocol explicitly allows any agency employee to contact a peer supporter directly, without going through a supervisor. Publish the peer support team roster with direct contact information.',
+    estimatedEffort:'Low', costLabel:'Free',
+    firstStep:'Post the peer support team roster with phone numbers in break rooms, locker areas, and on internal communications. Make clear that no supervisory approval is needed.'
+  },
+  {
+    id:'D3', domain:'D', domainName:'Activation & Protocols',
+    text:'Protocol for post-critical-incident outreach within 24–72 hours',
+    helpText:'The window matters. Outreach within 24-72 hours after a critical incident is when peer support has the strongest evidence of effectiveness.',
+    impactWeight:3, costWeight:1,
+    whatToDo:'Add a post-incident outreach timeline to your activation protocol. Specify that a peer supporter makes initial contact with all involved personnel within 24-72 hours of a critical incident.',
+    estimatedEffort:'Low', costLabel:'Free',
+    firstStep:'Add a checklist step to your post-incident procedures: "Peer support coordinator notified within 12 hours; initial outreach to all involved personnel within 24-72 hours."'
+  },
+  {
+    id:'D4', domain:'D', domainName:'Activation & Protocols',
+    text:'Warm referral pathway to first-responder-competent mental health providers',
+    helpText:'A list of phone numbers is not a referral pathway. A warm referral means the peer supporter calls with the individual, makes an introduction, and follows up.',
+    impactWeight:3, costWeight:1,
+    whatToDo:'Build a short list of 3-5 licensed mental health providers in your area who specialize in first responder populations and accept your employees\' insurance. Train peer supporters on warm referral technique.',
+    estimatedEffort:'Low', costLabel:'Free',
+    firstStep:'Contact Hometown Hero Outdoors (Stillwater, MN) — they maintain referral relationships with first-responder-competent clinicians and can help connect agencies to resources.'
+  },
+  {
+    id:'D5', domain:'D', domainName:'Activation & Protocols',
+    text:'Peer supporters know how to connect individuals to Hometown Hero Outdoors and similar community resources',
+    helpText:'Community organizations like Hometown Hero Outdoors provide services that complement clinical care — outdoor programming, group activities, and peer connection outside the agency context.',
+    impactWeight:1, costWeight:1,
+    whatToDo:'Brief your peer support team on available community resources. Include Hometown Hero Outdoors, Safe Call Now (1-206-459-3020), and First H.E.L.P. in your resource list.',
+    estimatedEffort:'Low', costLabel:'Free',
+    firstStep:'Create a one-page resource card with contact information for Hometown Hero Outdoors, Safe Call Now, and other local resources. Distribute to all peer supporters.'
+  },
+
+  // DOMAIN E: Sustainability & Culture
+  {
+    id:'E1', domain:'E', domainName:'Sustainability & Culture',
+    text:'Peer support work is recognized — not penalized or stigmatized',
+    helpText:'If peer supporters are seen as "the emotional ones" or peer support participation is held against personnel in performance reviews, the program dies.',
+    impactWeight:3, costWeight:1,
+    whatToDo:'Issue a leadership statement affirming that peer support participation (as a supporter or as someone seeking support) will not be used in performance evaluations, promotions, or discipline.',
+    estimatedEffort:'Low', costLabel:'Free',
+    firstStep:'Have the agency head issue a written memo or general order affirming that peer support participation is valued and will not result in adverse action.'
+  },
+  {
+    id:'E2', domain:'E', domainName:'Sustainability & Culture',
+    text:'Peer supporters have protected time and are not penalized for responding',
+    helpText:'If a peer supporter has to choose between answering a call for help and finishing a report their supervisor is waiting on, the program fails at exactly the moment it matters.',
+    impactWeight:2, costWeight:1,
+    whatToDo:'Include in your policy that peer supporters are authorized to respond to activations as a duty-related function. Supervisors should accommodate reasonable response time.',
+    estimatedEffort:'Medium', costLabel:'Free',
+    firstStep:'Add a "protected time" clause to the peer support policy. Discuss with shift supervisors to set expectations about response flexibility.'
+  },
+  {
+    id:'E3', domain:'E', domainName:'Sustainability & Culture',
+    text:'Agency leadership speaks openly about mental health and models help-seeking behavior',
+    helpText:'Culture change starts at the top. When the chief says "I\'ve used peer support" or "mental health is part of fitness for duty," it normalizes help-seeking for everyone.',
+    impactWeight:3, costWeight:1,
+    whatToDo:'Ask agency leadership to speak about mental health at roll calls, training days, or in written communications. The message does not need to be personal — it needs to be visible and consistent.',
+    estimatedEffort:'Low', costLabel:'Free',
+    firstStep:'Schedule a 5-minute leadership message on mental health at the next all-hands or training day. Even one visible statement from command staff shifts culture.'
+  },
+  {
+    id:'E4', domain:'E', domainName:'Sustainability & Culture',
+    text:'Program is evaluated annually (uptake data, satisfaction, barriers)',
+    helpText:'A program you never measure is a program you cannot improve or defend in a budget request.',
+    impactWeight:2, costWeight:1,
+    whatToDo:'Collect aggregate data annually: number of activations, number of self-referrals, anonymous satisfaction survey, and identified barriers. Report to leadership without identifying individuals.',
+    estimatedEffort:'Medium', costLabel:'Free',
+    firstStep:'Design a simple annual survey (5-10 questions) and a data collection template for the peer support coordinator. Plan to present findings to command staff at the annual policy review.'
+  }
+];
+
+/* ================================================================
+   STATE
+   ================================================================ */
+const STORAGE_KEY = 'seeberger_peer_support_tool_v1';
+let scores = {};
+
+/* ================================================================
+   INIT
+   ================================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+  buildDomainBars();
+  buildChecklist();
+  setupVolunteerToggle();
+  loadState();
+  runEntryAnimation();
+});
+
+/* ================================================================
+   ENTRY ANIMATION
+   ================================================================ */
+function runEntryAnimation() {
+  const overlay = document.getElementById('entry-overlay');
+  const line = document.getElementById('pulse-line');
+  const msg = document.getElementById('entry-message');
+
+  // Animate heartbeat then flatline
+  const beats = [
+    'M0,40 L60,40 L70,15 L80,55 L90,25 L100,50 L110,40 L160,40 L170,18 L180,58 L190,22 L200,52 L210,40 L320,40',
+    'M0,40 L80,40 L88,20 L96,55 L104,30 L112,48 L120,40 L320,40',
+    'M0,40 L320,40'
+  ];
+  let step = 0;
+  const animate = () => {
+    if (step < beats.length) {
+      line.setAttribute('d', beats[step]);
+      step++;
+      setTimeout(animate, step === beats.length ? 400 : 500);
+    } else {
+      msg.classList.add('visible');
+      setTimeout(() => {
+        overlay.classList.add('fade-out');
+        setTimeout(() => { overlay.style.display = 'none'; }, 500);
+      }, 800);
+    }
+  };
+  setTimeout(animate, 200);
+}
+
+/* ================================================================
+   NAVIGATION
+   ================================================================ */
+function switchModule(mod) {
+  document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
+  document.getElementById('module-' + mod).classList.add('active');
+  document.querySelectorAll('#bottom-nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('nav-' + mod).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (mod === 'plan') buildActionPlan();
+}
+
+/* ================================================================
+   DOMAIN BARS
+   ================================================================ */
+function buildDomainBars() {
+  const container = document.getElementById('domainBars');
+  DOMAINS.forEach(d => {
+    container.innerHTML += `
+      <div class="domain-bar-row">
+        <span class="domain-bar-label">${d.key}: ${d.name.split(' ')[0]}</span>
+        <div class="domain-bar-track"><div class="domain-bar-fill" id="bar-${d.key}"></div></div>
+        <span class="domain-bar-score" id="bar-score-${d.key}">0/${d.max}</span>
+      </div>`;
+  });
+}
+
+/* ================================================================
+   CHECKLIST
+   ================================================================ */
+function buildChecklist() {
+  const container = document.getElementById('checklist-container');
+  let currentDomain = '';
+  ITEMS.forEach(item => {
+    if (item.domain !== currentDomain) {
+      currentDomain = item.domain;
+      const domainInfo = DOMAINS.find(d => d.key === currentDomain);
+      container.innerHTML += `<h3 class="domain-head">Domain ${domainInfo.key}: ${domainInfo.name}</h3>`;
+    }
+    container.innerHTML += `
+      <div class="checklist-item">
+        <div>
+          <div class="checklist-text">${item.text}</div>
+          <div class="checklist-help">${item.helpText}</div>
+        </div>
+        <div class="checklist-choices">
+          <label><input type="radio" name="${item.id}" value="2" onchange="onCheck()"><span>Yes</span></label>
+          <label><input type="radio" name="${item.id}" value="1" onchange="onCheck()"><span>Part</span></label>
+          <label><input type="radio" name="${item.id}" value="0" onchange="onCheck()"><span>No</span></label>
+        </div>
+      </div>`;
+  });
+}
+
+function onCheck() {
+  calcScores();
+  saveState();
+}
+
+/* ================================================================
+   SCORING
+   ================================================================ */
+function calcScores() {
+  let total = 0;
+  const domainScores = {};
+  DOMAINS.forEach(d => { domainScores[d.key] = 0; });
+
+  ITEMS.forEach(item => {
+    const checked = document.querySelector(`input[name="${item.id}"]:checked`);
+    const val = checked ? parseInt(checked.value) : -1;
+    scores[item.id] = val;
+    if (val >= 0) {
+      domainScores[item.domain] += val;
+      total += val;
+    }
+  });
+
+  // Update ring
+  const pct = Math.round((total / 48) * 100);
+  document.getElementById('scoreRing').style.setProperty('--score-pct', pct);
+  document.getElementById('scoreNum').textContent = total;
+
+  // Update tier
+  let tier = 'Not yet assessed';
+  if (Object.values(scores).some(v => v >= 0)) {
+    if (total <= 12) tier = 'Foundational';
+    else if (total <= 24) tier = 'Developing';
+    else if (total <= 36) tier = 'Functional';
+    else tier = 'Model';
+  }
+  document.getElementById('scoreTier').textContent = tier;
+
+  // Update domain bars
+  DOMAINS.forEach(d => {
+    const pctD = Math.round((domainScores[d.key] / d.max) * 100);
+    document.getElementById('bar-' + d.key).style.width = pctD + '%';
+    document.getElementById('bar-score-' + d.key).textContent = domainScores[d.key] + '/' + d.max;
+  });
+
+  return { total, tier, domainScores };
+}
+
+/* ================================================================
+   ACTION PLAN
+   ================================================================ */
+function buildActionPlan() {
+  const { total, tier, domainScores } = calcScores();
+  const gaps = ITEMS.filter(item => {
+    const val = scores[item.id];
+    return val === 0 || val === 1 || val === -1;
+  }).sort((a, b) => {
+    // Quick wins first: high impact, low cost
+    const aScore = a.impactWeight - a.costWeight;
+    const bScore = b.impactWeight - b.costWeight;
+    return bScore - aScore;
+  });
+
+  const qwContainer = document.getElementById('quick-wins-container');
+  const apContainer = document.getElementById('action-plan-container');
+  const noGaps = document.getElementById('no-gaps-msg');
+
+  qwContainer.innerHTML = '';
+  apContainer.innerHTML = '';
+
+  if (gaps.length === 0) {
+    noGaps.style.display = 'block';
+    return;
+  }
+  noGaps.style.display = 'none';
+
+  // Quick wins: top 3 high-impact, free/low-cost
+  const quickWins = gaps.filter(g => g.impactWeight >= 2 && g.costWeight <= 1).slice(0, 3);
+  if (quickWins.length > 0) {
+    qwContainer.innerHTML = `<div class="quick-wins-label">Quick Wins — 30 Days, No Budget</div>`;
+    quickWins.forEach(item => { qwContainer.innerHTML += renderActionItem(item); });
+    qwContainer.innerHTML += `<div style="height:32px;"></div>`;
+  }
+
+  // Remaining gaps
+  let currentDomain = '';
+  gaps.forEach(item => {
+    if (quickWins.includes(item)) return;
+    if (item.domain !== currentDomain) {
+      currentDomain = item.domain;
+      const domainInfo = DOMAINS.find(d => d.key === currentDomain);
+      apContainer.innerHTML += `<h3 class="domain-head">Domain ${domainInfo.key}: ${domainInfo.name}</h3>`;
+    }
+    apContainer.innerHTML += renderActionItem(item);
+  });
+}
+
+function renderActionItem(item) {
+  const status = scores[item.id];
+  const statusLabel = status === 1 ? 'PARTIAL' : 'GAP';
+  return `
+    <div class="action-item">
+      <span class="action-id">${item.id} &mdash; ${statusLabel}</span>
+      <div class="action-text">${item.text}</div>
+      <div class="action-what">${item.whatToDo}</div>
+      <div class="action-tags">
+        <span class="tag-effort">Effort: ${item.estimatedEffort}</span>
+        <span class="tag-cost">Cost: ${item.costLabel}</span>
+      </div>
+      <div class="action-firststep"><strong>First step:</strong> ${item.firstStep}</div>
+    </div>`;
+}
+
+/* ================================================================
+   REPORT GENERATOR
+   ================================================================ */
+function generateReport() {
+  const { total, tier, domainScores } = calcScores();
+  const name = document.getElementById('agencyName').value || '[Agency Name]';
+  const type = document.getElementById('agencyType').value || '[Type]';
+  const size = document.getElementById('agencySize').value || '[Size]';
+  const region = document.getElementById('agencyRegion').value || '[Region]';
+  const statusEl = document.querySelector('input[name="programStatus"]:checked');
+  const status = statusEl ? statusEl.parentElement.querySelector('span').textContent : '[Not specified]';
+  const today = new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+
+  // Find weakest domains
+  const domainArr = DOMAINS.map(d => ({
+    key: d.key, name: d.name, score: domainScores[d.key], max: d.max,
+    pct: Math.round((domainScores[d.key] / d.max) * 100)
+  })).sort((a, b) => a.pct - b.pct);
+  const weakest = domainArr.slice(0, 2);
+
+  // Gaps for priority actions
+  const gaps = ITEMS.filter(item => scores[item.id] === 0 || scores[item.id] === 1)
+    .sort((a, b) => (b.impactWeight - b.costWeight) - (a.impactWeight - a.costWeight));
+  const quickWins = gaps.filter(g => g.impactWeight >= 2 && g.costWeight <= 1).slice(0, 3);
+  const mediumPriority = gaps.filter(g => !quickWins.includes(g) && g.estimatedEffort === 'Medium').slice(0, 3);
+
+  const tierDescriptions = {
+    'Foundational': 'The agency is in the foundational stage with significant gaps in peer support infrastructure. Immediate action on policy and initial training is recommended.',
+    'Developing': 'The agency has a developing peer support presence but lacks completeness in key areas. Prioritizing training, activation protocols, and policy formalization will move the program forward.',
+    'Functional': 'The agency has a functional peer support program. Focus should shift to sustainability, leadership culture, and annual evaluation to maintain and strengthen the program.',
+    'Model': 'The agency operates a model peer support program. Consider documenting your approach and sharing it with peer agencies in the region.'
+  };
+
+  const domainRows = DOMAINS.map(d =>
+    `<tr><td>${d.key}</td><td>${d.name}</td><td>${domainScores[d.key]} / ${d.max}</td><td>${Math.round((domainScores[d.key]/d.max)*100)}%</td></tr>`
+  ).join('');
+
+  const priorityRows = [...quickWins, ...mediumPriority].map(item =>
+    `<tr><td>${item.id}</td><td>${item.text}</td><td>${item.estimatedEffort}</td><td>${item.costLabel}</td></tr>`
+  ).join('');
+
+  const reportHTML = `
+    <h1 contenteditable="true">Peer Support Program Assessment — ${name}</h1>
+    <p style="font-size:12px; color:#666;">Prepared ${today} | ${type} | ${region} | ${size} personnel</p>
+
+    <h2>Executive Summary</h2>
+    <p contenteditable="true">${name} is a ${type.toLowerCase()} agency with ${size} full-time personnel serving ${region}. Current program status: ${status}. The agency scored <strong>${total} of 48</strong> on the peer support readiness assessment, placing it in the <strong>${tier}</strong> tier. The weakest areas are <strong>${weakest[0].name}</strong> (${weakest[0].score}/${weakest[0].max}) and <strong>${weakest[1].name}</strong> (${weakest[1].score}/${weakest[1].max}). ${tierDescriptions[tier] || ''}</p>
+
+    <h2>Assessment Results</h2>
+    <table>
+      <thead><tr><th>Domain</th><th>Area</th><th>Score</th><th>%</th></tr></thead>
+      <tbody>${domainRows}<tr style="font-weight:700;"><td></td><td>Overall</td><td>${total} / 48</td><td>${Math.round((total/48)*100)}%</td></tr></tbody>
+    </table>
+
+    <h2>Priority Actions</h2>
+    <table>
+      <thead><tr><th>ID</th><th>Action</th><th>Effort</th><th>Cost</th></tr></thead>
+      <tbody>${priorityRows || '<tr><td colspan="4">No gaps identified.</td></tr>'}</tbody>
+    </table>
+
+    <h2>Statement for Leadership</h2>
+    <p contenteditable="true">Peer support programs are the most effective evidence-based model for reducing suicide and behavioral health crises among first responders. ${name} currently scores ${total} of 48 on peer support program readiness. Closing the identified gaps — particularly in ${weakest[0].name.toLowerCase()} and ${weakest[1].name.toLowerCase()} — would require modest investment in training and protected time for peer supporters. Minnesota SF679 (2025) directs state funding to organizations like Hometown Hero Outdoors that provide complementary services, but the agency-level infrastructure to identify at-risk personnel and connect them to resources must be built internally. We recommend authorizing the peer support coordinator to begin implementation of the attached action plan.</p>
+
+    <h2>Resources</h2>
+    <table>
+      <thead><tr><th>Organization</th><th>Details</th></tr></thead>
+      <tbody>
+        <tr><td>Hometown Hero Outdoors</td><td>Stillwater, MN. Outdoor recovery and mental health services for first responders. Supported by MN SF679 (2025).</td></tr>
+        <tr><td>MN Dept. of Public Safety</td><td>Model policy templates and peer support resources via Office of Justice Programs.</td></tr>
+        <tr><td>ICISF</td><td>CISM training for peer support credentialing.</td></tr>
+        <tr><td>Safe Call Now</td><td>24/7 crisis line for first responders: 1-206-459-3020</td></tr>
+        <tr><td>First H.E.L.P.</td><td>National first responder suicide prevention nonprofit.</td></tr>
+      </tbody>
+    </table>
+
+    <p style="font-size:11px; color:#999; margin-top:32px; border-top:1px solid #ddd; padding-top:8px;">
+      Generated by the Minnesota First Responder Peer Support Program Builder. Reflects Minnesota peer support standards and resources as of 2025. Not a substitute for legal counsel or clinical consultation. Verify all data points with source organizations.
+    </p>
+  `;
+
+  document.getElementById('report-output').innerHTML = reportHTML;
+}
+
+/* ================================================================
+   DEMO DATA
+   ================================================================ */
+function loadDemo() {
+  document.getElementById('agencyName').value = 'Washington County Combined Fire/EMS';
+  document.getElementById('agencyType').value = 'Combined';
+  document.getElementById('agencySize').value = '45';
+  document.getElementById('hasVolunteers').value = 'yes';
+  document.getElementById('volunteerCountGroup').style.display = 'block';
+  document.getElementById('volunteerCount').value = '20';
+  document.getElementById('agencyRegion').value = 'Washington County, MN';
+  const partialRadio = document.querySelector('input[name="programStatus"][value="partial"]');
+  if (partialRadio) partialRadio.checked = true;
+
+  // Domain A: all No
+  setRadio('A1', 0); setRadio('A2', 0); setRadio('A3', 0); setRadio('A4', 0); setRadio('A5', 0);
+  // Domain B: mixed partial
+  setRadio('B1', 1); setRadio('B2', 1); setRadio('B3', 0); setRadio('B4', 1); setRadio('B5', 1);
+  // Domain C: 2 trained, no refresher
+  setRadio('C1', 1); setRadio('C2', 1); setRadio('C3', 0); setRadio('C4', 0); setRadio('C5', 0);
+  // Domain D: partial
+  setRadio('D1', 1); setRadio('D2', 1); setRadio('D3', 0); setRadio('D4', 1); setRadio('D5', 1);
+  // Domain E: partial/no
+  setRadio('E1', 1); setRadio('E2', 0); setRadio('E3', 1); setRadio('E4', 0);
+
+  calcScores();
+  saveState();
+}
+
+function setRadio(name, val) {
+  const radio = document.querySelector(`input[name="${name}"][value="${val}"]`);
+  if (radio) radio.checked = true;
+}
+
+/* ================================================================
+   VOLUNTEER TOGGLE
+   ================================================================ */
+function setupVolunteerToggle() {
+  document.getElementById('hasVolunteers').addEventListener('change', function() {
+    document.getElementById('volunteerCountGroup').style.display =
+      this.value === 'yes' ? 'block' : 'none';
+  });
+}
+
+/* ================================================================
+   LOCAL STORAGE
+   ================================================================ */
+function saveState() {
+  const state = {
+    agencyName: document.getElementById('agencyName').value,
+    agencyType: document.getElementById('agencyType').value,
+    agencySize: document.getElementById('agencySize').value,
+    hasVolunteers: document.getElementById('hasVolunteers').value,
+    volunteerCount: document.getElementById('volunteerCount').value,
+    agencyRegion: document.getElementById('agencyRegion').value,
+    programStatus: document.querySelector('input[name="programStatus"]:checked')?.value || '',
+    scores: {}
+  };
+  ITEMS.forEach(item => {
+    const checked = document.querySelector(`input[name="${item.id}"]:checked`);
+    if (checked) state.scores[item.id] = checked.value;
+  });
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const state = JSON.parse(raw);
+    if (state.agencyName) document.getElementById('agencyName').value = state.agencyName;
+    if (state.agencyType) document.getElementById('agencyType').value = state.agencyType;
+    if (state.agencySize) document.getElementById('agencySize').value = state.agencySize;
+    if (state.hasVolunteers) {
+      document.getElementById('hasVolunteers').value = state.hasVolunteers;
+      if (state.hasVolunteers === 'yes') document.getElementById('volunteerCountGroup').style.display = 'block';
+    }
+    if (state.volunteerCount) document.getElementById('volunteerCount').value = state.volunteerCount;
+    if (state.agencyRegion) document.getElementById('agencyRegion').value = state.agencyRegion;
+    if (state.programStatus) {
+      const radio = document.querySelector(`input[name="programStatus"][value="${state.programStatus}"]`);
+      if (radio) radio.checked = true;
+    }
+    if (state.scores) {
+      Object.entries(state.scores).forEach(([name, val]) => {
+        const radio = document.querySelector(`input[name="${name}"][value="${val}"]`);
+        if (radio) radio.checked = true;
+      });
+    }
+    calcScores();
+  } catch(e) {}
+}
+</script>
+</body>
+</html>

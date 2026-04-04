@@ -1,0 +1,2123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minnesota Business Mail Fraud Checker — SF1734</title>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Two-column sidebar+main application layout — sticky left sidebar with reference card
+      and progress indicator, right main content area. No centered single-column shell.
+   2. Navigation: Stepper/wizard pattern — numbered step circles connected by a progress line,
+      forward/back controls within modules. No tab bar.
+   3. Typography: Georgia serif body text at 16px with Arial Narrow condensed headers —
+      gives a clinical-report feel distinct from system-ui sans-serif default.
+   Additional: Color is purely functional (green/yellow/red findings use full background wash,
+      not accent-colored cards). Data displayed as checklist table rows, not cards.
+      No left-border accent cards. No parchment background — clean clinic white + steel blue.
+*/
+
+/* ── Reset & Base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --clinic-white: #F8FAFB;
+  --steel-blue:   #3A6EA5;
+  --steel-dark:   #2A5280;
+  --charcoal:     #2D3748;
+  --bg:           #F0F4F8;
+  --text:         #1A202C;
+  --border:       #CBD5E0;
+  --pass:         #276749;
+  --pass-bg:      #F0FFF4;
+  --warn:         #B7791F;
+  --warn-bg:      #FFFBEB;
+  --alert:        #C53030;
+  --alert-bg:     #FFF5F5;
+  --muted:        #718096;
+  --sidebar-w:    300px;
+}
+
+html { font-size: 16px; }
+body {
+  font-family: Georgia, 'Times New Roman', serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ── App Shell ── */
+#app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ── Sidebar ── */
+#sidebar {
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  background: var(--steel-blue);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+#sidebar-header {
+  background: var(--steel-dark);
+  padding: 20px 18px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+}
+#sidebar-header h1 {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.3;
+  margin-bottom: 4px;
+}
+#sidebar-header .bill-tag {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  opacity: 0.8;
+  text-transform: uppercase;
+}
+
+#sidebar-body {
+  padding: 18px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sidebar-section {
+  border-top: 1px solid rgba(255,255,255,0.2);
+  padding-top: 16px;
+}
+.sidebar-section:first-child { border-top: none; padding-top: 0; }
+
+.sidebar-section h3 {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.75;
+  margin-bottom: 10px;
+}
+
+/* Progress indicator in sidebar */
+#progress-area { }
+#step-display {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.progress-bar-track {
+  height: 4px;
+  background: rgba(255,255,255,0.25);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  background: #fff;
+  border-radius: 2px;
+  transition: width 0.35s ease;
+  width: 0%;
+}
+
+/* Stepper dots */
+.stepper-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-top: 14px;
+}
+.stepper-dot {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  border: 2px solid rgba(255,255,255,0.4);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  transition: background 0.2s, border-color 0.2s;
+}
+.stepper-dot.active {
+  background: #fff;
+  border-color: #fff;
+  color: var(--steel-blue);
+}
+.stepper-dot.done {
+  background: rgba(255,255,255,0.6);
+  border-color: rgba(255,255,255,0.6);
+  color: var(--steel-blue);
+}
+.stepper-line {
+  flex: 1;
+  height: 2px;
+  background: rgba(255,255,255,0.25);
+}
+.stepper-line.done { background: rgba(255,255,255,0.6); }
+
+/* Reference card */
+.ref-block {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: rgba(255,255,255,0.9);
+}
+.ref-block strong {
+  display: block;
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+  color: #fff;
+}
+.ref-block ul {
+  padding-left: 14px;
+  margin: 6px 0;
+}
+.ref-block li { margin-bottom: 5px; }
+.ref-block a {
+  color: rgba(255,255,255,0.85);
+  text-underline-offset: 2px;
+}
+.ref-block a:hover { color: #fff; }
+
+.key-req {
+  margin-top: 8px;
+}
+.key-req-item {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 0.8rem;
+  margin-bottom: 5px;
+  color: rgba(255,255,255,0.9);
+}
+.key-req-item::before {
+  content: "§";
+  font-size: 0.75rem;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+#sidebar-footer {
+  padding: 14px 18px;
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.72rem;
+  opacity: 0.65;
+  letter-spacing: 0.03em;
+  border-top: 1px solid rgba(255,255,255,0.2);
+}
+
+/* ── Main Content ── */
+#main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+#main-header {
+  background: var(--charcoal);
+  color: #fff;
+  padding: 16px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+#main-header .tool-name {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.8;
+}
+#mode-badge {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  background: rgba(255,255,255,0.15);
+  padding: 3px 10px;
+  border-radius: 2px;
+  display: none;
+}
+#mode-badge.visible { display: inline-block; }
+
+#content-area {
+  flex: 1;
+  padding: 36px 40px;
+  max-width: 760px;
+}
+
+/* ── Mode Selector ── */
+#mode-selector h2 {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--charcoal);
+  margin-bottom: 6px;
+}
+#mode-selector .intro-text {
+  font-size: 0.95rem;
+  color: var(--muted);
+  margin-bottom: 28px;
+  max-width: 600px;
+  line-height: 1.65;
+}
+.mode-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+.mode-card {
+  background: var(--clinic-white);
+  border: 2px solid var(--border);
+  border-radius: 4px;
+  padding: 28px 24px;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  text-align: left;
+}
+.mode-card:hover {
+  border-color: var(--steel-blue);
+  box-shadow: 0 4px 16px rgba(58,110,165,0.12);
+}
+.mode-card:focus {
+  outline: 3px solid var(--steel-blue);
+  outline-offset: 2px;
+}
+.mode-icon {
+  font-size: 2.2rem;
+  margin-bottom: 14px;
+  display: block;
+}
+.mode-card h3 {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--steel-blue);
+  margin-bottom: 8px;
+}
+.mode-card p {
+  font-size: 0.88rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.mode-card .cta-label {
+  display: inline-block;
+  margin-top: 14px;
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--steel-blue);
+}
+
+.intro-box {
+  background: var(--clinic-white);
+  border-top: 3px solid var(--steel-blue);
+  padding: 18px 22px;
+  font-size: 0.9rem;
+  color: var(--text);
+  line-height: 1.65;
+  border-radius: 0 0 4px 4px;
+}
+.intro-box em {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--steel-blue);
+}
+
+/* ── Step Panels ── */
+.step-panel { display: none; }
+.step-panel.active { display: block; }
+
+.step-header {
+  margin-bottom: 24px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.step-number {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--steel-blue);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.step-title {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--charcoal);
+}
+
+/* Form elements */
+.form-group { margin-bottom: 22px; }
+.form-label {
+  display: block;
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--charcoal);
+  margin-bottom: 8px;
+}
+.form-select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--clinic-white);
+  font-family: Georgia, serif;
+  font-size: 0.95rem;
+  color: var(--text);
+  cursor: pointer;
+}
+.form-select:focus { outline: 2px solid var(--steel-blue); outline-offset: 1px; }
+
+.radio-group, .toggle-group {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.radio-option, .toggle-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  background: var(--clinic-white);
+  transition: border-color 0.15s, background 0.15s;
+  min-height: 44px;
+}
+.radio-option:hover, .toggle-option:hover { border-color: var(--steel-blue); }
+.radio-option input, .toggle-option input { min-width: 18px; min-height: 18px; cursor: pointer; }
+.radio-option.selected, .toggle-option.selected {
+  border-color: var(--steel-blue);
+  background: #EBF4FF;
+}
+
+/* BOI info box */
+.info-box {
+  background: var(--warn-bg);
+  border-top: 3px solid var(--warn);
+  padding: 14px 18px;
+  margin: 12px 0 20px;
+  border-radius: 0 0 4px 4px;
+}
+.info-box .info-label {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--warn);
+  margin-bottom: 6px;
+}
+.info-box p { font-size: 0.88rem; line-height: 1.6; color: var(--text); }
+
+/* ── Checklist Table ── */
+.checklist-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 24px;
+}
+.checklist-table thead tr {
+  background: var(--charcoal);
+  color: #fff;
+}
+.checklist-table th {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 10px 14px;
+  font-weight: 700;
+  text-align: left;
+}
+.checklist-table th:last-child { text-align: center; width: 100px; }
+
+.checklist-table tbody tr {
+  border-bottom: 1px solid var(--border);
+  background: var(--clinic-white);
+  transition: background 0.15s;
+}
+.checklist-table tbody tr:nth-child(even) { background: #EEF3F8; }
+.checklist-table tbody tr.row-fail { background: #FFF0F0; }
+.checklist-table tbody tr.row-pass { background: #F0FFF4; }
+.checklist-table tbody tr.row-na  { background: #F7F7F7; opacity: 0.7; }
+
+.checklist-table td { padding: 12px 14px; vertical-align: top; }
+
+.req-text { font-size: 0.9rem; line-height: 1.5; }
+.req-statute {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.72rem;
+  color: var(--muted);
+  letter-spacing: 0.03em;
+  margin-top: 3px;
+}
+.req-violation {
+  font-size: 0.8rem;
+  color: var(--alert);
+  margin-top: 5px;
+  font-style: italic;
+}
+.req-violation.hidden { display: none; }
+
+.answer-cell {
+  text-align: center;
+  vertical-align: middle;
+}
+.yn-toggle {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+}
+.yn-btn {
+  width: 44px; height: 44px;
+  border: 1px solid var(--border);
+  background: var(--clinic-white);
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.yn-btn:hover { border-color: var(--charcoal); color: var(--charcoal); }
+.yn-btn.yes-active { background: var(--pass); color: #fff; border-color: var(--pass); }
+.yn-btn.no-active  { background: var(--alert); color: #fff; border-color: var(--alert); }
+.yn-btn.na-active  { background: var(--muted); color: #fff; border-color: var(--muted); }
+
+/* Sender audit 3-way toggle */
+.pna-toggle { display: flex; gap: 4px; justify-content: center; }
+.pna-btn {
+  min-width: 40px; height: 44px; padding: 0 8px;
+  border: 1px solid var(--border);
+  background: var(--clinic-white);
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.pna-btn:hover { border-color: var(--charcoal); color: var(--charcoal); }
+.pna-btn.pass-active { background: var(--pass);  color: #fff; border-color: var(--pass); }
+.pna-btn.fail-active { background: var(--alert); color: #fff; border-color: var(--alert); }
+.pna-btn.na-active   { background: var(--muted); color: #fff; border-color: var(--muted); }
+
+/* ── Finding Panels ── */
+.finding-panel {
+  border-radius: 4px;
+  padding: 28px 30px;
+  margin-bottom: 24px;
+}
+.finding-panel.green { background: var(--pass-bg); border: 1px solid #9AE6B4; }
+.finding-panel.yellow { background: var(--warn-bg); border: 1px solid #F6E05E; }
+.finding-panel.red   { background: var(--alert-bg); border: 1px solid #FEB2B2; }
+
+.finding-label {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 6px;
+}
+.finding-panel.green  .finding-label { color: var(--pass); }
+.finding-panel.yellow .finding-label { color: var(--warn); }
+.finding-panel.red    .finding-label { color: var(--alert); }
+
+.finding-verdict {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.3;
+  margin-bottom: 12px;
+}
+.finding-panel.green  .finding-verdict { color: var(--pass); }
+.finding-panel.yellow .finding-verdict { color: var(--warn); }
+.finding-panel.red    .finding-verdict { color: var(--alert); }
+
+.finding-body { font-size: 0.92rem; line-height: 1.65; }
+
+.finding-issues {
+  margin-top: 16px;
+  list-style: none;
+  padding: 0;
+}
+.finding-issues li {
+  padding: 7px 0 7px 22px;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  font-size: 0.88rem;
+  position: relative;
+}
+.finding-issues li::before {
+  content: "✗";
+  position: absolute;
+  left: 0;
+  color: var(--alert);
+  font-weight: 700;
+}
+.finding-issues.green-list li::before { content: "✓"; color: var(--pass); }
+
+/* Action paths */
+.action-paths {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+.action-path {
+  background: var(--clinic-white);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 16px;
+  text-decoration: none;
+  color: var(--text);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+  display: block;
+}
+.action-path:hover { border-color: var(--steel-blue); box-shadow: 0 2px 8px rgba(58,110,165,0.1); }
+.action-path .ap-label {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--steel-blue);
+  margin-bottom: 4px;
+}
+.action-path .ap-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* ── Navigation Buttons ── */
+.nav-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+.btn {
+  padding: 11px 24px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border: none;
+  transition: background 0.15s, opacity 0.15s;
+  min-height: 44px;
+}
+.btn:focus { outline: 2px solid var(--steel-blue); outline-offset: 2px; }
+.btn-primary { background: var(--steel-blue); color: #fff; }
+.btn-primary:hover { background: var(--steel-dark); }
+.btn-secondary { background: transparent; border: 1px solid var(--border); color: var(--charcoal); }
+.btn-secondary:hover { border-color: var(--charcoal); }
+.btn-back { background: transparent; color: var(--muted); border: none; padding-left: 0; }
+.btn-back:hover { color: var(--charcoal); }
+.btn-danger { background: var(--alert); color: #fff; }
+.btn-danger:hover { background: #9B2C2C; }
+.btn-reset { background: transparent; color: var(--muted); border: 1px solid var(--border); margin-left: auto; }
+.btn-reset:hover { color: var(--alert); border-color: var(--alert); }
+
+/* ── Compliance Summary ── */
+.compliance-summary {
+  background: var(--clinic-white);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 22px 24px;
+  margin-bottom: 22px;
+}
+.compliance-summary h3 {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--charcoal);
+  margin-bottom: 14px;
+}
+.score-row {
+  display: flex;
+  gap: 28px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.score-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.score-num {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.score-num.pass  { color: var(--pass); }
+.score-num.fail  { color: var(--alert); }
+.score-num.na    { color: var(--muted); }
+.score-label {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.fix-list { margin-top: 14px; }
+.fix-item {
+  border-top: 1px solid var(--border);
+  padding: 12px 0;
+}
+.fix-item:last-child { border-bottom: 1px solid var(--border); }
+.fix-title {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--alert);
+  margin-bottom: 4px;
+}
+.fix-guidance {
+  font-size: 0.87rem;
+  line-height: 1.55;
+  color: var(--text);
+}
+.fix-statute {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-top: 3px;
+}
+
+/* ── Report area ── */
+#report-container {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 28px 32px;
+  margin-bottom: 22px;
+}
+#report-container h2 {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--charcoal);
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 10px;
+}
+#report-editable {
+  font-family: Georgia, serif;
+  font-size: 0.9rem;
+  line-height: 1.75;
+  color: var(--text);
+  white-space: pre-wrap;
+  min-height: 200px;
+  outline: none;
+  width: 100%;
+  border: none;
+  background: transparent;
+  resize: vertical;
+}
+#report-editable:focus { background: #FAFCFF; }
+
+/* 24-point demo */
+.pt24-demo {
+  background: var(--warn-bg);
+  border: 1px solid #F6E05E;
+  border-radius: 3px;
+  padding: 14px 18px;
+  margin: 16px 0;
+}
+.pt24-demo .demo-label {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--warn);
+  margin-bottom: 8px;
+}
+.pt24-text {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 24pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--charcoal);
+  line-height: 1.2;
+}
+
+/* ── Footer ── */
+#main-footer {
+  padding: 14px 40px;
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.72rem;
+  color: var(--muted);
+  border-top: 1px solid var(--border);
+  background: var(--clinic-white);
+  letter-spacing: 0.02em;
+}
+#main-footer a { color: var(--steel-blue); }
+
+/* ── Category separator in audit table ── */
+.cat-row td {
+  background: var(--charcoal) !important;
+  color: #fff;
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 8px 14px;
+}
+
+/* ── Print Styles ── */
+@media print {
+  #sidebar, #main-header, #main-footer, #mode-selector,
+  .nav-row, .stepper-row, .progress-bar-track, #step-display,
+  .btn, #mode-badge { display: none !important; }
+
+  #app-shell { display: block; }
+  #main { display: block; }
+  #content-area { padding: 0; max-width: 100%; }
+
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 12pt;
+    color: #000;
+    background: #fff;
+  }
+
+  #print-only {
+    display: block !important;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 11pt;
+    line-height: 1.7;
+    color: #000;
+  }
+
+  #print-only h1 {
+    font-family: Arial, sans-serif;
+    font-size: 14pt;
+    font-weight: bold;
+    border-bottom: 1px solid #000;
+    padding-bottom: 6pt;
+    margin-bottom: 14pt;
+  }
+  #print-only h2 {
+    font-family: Arial, sans-serif;
+    font-size: 11pt;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 14pt 0 6pt;
+  }
+  #print-only p { margin-bottom: 8pt; }
+  #print-only ul { padding-left: 18pt; margin-bottom: 8pt; }
+  #print-only .print-footer {
+    margin-top: 28pt;
+    padding-top: 8pt;
+    border-top: 1px solid #999;
+    font-size: 9pt;
+    color: #555;
+  }
+  #print-only .sig-line {
+    margin-top: 28pt;
+    border-bottom: 1px solid #000;
+    width: 260pt;
+    display: inline-block;
+  }
+  .step-panel, #mode-selector, #report-container { display: none !important; }
+}
+
+/* Hidden print div (visible only during print) */
+#print-only { display: none; }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  #app-shell { flex-direction: column; }
+  #sidebar {
+    width: 100%;
+    min-width: unset;
+    height: auto;
+    position: static;
+  }
+  #content-area { padding: 20px 18px; }
+  .mode-cards { grid-template-columns: 1fr; }
+  .action-paths { grid-template-columns: 1fr; }
+  #main-header { padding: 12px 18px; }
+  #main-footer { padding: 12px 18px; }
+}
+</style>
+</head>
+<body>
+<div id="app-shell">
+
+  <!-- ── SIDEBAR ── -->
+  <aside id="sidebar" role="complementary" aria-label="Reference card and progress">
+    <div id="sidebar-header">
+      <h1>MN Business Mail<br>Fraud Checker</h1>
+      <span class="bill-tag">SF1734 · 2025 · Sen. Klein SD-53</span>
+    </div>
+    <div id="sidebar-body">
+
+      <div class="sidebar-section" id="progress-section">
+        <h3>Progress</h3>
+        <div id="step-display">Select a mode to begin</div>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" id="progress-fill"></div>
+        </div>
+        <div class="stepper-row" id="stepper-row"></div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>What the SOS Actually Sends</h3>
+        <div class="ref-block">
+          <strong>Minnesota Secretary of State</strong>
+          <ul>
+            <li>Does <em>not</em> send unsolicited bills or renewal demands by mail</li>
+            <li>LLC annual renewal is filed online directly at the SOS portal — verify current fees at the SOS before paying any third party</li>
+            <li>Official SOS mail will not demand payment to a third-party address</li>
+          </ul>
+          <a href="https://mblsportal.sos.state.mn.us/" target="_blank" rel="noopener">→ MN SOS Business Portal</a>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>SF1734 Key Requirements</h3>
+        <div class="key-req">
+          <div class="key-req-item">Ad disclosure in 24-pt type at top, larger than all other text</div>
+          <div class="key-req-item">Sender's full legal name + physical street address</div>
+          <div class="key-req-item">"THIS IS NOT A GOVERNMENT DOCUMENT" on outer envelope</div>
+          <div class="key-req-item">No language implying legal duty or penalty for non-response</div>
+          <div class="key-req-item">Direct SOS filing information must be included</div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>Report to AG</h3>
+        <div class="ref-block">
+          <a href="https://www.ag.state.mn.us/consumer/complaint/default.asp" target="_blank" rel="noopener">→ MN Attorney General Complaint Form</a>
+        </div>
+      </div>
+
+    </div>
+    <div id="sidebar-footer">
+      Based on SF1734 (2025), passed Judiciary &amp;<br>
+      Public Safety Committee. Not legal advice.
+    </div>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <main id="main" role="main">
+    <div id="main-header">
+      <span class="tool-name">Minnesota Business Filing Fraud Prevention Act — SF1734</span>
+      <span id="mode-badge"></span>
+    </div>
+
+    <div id="content-area">
+
+      <!-- MODE SELECTOR -->
+      <div id="mode-selector">
+        <h2>Is This Mailing Legitimate?</h2>
+        <p class="intro-text">Senator Klein's SF1734 created enforceable rules for a specific scam: mailers designed to look like government notices that charge small business owners for filings they don't need. This tool was built to make those rules usable by the people the law was written to protect.</p>
+
+        <div class="mode-cards">
+          <button class="mode-card" id="btn-module1" onclick="startModule(1)" tabindex="0">
+            <span class="mode-icon" aria-hidden="true">✉</span>
+            <h3>I Received a Suspicious Mailing</h3>
+            <p>Walk through the SF1734 criteria to determine whether a mailing you received is likely fraudulent or compliant.</p>
+            <span class="cta-label">→ Fraud Identification Checker</span>
+          </button>
+          <button class="mode-card" id="btn-module2" onclick="startModule(2)" tabindex="0">
+            <span class="mode-icon" aria-hidden="true">☑</span>
+            <h3>I Send Business Mailings</h3>
+            <p>Audit your materials against every SF1734 requirement before mailing and get a specific, actionable punch list.</p>
+            <span class="cta-label">→ Sender Compliance Audit</span>
+          </button>
+        </div>
+
+        <div class="intro-box">
+          If you received a mailing you're not sure about, start with the <em>Fraud Identification Checker</em>. If your business sends filing-related mailings, use the <em>Sender Compliance Audit</em> to verify your materials before mailing. Both modes generate a printable report.
+        </div>
+      </div>
+
+      <!-- MODULE 1: FRAUD CHECKER -->
+      <div id="module1" style="display:none;">
+
+        <!-- Step 1: Mailing Basics -->
+        <div class="step-panel" id="m1-step1">
+          <div class="step-header">
+            <div class="step-number">Module 1 · Step 1 of 4</div>
+            <div class="step-title">Mailing Basics</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="m1-subject">What is this mailing about?</label>
+            <select class="form-select" id="m1-subject" onchange="handleSubjectChange()">
+              <option value="">— Select one —</option>
+              <option value="registration">Business registration or annual renewal</option>
+              <option value="registered_agent">Registered agent services</option>
+              <option value="good_standing">Certificate of Good Standing</option>
+              <option value="boi">Beneficial Ownership (BOI) filing</option>
+              <option value="other">Other business filing or compliance service</option>
+            </select>
+            <div id="boi-box" class="info-box" style="display:none;">
+              <div class="info-label">⚠ Important Notice — BOI Filing</div>
+              <p>FinCEN's Beneficial Ownership Information (BOI) reporting rule was struck down by federal courts in 2025. Any mailing demanding BOI compliance fees or urgent action is <strong>almost certainly fraudulent</strong>. There is currently no federal BOI reporting requirement in effect. Do not pay and do not provide your information to any third party claiming to offer BOI filing services.</p>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">How did this mailing arrive?</label>
+            <div class="radio-group">
+              <label class="radio-option" id="lbl-mail">
+                <input type="radio" name="m1-channel" value="mail" onchange="selectRadio(this,'channel')" aria-label="U.S. Mail">
+                U.S. Mail (physical)
+              </label>
+              <label class="radio-option" id="lbl-email">
+                <input type="radio" name="m1-channel" value="email" onchange="selectRadio(this,'channel')" aria-label="Email">
+                Email
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Does the mailing include a dollar amount or request for payment?</label>
+            <div class="radio-group">
+              <label class="radio-option" id="lbl-pay-yes">
+                <input type="radio" name="m1-payment" value="yes" onchange="selectRadio(this,'payment')" aria-label="Yes, requests payment">
+                Yes
+              </label>
+              <label class="radio-option" id="lbl-pay-no">
+                <input type="radio" name="m1-payment" value="no" onchange="selectRadio(this,'payment')" aria-label="No payment request">
+                No
+              </label>
+            </div>
+          </div>
+
+          <div class="nav-row">
+            <button class="btn btn-secondary btn-back" onclick="goHome()">← Back</button>
+            <button class="btn btn-primary" onclick="m1Next(1)" id="m1-s1-next">Continue →</button>
+          </div>
+        </div>
+
+        <!-- Step 2: Disclosure Checklist -->
+        <div class="step-panel" id="m1-step2">
+          <div class="step-header">
+            <div class="step-number">Module 1 · Step 2 of 4</div>
+            <div class="step-title">Disclosure Checklist</div>
+          </div>
+          <p style="font-size:0.9rem;color:var(--muted);margin-bottom:20px;">Answer each question based on what you can see on the mailing. Answer Yes, No, or N/A for items that do not apply.</p>
+
+          <div class="pt24-demo">
+            <div class="demo-label">SF1734 requires the ad disclosure in at least this size:</div>
+            <div class="pt24-text">This is an Advertisement</div>
+          </div>
+
+          <table class="checklist-table" role="table">
+            <thead>
+              <tr>
+                <th>Question</th>
+                <th>Answer</th>
+              </tr>
+            </thead>
+            <tbody id="m1-checklist-body">
+            </tbody>
+          </table>
+
+          <div class="nav-row">
+            <button class="btn btn-back" onclick="m1GoStep(1)">← Back</button>
+            <button class="btn btn-primary" onclick="m1Next(2)">Calculate Finding →</button>
+          </div>
+        </div>
+
+        <!-- Step 3: Finding -->
+        <div class="step-panel" id="m1-step3">
+          <div class="step-header">
+            <div class="step-number">Module 1 · Step 3 of 4</div>
+            <div class="step-title">Assessment Finding</div>
+          </div>
+          <div id="finding-output"></div>
+          <div class="nav-row">
+            <button class="btn btn-back" onclick="m1GoStep(2)">← Back</button>
+            <button class="btn btn-primary" onclick="m1GoStep(4)">Generate Report →</button>
+            <button class="btn btn-reset" onclick="goHome()">Start Over</button>
+          </div>
+        </div>
+
+        <!-- Step 4: Report -->
+        <div class="step-panel" id="m1-step4">
+          <div class="step-header">
+            <div class="step-number">Module 1 · Step 4 of 4</div>
+            <div class="step-title">Assessment Report</div>
+          </div>
+          <div id="report-container">
+            <h2>Minnesota Business Mail Assessment</h2>
+            <textarea id="report-editable" aria-label="Editable assessment report" rows="30"></textarea>
+          </div>
+          <p style="font-size:0.82rem;color:var(--muted);margin-bottom:16px;">You may edit the report text above before printing. The printed version will include a signature line for submission to the Attorney General.</p>
+          <div class="nav-row">
+            <button class="btn btn-back" onclick="m1GoStep(3)">← Back</button>
+            <button class="btn btn-primary" onclick="printReport()">🖨 Print / Save PDF</button>
+            <button class="btn btn-reset" onclick="goHome()">Start Over</button>
+          </div>
+        </div>
+
+      </div> <!-- end module1 -->
+
+      <!-- MODULE 2: SENDER COMPLIANCE AUDIT -->
+      <div id="module2" style="display:none;">
+
+        <!-- Step 1: Audit Scope -->
+        <div class="step-panel" id="m2-step1">
+          <div class="step-header">
+            <div class="step-number">Module 2 · Step 1 of 3</div>
+            <div class="step-title">Audit Scope</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="m2-mailtype">What type of mailing are you auditing?</label>
+            <select class="form-select" id="m2-mailtype">
+              <option value="">— Select one —</option>
+              <option value="physical">Physical mail only</option>
+              <option value="email">Email only</option>
+              <option value="both">Both physical mail and email</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="m2-company">Your company's legal name (for report)</label>
+            <input type="text" id="m2-company" class="form-select" placeholder="e.g., Acme Filing Services LLC" aria-label="Company legal name">
+          </div>
+
+          <div class="intro-box" style="margin-top:20px;">
+            <em>Instructions:</em> For each requirement below, mark Pass, Fail, or N/A. Items marked N/A will be excluded from your compliance score. After completing the checklist, review the fix guidance for any failing items and generate a printable audit report.
+          </div>
+
+          <div class="nav-row">
+            <button class="btn btn-secondary btn-back" onclick="goHome()">← Back</button>
+            <button class="btn btn-primary" onclick="m2Next(1)">Begin Audit →</button>
+          </div>
+        </div>
+
+        <!-- Step 2: Checklist -->
+        <div class="step-panel" id="m2-step2">
+          <div class="step-header">
+            <div class="step-number">Module 2 · Step 2 of 3</div>
+            <div class="step-title">SF1734 Compliance Checklist</div>
+          </div>
+          <p style="font-size:0.9rem;color:var(--muted);margin-bottom:16px;">Mark each item Pass, Fail, or N/A. Failing items will generate specific fix guidance in Step 3.</p>
+
+          <table class="checklist-table" role="table">
+            <thead>
+              <tr>
+                <th>Requirement (SF1734)</th>
+                <th style="width:140px;">Status</th>
+              </tr>
+            </thead>
+            <tbody id="m2-checklist-body">
+            </tbody>
+          </table>
+
+          <div class="nav-row">
+            <button class="btn btn-back" onclick="m2GoStep(1)">← Back</button>
+            <button class="btn btn-primary" onclick="m2Next(2)">Review Results →</button>
+          </div>
+        </div>
+
+        <!-- Step 3: Summary + Report -->
+        <div class="step-panel" id="m2-step3">
+          <div class="step-header">
+            <div class="step-number">Module 2 · Step 3 of 3</div>
+            <div class="step-title">Compliance Summary</div>
+          </div>
+
+          <div id="m2-summary-output"></div>
+
+          <div id="report-container" style="margin-top:20px;">
+            <h2>Sender Compliance Audit Report</h2>
+            <textarea id="report-editable-m2" aria-label="Editable compliance audit report" rows="28"></textarea>
+          </div>
+          <p style="font-size:0.82rem;color:var(--muted);margin-bottom:16px;">You may edit the report text above before printing.</p>
+          <div class="nav-row">
+            <button class="btn btn-back" onclick="m2GoStep(2)">← Back</button>
+            <button class="btn btn-primary" onclick="printReportM2()">🖨 Print Audit Report</button>
+            <button class="btn btn-reset" onclick="goHome()">Start Over</button>
+          </div>
+        </div>
+
+      </div> <!-- end module2 -->
+
+    </div> <!-- end content-area -->
+
+    <footer id="main-footer">
+      Built with AI. Based on Minnesota SF1734 (2025), as passed by the Judiciary and Public Safety Committee.
+      This tool does not constitute legal advice. Verify current requirements at
+      <a href="https://www.revisor.mn.gov" target="_blank" rel="noopener">www.revisor.mn.gov</a> ·
+      <a href="https://www.sos.state.mn.us/" target="_blank" rel="noopener">MN Secretary of State</a>
+    </footer>
+  </main>
+
+</div> <!-- end app-shell -->
+
+<!-- Print-only div -->
+<div id="print-only" aria-hidden="true"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+// DATA STRUCTURES — SF1734 Requirements & Prohibitions
+// ══════════════════════════════════════════════════════════
+
+const SF1734_REQUIREMENTS = [
+  {
+    id: "ad_disclosure_present",
+    category: "Advertisement Disclosure — Content",
+    text: "A clear statement that the mailing is an advertisement and not from a government agency appears at the very top",
+    detail: "Required at the top of the mailing.",
+    statute: "SF1734 §2, subd. 2(1)",
+    applies: ["mail","email"],
+    required: true,
+    fixGuidance: "Add a clear statement at the top of your mailing reading that this is an advertisement and not from a government agency. This statement must appear before any other content."
+  },
+  {
+    id: "ad_disclosure_24pt",
+    category: "Advertisement Disclosure — Content",
+    text: "That advertisement statement is in at least 24-point type",
+    detail: "SF1734 sets a minimum font size of 24 points for the advertisement disclosure.",
+    statute: "SF1734 §2, subd. 2(1)",
+    applies: ["mail","email"],
+    required: true,
+    fixGuidance: "Increase the font size of your advertisement disclosure statement to at least 24 points. This is an absolute minimum — smaller type is a violation regardless of other formatting."
+  },
+  {
+    id: "ad_disclosure_largest",
+    category: "Advertisement Disclosure — Content",
+    text: "All other text on the mailing is in type smaller than the advertisement disclosure statement",
+    detail: "The disclosure must be the largest type on the piece.",
+    statute: "SF1734 §2, subd. 2(1)",
+    applies: ["mail","email"],
+    required: true,
+    fixGuidance: "Reduce the font size of all other text on the mailing so that the 24-point advertisement disclosure is the largest text on the piece. No other heading, company name, or body text may equal or exceed the disclosure size."
+  },
+  {
+    id: "sender_name",
+    category: "Sender Identification",
+    text: "The mailing displays the sender's full legal company name",
+    detail: "Not a trade name, DBA, or generic descriptor like 'State Filing Office.'",
+    statute: "SF1734 §2, subd. 2(2)",
+    applies: ["mail","email"],
+    required: true,
+    fixGuidance: "Include your business's full legal name (as registered) prominently on the mailing. A trade name or descriptor such as 'State Filing Office' or 'Annual Compliance Center' does not satisfy this requirement."
+  },
+  {
+    id: "sender_address",
+    category: "Sender Identification",
+    text: "The mailing displays the sender's physical street address (not a P.O. box)",
+    detail: "A P.O. box does not satisfy this requirement.",
+    statute: "SF1734 §2, subd. 2(3)",
+    applies: ["mail","email"],
+    required: true,
+    fixGuidance: "Add a complete physical street address for your business. A P.O. box alone does not meet this requirement under SF1734."
+  },
+  {
+    id: "sos_info",
+    category: "Sender Identification",
+    text: "The mailing includes information about how to file directly with the Minnesota Secretary of State without using this service",
+    detail: "Recipients must be told they can file directly at the SOS portal.",
+    statute: "SF1734 §2, subd. 2(4)",
+    applies: ["mail","email"],
+    required: true,
+    fixGuidance: "Add a clear statement directing recipients to the Minnesota Secretary of State's business filing portal (https://mblsportal.sos.state.mn.us/) and stating that they may file directly there without using your service."
+  },
+  {
+    id: "envelope_disclosure",
+    category: "Envelope / Outer Wrapper",
+    text: "Outer envelope or wrapper displays 'THIS IS NOT A GOVERNMENT DOCUMENT' in capital letters, prominently on the exterior",
+    detail: "Required on the physical envelope or wrapper for all physical mail pieces.",
+    statute: "SF1734 §2, subd. 1",
+    applies: ["mail"],
+    required: true,
+    fixGuidance: "Print 'THIS IS NOT A GOVERNMENT DOCUMENT' in capital letters in a prominent location on the outer envelope or wrapper. This is required on every piece of physical mail — it cannot appear only inside the envelope."
+  },
+  {
+    id: "no_state_seal_envelope",
+    category: "Envelope / Outer Wrapper",
+    text: "No Minnesota state seal, state agency logo, or branding that could imply government origin on the envelope",
+    detail: "The outer wrapper must not create a government impression.",
+    statute: "SF1734 §2, subd. 3(4)",
+    applies: ["mail"],
+    required: true,
+    fixGuidance: "Remove any use of the Minnesota state seal, state agency logos, or any branding element that could cause a recipient to believe the mailing comes from a government agency. This includes color schemes and typography that mimic official state documents."
+  }
+];
+
+const SF1734_PROHIBITIONS = [
+  {
+    id: "penalty_language",
+    category: "Content Restrictions",
+    text: "The mailing does not use language suggesting a legal obligation to respond",
+    detail: "Phrases like 'FILING REQUIRED,' 'RESPONSE MANDATORY,' or 'FAILURE TO COMPLY' violate SF1734.",
+    statute: "SF1734 §2, subd. 3(1)",
+    required: false,
+    checkForViolation: true, // yes = violation
+    fixGuidance: "Remove all language that implies the recipient has a legal obligation to act on your mailing. This includes phrases such as 'filing required,' 'response mandatory,' 'you must,' or similar imperative language that implies legal compulsion."
+  },
+  {
+    id: "fine_language",
+    category: "Content Restrictions",
+    text: "The mailing does not imply a penalty or fine for non-compliance or non-response",
+    detail: "Phrases like 'ACT WITHIN 15 DAYS or face penalties' violate SF1734.",
+    statute: "SF1734 §2, subd. 3(2)",
+    required: false,
+    checkForViolation: true,
+    fixGuidance: "Remove all language implying fines, penalties, or adverse consequences for failure to respond. This includes deadline-based warnings that imply negative legal or financial consequences."
+  },
+  {
+    id: "no_state_seal_content",
+    category: "Content Restrictions",
+    text: "The mailing does not use the Minnesota state seal or any state agency logo in the body content",
+    detail: "This prohibition applies throughout the mailing, not just the envelope.",
+    statute: "SF1734 §2, subd. 3(4)",
+    required: false,
+    checkForViolation: true,
+    fixGuidance: "Remove all instances of the Minnesota state seal, state agency logos, and any branding that could be mistaken for official government imagery from the entire mailing."
+  },
+  {
+    id: "no_gov_impression",
+    category: "Content Restrictions",
+    text: "The mailing does not use typography, layout, or color that could be mistaken for an official government document",
+    detail: "Overall design must not create a government-document impression.",
+    statute: "SF1734 §2, subd. 3(5)",
+    required: false,
+    checkForViolation: true,
+    fixGuidance: "Redesign your mailing so that its overall visual presentation is clearly distinct from official government documents. Avoid official-looking fonts, layouts that mimic government letterhead, or color schemes associated with Minnesota state agencies."
+  }
+];
+
+// Module 1 disclosure checklist questions (for step 2)
+const M1_CHECKLIST = [
+  {
+    id: "has_ad_disclosure",
+    text: 'Does the mailing display a clear statement that it is an advertisement and not from a government agency at the very top?',
+    statute: "SF1734 §2, subd. 2(1)",
+    required: true,
+    violation_note: "Missing required advertisement disclosure — may violate SF1734 §2, subd. 2(1)"
+  },
+  {
+    id: "disclosure_large",
+    text: "Is that advertisement disclosure in larger type than all other text on the mailing (at least 24-point)?",
+    statute: "SF1734 §2, subd. 2(1)",
+    required: true,
+    violation_note: "Disclosure not the largest text / not in 24pt type — may violate SF1734 §2, subd. 2(1)"
+  },
+  {
+    id: "has_sos_info",
+    text: "Does it tell you where to file directly with the Minnesota Secretary of State?",
+    statute: "SF1734 §2, subd. 2(4)",
+    required: true,
+    violation_note: "Missing required SOS direct-filing information — may violate SF1734 §2, subd. 2(4)"
+  },
+  {
+    id: "has_sender_name",
+    text: 'Does it show the sender\'s actual company name (not a generic like "State Filing Office" or "Annual Compliance Services")?',
+    statute: "SF1734 §2, subd. 2(2)",
+    required: true,
+    violation_note: "Missing or obscured sender company name — may violate SF1734 §2, subd. 2(2)"
+  },
+  {
+    id: "has_sender_address",
+    text: "Does it show a physical street address for the sender (not just a P.O. box)?",
+    statute: "SF1734 §2, subd. 2(3)",
+    required: true,
+    violation_note: "Missing physical street address — may violate SF1734 §2, subd. 2(3)"
+  },
+  {
+    id: "has_envelope_disclosure",
+    text: "If it arrived by physical mail: did the outer envelope say 'THIS IS NOT A GOVERNMENT DOCUMENT'?",
+    statute: "SF1734 §2, subd. 1",
+    required: true,
+    mailOnly: true,
+    violation_note: "Envelope missing 'THIS IS NOT A GOVERNMENT DOCUMENT' — may violate SF1734 §2, subd. 1"
+  },
+  {
+    id: "has_penalty_language",
+    text: "Does the mailing imply you will face a fine, penalty, or legal problem if you ignore it?",
+    statute: "SF1734 §2, subd. 3(1)-(2)",
+    required: false,
+    isProhibited: true,
+    violation_note: "Mailing uses prohibited penalty/threat language — may violate SF1734 §2, subd. 3(1)-(2)"
+  }
+];
+
+// ══════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════
+
+let state = {
+  mode: null,       // 1 = fraud checker, 2 = sender audit
+  step: 0,
+  m1: {
+    subject: '',
+    channel: '',
+    payment: '',
+    checklist: {}   // id → 'yes'|'no'|'na'
+  },
+  m2: {
+    mailtype: '',
+    company: '',
+    checklist: {}   // id → 'pass'|'fail'|'na'
+  },
+  finding: null
+};
+
+function saveState() {
+  try { localStorage.setItem('klein_audit_state', JSON.stringify(state)); } catch(e) {}
+}
+function loadState() {
+  try {
+    const s = localStorage.getItem('klein_audit_state');
+    if (s) state = JSON.parse(s);
+  } catch(e) {}
+}
+
+// ══════════════════════════════════════════════════════════
+// NAVIGATION HELPERS
+// ══════════════════════════════════════════════════════════
+
+function showOnly(id) {
+  document.getElementById('mode-selector').style.display = 'none';
+  document.getElementById('module1').style.display = 'none';
+  document.getElementById('module2').style.display = 'none';
+  const el = document.getElementById(id);
+  if (el) el.style.display = 'block';
+}
+
+function setActiveStep(moduleEl, stepNum) {
+  const panels = document.querySelectorAll('#' + moduleEl + ' .step-panel');
+  panels.forEach(p => p.classList.remove('active'));
+  const target = document.getElementById(moduleEl.replace('module','m') + '-step' + stepNum);
+  if (target) target.classList.add('active');
+}
+
+function goHome() {
+  state.mode = null; state.step = 0; state.finding = null;
+  document.getElementById('mode-selector').style.display = '';
+  document.getElementById('module1').style.display = 'none';
+  document.getElementById('module2').style.display = 'none';
+  document.getElementById('mode-badge').classList.remove('visible');
+  document.getElementById('mode-badge').textContent = '';
+  updateStepper(0, 0);
+  saveState();
+}
+
+// ── Stepper UI ──
+function updateStepper(totalSteps, currentStep) {
+  const row = document.getElementById('stepper-row');
+  const fill = document.getElementById('progress-fill');
+  const display = document.getElementById('step-display');
+
+  if (!totalSteps) {
+    row.innerHTML = '';
+    fill.style.width = '0%';
+    display.textContent = 'Select a mode to begin';
+    return;
+  }
+  display.textContent = 'Step ' + currentStep + ' of ' + totalSteps;
+  fill.style.width = ((currentStep / totalSteps) * 100) + '%';
+
+  let html = '';
+  for (let i = 1; i <= totalSteps; i++) {
+    const cls = i < currentStep ? 'done' : (i === currentStep ? 'active' : '');
+    html += '<div class="stepper-dot ' + cls + '">' + i + '</div>';
+    if (i < totalSteps) {
+      html += '<div class="stepper-line ' + (i < currentStep ? 'done' : '') + '"></div>';
+    }
+  }
+  row.innerHTML = html;
+}
+
+// ══════════════════════════════════════════════════════════
+// MODULE 1 — FRAUD CHECKER
+// ══════════════════════════════════════════════════════════
+
+function startModule(n) {
+  state.mode = n;
+  state.step = 1;
+  saveState();
+  if (n === 1) {
+    showOnly('module1');
+    document.getElementById('mode-badge').textContent = 'Fraud Identification Checker';
+    document.getElementById('mode-badge').classList.add('visible');
+    buildM1Checklist();
+    setActiveStep('module1', 1);
+    updateStepper(4, 1);
+  } else {
+    showOnly('module2');
+    document.getElementById('mode-badge').textContent = 'Sender Compliance Audit';
+    document.getElementById('mode-badge').classList.add('visible');
+    setActiveStep('module2', 1);
+    updateStepper(3, 1);
+  }
+}
+
+function handleSubjectChange() {
+  const val = document.getElementById('m1-subject').value;
+  document.getElementById('boi-box').style.display = val === 'boi' ? 'block' : 'none';
+  state.m1.subject = val;
+  saveState();
+}
+
+function selectRadio(input, field) {
+  const name = input.name;
+  const labels = document.querySelectorAll('label[id^="lbl-"]');
+  const group = document.querySelectorAll('input[name="' + name + '"]');
+  group.forEach(inp => {
+    const lbl = inp.closest('label.radio-option');
+    if (lbl) lbl.classList.remove('selected');
+  });
+  const parentLabel = input.closest('label.radio-option');
+  if (parentLabel) parentLabel.classList.add('selected');
+  state.m1[field] = input.value;
+  saveState();
+}
+
+function buildM1Checklist() {
+  const tbody = document.getElementById('m1-checklist-body');
+  tbody.innerHTML = '';
+  M1_CHECKLIST.forEach(item => {
+    const tr = document.createElement('tr');
+    tr.id = 'row-m1-' + item.id;
+    tr.innerHTML = `
+      <td>
+        <div class="req-text">${item.text}</div>
+        <div class="req-statute">${item.statute}</div>
+        <div class="req-violation hidden" id="vio-${item.id}">${item.violation_note}</div>
+      </td>
+      <td class="answer-cell">
+        <div class="yn-toggle" role="group" aria-label="Answer for: ${item.text}">
+          <button class="yn-btn" id="yn-yes-${item.id}" onclick="setM1Answer('${item.id}','yes')" aria-pressed="false">Yes</button>
+          <button class="yn-btn" id="yn-no-${item.id}"  onclick="setM1Answer('${item.id}','no')"  aria-pressed="false">No</button>
+          <button class="yn-btn" id="yn-na-${item.id}"  onclick="setM1Answer('${item.id}','na')"  aria-pressed="false">N/A</button>
+        </div>
+      </td>`;
+    tbody.appendChild(tr);
+    // Restore saved answers
+    if (state.m1.checklist[item.id]) {
+      applyM1Answer(item.id, state.m1.checklist[item.id]);
+    }
+  });
+}
+
+function setM1Answer(id, val) {
+  state.m1.checklist[id] = val;
+  applyM1Answer(id, val);
+  saveState();
+}
+
+function applyM1Answer(id, val) {
+  const item = M1_CHECKLIST.find(i => i.id === id);
+  const row = document.getElementById('row-m1-' + id);
+  const vio = document.getElementById('vio-' + id);
+  const yesBtn = document.getElementById('yn-yes-' + id);
+  const noBtn  = document.getElementById('yn-no-'  + id);
+  const naBtn  = document.getElementById('yn-na-'  + id);
+
+  yesBtn.classList.remove('yes-active'); yesBtn.setAttribute('aria-pressed','false');
+  noBtn.classList.remove('no-active');   noBtn.setAttribute('aria-pressed','false');
+  naBtn.classList.remove('na-active');   naBtn.setAttribute('aria-pressed','false');
+  row.classList.remove('row-fail','row-pass','row-na');
+
+  if (val === 'yes') {
+    yesBtn.classList.add('yes-active'); yesBtn.setAttribute('aria-pressed','true');
+    if (item.isProhibited) {
+      row.classList.add('row-fail');
+      vio.classList.remove('hidden');
+    } else {
+      row.classList.add('row-pass');
+      vio.classList.add('hidden');
+    }
+  } else if (val === 'no') {
+    noBtn.classList.add('no-active'); noBtn.setAttribute('aria-pressed','true');
+    if (item.required) {
+      row.classList.add('row-fail');
+      vio.classList.remove('hidden');
+    } else {
+      row.classList.add('row-pass');
+      vio.classList.add('hidden');
+    }
+  } else if (val === 'na') {
+    naBtn.classList.add('na-active'); naBtn.setAttribute('aria-pressed','true');
+    row.classList.add('row-na');
+    vio.classList.add('hidden');
+  }
+}
+
+function m1GoStep(n) {
+  setActiveStep('module1', n);
+  updateStepper(4, n);
+  state.step = n;
+  saveState();
+  window.scrollTo(0,0);
+}
+
+function m1Next(fromStep) {
+  if (fromStep === 1) {
+    m1GoStep(2);
+  } else if (fromStep === 2) {
+    const finding = calculateFinding();
+    state.finding = finding;
+    renderFinding(finding);
+    m1GoStep(3);
+    buildM1Report();
+  }
+}
+
+function calculateFinding() {
+  const ch = state.m1.checklist;
+  const channel = state.m1.channel;
+  const missing = [];
+  const prohibited = [];
+
+  M1_CHECKLIST.forEach(item => {
+    const ans = ch[item.id] || 'na';
+    if (item.isProhibited) {
+      if (ans === 'yes') prohibited.push(item);
+    } else if (item.required) {
+      if (item.mailOnly && channel !== 'mail') return;
+      if (ans === 'no') missing.push(item);
+    }
+  });
+
+  let level;
+  if (prohibited.length > 0 || missing.length >= 3) {
+    level = 'red';
+  } else if (missing.length > 0) {
+    level = 'yellow';
+  } else {
+    level = 'green';
+  }
+
+  return { level, missing, prohibited };
+}
+
+function renderFinding(finding) {
+  const out = document.getElementById('finding-output');
+  let html = '';
+
+  if (finding.level === 'green') {
+    html = `<div class="finding-panel green">
+      <div class="finding-label">Finding: Likely Compliant</div>
+      <div class="finding-verdict">This mailing appears to meet Minnesota's disclosure requirements.</div>
+      <div class="finding-body">
+        You are not required to pay or act unless you choose to use this service.
+        All required disclosures under SF1734 appear to be present based on your answers.
+        <br><br>You can still verify your business filing status directly at the
+        <a href="https://mblsportal.sos.state.mn.us/" target="_blank" rel="noopener">Minnesota Secretary of State portal</a>
+        before taking any action.
+      </div>
+    </div>`;
+  } else if (finding.level === 'yellow') {
+    const missingList = finding.missing.map(i =>
+      `<li>${i.violation_note}</li>`).join('');
+    html = `<div class="finding-panel yellow">
+      <div class="finding-label">Finding: Incomplete Disclosure</div>
+      <div class="finding-verdict">This mailing is missing ${finding.missing.length} required disclosure${finding.missing.length>1?'s':''} under SF1734.</div>
+      <div class="finding-body">
+        It may be from a legitimate service provider that has not fully complied with the law.
+        You can verify directly with the Minnesota Secretary of State before acting or paying.
+        <ul class="finding-issues">${missingList}</ul>
+      </div>
+    </div>
+    <div class="action-paths">
+      <a class="action-path" href="https://mblsportal.sos.state.mn.us/" target="_blank" rel="noopener">
+        <div class="ap-label">Verify Filing Status</div>
+        <div class="ap-title">Check with MN Secretary of State</div>
+      </a>
+      <div class="action-path" onclick="m1GoStep(4)" style="cursor:pointer;">
+        <div class="ap-label">Generate Report</div>
+        <div class="ap-title">Print or save this assessment</div>
+      </div>
+    </div>`;
+  } else {
+    const missingList = finding.missing.map(i =>
+      `<li>${i.violation_note}</li>`).join('');
+    const prohibList = finding.prohibited.map(i =>
+      `<li>${i.violation_note}</li>`).join('');
+    html = `<div class="finding-panel red">
+      <div class="finding-label">Finding: Likely Fraudulent or Non-Compliant</div>
+      <div class="finding-verdict">This mailing appears to violate Minnesota's Business Filing Fraud Prevention Act.</div>
+      <div class="finding-body">
+        You have no legal obligation to respond or pay. Consider reporting this mailing
+        to the Minnesota Attorney General's Office.
+        ${missingList ? `<ul class="finding-issues">${missingList}</ul>` : ''}
+        ${prohibList ? `<ul class="finding-issues">${prohibList}</ul>` : ''}
+      </div>
+    </div>
+    <div class="action-paths">
+      <a class="action-path" href="https://www.ag.state.mn.us/consumer/complaint/default.asp" target="_blank" rel="noopener">
+        <div class="ap-label">Report This Mailing</div>
+        <div class="ap-title">MN Attorney General Complaint Form</div>
+      </a>
+      <a class="action-path" href="https://mblsportal.sos.state.mn.us/" target="_blank" rel="noopener">
+        <div class="ap-label">Verify Business Status</div>
+        <div class="ap-title">Check directly with MN Secretary of State</div>
+      </a>
+      <div class="action-path" onclick="m1GoStep(4)" style="cursor:pointer;">
+        <div class="ap-label">Generate Report</div>
+        <div class="ap-title">Create a printable complaint report</div>
+      </div>
+    </div>`;
+  }
+  out.innerHTML = html;
+}
+
+// ══════════════════════════════════════════════════════════
+// MODULE 1 — REPORT GENERATOR
+// ══════════════════════════════════════════════════════════
+
+function buildM1Report() {
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+  const timeStr = now.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' });
+  const finding = state.finding;
+  const m1 = state.m1;
+
+  const subjectLabels = {
+    registration: 'Business registration or annual renewal',
+    registered_agent: 'Registered agent services',
+    good_standing: 'Certificate of Good Standing',
+    boi: 'Beneficial Ownership (BOI) filing',
+    other: 'Other business filing or compliance service',
+    '': 'Not specified'
+  };
+  const subjectText = subjectLabels[m1.subject] || 'Not specified';
+  const channelText = m1.channel === 'mail' ? 'U.S. Mail (physical)' : m1.channel === 'email' ? 'Email' : 'Not specified';
+  const paymentText = m1.payment === 'yes' ? 'Yes — includes a dollar amount or payment request' : m1.payment === 'no' ? 'No' : 'Not specified';
+
+  const findingLabel = finding.level === 'green' ? 'LIKELY COMPLIANT' :
+                       finding.level === 'yellow' ? 'INCOMPLETE DISCLOSURE' : 'LIKELY FRAUDULENT OR NON-COMPLIANT';
+
+  let missingText = '';
+  if (finding.missing.length > 0) {
+    missingText = '\nMISSING REQUIRED DISCLOSURES:\n' +
+      finding.missing.map(i => '  • ' + i.violation_note).join('\n');
+  }
+  let prohibText = '';
+  if (finding.prohibited.length > 0) {
+    prohibText = '\nPROHIBITED ELEMENTS PRESENT:\n' +
+      finding.prohibited.map(i => '  • ' + i.violation_note).join('\n');
+  }
+
+  let checklistSummary = '\nCHECKLIST RESPONSES:\n';
+  M1_CHECKLIST.forEach(item => {
+    const ans = m1.checklist[item.id] || 'Not answered';
+    const label = ans === 'yes' ? 'YES' : ans === 'no' ? 'NO' : ans === 'na' ? 'N/A' : 'NOT ANSWERED';
+    checklistSummary += `  [${label}]  ${item.text}\n         Statute: ${item.statute}\n`;
+  });
+
+  let complaintNarrative = '';
+  if (finding.level === 'red') {
+    const missingQuoted = finding.missing.map(i => i.violation_note).join('; ');
+    const prohibQuoted  = finding.prohibited.map(i => i.violation_note).join('; ');
+    complaintNarrative = `\n────────────────────────────────────────────────────────
+PRE-POPULATED COMPLAINT NARRATIVE (edit before submitting):
+────────────────────────────────────────────────────────
+On ${dateStr}, I received a mailing regarding ${subjectText}${m1.channel === 'mail' ? ' by U.S. Mail' : ' by email'}. The following required disclosures were absent: ${missingQuoted || 'none identified'}. The mailing included the following prohibited language or elements: ${prohibQuoted || 'none identified'}. I am requesting that the Office of the Attorney General review this mailing for compliance with the Minnesota Business Filing Fraud Prevention Act, SF1734 (2025).
+
+Signature: _______________________________  Date: _______________
+
+Print name: ______________________________
+
+Address: ________________________________`;
+  }
+
+  const reportText =
+`MINNESOTA BUSINESS MAIL ASSESSMENT
+Assessment date: ${dateStr} at ${timeStr}
+Mode: Fraud Identification Assessment
+Tool: Based on Minnesota SF1734 (2025), as passed by the Judiciary and Public Safety Committee
+
+────────────────────────────────────────────────────────
+MAILING INFORMATION ENTERED
+────────────────────────────────────────────────────────
+Subject of mailing: ${subjectText}
+Delivery method:    ${channelText}
+Includes payment request: ${paymentText}
+${checklistSummary}
+────────────────────────────────────────────────────────
+FINDING: ${findingLabel}
+────────────────────────────────────────────────────────
+${missingText}${prohibText}
+
+STATUTORY BASIS: Minnesota SF1734 (2025), as passed by the
+Judiciary and Public Safety Committee. Companion bill: HF2566.
+Chief author: Senator Matt Klein (SD-53). Co-author: Sen. Latz.
+${complaintNarrative}
+────────────────────────────────────────────────────────
+DISCLAIMER: Assessment based on Minnesota SF1734 (2025). This tool does not
+constitute legal advice. For legal questions, consult an attorney or contact
+the Minnesota Attorney General's Office.
+MN SOS portal: https://mblsportal.sos.state.mn.us/
+MN AG complaints: https://www.ag.state.mn.us/consumer/complaint/default.asp`;
+
+  const ta = document.getElementById('report-editable');
+  if (ta) ta.value = reportText;
+}
+
+function printReport() {
+  const text = document.getElementById('report-editable').value;
+  const printDiv = document.getElementById('print-only');
+  printDiv.innerHTML = `<h1>Minnesota Business Mail Assessment</h1><pre style="font-family:Georgia,serif;font-size:11pt;white-space:pre-wrap;line-height:1.7;">${escapeHtml(text)}</pre><div class="print-footer">Assessment based on Minnesota SF1734 (2025). This tool does not constitute legal advice.<br>For legal questions, consult an attorney or contact the Minnesota Attorney General's Office.</div>`;
+  window.print();
+}
+
+// ══════════════════════════════════════════════════════════
+// MODULE 2 — SENDER COMPLIANCE AUDIT
+// ══════════════════════════════════════════════════════════
+
+function buildM2Checklist() {
+  const tbody = document.getElementById('m2-checklist-body');
+  tbody.innerHTML = '';
+  const mailtype = document.getElementById('m2-mailtype').value || 'both';
+
+  let lastCat = '';
+  const allItems = [...SF1734_REQUIREMENTS, ...SF1734_PROHIBITIONS];
+
+  allItems.forEach(item => {
+    // Category header row
+    if (item.category !== lastCat) {
+      lastCat = item.category;
+      const catTr = document.createElement('tr');
+      catTr.className = 'cat-row';
+      catTr.innerHTML = `<td colspan="2">${item.category}</td>`;
+      tbody.appendChild(catTr);
+    }
+
+    const tr = document.createElement('tr');
+    tr.id = 'row-m2-' + item.id;
+
+    const isNA = item.applies && !item.applies.includes('mail') &&
+                 !item.applies.includes('email') ? false :
+                 (item.applies && item.applies.length === 1 &&
+                  item.applies[0] === 'mail' && mailtype === 'email');
+
+    tr.innerHTML = `
+      <td>
+        <div class="req-text">${item.text}</div>
+        <div class="req-statute">${item.statute}</div>
+      </td>
+      <td class="answer-cell">
+        <div class="pna-toggle" role="group" aria-label="Status for: ${item.text}">
+          <button class="pna-btn" id="pna-pass-${item.id}" onclick="setM2Answer('${item.id}','pass')" aria-pressed="false">Pass</button>
+          <button class="pna-btn" id="pna-fail-${item.id}" onclick="setM2Answer('${item.id}','fail')" aria-pressed="false">Fail</button>
+          <button class="pna-btn" id="pna-na-${item.id}"   onclick="setM2Answer('${item.id}','na')"   aria-pressed="false">N/A</button>
+        </div>
+      </td>`;
+    tbody.appendChild(tr);
+
+    // Auto-NA envelope items for email-only
+    if (isNA && !state.m2.checklist[item.id]) {
+      setM2Answer(item.id, 'na');
+    } else if (state.m2.checklist[item.id]) {
+      applyM2Answer(item.id, state.m2.checklist[item.id]);
+    }
+  });
+}
+
+function setM2Answer(id, val) {
+  state.m2.checklist[id] = val;
+  applyM2Answer(id, val);
+  saveState();
+}
+
+function applyM2Answer(id, val) {
+  const row = document.getElementById('row-m2-' + id);
+  if (!row) return;
+  const pBtn = document.getElementById('pna-pass-' + id);
+  const fBtn = document.getElementById('pna-fail-' + id);
+  const nBtn = document.getElementById('pna-na-'   + id);
+
+  [pBtn, fBtn, nBtn].forEach(b => {
+    if (!b) return;
+    b.classList.remove('pass-active','fail-active','na-active');
+    b.setAttribute('aria-pressed','false');
+  });
+  row.classList.remove('row-fail','row-pass','row-na');
+
+  if (val === 'pass') {
+    if (pBtn) { pBtn.classList.add('pass-active'); pBtn.setAttribute('aria-pressed','true'); }
+    row.classList.add('row-pass');
+  } else if (val === 'fail') {
+    if (fBtn) { fBtn.classList.add('fail-active'); fBtn.setAttribute('aria-pressed','true'); }
+    row.classList.add('row-fail');
+  } else if (val === 'na') {
+    if (nBtn) { nBtn.classList.add('na-active'); nBtn.setAttribute('aria-pressed','true'); }
+    row.classList.add('row-na');
+  }
+}
+
+function m2GoStep(n) {
+  setActiveStep('module2', n);
+  updateStepper(3, n);
+  state.step = n;
+  saveState();
+  window.scrollTo(0,0);
+}
+
+function m2Next(fromStep) {
+  if (fromStep === 1) {
+    state.m2.mailtype = document.getElementById('m2-mailtype').value;
+    state.m2.company  = document.getElementById('m2-company').value;
+    buildM2Checklist();
+    m2GoStep(2);
+  } else if (fromStep === 2) {
+    renderM2Summary();
+    buildM2Report();
+    m2GoStep(3);
+  }
+}
+
+function renderM2Summary() {
+  const ch = state.m2.checklist;
+  const allItems = [...SF1734_REQUIREMENTS, ...SF1734_PROHIBITIONS];
+  let passCount = 0, failCount = 0, naCount = 0;
+  const failItems = [];
+
+  allItems.forEach(item => {
+    const v = ch[item.id] || '';
+    if (v === 'pass')      passCount++;
+    else if (v === 'fail') { failCount++; failItems.push(item); }
+    else if (v === 'na')   naCount++;
+  });
+
+  const total = passCount + failCount;
+  let scoreColor = failCount === 0 ? 'pass' : (failCount <= 2 ? 'warn' : 'fail');
+
+  let fixHtml = '';
+  if (failItems.length > 0) {
+    fixHtml = '<div class="fix-list">';
+    failItems.forEach(item => {
+      fixHtml += `<div class="fix-item">
+        <div class="fix-title">✗ ${item.text.substring(0,60)}${item.text.length>60?'…':''}</div>
+        <div class="fix-guidance">${item.fixGuidance || 'Review the requirement and revise your mailing accordingly.'}</div>
+        <div class="fix-statute">${item.statute}</div>
+      </div>`;
+    });
+    fixHtml += '</div>';
+  }
+
+  const sumEl = document.getElementById('m2-summary-output');
+  sumEl.innerHTML = `<div class="compliance-summary">
+    <h3>Compliance Score</h3>
+    <div class="score-row">
+      <div class="score-item">
+        <span class="score-num pass">${passCount}</span>
+        <span class="score-label">Passing</span>
+      </div>
+      <div class="score-item">
+        <span class="score-num fail">${failCount}</span>
+        <span class="score-label">Failing</span>
+      </div>
+      <div class="score-item">
+        <span class="score-num na">${naCount}</span>
+        <span class="score-label">N/A</span>
+      </div>
+    </div>
+    ${failCount === 0 ?
+      '<p style="color:var(--pass);font-weight:600;">All applicable requirements are passing. Review before mailing to confirm nothing has changed.</p>'
+      : `<p style="color:var(--alert);">Your mailing has <strong>${failCount} failing item${failCount>1?'s':''}</strong> that must be corrected before mailing. See fix guidance below.</p>`
+    }
+    ${fixHtml}
+  </div>`;
+}
+
+function buildM2Report() {
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+  const timeStr = now.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' });
+  const ch = state.m2.checklist;
+  const allItems = [...SF1734_REQUIREMENTS, ...SF1734_PROHIBITIONS];
+
+  let passCount = 0, failCount = 0, naCount = 0;
+  const failItems = [];
+  allItems.forEach(item => {
+    const v = ch[item.id] || '';
+    if (v === 'pass')      passCount++;
+    else if (v === 'fail') { failCount++; failItems.push(item); }
+    else if (v === 'na')   naCount++;
+  });
+
+  let checklistText = '\nCHECKLIST DETAIL:\n';
+  let lastCat = '';
+  allItems.forEach(item => {
+    if (item.category !== lastCat) {
+      lastCat = item.category;
+      checklistText += `\n${item.category.toUpperCase()}\n`;
+    }
+    const v = ch[item.id] || 'NOT ANSWERED';
+    const label = v === 'pass' ? 'PASS' : v === 'fail' ? 'FAIL' : v === 'na' ? 'N/A' : 'NOT ANSWERED';
+    checklistText += `  [${label}]  ${item.text}\n         Statute: ${item.statute}\n`;
+  });
+
+  let fixText = '';
+  if (failItems.length > 0) {
+    fixText = '\nREQUIRED CORRECTIONS:\n';
+    failItems.forEach(item => {
+      fixText += `\n  FAILING: ${item.text}\n  Statute: ${item.statute}\n  Fix:     ${item.fixGuidance}\n`;
+    });
+  }
+
+  const reportText =
+`SENDER COMPLIANCE AUDIT REPORT — SF1734
+Audit date: ${dateStr} at ${timeStr}
+Company: ${state.m2.company || '[Not provided]'}
+Mailing type: ${state.m2.mailtype || 'Not specified'}
+Tool: Based on Minnesota SF1734 (2025), as passed by the Judiciary and Public Safety Committee
+
+────────────────────────────────────────────────────────
+COMPLIANCE SCORE: ${passCount} passing / ${failCount} failing / ${naCount} N/A
+────────────────────────────────────────────────────────
+${checklistText}${fixText}
+────────────────────────────────────────────────────────
+DISCLAIMER: Assessment based on Minnesota SF1734 (2025). This tool does not
+constitute legal advice. For legal questions, consult an attorney or the
+Minnesota Attorney General's Office.
+MN revisor.mn.gov for current bill text.`;
+
+  const ta = document.getElementById('report-editable-m2');
+  if (ta) ta.value = reportText;
+}
+
+function printReportM2() {
+  const text = document.getElementById('report-editable-m2').value;
+  const printDiv = document.getElementById('print-only');
+  printDiv.innerHTML = `<h1>Sender Compliance Audit Report — SF1734</h1><pre style="font-family:Georgia,serif;font-size:11pt;white-space:pre-wrap;line-height:1.7;">${escapeHtml(text)}</pre><div class="print-footer">Assessment based on Minnesota SF1734 (2025). This tool does not constitute legal advice.<br>Verify current requirements at <a href="https://www.revisor.mn.gov">www.revisor.mn.gov</a></div>`;
+  window.print();
+}
+
+// ══════════════════════════════════════════════════════════
+// UTILITIES
+// ══════════════════════════════════════════════════════════
+
+function escapeHtml(str) {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+// Keyboard accessibility for mode cards
+document.querySelectorAll('.mode-card').forEach(card => {
+  card.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.click(); }
+  });
+});
+
+// ══════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════
+
+(function init() {
+  loadState();
+  // Resume in-progress session if state was saved
+  if (state.mode === 1 && state.step > 0) {
+    startModule(1);
+    buildM1Checklist();
+    setActiveStep('module1', state.step);
+    updateStepper(4, state.step);
+    if (state.step >= 3 && state.finding) {
+      renderFinding(state.finding);
+    }
+    if (state.step === 4) {
+      buildM1Report();
+    }
+    // Restore form field values
+    if (state.m1.subject) {
+      const sel = document.getElementById('m1-subject');
+      if (sel) { sel.value = state.m1.subject; handleSubjectChange(); }
+    }
+    if (state.m1.channel) {
+      const inp = document.querySelector('input[name="m1-channel"][value="'+state.m1.channel+'"]');
+      if (inp) { inp.checked = true; selectRadio(inp, 'channel'); }
+    }
+    if (state.m1.payment) {
+      const inp = document.querySelector('input[name="m1-payment"][value="'+state.m1.payment+'"]');
+      if (inp) { inp.checked = true; selectRadio(inp, 'payment'); }
+    }
+  } else if (state.mode === 2 && state.step > 0) {
+    startModule(2);
+    if (state.m2.mailtype) {
+      const sel = document.getElementById('m2-mailtype');
+      if (sel) sel.value = state.m2.mailtype;
+    }
+    if (state.m2.company) {
+      const inp = document.getElementById('m2-company');
+      if (inp) inp.value = state.m2.company;
+    }
+    if (state.step >= 2) {
+      state.m2.mailtype = document.getElementById('m2-mailtype').value;
+      buildM2Checklist();
+      setActiveStep('module2', state.step);
+      updateStepper(3, state.step);
+    }
+    if (state.step === 3) {
+      renderM2Summary();
+      buildM2Report();
+    }
+  }
+})();
+</script>
+</body>
+</html>

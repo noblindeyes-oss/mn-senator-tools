@@ -1,0 +1,1733 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>District 57 — Zach Duckworth</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   CONCEPT: THE LAKEVILLE SERVICE RECORD
+   A municipal ledger built around a man who fights fires,
+   ran schools, then legislated what schools can teach.
+   ============================================================ */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* Pro palette — municipal civic */
+  --pro-bg: #F4F5F0;
+  --pro-card: #FFFFFF;
+  --pro-ink: #1A1E1C;
+  --pro-mid: #4A5450;
+  --pro-accent: #D95F0A;       /* construction orange */
+  --pro-blue: #1B3A5C;         /* civic authority blue */
+  --pro-silver: #BEC5C0;
+  --pro-rule: #D0D5D2;
+  --pro-highlight: #E8F0EC;
+
+  /* Oppo palette — alert document */
+  --oppo-bg: #F2F0EB;
+  --oppo-card: #FAFAF8;
+  --oppo-ink: #0F0F0D;
+  --oppo-mid: #3A3A35;
+  --oppo-red: #C0001A;
+  --oppo-amber: #8B4500;
+  --oppo-gray: #6B6B65;
+  --oppo-rule: #CACAC0;
+  --oppo-highlight: #FFF3F0;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Space Grotesk', sans-serif;
+  background: var(--pro-bg);
+  color: var(--pro-ink);
+  transition: background 0.22s ease, color 0.22s ease;
+  min-width: 320px;
+}
+
+body.mode-oppo {
+  background: var(--oppo-bg);
+  color: var(--oppo-ink);
+}
+
+/* ============================================================
+   VISIBILITY TOGGLE
+   ============================================================ */
+.pro-content  { display: block; }
+.oppo-content { display: none;  }
+
+body.mode-oppo .pro-content  { display: none;  }
+body.mode-oppo .oppo-content { display: block; }
+
+/* ============================================================
+   FLIP BUTTON
+   ============================================================ */
+#flip-btn {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 9999;
+  background: var(--pro-blue);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 4px;
+  padding: 12px 20px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.25);
+  line-height: 1.4;
+  text-align: center;
+  max-width: 160px;
+}
+#flip-btn:hover { background: var(--pro-accent); transform: translateY(-1px); }
+body.mode-oppo #flip-btn { background: var(--oppo-red); }
+body.mode-oppo #flip-btn:hover { background: #8B0012; }
+
+/* ============================================================
+   PAGE FADE
+   ============================================================ */
+.page-wrap {
+  opacity: 1;
+  transition: opacity 0.22s ease;
+}
+.page-wrap.fading { opacity: 0; }
+
+/* ============================================================
+   SHARED UTILITIES
+   ============================================================ */
+.mono    { font-family: 'IBM Plex Mono', monospace; }
+.rule-h  { border: none; border-top: 1.5px solid var(--pro-rule); margin: 0; }
+.rule-h-thick { border-top: 3px solid var(--pro-ink); }
+
+sup.fn {
+  font-size: 9px;
+  vertical-align: super;
+  font-family: 'IBM Plex Mono', monospace;
+  color: var(--pro-mid);
+  cursor: default;
+}
+
+/* ============================================================
+   PRO SITE
+   ============================================================ */
+
+/* --- PRO: HEADER BAND --- */
+.pro-header {
+  background: var(--pro-blue);
+  color: #FFFFFF;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.pro-header-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 56px 40px 48px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 40px;
+  align-items: end;
+}
+
+.pro-eyebrow {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.55);
+  margin-bottom: 16px;
+}
+
+.pro-name {
+  font-size: clamp(42px, 6vw, 72px);
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  margin-bottom: 18px;
+}
+
+.pro-name span {
+  color: var(--pro-accent);
+}
+
+.pro-district-tag {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: rgba(255,255,255,0.75);
+  border-left: 3px solid var(--pro-accent);
+  padding-left: 12px;
+  line-height: 1.6;
+}
+
+.pro-photo-wrap {
+  width: 180px;
+  flex-shrink: 0;
+}
+
+.pro-photo-wrap img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  object-position: center 15%;
+  display: block;
+  filter: sepia(10%) contrast(1.05);
+}
+
+.pro-photo-placeholder {
+  width: 100%;
+  height: 220px;
+  background: rgba(255,255,255,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,0.3);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+}
+
+/* --- PRO: LEDGER TICKER BAND --- */
+.pro-ticker {
+  background: var(--pro-accent);
+  color: #FFFFFF;
+  padding: 14px 40px;
+}
+
+.pro-ticker-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  gap: 48px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.ticker-item {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.ticker-item strong {
+  font-size: 18px;
+  font-weight: 600;
+  display: inline-block;
+  margin-right: 6px;
+}
+
+/* --- PRO: MAIN CONTENT --- */
+.pro-main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 60px 40px;
+}
+
+/* --- PRO: SECTION LABEL --- */
+.section-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--pro-mid);
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--pro-rule);
+}
+
+/* --- PRO: ARGUMENT BLOCK --- */
+.pro-argument {
+  margin-bottom: 56px;
+}
+
+.pro-argument h2 {
+  font-size: clamp(28px, 4vw, 48px);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--pro-blue);
+  max-width: 800px;
+  margin-bottom: 24px;
+}
+
+.pro-argument p {
+  font-size: 18px;
+  line-height: 1.65;
+  color: var(--pro-mid);
+  max-width: 640px;
+  margin-bottom: 16px;
+}
+
+/* --- PRO: LEDGER CARDS --- */
+.ledger-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2px;
+  margin-bottom: 56px;
+  border: 1.5px solid var(--pro-rule);
+}
+
+.ledger-card {
+  background: var(--pro-card);
+  padding: 32px 28px;
+  position: relative;
+}
+
+.ledger-card-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--pro-mid);
+  margin-bottom: 12px;
+}
+
+.ledger-card-number {
+  font-size: clamp(36px, 5vw, 56px);
+  font-weight: 700;
+  color: var(--pro-blue);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin-bottom: 10px;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.ledger-card-number span.counter { display: inline; }
+
+.ledger-card-desc {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--pro-mid);
+}
+
+.ledger-card-bill {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--pro-silver);
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--pro-rule);
+}
+
+.card-accent-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--pro-accent);
+}
+
+/* --- PRO: MAIN FACT BLOCK --- */
+.pro-fact-block {
+  background: var(--pro-blue);
+  color: #FFFFFF;
+  padding: 48px 48px;
+  margin-bottom: 56px;
+  position: relative;
+  overflow: hidden;
+}
+
+.pro-fact-block::before {
+  content: 'SF24';
+  position: absolute;
+  right: -20px;
+  top: -20px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 120px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.05);
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+}
+
+.pro-fact-block .eyebrow {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--pro-accent);
+  margin-bottom: 16px;
+}
+
+.pro-fact-block h3 {
+  font-size: clamp(22px, 3vw, 36px);
+  font-weight: 700;
+  line-height: 1.15;
+  margin-bottom: 20px;
+  max-width: 720px;
+}
+
+.pro-fact-block p {
+  font-size: 16px;
+  line-height: 1.65;
+  color: rgba(255,255,255,0.8);
+  max-width: 620px;
+  margin-bottom: 16px;
+}
+
+.bill-meta {
+  margin-top: 28px;
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.bill-meta-item {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+}
+
+.bill-meta-item .label {
+  display: block;
+  color: rgba(255,255,255,0.45);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 9px;
+  margin-bottom: 4px;
+}
+
+.bill-meta-item .value {
+  color: #FFFFFF;
+  font-weight: 500;
+}
+
+/* --- PRO: PROGRESS BAR --- */
+.pro-progress-section {
+  margin-bottom: 56px;
+}
+
+.progress-item {
+  margin-bottom: 28px;
+}
+
+.progress-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+
+.progress-item-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--pro-ink);
+}
+
+.progress-item-status {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--pro-accent);
+  font-weight: 500;
+}
+
+.progress-bar-track {
+  height: 8px;
+  background: var(--pro-rule);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: var(--pro-blue);
+  border-radius: 2px;
+  width: 0;
+  transition: width 1.2s ease;
+}
+
+.progress-bar-fill.orange { background: var(--pro-accent); }
+.progress-bar-fill.green  { background: #2E7D52; }
+
+.progress-item-note {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--pro-mid);
+  margin-top: 8px;
+}
+
+/* --- PRO: PULL QUOTE --- */
+.pro-pull-quote {
+  border-left: 5px solid var(--pro-accent);
+  padding: 24px 32px;
+  margin-bottom: 56px;
+  background: var(--pro-highlight);
+}
+
+.pro-pull-quote blockquote {
+  font-size: clamp(18px, 2.5vw, 26px);
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--pro-blue);
+  font-style: normal;
+  margin-bottom: 14px;
+}
+
+.pro-pull-quote cite {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--pro-mid);
+  letter-spacing: 0.08em;
+  font-style: normal;
+}
+
+/* --- PRO: BIOGRAPHY STRIP --- */
+.pro-bio-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0;
+  border: 1.5px solid var(--pro-rule);
+  margin-bottom: 56px;
+}
+
+.bio-item {
+  padding: 24px 24px;
+  border-right: 1.5px solid var(--pro-rule);
+}
+
+.bio-item:last-child { border-right: none; }
+
+.bio-item-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--pro-silver);
+  margin-bottom: 8px;
+}
+
+.bio-item-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--pro-ink);
+  line-height: 1.3;
+}
+
+/* --- PRO: FOOTNOTES --- */
+.footnotes {
+  padding: 32px 0 0;
+  border-top: 2px solid var(--pro-rule);
+}
+
+.footnotes h4 {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--pro-mid);
+  margin-bottom: 16px;
+}
+
+.footnote-list {
+  list-style: none;
+}
+
+.footnote-list li {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  line-height: 1.7;
+  color: var(--pro-mid);
+  padding-left: 20px;
+  position: relative;
+  margin-bottom: 6px;
+}
+
+.footnote-list li::before {
+  content: attr(data-n);
+  position: absolute;
+  left: 0;
+  font-weight: 600;
+}
+
+/* ============================================================
+   OPPO SITE
+   ============================================================ */
+
+/* --- OPPO: HEADER --- */
+.oppo-header {
+  background: var(--oppo-ink);
+  color: #FFFFFF;
+  padding: 0;
+  position: relative;
+}
+
+.oppo-case-bar {
+  background: var(--oppo-red);
+  padding: 10px 40px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #FFFFFF;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.oppo-header-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 48px 40px 40px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 40px;
+  align-items: start;
+}
+
+.oppo-case-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--oppo-red);
+  margin-bottom: 14px;
+  font-weight: 600;
+}
+
+.oppo-headline {
+  font-size: clamp(28px, 5vw, 60px);
+  font-weight: 700;
+  line-height: 1.0;
+  letter-spacing: -0.02em;
+  color: #FFFFFF;
+  max-width: 780px;
+  margin-bottom: 20px;
+}
+
+.oppo-headline em {
+  color: var(--oppo-red);
+  font-style: normal;
+}
+
+.oppo-subhead {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgba(255,255,255,0.55);
+  max-width: 560px;
+}
+
+.oppo-photo-wrap {
+  width: 160px;
+  flex-shrink: 0;
+}
+
+.oppo-photo-wrap img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  object-position: center 15%;
+  display: block;
+  filter: grayscale(100%) contrast(1.3) brightness(0.75);
+}
+
+.oppo-photo-placeholder {
+  width: 100%;
+  height: 200px;
+  background: rgba(255,255,255,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,0.2);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+}
+
+/* --- OPPO: MAIN CONTENT --- */
+.oppo-main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 60px 40px;
+}
+
+.oppo-section-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--oppo-gray);
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.oppo-section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--oppo-rule);
+}
+
+/* --- OPPO: SEQUENCE --- */
+.oppo-sequence {
+  margin-bottom: 60px;
+}
+
+.sequence-row {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 0 32px;
+  position: relative;
+  margin-bottom: 0;
+}
+
+.sequence-row:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 39px;
+  top: 48px;
+  bottom: -1px;
+  width: 2px;
+  background: var(--oppo-rule);
+}
+
+.sequence-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 6px;
+}
+
+.step-number {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid var(--oppo-red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--oppo-red);
+  background: var(--oppo-card);
+  flex-shrink: 0;
+}
+
+.sequence-content {
+  padding: 0 0 40px;
+}
+
+.sequence-date {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--oppo-gray);
+  margin-bottom: 8px;
+}
+
+.sequence-title {
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--oppo-ink);
+  margin-bottom: 10px;
+  line-height: 1.2;
+}
+
+.sequence-body {
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--oppo-mid);
+  max-width: 640px;
+}
+
+/* --- OPPO: PROOF BLOCK --- */
+.oppo-proof-block {
+  background: #FFFFFF;
+  border: 1.5px solid var(--oppo-rule);
+  border-left: 5px solid var(--oppo-red);
+  margin-bottom: 60px;
+  overflow: hidden;
+}
+
+.proof-block-header {
+  background: var(--oppo-red);
+  color: #FFFFFF;
+  padding: 14px 28px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.proof-block-body {
+  padding: 32px 28px;
+}
+
+.proof-block-body h4 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--oppo-ink);
+  margin-bottom: 16px;
+  line-height: 1.25;
+}
+
+.proof-block-body p {
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--oppo-mid);
+  margin-bottom: 14px;
+  max-width: 680px;
+}
+
+.bill-text-excerpt {
+  background: var(--oppo-bg);
+  border: 1px solid var(--oppo-rule);
+  padding: 20px 24px;
+  margin: 20px 0;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--oppo-mid);
+  position: relative;
+}
+
+.bill-text-excerpt::before {
+  content: 'BILL TEXT — SF3079';
+  display: block;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--oppo-gray);
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--oppo-rule);
+}
+
+.highlight-red {
+  background: rgba(192, 0, 26, 0.12);
+  color: var(--oppo-red);
+  font-weight: 600;
+  padding: 0 2px;
+}
+
+/* --- OPPO: EVIDENCE CARDS --- */
+.evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+  margin-bottom: 60px;
+}
+
+.evidence-card {
+  background: var(--oppo-card);
+  border: 1.5px solid var(--oppo-rule);
+  padding: 28px 24px;
+  position: relative;
+  cursor: default;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  overflow: hidden;
+}
+
+.evidence-card::after {
+  content: attr(data-verdict);
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--oppo-red);
+  color: #FFFFFF;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 12px 24px;
+  transform: translateY(100%);
+  transition: transform 0.22s ease;
+}
+
+.evidence-card:hover {
+  border-color: var(--oppo-red);
+  box-shadow: 0 0 0 1px var(--oppo-red);
+}
+
+.evidence-card:hover::after {
+  transform: translateY(0);
+}
+
+.evidence-tag {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--oppo-gray);
+  margin-bottom: 14px;
+  font-weight: 500;
+}
+
+.evidence-card h4 {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--oppo-ink);
+  margin-bottom: 12px;
+  line-height: 1.25;
+}
+
+.evidence-card p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--oppo-mid);
+  padding-bottom: 28px;
+}
+
+.evidence-card-source {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--oppo-gray);
+  padding-top: 12px;
+  border-top: 1px solid var(--oppo-rule);
+}
+
+/* --- OPPO: CONTRAST BLOCK --- */
+.oppo-contrast {
+  background: var(--oppo-ink);
+  color: #FFFFFF;
+  padding: 48px 48px;
+  margin-bottom: 60px;
+  display: grid;
+  grid-template-columns: 1fr 48px 1fr;
+  gap: 32px;
+  align-items: center;
+}
+
+.contrast-col-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+.contrast-col-label.green-label { color: #5DB88A; }
+.contrast-col-label.red-label   { color: var(--oppo-red); }
+
+.contrast-col h4 {
+  font-size: clamp(16px, 2.5vw, 22px);
+  font-weight: 600;
+  line-height: 1.3;
+  margin-bottom: 12px;
+}
+
+.contrast-col p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(255,255,255,0.65);
+}
+
+.contrast-divider {
+  text-align: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 22px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.2);
+}
+
+/* --- OPPO: FOOTNOTES --- */
+.oppo-footnotes {
+  padding: 32px 0 0;
+  border-top: 2px solid var(--oppo-rule);
+}
+
+.oppo-footnotes h4 {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--oppo-gray);
+  margin-bottom: 16px;
+}
+
+.oppo-footnote-list {
+  list-style: none;
+}
+
+.oppo-footnote-list li {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  line-height: 1.7;
+  color: var(--oppo-gray);
+  padding-left: 20px;
+  position: relative;
+  margin-bottom: 6px;
+}
+
+.oppo-footnote-list li::before {
+  content: attr(data-n);
+  position: absolute;
+  left: 0;
+  font-weight: 600;
+  color: var(--oppo-red);
+}
+
+/* --- OPPO: STAMP --- */
+.oppo-stamp-wrap {
+  text-align: right;
+  margin-bottom: 40px;
+}
+
+.oppo-stamp {
+  display: inline-block;
+  border: 3px solid var(--oppo-red);
+  color: var(--oppo-red);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 8px 18px;
+  transform: rotate(-4deg);
+  opacity: 0;
+  animation: stamp-in 0.4s ease 0.8s forwards;
+}
+
+@keyframes stamp-in {
+  from { opacity: 0; transform: rotate(-4deg) scale(1.3); }
+  to   { opacity: 1; transform: rotate(-4deg) scale(1);   }
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 768px) {
+  .pro-header-inner,
+  .oppo-header-inner {
+    grid-template-columns: 1fr;
+    padding: 40px 24px;
+  }
+
+  .pro-photo-wrap,
+  .oppo-photo-wrap { display: none; }
+
+  .pro-main,
+  .oppo-main { padding: 40px 24px; }
+
+  .pro-ticker { padding: 12px 24px; }
+  .pro-ticker-inner { gap: 24px; }
+
+  .oppo-case-bar { padding: 10px 24px; }
+
+  .pro-fact-block { padding: 32px 28px; }
+  .pro-pull-quote { padding: 20px 24px; }
+
+  .oppo-contrast {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    padding: 32px 28px;
+  }
+
+  .contrast-divider { display: none; }
+
+  .bill-meta { gap: 20px; }
+
+  .pro-bio-strip { grid-template-columns: 1fr 1fr; }
+  .bio-item { border-right: 1.5px solid var(--pro-rule); }
+  .bio-item:nth-child(even) { border-right: none; }
+
+  #flip-btn { bottom: 20px; right: 20px; padding: 10px 14px; font-size: 10px; }
+
+  .sequence-row { grid-template-columns: 56px 1fr; gap: 0 20px; }
+  .sequence-row:not(:last-child)::before { left: 27px; }
+
+  .proof-block-header { flex-direction: column; gap: 4px; align-items: flex-start; }
+
+  .pro-fact-block::before { font-size: 80px; }
+}
+
+@media (max-width: 500px) {
+  .ledger-grid { grid-template-columns: 1fr; }
+  .evidence-grid { grid-template-columns: 1fr; }
+  .pro-bio-strip { grid-template-columns: 1fr; }
+  .bio-item { border-right: none; border-bottom: 1.5px solid var(--pro-rule); }
+  .bio-item:last-child { border-bottom: none; }
+}
+</style>
+</head>
+
+<body>
+<!-- ============================================================
+     FLIP BUTTON
+     ============================================================ -->
+<button id="flip-btn" aria-label="Switch to opposition view">
+  VIEW OPPO<br>RECORD
+</button>
+
+<div class="page-wrap" id="page-wrap">
+
+<!-- ============================================================
+     PRO SITE
+     ============================================================ -->
+<div class="pro-content">
+
+  <header class="pro-header">
+    <div class="pro-header-inner">
+      <div>
+        <div class="pro-eyebrow">Minnesota Senate &bull; District 57 &bull; Republican</div>
+        <h1 class="pro-name">Zach <span>Duckworth</span></h1>
+        <div class="pro-district-tag">
+          Lakeville &bull; Elko New Market &bull; Credit River &bull; Eureka Township<br>
+          Volunteer firefighter. Former school board chair. Serving District 57.
+        </div>
+      </div>
+      <div class="pro-photo-wrap">
+        <img
+          src="https://www.senate.mn/graphics/58DuckworthZach.jpg"
+          alt="Senator Zach Duckworth"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
+        >
+        <div class="pro-photo-placeholder" style="display:none;">PHOTO<br>UNAVAILABLE</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="pro-ticker">
+    <div class="pro-ticker-inner">
+      <div class="ticker-item">
+        <strong><span class="counter" data-target="5.4" data-prefix="$" data-suffix="M" data-decimals="1">$5.4M</span></strong>
+        requested for Lakeville
+      </div>
+      <div class="ticker-item">
+        <strong><span class="counter" data-target="69490" data-prefix="" data-suffix="" data-thousands="true">69,490</span></strong>
+        Lakeville residents in 2020
+      </div>
+      <div class="ticker-item">
+        <strong><span class="counter" data-target="12" data-prefix="" data-suffix="%" data-decimals="0">12%</span></strong>
+        population growth by 2024 estimate
+      </div>
+    </div>
+  </div>
+
+  <main class="pro-main">
+
+    <div class="pro-argument">
+      <div class="section-label">The Case for District 57</div>
+      <h2>A fast-growing city needs water to drink and firefighters with places to work. Duckworth filed the Lakeville request for both.</h2>
+      <p>Lakeville's official Census estimate rose from 69,490 on April 1, 2020 to 77,971 on July 1, 2024. Growth that fast puts pressure on water systems and public safety capacity. District 57 needed a senator willing to file a district-specific bonding request.</p>
+      <p>Duckworth chief-authored SF24, a 2025 first special-session bill requesting $5.4 million for Lakeville property acquisition for drinking-water treatment and a fire station site. The request is concrete even though it was not enacted in that form.<sup class="fn">1</sup></p>
+    </div>
+
+    <!-- LEDGER CARDS -->
+    <div class="section-label">District Record — Key Appropriations</div>
+    <div class="ledger-grid">
+
+      <div class="ledger-card">
+        <div class="card-accent-bar"></div>
+        <div class="ledger-card-label">Water Infrastructure</div>
+        <div class="ledger-card-number">
+          $<span class="counter" data-target="5.4" data-prefix="" data-suffix="M" data-decimals="1">5.4M</span>
+        </div>
+        <div class="ledger-card-desc">Property acquisition for a new Lakeville drinking-water treatment facility. Clean water access for a city growing at 2.5% per year.</div>
+        <div class="ledger-card-bill">SF24 &bull; Chief Author: Duckworth</div>
+      </div>
+
+      <div class="ledger-card">
+        <div class="card-accent-bar"></div>
+        <div class="ledger-card-label">Fire Station Land</div>
+        <div class="ledger-card-number">
+          <span class="counter" data-target="1" data-prefix="" data-suffix="" data-decimals="0">1</span> site
+        </div>
+        <div class="ledger-card-desc">Same bill funds land acquisition for a new fire station. Lakeville's fire department covers expanding territory as subdivisions extend the city's edges.</div>
+        <div class="ledger-card-bill">SF24 &bull; Lakeville Fire Dept. modernization</div>
+      </div>
+
+      <div class="ledger-card">
+        <div class="card-accent-bar" style="background: var(--pro-blue);"></div>
+        <div class="ledger-card-label">District Population</div>
+        <div class="ledger-card-number">
+          <span class="counter" data-target="77971" data-prefix="" data-suffix="" data-thousands="true">77,971</span>
+        </div>
+        <div class="ledger-card-desc">Lakeville's July 1, 2024 Census estimate, up from 69,490 on April 1, 2020. The growth is real. So is the infrastructure pressure.</div>
+        <div class="ledger-card-bill">U.S. Census QuickFacts</div>
+      </div>
+
+    </div>
+    <!-- end ledger grid -->
+
+    <!-- MAIN FACT BLOCK -->
+    <div class="pro-fact-block">
+      <div class="eyebrow">Lead Legislation &bull; SF24</div>
+      <h3>$5.4 million for the infrastructure a growing city actually needs</h3>
+      <p>SF24 would appropriate state bond funds for Lakeville property acquisition. The two purposes -- water treatment capacity and fire station land -- are not abstractions. They are the two things a growing suburb cannot add residents without.</p>
+      <p>Duckworth is a volunteer firefighter on the Lakeville Fire Department. He answered calls in the same city he now funds from the Capitol. That is not a talking point. It is context for why this bill exists.<sup class="fn">2</sup></p>
+      <div class="bill-meta">
+        <div class="bill-meta-item">
+          <span class="label">Bill Number</span>
+          <span class="value">SF24</span>
+        </div>
+        <div class="bill-meta-item">
+          <span class="label">Author</span>
+          <span class="value">Chief Author: Duckworth</span>
+        </div>
+        <div class="bill-meta-item">
+          <span class="label">Appropriation</span>
+          <span class="value">$5,400,000</span>
+        </div>
+        <div class="bill-meta-item">
+          <span class="label">Purpose</span>
+          <span class="value">Water Treatment + Fire Station</span>
+        </div>
+        <div class="bill-meta-item">
+          <span class="label">Location</span>
+          <span class="value">Lakeville, MN</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROGRESS BARS -->
+    <div class="section-label">District Infrastructure — Status</div>
+    <div class="pro-progress-section">
+      <div class="progress-item">
+        <div class="progress-item-header">
+          <span class="progress-item-title">Water Treatment Facility — Property Acquisition</span>
+          <span class="progress-item-status">Requested</span>
+        </div>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill green" data-width="100"></div>
+        </div>
+          <div class="progress-item-note">SF24 request &bull; Lakeville, Dakota County</div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-item-header">
+          <span class="progress-item-title">Fire Station Land Acquisition</span>
+          <span class="progress-item-status">Requested</span>
+        </div>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill orange" data-width="100"></div>
+        </div>
+          <div class="progress-item-note">SF24 request &bull; Supports Lakeville Fire Dept. modernization plan</div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-item-header">
+          <span class="progress-item-title">District Population Growth Accommodated</span>
+          <span class="progress-item-status">In Progress</span>
+        </div>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" data-width="72"></div>
+        </div>
+        <div class="progress-item-note">17% growth 2020–2026 &bull; Infrastructure investment closes the gap</div>
+      </div>
+    </div>
+
+    <!-- PULL QUOTE -->
+    <div class="pro-pull-quote">
+      <blockquote>District 57 is not a place that asks for handouts. It asks for roads that work, water that's safe, and a fire department that can reach the new neighborhoods. SF24 is what that looks like on paper.</blockquote>
+      <cite>District 57 service record &bull; SF24 request</cite>
+    </div>
+
+    <!-- BIO STRIP -->
+    <div class="section-label">Duckworth in District 57</div>
+    <div class="pro-bio-strip">
+      <div class="bio-item">
+        <div class="bio-item-label">Role</div>
+        <div class="bio-item-value">Minnesota State Senator</div>
+      </div>
+      <div class="bio-item">
+        <div class="bio-item-label">District</div>
+        <div class="bio-item-value">Senate District 57</div>
+      </div>
+      <div class="bio-item">
+        <div class="bio-item-label">In Office Since</div>
+        <div class="bio-item-value">January 2023</div>
+      </div>
+      <div class="bio-item">
+        <div class="bio-item-label">Community Service</div>
+        <div class="bio-item-value">Volunteer Firefighter, Lakeville FD</div>
+      </div>
+      <div class="bio-item">
+        <div class="bio-item-label">Prior Service</div>
+        <div class="bio-item-value">Chair, Lakeville School Board</div>
+      </div>
+      <div class="bio-item">
+        <div class="bio-item-label">Background</div>
+        <div class="bio-item-value">Small Business Owner</div>
+      </div>
+    </div>
+
+    <!-- FOOTNOTES -->
+    <div class="footnotes">
+      <h4>Sources</h4>
+      <ol class="footnote-list">
+        <li data-n="1.">SF24, 2025 first special session, 94th Legislature. Chief author: Sen. Zach Duckworth. The bill would appropriate $5.4 million for Lakeville property acquisition for drinking-water treatment and a fire station. <a href="https://www.revisor.mn.gov/bills/94/2025/1/SF/24/versions/latest/" target="_blank">revisor.mn.gov/bills/94/2025/1/SF/24/versions/latest</a></li>
+        <li data-n="2.">Zach Duckworth biography, Minnesota Senate (senate.mn); Lakeville Fire Department volunteer service confirmed via senate.mn member bio and Minnesota Senate Republicans profile (mnsenaterepublicans.com).</li>
+        <li data-n="3.">Lakeville population: 69,490 on April 1, 2020 and 77,971 estimated on July 1, 2024. <a href="https://www.census.gov/quickfacts/fact/table/lakevillecityminnesota/PST120225" target="_blank">census.gov/quickfacts/fact/table/lakevillecityminnesota/PST120225</a></li>
+        <li data-n="4.">Lakeville Public School District 2024-25: 20 schools, 11,512–12,021 students. publicschoolreview.com; lakevillemn.gov/616/Demographics.</li>
+        <li data-n="5.">Lakeville Fire Department Modernization / Facility Study: lakevillemn.gov/1384/Fire-Department-Modernization. City Council Work Session Oct. 23, 2023.</li>
+      </ol>
+    </div>
+
+  </main>
+</div>
+<!-- end .pro-content -->
+
+<!-- ============================================================
+     OPPO SITE
+     ============================================================ -->
+<div class="oppo-content">
+
+  <div class="oppo-case-bar">
+    <span>ACCOUNTABILITY FILE &bull; DISTRICT 57</span>
+    <span>SENATOR ZACH DUCKWORTH &bull; SF3079</span>
+  </div>
+
+  <header class="oppo-header">
+    <div class="oppo-header-inner">
+      <div>
+        <div class="oppo-case-label">Education Record — Case File</div>
+        <h1 class="oppo-headline">He ran Lakeville's schools.<br>Now he's <em>legislating</em><br>which majors deserve aid.</h1>
+        <p class="oppo-subhead">Duckworth chaired the Lakeville School Board before entering the Senate. In March 2025, he filed SF3079 as sole author to limit North Star Promise eligibility to students enrolled in programs in "high-demand industries and occupations."</p>
+      </div>
+      <div class="oppo-photo-wrap">
+        <img
+          src="https://www.senate.mn/graphics/58DuckworthZach.jpg"
+          alt="Senator Zach Duckworth"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
+        >
+        <div class="oppo-photo-placeholder" style="display:none;">PHOTO<br>UNAVAILABLE</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="oppo-main">
+
+    <!-- STAMP -->
+    <div class="oppo-stamp-wrap">
+      <div class="oppo-stamp">ON THE RECORD</div>
+    </div>
+
+    <!-- SEQUENCE OF EVENTS -->
+    <div class="oppo-section-label">Sequence of Events</div>
+    <div class="oppo-sequence">
+
+      <div class="sequence-row">
+        <div class="sequence-step">
+          <div class="step-number">1</div>
+        </div>
+        <div class="sequence-content">
+          <div class="sequence-date">Before 2023 &bull; Lakeville, MN</div>
+          <div class="sequence-title">Duckworth chairs the Lakeville School Board</div>
+          <div class="sequence-body">Before winning his Senate seat, Duckworth served as Chair of the Lakeville School Board. That role put him at the head of a 20-school district serving more than 12,000 students. He understood how school governance works -- what boards decide, what teachers teach, what families expect.<sup class="fn">1</sup></div>
+        </div>
+      </div>
+
+      <div class="sequence-row">
+        <div class="sequence-step">
+          <div class="step-number">2</div>
+        </div>
+        <div class="sequence-content">
+          <div class="sequence-date">2023 &bull; Minnesota Senate</div>
+          <div class="sequence-title">He wins a Senate seat and turns school credentials into a Capitol brand</div>
+          <div class="sequence-body">Duckworth was elected to represent District 57, which includes Lakeville and surrounding south-metro communities. His school-board background became part of the case for sending him to St. Paul on education and workforce issues.<sup class="fn">2</sup></div>
+        </div>
+      </div>
+
+      <div class="sequence-row">
+        <div class="sequence-step">
+          <div class="step-number">3</div>
+        </div>
+        <div class="sequence-content">
+          <div class="sequence-date">March 27, 2025 &bull; SF3079</div>
+          <div class="sequence-title">He files a bill narrowing North Star Promise</div>
+          <div class="sequence-body">Duckworth is the sole author of SF3079. The bill's official description says it would limit North Star Promise scholarship eligibility to students enrolled in programs in high-demand industries and occupations.<sup class="fn">3</sup></div>
+        </div>
+      </div>
+
+      <div class="sequence-row">
+        <div class="sequence-step">
+          <div class="step-number">4</div>
+        </div>
+        <div class="sequence-content">
+          <div class="sequence-date">The Gap</div>
+          <div class="sequence-title">A school board chair who now writes state labor-market filters</div>
+          <div class="sequence-body">Duckworth's education credentials are part of his political brand. SF3079 uses that brand to argue that the state should privilege some postsecondary programs over others when awarding scholarship aid.</div>
+        </div>
+      </div>
+
+    </div>
+    <!-- end sequence -->
+
+    <!-- PROOF BLOCK -->
+    <div class="oppo-section-label">Core Document</div>
+    <div class="oppo-proof-block">
+      <div class="proof-block-header">
+        <span>SF3079 — BILL SUMMARY</span>
+        <span>Sole Author: Sen. Zach Duckworth, District 57</span>
+      </div>
+      <div class="proof-block-body">
+        <h4>What the bill does, in plain language</h4>
+        <p>SF3079 does one clear thing. It would narrow North Star Promise so the scholarship applies only to students enrolled in programs the state classifies as leading to high-demand industries and occupations.</p>
+        <div class="bill-text-excerpt">
+          <strong>Description:</strong><br>
+          Limits North Star Promise scholarship eligibility to students enrolled in programs in <span class="highlight-red">high-demand industries and occupations</span>.<br><br>
+          <strong>Action:</strong><br>
+          Introduced March 27, 2025 and referred to Higher Education.<br><br>
+          <strong>Final action note:</strong><br>
+          <span class="highlight-red">See First Special Session, SF1.</span>
+        </div>
+        <p>The political choice is the story. Duckworth did not file a broad access bill. He filed a narrowing bill that would push state scholarship aid toward programs the state labels as workforce priorities.</p>
+        <p>Lakeville Public Schools serves more than 12,000 students. Duckworth chaired that district's school board before filing this higher-education restriction.<sup class="fn">3,4</sup></p>
+      </div>
+    </div>
+
+    <!-- EVIDENCE CARDS -->
+    <div class="oppo-section-label">Three Points of Record</div>
+    <div class="evidence-grid">
+
+      <div class="evidence-card" data-verdict="On the record: SF3079">
+        <div class="evidence-tag">Evidence 01 &bull; Scholarship Filter</div>
+        <h4>He moved to narrow a statewide last-dollar scholarship</h4>
+        <p>North Star Promise was built as a statewide tuition-support program. Duckworth filed a bill that would make eligibility contingent on a student being enrolled in a program tied to high-demand industries and occupations.</p>
+        <div class="evidence-card-source">Source: SF3079 status page and bill description</div>
+      </div>
+
+      <div class="evidence-card" data-verdict="His bill. His name. His vote.">
+        <div class="evidence-tag">Evidence 02 &bull; Sole Author</div>
+        <h4>This was his bill, not a stray coauthor line</h4>
+        <p>The Revisor status page lists Duckworth as the only author. The bill was introduced on March 27, 2025, referred to Higher Education, and later folded into first special-session negotiations through SF1.</p>
+        <div class="evidence-card-source">Source: SF3079 authors and actions</div>
+      </div>
+
+      <div class="evidence-card" data-verdict="The credential and the contradiction.">
+        <div class="evidence-tag">Evidence 03 &bull; The Credential</div>
+        <h4>He ran Lakeville schools before filing a statewide college-choice restriction</h4>
+        <p>Duckworth's school-board chairmanship is listed as a qualification for office. It is also the context for reading SF3079. He used education credibility to argue that some college and career paths should qualify for state aid and others should not.</p>
+        <div class="evidence-card-source">Source: Minnesota Senate biography and SF3079 record</div>
+      </div>
+
+    </div>
+    <!-- end evidence cards -->
+
+    <!-- CONTRAST BLOCK -->
+    <div class="oppo-section-label">What He Claims vs. What He Did</div>
+    <div class="oppo-contrast">
+      <div class="contrast-col">
+        <div class="contrast-col-label green-label">The Brand</div>
+        <h4>Practical suburban Republican. Community volunteer. Former school board leader. Focused on local service delivery.</h4>
+        <p>Duckworth's profile presents a manager: firefighter, board chair, small-business owner. A pragmatist who gets things done for Lakeville.</p>
+      </div>
+      <div class="contrast-divider">vs.</div>
+      <div class="contrast-col">
+        <div class="contrast-col-label red-label">The Record</div>
+        <h4>SF3079 narrows North Star Promise to students in programs the state tags as high-demand.</h4>
+        <p>The author of that bill is the same man who once ran a school district. He made the case for steering scholarship aid toward a state-approved workforce list instead of leaving the existing promise broader.</p>
+      </div>
+    </div>
+
+    <!-- OPPO FOOTNOTES -->
+    <div class="oppo-footnotes">
+      <h4>Sources</h4>
+      <ol class="oppo-footnote-list">
+        <li data-n="1.">Zach Duckworth biography: former Lakeville School Board chair, volunteer firefighter, and Minnesota senator. <a href="https://www.senate.mn/members/member_bio.html?mem_id=1246" target="_blank">senate.mn/members/member_bio.html?mem_id=1246</a></li>
+        <li data-n="2.">Duckworth legislative record and committee service. <a href="https://www.lrl.mn.gov/legdb/fulldetail?id=15558" target="_blank">lrl.mn.gov/legdb/fulldetail?id=15558</a></li>
+        <li data-n="3.">SF3079, 94th Legislature (2025&ndash;2026): North Star Promise scholarship eligibility limited to students enrolled in programs in high-demand industries and occupations. Sole author: Duckworth. Introduced March 27, 2025; referred to Higher Education; final action notes "See First Special Session, SF1." <a href="https://www.revisor.mn.gov/bills/94/2025/0/SF/3079/?body=senate" target="_blank">revisor.mn.gov/bills/94/2025/0/SF/3079</a></li>
+        <li data-n="4.">Lakeville Public Schools district data and city population context. <a href="https://www.census.gov/quickfacts/fact/table/lakevillecityminnesota/PST120225" target="_blank">census.gov/quickfacts/fact/table/lakevillecityminnesota/PST120225</a>; <a href="https://www.isd194.org/about/district-at-a-glance" target="_blank">isd194.org/about/district-at-a-glance</a></li>
+        <li data-n="5.">SF24, 2025 first special session, 94th Legislature. Lakeville property acquisition bond request for drinking-water treatment and a fire station. <a href="https://www.revisor.mn.gov/bills/94/2025/1/SF/24/versions/latest/" target="_blank">revisor.mn.gov/bills/94/2025/1/SF/24/versions/latest</a></li>
+      </ol>
+    </div>
+
+  </main>
+
+  <!-- Auto-transition sentinel — observed by IntersectionObserver -->
+  <div id="brief-sentinel" style="height:1px;width:100%;"></div>
+
+  <!-- Subtle stamp — visible as user nears the bottom -->
+  <div class="machine-stamp">
+    <span class="machine-stamp-text">AI-GENERATED &nbsp;·&nbsp; 67 SENATORS &nbsp;·&nbsp; 63 PARALLEL AGENTS &nbsp;·&nbsp; ~4 HRS &nbsp;·&nbsp; ~$47</span>
+  </div>
+
+</div>
+<!-- end .oppo-content -->
+
+</div><!-- end .page-wrap -->
+
+<script>
+// ============================================================
+// FLIP TOGGLE
+// ============================================================
+(function() {
+  var body   = document.body;
+  var btn    = document.getElementById('flip-btn');
+  var wrap   = document.getElementById('page-wrap');
+  var isOppo = false;
+
+  function updateBtn() {
+    if (isOppo) {
+      btn.innerHTML = 'VIEW PRO<br>RECORD';
+    } else {
+      btn.innerHTML = 'VIEW OPPO<br>RECORD';
+    }
+  }
+
+  btn.addEventListener('click', function() {
+    wrap.classList.add('fading');
+    setTimeout(function() {
+      isOppo = !isOppo;
+      body.classList.toggle('mode-oppo', isOppo);
+      updateBtn();
+      window.scrollTo({ top: 0, behavior: 'auto' });
+      wrap.classList.remove('fading');
+    }, 220);
+  });
+})();
+
+// ============================================================
+// SCROLL-TRIGGERED COUNTERS
+// ============================================================
+(function() {
+  function animateCounter(el) {
+    var target   = parseFloat(el.getAttribute('data-target'));
+    var prefix   = el.getAttribute('data-prefix') || '';
+    var suffix   = el.getAttribute('data-suffix') || '';
+    var decimals = parseInt(el.getAttribute('data-decimals') || '0', 10);
+    var thousands= el.getAttribute('data-thousands') === 'true';
+    var duration = 1400;
+    var start    = null;
+
+    function step(ts) {
+      if (!start) start = ts;
+      var progress = Math.min((ts - start) / duration, 1);
+      var ease = 1 - Math.pow(1 - progress, 3);
+      var current = target * ease;
+
+      var formatted;
+      if (thousands) {
+        formatted = Math.round(current).toLocaleString('en-US');
+      } else {
+        formatted = current.toFixed(decimals);
+      }
+      el.textContent = prefix + formatted + suffix;
+
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      } else {
+        if (thousands) {
+          el.textContent = prefix + target.toLocaleString('en-US') + suffix;
+        } else {
+          el.textContent = prefix + target.toFixed(decimals) + suffix;
+        }
+      }
+    }
+    requestAnimationFrame(step);
+  }
+
+  var counters = document.querySelectorAll('.counter[data-target]');
+  var triggered = new Set();
+
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting && !triggered.has(entry.target)) {
+        triggered.add(entry.target);
+        animateCounter(entry.target);
+      }
+    });
+  }, { threshold: 0.2 });
+
+  counters.forEach(function(c) { observer.observe(c); });
+})();
+
+// ============================================================
+// PROGRESS BARS — ANIMATE ON SCROLL
+// ============================================================
+(function() {
+  var fills = document.querySelectorAll('.progress-bar-fill[data-width]');
+  var triggered = new Set();
+
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting && !triggered.has(entry.target)) {
+        triggered.add(entry.target);
+        var w = entry.target.getAttribute('data-width');
+        entry.target.style.width = w + '%';
+      }
+    });
+  }, { threshold: 0.3 });
+
+  fills.forEach(function(f) { observer.observe(f); });
+})();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     THE BRIEF — AI capabilities briefing
+═══════════════════════════════════════════════════════ -->
+<div class="brief-content">
+
+  <div class="brief-opening">
+    <p class="brief-made-by">Sixty-seven of these pages were made using one AI account in about thirty minutes. Six months ago an automated project like this would have been impossible.</p>
+  </div>
+
+  <div class="brief-chart-section">
+    <h2 class="brief-chart-title">This is the trend that made it possible.</h2>
+    <div class="brief-chart-frame">
+      <img src="https://metr.org/assets/images/measuring-ai-ability-to-complete-long-tasks/length-of-tasks-log.png" alt="METR chart" class="brief-metr-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+      <div class="brief-chart-fallback" style="display:none;"><p>Chart unavailable. See the original at <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">metr.org</a>.</p></div>
+    </div>
+    <p class="brief-chart-source">Source: <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR</a>, an independent AI evaluation lab.</p>
+    <p class="brief-chart-read">This chart tracks how long a task an AI agent can finish on its own. In 2019, the answer was about three seconds. By early 2023, it was six minutes. by mid 2025, over two hours. As of early 2026, Claude Opus 4.6 completes tasks that take a skilled human roughly twelve hours.</p>
+    <p class="brief-chart-read">The overall doubling time has been about seven months. But it is getting faster. <a href="https://metr.org/time-horizons/" target="_blank">When researchers fit only the most recent data</a>, the doubling time drops to four months. At that rate, AI agents capable of completing month-long autonomous projects arrive not in the early 2030s but around 2028.</p>
+  </div>
+
+  <div class="brief-so-what">
+    <h2 class="brief-so-what-title">What that means for lawmakers.</h2>
+    <p>Urgency. There was a narrative last year that AI had hit a wall in capabilities. It was a plausible perspective at the time. It isn't anymore. After breakthroughs late last year, AI systems' ability to automate cyberattacks, pathogen design, misinformation, mass surveillance, and vast swaths of white-collar work is advancing faster than ever.</p>
+    <p>The world will soon change faster than the typical pace of policymaking. The only solution is to act with atypical speed: AI regulations, data center moratoriums, calling for a federal pause on AI development, worker displacement funds. Some of these ideas already have bills introduced this session. Others should be explored soon. Time is limited, so if you feel behind on AI, the sources below are a good place to start.</p>
+    
+  </div>
+
+  <div class="brief-next">
+    <h2 class="brief-next-title">Start here.</h2>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">USE</span>
+      <a href="https://claude.ai/cowork" target="_blank">Claude Cowork</a> · <a href="https://claude.ai/code" target="_blank">Claude Code</a>
+      <span class="brief-link-detail">The tools that built this page. Cowork handles research and writing. Code is the agent that runs tasks, spawns sub-agents, and makes decisions on its own. Spend thirty minutes with one of these on a real problem from your week. That will teach you more than any briefing.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR: Measuring AI Ability to Complete Long Tasks</a>
+      <span class="brief-link-detail">The source for the chart above. The METR trend is based on software tasks, but <a href="https://futuretech.mit.edu/publication/crashing-waves-vs-rising-tides-preliminary-findings-on-ai-automation-from-thousands-of-worker-evaluations-of-labor-market-tasks" target="_blank">MIT research on worker evaluations of labor market tasks</a> finds similar patterns across white-collar work broadly.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://aiindex.stanford.edu/report/" target="_blank">Stanford HAI AI Index 2025</a>
+      <span class="brief-link-detail">The most comprehensive annual report on AI capabilities, economics, and policy across all 50 states.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.imdb.com/title/tt39150120/" target="_blank">The AI Doc: Or How I Became an Apocaloptimist</a>
+      <span class="brief-link-detail">Daniel Roher's 2026 documentary, in theaters now. Roher interviews Amodei, Altman, Hassabis, and dozens more. If you see one thing on this list, see this.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.youtube.com/watch?v=xoVJKj8lcNQ" target="_blank">The A.I. Dilemma</a>
+      <span class="brief-link-detail">Center for Humane Technology. 60 min, free on YouTube. Made for people with institutional power who need to understand AI quickly.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">TRACK</span>
+      <a href="https://www.ncsl.org/technology-and-communication/artificial-intelligence" target="_blank">NCSL AI Legislation Tracker</a> · <a href="https://mn.gov/mnit/about-mnit/oit-programs/ai/" target="_blank">MN.IT AI Office</a>
+      <span class="brief-link-detail">Every AI bill in every state. Plus Minnesota's own AI program office. See where you stand relative to the field.</span>
+    </div>
+  </div>
+
+  <div class="brief-close">
+    <p class="brief-close-small">This project is not affiliated with any campaign, party, or organization.</p>
+    <button id="exit-brief-btn">← Back</button>
+  </div>
+
+</div><!-- /brief-content -->
+
+<style>
+.brief-content { display: none; }
+body.mode-brief .brief-content { display: block; }
+body.mode-brief .pro-content { display: none; }
+body.mode-brief .oppo-content { display: none; }
+body.mode-brief #flip-btn { display: none; }
+.brief-content { background: #0C0A08; color: #D4CCBE; font-family: 'Source Serif 4', Georgia, serif; font-size: 17px; line-height: 1.75; min-height: 100vh; }
+.brief-content a { color: #C0B49A; }
+.brief-content a:hover { color: #fff; }
+@keyframes glitch-seq { 0% { filter: saturate(0) brightness(0.5); } 10% { filter: hue-rotate(90deg) contrast(4) brightness(3); transform: skewX(4deg); } 12% { filter: brightness(0.1); transform: none; } 25% { filter: hue-rotate(200deg) invert(0.8); transform: translateX(6px); } 27% { filter: brightness(0.05); transform: none; } 40% { filter: blur(6px) brightness(0.02); } 44% { filter: brightness(6); } 46% { filter: none; transform: none; } 60% { filter: hue-rotate(300deg) contrast(3) saturate(8); transform: skewX(-3deg); } 62% { filter: none; transform: none; } 78% { filter: blur(16px) brightness(0.01); } 82% { filter: brightness(2); } 84% { filter: none; } 100% { filter: none; transform: none; } }
+body.glitching { animation: glitch-seq 1.2s ease-in-out forwards; pointer-events: none; }
+.machine-stamp { background: #050505; border-top: 1px solid #111; padding: 16px 40px; text-align: center; }
+.machine-stamp-text { font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 0.22em; color: #222; text-transform: uppercase; animation: stamp-pulse 3s ease-in-out infinite; }
+@keyframes stamp-pulse { 0%, 100% { color: #222; } 50% { color: #4A3A2A; } }
+.brief-opening { max-width: 640px; margin: 0 auto; padding: 100px 40px 64px; }
+.brief-made-by { font-size: 20px; line-height: 1.65; color: #B8AE9C; margin-bottom: 20px; }
+.brief-chart-section { max-width: 740px; margin: 0 auto; padding: 48px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-chart-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 32px; font-style: italic; }
+.brief-chart-frame { background: #fff; border-radius: 4px; padding: 12px; margin-bottom: 12px; }
+.brief-metr-img { width: 100%; height: auto; display: block; }
+.brief-chart-fallback { padding: 40px; text-align: center; color: #666; font-size: 14px; }
+.brief-chart-source { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #5A5040; line-height: 1.6; margin-bottom: 28px; }
+.brief-chart-source a { color: #7A6A54; text-decoration: none; }
+.brief-chart-read { font-size: 17px; color: #B8AE9C; margin-bottom: 16px; }
+.brief-so-what { max-width: 640px; margin: 0 auto; padding: 56px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-so-what-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 28px; font-style: italic; }
+.brief-so-what p { font-size: 17px; color: #B8AE9C; margin-bottom: 20px; }
+.brief-next { max-width: 640px; margin: 0 auto; padding: 56px 40px 48px; border-top: 1px solid #1E1A14; }
+.brief-next-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 14px; font-style: italic; }
+.brief-link-block { margin-bottom: 28px; line-height: 1.7; }
+.brief-link-tag { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.2em; color: #6A5A44; text-transform: uppercase; display: block; margin-bottom: 4px; }
+.brief-link-block a { font-weight: 600; color: #E0D6C4; text-decoration: underline; text-underline-offset: 3px; font-size: 16px; }
+.brief-link-block a:hover { color: #fff; }
+.brief-link-detail { display: block; font-size: 14px; color: #6A5E4C; margin-top: 2px; }
+.brief-close { max-width: 640px; margin: 0 auto; padding: 48px 40px 100px; border-top: 1px solid #1E1A14; }
+.brief-close p { font-family: 'Source Serif 4', Georgia, serif; font-size: 16px; color: #9A9080; margin-bottom: 32px; line-height: 1.7; }
+.brief-close-small { font-family: 'IBM Plex Mono', monospace !important; font-size: 11px !important; color: #3A3428 !important; letter-spacing: 0.04em; }
+#exit-brief-btn { background: none; border: 1px solid #2A2418; color: #5A5040; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; padding: 10px 20px; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
+#exit-brief-btn:hover { border-color: #8A7A64; color: #C0B49A; }
+@media (max-width: 900px) { .brief-opening, .brief-so-what, .brief-next, .brief-close { padding-left: 24px; padding-right: 24px; } .brief-chart-section { padding-left: 24px; padding-right: 24px; } .brief-made-by { font-size: 18px; } .brief-opening { padding-top: 64px; } .machine-stamp { padding: 14px 20px; } }
+</style>
+
+<script>
+(function() {
+  let briefTriggered = false;
+  function startBriefTransition() {
+    if (briefTriggered) return;
+    if (!document.body.classList.contains('mode-oppo')) return;
+    briefTriggered = true;
+    const body = document.body;
+    body.style.transition = 'filter 2.5s ease-in';
+    body.style.filter = 'saturate(0) brightness(0.3)';
+    setTimeout(() => {
+      const hed = document.querySelector('.oppo-content h1') || document.querySelector('.oppo-content h2');
+      if (hed) { const orig = hed.textContent; const chars = '█▓▒░■□0123456789'; let n = 0; const si = setInterval(() => { n++; hed.textContent = Array.from(orig).map(c => c === ' ' ? ' ' : chars[Math.floor(Math.random() * chars.length)]).join(''); if (n > 40) { clearInterval(si); hed.textContent = orig; } }, 40); }
+    }, 1200);
+    setTimeout(() => {
+      body.style.transition = ''; body.style.filter = ''; body.classList.add('glitching');
+      setTimeout(() => { body.classList.remove('glitching'); body.classList.add('mode-brief'); window.scrollTo({ top: 0, behavior: 'instant' }); }, 1500);
+    }, 2500);
+  }
+  const sentinel = document.getElementById('brief-sentinel');
+  if (sentinel && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => { entries.forEach(e => { if (e.isIntersecting) { io.disconnect(); setTimeout(startBriefTransition, 1200); } }); }, { threshold: 0.5 });
+    io.observe(sentinel);
+  }
+  const flipBtn = document.getElementById('flip-btn');
+  if (flipBtn) { flipBtn.addEventListener('click', () => { if (document.body.classList.contains('mode-oppo')) briefTriggered = false; }); }
+})();
+document.addEventListener('click', (e) => {
+  if (e.target && e.target.id === 'exit-brief-btn') {
+    const body = document.body; body.style.opacity = '0'; body.style.transition = 'opacity 0.3s';
+    setTimeout(() => { body.classList.remove('mode-brief'); body.classList.add('mode-oppo'); window.scrollTo({ top: 0, behavior: 'instant' }); body.style.opacity = '1'; }, 300);
+  }
+});
+</script>
+
+</body>
+</html>

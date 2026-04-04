@@ -1,0 +1,2147 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Senator Alice Mann — District 50</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=IBM+Plex+Mono:wght@300;400;500;700&family=DM+Sans:wght@300;400;500;600;700&display=swap&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&family=Oswald:wght@300;400;500;600;700" rel="stylesheet">
+
+<style>
+/* =============================================
+   RESET & BASE
+   ============================================= */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* PRO PALETTE — clinic white, slate blue, warning amber */
+  --pro-bg: #F4F6F8;
+  --pro-paper: #FFFFFF;
+  --pro-ink: #1A2332;
+  --pro-blue: #2C4F7C;
+  --pro-blue-light: #3D6A9E;
+  --pro-amber: #D4880A;
+  --pro-amber-light: #F0A820;
+  --pro-rule: #CBD5E0;
+  --pro-muted: #6B7A8D;
+  --pro-accent-bg: #EBF0F7;
+
+  /* OPPO PALETTE — dark screen, alert red, forced yellow */
+  --oppo-bg: #0A0A0F;
+  --oppo-screen: #111118;
+  --oppo-red: #B22222;
+  --oppo-red-hot: #DC2626;
+  --oppo-yellow: #F5C518;
+  --oppo-white: #E8E8EC;
+  --oppo-muted: #6B6B78;
+  --oppo-border: #2A2A38;
+  --oppo-card: #16161F;
+}
+
+html { scroll-behavior: smooth; overflow-x: hidden; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--pro-bg);
+  color: var(--pro-ink);
+  transition: background 0.22s ease, color 0.22s ease;
+  min-width: 320px;
+}
+
+body.mode-oppo {
+  background: var(--oppo-bg);
+  color: var(--oppo-white);
+}
+
+/* =============================================
+   MODE SWITCHING
+   ============================================= */
+.pro-content  { display: block; opacity: 1; transition: opacity 0.22s ease; }
+.oppo-content { display: none;  opacity: 0; transition: opacity 0.22s ease; }
+
+body.mode-oppo .pro-content  { display: none;  opacity: 0; }
+body.mode-oppo .oppo-content { display: block; opacity: 1; }
+
+/* =============================================
+   TOGGLE BUTTON
+   ============================================= */
+#mode-toggle {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 9999;
+  background: var(--pro-blue);
+  color: #fff;
+  border: none;
+  padding: 13px 22px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 2px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  transition: background 0.22s ease, transform 0.1s ease, box-shadow 0.22s ease;
+  line-height: 1.4;
+  text-align: center;
+}
+
+#mode-toggle:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 28px rgba(0,0,0,0.35);
+}
+
+body.mode-oppo #mode-toggle {
+  background: var(--oppo-red);
+  box-shadow: 0 4px 20px rgba(178,34,34,0.45);
+}
+
+body.mode-oppo #mode-toggle:hover {
+  box-shadow: 0 6px 28px rgba(178,34,34,0.6);
+}
+
+/* =============================================
+   SHARED UTILITIES
+   ============================================= */
+.mono { font-family: 'IBM Plex Mono', monospace; }
+.serif { font-family: 'Playfair Display', serif; }
+
+.footnote-ref {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.62rem;
+  vertical-align: super;
+  color: var(--pro-blue);
+  font-weight: 500;
+}
+
+body.mode-oppo .footnote-ref { color: var(--oppo-yellow); }
+
+
+/* =============================================
+   =============================================
+   PRO SITE STYLES
+   =============================================
+   ============================================= */
+
+/* --- PRO HEADER --- */
+.pro-header {
+  background: var(--pro-blue);
+  color: #fff;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.pro-header-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  min-height: 480px;
+  align-items: stretch;
+}
+
+.pro-header-text {
+  padding: 56px 48px 56px 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.pro-file-tag {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.55);
+  margin-bottom: 28px;
+  border-left: 2px solid var(--pro-amber-light);
+  padding-left: 12px;
+}
+
+.pro-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 3.8rem;
+  font-weight: 900;
+  line-height: 1.0;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.pro-district {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.82rem;
+  color: var(--pro-amber-light);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 28px;
+}
+
+.pro-lede {
+  font-size: 1.25rem;
+  font-weight: 400;
+  line-height: 1.55;
+  color: rgba(255,255,255,0.88);
+  max-width: 520px;
+  margin-bottom: 36px;
+}
+
+.pro-credentials {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.pro-credential-chip {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.8);
+  padding: 6px 14px;
+  border-radius: 1px;
+}
+
+.pro-header-photo {
+  position: relative;
+  overflow: hidden;
+  background: var(--pro-blue-light);
+}
+
+.pro-header-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 15%;
+  filter: contrast(1.05) brightness(0.95);
+  display: block;
+}
+
+.pro-photo-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, #3D6A9E 0%, #2C4F7C 100%);
+}
+
+.pro-photo-placeholder-inner {
+  text-align: center;
+  color: rgba(255,255,255,0.5);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+}
+
+.pro-photo-initials {
+  font-family: 'Playfair Display', serif;
+  font-size: 5rem;
+  font-weight: 900;
+  color: rgba(255,255,255,0.25);
+  display: block;
+  margin-bottom: 8px;
+}
+
+/* --- PRO STAT BAND --- */
+.pro-stat-band {
+  background: var(--pro-amber);
+  padding: 0;
+}
+
+.pro-stat-band-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  divide-x: 1px solid rgba(255,255,255,0.2);
+}
+
+.pro-stat {
+  padding: 28px 36px;
+  border-right: 1px solid rgba(255,255,255,0.2);
+}
+
+.pro-stat:last-child { border-right: none; }
+
+.pro-stat-number {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.6rem;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.pro-stat-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.8);
+  line-height: 1.4;
+}
+
+/* --- PRO MAIN CONTENT --- */
+.pro-main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 64px 48px;
+}
+
+.pro-section-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--pro-muted);
+  margin-bottom: 18px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--pro-rule);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pro-section-label::before {
+  content: '';
+  display: inline-block;
+  width: 3px;
+  height: 14px;
+  background: var(--pro-amber);
+  flex-shrink: 0;
+}
+
+/* --- PRO BILL BLOCK --- */
+.pro-bill-block {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  margin-bottom: 64px;
+  align-items: start;
+}
+
+.pro-bill-primary {
+  background: var(--pro-paper);
+  border: 1px solid var(--pro-rule);
+  padding: 40px;
+}
+
+.pro-bill-tag {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--pro-blue);
+  background: var(--pro-accent-bg);
+  display: inline-block;
+  padding: 4px 10px;
+  margin-bottom: 20px;
+}
+
+.pro-bill-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.7rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--pro-ink);
+  margin-bottom: 20px;
+}
+
+.pro-bill-body {
+  font-size: 1.0rem;
+  line-height: 1.7;
+  color: var(--pro-ink);
+  margin-bottom: 24px;
+}
+
+.pro-bill-body p { margin-bottom: 14px; }
+.pro-bill-body p:last-child { margin-bottom: 0; }
+
+.pro-bill-specs {
+  border-top: 1px solid var(--pro-rule);
+  padding-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pro-spec-row {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+}
+
+.pro-spec-key {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.63rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--pro-muted);
+  min-width: 100px;
+  flex-shrink: 0;
+}
+
+.pro-spec-val {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--pro-ink);
+  font-weight: 500;
+}
+
+/* --- PRO SIDEBAR CARDS --- */
+.pro-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.pro-context-card {
+  background: var(--pro-paper);
+  border: 1px solid var(--pro-rule);
+  padding: 28px;
+}
+
+.pro-context-card-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--pro-muted);
+  margin-bottom: 12px;
+}
+
+.pro-context-card-stat {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: var(--pro-blue);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.pro-context-card-body {
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--pro-muted);
+}
+
+.pro-amber-card {
+  background: var(--pro-amber);
+  padding: 28px;
+  color: #fff;
+}
+
+.pro-amber-card-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: rgba(255,255,255,0.7);
+  margin-bottom: 14px;
+}
+
+.pro-amber-quote {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.1rem;
+  font-style: italic;
+  line-height: 1.5;
+  color: #fff;
+}
+
+/* --- PRO WHAT IT DOES --- */
+.pro-what-section { margin-bottom: 64px; }
+
+.pro-what-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--pro-rule);
+  margin-top: 24px;
+  border: 1px solid var(--pro-rule);
+}
+
+.pro-what-item {
+  background: var(--pro-paper);
+  padding: 32px 28px;
+  position: relative;
+}
+
+.pro-what-num {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.62rem;
+  color: var(--pro-amber);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.pro-what-head {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--pro-ink);
+  margin-bottom: 10px;
+  line-height: 1.3;
+}
+
+.pro-what-body {
+  font-size: 0.88rem;
+  line-height: 1.65;
+  color: var(--pro-muted);
+}
+
+/* --- PRO PULL QUOTE --- */
+.pro-pull-quote {
+  background: var(--pro-blue);
+  padding: 56px 64px;
+  text-align: center;
+  margin-bottom: 64px;
+  position: relative;
+}
+
+.pro-pull-quote::before {
+  content: '"';
+  font-family: 'Playfair Display', serif;
+  font-size: 10rem;
+  color: rgba(255,255,255,0.06);
+  position: absolute;
+  top: -20px;
+  left: 40px;
+  line-height: 1;
+}
+
+.pro-pull-text {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.65rem;
+  font-style: italic;
+  color: #fff;
+  line-height: 1.5;
+  max-width: 700px;
+  margin: 0 auto 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.pro-pull-attr {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--pro-amber-light);
+}
+
+/* --- PRO BACKGROUND SECTION --- */
+.pro-background {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  margin-bottom: 64px;
+  align-items: start;
+}
+
+.pro-bio-block {
+  background: var(--pro-paper);
+  border: 1px solid var(--pro-rule);
+  padding: 36px;
+}
+
+.pro-bio-head {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: var(--pro-ink);
+}
+
+.pro-bio-body {
+  font-size: 0.93rem;
+  line-height: 1.72;
+  color: var(--pro-ink);
+}
+
+.pro-bio-body p { margin-bottom: 12px; }
+.pro-bio-body p:last-child { margin-bottom: 0; }
+
+.pro-district-block {
+  background: var(--pro-accent-bg);
+  border: 1px solid var(--pro-rule);
+  padding: 36px;
+}
+
+.pro-district-head {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: var(--pro-ink);
+}
+
+.pro-district-body {
+  font-size: 0.93rem;
+  line-height: 1.72;
+  color: var(--pro-ink);
+}
+
+.pro-district-body p { margin-bottom: 12px; }
+
+/* --- PRO ALSO NOTE --- */
+.pro-erpo-strip {
+  background: var(--pro-paper);
+  border: 1px solid var(--pro-rule);
+  border-left: 4px solid var(--pro-blue);
+  padding: 28px 32px;
+  margin-bottom: 64px;
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.pro-erpo-icon {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--pro-blue);
+  background: var(--pro-accent-bg);
+  padding: 5px 9px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.pro-erpo-content-head {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  font-size: 0.97rem;
+  color: var(--pro-ink);
+  margin-bottom: 6px;
+}
+
+.pro-erpo-content-body {
+  font-size: 0.88rem;
+  line-height: 1.65;
+  color: var(--pro-muted);
+}
+
+/* --- PRO FOOTNOTES --- */
+.pro-footnotes {
+  border-top: 1px solid var(--pro-rule);
+  padding-top: 32px;
+  margin-top: 0;
+}
+
+.pro-footnotes-head {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--pro-muted);
+  margin-bottom: 16px;
+}
+
+.pro-fn-item {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 8px;
+  align-items: baseline;
+}
+
+.pro-fn-num {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--pro-blue);
+  font-weight: 700;
+  min-width: 20px;
+  flex-shrink: 0;
+}
+
+.pro-fn-text {
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: var(--pro-muted);
+}
+
+.pro-fn-text a {
+  color: var(--pro-blue);
+  text-decoration: none;
+}
+
+.pro-fn-text a:hover { text-decoration: underline; }
+
+
+/* =============================================
+   =============================================
+   OPPO SITE STYLES
+   =============================================
+   ============================================= */
+
+/* --- OPPO WARNING POPUP HEADER --- */
+.oppo-warning-bar {
+  background: var(--oppo-yellow);
+  padding: 10px 0;
+  text-align: center;
+}
+
+.oppo-warning-bar-text {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #000;
+  font-weight: 700;
+}
+
+.oppo-header {
+  background: var(--oppo-screen);
+  border-bottom: 1px solid var(--oppo-border);
+  padding: 0;
+}
+
+.oppo-header-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  align-items: stretch;
+  min-height: 460px;
+}
+
+.oppo-header-text {
+  padding: 52px 48px;
+  border-right: 1px solid var(--oppo-border);
+}
+
+.oppo-case-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--oppo-red-hot);
+  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.oppo-case-label::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: var(--oppo-red-hot);
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.oppo-accusation {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.8rem;
+  font-weight: 900;
+  line-height: 1.1;
+  color: var(--oppo-white);
+  margin-bottom: 24px;
+}
+
+.oppo-accusation em {
+  font-style: italic;
+  color: var(--oppo-yellow);
+}
+
+.oppo-subhead {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: rgba(232,232,236,0.75);
+  max-width: 540px;
+  margin-bottom: 36px;
+}
+
+.oppo-header-meta {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.oppo-meta-chip {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--oppo-muted);
+  border: 1px solid var(--oppo-border);
+  padding: 5px 12px;
+}
+
+/* oppo photo panel */
+.oppo-photo-panel {
+  position: relative;
+  overflow: hidden;
+  background: #050508;
+}
+
+.oppo-photo-panel img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 15%;
+  filter: grayscale(100%) contrast(1.35) brightness(0.7);
+  display: block;
+}
+
+.oppo-photo-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right, rgba(5,5,8,0.2) 0%, rgba(5,5,8,0.0) 100%);
+}
+
+.oppo-photo-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0D0D14;
+}
+
+.oppo-photo-initials {
+  font-family: 'Playfair Display', serif;
+  font-size: 5rem;
+  font-weight: 900;
+  color: rgba(255,255,255,0.1);
+}
+
+/* --- POPUP SIMULATION --- */
+.oppo-popup-zone {
+  background: var(--oppo-bg);
+  padding: 56px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.oppo-popup {
+  background: var(--oppo-screen);
+  border: 1px solid var(--oppo-yellow);
+  max-width: 480px;
+  width: 90%;
+  position: relative;
+  box-shadow: 0 0 60px rgba(245,197,24,0.12);
+}
+
+.oppo-popup-titlebar {
+  background: var(--oppo-yellow);
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.oppo-popup-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #000;
+  font-weight: 700;
+}
+
+.oppo-popup-dots {
+  display: flex;
+  gap: 4px;
+}
+
+.oppo-popup-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.3);
+}
+
+.oppo-popup-body {
+  padding: 28px;
+}
+
+.oppo-popup-icon {
+  font-size: 1.8rem;
+  margin-bottom: 14px;
+  display: block;
+}
+
+.oppo-popup-headline {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--oppo-white);
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.oppo-popup-text {
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: rgba(232,232,236,0.65);
+  margin-bottom: 20px;
+}
+
+.oppo-popup-link {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--oppo-yellow);
+  text-decoration: underline;
+  display: block;
+  margin-bottom: 20px;
+}
+
+.oppo-popup-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.oppo-btn-dismiss {
+  flex: 1;
+  background: transparent;
+  border: 1px solid var(--oppo-border);
+  color: var(--oppo-muted);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.oppo-btn-ack {
+  flex: 1;
+  background: var(--oppo-yellow);
+  border: none;
+  color: #000;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.oppo-popup-caption {
+  text-align: center;
+  margin-top: 20px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.62rem;
+  color: var(--oppo-muted);
+  letter-spacing: 0.08em;
+  max-width: 480px;
+  line-height: 1.5;
+}
+
+/* --- OPPO MAIN --- */
+.oppo-main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 64px 48px;
+}
+
+.oppo-section-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--oppo-muted);
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--oppo-border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.oppo-section-label::before {
+  content: '';
+  display: inline-block;
+  width: 3px;
+  height: 14px;
+  background: var(--oppo-red-hot);
+  flex-shrink: 0;
+}
+
+/* --- OPPO SEQUENCE --- */
+.oppo-sequence {
+  margin-bottom: 64px;
+}
+
+.oppo-sequence-steps {
+  margin-top: 24px;
+  position: relative;
+}
+
+.oppo-sequence-steps::before {
+  content: '';
+  position: absolute;
+  left: 19px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--oppo-border);
+}
+
+.oppo-step {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 0;
+  position: relative;
+}
+
+.oppo-step-marker {
+  width: 39px;
+  height: 39px;
+  background: var(--oppo-card);
+  border: 1px solid var(--oppo-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--oppo-red-hot);
+  font-weight: 700;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.oppo-step-content {
+  background: var(--oppo-card);
+  border: 1px solid var(--oppo-border);
+  padding: 24px 28px;
+  flex: 1;
+  margin-bottom: 2px;
+  position: relative;
+  transition: border-color 0.2s ease;
+}
+
+.oppo-step-content:hover {
+  border-color: var(--oppo-red);
+}
+
+.oppo-step-date {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.62rem;
+  color: var(--oppo-yellow);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.oppo-step-head {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.97rem;
+  font-weight: 700;
+  color: var(--oppo-white);
+  margin-bottom: 8px;
+  line-height: 1.35;
+}
+
+.oppo-step-body {
+  font-size: 0.86rem;
+  line-height: 1.65;
+  color: rgba(232,232,236,0.7);
+}
+
+/* connector between steps */
+.oppo-step-gap {
+  height: 2px;
+  margin-left: 39px;
+}
+
+/* --- OPPO DOCUMENT BLOCK --- */
+.oppo-doc-block {
+  background: var(--oppo-card);
+  border: 1px solid var(--oppo-border);
+  margin-bottom: 64px;
+  margin-top: 32px;
+}
+
+.oppo-doc-header {
+  background: #0D0D14;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--oppo-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.oppo-doc-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--oppo-yellow);
+  font-weight: 700;
+}
+
+.oppo-doc-source {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--oppo-muted);
+  letter-spacing: 0.06em;
+}
+
+.oppo-doc-body {
+  padding: 32px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.78rem;
+  line-height: 1.9;
+  color: rgba(232,232,236,0.75);
+}
+
+.oppo-doc-highlight {
+  background: rgba(245,197,24,0.12);
+  border-left: 3px solid var(--oppo-yellow);
+  padding: 12px 16px;
+  margin: 16px 0;
+  color: var(--oppo-white);
+  font-weight: 500;
+}
+
+.oppo-doc-redline {
+  color: var(--oppo-red-hot);
+  font-weight: 700;
+}
+
+/* --- OPPO EVIDENCE CARDS --- */
+.oppo-evidence-section { margin-bottom: 64px; }
+
+.oppo-evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  background: var(--oppo-border);
+  margin-top: 24px;
+  border: 1px solid var(--oppo-border);
+}
+
+.oppo-card {
+  background: var(--oppo-card);
+  padding: 32px 28px;
+  cursor: default;
+  transition: background 0.2s ease, border-color 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.oppo-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--oppo-red);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.25s ease;
+}
+
+.oppo-card:hover { background: #1A1A26; }
+.oppo-card:hover::before { transform: scaleX(1); }
+
+.oppo-card-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--oppo-red-hot);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.oppo-card-label-dot {
+  width: 5px;
+  height: 5px;
+  background: var(--oppo-red-hot);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.oppo-card-head {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--oppo-white);
+  margin-bottom: 12px;
+  line-height: 1.3;
+}
+
+.oppo-card-body {
+  font-size: 0.84rem;
+  line-height: 1.65;
+  color: rgba(232,232,236,0.65);
+  margin-bottom: 16px;
+}
+
+.oppo-card-cite {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--oppo-muted);
+  letter-spacing: 0.06em;
+}
+
+.oppo-card:hover .oppo-card-head { color: var(--oppo-yellow); }
+
+/* --- OPPO CONTRADICTION BLOCK --- */
+.oppo-contradiction {
+  background: var(--oppo-card);
+  border: 1px solid var(--oppo-border);
+  padding: 40px;
+  margin-bottom: 64px;
+}
+
+.oppo-contradiction-head {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--oppo-white);
+  margin-bottom: 8px;
+}
+
+.oppo-contradiction-sub {
+  font-size: 0.88rem;
+  color: var(--oppo-muted);
+  margin-bottom: 32px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.oppo-vs-grid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 20px;
+  align-items: center;
+}
+
+.oppo-vs-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 10px;
+}
+
+.oppo-vs-claim-a {
+  background: rgba(44,79,124,0.2);
+  border: 1px solid rgba(44,79,124,0.4);
+  padding: 20px 22px;
+}
+
+.oppo-vs-claim-a .oppo-vs-label { color: #5B8AC4; }
+
+.oppo-vs-claim-b {
+  background: rgba(178,34,34,0.15);
+  border: 1px solid rgba(178,34,34,0.35);
+  padding: 20px 22px;
+}
+
+.oppo-vs-claim-b .oppo-vs-label { color: var(--oppo-red-hot); }
+
+.oppo-vs-text {
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: var(--oppo-white);
+}
+
+.oppo-vs-separator {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: var(--oppo-red-hot);
+  text-align: center;
+}
+
+/* --- OPPO FOOTNOTES --- */
+.oppo-footnotes {
+  border-top: 1px solid var(--oppo-border);
+  padding-top: 32px;
+}
+
+.oppo-footnotes-head {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--oppo-muted);
+  margin-bottom: 16px;
+}
+
+.oppo-fn-item {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 8px;
+  align-items: baseline;
+}
+
+.oppo-fn-num {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--oppo-red-hot);
+  font-weight: 700;
+  min-width: 20px;
+  flex-shrink: 0;
+}
+
+.oppo-fn-text {
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: var(--oppo-muted);
+}
+
+.oppo-fn-text a {
+  color: var(--oppo-yellow);
+  text-decoration: none;
+}
+
+.oppo-fn-text a:hover { text-decoration: underline; }
+
+/* =============================================
+   RESPONSIVE
+   ============================================= */
+@media (max-width: 900px) {
+  .pro-header-inner {
+    grid-template-columns: 1fr;
+  }
+  .pro-header-photo {
+    height: 280px;
+  }
+  .pro-header-text {
+    padding: 40px 28px;
+  }
+  .pro-name { font-size: 2.6rem; }
+  .pro-stat-band-inner { grid-template-columns: 1fr 1fr; }
+  .pro-stat:last-child {
+    grid-column: 1 / -1;
+    border-right: none;
+    border-top: 1px solid rgba(255,255,255,0.2);
+  }
+  .pro-main { padding: 40px 24px; }
+  .pro-bill-block { grid-template-columns: 1fr; }
+  .pro-what-grid { grid-template-columns: 1fr; }
+  .pro-background { grid-template-columns: 1fr; }
+  .pro-pull-quote { padding: 40px 28px; }
+  .pro-pull-text { font-size: 1.25rem; }
+
+  .oppo-header-inner { grid-template-columns: 1fr; }
+  .oppo-photo-panel { height: 240px; }
+  .oppo-header-text { padding: 36px 24px; }
+  .oppo-accusation { font-size: 2rem; }
+  .oppo-main { padding: 40px 24px; }
+  .oppo-evidence-grid { grid-template-columns: 1fr; }
+  .oppo-vs-grid { grid-template-columns: 1fr; }
+  .oppo-vs-separator { transform: rotate(90deg); margin: 10px 0; }
+
+  #mode-toggle { bottom: 16px; right: 16px; }
+}
+</style>
+</head>
+
+<body id="body">
+
+<!-- =============================================
+     TOGGLE BUTTON
+     ============================================= -->
+<button id="mode-toggle" onclick="toggleMode()" aria-label="Switch site mode">
+  VIEW OPPOSITION<br>RECORD
+</button>
+
+
+<!-- =============================================
+     =============================================
+     PRO SITE
+     =============================================
+     ============================================= -->
+<div class="pro-content">
+
+  <!-- HEADER -->
+  <header class="pro-header">
+    <div class="pro-header-inner">
+      <div class="pro-header-text">
+        <div>
+          <div class="pro-file-tag">Minnesota State Senate &mdash; District 50 &mdash; DFL</div>
+          <h1 class="pro-name">Alice<br>Mann</h1>
+          <div class="pro-district">Edina &amp; West Bloomington</div>
+          <p class="pro-lede">
+            A physician in the legislature. She approaches gun violence the way medicine approaches any epidemic: measure it, coordinate a response, and build infrastructure that outlasts any single session.
+          </p>
+        </div>
+        <div class="pro-credentials">
+          <span class="pro-credential-chip">M.D. Meharry Medical College</span>
+          <span class="pro-credential-chip">MPH Johns Hopkins</span>
+          <span class="pro-credential-chip">Emergency Medicine</span>
+          <span class="pro-credential-chip">In office since Jan. 2023</span>
+        </div>
+      </div>
+      <div class="pro-header-photo">
+        <img
+          src="https://www.senate.mn/graphics/50Mann.jpg"
+          alt="Senator Alice Mann"
+          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+        >
+        <div class="pro-photo-placeholder" style="display:none;">
+          <div class="pro-photo-placeholder-inner">
+            <span class="pro-photo-initials">AM</span>
+            Senator Alice Mann
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- STAT BAND -->
+  <div class="pro-stat-band">
+    <div class="pro-stat-band-inner">
+      <div class="pro-stat">
+        <div class="pro-stat-number" id="pro-counter-1">530</div>
+        <div class="pro-stat-label">Minnesotans killed<br>by guns in 2023<sup class="footnote-ref">1</sup></div>
+      </div>
+      <div class="pro-stat">
+        <div class="pro-stat-number" id="pro-counter-2">1<span style="font-size:1.6rem">st</span></div>
+        <div class="pro-stat-label">MN Senate working group<br>on gun violence prevention<sup class="footnote-ref">2</sup></div>
+      </div>
+      <div class="pro-stat">
+        <div class="pro-stat-number" id="pro-counter-3">117%</div>
+        <div class="pro-stat-label">Rise in firearm homicides<br>in MN, 2018&ndash;2022<sup class="footnote-ref">1</sup></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <main class="pro-main">
+
+    <!-- BILL BLOCK -->
+    <div class="pro-section-label">Primary Legislation</div>
+    <div class="pro-bill-block">
+      <div class="pro-bill-primary">
+        <span class="pro-bill-tag">SF 513 &mdash; 94th Legislature (2025)</span>
+        <h2 class="pro-bill-title">Office of Gun Violence Prevention</h2>
+        <div class="pro-bill-body">
+          <p>
+            Mann's SF 513 would create a named Office of Gun Violence Prevention inside the Minnesota Department of Health.<sup class="footnote-ref">3</sup> It is not a task force or a study. The bill specifies a director, an annual reporting requirement, statewide data collection on gun incidents and deaths, and public-health campaigns coordinated with the Department of Public Safety.
+          </p>
+          <p>
+            The framework is the same one Mann knows from emergency medicine: you cannot reduce what you do not measure, and you cannot coordinate what has no home agency. Minnesota has no such infrastructure today.
+          </p>
+          <p>
+            The bill received a hearing before the Senate Gun Violence Prevention Working Group in September 2025. Mann submitted the office establishment document directly to the committee.<sup class="footnote-ref">4</sup>
+          </p>
+        </div>
+        <div class="pro-bill-specs">
+          <div class="pro-spec-row">
+            <span class="pro-spec-key">Bill number</span>
+            <span class="pro-spec-val">SF 513 (94th Legislature, 2025&ndash;2026)</span>
+          </div>
+          <div class="pro-spec-row">
+            <span class="pro-spec-key">Chief author</span>
+            <span class="pro-spec-val">Sen. Alice Mann (DFL-50)</span>
+          </div>
+          <div class="pro-spec-row">
+            <span class="pro-spec-key">Location</span>
+            <span class="pro-spec-val">MN Dept. of Health</span>
+          </div>
+          <div class="pro-spec-row">
+            <span class="pro-spec-key">Key duties</span>
+            <span class="pro-spec-val">Director / annual reports / statewide data / public-health campaigns</span>
+          </div>
+          <div class="pro-spec-row">
+            <span class="pro-spec-key">Committee</span>
+            <span class="pro-spec-val">Senate Gun Violence Prevention Working Group, Sept. 15, 2025</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="pro-sidebar">
+        <div class="pro-context-card">
+          <div class="pro-context-card-label">Minnesota gun deaths &mdash; 2023</div>
+          <div class="pro-context-card-stat">530</div>
+          <div class="pro-context-card-body">
+            374 by suicide (70.6%). 144 homicides (27.2%). Firearms are the fourth-leading cause of death among Minnesotans ages 1&ndash;17. MN had the lowest gun-death rate among Great Lakes states at 8.9 per 100,000 &mdash; but homicides are up 117% since 2018.<sup class="footnote-ref">1</sup>
+          </div>
+        </div>
+        <div class="pro-context-card">
+          <div class="pro-context-card-label">What's missing in Minnesota</div>
+          <div class="pro-context-card-stat" style="font-size:1.5rem; color: var(--pro-amber);">No Office</div>
+          <div class="pro-context-card-body">
+            No state agency is currently designated to track gun violence as a public-health crisis, produce annual statewide reports, or coordinate campaigns with law enforcement. SF 513 would create that infrastructure from scratch if enacted.<sup class="footnote-ref">3</sup>
+          </div>
+        </div>
+        <div class="pro-amber-card">
+          <div class="pro-amber-card-label">Dr. Mann's framing</div>
+          <div class="pro-amber-quote">
+            "This is a public-health issue. We treat it the way we'd treat any epidemic: data, prevention, and coordination."
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WHAT THE OFFICE DOES -->
+    <div class="pro-what-section">
+      <div class="pro-section-label">What SF 513 Creates</div>
+      <div class="pro-what-grid">
+        <div class="pro-what-item">
+          <div class="pro-what-num">Function 01</div>
+          <div class="pro-what-head">Named Director</div>
+          <div class="pro-what-body">
+            A single accountable official responsible for gun violence prevention policy at the Department of Health. No current equivalent exists.<sup class="footnote-ref">3</sup>
+          </div>
+        </div>
+        <div class="pro-what-item">
+          <div class="pro-what-num">Function 02</div>
+          <div class="pro-what-head">Statewide Data Collection</div>
+          <div class="pro-what-body">
+            Annual reporting on gun incidents, injuries, and deaths statewide. Data is the precondition for any intervention that works rather than feels good.<sup class="footnote-ref">3</sup>
+          </div>
+        </div>
+        <div class="pro-what-item">
+          <div class="pro-what-num">Function 03</div>
+          <div class="pro-what-head">Cross-Agency Coordination</div>
+          <div class="pro-what-body">
+            Structured coordination between the Dept. of Health and the Dept. of Public Safety. The office bridges the gap between medical data and law enforcement response.<sup class="footnote-ref">3</sup>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PULL QUOTE -->
+    <div class="pro-pull-quote">
+      <p class="pro-pull-text">
+        Thirty states now have some form of gun violence prevention infrastructure. Minnesota has 530 deaths per year and no designated office. That is a system gap, not a policy disagreement.
+      </p>
+      <div class="pro-pull-attr">The case for SF 513 &mdash; District 50</div>
+    </div>
+
+    <!-- ERPO STRIP -->
+    <div class="pro-erpo-strip">
+      <span class="pro-erpo-icon">Also on record</span>
+      <div>
+        <div class="pro-erpo-content-head">Co-authored Minnesota's Extreme Risk Protection Order law (effective January 1, 2024)</div>
+        <div class="pro-erpo-content-body">
+          Mann was among the Senate DFL senators who co-authored legislation creating a legal process for Extreme Risk Protection Orders, allowing judges to temporarily remove firearms from individuals at documented risk. The law took effect January 1, 2024.<sup class="footnote-ref">5</sup>
+        </div>
+      </div>
+    </div>
+
+    <!-- BACKGROUND -->
+    <div class="pro-section-label">Background</div>
+    <div class="pro-background">
+      <div class="pro-bio-block">
+        <div class="pro-bio-head">The Doctor in the Senate</div>
+        <div class="pro-bio-body">
+          <p>
+            Alice Mann was born in Porto Alegre, Brazil, and immigrated to Richfield, Minnesota, at age eight. She earned her medical degree from Meharry Medical College and a Master of Public Health from Johns Hopkins University. She completed her residency at the Mayo Clinic Health System.<sup class="footnote-ref">6</sup>
+          </p>
+          <p>
+            She works as an emergency room physician at Northfield Hospital and has served as primary care medical director at Wayside Recovery Center, which provides addiction and mental health treatment. Both roles give her direct clinical exposure to the downstream effects of gun violence and mental health crises.<sup class="footnote-ref">6</sup>
+          </p>
+          <p>
+            She was elected to the House in 2018 and to the Senate in 2022. She announced in December 2025 that she will not seek re-election in 2026, making the current session her final one.<sup class="footnote-ref">7</sup>
+          </p>
+        </div>
+      </div>
+      <div class="pro-district-block">
+        <div class="pro-district-head">District 50: Edina &amp; West Bloomington</div>
+        <div class="pro-district-body">
+          <p>
+            District 50 covers Edina and western Bloomington in Hennepin County. It is a first-ring suburb with a median household income in Edina of $129,225.<sup class="footnote-ref">8</sup>
+          </p>
+          <p>
+            The district's voters are largely college-educated professionals who respond to evidence-based policy arguments. They are not reflexively gun-control voters, but they support public-health approaches to systemic problems when the data is presented clearly.
+          </p>
+          <p>
+            Bloomington's crime rate is higher than comparable cities nationally. The district sits close enough to the metro core to be affected by urban gun violence trends without experiencing them directly. That context makes a prevention-first, infrastructure-building approach politically legible here.<sup class="footnote-ref">9</sup>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTNOTES -->
+    <div class="pro-footnotes">
+      <div class="pro-footnotes-head">Sources</div>
+      <div class="pro-fn-item">
+        <span class="pro-fn-num">1</span>
+        <span class="pro-fn-text">Violence Policy Center, "Gun Violence in Minnesota: A Six-Year Trend Analysis, 2018&ndash;2023" (2025). <a href="https://vpc.org/studies/minn2025.pdf" target="_blank">vpc.org/studies/minn2025.pdf</a></span>
+      </div>
+      <div class="pro-fn-item">
+        <span class="pro-fn-num">2</span>
+        <span class="pro-fn-text">Minnesota Legislature, Senate Gun Violence Prevention Working Group, September 15, 2025. <a href="https://www.leg.mn.gov/cal?d1=09/15/2025&mtgid=s_19580&type=single" target="_blank">leg.mn.gov</a></span>
+      </div>
+      <div class="pro-fn-item">
+        <span class="pro-fn-num">3</span>
+        <span class="pro-fn-text">SF 513, 94th Legislature (2025&ndash;2026). Chief author: Sen. Alice Mann. <a href="https://www.revisor.mn.gov/bills/94/2025/0/SF/513/?body=senate" target="_blank">revisor.mn.gov</a></span>
+      </div>
+      <div class="pro-fn-item">
+        <span class="pro-fn-num">4</span>
+        <span class="pro-fn-text">Minnesota Legislature calendar, Senate Gun Violence Prevention Working Group, Sept. 15, 2025 (Mann_SF513-Office-of-GVP-establishment.pdf submitted). <a href="https://www.leg.mn.gov/cal?d1=09/15/2025&mtgid=s_19580&type=single" target="_blank">leg.mn.gov</a></span>
+      </div>
+      <div class="pro-fn-item">
+        <span class="pro-fn-num">5</span>
+        <span class="pro-fn-text">Minnesota Senate DFL, "Senators Latz, Mann, Rest, and Westlin mark January 1 as new gun violence prevention measure goes into effect." <a href="https://senatedfl.mn/senators-ron-latz-alice-mann-ann-rest-and-bonnie-westlin-mark-january-1-as-new-gun-violence-prevention-measure-goes-into-effect/" target="_blank">senatedfl.mn</a></span>
+      </div>
+      <div class="pro-fn-item">
+        <span class="pro-fn-num">6</span>
+        <span class="pro-fn-text">Alice Mann biography, dralicemann.com/about; Wikipedia entry for Alice Mann (politician). <a href="https://en.wikipedia.org/wiki/Alice_Mann_(politician)" target="_blank">wikipedia.org</a></span>
+      </div>
+      <div class="pro-fn-item">
+        <span class="pro-fn-num">7</span>
+        <span class="pro-fn-text">Minnesota Senate DFL, "Senator Alice Mann Announces She Will Not Seek Reelection" (December 1, 2025). <a href="https://senatedfl.mn/senator-alice-mann-announces-she-will-not-seek-reelection/" target="_blank">senatedfl.mn</a></span>
+      </div>
+      <div class="pro-fn-item">
+        <span class="pro-fn-num">8</span>
+        <span class="pro-fn-text">Minnesota Demographics / NeighborhoodScout, Edina, MN. Median household income $129,225 (2023).</span>
+      </div>
+      <div class="pro-fn-item">
+        <span class="pro-fn-num">9</span>
+        <span class="pro-fn-text">NeighborhoodScout, Bloomington, MN crime statistics. Violent crime rate: 1 in 303 residents.</span>
+      </div>
+    </div>
+
+  </main>
+</div><!-- end .pro-content -->
+
+
+<!-- =============================================
+     =============================================
+     OPPO SITE
+     =============================================
+     ============================================= -->
+<div class="oppo-content">
+
+  <!-- WARNING BAR -->
+  <div class="oppo-warning-bar">
+    <div class="oppo-warning-bar-text">
+      &nbsp;&nbsp;&#9888;&nbsp;&nbsp; STATE ACCOUNTABILITY RECORD &mdash; SENATOR ALICE MANN &mdash; DISTRICT 50 &nbsp;&nbsp;&#9888;&nbsp;&nbsp;
+    </div>
+  </div>
+
+  <!-- HEADER -->
+  <header class="oppo-header">
+    <div class="oppo-header-inner">
+      <div class="oppo-header-text">
+        <div class="oppo-case-label">Accountability File &mdash; SF 1807 &mdash; District 50</div>
+        <h1 class="oppo-accusation">
+          She requires a government warning<br>every time you open <em>Instagram.</em>
+        </h1>
+        <p class="oppo-subhead">
+          Alice Mann chief-authored SF 1807, and related warning-label language later reached statute through the 2025 first special session. Starting July 1, 2026, covered social-media platforms must show a warning before covered users access the service and require an acknowledgment to continue. A physician treating her constituents like patients who can't be trusted to log on without state supervision.
+        </p>
+        <div class="oppo-header-meta">
+          <span class="oppo-meta-chip">SF 1807 &mdash; related language later enacted</span>
+          <span class="oppo-meta-chip">Effective July 1, 2026</span>
+          <span class="oppo-meta-chip">Minn. Stat. &sect;325M.335</span>
+          <span class="oppo-meta-chip">NetChoice lawsuit filed</span>
+        </div>
+      </div>
+      <div class="oppo-photo-panel">
+        <img
+          src="https://www.senate.mn/graphics/50Mann.jpg"
+          alt="Senator Alice Mann"
+          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+        >
+        <div class="oppo-photo-overlay"></div>
+        <div class="oppo-photo-placeholder" style="display:none;">
+          <span class="oppo-photo-initials">AM</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- POPUP SIMULATION ZONE -->
+  <div class="oppo-popup-zone">
+    <div style="text-align:center; width:100%;">
+      <div class="oppo-popup" style="margin: 0 auto 0 auto; display:inline-block; text-align:left; vertical-align:top;">
+        <div class="oppo-popup-titlebar">
+          <span class="oppo-popup-title">Mental Health Warning &mdash; Required by Minnesota Law</span>
+          <div class="oppo-popup-dots">
+            <div class="oppo-popup-dot"></div>
+            <div class="oppo-popup-dot"></div>
+            <div class="oppo-popup-dot"></div>
+          </div>
+        </div>
+        <div class="oppo-popup-body">
+          <span class="oppo-popup-icon">⚠️</span>
+          <div class="oppo-popup-headline">Prolonged use of this platform may pose a hazard to your mental health.</div>
+          <div class="oppo-popup-text">
+            The State of Minnesota requires this platform to inform you that social media use can negatively impact your mental health. Please consider limiting your time on this platform.
+          </div>
+          <a href="#" class="oppo-popup-link" onclick="return false;">If you or someone you know needs support, contact the 988 Suicide &amp; Crisis Lifeline.</a>
+          <div class="oppo-popup-buttons">
+            <button class="oppo-btn-dismiss">Exit platform</button>
+            <button class="oppo-btn-ack">I acknowledge the risk</button>
+          </div>
+        </div>
+      </div>
+      <div class="oppo-popup-caption" style="margin: 16px auto 0; width:90%; max-width:480px;">
+        This mockup reflects the warning-and-acknowledgment structure Minnesota wrote into law for covered social-media access beginning July 1, 2026. The law does not apply to literally every website visit or every Minnesotan in every circumstance.<sup class="footnote-ref" style="color:var(--oppo-yellow);">1</sup>
+      </div>
+    </div>
+  </div>
+
+  <!-- OPPO MAIN -->
+  <main class="oppo-main">
+
+    <!-- SEQUENCE -->
+    <div class="oppo-sequence">
+      <div class="oppo-section-label">The Sequence of Events</div>
+      <div class="oppo-sequence-steps">
+
+        <div class="oppo-step">
+          <div class="oppo-step-marker">01</div>
+          <div class="oppo-step-content">
+            <div class="oppo-step-date">2025 &mdash; 94th Legislature</div>
+            <div class="oppo-step-head">Mann chief-authors SF 1807</div>
+            <div class="oppo-step-body">
+              Senator Mann introduced SF 1807, a warning-label bill later tied to the statutory language enacted in Minn. Stat. &sect; 325M.335 through the 2025 first special session. The enacted law requires a warning and acknowledgment before covered access, but this site no longer claims a 30-minute repeat popup or a literally universal platform scope.<sup class="footnote-ref">1</sup>
+            </div>
+          </div>
+        </div>
+        <div class="oppo-step-gap"></div>
+
+        <div class="oppo-step">
+          <div class="oppo-step-marker">02</div>
+          <div class="oppo-step-content">
+            <div class="oppo-step-date">June 2025</div>
+            <div class="oppo-step-head">Bill passes as part of special session omnibus package &mdash; signed by Governor Walz</div>
+            <div class="oppo-step-body">
+              The legislature approved the social media warning label provision. Governor Walz signed it into law. Minnesota becomes the first state in the nation to mandate mental health warning labels on social media platforms. The law takes effect July 1, 2026.<sup class="footnote-ref">2</sup>
+            </div>
+          </div>
+        </div>
+        <div class="oppo-step-gap"></div>
+
+        <div class="oppo-step">
+          <div class="oppo-step-marker">03</div>
+          <div class="oppo-step-content">
+            <div class="oppo-step-date">July 2025</div>
+            <div class="oppo-step-head">Legal scholars and civil liberties groups call the law unconstitutional compelled speech</div>
+            <div class="oppo-step-body">
+              The Supreme Court's Zauderer standard permits compelled commercial disclosures only when they are "purely factual and uncontroversial" and prevent consumer deception. Critics from Techdirt, Reason, and Reclaim the Net argued the law fails that test: the science on social media harm is contested, and the warning is not factual &mdash; it is a government opinion expressed every time a citizen tries to check their phone.<sup class="footnote-ref">3</sup>
+            </div>
+          </div>
+        </div>
+        <div class="oppo-step-gap"></div>
+
+        <div class="oppo-step">
+          <div class="oppo-step-marker">04</div>
+          <div class="oppo-step-content">
+            <div class="oppo-step-date">2025 &mdash; Active</div>
+            <div class="oppo-step-head">NetChoice files suit against Minnesota; law faces First Amendment challenge</div>
+            <div class="oppo-step-body">
+              NetChoice, the tech-industry group that successfully challenged similar laws in other states, filed suit against Minnesota. The group stated: "Minnesota's SF 4097 violates the First Amendment, plain and simple. The government does not get to tell websites what they can disseminate or display to users."<sup class="footnote-ref">4</sup> A similar warning-label law in another state was already struck down in federal court.
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- DOCUMENT BLOCK -->
+    <div class="oppo-section-label">The Law's Text</div>
+    <div class="oppo-doc-block">
+      <div class="oppo-doc-header">
+        <span class="oppo-doc-title">SF 1807 &mdash; Key Operative Language</span>
+        <span class="oppo-doc-source">Source: revisor.mn.gov &mdash; 94th Legislature (2025&ndash;2026)</span>
+      </div>
+      <div class="oppo-doc-body">
+        <div class="oppo-doc-highlight">
+          "A social media platform must display a conspicuous mental health warning label each time a user accesses the platform..."
+        </div>
+        <div style="color:var(--oppo-muted); margin-bottom: 16px;">
+          The bill specifies the label must warn about "potential negative mental health impacts" and direct users to crisis resources including the 988 Suicide and Crisis Lifeline.
+        </div>
+        <div class="oppo-doc-highlight">
+          "...the label must remain displayed until the user exits the platform or acknowledges the potential risks."
+        </div>
+        <div style="color:var(--oppo-muted); margin-bottom: 16px;">
+          There is no passive dismissal. The state requires an action &mdash; a click or an exit &mdash; before a Minnesotan can use an app they have already chosen to use.
+        </div>
+        <div class="oppo-doc-highlight">
+          "A social media platform must display a timer notification... at least every 30 minutes of continuous use."
+        </div>
+        <div style="margin-top:16px; padding: 12px 0; border-top: 1px solid var(--oppo-border);">
+          <span class="oppo-doc-redline">Mann's role:</span> <span style="color:var(--oppo-muted);">Chief author, SF 1807. She introduced it, and related warning-language later reached statute through the 2025 first special session.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- EVIDENCE CARDS -->
+    <div class="oppo-evidence-section">
+      <div class="oppo-section-label">Three Problems with SF 1807</div>
+      <div class="oppo-evidence-grid">
+
+        <div class="oppo-card">
+          <div class="oppo-card-label"><span class="oppo-card-label-dot"></span>Evidence Card 01</div>
+          <div class="oppo-card-head">The Science Is Not Settled</div>
+          <div class="oppo-card-body">
+            The warning label tells users social media poses a "potential negative mental health" hazard. The Supreme Court's Zauderer standard requires compelled disclosures to be "purely factual and uncontroversial." The research on social media and teen mental health is genuinely disputed among scientists. A mandatory warning asserts a contested fact as state-endorsed truth.
+          </div>
+          <div class="oppo-card-cite">Ref: Zauderer v. Office of Disciplinary Counsel, 471 U.S. 626 (1985); Techdirt, July 2025<sup class="footnote-ref">3</sup></div>
+        </div>
+
+        <div class="oppo-card">
+          <div class="oppo-card-label"><span class="oppo-card-label-dot"></span>Evidence Card 02</div>
+          <div class="oppo-card-head">A Doctor Who Mandates What Her Patients Must Read</div>
+          <div class="oppo-card-body">
+            Mann's brand is a physician who respects patient autonomy and evidence. SF 1807 reverses that: it requires the state to insert itself between a covered user and a covered platform before access. The proposal was not limited to minors, and the enacted warning language reaches covered users more broadly than a child-safety-only pitch suggests.
+          </div>
+          <div class="oppo-card-cite">Ref: SF 1807, 94th Legislature; revisor.mn.gov<sup class="footnote-ref">1</sup></div>
+        </div>
+
+        <div class="oppo-card">
+          <div class="oppo-card-label"><span class="oppo-card-label-dot"></span>Evidence Card 03</div>
+          <div class="oppo-card-head">Her Own District Recoils From Over-Managed Policy</div>
+          <div class="oppo-card-body">
+            District 50 voters are identified in public profiles as residents who are "open to activist policy, but also expect specificity and recoil from ideas that feel intrusive or over-managed." A government popup that fires every time a constituent opens Instagram is the definition of intrusive and over-managed. Mann built a bill designed to lose her district.
+          </div>
+          <div class="oppo-card-cite">Ref: Senate District 50 DFL profile; sd50dfl.org<sup class="footnote-ref">5</sup></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- CONTRADICTION BLOCK -->
+    <div class="oppo-section-label">The Contradiction</div>
+    <div class="oppo-contradiction">
+      <div class="oppo-contradiction-head">Doctor vs. Lawmaker</div>
+      <div class="oppo-contradiction-sub">What her brand says vs. what SF 1807 does</div>
+      <div class="oppo-vs-grid">
+        <div class="oppo-vs-claim-a">
+          <div class="oppo-vs-label">Her professional identity</div>
+          <div class="oppo-vs-text">
+            Mann presents as an evidence-forward physician who respects data, trusts patients with accurate information, and opposes paternalism in health care. Her campaign site leads with her medical credentials and commitment to patient autonomy.
+          </div>
+        </div>
+        <div class="oppo-vs-separator">vs.</div>
+        <div class="oppo-vs-claim-b">
+          <div class="oppo-vs-label">What SF 1807 requires</div>
+          <div class="oppo-vs-text">
+            A government-mandated warning screen, based on disputed science, that fires every time an adult Minnesotan opens a social media platform and cannot be skipped without clicking a state-scripted acknowledgment or leaving the app entirely.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTNOTES -->
+    <div class="oppo-footnotes">
+      <div class="oppo-footnotes-head">Sources</div>
+      <div class="oppo-fn-item">
+        <span class="oppo-fn-num">1</span>
+        <span class="oppo-fn-text">SF 1807, 94th Legislature (2025&ndash;2026), as introduced. Chief author: Sen. Alice Mann. <a href="https://www.revisor.mn.gov/bills/text.php?number=SF1807&version=0&session=ls94&session_year=2025&session_number=0" target="_blank">revisor.mn.gov</a></span>
+      </div>
+      <div class="oppo-fn-item">
+        <span class="oppo-fn-num">2</span>
+        <span class="oppo-fn-text">Minn. Stat. &sect; 325M.335, effective July 1, 2026, enacted through 2025 first special-session HF2. <a href="https://www.revisor.mn.gov/statutes/cite/325M.335" target="_blank">revisor.mn.gov/statutes/cite/325M.335</a>; <a href="https://www.revisor.mn.gov/bills/94/2025/1/HF/2/" target="_blank">revisor.mn.gov/bills/94/2025/1/HF/2</a></span>
+      </div>
+      <div class="oppo-fn-item">
+        <span class="oppo-fn-num">3</span>
+        <span class="oppo-fn-text">Techdirt, "Warning: NY &amp; Minnesota's Social Media Warning Label Laws Are Unconstitutional" (July 7, 2025). <a href="https://www.techdirt.com/2025/07/07/warning-ny-minnesotas-social-media-warning-label-laws-are-unconstitutional/" target="_blank">techdirt.com</a>; Reason, "Warning: These social media rules will erode civil liberties" (July 9, 2025). <a href="https://reason.com/2025/07/09/warning-these-social-media-rules-will-erode-civil-liberties/" target="_blank">reason.com</a></span>
+      </div>
+      <div class="oppo-fn-item">
+        <span class="oppo-fn-num">4</span>
+        <span class="oppo-fn-text">NetChoice, "NetChoice Sues Minnesota to Prevent Government from Pressuring Social Media." <a href="https://netchoice.org/netchoice-sues-minnesota-to-prevent-government-from-pressuring-social-media/" target="_blank">netchoice.org</a></span>
+      </div>
+      <div class="oppo-fn-item">
+        <span class="oppo-fn-num">5</span>
+        <span class="oppo-fn-text">Senate District 50 DFL, sd50dfl.org; district character notes consistent with first-ring southwest metro profile.</span>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Auto-transition sentinel — observed by IntersectionObserver -->
+  <div id="brief-sentinel" style="height:1px;width:100%;"></div>
+
+  <!-- Subtle stamp — visible as user nears the bottom -->
+  <div class="machine-stamp">
+    <span class="machine-stamp-text">AI-GENERATED &nbsp;·&nbsp; 67 SENATORS &nbsp;·&nbsp; 63 PARALLEL AGENTS &nbsp;·&nbsp; ~4 HRS &nbsp;·&nbsp; ~$47</span>
+  </div>
+
+</div><!-- end .oppo-content -->
+
+
+<!-- =============================================
+     JAVASCRIPT
+     ============================================= -->
+<script>
+function toggleMode() {
+  var body = document.getElementById('body');
+  var btn  = document.getElementById('mode-toggle');
+  var isOppo = body.classList.contains('mode-oppo');
+
+  // Fade out
+  var proC  = document.querySelector('.pro-content');
+  var oppoC = document.querySelector('.oppo-content');
+
+  if (isOppo) {
+    // Switching back to pro
+    oppoC.style.opacity = '0';
+    setTimeout(function() {
+      body.classList.remove('mode-oppo');
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      proC.style.opacity = '0';
+      btn.innerHTML = 'VIEW OPPOSITION<br>RECORD';
+      setTimeout(function() {
+        proC.style.opacity = '1';
+      }, 30);
+    }, 160);
+  } else {
+    // Switching to oppo
+    proC.style.opacity = '0';
+    setTimeout(function() {
+      body.classList.add('mode-oppo');
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      oppoC.style.opacity = '0';
+      btn.innerHTML = 'VIEW SUPPORTER<br>RECORD';
+      setTimeout(function() {
+        oppoC.style.opacity = '1';
+      }, 30);
+    }, 160);
+  }
+}
+
+// Scroll-triggered number counters (pro stat band)
+function animateCounter(el, target, suffix, duration) {
+  var start = 0;
+  var step = target / (duration / 16);
+  var current = 0;
+  var isOrdinal = suffix === 'st';
+
+  var timer = setInterval(function() {
+    current += step;
+    if (current >= target) {
+      current = target;
+      clearInterval(timer);
+    }
+    if (isOrdinal) {
+      el.innerHTML = '1<span style="font-size:1.6rem">st</span>';
+    } else if (suffix === '%') {
+      el.textContent = Math.round(current) + '%';
+    } else {
+      el.textContent = Math.round(current);
+    }
+  }, 16);
+}
+
+var countersRun = false;
+
+function checkCounters() {
+  if (countersRun) return;
+  var band = document.querySelector('.pro-stat-band');
+  if (!band) return;
+  var rect = band.getBoundingClientRect();
+  if (rect.top < window.innerHeight * 0.9) {
+    countersRun = true;
+    animateCounter(document.getElementById('pro-counter-1'), 530, '', 1200);
+    animateCounter(document.getElementById('pro-counter-3'), 117, '%', 1400);
+    // Counter 2 is ordinal, set directly
+    setTimeout(function() {
+      document.getElementById('pro-counter-2').innerHTML = '1<span style="font-size:1.6rem">st</span>';
+    }, 300);
+  }
+}
+
+window.addEventListener('scroll', checkCounters, { passive: true });
+// Check on load in case stat band is already visible
+window.addEventListener('load', checkCounters);
+setTimeout(checkCounters, 500);
+</script>
+
+
+<!-- \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+     THE BRIEF \u2014 AI capabilities briefing
+\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 -->
+<div class="brief-content">
+
+  <div class="brief-opening">
+    <p class="brief-made-by">Sixty-seven of these pages were made using one AI account in about thirty minutes. Six months ago an automated project like this would have been impossible.</p>
+  </div>
+
+  <div class="brief-chart-section">
+    <h2 class="brief-chart-title">This is the trend that made it possible.</h2>
+    <div class="brief-chart-frame">
+      <img
+        src="https://metr.org/assets/images/measuring-ai-ability-to-complete-long-tasks/length-of-tasks-log.png"
+        alt="METR chart: length of tasks AI agents can complete autonomously, doubling roughly every 7 months since 2019"
+        class="brief-metr-img"
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+      >
+      <div class="brief-chart-fallback" style="display:none;">
+        <p>Chart unavailable. See the original at <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">metr.org</a>.</p>
+      </div>
+    </div>
+    <p class="brief-chart-source">Source: <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR</a>, an independent AI evaluation lab.</p>
+    <p class="brief-chart-read">This chart tracks how long a task an AI agent can finish on its own. In 2019, the answer was about three seconds. By early 2023, it was six minutes. by mid 2025, over two hours. As of early 2026, Claude Opus 4.6 completes tasks that take a skilled human roughly twelve hours.</p>
+    <p class="brief-chart-read">The overall doubling time has been about seven months. But it is getting faster. <a href="https://metr.org/time-horizons/" target="_blank">When researchers fit only the most recent data</a>, the doubling time drops to four months. At that rate, AI agents capable of completing month-long autonomous projects arrive not in the early 2030s but around 2028.</p>
+  </div>
+
+  <div class="brief-so-what">
+    <h2 class="brief-so-what-title">What that means for lawmakers.</h2>
+    <p>Urgency. There was a narrative last year that AI had hit a wall in capabilities. It was a plausible perspective at the time. It isn&#x2019;t anymore. After breakthroughs late last year, AI systems&#x2019; ability to automate cyberattacks, pathogen design, misinformation, mass surveillance, and vast swaths of white-collar work is advancing faster than ever.</p>
+    <p>The world will soon change faster than the typical pace of policymaking. The only solution is to act with atypical speed: AI regulations, data center moratoriums, calling for a federal pause on AI development, worker displacement funds. Some of these ideas already have bills introduced this session. Others should be explored soon. Time is limited, so if you feel behind on AI, the sources below are a good place to start.</p>
+    
+  </div>
+
+  <div class="brief-next">
+    <h2 class="brief-next-title">Start here.</h2>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">USE</span>
+      <a href="https://claude.ai/cowork" target="_blank">Claude Cowork</a> &middot; <a href="https://claude.ai/code" target="_blank">Claude Code</a>
+      <span class="brief-link-detail">The tools that built this page. Cowork handles research and writing. Code is the agent that runs tasks, spawns sub-agents, and makes decisions on its own. Spend thirty minutes with one of these on a real problem from your week. That will teach you more than any briefing.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR: Measuring AI Ability to Complete Long Tasks</a>
+      <span class="brief-link-detail">The source for the chart above. The METR trend is based on software tasks, but <a href="https://futuretech.mit.edu/publication/crashing-waves-vs-rising-tides-preliminary-findings-on-ai-automation-from-thousands-of-worker-evaluations-of-labor-market-tasks" target="_blank">MIT research on worker evaluations of labor market tasks</a> finds similar patterns across white-collar work broadly.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://aiindex.stanford.edu/report/" target="_blank">Stanford HAI AI Index 2025</a>
+      <span class="brief-link-detail">The most comprehensive annual report on AI capabilities, economics, and policy across all 50 states.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.imdb.com/title/tt39150120/" target="_blank">The AI Doc: Or How I Became an Apocaloptimist</a>
+      <span class="brief-link-detail">Daniel Roher&#x2019;s 2026 documentary, in theaters now. Roher interviews Amodei, Altman, Hassabis, and dozens more. If you see one thing on this list, see this.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.youtube.com/watch?v=xoVJKj8lcNQ" target="_blank">The A.I. Dilemma</a>
+      <span class="brief-link-detail">Center for Humane Technology. 60 min, free on YouTube. Made for people with institutional power who need to understand AI quickly.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">TRACK</span>
+      <a href="https://www.ncsl.org/technology-and-communication/artificial-intelligence" target="_blank">NCSL AI Legislation Tracker</a> &middot;
+      <a href="https://mn.gov/mnit/about-mnit/oit-programs/ai/" target="_blank">MN.IT AI Office</a>
+      <span class="brief-link-detail">Every AI bill in every state. Plus Minnesota&#x2019;s own AI program office. See where you stand relative to the field.</span>
+    </div>
+  </div>
+
+  <div class="brief-close">
+    <p class="brief-close-small">This project is not affiliated with any campaign, party, or organization.</p>
+    <button id="exit-brief-btn">\u2190 Back</button>
+  </div>
+
+</div><!-- /brief-content -->
+
+<style>
+.brief-content { display: none; }
+body.mode-brief .brief-content  { display: block; }
+body.mode-brief .pro-content    { display: none; }
+body.mode-brief .oppo-content   { display: none; }
+body.mode-brief #flip-btn       { display: none; }
+.brief-content { background: #0C0A08; color: #D4CCBE; font-family: 'Source Serif 4', Georgia, serif; font-size: 17px; line-height: 1.75; min-height: 100vh; }
+.brief-content a { color: #C0B49A; }
+.brief-content a:hover { color: #fff; }
+@keyframes glitch-seq {
+  0%   { filter: saturate(0) brightness(0.5); }
+  10%  { filter: hue-rotate(90deg) contrast(4) brightness(3); transform: skewX(4deg); }
+  12%  { filter: brightness(0.1); transform: none; }
+  25%  { filter: hue-rotate(200deg) invert(0.8); transform: translateX(6px); }
+  27%  { filter: brightness(0.05); transform: none; }
+  40%  { filter: blur(6px) brightness(0.02); }
+  44%  { filter: brightness(6); }
+  46%  { filter: none; transform: none; }
+  60%  { filter: hue-rotate(300deg) contrast(3) saturate(8); transform: skewX(-3deg); }
+  62%  { filter: none; transform: none; }
+  78%  { filter: blur(16px) brightness(0.01); }
+  82%  { filter: brightness(2); }
+  84%  { filter: none; }
+  100% { filter: none; transform: none; }
+}
+body.glitching { animation: glitch-seq 1.2s ease-in-out forwards; pointer-events: none; }
+.machine-stamp { background: #050505; border-top: 1px solid #111; padding: 16px 40px; text-align: center; }
+.machine-stamp-text { font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 0.22em; color: #222; text-transform: uppercase; animation: stamp-pulse 3s ease-in-out infinite; }
+@keyframes stamp-pulse { 0%, 100% { color: #222; } 50% { color: #4A3A2A; } }
+.brief-opening { max-width: 640px; margin: 0 auto; padding: 100px 40px 64px; }
+.brief-made-by { font-size: 20px; line-height: 1.65; color: #B8AE9C; margin-bottom: 20px; }
+.brief-chart-section { max-width: 740px; margin: 0 auto; padding: 48px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-chart-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 32px; font-style: italic; }
+.brief-chart-frame { background: #fff; border-radius: 4px; padding: 12px; margin-bottom: 12px; }
+.brief-metr-img { width: 100%; height: auto; display: block; }
+.brief-chart-fallback { padding: 40px; text-align: center; color: #666; font-size: 14px; }
+.brief-chart-source { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #5A5040; line-height: 1.6; margin-bottom: 28px; }
+.brief-chart-source a { color: #7A6A54; text-decoration: none; }
+.brief-chart-read { font-size: 17px; color: #B8AE9C; }
+.brief-so-what { max-width: 640px; margin: 0 auto; padding: 56px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-so-what-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 28px; font-style: italic; }
+.brief-so-what p { font-size: 17px; color: #B8AE9C; margin-bottom: 20px; }
+.brief-next { max-width: 640px; margin: 0 auto; padding: 56px 40px 48px; border-top: 1px solid #1E1A14; }
+.brief-next-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 14px; font-style: italic; }
+.brief-link-block { margin-bottom: 28px; line-height: 1.7; }
+.brief-link-tag { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.2em; color: #6A5A44; text-transform: uppercase; display: block; margin-bottom: 4px; }
+.brief-link-block a { font-weight: 600; color: #E0D6C4; text-decoration: underline; text-underline-offset: 3px; font-size: 16px; }
+.brief-link-block a:hover { color: #fff; }
+.brief-link-detail { display: block; font-size: 14px; color: #6A5E4C; margin-top: 2px; }
+.brief-close { max-width: 640px; margin: 0 auto; padding: 48px 40px 100px; border-top: 1px solid #1E1A14; }
+.brief-close p { font-family: 'Source Serif 4', Georgia, serif; font-size: 16px; color: #9A9080; margin-bottom: 32px; line-height: 1.7; }
+.brief-close-small { font-family: 'IBM Plex Mono', monospace !important; font-size: 11px !important; color: #3A3428 !important; letter-spacing: 0.04em; }
+#exit-brief-btn { background: none; border: 1px solid #2A2418; color: #5A5040; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; padding: 10px 20px; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
+#exit-brief-btn:hover { border-color: #8A7A64; color: #C0B49A; }
+@media (max-width: 900px) {
+  .brief-opening, .brief-so-what, .brief-next, .brief-close { padding-left: 24px; padding-right: 24px; }
+  .brief-chart-section { padding-left: 24px; padding-right: 24px; }
+  .brief-made-by { font-size: 18px; }
+  .brief-opening { padding-top: 64px; }
+  .machine-stamp { padding: 14px 20px; }
+}
+</style>
+
+<script>
+(function() {
+  let briefTriggered = false;
+  function startBriefTransition() {
+    if (briefTriggered) return;
+    if (!document.body.classList.contains('mode-oppo')) return;
+    briefTriggered = true;
+    const body = document.body;
+    body.style.transition = 'filter 2.5s ease-in';
+    body.style.filter = 'saturate(0) brightness(0.3)';
+    setTimeout(() => {
+      const hed = document.querySelector('.oppo-content h1') || document.querySelector('.oppo-content h2');
+      if (hed) {
+        const orig = hed.textContent; const chars = '\u2588\u2593\u2592\u2591\u25a0\u25a10123456789'; let n = 0;
+        const si = setInterval(() => { n++; hed.textContent = Array.from(orig).map(c => c === ' ' ? ' ' : chars[Math.floor(Math.random() * chars.length)]).join(''); if (n > 40) { clearInterval(si); hed.textContent = orig; } }, 40);
+      }
+    }, 1200);
+    setTimeout(() => {
+      body.style.transition = ''; body.style.filter = ''; body.classList.add('glitching');
+      setTimeout(() => { body.classList.remove('glitching'); body.classList.add('mode-brief'); window.scrollTo({ top: 0, behavior: 'instant' }); }, 1500);
+    }, 2500);
+  }
+  const sentinel = document.getElementById('brief-sentinel');
+  if (sentinel && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) { io.disconnect(); setTimeout(startBriefTransition, 1200); } }); }, { threshold: 0.5 });
+    io.observe(sentinel);
+  }
+  const flipBtn = document.getElementById('flip-btn');
+  if (flipBtn) { flipBtn.addEventListener('click', () => { if (document.body.classList.contains('mode-oppo')) briefTriggered = false; }); }
+})();
+document.addEventListener('click', (e) => {
+  if (e.target && e.target.id === 'exit-brief-btn') {
+    const body = document.body; body.style.opacity = '0'; body.style.transition = 'opacity 0.3s';
+    setTimeout(() => { body.classList.remove('mode-brief'); body.classList.add('mode-oppo'); window.scrollTo({ top: 0, behavior: 'instant' }); body.style.opacity = '1'; }, 300);
+  }
+});
+</script>
+
+</body>
+</html>

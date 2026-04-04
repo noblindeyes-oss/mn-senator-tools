@@ -1,0 +1,1796 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nick A. Frentz â€” Senate District 18</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,900;1,600;1,700&family=IBM+Plex+Mono:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet" />
+
+  <style>
+    /* â”€â”€â”€ RESET â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    /* â”€â”€â”€ MODE SWITCHING â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    .pro-content  { display: block; }
+    .oppo-content { display: none;  }
+    body.mode-oppo .pro-content  { display: none;  }
+    body.mode-oppo .oppo-content { display: block; }
+
+    /* â”€â”€â”€ TRANSITION WRAPPER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    #site-wrapper {
+      opacity: 1;
+      transition: opacity 0.22s ease;
+    }
+    #site-wrapper.fading { opacity: 0; }
+
+    /* â”€â”€â”€ FLIP BUTTON â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    #flip-btn {
+      position: fixed;
+      top: 22px;
+      right: 22px;
+      z-index: 9999;
+      border: none;
+      cursor: pointer;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9.5px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      padding: 12px 20px;
+      transition: transform 0.18s, box-shadow 0.18s;
+    }
+    body:not(.mode-oppo) #flip-btn {
+      background: #2B2B2B;
+      color: #F4F1EC;
+      box-shadow: 0 2px 10px rgba(43,43,43,0.3);
+    }
+    body.mode-oppo #flip-btn {
+      background: #F4F1EC;
+      color: #1a1a1a;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+    }
+    #flip-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.28);
+    }
+    .btn-pro-label, .btn-oppo-label { pointer-events: none; }
+    body:not(.mode-oppo) .btn-oppo-label { display: none; }
+    body.mode-oppo    .btn-pro-label  { display: none; }
+
+
+    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+       PRO SITE â€” "The Blue Earth Ledger"
+       Palette: river blue #2C5F8A Â· courthouse charcoal #2B2B2B
+                copper penny #B5773A Â· ledger cream #F4F1EC
+                slate #6B7B8D Â· pale rule #DDD8CF
+    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+
+    body { overflow-x: hidden; }
+
+    .pro-content {
+      background: #F4F1EC;
+      font-family: 'DM Sans', sans-serif;
+      color: #2B2B2B;
+      min-height: 100vh;
+    }
+
+    /* --- PRO LEDGER HEADER ------------------------------------ */
+    .pro-header {
+      background: #2C5F8A;
+      position: relative;
+      overflow: hidden;
+      border-bottom: 3px solid #B5773A;
+    }
+
+    /* Subtle watermark grid â€” blueprint lines */
+    .pro-header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        repeating-linear-gradient(0deg,
+          transparent, transparent 47px,
+          rgba(255,255,255,0.04) 47px, rgba(255,255,255,0.04) 48px),
+        repeating-linear-gradient(90deg,
+          transparent, transparent 47px,
+          rgba(255,255,255,0.04) 47px, rgba(255,255,255,0.04) 48px);
+      pointer-events: none;
+    }
+
+    .pro-header-inner {
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      min-height: 88vh;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 64px 48px 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    .pro-header-text {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding-bottom: 64px;
+    }
+
+    .pro-ledger-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+    .pro-ledger-tag-line {
+      width: 36px;
+      height: 1.5px;
+      background: #B5773A;
+    }
+    .pro-ledger-tag span {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(244,241,236,0.6);
+    }
+
+    .pro-name {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(48px, 6vw, 82px);
+      font-weight: 700;
+      line-height: 1.0;
+      color: #F4F1EC;
+      margin-bottom: 8px;
+      letter-spacing: -0.02em;
+    }
+
+    .pro-district-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #B5773A;
+      margin-bottom: 32px;
+    }
+
+    .pro-argument {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(19px, 2.2vw, 26px);
+      font-weight: 600;
+      font-style: italic;
+      line-height: 1.45;
+      color: rgba(244,241,236,0.92);
+      max-width: 520px;
+      border-left: 3px solid #B5773A;
+      padding-left: 20px;
+    }
+
+    /* Photo column */
+    .pro-header-photo {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding-bottom: 0;
+    }
+
+    .pro-photo-frame {
+      width: 320px;
+      height: 420px;
+      position: relative;
+    }
+
+    .pro-photo-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 15%;
+      display: block;
+      filter: sepia(12%) contrast(1.05) brightness(1.0);
+    }
+
+    .pro-photo-placeholder {
+      width: 100%;
+      height: 100%;
+      background: #1d4669;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .pro-photo-placeholder span {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: rgba(244,241,236,0.4);
+      letter-spacing: 0.1em;
+    }
+
+    /* River wave divider */
+    .pro-river-divider {
+      width: 100%;
+      height: 72px;
+      background: #2C5F8A;
+      clip-path: ellipse(55% 100% at 50% 0%);
+      margin-bottom: -2px;
+    }
+
+    /* --- STAT RAIL -------------------------------------------- */
+    .pro-stat-rail {
+      background: #2B2B2B;
+      padding: 0;
+    }
+
+    .pro-stat-rail-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-left: 1px solid rgba(244,241,236,0.08);
+    }
+
+    .pro-stat-cell {
+      padding: 36px 40px;
+      border-right: 1px solid rgba(244,241,236,0.08);
+      border-bottom: 2px solid rgba(244,241,236,0.04);
+    }
+
+    .pro-stat-num {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(36px, 4vw, 52px);
+      font-weight: 700;
+      color: #B5773A;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .pro-stat-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(244,241,236,0.45);
+      margin-bottom: 8px;
+    }
+
+    .pro-stat-desc {
+      font-size: 13px;
+      color: rgba(244,241,236,0.65);
+      line-height: 1.5;
+    }
+
+    /* --- MAIN LEDGER SECTION ---------------------------------- */
+    .pro-ledger-section {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 80px 48px;
+    }
+
+    .pro-section-rule {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 48px;
+    }
+    .pro-section-rule-line {
+      flex: 1;
+      height: 1px;
+      background: #DDD8CF;
+    }
+    .pro-section-rule-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #6B7B8D;
+    }
+
+    .pro-ledger-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: start;
+    }
+
+    /* Bill record card */
+    .pro-bill-record {
+      background: #fff;
+      border: 1px solid #DDD8CF;
+      border-top: 3px solid #2C5F8A;
+      padding: 36px;
+    }
+
+    .pro-bill-id {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      color: #2C5F8A;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .pro-bill-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 26px;
+      font-weight: 700;
+      line-height: 1.25;
+      color: #2B2B2B;
+      margin-bottom: 20px;
+    }
+
+    .pro-bill-body {
+      font-size: 15px;
+      line-height: 1.7;
+      color: #3a3a3a;
+      margin-bottom: 24px;
+    }
+
+    .pro-bill-body p + p {
+      margin-top: 12px;
+    }
+
+    /* Ledger rows â€” benefit breakdown */
+    .pro-ledger-rows {
+      margin-top: 24px;
+      border-top: 1px solid #DDD8CF;
+    }
+
+    .pro-ledger-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 13px 0;
+      border-bottom: 1px solid #DDD8CF;
+      gap: 16px;
+    }
+
+    .pro-ledger-row-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      font-weight: 500;
+      color: #4a4a4a;
+      flex: 1;
+    }
+
+    .pro-ledger-row-dots {
+      flex: 1;
+      border-bottom: 1px dotted #C8C3BA;
+      margin: 0 8px;
+      min-width: 40px;
+    }
+
+    .pro-ledger-row-value {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      color: #2C5F8A;
+      white-space: nowrap;
+    }
+
+    /* Sidebar context */
+    .pro-bill-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    .pro-context-block {
+      background: #2C5F8A;
+      color: #F4F1EC;
+      padding: 32px 36px;
+    }
+
+    .pro-context-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #B5773A;
+      margin-bottom: 14px;
+    }
+
+    .pro-context-quote {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 18px;
+      font-weight: 600;
+      font-style: italic;
+      line-height: 1.5;
+      color: #F4F1EC;
+    }
+
+    .pro-context-attr {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10.5px;
+      color: rgba(244,241,236,0.5);
+      margin-top: 12px;
+    }
+
+    .pro-vote-record {
+      background: #fff;
+      border: 1px solid #DDD8CF;
+      padding: 28px 36px;
+    }
+
+    .pro-vote-bar-wrap {
+      margin-top: 16px;
+    }
+
+    .pro-vote-bar-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #6B7B8D;
+      margin-bottom: 6px;
+    }
+
+    .pro-vote-bar-track {
+      height: 8px;
+      background: #DDD8CF;
+      width: 100%;
+      margin-bottom: 4px;
+    }
+
+    .pro-vote-bar-fill {
+      height: 100%;
+      background: #2C5F8A;
+      width: 0;
+      transition: width 1.2s ease-out;
+    }
+    .pro-vote-bar-fill.copper {
+      background: #B5773A;
+    }
+
+    .pro-vote-bar-nums {
+      display: flex;
+      justify-content: space-between;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: #6B7B8D;
+    }
+
+    .pro-who-benefits {
+      background: #fff;
+      border: 1px solid #DDD8CF;
+      border-top: 3px solid #B5773A;
+      padding: 32px 36px;
+    }
+
+    .pro-who-benefits h3 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: #2B2B2B;
+    }
+
+    .pro-benefit-group {
+      margin-bottom: 18px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid #DDD8CF;
+    }
+
+    .pro-benefit-group:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .pro-benefit-role {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #B5773A;
+      margin-bottom: 5px;
+    }
+
+    .pro-benefit-detail {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #3a3a3a;
+    }
+
+    /* --- DISTRICT ANCHOR ------------------------------------ */
+    .pro-district-anchor {
+      background: #2B2B2B;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .pro-district-anchor-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 340px;
+    }
+
+    .pro-district-img {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .pro-district-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: sepia(25%) brightness(0.75) contrast(1.1);
+    }
+
+    .pro-district-img-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to right, transparent 60%, #2B2B2B 100%);
+    }
+
+    .pro-district-text {
+      padding: 56px 56px 56px 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .pro-district-eyebrow {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #B5773A;
+      margin-bottom: 14px;
+    }
+
+    .pro-district-headline {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 1.3;
+      color: #F4F1EC;
+      margin-bottom: 16px;
+    }
+
+    .pro-district-body {
+      font-size: 15px;
+      line-height: 1.7;
+      color: rgba(244,241,236,0.7);
+    }
+
+    /* --- PRO FOOTNOTES --------------------------------------- */
+    .pro-footnotes {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 40px 48px 64px;
+      border-top: 1px solid #DDD8CF;
+    }
+
+    .pro-footnotes h4 {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #6B7B8D;
+      margin-bottom: 14px;
+    }
+
+    .pro-footnotes ol {
+      padding-left: 18px;
+    }
+
+    .pro-footnotes li {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: #888;
+      line-height: 1.65;
+      margin-bottom: 5px;
+    }
+
+    .pro-footnotes a {
+      color: #2C5F8A;
+      text-decoration: none;
+    }
+    .pro-footnotes a:hover { text-decoration: underline; }
+
+
+    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+       OPPO SITE â€” "Legislative Docket: Betting on Vice"
+       Palette: warning amber #C8820A Â· dock gray #1A1A1A
+                filing cream #F0EDE5 Â· red seal #8B1A1A
+                muted type #4A4240
+    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+
+    .oppo-content {
+      background: #1A1A1A;
+      font-family: 'DM Sans', sans-serif;
+      color: #F0EDE5;
+      min-height: 100vh;
+    }
+
+    /* --- OPPO HEADER ------------------------------------------ */
+    .oppo-header {
+      background: #111111;
+      border-bottom: 2px solid #C8820A;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Odds-board scanline texture */
+    .oppo-header::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(255,255,255,0.018) 2px,
+        rgba(255,255,255,0.018) 4px
+      );
+      pointer-events: none;
+    }
+
+    .oppo-header-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 56px 48px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .oppo-docket-tag {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .oppo-docket-stamp {
+      background: #8B1A1A;
+      color: #F0EDE5;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8.5px;
+      font-weight: 700;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      padding: 5px 10px;
+    }
+
+    .oppo-docket-id {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.16em;
+      color: rgba(240,237,229,0.35);
+    }
+
+    .oppo-case-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(36px, 5.5vw, 72px);
+      font-weight: 900;
+      line-height: 1.0;
+      color: #F0EDE5;
+      letter-spacing: -0.025em;
+      margin-bottom: 16px;
+    }
+
+    .oppo-case-title em {
+      font-style: italic;
+      color: #C8820A;
+    }
+
+    .oppo-case-deck {
+      font-size: clamp(15px, 1.8vw, 19px);
+      font-weight: 400;
+      line-height: 1.55;
+      color: rgba(240,237,229,0.65);
+      max-width: 740px;
+      margin-bottom: 36px;
+    }
+
+    .oppo-bill-status-bar {
+      display: inline-flex;
+      align-items: center;
+      gap: 0;
+      border: 1px solid rgba(200,130,10,0.4);
+    }
+
+    .oppo-bill-status-seg {
+      padding: 9px 18px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      border-right: 1px solid rgba(200,130,10,0.3);
+    }
+
+    .oppo-bill-status-seg:last-child { border-right: none; }
+
+    .oppo-bill-status-seg.active {
+      background: #C8820A;
+      color: #111;
+    }
+
+    .oppo-bill-status-seg.dead {
+      background: #8B1A1A;
+      color: rgba(240,237,229,0.9);
+    }
+
+    .oppo-bill-status-seg.inactive {
+      color: rgba(240,237,229,0.3);
+    }
+
+    /* --- ACCUSATION BAND ------------------------------------- */
+    .oppo-accusation-band {
+      background: #C8820A;
+      padding: 28px 48px;
+    }
+
+    .oppo-accusation-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    .oppo-accusation-text {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(16px, 2vw, 22px);
+      font-weight: 700;
+      font-style: italic;
+      color: #111111;
+      line-height: 1.4;
+    }
+
+    .oppo-accusation-sup {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      vertical-align: super;
+      color: rgba(17,17,17,0.6);
+    }
+
+    /* --- EVIDENCE SECTION ------------------------------------ */
+    .oppo-evidence-section {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 72px 48px;
+    }
+
+    .oppo-section-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 40px;
+    }
+
+    .oppo-section-header-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #C8820A;
+    }
+
+    .oppo-section-header-rule {
+      flex: 1;
+      height: 1px;
+      background: rgba(200,130,10,0.25);
+    }
+
+    /* Evidence cards */
+    .oppo-evidence-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      margin-bottom: 64px;
+    }
+
+    .oppo-evidence-card {
+      background: #222222;
+      padding: 32px 28px;
+      border-top: 2px solid transparent;
+      cursor: default;
+      transition: border-color 0.18s, background 0.18s;
+    }
+
+    .oppo-evidence-card:hover {
+      border-top-color: #C8820A;
+      background: #2a2a2a;
+    }
+
+    .oppo-evidence-card-num {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      color: #C8820A;
+      margin-bottom: 14px;
+    }
+
+    .oppo-evidence-card-head {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.3;
+      color: #F0EDE5;
+      margin-bottom: 12px;
+    }
+
+    .oppo-evidence-card-body {
+      font-size: 14px;
+      line-height: 1.65;
+      color: rgba(240,237,229,0.62);
+    }
+
+    .oppo-evidence-card-hover-reveal {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(200,130,10,0.2);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      color: #C8820A;
+      opacity: 0;
+      transform: translateY(4px);
+      transition: opacity 0.2s, transform 0.2s;
+    }
+
+    .oppo-evidence-card:hover .oppo-evidence-card-hover-reveal {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* --- PROOF BLOCK: Bill Text Excerpt ---------------------- */
+    .oppo-proof-block {
+      background: #111111;
+      border: 1px solid rgba(200,130,10,0.3);
+      padding: 0;
+      margin-bottom: 64px;
+    }
+
+    .oppo-proof-block-header {
+      background: rgba(200,130,10,0.12);
+      border-bottom: 1px solid rgba(200,130,10,0.25);
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .oppo-proof-block-title {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #C8820A;
+    }
+
+    .oppo-proof-block-meta {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9.5px;
+      color: rgba(240,237,229,0.28);
+      letter-spacing: 0.1em;
+    }
+
+    .oppo-proof-block-body {
+      padding: 28px 28px 24px;
+    }
+
+    .oppo-proof-line {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12.5px;
+      line-height: 1.8;
+      color: rgba(240,237,229,0.72);
+      margin-bottom: 0;
+    }
+
+    .oppo-proof-line-num {
+      color: rgba(200,130,10,0.45);
+      margin-right: 16px;
+      display: inline-block;
+      min-width: 28px;
+    }
+
+    .oppo-proof-highlight {
+      background: rgba(200,130,10,0.18);
+      color: #C8820A;
+      padding: 1px 3px;
+    }
+
+    .oppo-proof-block-note {
+      border-top: 1px solid rgba(200,130,10,0.15);
+      padding: 14px 28px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: rgba(240,237,229,0.32);
+    }
+
+    /* --- SEQUENCE TIMELINE ----------------------------------- */
+    .oppo-sequence {
+      margin-bottom: 64px;
+    }
+
+    .oppo-sequence-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: #F0EDE5;
+      margin-bottom: 32px;
+    }
+
+    .oppo-timeline {
+      position: relative;
+      padding-left: 40px;
+    }
+
+    .oppo-timeline::before {
+      content: '';
+      position: absolute;
+      left: 9px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: rgba(200,130,10,0.25);
+    }
+
+    .oppo-timeline-item {
+      position: relative;
+      margin-bottom: 32px;
+    }
+
+    .oppo-timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -33px;
+      top: 6px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #C8820A;
+    }
+
+    .oppo-timeline-item.dead::before {
+      background: #8B1A1A;
+    }
+
+    .oppo-timeline-date {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #C8820A;
+      margin-bottom: 5px;
+    }
+
+    .oppo-timeline-item.dead .oppo-timeline-date {
+      color: #c05050;
+    }
+
+    .oppo-timeline-head {
+      font-size: 16px;
+      font-weight: 600;
+      color: #F0EDE5;
+      margin-bottom: 5px;
+    }
+
+    .oppo-timeline-body {
+      font-size: 14px;
+      line-height: 1.6;
+      color: rgba(240,237,229,0.55);
+    }
+
+    /* --- OPPO SENATOR BLOCK ---------------------------------- */
+    .oppo-senator-block {
+      background: #161616;
+      border: 1px solid rgba(240,237,229,0.06);
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      margin-bottom: 64px;
+      overflow: hidden;
+    }
+
+    .oppo-senator-img {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .oppo-senator-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 15%;
+      filter: grayscale(100%) contrast(1.3) brightness(0.8);
+    }
+
+    .oppo-senator-img-placeholder {
+      width: 100%;
+      height: 100%;
+      min-height: 220px;
+      background: #222;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .oppo-senator-text {
+      padding: 32px 36px;
+    }
+
+    .oppo-senator-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: rgba(240,237,229,0.25);
+      margin-bottom: 8px;
+    }
+
+    .oppo-senator-name {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 26px;
+      font-weight: 700;
+      color: #F0EDE5;
+      margin-bottom: 4px;
+    }
+
+    .oppo-senator-title {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: #C8820A;
+      letter-spacing: 0.14em;
+      margin-bottom: 18px;
+    }
+
+    .oppo-senator-bio {
+      font-size: 14px;
+      line-height: 1.7;
+      color: rgba(240,237,229,0.55);
+    }
+
+    /* --- OPPO FOOTNOTES -------------------------------------- */
+    .oppo-footnotes {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 32px 48px 64px;
+      border-top: 1px solid rgba(240,237,229,0.08);
+    }
+
+    .oppo-footnotes h4 {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(240,237,229,0.25);
+      margin-bottom: 14px;
+    }
+
+    .oppo-footnotes ol {
+      padding-left: 18px;
+    }
+
+    .oppo-footnotes li {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10.5px;
+      color: rgba(240,237,229,0.3);
+      line-height: 1.65;
+      margin-bottom: 5px;
+    }
+
+    .oppo-footnotes a {
+      color: rgba(200,130,10,0.7);
+      text-decoration: none;
+    }
+    .oppo-footnotes a:hover { text-decoration: underline; }
+
+    /* â”€â”€â”€ RESPONSIVE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    @media (max-width: 900px) {
+      .pro-header-inner {
+        grid-template-columns: 1fr;
+        padding: 48px 28px 0;
+      }
+      .pro-header-photo {
+        justify-content: flex-start;
+        padding-bottom: 0;
+        margin-top: 40px;
+      }
+      .pro-photo-frame {
+        width: 220px;
+        height: 280px;
+      }
+      .pro-stat-rail-inner {
+        grid-template-columns: 1fr;
+      }
+      .pro-ledger-grid {
+        grid-template-columns: 1fr;
+        gap: 28px;
+      }
+      .pro-ledger-section {
+        padding: 48px 28px;
+      }
+      .pro-district-anchor-inner {
+        grid-template-columns: 1fr;
+      }
+      .pro-district-img {
+        height: 220px;
+      }
+      .pro-district-text {
+        padding: 36px 28px;
+      }
+      .pro-footnotes {
+        padding: 32px 28px 48px;
+      }
+
+      .oppo-header-inner {
+        padding: 40px 28px;
+      }
+      .oppo-accusation-band {
+        padding: 22px 28px;
+      }
+      .oppo-evidence-section {
+        padding: 48px 28px;
+      }
+      .oppo-evidence-grid {
+        grid-template-columns: 1fr;
+        gap: 2px;
+      }
+      .oppo-senator-block {
+        grid-template-columns: 1fr;
+      }
+      .oppo-senator-img {
+        height: 200px;
+      }
+      .oppo-footnotes {
+        padding: 28px 28px 48px;
+      }
+      #flip-btn {
+        top: 14px;
+        right: 14px;
+        font-size: 8.5px;
+        padding: 10px 14px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- â”€â”€â”€ FLIP BUTTON â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+  <button id="flip-btn" aria-label="Switch between supporter and opposition views">
+    <span class="btn-oppo-label">VIEW SUPPORTER CASE</span>
+    <span class="btn-pro-label">VIEW OPPOSITION FILE</span>
+  </button>
+
+  <div id="site-wrapper">
+
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+       PRO SITE â€” THE BLUE EARTH LEDGER
+  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+  <div class="pro-content" aria-label="Supporter view">
+
+    <!-- HEADER -->
+    <header class="pro-header">
+      <div class="pro-header-inner">
+        <div class="pro-header-text">
+          <div class="pro-ledger-tag">
+            <div class="pro-ledger-tag-line"></div>
+            <span>Minnesota Senate &mdash; District 18 &mdash; DFL</span>
+          </div>
+          <h1 class="pro-name">Nick A.<br>Frentz</h1>
+          <p class="pro-district-label">Mankato &middot; St. Peter &middot; North Mankato</p>
+          <p class="pro-argument">When public employees near retirement, the pension formula is their contract with the state. Frentz rewrote that contract in their favor.</p>
+        </div>
+        <div class="pro-header-photo">
+          <div class="pro-photo-frame">
+            <img
+              src="https://www.senate.mn/graphics/18Frentz.jpg"
+              alt="Senator Nick A. Frentz"
+              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+            />
+            <div class="pro-photo-placeholder" style="display:none;">
+              <span>DISTRICT 18</span>
+              <span>FRENTZ</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- STAT RAIL -->
+    <div class="pro-stat-rail">
+      <div class="pro-stat-rail-inner">
+        <div class="pro-stat-cell">
+          <div class="pro-stat-label">New Biennial Spending</div>
+          <div class="pro-stat-num" data-target="78" data-suffix="M">$0M</div>
+          <div class="pro-stat-desc">New retirement spending for the 2026&ndash;27 biennium, signed into law May 23, 2025.<sup style="font-size:9px;color:#B5773A;">1</sup></div>
+        </div>
+        <div class="pro-stat-cell">
+          <div class="pro-stat-label">Senate Vote / House Vote</div>
+          <div class="pro-stat-num">55&ndash;12 / 133&ndash;1</div>
+          <div class="pro-stat-desc">Near-unanimous bipartisan passage in both chambers. Senate vote 55-12. House vote 133-1.<sup style="font-size:9px;color:#B5773A;">2</sup></div>
+        </div>
+        <div class="pro-stat-cell">
+          <div class="pro-stat-label">Public Worker Groups Covered</div>
+          <div class="pro-stat-num">4</div>
+          <div class="pro-stat-desc">Teachers (TRA), general public employees (PERA), police and firefighters (PERA P&amp;F), and state patrol all received improvements.<sup style="font-size:9px;color:#B5773A;">3</sup></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN LEDGER -->
+    <div class="pro-ledger-section">
+      <div class="pro-section-rule">
+        <div class="pro-section-rule-label">The Record</div>
+        <div class="pro-section-rule-line"></div>
+      </div>
+
+      <div class="pro-ledger-grid">
+
+        <!-- Bill record -->
+        <div>
+          <div class="pro-bill-record">
+            <div class="pro-bill-id">SF 2884 &mdash; 94th Legislature &mdash; Chief Author: Frentz</div>
+            <h2 class="pro-bill-title">Omnibus Pension and Retirement Reform Act, 2025</h2>
+            <div class="pro-bill-body">
+              <p>Frentz chaired the Legislative Commission on Pensions and Retirement and carried the omnibus pension bill for the 2025 session. SF 2884 became <strong>2025 Session Law Chapter 37</strong>. The bill covered four separate retirement systems. Each fix addressed a specific gap in the formula, not a generic benefit increase.</p>
+              <p>For teachers, the early retirement window widened. The minimum age for enhanced early retirement dropped from 62 to 60, and the reduction penalty dropped from 6% to 5%. Teachers who spent careers in Mankato-area classrooms can now retire two years sooner at better terms.<sup style="font-size:9px;color:#2C5F8A;">4</sup></p>
+              <p>For police and firefighters, the COLA wait dropped from three years to two after retirement, and every retiree received a one-time compounded 3% increase in calendar year 2026.<sup style="font-size:9px;color:#2C5F8A;">5</sup></p>
+            </div>
+
+            <div class="pro-ledger-rows">
+              <div class="pro-ledger-row">
+                <span class="pro-ledger-row-label">TRA: Early retirement age</span>
+                <span class="pro-ledger-row-dots"></span>
+                <span class="pro-ledger-row-value">62 &rarr; 60</span>
+              </div>
+              <div class="pro-ledger-row">
+                <span class="pro-ledger-row-label">TRA: Early retirement penalty</span>
+                <span class="pro-ledger-row-dots"></span>
+                <span class="pro-ledger-row-value">6% &rarr; 5%</span>
+              </div>
+              <div class="pro-ledger-row">
+                <span class="pro-ledger-row-label">PERA P&amp;F: First COLA wait</span>
+                <span class="pro-ledger-row-dots"></span>
+                <span class="pro-ledger-row-value">3 yrs &rarr; 2 yrs</span>
+              </div>
+              <div class="pro-ledger-row">
+                <span class="pro-ledger-row-label">PERA P&amp;F: One-time 2026 COLA</span>
+                <span class="pro-ledger-row-dots"></span>
+                <span class="pro-ledger-row-value">+3% compounded</span>
+              </div>
+              <div class="pro-ledger-row">
+                <span class="pro-ledger-row-label">State Patrol: Annual COLA</span>
+                <span class="pro-ledger-row-dots"></span>
+                <span class="pro-ledger-row-value">1.0% &rarr; 1.25%</span>
+              </div>
+              <div class="pro-ledger-row">
+                <span class="pro-ledger-row-label">Employer TRA contribution (coordinated)</span>
+                <span class="pro-ledger-row-dots"></span>
+                <span class="pro-ledger-row-value">9.5% &rarr; 9.81%</span>
+              </div>
+              <div class="pro-ledger-row">
+                <span class="pro-ledger-row-label">Session law</span>
+                <span class="pro-ledger-row-dots"></span>
+                <span class="pro-ledger-row-value">Chapter 37</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="pro-bill-sidebar">
+          <div class="pro-context-block">
+            <div class="pro-context-label">Floor Statement</div>
+            <p class="pro-context-quote">"This bill is about keeping promises to the people who showed up every day for Minnesota."</p>
+            <p class="pro-context-attr">Sen. Nick Frentz, DFL-North Mankato &mdash; SF 2884 floor vote, 2025</p>
+          </div>
+
+          <div class="pro-vote-record">
+            <div class="pro-bill-id" style="margin-bottom:18px;">Vote Record &mdash; SF 2884</div>
+
+            <div class="pro-vote-bar-wrap">
+              <div class="pro-vote-bar-label">Senate: 55 Aye &mdash; 12 Nay</div>
+              <div class="pro-vote-bar-track">
+                <div class="pro-vote-bar-fill" data-width="82" style="width:0"></div>
+              </div>
+              <div class="pro-vote-bar-nums"><span>0</span><span>67 seats</span></div>
+            </div>
+
+            <div class="pro-vote-bar-wrap" style="margin-top:18px;">
+              <div class="pro-vote-bar-label">House: 133 Aye &mdash; 1 Nay</div>
+              <div class="pro-vote-bar-track">
+                <div class="pro-vote-bar-fill copper" data-width="99" style="width:0"></div>
+              </div>
+              <div class="pro-vote-bar-nums"><span>0</span><span>134 seats</span></div>
+            </div>
+          </div>
+
+          <div class="pro-who-benefits">
+            <h3>Who It Covers in District 18</h3>
+            <div class="pro-benefit-group">
+              <div class="pro-benefit-role">Teachers &mdash; TRA</div>
+              <div class="pro-benefit-detail">Mankato Area Public Schools, St. Peter schools, and regional districts. Retirement age drops two years. Penalty at the door drops one point.</div>
+            </div>
+            <div class="pro-benefit-group">
+              <div class="pro-benefit-role">Police &amp; Fire &mdash; PERA P&amp;F</div>
+              <div class="pro-benefit-detail">Mankato and North Mankato public safety departments. COLA wait cut by one year. One-time 3% increase in 2026.</div>
+            </div>
+            <div class="pro-benefit-group">
+              <div class="pro-benefit-role">State Patrol &mdash; MSRS</div>
+              <div class="pro-benefit-detail">Troopers stationed along US-169, US-14, and I-90 through the district. Annual COLA climbs from 1.0% to 1.25%.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DISTRICT ANCHOR -->
+    <div class="pro-district-anchor">
+      <div class="pro-district-anchor-inner">
+        <div class="pro-district-img">
+          <img
+            src="https://images.unsplash.com/photo-1511884642898-4c92249e20b6?w=800&q=80"
+            alt="Mankato civic district"
+            onerror="this.style.background='#1d3a52'; this.style.display='block'; this.style.minHeight='340px';"
+          />
+          <div class="pro-district-img-overlay"></div>
+        </div>
+        <div class="pro-district-text">
+          <div class="pro-district-eyebrow">District 18 &mdash; Minnesota River Bend</div>
+          <h2 class="pro-district-headline">A regional center where public employment is the economic spine.</h2>
+          <p class="pro-district-body">Mankato and North Mankato sit at the confluence of the Minnesota and Blue Earth rivers. The local economy runs on state government, education, health care, and manufacturing. Public employees are a visible part of the regional workforce. A pension formula change in St. Paul lands directly in this district.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTNOTES -->
+    <div class="pro-footnotes">
+      <h4>Sources</h4>
+      <ol>
+        <li>Governor Walz Signs Bill Boosting Pensions for Minnesota Teachers, Police Officers, and Firefighters, mn.gov, May 23, 2025. <a href="https://mn.gov/governor/newsroom/press-releases/?id=1055-686545" target="_blank">mn.gov/governor</a></li>
+        <li>Lawmakers pass bill boosting pensions for Minnesota teachers, police and firefighters, Minnesota House Session Daily. <a href="https://www.house.mn.gov/sessiondaily/Story/18811" target="_blank">house.mn.gov</a></li>
+        <li>2025 Omnibus Pension &amp; Retirement Bill summary, LCPR. <a href="https://www.lcpr.mn.gov/omnibus.htm" target="_blank">lcpr.mn.gov</a></li>
+        <li>TRA early retirement eligibility changes, SF 2884, Section: Teachers Retirement Association. <a href="https://minnesotatra.org/legislation/" target="_blank">minnesotatra.org</a></li>
+        <li>PERA Police and Fire COLA changes, 2025 Legislative Update. <a href="http://www.mnpera.org/2025-legislative-update" target="_blank">mnpera.org</a></li>
+        <li>SF 2884 became 2025 Session Law Chapter 37. Minnesota Revisor's Office. <a href="https://www.revisor.mn.gov/laws/2025/0/Session%2BLaw/Chapter/37/" target="_blank">revisor.mn.gov</a></li>
+      </ol>
+    </div>
+
+  </div><!-- end .pro-content -->
+
+
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+       OPPO SITE â€” LEGISLATIVE DOCKET: SF 3414
+  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+  <div class="oppo-content" aria-label="Opposition view">
+
+    <!-- HEADER -->
+    <header class="oppo-header">
+      <div class="oppo-header-inner">
+        <div class="oppo-docket-tag">
+          <span class="oppo-docket-stamp">Legislative Docket</span>
+          <span class="oppo-docket-id">SUBJECT: Sen. Nick A. Frentz &mdash; SD-18 &mdash; DFL &mdash; 94th Legislature</span>
+        </div>
+
+        <h1 class="oppo-case-title">Frentz Bet on<br><em>Gambling Expansion.</em><br>His Own Party Said No.</h1>
+
+        <p class="oppo-case-deck">The senator best known for handling Minnesota's pension file also pushed hard to open mobile sports betting to 11 tribal operator licenses with a 22% tax. Religious groups opposed it. Addiction advocates opposed it. Two DFL colleagues voted it down in committee. The bill died without a floor vote.<sup class="oppo-accusation-sup">1</sup></p>
+
+        <div class="oppo-bill-status-bar">
+          <div class="oppo-bill-status-seg active">SF 0757 &mdash; Introduced</div>
+          <div class="oppo-bill-status-seg active">Co-authored</div>
+          <div class="oppo-bill-status-seg active">Committee vote</div>
+          <div class="oppo-bill-status-seg dead">6&ndash;6 Tie. Failed.</div>
+          <div class="oppo-bill-status-seg inactive">Floor vote &mdash; never reached</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ACCUSATION BAND -->
+    <div class="oppo-accusation-band">
+      <div class="oppo-accusation-inner">
+        <p class="oppo-accusation-text">
+          Frentz co-authored two sports betting bills in the same session. Both failed. Neither failure stopped him from filing again.<sup class="oppo-accusation-sup" style="color:rgba(17,17,17,0.5);">2</sup>
+        </p>
+      </div>
+    </div>
+
+    <!-- EVIDENCE SECTION -->
+    <div class="oppo-evidence-section">
+
+      <div class="oppo-senator-block">
+        <div class="oppo-senator-img">
+          <img
+            src="https://www.senate.mn/graphics/18Frentz.jpg"
+            alt="Senator Nick A. Frentz"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+          />
+          <div class="oppo-senator-img-placeholder" style="display:none;">
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:rgba(240,237,229,0.2);letter-spacing:0.1em;">SD-18</span>
+          </div>
+        </div>
+        <div class="oppo-senator-text">
+          <div class="oppo-senator-label">Subject of File</div>
+          <div class="oppo-senator-name">Nick A. Frentz</div>
+          <div class="oppo-senator-title">Senate District 18 &mdash; DFL &mdash; North Mankato &mdash; Attorney</div>
+          <p class="oppo-senator-bio">Frentz is a former attorney and institutional Democrat who chairs the Senate Energy, Utilities, Environment, and Climate Committee and serves as Assistant Majority Leader. He is also Chair of the Legislative Commission on Pensions and Retirement. His brand is measured competence and large negotiated packages. His sports betting campaign sits uneasily inside that brand.</p>
+        </div>
+      </div>
+
+      <div class="oppo-section-header">
+        <span class="oppo-section-header-label">Evidence</span>
+        <div class="oppo-section-header-rule"></div>
+      </div>
+
+      <!-- 3 Evidence Cards -->
+      <div class="oppo-evidence-grid">
+
+        <div class="oppo-evidence-card">
+          <div class="oppo-evidence-card-num">EXHIBIT 01 &mdash; SF 0757</div>
+          <h3 class="oppo-evidence-card-head">Added His Name to the Original Betting Bill</h3>
+          <p class="oppo-evidence-card-body">Frentz was added as a chief author on SF 0757 on March 27, 2025. The bill authorized sports betting and fantasy contests with full tax structure and criminal penalties. It failed on a 6&ndash;6 committee vote. Two DFL senators crossed the aisle to kill it.<sup style="font-size:10px;color:#C8820A;">3</sup></p>
+          <div class="oppo-evidence-card-hover-reveal">SF 0757 &mdash; Chief Author: Klein; Frentz added 3/27/2025</div>
+        </div>
+
+        <div class="oppo-evidence-card">
+          <div class="oppo-evidence-card-num">EXHIBIT 02 &mdash; SF 3414</div>
+          <h3 class="oppo-evidence-card-head">Filed a Second Betting Bill in the Same Session</h3>
+          <p class="oppo-evidence-card-body">When SF 0757 stalled, Frentz co-authored SF 3414 with Sen. Matt Klein. The revised bill proposed up to 11 tribal operator licenses valid for 20 years, a 22% tax on net revenue, and wagers available to anyone 21 or older in Minnesota. The bill also died without reaching the floor.<sup style="font-size:10px;color:#C8820A;">4</sup></p>
+          <div class="oppo-evidence-card-hover-reveal">SF 3414 &mdash; Co-authors: Frentz, Klein &mdash; April 2025</div>
+        </div>
+
+        <div class="oppo-evidence-card">
+          <div class="oppo-evidence-card-num">EXHIBIT 03 &mdash; Opposition Record</div>
+          <h3 class="oppo-evidence-card-head">His Own Colleagues Blocked It on Addiction Grounds</h3>
+          <p class="oppo-evidence-card-body">Sen. Jon Marty (DFL-Roseville) proposed directing 50% of sports betting revenue to addiction treatment, compared to the 10% earmark in SF 3414. Religious groups and advocates for problem gamblers testified against the expansion. The Senate committee split 6&ndash;6. The bill never moved again.<sup style="font-size:10px;color:#C8820A;">5</sup></p>
+          <div class="oppo-evidence-card-hover-reveal">Committee vote: 6&ndash;6 &mdash; Two DFLers voted no</div>
+        </div>
+
+      </div>
+
+      <!-- PROOF BLOCK -->
+      <div class="oppo-section-header">
+        <span class="oppo-section-header-label">Core Document</span>
+        <div class="oppo-section-header-rule"></div>
+      </div>
+
+      <div class="oppo-proof-block">
+        <div class="oppo-proof-block-header">
+          <span class="oppo-proof-block-title">SF 3414 &mdash; Key Provisions Summary &mdash; 94th Legislature</span>
+          <span class="oppo-proof-block-meta">Source: MN Senate / Revenue Dept. fiscal summary</span>
+        </div>
+        <div class="oppo-proof-block-body">
+          <div class="oppo-proof-line"><span class="oppo-proof-line-num">01</span>Gambling Control Board may issue up to <span class="oppo-proof-highlight">11 operator licenses</span></div>
+          <div class="oppo-proof-line"><span class="oppo-proof-line-num">02</span>Licenses available exclusively to <span class="oppo-proof-highlight">federally recognized Indian Tribes</span></div>
+          <div class="oppo-proof-line"><span class="oppo-proof-line-num">03</span>Each license valid for <span class="oppo-proof-highlight">20 years</span>; annual fee $2,125</div>
+          <div class="oppo-proof-line"><span class="oppo-proof-line-num">04</span>Tax rate: <span class="oppo-proof-highlight">22% on net sports betting revenue</span></div>
+          <div class="oppo-proof-line"><span class="oppo-proof-line-num">05</span>Wagers placed on tribal land: <span class="oppo-proof-highlight">tax-exempt</span></div>
+          <div class="oppo-proof-line"><span class="oppo-proof-line-num">06</span>Legal age: <span class="oppo-proof-highlight">21 and older</span> &mdash; residents and visitors</div>
+          <div class="oppo-proof-line"><span class="oppo-proof-line-num">07</span>Problem gambling funding: <span class="oppo-proof-highlight">10% of revenue</span> (critics demanded 50%)</div>
+          <div class="oppo-proof-line"><span class="oppo-proof-line-num">08</span>Outcome: <span class="oppo-proof-highlight">Did not pass. 2025 session closed without floor vote.</span></div>
+        </div>
+        <div class="oppo-proof-block-note">Source: SF 3414 as introduced; Minnesota Department of Revenue summary.</div>
+      </div>
+
+      <!-- SEQUENCE / TIMELINE -->
+      <div class="oppo-sequence">
+        <div class="oppo-section-header">
+          <span class="oppo-section-header-label">Sequence of Events</span>
+          <div class="oppo-section-header-rule"></div>
+        </div>
+
+        <div class="oppo-timeline">
+
+          <div class="oppo-timeline-item">
+            <div class="oppo-timeline-date">January 30, 2025</div>
+            <div class="oppo-timeline-head">SF 0757 Introduced</div>
+            <div class="oppo-timeline-body">Sen. Matt Klein files the sports betting and fantasy contest authorization bill. Full tax structure, criminal penalties, and licensing framework included.</div>
+          </div>
+
+          <div class="oppo-timeline-item">
+            <div class="oppo-timeline-date">March 27, 2025</div>
+            <div class="oppo-timeline-head">Frentz Added as Chief Author</div>
+            <div class="oppo-timeline-body">Nick Frentz formally co-authors SF 0757, lending his institutional credibility to the gambling expansion push.</div>
+          </div>
+
+          <div class="oppo-timeline-item dead">
+            <div class="oppo-timeline-date">February 2025 &mdash; Committee Vote</div>
+            <div class="oppo-timeline-head">SF 0757 Fails 6&ndash;6 in State Government Committee</div>
+            <div class="oppo-timeline-body">Two DFL senators join four Republicans to block the bill. Addiction advocates and religious groups have testified against it. The tie kills the bill's momentum.</div>
+          </div>
+
+          <div class="oppo-timeline-item">
+            <div class="oppo-timeline-date">April 2025</div>
+            <div class="oppo-timeline-head">Frentz Co-Authors SF 3414 &mdash; A Second Attempt</div>
+            <div class="oppo-timeline-body">A revised bill proposes tribal exclusivity, 11 licenses, a 22% revenue tax, and a 20-year license term. Problem gambling funding remains at 10% &mdash; far below what critics demanded.</div>
+          </div>
+
+          <div class="oppo-timeline-item dead">
+            <div class="oppo-timeline-date">May 2025 &mdash; Session End</div>
+            <div class="oppo-timeline-head">SF 3414 Dies Without a Floor Vote</div>
+            <div class="oppo-timeline-body">The Minnesota legislature adjourns. Sports betting fails again. Two separate bills Frentz backed are dead. The addiction funding question goes unanswered.</div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- FOOTNOTES -->
+      <div class="oppo-footnotes" style="padding-left:0;padding-right:0;">
+        <h4>Sources</h4>
+        <ol>
+          <li>Minnesota Sports Betting Drive for 2025 Falters, Legal Sports Report, May 2025. <a href="https://www.legalsportsreport.com/233806/2025-minnesota-sports-betting-failure/" target="_blank">legalsportsreport.com</a></li>
+          <li>Minnesota Lawmaker Adds to Sports Betting Bills in the State, SBC Americas, April 23, 2025. <a href="https://sbcamericas.com/2025/04/23/minnesota-new-sports-betting-dfs-bill/" target="_blank">sbcamericas.com</a></li>
+          <li>SF 757 status page, 94th Legislature. Revisor records show Frentz was added as a chief author on March 27, 2025. <a href="https://www.revisor.mn.gov/bills/94/2025/0/SF/757/?body=senate" target="_blank">revisor.mn.gov</a></li>
+          <li>SF 3414 as introduced; Minnesota Department of Revenue summary. The bill provides for up to 11 tribal operator licenses, a 22% tax on online net sports betting revenue, and a 10% transfer for human services under proposed section 245.983. <a href="https://www.revisor.mn.gov/bills/94/2025/0/SF/3414/versions/latest/" target="_blank">revisor.mn.gov</a> <a href="https://www.revenue.state.mn.us/sites/default/files/2025-05/sf3414-sports-betting-1.pdf" target="_blank">revenue.state.mn.us</a></li>
+          <li>Sports betting's latest challenge in Minnesota: skepticism of sportsbooks, big tech, Eden Prairie Local News, Feb. 24, 2025. Reporting on Sen. Jon Marty's 50% treatment proposal and testimony from faith and problem-gambling opponents. <a href="https://www.eplocalnews.org/2025/02/24/sports-bettings-latest-challenge-in-minnesota-skepticism-of-sportsbooks-big-tech/" target="_blank">eplocalnews.org</a></li>
+          <li>Minnesota sports betting bill faces major setback in Senate committee, Yogonet, Feb. 14, 2025. <a href="https://www.yogonet.com/international/news/2025/02/14/95121-minnesota-sports-betting-bill-faces-major-setback-in-senate-committee" target="_blank">yogonet.com</a></li>
+        </ol>
+      </div>
+
+    </div><!-- end .oppo-evidence-section -->
+
+
+  <!-- Auto-transition sentinel — observed by IntersectionObserver -->
+  <div id="brief-sentinel" style="height:1px;width:100%;"></div>
+
+  <!-- Subtle stamp — visible as user nears the bottom -->
+  <div class="machine-stamp">
+    <span class="machine-stamp-text">AI-GENERATED &nbsp;·&nbsp; 67 SENATORS &nbsp;·&nbsp; 63 PARALLEL AGENTS &nbsp;·&nbsp; ~4 HRS &nbsp;·&nbsp; ~$47</span>
+  </div>
+
+  </div><!-- end .oppo-content -->
+
+  </div><!-- end #site-wrapper -->
+
+  <!-- â”€â”€â”€ JAVASCRIPT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+  <script>
+    // â”€â”€ Mode toggle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    const btn = document.getElementById('flip-btn');
+    const wrapper = document.getElementById('site-wrapper');
+    const body = document.body;
+
+    btn.addEventListener('click', () => {
+      wrapper.classList.add('fading');
+      setTimeout(() => {
+        body.classList.toggle('mode-oppo');
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        wrapper.classList.remove('fading');
+        // Trigger counters / bars when flipping to pro
+        if (!body.classList.contains('mode-oppo')) {
+          triggerProAnimations();
+        }
+      }, 220);
+    });
+
+    // â”€â”€ Number counters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    function animateCounter(el) {
+      const target = parseInt(el.dataset.target, 10);
+      const suffix = el.dataset.suffix || '';
+      const prefix = el.textContent.charAt(0) === '$' ? '$' : '';
+      const duration = 1200;
+      const start = performance.now();
+
+      function step(now) {
+        const elapsed = now - start;
+        const progress = Math.min(elapsed / duration, 1);
+        // Ease out quad
+        const eased = 1 - (1 - progress) * (1 - progress);
+        const value = Math.round(eased * target);
+        el.textContent = prefix + value + suffix;
+        if (progress < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+
+    // â”€â”€ Vote bar animations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    function animateBars() {
+      document.querySelectorAll('.pro-vote-bar-fill').forEach(fill => {
+        const targetWidth = fill.dataset.width;
+        setTimeout(() => {
+          fill.style.width = targetWidth + '%';
+        }, 100);
+      });
+    }
+
+    function triggerProAnimations() {
+      // counters
+      document.querySelectorAll('.pro-stat-num[data-target]').forEach(el => {
+        animateCounter(el);
+      });
+      // bars
+      animateBars();
+    }
+
+    // â”€â”€ Intersection observer for auto-trigger â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    const counterObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const el = entry.target;
+          if (el.dataset.target) animateCounter(el);
+          counterObserver.unobserve(el);
+        }
+      });
+    }, { threshold: 0.3 });
+
+    document.querySelectorAll('.pro-stat-num[data-target]').forEach(el => {
+      counterObserver.observe(el);
+    });
+
+    // Bars on scroll into view
+    const barObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          animateBars();
+          barObserver.disconnect();
+        }
+      });
+    }, { threshold: 0.2 });
+
+    const statRail = document.querySelector('.pro-stat-rail');
+    if (statRail) barObserver.observe(statRail);
+
+  </script>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     THE BRIEF — AI capabilities briefing
+═══════════════════════════════════════════════════════ -->
+<div class="brief-content">
+
+  <div class="brief-opening">
+    <p class="brief-made-by">Sixty-seven of these pages were made using one AI account in about thirty minutes. Six months ago an automated project like this would have been impossible.</p>
+  </div>
+
+  <div class="brief-chart-section">
+    <h2 class="brief-chart-title">This is the trend that made it possible.</h2>
+    <div class="brief-chart-frame">
+      <img src="https://metr.org/assets/images/measuring-ai-ability-to-complete-long-tasks/length-of-tasks-log.png" alt="METR chart" class="brief-metr-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+      <div class="brief-chart-fallback" style="display:none;"><p>Chart unavailable. See the original at <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">metr.org</a>.</p></div>
+    </div>
+    <p class="brief-chart-source">Source: <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR</a>, an independent AI evaluation lab.</p>
+    <p class="brief-chart-read">This chart tracks how long a task an AI agent can finish on its own. In 2019, the answer was about three seconds. By early 2023, it was six minutes. by mid 2025, over two hours. As of early 2026, Claude Opus 4.6 completes tasks that take a skilled human roughly twelve hours.</p>
+    <p class="brief-chart-read">The overall doubling time has been about seven months. But it is getting faster. <a href="https://metr.org/time-horizons/" target="_blank">When researchers fit only the most recent data</a>, the doubling time drops to four months. At that rate, AI agents capable of completing month-long autonomous projects arrive not in the early 2030s but around 2028.</p>
+  </div>
+
+  <div class="brief-so-what">
+    <h2 class="brief-so-what-title">What that means for lawmakers.</h2>
+    <p>Urgency. There was a narrative last year that AI had hit a wall in capabilities. It was a plausible perspective at the time. It isn't anymore. After breakthroughs late last year, AI systems' ability to automate cyberattacks, pathogen design, misinformation, mass surveillance, and vast swaths of white-collar work is advancing faster than ever.</p>
+    <p>The world will soon change faster than the typical pace of policymaking. The only solution is to act with atypical speed: AI regulations, data center moratoriums, calling for a federal pause on AI development, worker displacement funds. Some of these ideas already have bills introduced this session. Others should be explored soon. Time is limited, so if you feel behind on AI, the sources below are a good place to start.</p>
+    
+  </div>
+
+  <div class="brief-next">
+    <h2 class="brief-next-title">Start here.</h2>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">USE</span>
+      <a href="https://claude.ai/cowork" target="_blank">Claude Cowork</a> · <a href="https://claude.ai/code" target="_blank">Claude Code</a>
+      <span class="brief-link-detail">The tools that built this page. Cowork handles research and writing. Code is the agent that runs tasks, spawns sub-agents, and makes decisions on its own. Spend thirty minutes with one of these on a real problem from your week. That will teach you more than any briefing.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR: Measuring AI Ability to Complete Long Tasks</a>
+      <span class="brief-link-detail">The source for the chart above. The METR trend is based on software tasks, but <a href="https://futuretech.mit.edu/publication/crashing-waves-vs-rising-tides-preliminary-findings-on-ai-automation-from-thousands-of-worker-evaluations-of-labor-market-tasks" target="_blank">MIT research on worker evaluations of labor market tasks</a> finds similar patterns across white-collar work broadly.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://aiindex.stanford.edu/report/" target="_blank">Stanford HAI AI Index 2025</a>
+      <span class="brief-link-detail">The most comprehensive annual report on AI capabilities, economics, and policy across all 50 states.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.imdb.com/title/tt39150120/" target="_blank">The AI Doc: Or How I Became an Apocaloptimist</a>
+      <span class="brief-link-detail">Daniel Roher's 2026 documentary, in theaters now. Roher interviews Amodei, Altman, Hassabis, and dozens more. If you see one thing on this list, see this.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.youtube.com/watch?v=xoVJKj8lcNQ" target="_blank">The A.I. Dilemma</a>
+      <span class="brief-link-detail">Center for Humane Technology. 60 min, free on YouTube. Made for people with institutional power who need to understand AI quickly.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">TRACK</span>
+      <a href="https://www.ncsl.org/technology-and-communication/artificial-intelligence" target="_blank">NCSL AI Legislation Tracker</a> · <a href="https://mn.gov/mnit/about-mnit/oit-programs/ai/" target="_blank">MN.IT AI Office</a>
+      <span class="brief-link-detail">Every AI bill in every state. Plus Minnesota's own AI program office. See where you stand relative to the field.</span>
+    </div>
+  </div>
+
+  <div class="brief-close">
+    <p class="brief-close-small">This project is not affiliated with any campaign, party, or organization.</p>
+    <button id="exit-brief-btn">← Back</button>
+  </div>
+
+</div><!-- /brief-content -->
+
+<style>
+.brief-content { display: none; }
+body.mode-brief .brief-content { display: block; }
+body.mode-brief .pro-content { display: none; }
+body.mode-brief .oppo-content { display: none; }
+body.mode-brief #flip-btn { display: none; }
+.brief-content { background: #0C0A08; color: #D4CCBE; font-family: 'Source Serif 4', Georgia, serif; font-size: 17px; line-height: 1.75; min-height: 100vh; }
+.brief-content a { color: #C0B49A; }
+.brief-content a:hover { color: #fff; }
+@keyframes glitch-seq { 0% { filter: saturate(0) brightness(0.5); } 10% { filter: hue-rotate(90deg) contrast(4) brightness(3); transform: skewX(4deg); } 12% { filter: brightness(0.1); transform: none; } 25% { filter: hue-rotate(200deg) invert(0.8); transform: translateX(6px); } 27% { filter: brightness(0.05); transform: none; } 40% { filter: blur(6px) brightness(0.02); } 44% { filter: brightness(6); } 46% { filter: none; transform: none; } 60% { filter: hue-rotate(300deg) contrast(3) saturate(8); transform: skewX(-3deg); } 62% { filter: none; transform: none; } 78% { filter: blur(16px) brightness(0.01); } 82% { filter: brightness(2); } 84% { filter: none; } 100% { filter: none; transform: none; } }
+body.glitching { animation: glitch-seq 1.2s ease-in-out forwards; pointer-events: none; }
+.machine-stamp { background: #050505; border-top: 1px solid #111; padding: 16px 40px; text-align: center; }
+.machine-stamp-text { font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 0.22em; color: #222; text-transform: uppercase; animation: stamp-pulse 3s ease-in-out infinite; }
+@keyframes stamp-pulse { 0%, 100% { color: #222; } 50% { color: #4A3A2A; } }
+.brief-opening { max-width: 640px; margin: 0 auto; padding: 100px 40px 64px; }
+.brief-made-by { font-size: 20px; line-height: 1.65; color: #B8AE9C; margin-bottom: 20px; }
+.brief-chart-section { max-width: 740px; margin: 0 auto; padding: 48px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-chart-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 32px; font-style: italic; }
+.brief-chart-frame { background: #fff; border-radius: 4px; padding: 12px; margin-bottom: 12px; }
+.brief-metr-img { width: 100%; height: auto; display: block; }
+.brief-chart-fallback { padding: 40px; text-align: center; color: #666; font-size: 14px; }
+.brief-chart-source { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #5A5040; line-height: 1.6; margin-bottom: 28px; }
+.brief-chart-source a { color: #7A6A54; text-decoration: none; }
+.brief-chart-read { font-size: 17px; color: #B8AE9C; margin-bottom: 16px; }
+.brief-so-what { max-width: 640px; margin: 0 auto; padding: 56px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-so-what-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 28px; font-style: italic; }
+.brief-so-what p { font-size: 17px; color: #B8AE9C; margin-bottom: 20px; }
+.brief-next { max-width: 640px; margin: 0 auto; padding: 56px 40px 48px; border-top: 1px solid #1E1A14; }
+.brief-next-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 14px; font-style: italic; }
+.brief-link-block { margin-bottom: 28px; line-height: 1.7; }
+.brief-link-tag { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.2em; color: #6A5A44; text-transform: uppercase; display: block; margin-bottom: 4px; }
+.brief-link-block a { font-weight: 600; color: #E0D6C4; text-decoration: underline; text-underline-offset: 3px; font-size: 16px; }
+.brief-link-block a:hover { color: #fff; }
+.brief-link-detail { display: block; font-size: 14px; color: #6A5E4C; margin-top: 2px; }
+.brief-close { max-width: 640px; margin: 0 auto; padding: 48px 40px 100px; border-top: 1px solid #1E1A14; }
+.brief-close p { font-family: 'Source Serif 4', Georgia, serif; font-size: 16px; color: #9A9080; margin-bottom: 32px; line-height: 1.7; }
+.brief-close-small { font-family: 'IBM Plex Mono', monospace !important; font-size: 11px !important; color: #3A3428 !important; letter-spacing: 0.04em; }
+#exit-brief-btn { background: none; border: 1px solid #2A2418; color: #5A5040; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; padding: 10px 20px; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
+#exit-brief-btn:hover { border-color: #8A7A64; color: #C0B49A; }
+@media (max-width: 900px) { .brief-opening, .brief-so-what, .brief-next, .brief-close { padding-left: 24px; padding-right: 24px; } .brief-chart-section { padding-left: 24px; padding-right: 24px; } .brief-made-by { font-size: 18px; } .brief-opening { padding-top: 64px; } .machine-stamp { padding: 14px 20px; } }
+</style>
+
+<script>
+(function() {
+  let briefTriggered = false;
+  function startBriefTransition() {
+    if (briefTriggered) return;
+    if (!document.body.classList.contains('mode-oppo')) return;
+    briefTriggered = true;
+    const body = document.body;
+    body.style.transition = 'filter 2.5s ease-in';
+    body.style.filter = 'saturate(0) brightness(0.3)';
+    setTimeout(() => {
+      const hed = document.querySelector('.oppo-content h1') || document.querySelector('.oppo-content h2');
+      if (hed) { const orig = hed.textContent; const chars = '█▓▒░■□0123456789'; let n = 0; const si = setInterval(() => { n++; hed.textContent = Array.from(orig).map(c => c === ' ' ? ' ' : chars[Math.floor(Math.random() * chars.length)]).join(''); if (n > 40) { clearInterval(si); hed.textContent = orig; } }, 40); }
+    }, 1200);
+    setTimeout(() => {
+      body.style.transition = ''; body.style.filter = ''; body.classList.add('glitching');
+      setTimeout(() => { body.classList.remove('glitching'); body.classList.add('mode-brief'); window.scrollTo({ top: 0, behavior: 'instant' }); }, 1500);
+    }, 2500);
+  }
+  const sentinel = document.getElementById('brief-sentinel');
+  if (sentinel && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => { entries.forEach(e => { if (e.isIntersecting) { io.disconnect(); setTimeout(startBriefTransition, 1200); } }); }, { threshold: 0.5 });
+    io.observe(sentinel);
+  }
+  const flipBtn = document.getElementById('flip-btn');
+  if (flipBtn) { flipBtn.addEventListener('click', () => { if (document.body.classList.contains('mode-oppo')) briefTriggered = false; }); }
+})();
+document.addEventListener('click', (e) => {
+  if (e.target && e.target.id === 'exit-brief-btn') {
+    const body = document.body; body.style.opacity = '0'; body.style.transition = 'opacity 0.3s';
+    setTimeout(() => { body.classList.remove('mode-brief'); body.classList.add('mode-oppo'); window.scrollTo({ top: 0, behavior: 'instant' }); body.style.opacity = '1'; }, 300);
+  }
+});
+</script>
+
+</body>
+</html>

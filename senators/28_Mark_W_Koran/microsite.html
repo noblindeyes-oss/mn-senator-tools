@@ -1,0 +1,1819 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mark W. Koran — Senate District 28</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,600&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ─── RESET ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; overflow-x: hidden; }
+    body { overflow-x: hidden; min-width: 320px; }
+
+    /* ─── MODE SWITCHING ─────────────────────────────────── */
+    .pro-content  { display: block; }
+    .oppo-content { display: none; }
+    body.mode-oppo .pro-content  { display: none; }
+    body.mode-oppo .oppo-content { display: block; }
+
+    body {
+      transition: opacity 0.22s ease;
+    }
+    body.fading {
+      opacity: 0;
+    }
+
+    /* ─── FLIP BUTTON ────────────────────────────────────── */
+    #flip-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      border: none;
+      cursor: pointer;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      padding: 12px 20px;
+      transition: transform 0.18s, box-shadow 0.18s;
+      border-radius: 2px;
+    }
+    body:not(.mode-oppo) #flip-btn {
+      background: #1C2226;
+      color: #F5C400;
+      border: 1.5px solid #F5C400;
+    }
+    body.mode-oppo #flip-btn {
+      background: #EEE9E0;
+      color: #1A3A5C;
+      border: 1.5px solid #1A3A5C;
+    }
+    #flip-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+    }
+    .btn-pro-label, .btn-oppo-label { pointer-events: none; }
+    body:not(.mode-oppo) .btn-oppo-label { display: none; }
+    body.mode-oppo .btn-pro-label  { display: none; }
+
+
+    /* ══════════════════════════════════════════════════════
+       PRO SITE — "Highway 95 Project Dossier"
+       Palette: asphalt #1C2226, construction orange #E8620A,
+                highway yellow #F5C400, off-white #F4F1EC,
+                pine green #2A4A2E
+    ══════════════════════════════════════════════════════ */
+
+    .pro-content {
+      background: #F4F1EC;
+      font-family: 'Source Serif 4', Georgia, serif;
+      color: #1C2226;
+    }
+
+    /* ── PRO: TOP ORANGE STRIPE ── */
+    .pro-stripe {
+      background: #E8620A;
+      height: 6px;
+      width: 100%;
+    }
+
+    /* ── PRO: HEADER ── */
+    .pro-header {
+      background: #1C2226;
+      padding: 22px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 4px solid #E8620A;
+    }
+    .pro-header-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .pro-project-tag {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      color: #F5C400;
+      text-transform: uppercase;
+      border: 1px solid rgba(245,196,0,0.4);
+      padding: 4px 10px;
+    }
+    .pro-header-title {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      color: rgba(244,241,236,0.55);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .pro-header-district {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 400;
+      color: rgba(244,241,236,0.4);
+      letter-spacing: 0.1em;
+    }
+
+    /* ── PRO: HERO ── */
+    .pro-hero {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 92vh;
+    }
+
+    .pro-hero-left {
+      background: #1C2226;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 64px 56px;
+      overflow: hidden;
+    }
+
+    /* Diagonal hatching overlay — construction zone texture */
+    .pro-hero-left::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: repeating-linear-gradient(
+        -45deg,
+        transparent,
+        transparent 18px,
+        rgba(245,196,0,0.03) 18px,
+        rgba(245,196,0,0.03) 19px
+      );
+      pointer-events: none;
+    }
+
+    /* Vertical orange stripe marker */
+    .pro-hero-left::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 5px;
+      background: #E8620A;
+    }
+
+    .pro-bill-number {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      color: #F5C400;
+      text-transform: uppercase;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .pro-bill-number::before {
+      content: '';
+      display: inline-block;
+      width: 28px;
+      height: 1px;
+      background: #F5C400;
+    }
+
+    .pro-hero-headline {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(56px, 7vw, 92px);
+      line-height: 0.92;
+      color: #F4F1EC;
+      letter-spacing: 0.01em;
+      margin-bottom: 28px;
+    }
+    .pro-hero-headline span {
+      color: #E8620A;
+    }
+
+    .pro-hero-sub {
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 16px;
+      font-weight: 300;
+      line-height: 1.6;
+      color: rgba(244,241,236,0.72);
+      max-width: 360px;
+      margin-bottom: 40px;
+    }
+
+    .pro-senator-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(232,98,10,0.12);
+      border: 1px solid rgba(232,98,10,0.35);
+      padding: 10px 18px;
+      border-radius: 2px;
+    }
+    .pro-senator-tag img {
+      width: 44px;
+      height: 44px;
+      object-fit: cover;
+      object-position: center 15%;
+      border-radius: 2px;
+      filter: sepia(20%) contrast(1.05);
+    }
+    .pro-senator-tag-text {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: rgba(244,241,236,0.7);
+      letter-spacing: 0.1em;
+    }
+    .pro-senator-tag-name {
+      font-family: 'Oswald', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      color: #F4F1EC;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .pro-senator-placeholder {
+      width: 44px;
+      height: 44px;
+      background: #2A4A2E;
+      border-radius: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 14px;
+      font-weight: 700;
+      color: #F5C400;
+    }
+
+    /* ── PRO: HERO RIGHT — Project Image Panel ── */
+    .pro-hero-right {
+      position: relative;
+      overflow: hidden;
+      background: #2A3A28;
+    }
+    .pro-hero-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: saturate(0.7) contrast(1.1);
+      display: block;
+    }
+    .pro-hero-right-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to bottom,
+        rgba(28,34,38,0.15) 0%,
+        rgba(28,34,38,0.05) 40%,
+        rgba(28,34,38,0.5) 100%
+      );
+    }
+    .pro-hero-caption {
+      position: absolute;
+      bottom: 28px;
+      left: 28px;
+      right: 28px;
+    }
+    .pro-caption-tag {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      color: #F5C400;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .pro-caption-text {
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 13px;
+      font-weight: 300;
+      color: rgba(244,241,236,0.85);
+      line-height: 1.5;
+    }
+
+    /* ── PRO: STAT BAND ── */
+    .pro-stat-band {
+      background: #E8620A;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .pro-stat-cell {
+      padding: 36px 44px;
+      border-right: 1px solid rgba(28,34,38,0.2);
+      text-align: center;
+    }
+    .pro-stat-cell:last-child {
+      border-right: none;
+    }
+    .pro-stat-number {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 58px;
+      line-height: 1;
+      color: #1C2226;
+      letter-spacing: 0.01em;
+    }
+    .pro-stat-number sup {
+      font-size: 28px;
+      vertical-align: super;
+    }
+    .pro-stat-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(28,34,38,0.7);
+      margin-top: 4px;
+    }
+    .pro-stat-note {
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 11px;
+      color: rgba(28,34,38,0.55);
+      margin-top: 3px;
+    }
+
+    /* ── PRO: PROJECT SHEET SECTION ── */
+    .pro-project-section {
+      padding: 80px 48px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .pro-section-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      color: #E8620A;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .pro-section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(232,98,10,0.25);
+    }
+
+    .pro-section-heading {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(38px, 5vw, 60px);
+      line-height: 1;
+      color: #1C2226;
+      letter-spacing: 0.01em;
+      margin-bottom: 24px;
+    }
+
+    /* ── PRO: PROJECT SCOPE GRID ── */
+    .pro-scope-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      border: 1.5px solid #1C2226;
+      margin: 40px 0;
+    }
+    .pro-scope-item {
+      padding: 28px 32px;
+      border-right: 1.5px solid #1C2226;
+      border-bottom: 1.5px solid #1C2226;
+    }
+    .pro-scope-item:nth-child(2n) {
+      border-right: none;
+    }
+    .pro-scope-item:nth-last-child(-n+2) {
+      border-bottom: none;
+    }
+
+    .pro-scope-icon {
+      width: 32px;
+      height: 32px;
+      background: #E8620A;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 14px;
+      font-size: 16px;
+    }
+    .pro-scope-title {
+      font-family: 'Oswald', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #1C2226;
+      margin-bottom: 8px;
+    }
+    .pro-scope-desc {
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 14px;
+      font-weight: 300;
+      color: #3A4449;
+      line-height: 1.55;
+    }
+
+    /* ── PRO: PROGRESS BARS ── */
+    .pro-progress-section {
+      background: #1C2226;
+      padding: 64px 48px;
+    }
+    .pro-progress-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .pro-progress-item {
+      margin-bottom: 32px;
+    }
+    .pro-progress-item:last-child {
+      margin-bottom: 0;
+    }
+    .pro-progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 8px;
+    }
+    .pro-progress-name {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #F4F1EC;
+    }
+    .pro-progress-val {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px;
+      color: #F5C400;
+      letter-spacing: 0.04em;
+    }
+    .pro-progress-track {
+      height: 6px;
+      background: rgba(244,241,236,0.1);
+      border-radius: 0;
+    }
+    .pro-progress-fill {
+      height: 100%;
+      background: #E8620A;
+      width: 0;
+      transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .pro-progress-fill.yellow {
+      background: #F5C400;
+    }
+    .pro-progress-fill.green {
+      background: #4A8A50;
+    }
+
+    /* ── PRO: PULL QUOTE ── */
+    .pro-pullquote-section {
+      padding: 80px 48px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .pro-pullquote-block {
+      border-left: 5px solid #E8620A;
+      padding: 24px 36px;
+      background: rgba(232,98,10,0.06);
+    }
+    .pro-pullquote-text {
+      font-family: 'Oswald', sans-serif;
+      font-size: clamp(22px, 3vw, 34px);
+      font-weight: 500;
+      line-height: 1.25;
+      color: #1C2226;
+      letter-spacing: 0.01em;
+      margin-bottom: 16px;
+    }
+    .pro-pullquote-source {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #E8620A;
+    }
+
+    /* ── PRO: DISTRICT CONTEXT ── */
+    .pro-district-section {
+      background: #2A4A2E;
+      padding: 72px 48px;
+    }
+    .pro-district-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+    .pro-district-text {
+      color: rgba(244,241,236,0.85);
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 16px;
+      font-weight: 300;
+      line-height: 1.65;
+    }
+    .pro-district-text h3 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 40px;
+      color: #F4F1EC;
+      letter-spacing: 0.02em;
+      line-height: 1;
+      margin-bottom: 20px;
+    }
+    .pro-district-facts {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .pro-district-fact {
+      background: rgba(244,241,236,0.07);
+      border-left: 3px solid #F5C400;
+      padding: 16px 20px;
+    }
+    .pro-district-fact-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 34px;
+      color: #F5C400;
+      line-height: 1;
+    }
+    .pro-district-fact-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: rgba(244,241,236,0.55);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    /* ── PRO: FOOTNOTES ── */
+    .pro-footnotes {
+      background: #1C2226;
+      padding: 40px 48px;
+      border-top: 3px solid #E8620A;
+    }
+    .pro-footnotes-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .pro-fn-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #F5C400;
+      margin-bottom: 16px;
+    }
+    .pro-fn-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .pro-fn-list li {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: rgba(244,241,236,0.45);
+      line-height: 1.5;
+    }
+    .pro-fn-list li a {
+      color: rgba(245,196,0,0.6);
+      text-decoration: none;
+    }
+    .pro-fn-list li a:hover {
+      color: #F5C400;
+    }
+
+
+    /* ══════════════════════════════════════════════════════
+       OPPO SITE — "Case File 28 / School Carry Record"
+       Palette: case-file cream #EEE9E0, institutional charcoal #2A2D32,
+                alert red #C0392B, cold blue #1A3A5C,
+                mid-gray #5A6068
+    ══════════════════════════════════════════════════════ */
+
+    .oppo-content {
+      background: #EEE9E0;
+      font-family: 'Source Serif 4', Georgia, serif;
+      color: #2A2D32;
+    }
+
+    /* ── OPPO: FILE HEADER ── */
+    .oppo-file-header {
+      background: #2A2D32;
+      padding: 0;
+      border-bottom: 4px solid #C0392B;
+    }
+    .oppo-file-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 48px;
+      border-bottom: 1px solid rgba(238,233,224,0.08);
+    }
+    .oppo-file-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: #C0392B;
+    }
+    .oppo-file-id {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      color: rgba(238,233,224,0.3);
+      letter-spacing: 0.12em;
+    }
+    .oppo-file-hero {
+      padding: 52px 48px 56px;
+    }
+    .oppo-subject-line {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(238,233,224,0.4);
+      margin-bottom: 10px;
+    }
+    .oppo-subject-value {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(238,233,224,0.75);
+      letter-spacing: 0.06em;
+      margin-bottom: 36px;
+    }
+    .oppo-headline {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(48px, 6.5vw, 86px);
+      line-height: 0.93;
+      color: #EEE9E0;
+      letter-spacing: 0.015em;
+      margin-bottom: 6px;
+    }
+    .oppo-headline span.red {
+      color: #C0392B;
+    }
+    .oppo-deck {
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 17px;
+      font-weight: 300;
+      line-height: 1.6;
+      color: rgba(238,233,224,0.65);
+      max-width: 600px;
+      margin-top: 24px;
+    }
+
+    /* ── OPPO: SENATOR BLOCK ── */
+    .oppo-senator-block {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 36px;
+      padding-top: 28px;
+      border-top: 1px solid rgba(238,233,224,0.1);
+    }
+    .oppo-senator-img {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      object-position: center 15%;
+      filter: grayscale(100%) contrast(1.2);
+      border-radius: 2px;
+      border: 2px solid rgba(192,57,43,0.5);
+    }
+    .oppo-senator-placeholder {
+      width: 60px;
+      height: 60px;
+      background: #1A3A5C;
+      border-radius: 2px;
+      border: 2px solid rgba(192,57,43,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 18px;
+      font-weight: 700;
+      color: rgba(238,233,224,0.5);
+    }
+    .oppo-senator-meta {}
+    .oppo-senator-name {
+      font-family: 'Oswald', sans-serif;
+      font-size: 17px;
+      font-weight: 600;
+      color: #EEE9E0;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .oppo-senator-desc {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: rgba(238,233,224,0.4);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-top: 3px;
+    }
+
+    /* ── OPPO: SEQUENCE BAND ── */
+    .oppo-sequence {
+      background: #1A3A5C;
+      padding: 0;
+    }
+    .oppo-sequence-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .oppo-seq-step {
+      padding: 40px 36px;
+      border-right: 1px solid rgba(238,233,224,0.1);
+      position: relative;
+    }
+    .oppo-seq-step:last-child {
+      border-right: none;
+    }
+    .oppo-step-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 72px;
+      line-height: 1;
+      color: rgba(192,57,43,0.2);
+      position: absolute;
+      top: 20px;
+      right: 24px;
+    }
+    .oppo-step-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #C0392B;
+      margin-bottom: 10px;
+    }
+    .oppo-step-title {
+      font-family: 'Oswald', sans-serif;
+      font-size: 19px;
+      font-weight: 600;
+      color: #EEE9E0;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      line-height: 1.2;
+      margin-bottom: 10px;
+    }
+    .oppo-step-desc {
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 13px;
+      font-weight: 300;
+      color: rgba(238,233,224,0.6);
+      line-height: 1.55;
+    }
+
+    /* ── OPPO: DOCUMENT BLOCK ── */
+    .oppo-doc-section {
+      padding: 80px 48px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .oppo-section-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      color: #C0392B;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .oppo-section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(192,57,43,0.25);
+    }
+    .oppo-section-heading {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(36px, 4vw, 54px);
+      line-height: 1.05;
+      color: #2A2D32;
+      letter-spacing: 0.01em;
+      margin-bottom: 30px;
+    }
+
+    .oppo-doc-block {
+      background: #2A2D32;
+      border: none;
+      padding: 40px 44px;
+      position: relative;
+      margin-bottom: 40px;
+    }
+    .oppo-doc-block::before {
+      content: 'BILL TEXT — SF 399 / 94th Legislature';
+      position: absolute;
+      top: 14px;
+      right: 20px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(238,233,224,0.2);
+    }
+    .oppo-doc-line {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      color: rgba(238,233,224,0.6);
+      line-height: 1.8;
+      margin-bottom: 2px;
+    }
+    .oppo-doc-line.highlight {
+      color: #EEE9E0;
+      background: rgba(192,57,43,0.2);
+      padding: 2px 6px;
+      margin-left: -6px;
+    }
+    .oppo-doc-body {
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 16px;
+      font-weight: 300;
+      line-height: 1.65;
+      color: #3A3D42;
+      max-width: 700px;
+    }
+
+    /* ── OPPO: EVIDENCE CARDS ── */
+    .oppo-evidence-section {
+      background: #2A2D32;
+      padding: 72px 48px;
+    }
+    .oppo-evidence-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .oppo-evidence-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      margin-top: 40px;
+    }
+    .oppo-card {
+      background: rgba(238,233,224,0.04);
+      border: 1px solid rgba(238,233,224,0.08);
+      padding: 36px 30px;
+      cursor: default;
+      transition: background 0.2s, border-color 0.2s, transform 0.15s;
+      position: relative;
+      overflow: hidden;
+    }
+    .oppo-card::after {
+      content: attr(data-hostile);
+      position: absolute;
+      inset: 0;
+      background: #C0392B;
+      color: #EEE9E0;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      line-height: 1.55;
+      padding: 28px 24px;
+      opacity: 0;
+      transition: opacity 0.22s;
+      display: flex;
+      align-items: center;
+    }
+    .oppo-card:hover::after {
+      opacity: 1;
+    }
+    .oppo-card:hover {
+      border-color: #C0392B;
+      transform: translateY(-3px);
+    }
+    .oppo-card-tag {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #C0392B;
+      margin-bottom: 14px;
+    }
+    .oppo-card-title {
+      font-family: 'Oswald', sans-serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: #EEE9E0;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      line-height: 1.2;
+      margin-bottom: 12px;
+    }
+    .oppo-card-body {
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 13px;
+      font-weight: 300;
+      color: rgba(238,233,224,0.55);
+      line-height: 1.55;
+    }
+    .oppo-card-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 48px;
+      color: rgba(192,57,43,0.3);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    /* ── OPPO: CONTRADICTION BLOCK ── */
+    .oppo-contra-section {
+      padding: 80px 48px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .oppo-contra-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 32px;
+    }
+    .oppo-contra-table th {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #5A6068;
+      padding: 10px 20px;
+      border-bottom: 2px solid #2A2D32;
+      text-align: left;
+    }
+    .oppo-contra-table td {
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 15px;
+      font-weight: 300;
+      color: #2A2D32;
+      padding: 20px 20px;
+      border-bottom: 1px solid rgba(42,45,50,0.12);
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    .oppo-contra-table td.red {
+      color: #C0392B;
+      font-weight: 600;
+    }
+    .oppo-contra-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* ── OPPO: BOTTOM STATEMENT ── */
+    .oppo-statement {
+      background: #C0392B;
+      padding: 56px 48px;
+    }
+    .oppo-statement-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .oppo-statement-text {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(32px, 4.5vw, 56px);
+      line-height: 1.05;
+      color: #EEE9E0;
+      letter-spacing: 0.02em;
+    }
+    .oppo-statement-sub {
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 16px;
+      font-weight: 300;
+      color: rgba(238,233,224,0.75);
+      margin-top: 20px;
+      line-height: 1.6;
+    }
+
+    /* ── OPPO: FOOTNOTES ── */
+    .oppo-footnotes {
+      background: #EEE9E0;
+      padding: 40px 48px;
+      border-top: 3px solid #C0392B;
+    }
+    .oppo-footnotes-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .oppo-fn-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #C0392B;
+      margin-bottom: 16px;
+    }
+    .oppo-fn-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .oppo-fn-list li {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: #5A6068;
+      line-height: 1.5;
+    }
+    .oppo-fn-list li a {
+      color: #1A3A5C;
+      text-decoration: none;
+    }
+    .oppo-fn-list li a:hover {
+      text-decoration: underline;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .pro-hero {
+        grid-template-columns: 1fr;
+      }
+      .pro-hero-right {
+        height: 320px;
+      }
+      .pro-stat-band {
+        grid-template-columns: 1fr;
+      }
+      .pro-stat-cell {
+        border-right: none;
+        border-bottom: 1px solid rgba(28,34,38,0.2);
+      }
+      .pro-stat-cell:last-child {
+        border-bottom: none;
+      }
+      .pro-scope-grid {
+        grid-template-columns: 1fr;
+      }
+      .pro-scope-item {
+        border-right: none;
+      }
+      .pro-scope-item:nth-last-child(-n+2) {
+        border-bottom: 1.5px solid #1C2226;
+      }
+      .pro-scope-item:last-child {
+        border-bottom: none;
+      }
+      .pro-district-inner {
+        grid-template-columns: 1fr;
+      }
+      .oppo-sequence-inner {
+        grid-template-columns: 1fr;
+      }
+      .oppo-seq-step {
+        border-right: none;
+        border-bottom: 1px solid rgba(238,233,224,0.1);
+      }
+      .oppo-seq-step:last-child {
+        border-bottom: none;
+      }
+      .oppo-evidence-grid {
+        grid-template-columns: 1fr;
+      }
+      .pro-header {
+        padding: 16px 24px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      .pro-project-section,
+      .pro-pullquote-section,
+      .pro-footnotes,
+      .pro-progress-section {
+        padding-left: 24px;
+        padding-right: 24px;
+      }
+      .oppo-file-hero,
+      .oppo-doc-section,
+      .oppo-evidence-section,
+      .oppo-contra-section,
+      .oppo-statement,
+      .oppo-footnotes {
+        padding-left: 24px;
+        padding-right: 24px;
+      }
+      .oppo-file-top {
+        padding-left: 24px;
+        padding-right: 24px;
+      }
+      .pro-hero-left {
+        padding: 40px 24px;
+      }
+      #flip-btn {
+        top: 12px;
+        right: 12px;
+        font-size: 8px;
+        padding: 10px 14px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ─── FLIP BUTTON ───────────────────────────────────── -->
+  <button id="flip-btn" onclick="flipMode()" aria-label="Switch between supporter and opposition views">
+    <span class="btn-oppo-label">&#9658; See Supporter View</span>
+    <span class="btn-pro-label">&#9658; See Opposition View</span>
+  </button>
+
+
+  <!-- ════════════════════════════════════════════════════════
+       PRO SITE — Highway 95 Project Dossier
+  ════════════════════════════════════════════════════════ -->
+  <div class="pro-content" aria-label="Supporter site">
+
+    <div class="pro-stripe"></div>
+
+    <!-- HEADER -->
+    <header class="pro-header">
+      <div class="pro-header-left">
+        <div class="pro-project-tag">Project Record</div>
+        <div>
+          <div class="pro-header-title">Minnesota State Senate — District 28</div>
+          <div class="pro-header-district">Isanti &amp; Chisago Counties</div>
+        </div>
+      </div>
+      <div class="pro-header-left">
+        <div style="text-align:right;">
+          <div class="pro-header-title">Senator Mark W. Koran</div>
+          <div class="pro-header-district">Republican — 3rd Term</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- HERO -->
+    <section class="pro-hero">
+      <div class="pro-hero-left">
+        <div class="pro-bill-number">SF 0653 &nbsp;/&nbsp; Infrastructure Appropriation</div>
+        <h1 class="pro-hero-headline">Fix the<br/><span>Corridor.</span><br/>Get It<br/>Done.</h1>
+        <p class="pro-hero-sub">
+          Senator Koran introduced SF653 to seek $4.03 million for two named Cambridge road and rail projects.
+          The money is requested. The projects are named. The district argument is specific even if the bill was not enacted.
+        </p>
+        <div class="pro-senator-tag">
+          <img
+            src="https://www.senate.mn/graphics/32Koran.jpg"
+            alt="Senator Mark W. Koran"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+          />
+          <div class="pro-senator-placeholder" style="display:none;">MK</div>
+          <div class="pro-senator-tag-text">
+            <div class="pro-senator-tag-name">Mark W. Koran</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:rgba(244,241,236,0.45);letter-spacing:0.1em;margin-top:2px;">SD-28 &nbsp;|&nbsp; North Branch, MN</div>
+          </div>
+        </div>
+      </div>
+      <div class="pro-hero-right">
+        <!-- Unsplash: highway intersection aerial, infrastructure construction -->
+        <img
+          class="pro-hero-img"
+          src="https://images.unsplash.com/photo-1545558014-8692077e9b5c?w=1000&q=80"
+          alt="Highway infrastructure construction"
+          onerror="this.style.background='#2A3A28';this.style.minHeight='100%';"
+        />
+        <div class="pro-hero-right-overlay"></div>
+        <div class="pro-hero-caption">
+          <div class="pro-caption-tag">District 28 &mdash; Isanti County</div>
+          <div class="pro-caption-text">Trunk Highway 95 through Cambridge carries daily commuter and freight traffic on one of the district's most critical corridors.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STAT BAND -->
+    <div class="pro-stat-band" aria-label="Key project figures">
+      <div class="pro-stat-cell">
+        <div class="pro-stat-number" data-counter="4030000" data-prefix="$" data-suffix="">$<span class="counter-val">0</span></div>
+        <div class="pro-stat-label">Total Request</div>
+        <div class="pro-stat-note">SF 0653 — introduced request for two named projects</div>
+      </div>
+      <div class="pro-stat-cell">
+        <div class="pro-stat-number" data-counter="2750000" data-prefix="$" data-suffix="">$<span class="counter-val">0</span></div>
+        <div class="pro-stat-label">TH 95 Reconstruction</div>
+        <div class="pro-stat-note">Traffic signals, storm &amp; sanitary sewers, water mains, lighting</div>
+      </div>
+      <div class="pro-stat-cell">
+        <div class="pro-stat-number" data-counter="1280000" data-prefix="$" data-suffix="">$<span class="counter-val">0</span></div>
+        <div class="pro-stat-label">BNSF Rail Crossing</div>
+        <div class="pro-stat-note">Crossing relocation to reduce train-delay bottleneck</div>
+      </div>
+    </div>
+
+    <!-- PROJECT SCOPE -->
+    <section class="pro-project-section">
+      <div class="pro-section-label">Project Scope &mdash; SF 0653</div>
+      <h2 class="pro-section-heading">What the Bill Actually Buys</h2>
+      <p style="font-family:'Source Serif 4',Georgia,serif;font-size:16px;font-weight:300;color:#3A4449;line-height:1.65;max-width:700px;margin-bottom:8px;">
+        Koran chief-authored SF 0653 to request state money for two specific projects in Cambridge, Isanti County.
+        Both are named in the bill text. Both address a backlog that the city had been seeking to resolve for years.<sup style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:#E8620A;">[1]</sup>
+      </p>
+
+      <div class="pro-scope-grid">
+        <div class="pro-scope-item">
+          <div class="pro-scope-icon">&#9650;</div>
+          <div class="pro-scope-title">Traffic Signals</div>
+          <div class="pro-scope-desc">New and upgraded signals at key intersections along the Trunk Highway 95 corridor through Cambridge. Addresses daily queuing that commuters experience on the district's primary north-south artery.</div>
+        </div>
+        <div class="pro-scope-item">
+          <div class="pro-scope-icon">&#9642;</div>
+          <div class="pro-scope-title">Storm &amp; Sanitary Sewer</div>
+          <div class="pro-scope-desc">Full utility replacement under the roadbed — storm sewers, sanitary sewers, and water mains rebuilt to modern standard. Infrastructure that has to be right before the road surface can be right.</div>
+        </div>
+        <div class="pro-scope-item">
+          <div class="pro-scope-icon">&#9679;</div>
+          <div class="pro-scope-title">Corridor Lighting</div>
+          <div class="pro-scope-desc">Street lighting upgraded along the TH 95 reconstruction zone. Safety and visibility for the commercial district and evening commuters using the Cambridge business corridor.</div>
+        </div>
+        <div class="pro-scope-item">
+          <div class="pro-scope-icon">&#9648;</div>
+          <div class="pro-scope-title">BNSF Rail Crossing Relocation</div>
+          <div class="pro-scope-desc">The bill asks for $1.28M for the Federated Propane rail-switch relocation tied to the TH 95 bottleneck. MnDOT project materials describe the switch move as part of the broader compromise meant to reduce crossing delays when trains shunt through the facility.<sup style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:#E8620A;">[2]</sup></div>
+        </div>
+      </div>
+
+      <div class="pro-pullquote-block" style="margin-top:0;">
+        <div class="pro-pullquote-text">Voters in Isanti and Chisago counties want systems that work. They are impatient with visible bottlenecks. This bill addresses a specific, named bottleneck with specific, named dollars.</div>
+        <div class="pro-pullquote-source">SF 0653 / Koran — Infrastructure Request, District 28</div>
+      </div>
+    </section>
+
+    <!-- PROGRESS BARS -->
+    <section class="pro-progress-section">
+      <div class="pro-progress-inner">
+        <div class="pro-section-label" style="color:#F5C400;margin-bottom:36px;">
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;">Project Timeline &amp; Status</span>
+          <span style="flex:1;height:1px;background:rgba(245,196,0,0.2);display:block;margin-left:10px;"></span>
+        </div>
+        <div class="pro-progress-item">
+          <div class="pro-progress-header">
+            <span class="pro-progress-name">SF 0653 Filed &amp; Chief-Authored</span>
+            <span class="pro-progress-val">COMPLETE</span>
+          </div>
+          <div class="pro-progress-track">
+            <div class="pro-progress-fill" data-width="100"></div>
+          </div>
+        </div>
+        <div class="pro-progress-item">
+          <div class="pro-progress-header">
+            <span class="pro-progress-name">MnDOT Final Design</span>
+            <span class="pro-progress-val">July 2025</span>
+          </div>
+          <div class="pro-progress-track">
+            <div class="pro-progress-fill yellow" data-width="90"></div>
+          </div>
+        </div>
+        <div class="pro-progress-item">
+          <div class="pro-progress-header">
+            <span class="pro-progress-name">Construction Bid Opening</span>
+            <span class="pro-progress-val">Nov 2025</span>
+          </div>
+          <div class="pro-progress-track">
+            <div class="pro-progress-fill yellow" data-width="75"></div>
+          </div>
+        </div>
+        <div class="pro-progress-item">
+          <div class="pro-progress-header">
+            <span class="pro-progress-name">TH 95 Reconstruction &amp; Rail Move</span>
+            <span class="pro-progress-val">2026&ndash;2027</span>
+          </div>
+          <div class="pro-progress-track">
+            <div class="pro-progress-fill green" data-width="55"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DISTRICT CONTEXT -->
+    <section class="pro-district-section">
+      <div class="pro-district-inner">
+        <div class="pro-district-text">
+          <h3>District 28 Has Been Waiting</h3>
+          <p>Cambridge is Isanti County's commercial hub. Highway 95 runs straight through it. The rail crossing has been a documented congestion point for years. The city has been seeking funding solutions for the crossing since at least 2019.<sup style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:#F5C400;">[3]</sup></p>
+          <br/>
+          <p>Koran's district covers exurban Isanti and Chisago counties. Residents commute. Businesses depend on arterials. Road and utility conditions are visible, daily, and political. An infrastructure win here is not abstract.</p>
+          <br/>
+          <p>The bill named the city. It named the road. It named the rail crossing. That specificity is the point.</p>
+        </div>
+        <div class="pro-district-facts">
+          <div class="pro-district-fact">
+            <div class="pro-district-fact-num">2</div>
+            <div class="pro-district-fact-label">Named projects in SF 0653</div>
+          </div>
+          <div class="pro-district-fact">
+            <div class="pro-district-fact-num">$4.03M</div>
+            <div class="pro-district-fact-label">Total state dollars requested</div>
+          </div>
+          <div class="pro-district-fact">
+            <div class="pro-district-fact-num">2026&ndash;27</div>
+            <div class="pro-district-fact-label">Construction window, confirmed by MnDOT</div>
+          </div>
+          <div class="pro-district-fact">
+            <div class="pro-district-fact-num">7+</div>
+            <div class="pro-district-fact-label">Years Cambridge sought rail crossing fix</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PULLQUOTE -->
+    <section class="pro-pullquote-section">
+      <div class="pro-section-label">Koran's Record in District 28</div>
+      <h2 class="pro-section-heading">Watchdog with a Wrench</h2>
+      <p style="font-family:'Source Serif 4',Georgia,serif;font-size:16px;font-weight:300;color:#3A4449;line-height:1.65;max-width:700px;margin-bottom:32px;">
+        Koran's public record runs from election integrity legislation to infrastructure funding requests. He is not a soft-focus local booster. He is a senator who prefers specific, verifiable outcomes over press release governance. The Highway 95 dossier is consistent with that pattern — a named project, named dollar figures, and a timeline that can be checked.
+      </p>
+      <div class="pro-pullquote-block">
+        <div class="pro-pullquote-text">Voters are impatient with visible bottlenecks. Koran targeted the bottleneck Cambridge had been trying to unplug for nearly a decade. The request is now in the legislative record.</div>
+        <div class="pro-pullquote-source">TH 95 / Cambridge — MnDOT District 3 Project Page, 2025</div>
+      </div>
+    </section>
+
+    <!-- FOOTNOTES -->
+    <footer class="pro-footnotes">
+      <div class="pro-footnotes-inner">
+        <div class="pro-fn-label">Sources &amp; Citations</div>
+        <ul class="pro-fn-list">
+          <li>[1] SF 0653 — Chief-Authored by Sen. Mark W. Koran; Minnesota Senate bill record, 93rd Legislature. Minnesota Senate member bill report: <a href="https://www.senate.mn/members/bill_author_report.html?ls=93&mem_id=1256&author=Y" target="_blank" rel="noopener">senate.mn/members/bill_author_report.html</a></li>
+          <li>[2] MnDOT Hwy 95 Cambridge Project Page — rail switch relocation to south of Federated Propane confirmed: <a href="https://www.dot.state.mn.us/d3/projects/cambridge/index.html" target="_blank" rel="noopener">dot.state.mn.us/d3/projects/cambridge</a></li>
+          <li>[3] "Cambridge seeks funding for Highway 95 expansion at railroad crossing," Hometown Source, 2019: <a href="https://www.hometownsource.com/county_news_review/news/cambridge-seeks-funding-for-highway-expansion-at-railroad-crossing/article_b2db5214-da40-11e9-9472-0fcffe91d8dc.html" target="_blank" rel="noopener">hometownsource.com</a></li>
+          <li>[4] "More Highway 95 project details released," Isanti-Chisago County Star, 2025: <a href="https://www.isanti-chisagocountystar.com/news/more-highway-95-project-details-released/article_f05314c6-f54a-11ef-adbc-f3b9cfcdc3c7.html" target="_blank" rel="noopener">isanti-chisagocountystar.com</a></li>
+          <li>[5] MnDOT construction timeline: Final design July 2025; bids November 2025; construction 2026-2027. Source: <a href="https://www.ci.cambridge.mn.us/projects/highway-95-project" target="_blank" rel="noopener">ci.cambridge.mn.us/projects/highway-95-project</a></li>
+        </ul>
+      </div>
+    </footer>
+
+  </div><!-- /pro-content -->
+
+
+  <!-- ════════════════════════════════════════════════════════
+       OPPO SITE — Case File: SF 399 / School Carry Record
+  ════════════════════════════════════════════════════════ -->
+  <div class="oppo-content" aria-label="Opposition site">
+
+    <!-- FILE HEADER -->
+    <header class="oppo-file-header">
+      <div class="oppo-file-top">
+        <div class="oppo-file-label">Legislative Record &mdash; Accountability File</div>
+        <div class="oppo-file-id">CASE: SF399 &nbsp;|&nbsp; SD-28 &nbsp;|&nbsp; 94th Legislature &nbsp;|&nbsp; 2025&ndash;2026</div>
+      </div>
+      <div class="oppo-file-hero">
+        <div class="oppo-subject-line">Subject</div>
+        <div class="oppo-subject-value">Sen. Mark W. Koran &nbsp;/ &nbsp;District 28 &nbsp;/ &nbsp;Republican &nbsp;/ &nbsp;North Branch, MN</div>
+        <h1 class="oppo-headline">Koran Backed<br/><span class="red">Armed School</span><br/>Staff.</h1>
+        <p class="oppo-deck">
+          While District 28 waits on roads and utilities, Senator Koran used legislative bandwidth on a bill that would let qualifying school employees carry concealed firearms on campus.
+          He calls it school safety. The clean factual issue is that SF399 is a school-staff carry bill, not a road or utility file.
+        </p>
+        <div class="oppo-senator-block">
+          <img
+            class="oppo-senator-img"
+            src="https://www.senate.mn/graphics/32Koran.jpg"
+            alt="Senator Mark W. Koran"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+          />
+          <div class="oppo-senator-placeholder" style="display:none;">MK</div>
+          <div class="oppo-senator-meta">
+            <div class="oppo-senator-name">Mark W. Koran</div>
+            <div class="oppo-senator-desc">SD-28 &nbsp;|&nbsp; Republican &nbsp;|&nbsp; Chief Author, SF 399</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- SEQUENCE -->
+    <section class="oppo-sequence">
+      <div class="oppo-sequence-inner">
+        <div class="oppo-seq-step">
+          <div class="oppo-step-num">1</div>
+          <div class="oppo-step-label">The Bill</div>
+          <div class="oppo-step-title">Koran Files SF 399</div>
+          <div class="oppo-step-desc">In the 94th Legislature (2025-2026), Koran chief-authored SF 399 to allow school staff with permits to carry concealed firearms in public K-12 schools, charter schools, and postsecondary institutions across Minnesota.</div>
+        </div>
+        <div class="oppo-seq-step">
+          <div class="oppo-step-num">2</div>
+          <div class="oppo-step-label">The Mechanism</div>
+          <div class="oppo-step-title">BCA Training and a Sheriff Permit</div>
+          <div class="oppo-step-desc">The bill creates a BCA training program — active shooter response — and a new "school permit to carry" issued by the county sheriff. Pass the training, get the permit. Then carry, concealed, in your school.</div>
+        </div>
+        <div class="oppo-seq-step">
+          <div class="oppo-step-num">3</div>
+          <div class="oppo-step-label">The Consequence</div>
+          <div class="oppo-step-title">School Staff Could Carry Under the Bill</div>
+          <div class="oppo-step-desc">If SF399 passed, qualifying school employees could apply for a school permit to carry. The attack line is not that the bill literally mandates guns in classrooms. It is that Koran authored a statewide school-staff carry proposal.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DOCUMENT BLOCK -->
+    <section class="oppo-doc-section">
+      <div class="oppo-section-label">Primary Document</div>
+      <h2 class="oppo-section-heading">What SF 399 Actually Says</h2>
+        <p class="oppo-doc-body" style="margin-bottom:28px;">
+          The bill text is public. The language is direct. Koran's bill creates a new permit category, a BCA training track, and a pathway for qualifying school employees to carry concealed firearms in school buildings.<sup style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:#C0392B;">[1]</sup>
+        </p>
+      <div class="oppo-doc-block">
+        <div class="oppo-doc-line">SF No. 399 — 94th Legislature (2025-2026)</div>
+        <div class="oppo-doc-line">Introduced: January 2025 — Chief Author: Koran</div>
+        <div class="oppo-doc-line">&nbsp;</div>
+        <div class="oppo-doc-line highlight">"A teacher or other employee of a public elementary, middle, or</div>
+        <div class="oppo-doc-line highlight">&nbsp;secondary school; charter school; or postsecondary institution</div>
+        <div class="oppo-doc-line highlight">&nbsp;may apply to the sheriff of the county where the teacher or</div>
+        <div class="oppo-doc-line highlight">&nbsp;employee resides for a school permit to carry."</div>
+        <div class="oppo-doc-line">&nbsp;</div>
+        <div class="oppo-doc-line">Training requirement: BCA-administered program including</div>
+        <div class="oppo-doc-line">active shooter response. Offered at least once per year.</div>
+        <div class="oppo-doc-line">&nbsp;</div>
+        <div class="oppo-doc-line">Amends: Minn. Stat. §609.66, subd. 1d; §624.714, subd. 18</div>
+        <div class="oppo-doc-line">New law proposed in: Chapter 299C (BCA programs)</div>
+      </div>
+      <p class="oppo-doc-body">
+        Note what is absent: the text does not require school board approval before a qualifying employee applies for a permit. That is a cleaner local-control critique than the old rhetoric about "guns in classrooms."
+      </p>
+    </section>
+
+    <!-- EVIDENCE CARDS -->
+    <section class="oppo-evidence-section">
+      <div class="oppo-evidence-inner">
+        <div class="oppo-section-label" style="color:#C0392B;">
+          <span>Evidence Record</span>
+          <span style="flex:1;height:1px;background:rgba(192,57,43,0.3);display:block;margin-left:10px;"></span>
+        </div>
+        <h2 class="oppo-section-heading" style="color:#EEE9E0;">Three Facts an Opponent Would Use</h2>
+        <p style="font-family:'Source Serif 4',Georgia,serif;font-size:14px;font-weight:300;color:rgba(238,233,224,0.5);font-style:italic;margin-top:-16px;margin-bottom:0;">Hover each card for the attack line.</p>
+        <div class="oppo-evidence-grid">
+
+          <div class="oppo-card"
+               data-hostile="ATTACK LINE: 'He wrote the school-staff carry bill. Read SF399.'">
+            <div class="oppo-card-num">SF399</div>
+            <div class="oppo-card-tag">Bill Authorship</div>
+            <div class="oppo-card-title">Chief Author, School-Staff Carry Bill</div>
+            <div class="oppo-card-body">
+              Koran didn't co-sign this bill or vote for it in committee. He wrote it. Chief-authored it and introduced it to the 94th Legislature. That's a choice about what kind of legislation he wants to lead on.
+            </div>
+          </div>
+
+          <div class="oppo-card"
+               data-hostile="ATTACK LINE: 'No school board vote in the bill text. Just a county sheriff and a BCA course. Koran cut local schools out of the decision.'">
+            <div class="oppo-card-num">0</div>
+            <div class="oppo-card-tag">Local Control Gap</div>
+            <div class="oppo-card-title">No School Board Approval Requirement</div>
+            <div class="oppo-card-body">
+              SF 399 does not require school board approval before a staff member carries. Districts in Isanti and Chisago counties — communities that run on local control and parental trust — would have no formal veto over armed teachers in their buildings.
+            </div>
+          </div>
+
+          <div class="oppo-card"
+               data-hostile="ATTACK LINE: 'He campaigns on discipline and institutional oversight. Then he writes a bill that skips the school board and lets a sheriff decide if your child's teacher carries a gun.'">
+            <div class="oppo-card-num">&#9888;</div>
+            <div class="oppo-card-tag">Brand vs. Record</div>
+            <div class="oppo-card-title">The Watchdog Who Skipped the Check</div>
+            <div class="oppo-card-body">
+              Koran's public record is heavy on election oversight, audit accountability, and institutional compliance. SF 399 bypasses the most local institution in the district — the school board — and routes the decision through a county sheriff instead.
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTRADICTION TABLE -->
+    <section class="oppo-contra-section">
+      <div class="oppo-section-label">The Contradiction</div>
+      <h2 class="oppo-section-heading">What He Says vs. What the Bill Does</h2>
+      <table class="oppo-contra-table" aria-label="Contradiction between stated brand and bill record">
+        <thead>
+          <tr>
+            <th>Koran's Stated Brand</th>
+            <th>What SF 399 Does</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>"Local institutions should be accountable and transparent."</td>
+            <td class="red">Bypasses the school board entirely. Armed staff decision goes to county sheriff.</td>
+          </tr>
+          <tr>
+            <td>Watchdog conservatism: procedures, rules, compliance chains matter.</td>
+            <td class="red">Creates a new permit category with no school-level approval trigger and no parental notification requirement.</td>
+          </tr>
+          <tr>
+            <td>Exurban constituent expectation: schools should be boring and safe.</td>
+             <td class="red">Creates a statewide path for qualifying school employees to carry concealed firearms on campus.</td>
+          </tr>
+          <tr>
+            <td>District character: impatient with visible systems failures.</td>
+            <td class="red">A teacher with a concealed firearm and a BCA certificate is now a visible system in your child's school.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- BOTTOM STATEMENT -->
+    <div class="oppo-statement">
+      <div class="oppo-statement-inner">
+        <div class="oppo-statement-text">Parents in District 28 didn't ask for this. Koran wrote it anyway.</div>
+        <div class="oppo-statement-sub">
+          SF 399 is a public document. The bill number is real. The permit mechanism is real.
+          The absence of a school board vote is real. Check it at revisor.mn.gov.
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTNOTES -->
+    <footer class="oppo-footnotes">
+      <div class="oppo-footnotes-inner">
+        <div class="oppo-fn-label">Sources &amp; Citations</div>
+        <ul class="oppo-fn-list">
+          <li>[1] SF 399 — 94th Legislature (2025-2026). Chief Author: Koran. Full bill text: <a href="https://www.revisor.mn.gov/bills/text.php?number=SF399&version=0&session=ls94&session_year=2025&session_number=0" target="_blank" rel="noopener">revisor.mn.gov — SF 399 as introduced</a></li>
+          <li>[2] SF 399 PDF version: <a href="https://www.revisor.mn.gov/bills/94/2025/0/SF/399/versions/0/pdf/" target="_blank" rel="noopener">revisor.mn.gov/bills/94/2025/0/SF/399/versions/0/pdf/</a></li>
+          <li>[3] Companion bill HF 663 (93rd Legislature, 2023-2024) — same concept, prior session: <a href="https://www.revisor.mn.gov/bills/text.php?number=HF0663&version=latest&session=92&session_number=0&session_year=2023" target="_blank" rel="noopener">revisor.mn.gov — HF 663</a></li>
+          <li>[4] Minnesota Senate member bill list, Sen. Koran — 93rd Legislature: <a href="https://www.senate.mn/members/bill_author_report.html?ls=93&mem_id=1256&author=Y" target="_blank" rel="noopener">senate.mn/members/bill_author_report.html</a></li>
+          <li>[5] Koran's election integrity legislative package overview: <a href="https://www.mnsenaterepublicans.com/koran-introduces-legislative-package-to-strengthen-minnesota-election-integrity-and-restore-voter-trust/" target="_blank" rel="noopener">mnsenaterepublicans.com</a></li>
+        </ul>
+      </div>
+    </footer>
+
+
+  <!-- Auto-transition sentinel — observed by IntersectionObserver -->
+  <div id="brief-sentinel" style="height:1px;width:100%;"></div>
+
+  <!-- Subtle stamp — visible as user nears the bottom -->
+  <div class="machine-stamp">
+    <span class="machine-stamp-text">AI-GENERATED &nbsp;·&nbsp; 67 SENATORS &nbsp;·&nbsp; 63 PARALLEL AGENTS &nbsp;·&nbsp; ~4 HRS &nbsp;·&nbsp; ~$47</span>
+  </div>
+
+  </div><!-- /oppo-content -->
+
+
+  <!-- ─── JAVASCRIPT ─────────────────────────────────────── -->
+  <script>
+    // ── MODE FLIP ──────────────────────────────────────────
+    function flipMode() {
+      document.body.classList.add('fading');
+      setTimeout(function() {
+        document.body.classList.toggle('mode-oppo');
+        window.scrollTo(0, 0);
+        document.body.classList.remove('fading');
+      }, 220);
+    }
+
+    // ── SCROLL-TRIGGERED COUNTERS ─────────────────────────
+    function formatNum(n) {
+      if (n >= 1000000) {
+        return '$' + (n / 1000000).toFixed(2) + 'M';
+      } else if (n >= 1000) {
+        return '$' + (n / 1000).toFixed(0) + 'K';
+      }
+      return '$' + n;
+    }
+
+    function animateCounter(el, target) {
+      var start = 0;
+      var duration = 1600;
+      var startTime = null;
+      function step(ts) {
+        if (!startTime) startTime = ts;
+        var progress = Math.min((ts - startTime) / duration, 1);
+        var eased = 1 - Math.pow(1 - progress, 3);
+        var current = Math.floor(eased * target);
+        // Format with dollar sign and suffix
+        if (target >= 1000000) {
+          el.textContent = '$' + (current / 1000000).toFixed(2) + 'M';
+        } else if (target >= 1000) {
+          el.textContent = '$' + (current / 1000).toFixed(0) + 'K';
+        } else {
+          el.textContent = '$' + current;
+        }
+        if (progress < 1) {
+          requestAnimationFrame(step);
+        }
+      }
+      requestAnimationFrame(step);
+    }
+
+    var countersAnimated = false;
+    var counterEls = document.querySelectorAll('[data-counter]');
+
+    function checkCounters() {
+      if (countersAnimated) return;
+      counterEls.forEach(function(el) {
+        var rect = el.getBoundingClientRect();
+        if (rect.top < window.innerHeight * 0.9) {
+          var target = parseInt(el.getAttribute('data-counter'), 10);
+          var valEl = el.querySelector('.counter-val');
+          if (valEl) {
+            // Remove the initial '$' prefix from the parent and let JS handle it
+            el.innerHTML = '';
+            animateCounter(el, target);
+            countersAnimated = true;
+          }
+        }
+      });
+    }
+
+    // ── SCROLL-TRIGGERED PROGRESS BARS ───────────────────
+    var barsAnimated = false;
+    var progressFills = document.querySelectorAll('.pro-progress-fill');
+
+    function checkBars() {
+      if (barsAnimated) return;
+      progressFills.forEach(function(bar) {
+        var rect = bar.getBoundingClientRect();
+        if (rect.top < window.innerHeight) {
+          var w = bar.getAttribute('data-width') || 0;
+          bar.style.width = w + '%';
+          barsAnimated = true;
+        }
+      });
+    }
+
+    window.addEventListener('scroll', function() {
+      checkCounters();
+      checkBars();
+    });
+
+    // Trigger on load too
+    setTimeout(function() {
+      checkCounters();
+      checkBars();
+    }, 400);
+
+    // ── OPPO CARD HOVER — data-hostile as display text ──
+    // The ::after pseudo-element uses CSS attr() — handled in CSS.
+    // But we also need to display the text properly via JS for Firefox compat.
+    var oppoCards = document.querySelectorAll('.oppo-card');
+    oppoCards.forEach(function(card) {
+      var hostile = card.getAttribute('data-hostile');
+      // We rely on CSS ::after content: attr(data-hostile) for the overlay.
+      // This is supported in all modern browsers.
+    });
+  </script>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     THE BRIEF — AI capabilities briefing
+═══════════════════════════════════════════════════════ -->
+<div class="brief-content">
+
+  <div class="brief-opening">
+    <p class="brief-made-by">Sixty-seven of these pages were made using one AI account in about thirty minutes. Six months ago an automated project like this would have been impossible.</p>
+  </div>
+
+  <div class="brief-chart-section">
+    <h2 class="brief-chart-title">This is the trend that made it possible.</h2>
+    <div class="brief-chart-frame">
+      <img src="https://metr.org/assets/images/measuring-ai-ability-to-complete-long-tasks/length-of-tasks-log.png" alt="METR chart" class="brief-metr-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+      <div class="brief-chart-fallback" style="display:none;"><p>Chart unavailable. See the original at <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">metr.org</a>.</p></div>
+    </div>
+    <p class="brief-chart-source">Source: <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR</a>, an independent AI evaluation lab.</p>
+    <p class="brief-chart-read">This chart tracks how long a task an AI agent can finish on its own. In 2019, the answer was about three seconds. By early 2023, it was six minutes. by mid 2025, over two hours. As of early 2026, Claude Opus 4.6 completes tasks that take a skilled human roughly twelve hours.</p>
+    <p class="brief-chart-read">The overall doubling time has been about seven months. But it is getting faster. <a href="https://metr.org/time-horizons/" target="_blank">When researchers fit only the most recent data</a>, the doubling time drops to four months. At that rate, AI agents capable of completing month-long autonomous projects arrive not in the early 2030s but around 2028.</p>
+  </div>
+
+  <div class="brief-so-what">
+    <h2 class="brief-so-what-title">What that means for lawmakers.</h2>
+    <p>Urgency. There was a narrative last year that AI had hit a wall in capabilities. It was a plausible perspective at the time. It isn't anymore. After breakthroughs late last year, AI systems' ability to automate cyberattacks, pathogen design, misinformation, mass surveillance, and vast swaths of white-collar work is advancing faster than ever.</p>
+    <p>The world will soon change faster than the typical pace of policymaking. The only solution is to act with atypical speed: AI regulations, data center moratoriums, calling for a federal pause on AI development, worker displacement funds. Some of these ideas already have bills introduced this session. Others should be explored soon. Time is limited, so if you feel behind on AI, the sources below are a good place to start.</p>
+    
+  </div>
+
+  <div class="brief-next">
+    <h2 class="brief-next-title">Start here.</h2>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">USE</span>
+      <a href="https://claude.ai/cowork" target="_blank">Claude Cowork</a> · <a href="https://claude.ai/code" target="_blank">Claude Code</a>
+      <span class="brief-link-detail">The tools that built this page. Cowork handles research and writing. Code is the agent that runs tasks, spawns sub-agents, and makes decisions on its own. Spend thirty minutes with one of these on a real problem from your week. That will teach you more than any briefing.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR: Measuring AI Ability to Complete Long Tasks</a>
+      <span class="brief-link-detail">The source for the chart above. The METR trend is based on software tasks, but <a href="https://futuretech.mit.edu/publication/crashing-waves-vs-rising-tides-preliminary-findings-on-ai-automation-from-thousands-of-worker-evaluations-of-labor-market-tasks" target="_blank">MIT research on worker evaluations of labor market tasks</a> finds similar patterns across white-collar work broadly.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://aiindex.stanford.edu/report/" target="_blank">Stanford HAI AI Index 2025</a>
+      <span class="brief-link-detail">The most comprehensive annual report on AI capabilities, economics, and policy across all 50 states.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.imdb.com/title/tt39150120/" target="_blank">The AI Doc: Or How I Became an Apocaloptimist</a>
+      <span class="brief-link-detail">Daniel Roher's 2026 documentary, in theaters now. Roher interviews Amodei, Altman, Hassabis, and dozens more. If you see one thing on this list, see this.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.youtube.com/watch?v=xoVJKj8lcNQ" target="_blank">The A.I. Dilemma</a>
+      <span class="brief-link-detail">Center for Humane Technology. 60 min, free on YouTube. Made for people with institutional power who need to understand AI quickly.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">TRACK</span>
+      <a href="https://www.ncsl.org/technology-and-communication/artificial-intelligence" target="_blank">NCSL AI Legislation Tracker</a> · <a href="https://mn.gov/mnit/about-mnit/oit-programs/ai/" target="_blank">MN.IT AI Office</a>
+      <span class="brief-link-detail">Every AI bill in every state. Plus Minnesota's own AI program office. See where you stand relative to the field.</span>
+    </div>
+  </div>
+
+  <div class="brief-close">
+    <p class="brief-close-small">This project is not affiliated with any campaign, party, or organization.</p>
+    <button id="exit-brief-btn">← Back</button>
+  </div>
+
+</div><!-- /brief-content -->
+
+<style>
+.brief-content { display: none; }
+body.mode-brief .brief-content { display: block; }
+body.mode-brief .pro-content { display: none; }
+body.mode-brief .oppo-content { display: none; }
+body.mode-brief #flip-btn { display: none; }
+.brief-content { background: #0C0A08; color: #D4CCBE; font-family: 'Source Serif 4', Georgia, serif; font-size: 17px; line-height: 1.75; min-height: 100vh; }
+.brief-content a { color: #C0B49A; }
+.brief-content a:hover { color: #fff; }
+@keyframes glitch-seq { 0% { filter: saturate(0) brightness(0.5); } 10% { filter: hue-rotate(90deg) contrast(4) brightness(3); transform: skewX(4deg); } 12% { filter: brightness(0.1); transform: none; } 25% { filter: hue-rotate(200deg) invert(0.8); transform: translateX(6px); } 27% { filter: brightness(0.05); transform: none; } 40% { filter: blur(6px) brightness(0.02); } 44% { filter: brightness(6); } 46% { filter: none; transform: none; } 60% { filter: hue-rotate(300deg) contrast(3) saturate(8); transform: skewX(-3deg); } 62% { filter: none; transform: none; } 78% { filter: blur(16px) brightness(0.01); } 82% { filter: brightness(2); } 84% { filter: none; } 100% { filter: none; transform: none; } }
+body.glitching { animation: glitch-seq 1.2s ease-in-out forwards; pointer-events: none; }
+.machine-stamp { background: #050505; border-top: 1px solid #111; padding: 16px 40px; text-align: center; }
+.machine-stamp-text { font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 0.22em; color: #222; text-transform: uppercase; animation: stamp-pulse 3s ease-in-out infinite; }
+@keyframes stamp-pulse { 0%, 100% { color: #222; } 50% { color: #4A3A2A; } }
+.brief-opening { max-width: 640px; margin: 0 auto; padding: 100px 40px 64px; }
+.brief-made-by { font-size: 20px; line-height: 1.65; color: #B8AE9C; margin-bottom: 20px; }
+.brief-chart-section { max-width: 740px; margin: 0 auto; padding: 48px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-chart-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 32px; font-style: italic; }
+.brief-chart-frame { background: #fff; border-radius: 4px; padding: 12px; margin-bottom: 12px; }
+.brief-metr-img { width: 100%; height: auto; display: block; }
+.brief-chart-fallback { padding: 40px; text-align: center; color: #666; font-size: 14px; }
+.brief-chart-source { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #5A5040; line-height: 1.6; margin-bottom: 28px; }
+.brief-chart-source a { color: #7A6A54; text-decoration: none; }
+.brief-chart-read { font-size: 17px; color: #B8AE9C; margin-bottom: 16px; }
+.brief-so-what { max-width: 640px; margin: 0 auto; padding: 56px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-so-what-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 28px; font-style: italic; }
+.brief-so-what p { font-size: 17px; color: #B8AE9C; margin-bottom: 20px; }
+.brief-next { max-width: 640px; margin: 0 auto; padding: 56px 40px 48px; border-top: 1px solid #1E1A14; }
+.brief-next-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 14px; font-style: italic; }
+.brief-link-block { margin-bottom: 28px; line-height: 1.7; }
+.brief-link-tag { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.2em; color: #6A5A44; text-transform: uppercase; display: block; margin-bottom: 4px; }
+.brief-link-block a { font-weight: 600; color: #E0D6C4; text-decoration: underline; text-underline-offset: 3px; font-size: 16px; }
+.brief-link-block a:hover { color: #fff; }
+.brief-link-detail { display: block; font-size: 14px; color: #6A5E4C; margin-top: 2px; }
+.brief-close { max-width: 640px; margin: 0 auto; padding: 48px 40px 100px; border-top: 1px solid #1E1A14; }
+.brief-close p { font-family: 'Source Serif 4', Georgia, serif; font-size: 16px; color: #9A9080; margin-bottom: 32px; line-height: 1.7; }
+.brief-close-small { font-family: 'IBM Plex Mono', monospace !important; font-size: 11px !important; color: #3A3428 !important; letter-spacing: 0.04em; }
+#exit-brief-btn { background: none; border: 1px solid #2A2418; color: #5A5040; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; padding: 10px 20px; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
+#exit-brief-btn:hover { border-color: #8A7A64; color: #C0B49A; }
+@media (max-width: 900px) { .brief-opening, .brief-so-what, .brief-next, .brief-close { padding-left: 24px; padding-right: 24px; } .brief-chart-section { padding-left: 24px; padding-right: 24px; } .brief-made-by { font-size: 18px; } .brief-opening { padding-top: 64px; } .machine-stamp { padding: 14px 20px; } }
+</style>
+
+<script>
+(function() {
+  let briefTriggered = false;
+  function startBriefTransition() {
+    if (briefTriggered) return;
+    if (!document.body.classList.contains('mode-oppo')) return;
+    briefTriggered = true;
+    const body = document.body;
+    body.style.transition = 'filter 2.5s ease-in';
+    body.style.filter = 'saturate(0) brightness(0.3)';
+    setTimeout(() => {
+      const hed = document.querySelector('.oppo-content h1') || document.querySelector('.oppo-content h2');
+      if (hed) { const orig = hed.textContent; const chars = '█▓▒░■□0123456789'; let n = 0; const si = setInterval(() => { n++; hed.textContent = Array.from(orig).map(c => c === ' ' ? ' ' : chars[Math.floor(Math.random() * chars.length)]).join(''); if (n > 40) { clearInterval(si); hed.textContent = orig; } }, 40); }
+    }, 1200);
+    setTimeout(() => {
+      body.style.transition = ''; body.style.filter = ''; body.classList.add('glitching');
+      setTimeout(() => { body.classList.remove('glitching'); body.classList.add('mode-brief'); window.scrollTo({ top: 0, behavior: 'instant' }); }, 1500);
+    }, 2500);
+  }
+  const sentinel = document.getElementById('brief-sentinel');
+  if (sentinel && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => { entries.forEach(e => { if (e.isIntersecting) { io.disconnect(); setTimeout(startBriefTransition, 1200); } }); }, { threshold: 0.5 });
+    io.observe(sentinel);
+  }
+  const flipBtn = document.getElementById('flip-btn');
+  if (flipBtn) { flipBtn.addEventListener('click', () => { if (document.body.classList.contains('mode-oppo')) briefTriggered = false; }); }
+})();
+document.addEventListener('click', (e) => {
+  if (e.target && e.target.id === 'exit-brief-btn') {
+    const body = document.body; body.style.opacity = '0'; body.style.transition = 'opacity 0.3s';
+    setTimeout(() => { body.classList.remove('mode-brief'); body.classList.add('mode-oppo'); window.scrollTo({ top: 0, behavior: 'instant' }); body.style.opacity = '1'; }, 300);
+  }
+});
+</script>
+
+</body>
+</html>

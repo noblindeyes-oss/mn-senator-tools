@@ -1,0 +1,1684 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jason Rarick — Senate District 11</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Bebas+Neue&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet" />
+  <style>
+    /* ─── RESET ──────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    /* ─── MODE SWITCHING ─────────────────────────────────────── */
+    .pro-content  { display: block; }
+    .oppo-content { display: none; }
+    body.mode-oppo .pro-content  { display: none; }
+    body.mode-oppo .oppo-content { display: block; }
+
+    /* ─── FLIP BUTTON ─────────────────────────────────────────── */
+    #flip-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      border: 2px solid currentColor;
+      cursor: pointer;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      padding: 11px 18px;
+      transition: opacity 0.22s, transform 0.18s;
+    }
+    body:not(.mode-oppo) #flip-btn {
+      background: #1C2B1E;
+      color: #D4C9A8;
+      border-color: #D4C9A8;
+    }
+    body.mode-oppo #flip-btn {
+      background: #D4C9A8;
+      color: #1A1208;
+      border-color: #1A1208;
+    }
+    #flip-btn:hover { transform: translateY(-2px); opacity: 0.85; }
+    .btn-pro-label, .btn-oppo-label { pointer-events: none; }
+    body:not(.mode-oppo) .btn-oppo-label { display: none; }
+    body.mode-oppo    .btn-pro-label  { display: none; }
+
+    /* ═══════════════════════════════════════════════════════════
+       PRO SITE — "The Contractor's Project Board"
+       Pine City hometown fix. Real specs. Real price.
+       Palette:
+         spruce    #2A4A2E
+         pine-mid  #3D6B45
+         slate     #3D4B52
+         rust-tan  #C4622D
+         parchment #EDE8D8
+         ink       #1C2219
+    ═══════════════════════════════════════════════════════════ */
+
+    /* --- PRO BASE --- */
+    .pro-content {
+      background: #EDE8D8;
+      color: #1C2219;
+      font-family: 'Source Serif 4', Georgia, serif;
+      min-width: 320px;
+    }
+
+    body { overflow-x: hidden; }
+
+    /* --- PRO HEADER / NAMEPLATE --- */
+    .pro-nameplate {
+      background: #2A4A2E;
+      color: #EDE8D8;
+      padding: 0;
+      border-bottom: 5px solid #C4622D;
+    }
+    .pro-nameplate-inner {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: stretch;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .pro-nameplate-left {
+      padding: 52px 48px 48px;
+    }
+    .pro-district-tag {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      color: #A8C5AC;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .pro-district-tag::before {
+      content: '';
+      display: inline-block;
+      width: 28px;
+      height: 2px;
+      background: #C4622D;
+    }
+    .pro-nameplate h1 {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 700;
+      font-size: clamp(44px, 7vw, 84px);
+      line-height: 0.92;
+      letter-spacing: -0.01em;
+      color: #EDE8D8;
+      text-transform: uppercase;
+      margin-bottom: 28px;
+    }
+    .pro-tagline {
+      font-family: 'Source Serif 4', serif;
+      font-size: 18px;
+      font-weight: 300;
+      color: #C5D9C7;
+      line-height: 1.5;
+      max-width: 460px;
+      font-style: italic;
+    }
+    .pro-photo-panel {
+      width: 280px;
+      flex-shrink: 0;
+      background: #1C2B1E;
+      position: relative;
+      overflow: hidden;
+    }
+    .pro-photo-panel img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 15%;
+      filter: sepia(20%) contrast(1.05) brightness(0.95);
+      display: block;
+    }
+    .pro-photo-fallback {
+      width: 100%;
+      height: 100%;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: #1C2B1E;
+      color: #3D6B45;
+      font-family: 'Oswald', sans-serif;
+      font-size: 52px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+
+    /* --- PRO STAT RAIL --- */
+    .pro-stat-rail {
+      background: #1C2219;
+      color: #EDE8D8;
+      border-bottom: 3px solid #C4622D;
+    }
+    .pro-stat-rail-inner {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .pro-stat {
+      padding: 32px 36px;
+      border-right: 1px solid #2A4A2E;
+    }
+    .pro-stat:last-child { border-right: none; }
+    .pro-stat-number {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 700;
+      font-size: clamp(36px, 5vw, 60px);
+      color: #C4622D;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .pro-stat-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #8FA893;
+    }
+    .pro-stat-note {
+      font-family: 'Source Serif 4', serif;
+      font-size: 13px;
+      color: #9BA89D;
+      margin-top: 4px;
+      font-style: italic;
+    }
+
+    /* --- PRO PROJECT BOARD --- */
+    .pro-section {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 72px 48px;
+    }
+    .pro-section-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #C4622D;
+      margin-bottom: 12px;
+    }
+    .pro-section-headline {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 600;
+      font-size: clamp(28px, 4vw, 48px);
+      text-transform: uppercase;
+      color: #2A4A2E;
+      line-height: 1.05;
+      margin-bottom: 28px;
+      max-width: 700px;
+    }
+    .pro-body {
+      font-size: 17px;
+      line-height: 1.7;
+      color: #2E3628;
+      max-width: 640px;
+    }
+    .pro-body p { margin-bottom: 16px; }
+
+    /* --- PRO SPEC CARD --- */
+    .pro-spec-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 0;
+      border: 2px solid #2A4A2E;
+      margin-top: 48px;
+    }
+    .pro-spec-card {
+      padding: 32px 28px;
+      border-right: 1px solid #2A4A2E;
+      border-bottom: 1px solid #2A4A2E;
+      position: relative;
+      transition: background 0.2s;
+    }
+    .pro-spec-card:hover { background: #D8D1BE; }
+    .pro-spec-card-num {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      color: #9BA89D;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .pro-spec-card-title {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 600;
+      font-size: 18px;
+      text-transform: uppercase;
+      color: #2A4A2E;
+      margin-bottom: 8px;
+      line-height: 1.1;
+    }
+    .pro-spec-card-body {
+      font-family: 'Source Serif 4', serif;
+      font-size: 14px;
+      color: #3C4434;
+      line-height: 1.6;
+    }
+    .pro-spec-card-tag {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #C4622D;
+      margin-top: 14px;
+      display: block;
+    }
+
+    /* --- PRO PULLQUOTE --- */
+    .pro-pullquote-band {
+      background: #2A4A2E;
+      color: #EDE8D8;
+      padding: 64px 48px;
+      border-top: 4px solid #C4622D;
+      border-bottom: 4px solid #C4622D;
+    }
+    .pro-pullquote-band blockquote {
+      max-width: 800px;
+      margin: 0 auto;
+      font-family: 'Oswald', sans-serif;
+      font-weight: 500;
+      font-size: clamp(24px, 3.5vw, 42px);
+      text-transform: uppercase;
+      line-height: 1.15;
+      letter-spacing: 0.01em;
+    }
+    .pro-pullquote-band blockquote span {
+      color: #C4622D;
+    }
+    .pro-quote-attr {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      color: #8FA893;
+      text-transform: uppercase;
+      margin-top: 24px;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* --- PRO DISTRICT CONTEXT --- */
+    .pro-district-band {
+      background: #3D4B52;
+      color: #EDE8D8;
+      padding: 64px 48px;
+    }
+    .pro-district-band-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: start;
+    }
+    .pro-district-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #A8BFC6;
+      margin-bottom: 16px;
+    }
+    .pro-district-headline {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 700;
+      font-size: clamp(28px, 4vw, 48px);
+      text-transform: uppercase;
+      color: #EDE8D8;
+      line-height: 1.05;
+      margin-bottom: 20px;
+    }
+    .pro-district-body {
+      font-family: 'Source Serif 4', serif;
+      font-size: 16px;
+      line-height: 1.7;
+      color: #C5D4D8;
+    }
+    .pro-district-body p { margin-bottom: 14px; }
+    .pro-photo-landscape {
+      width: 100%;
+      aspect-ratio: 4/3;
+      object-fit: cover;
+      border: 3px solid #3D6B45;
+      display: block;
+      filter: sepia(15%) contrast(1.08);
+    }
+    .pro-photo-landscape-fallback {
+      width: 100%;
+      aspect-ratio: 4/3;
+      background: linear-gradient(135deg, #1C2B1E 0%, #2A4A2E 50%, #1C2219 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 3px solid #3D6B45;
+    }
+    .pro-photo-landscape-fallback span {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      color: #4A7A50;
+      text-transform: uppercase;
+      text-align: center;
+      padding: 20px;
+      line-height: 2;
+    }
+
+    /* --- PRO CREDENTIALS --- */
+    .pro-cred-band {
+      background: #EDE8D8;
+      padding: 64px 48px;
+      border-top: 2px solid #2A4A2E;
+    }
+    .pro-cred-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .pro-cred-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 32px;
+      margin-top: 40px;
+    }
+    .pro-cred-item {
+      border-left: 3px solid #C4622D;
+      padding-left: 20px;
+    }
+    .pro-cred-item-title {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 600;
+      font-size: 16px;
+      text-transform: uppercase;
+      color: #2A4A2E;
+      margin-bottom: 6px;
+    }
+    .pro-cred-item-body {
+      font-family: 'Source Serif 4', serif;
+      font-size: 14px;
+      color: #3C4434;
+      line-height: 1.55;
+    }
+
+    /* --- PRO FOOTER --- */
+    .pro-footer {
+      background: #1C2219;
+      color: #6B7A6D;
+      padding: 40px 48px;
+      border-top: 3px solid #C4622D;
+    }
+    .pro-footer-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .pro-footer-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #4A6B4E;
+      margin-bottom: 20px;
+    }
+    .pro-footnotes {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      line-height: 1.8;
+      color: #5A6B5D;
+    }
+    .pro-footnotes ol { padding-left: 20px; }
+    .pro-footnotes li { margin-bottom: 4px; }
+    .pro-footnotes a { color: #7A9B80; text-decoration: none; }
+    .pro-footnotes a:hover { text-decoration: underline; }
+
+    /* ═══════════════════════════════════════════════════════════
+       OPPO SITE — "The Right-of-Way Ledger"
+       $194 million. Zeroed. A rail corridor through his own
+       district. Traded for a bus study.
+       Palette:
+         document cream  #F2ECD8
+         evidence black  #140F08
+         strike red      #B5240F
+         rail gray       #4A4A4A
+         stamp ink       #7A3510
+    ═══════════════════════════════════════════════════════════ */
+
+    .oppo-content {
+      background: #F2ECD8;
+      color: #140F08;
+      font-family: 'Source Serif 4', Georgia, serif;
+      min-width: 320px;
+    }
+
+    /* --- OPPO FILE HEADER --- */
+    .oppo-header {
+      background: #140F08;
+      color: #F2ECD8;
+      padding: 0;
+      border-bottom: 6px solid #B5240F;
+      position: relative;
+    }
+    .oppo-header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: repeating-linear-gradient(
+        0deg,
+        transparent, transparent 23px,
+        rgba(255,255,255,0.02) 23px, rgba(255,255,255,0.02) 24px
+      );
+      pointer-events: none;
+    }
+    .oppo-header-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 56px 48px 48px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 48px;
+      align-items: start;
+      position: relative;
+    }
+    .oppo-file-tag {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: #B5240F;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .oppo-file-tag::before {
+      content: 'FILE:';
+      color: #5A4A38;
+      letter-spacing: 0.16em;
+    }
+    .oppo-header h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(40px, 7vw, 88px);
+      line-height: 0.9;
+      letter-spacing: 0.02em;
+      color: #F2ECD8;
+      margin-bottom: 24px;
+    }
+    .oppo-header h1 em {
+      color: #B5240F;
+      font-style: normal;
+    }
+    .oppo-header-sub {
+      font-family: 'Source Serif 4', serif;
+      font-size: 18px;
+      font-weight: 300;
+      color: #A89878;
+      line-height: 1.5;
+      max-width: 580px;
+    }
+    .oppo-photo-panel {
+      width: 220px;
+      flex-shrink: 0;
+      position: relative;
+    }
+    .oppo-photo-panel img {
+      width: 100%;
+      display: block;
+      object-fit: cover;
+      object-position: center 15%;
+      filter: grayscale(100%) contrast(1.25) brightness(0.85);
+    }
+    .oppo-photo-fallback {
+      width: 100%;
+      aspect-ratio: 3/4;
+      background: #1C1410;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      color: #3A2A1A;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 48px;
+    }
+    .oppo-photo-stamp {
+      position: absolute;
+      top: -12px;
+      right: -12px;
+      width: 80px;
+      height: 80px;
+      background: #B5240F;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform: rotate(-12deg);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+    }
+    .oppo-photo-stamp span {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      color: #F2ECD8;
+      text-transform: uppercase;
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    /* --- OPPO ACCUSATION BANNER --- */
+    .oppo-accusation {
+      background: #B5240F;
+      color: #F2ECD8;
+      padding: 28px 48px;
+    }
+    .oppo-accusation-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+    .oppo-accusation-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(242,236,216,0.65);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .oppo-accusation-text {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 600;
+      font-size: clamp(16px, 2.5vw, 24px);
+      text-transform: uppercase;
+      line-height: 1.2;
+    }
+
+    /* --- OPPO STAT RAIL --- */
+    .oppo-stat-rail {
+      background: #1A1410;
+      border-bottom: 2px solid #3A2A1A;
+    }
+    .oppo-stat-rail-inner {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .oppo-stat {
+      padding: 32px 36px;
+      border-right: 1px solid #3A2A1A;
+    }
+    .oppo-stat:last-child { border-right: none; }
+    .oppo-stat-number {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(36px, 5vw, 62px);
+      color: #B5240F;
+      line-height: 1;
+      margin-bottom: 4px;
+      letter-spacing: 0.02em;
+    }
+    .oppo-stat-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #6A5A48;
+    }
+    .oppo-stat-note {
+      font-family: 'Source Serif 4', serif;
+      font-size: 12px;
+      color: #5A4A38;
+      margin-top: 4px;
+      font-style: italic;
+    }
+
+    /* --- OPPO MAIN BODY --- */
+    .oppo-section {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 72px 48px;
+    }
+    .oppo-section-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: #B5240F;
+      margin-bottom: 12px;
+    }
+    .oppo-section-headline {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(32px, 5vw, 64px);
+      color: #140F08;
+      line-height: 0.95;
+      margin-bottom: 28px;
+      letter-spacing: 0.02em;
+    }
+    .oppo-body {
+      font-size: 17px;
+      line-height: 1.72;
+      color: #2A2018;
+      max-width: 640px;
+    }
+    .oppo-body p { margin-bottom: 16px; }
+
+    /* --- OPPO SEQUENCE / TIMELINE --- */
+    .oppo-sequence {
+      background: #EAE2C8;
+      border-top: 2px solid #C8BDA0;
+      border-bottom: 2px solid #C8BDA0;
+      padding: 64px 48px;
+    }
+    .oppo-sequence-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .oppo-seq-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: #7A3510;
+      margin-bottom: 40px;
+    }
+    .oppo-seq-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 0;
+      position: relative;
+    }
+    .oppo-seq-grid::before {
+      content: '';
+      position: absolute;
+      top: 24px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: #B5240F;
+      z-index: 0;
+    }
+    .oppo-seq-item {
+      position: relative;
+      padding: 0 24px 0 0;
+      z-index: 1;
+    }
+    .oppo-seq-dot {
+      width: 18px;
+      height: 18px;
+      background: #B5240F;
+      border-radius: 50%;
+      margin-bottom: 18px;
+      position: relative;
+      border: 3px solid #EAE2C8;
+      box-shadow: 0 0 0 2px #B5240F;
+      flex-shrink: 0;
+    }
+    .oppo-seq-date {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      color: #B5240F;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .oppo-seq-title {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 600;
+      font-size: 16px;
+      text-transform: uppercase;
+      color: #140F08;
+      margin-bottom: 8px;
+      line-height: 1.15;
+    }
+    .oppo-seq-body {
+      font-family: 'Source Serif 4', serif;
+      font-size: 13px;
+      color: #4A3820;
+      line-height: 1.6;
+    }
+
+    /* --- OPPO EVIDENCE CARDS --- */
+    .oppo-evidence-section {
+      background: #F2ECD8;
+      padding: 72px 48px;
+    }
+    .oppo-evidence-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .oppo-evidence-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2px;
+      background: #C8BDA0;
+      border: 2px solid #B5240F;
+      margin-top: 40px;
+    }
+    .oppo-ev-card {
+      background: #F2ECD8;
+      padding: 36px 30px;
+      position: relative;
+      transition: background 0.18s;
+      cursor: default;
+    }
+    .oppo-ev-card::before {
+      content: attr(data-charge);
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: #B5240F;
+      color: #F2ECD8;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      padding: 8px 14px;
+      opacity: 0;
+      transition: opacity 0.18s;
+    }
+    .oppo-ev-card:hover { background: #EAD8B8; }
+    .oppo-ev-card:hover::before { opacity: 1; }
+    .oppo-ev-card:hover .oppo-ev-body {
+      color: #2A1808;
+    }
+    .oppo-ev-num {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      color: #B5240F;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+    .oppo-ev-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 26px;
+      color: #140F08;
+      line-height: 1.05;
+      margin-bottom: 12px;
+      letter-spacing: 0.02em;
+    }
+    .oppo-ev-body {
+      font-family: 'Source Serif 4', serif;
+      font-size: 14px;
+      color: #3A2A1A;
+      line-height: 1.65;
+      transition: color 0.18s;
+    }
+    .oppo-ev-cite {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      color: #8A7A6A;
+      margin-top: 16px;
+      text-transform: uppercase;
+      border-top: 1px solid #C8BDA0;
+      padding-top: 12px;
+    }
+
+    /* --- OPPO PROOF BLOCK --- */
+    .oppo-proof-band {
+      background: #1A1410;
+      color: #F2ECD8;
+      padding: 64px 48px;
+      border-top: 4px solid #B5240F;
+    }
+    .oppo-proof-inner {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .oppo-proof-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: #B5240F;
+      margin-bottom: 28px;
+    }
+    .oppo-proof-block {
+      border: 1px solid #3A2A1A;
+      padding: 36px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      line-height: 1.8;
+      color: #C8BDA0;
+      position: relative;
+    }
+    .oppo-proof-block::before {
+      content: 'SF 1545 — BILL TEXT SUMMARY';
+      display: block;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      color: #5A4A38;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #3A2A1A;
+    }
+    .oppo-proof-block .highlight {
+      color: #F2ECD8;
+      font-weight: 600;
+    }
+    .oppo-proof-block .strike-amount {
+      color: #B5240F;
+      font-weight: 600;
+      position: relative;
+      display: inline-block;
+    }
+    .oppo-proof-block .strike-amount::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      height: 2px;
+      background: #B5240F;
+    }
+    .oppo-proof-context {
+      font-family: 'Source Serif 4', serif;
+      font-size: 16px;
+      color: #A89878;
+      line-height: 1.7;
+      margin-top: 32px;
+    }
+    .oppo-proof-context p { margin-bottom: 14px; }
+
+    /* --- OPPO DISTRICT COST --- */
+    .oppo-district-cost {
+      background: #F2ECD8;
+      padding: 64px 48px;
+      border-top: 2px solid #C8BDA0;
+    }
+    .oppo-district-cost-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: start;
+    }
+    .oppo-cost-headline {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(32px, 5vw, 58px);
+      color: #140F08;
+      line-height: 0.95;
+      margin-bottom: 24px;
+      letter-spacing: 0.02em;
+    }
+    .oppo-cost-body {
+      font-family: 'Source Serif 4', serif;
+      font-size: 16px;
+      color: #2A2018;
+      line-height: 1.7;
+    }
+    .oppo-cost-body p { margin-bottom: 14px; }
+    .oppo-cost-stat-list {
+      list-style: none;
+      margin-top: 28px;
+    }
+    .oppo-cost-stat-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 16px 0;
+      border-bottom: 1px solid #C8BDA0;
+      font-family: 'Source Serif 4', serif;
+      font-size: 15px;
+      color: #2A2018;
+      line-height: 1.5;
+    }
+    .oppo-cost-stat-list li::before {
+      content: '';
+      display: block;
+      width: 8px;
+      height: 8px;
+      background: #B5240F;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 7px;
+    }
+
+    /* --- OPPO FOOTER --- */
+    .oppo-footer {
+      background: #0E0A06;
+      color: #5A4A38;
+      padding: 40px 48px;
+      border-top: 3px solid #B5240F;
+    }
+    .oppo-footer-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .oppo-footer-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #3A2A1A;
+      margin-bottom: 20px;
+    }
+    .oppo-footnotes {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      line-height: 1.8;
+      color: #4A3A28;
+    }
+    .oppo-footnotes ol { padding-left: 20px; }
+    .oppo-footnotes li { margin-bottom: 4px; }
+    .oppo-footnotes a { color: #7A5A38; text-decoration: none; }
+    .oppo-footnotes a:hover { text-decoration: underline; }
+
+    /* ─── RESPONSIVE ─────────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .pro-nameplate-inner { grid-template-columns: 1fr; }
+      .pro-photo-panel { width: 100%; height: 280px; }
+      .pro-stat-rail-inner { grid-template-columns: 1fr; }
+      .pro-stat { border-right: none; border-bottom: 1px solid #2A4A2E; }
+      .pro-district-band-inner { grid-template-columns: 1fr; gap: 32px; }
+      .pro-section { padding: 48px 24px; }
+      .pro-pullquote-band { padding: 48px 24px; }
+      .pro-district-band { padding: 48px 24px; }
+      .pro-cred-band { padding: 48px 24px; }
+      .pro-footer { padding: 32px 24px; }
+
+      .oppo-header-inner { grid-template-columns: 1fr; }
+      .oppo-photo-panel { width: 180px; }
+      .oppo-stat-rail-inner { grid-template-columns: 1fr; }
+      .oppo-stat { border-right: none; border-bottom: 1px solid #3A2A1A; }
+      .oppo-district-cost-inner { grid-template-columns: 1fr; gap: 32px; }
+      .oppo-section { padding: 48px 24px; }
+      .oppo-sequence { padding: 48px 24px; }
+      .oppo-evidence-section { padding: 48px 24px; }
+      .oppo-proof-band { padding: 48px 24px; }
+      .oppo-district-cost { padding: 48px 24px; }
+      .oppo-footer { padding: 32px 24px; }
+      .oppo-accusation { padding: 24px; }
+      .oppo-accusation-inner { flex-direction: column; gap: 8px; }
+
+      .oppo-seq-grid::before { display: none; }
+      .oppo-seq-grid { gap: 32px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── FLIP TOGGLE ─────────────────────────────────────────── -->
+  <button id="flip-btn" aria-label="Switch site view">
+    <span class="btn-oppo-label">&#9654; View Supporter Site</span>
+    <span class="btn-pro-label">&#9658; View Opposition File</span>
+  </button>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       PRO SITE
+  ═══════════════════════════════════════════════════════════ -->
+  <div class="pro-content" aria-label="Supporter site">
+
+    <!-- NAMEPLATE -->
+    <header class="pro-nameplate">
+      <div class="pro-nameplate-inner">
+        <div class="pro-nameplate-left">
+          <div class="pro-district-tag">Minnesota Senate — District 11</div>
+          <h1>Jason<br>Rarick</h1>
+          <p class="pro-tagline">An electrician who learned to wire a city. Now fixing the pipes that keep it running.</p>
+        </div>
+        <div class="pro-photo-panel">
+          <img
+            src="https://www.senate.mn/graphics/11Rarick.jpg"
+            alt="Senator Jason Rarick"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+          />
+          <div class="pro-photo-fallback">JR</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- STAT RAIL -->
+    <div class="pro-stat-rail">
+      <div class="pro-stat-rail-inner">
+        <div class="pro-stat">
+          <div class="pro-stat-number" data-target="7000000">$7M</div>
+          <div class="pro-stat-label">Bonded for Pine City</div>
+          <div class="pro-stat-note">SF2 — wastewater system overhaul</div>
+        </div>
+        <div class="pro-stat">
+          <div class="pro-stat-number">10+</div>
+          <div class="pro-stat-label">Years in the Legislature</div>
+          <div class="pro-stat-note">House 2015, Senate 2019 to present</div>
+        </div>
+        <div class="pro-stat">
+          <div class="pro-stat-number">4</div>
+          <div class="pro-stat-label">Distinct project components</div>
+          <div class="pro-stat-note">Riprap. Aeration. Outfall. Liner.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN SECTION -->
+    <div class="pro-section">
+      <div class="pro-section-label">The Work — 2025 Session</div>
+      <h2 class="pro-section-headline">Pine City's Wastewater System Needed Fixing. He Got the Money.</h2>
+      <div class="pro-body">
+        <p>Rarick's first bill of the 2025 session was SF2. It was not an abstract policy statement. It was a $7 million bonding request for Pine City's aging wastewater treatment pond system.</p>
+        <p>The bill named the specific repairs: riprap stabilization on the pond banks, new aeration equipment, outfall line reconstruction, and a full pond liner replacement. Every item on the list was a real piece of infrastructure with a price tag attached.</p>
+        <p>Pine City is Rarick's hometown. He was born there. He ran his electrical business there. When he introduced SF2 as the first bill of the session, he was not grandstanding. He was doing what a district rep is supposed to do.</p>
+      </div>
+
+      <!-- SPEC CARDS -->
+      <div class="pro-spec-grid">
+        <div class="pro-spec-card">
+          <div class="pro-spec-card-num">Component 01</div>
+          <div class="pro-spec-card-title">Riprap Repair</div>
+          <div class="pro-spec-card-body">Stabilizes the structural banks of Pine City's wastewater pond system against erosion and failure. Basic civil engineering that prevents a larger collapse.</div>
+          <span class="pro-spec-card-tag">Pond integrity</span>
+        </div>
+        <div class="pro-spec-card">
+          <div class="pro-spec-card-num">Component 02</div>
+          <div class="pro-spec-card-title">Aeration Improvements</div>
+          <div class="pro-spec-card-body">Replaces aging aeration equipment that keeps the treatment process functional. Without it, the pond system cannot meet discharge standards.</div>
+          <span class="pro-spec-card-tag">Treatment capacity</span>
+        </div>
+        <div class="pro-spec-card">
+          <div class="pro-spec-card-num">Component 03</div>
+          <div class="pro-spec-card-title">Pond Outfall Line</div>
+          <div class="pro-spec-card-body">Repairs the outfall infrastructure that manages treated water release. A failed outfall line is a public health and environmental problem, not a distant risk.</div>
+          <span class="pro-spec-card-tag">Discharge infrastructure</span>
+        </div>
+        <div class="pro-spec-card">
+          <div class="pro-spec-card-num">Component 04</div>
+          <div class="pro-spec-card-title">New Pond Liner</div>
+          <div class="pro-spec-card-body">A full liner replacement seals the pond base and prevents contamination from leaching into the surrounding soil and groundwater table.</div>
+          <span class="pro-spec-card-tag">Groundwater protection</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PULLQUOTE -->
+    <div class="pro-pullquote-band">
+      <blockquote>
+        He numbered every component.<br>
+        Named every repair.<br>
+        <span>That is what seven million dollars looks like when someone actually knows the work.</span>
+      </blockquote>
+      <div class="pro-quote-attr">-- SF2, 2025-2026 Minnesota Legislature / Pine City public infrastructure bond issue and appropriation</div>
+    </div>
+
+    <!-- DISTRICT CONTEXT -->
+    <div class="pro-district-band">
+      <div class="pro-district-band-inner">
+        <div>
+          <div class="pro-district-label">District 11 — East-Central Minnesota</div>
+          <h2 class="pro-district-headline">Snake River Country. Cross Lake. Chengwatana Forest.</h2>
+          <div class="pro-district-body">
+            <p>District 11 runs through Pine County and into the forest and lake country east of I-35. The towns here are small. Pine City, Sandstone, Hinckley. The economic base is a mix of small manufacturing, trades, seasonal resort traffic, and workers who commute.</p>
+            <p>Infrastructure here is not a talking point. A failed wastewater system is a public health problem that small-town public works departments cannot fix on their own. State bonding is how it gets done.</p>
+            <p>Rarick came up as an electrician running his own shop. He knows what deferred maintenance costs. The SF2 bill was his read of what his hometown actually needed.</p>
+          </div>
+        </div>
+        <div>
+          <img
+            src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80"
+            alt="Water treatment infrastructure, Pine County region"
+            class="pro-photo-landscape"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+          />
+          <div class="pro-photo-landscape-fallback">
+            <span>Pine County<br>East-Central MN<br>District 11</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CREDENTIALS -->
+    <div class="pro-cred-band">
+      <div class="pro-cred-inner">
+        <div class="pro-section-label">Record and Background</div>
+        <h2 class="pro-section-headline" style="color:#2A4A2E; font-size: clamp(24px, 3.5vw, 40px);">Who He Is Before the Votes</h2>
+        <div class="pro-cred-grid">
+          <div class="pro-cred-item">
+            <div class="pro-cred-item-title">Licensed Electrician</div>
+            <div class="pro-cred-item-body">Owner of Rarick Electric. Worked in the trades before running for office. Brings that background to infrastructure and workforce policy.</div>
+          </div>
+          <div class="pro-cred-item">
+            <div class="pro-cred-item-title">Pine City Native</div>
+            <div class="pro-cred-item-body">Born in Pine City, October 1969. Raised in the district he now represents. Not a transplant. Not a careerist who found an open seat.</div>
+          </div>
+          <div class="pro-cred-item">
+            <div class="pro-cred-item-title">Veteran Legislator</div>
+            <div class="pro-cred-item-body">House starting in 2015. Senate via special election 2019. Re-elected 2020, 2022. Ten years of committee work and bill authorship in the Capitol.</div>
+          </div>
+          <div class="pro-cred-item">
+            <div class="pro-cred-item-title">SF2 — Bill No. 1</div>
+            <div class="pro-cred-item-body">When the 2025 session opened, his first bill was a $7 million hometown infrastructure fix. Not a press release. A bonding appropriation with four named components.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTER / FOOTNOTES -->
+    <footer class="pro-footer">
+      <div class="pro-footer-inner">
+        <div class="pro-footer-label">Sources and Footnotes</div>
+        <div class="pro-footnotes">
+          <ol>
+            <li>SF2, Minnesota 2025-2026 Legislative Session — "Pine City public infrastructure bond issue and appropriation." <a href="https://trackbill.com/bill/minnesota-senate-file-2-pine-city-public-infrastructure-bond-issue-and-appropriation/2607649/" target="_blank" rel="noopener">trackbill.com</a></li>
+            <li>Bill text details: $7,000,000 in bonds for Pine City wastewater treatment pond system, riprap repair, aeration improvements, pond outfall line repairs, and new pond liner.</li>
+            <li>Senator Rarick biography: Minnesota Senate member record. Born Pine City, MN, 10/21/1969. <a href="https://www.senate.mn/members/member_bio.html?mem_id=1240" target="_blank" rel="noopener">senate.mn</a></li>
+            <li>Rarick Electric: Rarick's listed occupation as small business owner/electrician per MN Legislature records. <a href="https://www.lrl.mn.gov/legdb/fulldetail?id=15445" target="_blank" rel="noopener">lrl.mn.gov</a></li>
+            <li>Tenure: MN House 2015, re-elected 2016, 2018; special election Senate 2019; re-elected 2020, 2022. Minnesota Legislators Past &amp; Present.</li>
+            <li>District 11 geography and economy: Pine City, MN Wikipedia; Pine County, MN Wikipedia; pinecitymn.gov.</li>
+          </ol>
+        </div>
+      </div>
+    </footer>
+
+  </div><!-- /pro-content -->
+
+
+  <!-- ═══════════════════════════════════════════════════════════
+       OPPO SITE — "The Right-of-Way Ledger"
+  ═══════════════════════════════════════════════════════════ -->
+  <div class="oppo-content" aria-label="Opposition site">
+
+    <!-- HEADER / FILE LABEL -->
+    <header class="oppo-header">
+      <div class="oppo-header-inner">
+        <div>
+          <div class="oppo-file-tag">SD-11 / NLX-REDIRECT / 2025</div>
+          <h1>He Tried to<br>Pull NLX Money<br>Out of His<br>Own District.</h1>
+          <p class="oppo-header-sub">Jason Rarick solely authored SF1545 to cancel the estimated uncommitted balance of state NLX funding and substitute a Minneapolis-Duluth bus study. The corridor and a planned Hinckley stop were in his district.</p>
+        </div>
+        <div class="oppo-photo-panel">
+          <img
+            src="https://www.senate.mn/graphics/11Rarick.jpg"
+            alt="Senator Jason Rarick"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+          />
+          <div class="oppo-photo-fallback">JR</div>
+          <div class="oppo-photo-stamp">
+            <span>SF<br>1545<br>AUTHOR</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ACCUSATION BANNER -->
+    <div class="oppo-accusation">
+      <div class="oppo-accusation-inner">
+        <div class="oppo-accusation-label">The Charge</div>
+        <div class="oppo-accusation-text">Rarick moved to cancel the bill's estimated $194,413,803 uncommitted NLX balance and substitute a bus study while the proposed rail corridor still ran through District 11.</div>
+      </div>
+    </div>
+
+    <!-- STAT RAIL -->
+    <div class="oppo-stat-rail">
+      <div class="oppo-stat-rail-inner">
+        <div class="oppo-stat">
+          <div class="oppo-stat-number">$194M</div>
+          <div class="oppo-stat-label">Estimated uncommitted<br>NLX balance targeted</div>
+          <div class="oppo-stat-note">SF1545 says the amount is estimated at $194,413,803</div>
+        </div>
+        <div class="oppo-stat">
+          <div class="oppo-stat-number">152 MI</div>
+          <div class="oppo-stat-label">Minneapolis to Duluth corridor</div>
+          <div class="oppo-stat-note">NLX route runs directly through District 11</div>
+        </div>
+        <div class="oppo-stat">
+          <div class="oppo-stat-number">TBD</div>
+          <div class="oppo-stat-label">Bus-study appropriation<br>left blank in bill text</div>
+          <div class="oppo-stat-note">Section 1 uses "$......." for the study amount</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN BODY -->
+    <div class="oppo-section">
+      <div class="oppo-section-label">What He Did</div>
+      <h2 class="oppo-section-headline">He Authored the Bill to Redirect NLX Money Away From a Corridor His District Still Sat On.</h2>
+      <div class="oppo-body">
+        <p>The Northern Lights Express is a proposed passenger rail corridor between Minneapolis and Duluth using about 152 miles of existing BNSF track. MnDOT still describes it as part of the federal Corridor Identification and Development Program.</p>
+        <p>Jason Rarick solely authored SF1545. The bill would cancel the uncommitted balance of the 2023 NLX appropriation, which the text estimates at $194,413,803, and require a study of intercity bus service between Minneapolis-Saint Paul and Duluth.</p>
+        <p>The state bus-study appropriation line in section 1 is left blank rather than set at zero. The bill would then transfer the remaining amount to the highway user tax distribution fund instead of keeping it with NLX.</p>
+      </div>
+    </div>
+
+    <!-- SEQUENCE -->
+    <div class="oppo-sequence">
+      <div class="oppo-sequence-inner">
+        <div class="oppo-seq-label">// Evidence sequence — appropriation, route, redirection</div>
+        <div class="oppo-seq-grid">
+          <div class="oppo-seq-item">
+            <div class="oppo-seq-dot"></div>
+            <div class="oppo-seq-date">May 2023</div>
+            <div class="oppo-seq-title">Legislature Funds NLX</div>
+            <div class="oppo-seq-body">Minnesota appropriates about $194.7 million for NLX in 2023. MnDOT says those funds provided the 20 percent state match needed to pursue federal grants.</div>
+          </div>
+          <div class="oppo-seq-item">
+            <div class="oppo-seq-dot"></div>
+            <div class="oppo-seq-date">2025</div>
+            <div class="oppo-seq-title">Project Route Still Includes Hinckley</div>
+            <div class="oppo-seq-body">MnDOT's official project materials continue to describe NLX as a Minneapolis-Duluth corridor with stops in Coon Rapids, Cambridge, Hinckley, and Superior, Wisconsin.</div>
+          </div>
+          <div class="oppo-seq-item">
+            <div class="oppo-seq-dot"></div>
+            <div class="oppo-seq-date">2025 Session</div>
+            <div class="oppo-seq-title">SF1545 Introduced</div>
+            <div class="oppo-seq-body">Rarick authors SF1545. The bill cancels the estimated uncommitted NLX balance, substitutes a bus study with a blank appropriation line, and transfers the remainder to the highway user tax distribution fund.</div>
+          </div>
+          <div class="oppo-seq-item">
+            <div class="oppo-seq-dot"></div>
+            <div class="oppo-seq-date">2025-2026</div>
+            <div class="oppo-seq-title">Project Remains Proposed</div>
+            <div class="oppo-seq-body">MnDOT's official NLX pages still describe the corridor as proposed, still in federal CIDP, and still seeking additional planning and development grants. That makes SF1545 a redirection effort, not final proof the project is dead.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EVIDENCE CARDS -->
+    <div class="oppo-evidence-section">
+      <div class="oppo-evidence-inner">
+        <div class="oppo-section-label">Three Charges</div>
+        <h2 class="oppo-section-headline" style="font-size: clamp(28px, 4vw, 52px);">The Evidence</h2>
+        <div class="oppo-evidence-grid">
+          <div class="oppo-ev-card" data-charge="Charge 01 — Self-Dealing Elimination">
+            <div class="oppo-ev-num">Exhibit 01 / Authorship</div>
+            <div class="oppo-ev-title">He Wrote the Bill Himself</div>
+            <div class="oppo-ev-body">The Revisor status page lists Rarick as the sole author of SF1545. The senator whose district still included the corridor and a planned Hinckley stop chose to file the redirection bill himself.</div>
+            <div class="oppo-ev-cite">Source: SF1545 status page; MnDOT NLX project materials</div>
+          </div>
+          <div class="oppo-ev-card" data-charge="Charge 02 — No Replacement">
+            <div class="oppo-ev-num">Exhibit 02 / Substitution</div>
+            <div class="oppo-ev-title">Rail Match Money Swapped for a Study</div>
+            <div class="oppo-ev-body">SF1545 would cancel the estimated uncommitted NLX balance, require a bus-service study, and transfer the remainder to the highway user tax distribution fund. The study appropriation itself is left blank in the introduced bill text.</div>
+            <div class="oppo-ev-cite">Source: SF1545 bill text</div>
+          </div>
+          <div class="oppo-ev-card" data-charge="Charge 03 — Corridor Runs Through His District">
+            <div class="oppo-ev-num">Exhibit 03 / Geography</div>
+            <div class="oppo-ev-title">His District Still Sat on the Official Route</div>
+            <div class="oppo-ev-body">MnDOT's official NLX materials still describe the line as a 152-mile Minneapolis-Duluth route with planned stops including Hinckley. Rarick's bill targeted state support for a corridor his own district was positioned to use.</div>
+            <div class="oppo-ev-cite">Source: MnDOT NLX FAQ and project overview</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROOF BLOCK -->
+    <div class="oppo-proof-band">
+      <div class="oppo-proof-inner">
+        <div class="oppo-proof-label">// Core Document</div>
+        <div class="oppo-proof-block">
+          <span class="highlight">SF 1545 — PURPOSE:</span> A bill for an act relating to transportation;<br>
+          canceling an appropriation for Northern Lights Express passenger rail;<br>
+          requiring a study; appropriating money.<br><br>
+          <span class="highlight">SECTION 1.</span> The uncommitted balance of the appropriation for the<br>
+          Northern Lights Express passenger rail project is canceled.<br>
+          The canceled amount is: <span class="strike-amount">$194,413,803</span><br><br>
+          <span class="highlight">SECTION 1.</span> $....... in fiscal year 2026 is appropriated for a<br>
+          Minneapolis-Duluth intercity bus study.<br><br>
+          <span class="highlight">SECTION 2.</span> The uncommitted balance of the NLX appropriation,<br>
+          estimated to be <span class="strike-amount">$194,413,803</span>, is canceled.<br><br>
+          <span class="highlight">SECTION 3.</span> The remaining amount, less the study appropriation,<br>
+          is transferred to the highway user tax distribution fund.<br><br>
+          <span style="color:#5A4A38; font-size:11px;">[ The introduced bill leaves the study amount blank. ]</span>
+        </div>
+        <div class="oppo-proof-context">
+          <p>Rarick's bill is not a neutral review. It would redirect state support away from NLX and toward a study-plus-transfer structure. That is a real policy choice even though the project remains officially proposed.</p>
+          <p>MnDOT still lists Hinckley as a planned station stop and still places the corridor in the federal development pipeline. That is why SF1545 is politically potent even without claiming it permanently killed NLX.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- DISTRICT COST -->
+    <div class="oppo-district-cost">
+      <div class="oppo-district-cost-inner">
+        <div>
+          <div class="oppo-section-label">The Local Calculation</div>
+          <h2 class="oppo-cost-headline">What District 11 Lost When He Said No</h2>
+          <div class="oppo-cost-body">
+            <p>The cleaner accountability case is procedural and geographic: Rarick filed the bill that would move state support away from a corridor still described by MnDOT as active and still planned to stop in Hinckley.</p>
+            <p>That does not prove the rail line is dead. It does show that the district's senator took formal action against continued state support for it.</p>
+            <p>For voters in Pine County and along the corridor, that is a more defensible criticism than claiming the project ended the moment SF1545 was filed.</p>
+          </div>
+        </div>
+        <div>
+          <ul class="oppo-cost-stat-list">
+            <li>MnDOT says NLX would make four round trips daily and stop in Coon Rapids, Cambridge, Hinckley, and Superior, Wisconsin.</li>
+            <li>MnDOT's FAQ says the Legislature shifted $77.232 million away from the project in May 2025, but also says the remaining funds still provide matching money needed to apply for additional FRA grants.</li>
+            <li>SF1545 specifically targets the estimated uncommitted balance of the 2023 state appropriation rather than already-spent project dollars.</li>
+            <li>Section 1 of SF1545 substitutes a bus study, but the introduced bill leaves the study appropriation amount blank.</li>
+            <li>The accountability point is not that Rarick alone ended NLX. It is that he authored the bill to redirect state support away from a corridor that still included his district.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTER / FOOTNOTES -->
+    <footer class="oppo-footer">
+      <div class="oppo-footer-inner">
+        <div class="oppo-footer-label">Sources and Footnotes — Opposition Research</div>
+        <div class="oppo-footnotes">
+          <ol>
+            <li>SF1545, 94th Legislature: section 1 leaves the bus-study appropriation blank; section 2 cancels the estimated $194,413,803 uncommitted NLX balance; section 3 transfers the remainder to the highway user tax distribution fund. <a href="https://www.revisor.mn.gov/bills/94/2025/0/SF/1545/versions/latest/" target="_blank" rel="noopener">revisor.mn.gov</a></li>
+            <li>SF1545 status page listing Jason Rarick as the sole author. <a href="https://www.revisor.mn.gov/bills/bill.php?b=Senate&f=SF1545&ssn=0&y=2025" target="_blank" rel="noopener">revisor.mn.gov</a></li>
+            <li>MnDOT NLX project overview: proposed 152-mile corridor, four daily round trips, and Hinckley as a planned stop. <a href="https://www.dot.state.mn.us/nlx/about.html" target="_blank" rel="noopener">dot.state.mn.us</a></li>
+            <li>MnDOT NLX FAQ: project remains in federal CIDP; Legislature shifted $77.232 million away in May 2025; remaining funds still provide matching money for additional FRA grants. <a href="https://www.dot.state.mn.us/nlx/faq.html" target="_blank" rel="noopener">dot.state.mn.us</a></li>
+            <li>City of Hinckley NLX resource page. <a href="https://hinckleymn.gov/residents/community_resources/northern_lights_express.php" target="_blank" rel="noopener">hinckleymn.gov</a></li>
+          </ol>
+        </div>
+      </div>
+    </footer>
+
+
+  <!-- Auto-transition sentinel — observed by IntersectionObserver -->
+  <div id="brief-sentinel" style="height:1px;width:100%;"></div>
+
+  <!-- Subtle stamp — visible as user nears the bottom -->
+  <div class="machine-stamp">
+    <span class="machine-stamp-text">AI-GENERATED &nbsp;·&nbsp; 67 SENATORS &nbsp;·&nbsp; 63 PARALLEL AGENTS &nbsp;·&nbsp; ~4 HRS &nbsp;·&nbsp; ~$47</span>
+  </div>
+
+  </div><!-- /oppo-content -->
+
+  <script>
+    (function () {
+      const btn = document.getElementById('flip-btn');
+
+      btn.addEventListener('click', function () {
+        document.body.style.transition = 'opacity 0.22s';
+        document.body.style.opacity = '0';
+        setTimeout(function () {
+          document.body.classList.toggle('mode-oppo');
+          window.scrollTo(0, 0);
+          document.body.style.opacity = '1';
+        }, 220);
+      });
+    })();
+  </script>
+
+<!-- ═══════════════════════════════════════════════════════
+     THE BRIEF — AI capabilities briefing
+═══════════════════════════════════════════════════════ -->
+<div class="brief-content">
+
+  <div class="brief-opening">
+    <p class="brief-made-by">Sixty-seven of these pages were made using one AI account in about thirty minutes. Six months ago an automated project like this would have been impossible.</p>
+  </div>
+
+  <div class="brief-chart-section">
+    <h2 class="brief-chart-title">This is the trend that made it possible.</h2>
+    <div class="brief-chart-frame">
+      <img
+        src="https://metr.org/assets/images/measuring-ai-ability-to-complete-long-tasks/length-of-tasks-log.png"
+        alt="METR chart: length of tasks AI agents can complete autonomously, doubling roughly every 7 months since 2019"
+        class="brief-metr-img"
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+      >
+      <div class="brief-chart-fallback" style="display:none;">
+        <p>Chart unavailable. See the original at <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">metr.org</a>.</p>
+      </div>
+    </div>
+    <p class="brief-chart-source">Source: <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR</a>, an independent AI evaluation lab.</p>
+    <p class="brief-chart-read">This chart tracks how long a task an AI agent can finish on its own. In 2019, the answer was about three seconds. By early 2023, it was six minutes. by mid 2025, over two hours. As of early 2026, Claude Opus 4.6 completes tasks that take a skilled human roughly twelve hours.</p>
+    <p class="brief-chart-read">The overall doubling time has been about seven months. But it is getting faster. <a href="https://metr.org/time-horizons/" target="_blank">When researchers fit only the most recent data</a>, the doubling time drops to four months. At that rate, AI agents capable of completing month-long autonomous projects arrive not in the early 2030s but around 2028.</p>
+  </div>
+
+  <div class="brief-so-what">
+    <h2 class="brief-so-what-title">What that means for lawmakers.</h2>
+    <p>Urgency. There was a narrative last year that AI had hit a wall in capabilities. It was a plausible perspective at the time. It isn't anymore. After breakthroughs late last year, AI systems' ability to automate cyberattacks, pathogen design, misinformation, mass surveillance, and vast swaths of white-collar work is advancing faster than ever.</p>
+    <p>The world will soon change faster than the typical pace of policymaking. The only solution is to act with atypical speed: AI regulations, data center moratoriums, calling for a federal pause on AI development, worker displacement funds. Some of these ideas already have bills introduced this session. Others should be explored soon. Time is limited, so if you feel behind on AI, the sources below are a good place to start.</p>
+    
+  </div>
+
+  <div class="brief-next">
+    <h2 class="brief-next-title">Start here.</h2>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">USE</span>
+      <a href="https://claude.ai/cowork" target="_blank">Claude Cowork</a> · <a href="https://claude.ai/code" target="_blank">Claude Code</a>
+      <span class="brief-link-detail">The tools that built this page. Cowork handles research and writing. Code is the agent that runs tasks, spawns sub-agents, and makes decisions on its own. Spend thirty minutes with one of these on a real problem from your week. That will teach you more than any briefing.</span>
+    </div>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR: Measuring AI Ability to Complete Long Tasks</a>
+      <span class="brief-link-detail">The source for the chart above. The METR trend is based on software tasks, but <a href="https://futuretech.mit.edu/publication/crashing-waves-vs-rising-tides-preliminary-findings-on-ai-automation-from-thousands-of-worker-evaluations-of-labor-market-tasks" target="_blank">MIT research on worker evaluations of labor market tasks</a> finds similar patterns across white-collar work broadly.</span>
+    </div>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://aiindex.stanford.edu/report/" target="_blank">Stanford HAI AI Index 2025</a>
+      <span class="brief-link-detail">The most comprehensive annual report on AI capabilities, economics, and policy across all 50 states.</span>
+    </div>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.imdb.com/title/tt39150120/" target="_blank">The AI Doc: Or How I Became an Apocaloptimist</a>
+      <span class="brief-link-detail">Daniel Roher's 2026 documentary, in theaters now. Roher interviews Amodei, Altman, Hassabis, and dozens more. If you see one thing on this list, see this.</span>
+    </div>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.youtube.com/watch?v=xoVJKj8lcNQ" target="_blank">The A.I. Dilemma</a>
+      <span class="brief-link-detail">Center for Humane Technology. 60 min, free on YouTube. Made for people with institutional power who need to understand AI quickly.</span>
+    </div>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">TRACK</span>
+      <a href="https://www.ncsl.org/technology-and-communication/artificial-intelligence" target="_blank">NCSL AI Legislation Tracker</a> ·
+      <a href="https://mn.gov/mnit/about-mnit/oit-programs/ai/" target="_blank">MN.IT AI Office</a>
+      <span class="brief-link-detail">Every AI bill in every state. Plus Minnesota's own AI program office. See where you stand relative to the field.</span>
+    </div>
+  </div>
+
+  <div class="brief-close">
+    <p class="brief-close-small">This project is not affiliated with any campaign, party, or organization.</p>
+    <button id="exit-brief-btn">← Back</button>
+  </div>
+
+</div><!-- /brief-content -->
+
+<style>
+.brief-content { display: none; }
+body.mode-brief .brief-content  { display: block; }
+body.mode-brief .pro-content    { display: none; }
+body.mode-brief .oppo-content   { display: none; }
+body.mode-brief #flip-btn       { display: none; }
+
+.brief-content {
+  background: #0C0A08;
+  color: #D4CCBE;
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 17px;
+  line-height: 1.75;
+  min-height: 100vh;
+}
+.brief-content a { color: #C0B49A; }
+.brief-content a:hover { color: #fff; }
+
+@keyframes glitch-seq {
+  0%   { filter: saturate(0) brightness(0.5); }
+  10%  { filter: hue-rotate(90deg) contrast(4) brightness(3); transform: skewX(4deg); }
+  12%  { filter: brightness(0.1); transform: none; }
+  25%  { filter: hue-rotate(200deg) invert(0.8); transform: translateX(6px); }
+  27%  { filter: brightness(0.05); transform: none; }
+  40%  { filter: blur(6px) brightness(0.02); }
+  44%  { filter: brightness(6); }
+  46%  { filter: none; transform: none; }
+  60%  { filter: hue-rotate(300deg) contrast(3) saturate(8); transform: skewX(-3deg); }
+  62%  { filter: none; transform: none; }
+  78%  { filter: blur(16px) brightness(0.01); }
+  82%  { filter: brightness(2); }
+  84%  { filter: none; }
+  100% { filter: none; transform: none; }
+}
+body.glitching {
+  animation: glitch-seq 1.2s ease-in-out forwards;
+  pointer-events: none;
+}
+
+.machine-stamp {
+  background: #050505;
+  border-top: 1px solid #111;
+  padding: 16px 40px;
+  text-align: center;
+}
+.machine-stamp-text {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 0.22em;
+  color: #222;
+  text-transform: uppercase;
+  animation: stamp-pulse 3s ease-in-out infinite;
+}
+@keyframes stamp-pulse {
+  0%, 100% { color: #222; }
+  50% { color: #4A3A2A; }
+}
+
+.brief-opening { max-width: 640px; margin: 0 auto; padding: 100px 40px 64px; }
+.brief-made-by { font-size: 20px; line-height: 1.65; color: #B8AE9C; margin-bottom: 20px; }
+.brief-made-by.last { color: #E8DED0; }
+
+.brief-chart-section { max-width: 740px; margin: 0 auto; padding: 48px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-chart-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 32px; font-style: italic; }
+.brief-chart-frame { background: #fff; border-radius: 4px; padding: 12px; margin-bottom: 12px; }
+.brief-metr-img { width: 100%; height: auto; display: block; }
+.brief-chart-fallback { padding: 40px; text-align: center; color: #666; font-size: 14px; }
+.brief-chart-fallback a { color: #888; }
+.brief-chart-source { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #5A5040; line-height: 1.6; margin-bottom: 28px; }
+.brief-chart-source a { color: #7A6A54; text-decoration: none; }
+.brief-chart-read { font-size: 17px; color: #B8AE9C; }
+
+.brief-so-what { max-width: 640px; margin: 0 auto; padding: 56px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-so-what-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 28px; font-style: italic; }
+.brief-so-what p { font-size: 17px; color: #B8AE9C; margin-bottom: 20px; }
+
+.brief-next { max-width: 640px; margin: 0 auto; padding: 56px 40px 48px; border-top: 1px solid #1E1A14; }
+.brief-next-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 14px; font-style: italic; }
+.brief-next-intro { font-size: 15px; color: #9A9080; margin-bottom: 36px; line-height: 1.65; }
+.brief-link-block { margin-bottom: 28px; line-height: 1.7; }
+.brief-link-tag { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.2em; color: #6A5A44; text-transform: uppercase; display: block; margin-bottom: 4px; }
+.brief-link-block a { font-weight: 600; color: #E0D6C4; text-decoration: underline; text-underline-offset: 3px; font-size: 16px; }
+.brief-link-block a:hover { color: #fff; }
+.brief-link-detail { display: block; font-size: 14px; color: #6A5E4C; margin-top: 2px; }
+
+.brief-close { max-width: 640px; margin: 0 auto; padding: 48px 40px 100px; border-top: 1px solid #1E1A14; }
+.brief-close p { font-family: 'Source Serif 4', Georgia, serif; font-size: 16px; color: #9A9080; margin-bottom: 32px; line-height: 1.7; }
+.brief-close-small { font-family: 'IBM Plex Mono', monospace !important; font-size: 11px !important; color: #3A3428 !important; letter-spacing: 0.04em; }
+#exit-brief-btn { background: none; border: 1px solid #2A2418; color: #5A5040; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; padding: 10px 20px; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
+#exit-brief-btn:hover { border-color: #8A7A64; color: #C0B49A; }
+
+@media (max-width: 900px) {
+  .brief-opening, .brief-so-what, .brief-next, .brief-close { padding-left: 24px; padding-right: 24px; }
+  .brief-chart-section { padding-left: 24px; padding-right: 24px; }
+  .brief-made-by { font-size: 18px; }
+  .brief-opening { padding-top: 64px; }
+  .machine-stamp { padding: 14px 20px; }
+}
+</style>
+
+<script>
+(function() {
+  let briefTriggered = false;
+
+  function startBriefTransition() {
+    if (briefTriggered) return;
+    if (!document.body.classList.contains('mode-oppo')) return;
+    briefTriggered = true;
+    const body = document.body;
+
+    body.style.transition = 'filter 2.5s ease-in';
+    body.style.filter = 'saturate(0) brightness(0.3)';
+
+    setTimeout(() => {
+      const hed = document.querySelector('.oppo-content h1') || document.querySelector('.oppo-content h2');
+      if (hed) {
+        const orig = hed.textContent;
+        const chars = '█▓▒░■□0123456789';
+        let n = 0;
+        const si = setInterval(() => {
+          n++;
+          hed.textContent = Array.from(orig).map(c => c === ' ' ? ' ' : chars[Math.floor(Math.random() * chars.length)]).join('');
+          if (n > 40) { clearInterval(si); hed.textContent = orig; }
+        }, 40);
+      }
+    }, 1200);
+
+    setTimeout(() => {
+      body.style.transition = '';
+      body.style.filter = '';
+      body.classList.add('glitching');
+
+      setTimeout(() => {
+        body.classList.remove('glitching');
+        body.classList.add('mode-brief');
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      }, 1500);
+    }, 2500);
+  }
+
+  const sentinel = document.getElementById('brief-sentinel');
+  if (sentinel && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          io.disconnect();
+          setTimeout(startBriefTransition, 1200);
+        }
+      });
+    }, { threshold: 0.5 });
+    io.observe(sentinel);
+  }
+
+  const flipBtn = document.getElementById('flip-btn');
+  if (flipBtn) {
+    flipBtn.addEventListener('click', () => {
+      if (document.body.classList.contains('mode-oppo')) briefTriggered = false;
+    });
+  }
+})();
+
+document.addEventListener('click', (e) => {
+  if (e.target && e.target.id === 'exit-brief-btn') {
+    const body = document.body;
+    body.style.opacity = '0';
+    body.style.transition = 'opacity 0.3s';
+    setTimeout(() => {
+      body.classList.remove('mode-brief');
+      body.classList.add('mode-oppo');
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      body.style.opacity = '1';
+    }, 300);
+  }
+});
+</script>
+
+</body>
+</html>

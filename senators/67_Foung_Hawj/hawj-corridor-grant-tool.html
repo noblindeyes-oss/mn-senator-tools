@@ -1,0 +1,1973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>East Side Corridor Business Grant Tool — District 67</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Full-width app shell with sticky top progress bar + single-column stepped flow;
+      no max-width shell; section backgrounds alternate between white and teal-tinted panels;
+      side-by-side baseline/impact columns on tablet+ using CSS Grid (not a card stack).
+   2. Navigation: Numbered stepper with horizontal connecting line (wizard/stepper archetype);
+      no rounded-top tab bars; active step highlighted in teal fill; completed steps show checkmark.
+   3. Typography: Georgia serif body text (government-report / community-document feel);
+      bold condensed Arial Narrow for module headers; body 16px minimum for phone readability.
+   Additional: Stats displayed as large standalone numbers with inline progress bars (not result-card grid);
+      no left-border accent cards — section callouts use full background tint or top border accent;
+      palette colors used heavily (teal header bar, red total-loss callout, asphalt section dividers).
+*/
+
+:root {
+  --red:     #C0392B;
+  --teal:    #1A7A6E;
+  --asphalt: #4A4E54;
+  --bg:      #F7F4F0;
+  --text:    #1C1C1C;
+  --green:   #27744F;
+  --yellow:  #D4A017;
+  --alert:   #A81E1E;
+  --rule:    #D8D3CB;
+  --teal-lt: #EAF4F2;
+  --red-lt:  #FAEAEA;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--bg);
+}
+
+/* ── HEADER ── */
+#site-header {
+  background: var(--teal);
+  color: #fff;
+  padding: 18px 24px 14px;
+}
+#site-header h1 {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+#site-header .subtitle {
+  font-size: 0.88rem;
+  opacity: 0.88;
+  margin-top: 2px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+}
+
+/* ── PROGRESS STEPPER ── */
+#stepper-bar {
+  background: var(--asphalt);
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+#stepper {
+  display: flex;
+  align-items: center;
+  max-width: 800px;
+  margin: 0 auto;
+  gap: 0;
+}
+.step-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.55);
+  cursor: pointer;
+  padding: 12px 10px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  flex: 1;
+  white-space: nowrap;
+}
+.step-btn .step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.3);
+  font-size: 0.82rem;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+.step-btn.active {
+  color: #fff;
+}
+.step-btn.active .step-num {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: #fff;
+}
+.step-btn.done {
+  color: rgba(255,255,255,0.75);
+}
+.step-btn.done .step-num {
+  background: var(--green);
+  border-color: var(--green);
+  color: #fff;
+}
+.step-connector {
+  flex: 0 0 20px;
+  height: 2px;
+  background: rgba(255,255,255,0.2);
+}
+
+/* ── RESUME BANNER ── */
+#resume-banner {
+  background: var(--teal-lt);
+  border-top: 3px solid var(--teal);
+  padding: 14px 24px;
+  display: none;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+#resume-banner p { flex: 1; font-size: 0.95rem; }
+#resume-banner .btn-row { display: flex; gap: 10px; }
+
+/* ── MAIN CONTENT ── */
+main {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 16px 40px;
+}
+
+/* ── INTRO PANEL ── */
+#intro-panel {
+  background: #fff;
+  border-top: 4px solid var(--red);
+  padding: 28px 28px 24px;
+  margin: 24px 0;
+}
+#intro-panel h2 {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--red);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 12px;
+}
+#intro-panel p {
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+#intro-panel .grant-note {
+  font-weight: 700;
+  color: var(--teal);
+}
+.sf-credit {
+  font-size: 0.88rem;
+  color: var(--asphalt);
+  border-top: 1px solid var(--rule);
+  padding-top: 10px;
+  margin-top: 14px;
+}
+
+/* ── DEMO BANNER ── */
+#demo-banner {
+  background: var(--yellow);
+  color: #fff;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+#demo-banner span { flex: 1; color: #1C1C1C; }
+
+/* ── MODULE SECTIONS ── */
+.module {
+  display: none;
+  margin-bottom: 32px;
+}
+.module.active { display: block; }
+
+.module-header {
+  background: var(--asphalt);
+  color: #fff;
+  padding: 14px 24px;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 0;
+}
+.module-header .mod-num {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  opacity: 0.4;
+  line-height: 1;
+}
+.module-header h2 {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ── FORM PANELS ── */
+.form-section {
+  background: #fff;
+  border: 1px solid var(--rule);
+  padding: 24px;
+  margin-top: 2px;
+}
+.form-section h3 {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--asphalt);
+  margin-bottom: 16px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--rule);
+}
+.field-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+@media (max-width: 600px) {
+  .field-group { grid-template-columns: 1fr; }
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.field.full { grid-column: 1 / -1; }
+label {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--asphalt);
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+input[type="text"],
+input[type="number"],
+select,
+textarea {
+  font-family: Georgia, serif;
+  font-size: 1rem;
+  padding: 8px 10px;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  background: #fff;
+  color: var(--text);
+  width: 100%;
+}
+input[type="text"]:focus,
+input[type="number"]:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid var(--teal);
+  outline-offset: 1px;
+  border-color: var(--teal);
+}
+.radio-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.radio-row label {
+  font-size: 0.9rem;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: normal;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+.radio-row input[type="radio"] { width: auto; }
+
+/* ── REVENUE COMPARISON GRID ── */
+#revenue-comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  margin-top: 2px;
+}
+@media (max-width: 640px) {
+  #revenue-comparison { grid-template-columns: 1fr; }
+}
+.rev-panel {
+  background: #fff;
+  border: 1px solid var(--rule);
+  padding: 20px;
+}
+.rev-panel.baseline { border-top: 3px solid var(--teal); }
+.rev-panel.impact   { border-top: 3px solid var(--red); }
+.rev-panel h3 {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+.rev-panel.baseline h3 { color: var(--teal); }
+.rev-panel.impact h3   { color: var(--red); }
+.rev-panel .period-note {
+  font-size: 0.82rem;
+  color: var(--asphalt);
+  margin-bottom: 14px;
+}
+
+/* ── INPUT MODE TOGGLE ── */
+.mode-toggle {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 14px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+}
+.mode-btn {
+  flex: 1;
+  padding: 6px 4px;
+  background: #f5f5f3;
+  border: none;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--asphalt);
+  border-right: 1px solid var(--rule);
+  transition: background 0.15s, color 0.15s;
+  text-align: center;
+}
+.mode-btn:last-child { border-right: none; }
+.mode-btn.active-mode { background: var(--asphalt); color: #fff; }
+
+/* ── MONTH ROWS ── */
+.month-rows { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+.month-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.month-row label {
+  width: 100px;
+  flex-shrink: 0;
+  text-transform: none;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+.month-row input { flex: 1; }
+.month-row .remove-month {
+  background: none;
+  border: none;
+  color: var(--asphalt);
+  cursor: pointer;
+  font-size: 1.1rem;
+  padding: 2px 4px;
+  opacity: 0.5;
+}
+.month-row .remove-month:hover { opacity: 1; color: var(--red); }
+.add-month-btn {
+  background: none;
+  border: 1px dashed var(--teal);
+  color: var(--teal);
+  padding: 6px 14px;
+  cursor: pointer;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border-radius: 2px;
+  margin-top: 4px;
+}
+.add-month-btn:hover { background: var(--teal-lt); }
+
+/* ── ESTIMATOR ── */
+.estimator-panel { display: none; }
+.estimator-panel.visible { display: block; }
+.single-avg-panel { display: none; }
+.single-avg-panel.visible { display: block; }
+.monthly-panel { display: block; }
+.monthly-panel.hidden { display: none; }
+
+.slider-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.slider-row input[type="range"] { flex: 1; accent-color: var(--teal); }
+.slider-val {
+  min-width: 64px;
+  text-align: right;
+  font-weight: 700;
+  color: var(--teal);
+  font-size: 1rem;
+}
+.implied-monthly {
+  background: var(--teal-lt);
+  border-top: 2px solid var(--teal);
+  padding: 10px 14px;
+  margin-top: 8px;
+  font-size: 0.92rem;
+}
+.implied-monthly strong { color: var(--teal); font-size: 1.05rem; }
+
+/* ── RESULTS / CHART AREA ── */
+#results-area {
+  background: var(--asphalt);
+  color: #fff;
+  padding: 24px;
+  margin-top: 2px;
+}
+#results-area h3 {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 16px;
+  color: rgba(255,255,255,0.7);
+}
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.stat-item { display: flex; flex-direction: column; gap: 2px; }
+.stat-item .stat-label {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(255,255,255,0.55);
+}
+.stat-item .stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  line-height: 1;
+}
+.stat-item.total-loss .stat-value { color: #FF7B6B; }
+.stat-item.baseline-total .stat-value { color: #5ECFBF; }
+.stat-item.pct-decline .stat-value { color: #FFCC55; }
+.stat-item.avg-loss .stat-value { color: rgba(255,255,255,0.9); }
+
+.tier-badge {
+  display: inline-block;
+  padding: 6px 16px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 2px;
+  margin-top: 4px;
+}
+.tier-1 { background: rgba(255,255,255,0.15); color: #fff; }
+.tier-2 { background: #D4A017; color: #1C1C1C; }
+.tier-3 { background: var(--red); color: #fff; }
+.tier-4 { background: #A81E1E; color: #fff; }
+
+#chart-wrapper {
+  background: #fff;
+  padding: 16px;
+  margin-top: 16px;
+  border-radius: 2px;
+}
+#chart-wrapper canvas { max-height: 260px; }
+
+/* ── BUTTONS ── */
+.btn {
+  display: inline-block;
+  padding: 10px 22px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: none;
+  cursor: pointer;
+  border-radius: 2px;
+  text-decoration: none;
+  transition: opacity 0.15s;
+}
+.btn:hover { opacity: 0.88; }
+.btn-primary { background: var(--teal); color: #fff; }
+.btn-red     { background: var(--red); color: #fff; }
+.btn-ghost   { background: transparent; border: 1px solid var(--rule); color: var(--asphalt); }
+.btn-clear   { background: var(--red-lt); color: var(--red); border: 1px solid var(--red); }
+.nav-btns {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+/* ── MODULE 2 — ELIGIBILITY ── */
+.eligibility-list { list-style: none; margin-bottom: 20px; }
+.eligibility-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--rule);
+  font-size: 0.95rem;
+}
+.eligibility-list li:last-child { border-bottom: none; }
+.eli-icon {
+  font-size: 1.3rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.eli-text { flex: 1; }
+.eli-text strong {
+  display: block;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.88rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 2px;
+}
+
+.eligibility-banner {
+  padding: 18px 24px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 20px;
+  border-radius: 2px;
+}
+.eligible-banner { background: var(--green); color: #fff; }
+.review-banner   { background: var(--yellow); color: #1C1C1C; }
+
+.eligibility-banner .next-step {
+  font-size: 0.88rem;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  margin-top: 6px;
+  opacity: 0.9;
+}
+
+/* ── OTHER PROGRAMS ── */
+.programs-panel {
+  background: #fff;
+  border: 1px solid var(--rule);
+  padding: 24px;
+  margin-top: 2px;
+}
+.programs-panel h3 {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--asphalt);
+  margin-bottom: 16px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--rule);
+}
+.program-entry {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.program-entry:last-child { border-bottom: none; }
+.program-entry .prog-name {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--teal);
+  margin-bottom: 2px;
+}
+.program-entry .prog-detail {
+  font-size: 0.9rem;
+  color: var(--asphalt);
+  margin-bottom: 2px;
+}
+.program-entry .prog-url {
+  font-size: 0.88rem;
+  color: var(--teal);
+  font-family: 'Arial Narrow', Arial, sans-serif;
+}
+.hawj-note {
+  background: var(--teal-lt);
+  border-top: 3px solid var(--teal);
+  padding: 14px 18px;
+  font-size: 0.9rem;
+  margin-top: 16px;
+}
+
+/* ── MODULE 3 — APPLICATION ── */
+#application-doc {
+  background: #fff;
+  border: 1px solid var(--rule);
+  padding: 32px;
+  margin-top: 2px;
+}
+.app-doc-header {
+  text-align: center;
+  border-bottom: 3px solid var(--asphalt);
+  padding-bottom: 20px;
+  margin-bottom: 24px;
+}
+.app-doc-header h2 {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--asphalt);
+}
+.app-doc-header .doc-subtitle {
+  font-size: 0.92rem;
+  color: var(--asphalt);
+  margin-top: 4px;
+}
+.app-section {
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--rule);
+}
+.app-section:last-child { border-bottom: none; }
+.app-section h3 {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--asphalt);
+  margin-bottom: 10px;
+  padding: 4px 8px;
+  background: var(--bg);
+  display: inline-block;
+}
+.info-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 16px;
+  font-size: 0.95rem;
+}
+.info-grid dt {
+  font-weight: 700;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.88rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--asphalt);
+}
+.impact-narrative {
+  line-height: 1.8;
+  font-size: 0.95rem;
+}
+.impact-narrative[contenteditable="true"] {
+  border: 1px dashed var(--teal);
+  padding: 10px;
+  outline: none;
+  min-height: 80px;
+}
+.impact-narrative[contenteditable="true"]:focus {
+  border-color: var(--teal);
+  background: var(--teal-lt);
+}
+.edit-hint {
+  font-size: 0.78rem;
+  color: var(--teal);
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  margin-top: 4px;
+  font-style: italic;
+}
+
+/* ── REVENUE TABLE ── */
+.rev-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+.rev-table th {
+  background: var(--asphalt);
+  color: #fff;
+  padding: 8px 10px;
+  text-align: left;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.rev-table td {
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--rule);
+}
+.rev-table tr:nth-child(even) td { background: #FAFAF8; }
+.rev-table .total-row td {
+  font-weight: 700;
+  background: var(--red-lt);
+  border-top: 2px solid var(--red);
+  color: var(--red);
+}
+.rev-table td.loss-col { color: var(--red); font-weight: 700; }
+.rev-table td.pct-col  { color: var(--asphalt); }
+@media (max-width: 580px) {
+  .rev-table th:nth-child(4),
+  .rev-table td:nth-child(4) { display: none; }
+}
+
+/* ── GRANT REQUEST BOX ── */
+.grant-request-box {
+  background: var(--teal);
+  color: #fff;
+  padding: 20px 24px;
+  margin: 16px 0;
+}
+.grant-request-box .req-amount {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 2.4rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.grant-request-box .req-note {
+  font-size: 0.88rem;
+  opacity: 0.88;
+  margin-top: 4px;
+}
+
+/* ── ATTESTATION ── */
+.attestation-block {
+  margin-top: 20px;
+  padding: 16px;
+  background: var(--bg);
+}
+.sig-line {
+  border-bottom: 1px solid var(--text);
+  height: 36px;
+  margin-bottom: 4px;
+}
+.sig-label {
+  font-size: 0.82rem;
+  color: var(--asphalt);
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* ── PRINT ACTIONS ── */
+.print-actions {
+  background: var(--bg);
+  border-top: 1px solid var(--rule);
+  padding: 20px 24px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 2px;
+}
+.print-actions p {
+  flex: 1;
+  font-size: 0.9rem;
+  color: var(--asphalt);
+}
+
+/* ── ERROR STATE ── */
+.error-msg {
+  background: var(--red-lt);
+  border-top: 2px solid var(--red);
+  padding: 12px 16px;
+  font-size: 0.92rem;
+  color: var(--alert);
+  margin-top: 8px;
+  display: none;
+}
+.error-msg.visible { display: block; }
+
+/* ── FOOTER ── */
+footer {
+  background: var(--asphalt);
+  color: rgba(255,255,255,0.6);
+  padding: 16px 24px;
+  font-size: 0.82rem;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* ══════════════════════════════════════
+   PRINT CSS
+   ══════════════════════════════════════ */
+@media print {
+  #site-header, #stepper-bar, #resume-banner, #demo-banner,
+  #module-1, #module-2, .module-header,
+  .print-actions, .nav-btns, footer,
+  .mode-toggle, .monthly-panel, .estimator-panel,
+  .single-avg-panel, #results-area, .add-month-btn,
+  .remove-month, .btn-clear, .edit-hint,
+  #module-3 .module-header { display: none !important; }
+
+  body { background: #fff; font-size: 11pt; }
+  main { max-width: 100%; padding: 0; margin: 0; }
+
+  #module-3 { display: block !important; }
+  #application-doc {
+    border: none;
+    padding: 0;
+    margin: 0;
+  }
+  .app-doc-header h2 { font-size: 14pt; }
+
+  .print-header {
+    display: block !important;
+    text-align: center;
+    margin-bottom: 16pt;
+    border-bottom: 2pt solid #000;
+    padding-bottom: 10pt;
+  }
+  .print-footer {
+    display: block !important;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 8pt;
+    border-top: 1pt solid #000;
+    padding-top: 4pt;
+  }
+
+  .impact-narrative[contenteditable] {
+    border: none !important;
+    padding: 0 !important;
+    background: transparent !important;
+  }
+  .rev-table { font-size: 9pt; }
+  .grant-request-box { background: #f0f0f0; color: #000; }
+  page-break-inside: avoid;
+}
+
+.print-header, .print-footer { display: none; }
+</style>
+</head>
+<body>
+
+<!-- SITE HEADER -->
+<header id="site-header">
+  <h1>East Side Corridor Business Grant Tool</h1>
+  <div class="subtitle">Arcade Street &amp; East 7th Street — Revenue Documentation &amp; Grant Application Builder</div>
+</header>
+
+<!-- STEPPER -->
+<nav id="stepper-bar" aria-label="Progress">
+  <div id="stepper">
+    <button class="step-btn active" data-step="1" onclick="goToStep(1)">
+      <span class="step-num" id="stepnum-1">1</span>
+      <span class="step-label">Revenue Calculator</span>
+    </button>
+    <div class="step-connector"></div>
+    <button class="step-btn" data-step="2" onclick="goToStep(2)">
+      <span class="step-num" id="stepnum-2">2</span>
+      <span class="step-label">Eligibility Check</span>
+    </button>
+    <div class="step-connector"></div>
+    <button class="step-btn" data-step="3" onclick="goToStep(3)">
+      <span class="step-num" id="stepnum-3">3</span>
+      <span class="step-label">Application Package</span>
+    </button>
+  </div>
+</nav>
+
+<!-- RESUME BANNER -->
+<div id="resume-banner" role="alert">
+  <p><strong>You have a saved application.</strong> Would you like to pick up where you left off?</p>
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="resumeSaved()">Resume</button>
+    <button class="btn btn-ghost" onclick="startFresh()">Start Fresh</button>
+  </div>
+</div>
+
+<main>
+
+  <!-- INTRO PANEL -->
+  <div id="intro-panel">
+    <h2>What Did Construction Cost Your Business?</h2>
+    <p>If MnDOT's Arcade Street or East 7th Street construction has hurt your business, you may be eligible for a grant of up to <strong>$5,000</strong>. This tool helps you document your revenue loss, check your eligibility, and generate a ready-to-submit application — <strong>no accountant needed.</strong></p>
+    <p class="grant-note">Senator Hawj's SF2520 secured the grants. This tool helps you claim one.</p>
+    <div class="sf-credit">Senator Foung Hawj's SF2520 (2025) created this grant program after the East Side Area Business Association documented that approximately 150 small businesses — many of them immigrant-owned — faced revenue losses when MnDOT began reconstructing Arcade Street and East 7th Street in spring 2025. The $250,000 appropriation funds grants of up to $5,000 per business, distributed by ESNDC.</div>
+  </div>
+
+  <!-- DEMO BANNER -->
+  <div id="demo-banner">
+    <span>Demo: East Side Kitchen (example data) — This is illustrative, not a real business.</span>
+    <button class="btn btn-red" onclick="startFresh()">Clear &amp; Start My Application</button>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       MODULE 1: REVENUE LOSS CALCULATOR
+       ═══════════════════════════════════════ -->
+  <section id="module-1" class="module active">
+    <div class="module-header">
+      <span class="mod-num">01</span>
+      <h2>Revenue Loss Calculator</h2>
+    </div>
+
+    <!-- STEP 1: Business Profile -->
+    <div class="form-section">
+      <h3>Step 1 — Your Business</h3>
+      <div class="field-group">
+        <div class="field">
+          <label for="biz-name">Business Name</label>
+          <input type="text" id="biz-name" placeholder="e.g. East Side Kitchen" autocomplete="organization">
+        </div>
+        <div class="field">
+          <label for="biz-type">Business Type</label>
+          <select id="biz-type">
+            <option value="">— Select —</option>
+            <option value="Restaurant">Restaurant</option>
+            <option value="Retail shop">Retail shop</option>
+            <option value="Food market">Food market</option>
+            <option value="Personal services">Personal services</option>
+            <option value="Auto repair">Auto repair</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="biz-address">Street Address</label>
+          <select id="biz-address">
+            <option value="">— Select nearest address/corridor —</option>
+            <optgroup label="Arcade Street">
+              <option>Arcade Street at Frost Ave, St. Paul</option>
+              <option>Arcade Street at Case Ave, St. Paul</option>
+              <option>Arcade Street at Minnehaha Ave, St. Paul</option>
+              <option>Arcade Street at Maryland Ave, St. Paul</option>
+              <option>Arcade Street at York Ave, St. Paul</option>
+              <option>1200 Arcade Street, St. Paul</option>
+              <option>Other address on Arcade Street, St. Paul</option>
+            </optgroup>
+            <optgroup label="East 7th Street">
+              <option>East 7th Street at Payne Ave, St. Paul</option>
+              <option>East 7th Street at Arcade St, St. Paul</option>
+              <option>East 7th Street at Case Ave, St. Paul</option>
+              <option>Other address on East 7th Street, St. Paul</option>
+            </optgroup>
+            <optgroup label="Cross Streets">
+              <option>Payne Ave near East 7th, St. Paul</option>
+              <option>Minnehaha Ave near Arcade, St. Paul</option>
+              <option>Maryland Ave near Arcade, St. Paul</option>
+            </optgroup>
+          </select>
+        </div>
+        <div class="field">
+          <label for="biz-employees">Number of Employees (including owner)</label>
+          <input type="number" id="biz-employees" min="1" max="100" placeholder="e.g. 6">
+        </div>
+        <div class="field">
+          <label for="biz-years">Years at This Location</label>
+          <input type="number" id="biz-years" min="0" max="100" placeholder="e.g. 9">
+        </div>
+        <div class="field">
+          <label>Within 300 Feet of Active Construction?</label>
+          <div class="radio-row">
+            <label><input type="radio" name="within-300" value="yes"> Yes</label>
+            <label><input type="radio" name="within-300" value="no"> No</label>
+            <label><input type="radio" name="within-300" value="unsure"> Not sure</label>
+          </div>
+        </div>
+        <div class="field">
+          <label>Independently Owned with Fewer than 25 Employees?</label>
+          <div class="radio-row">
+            <label><input type="radio" name="under-25" value="yes"> Yes</label>
+            <label><input type="radio" name="under-25" value="no"> No</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2: Revenue Comparison -->
+    <div class="form-section" style="padding: 24px 24px 12px; margin-top:2px;">
+      <h3>Step 2 — Revenue Comparison: Before vs. During Construction</h3>
+      <p style="font-size:0.9rem;color:var(--asphalt);margin-bottom:16px;">Enter what your business was making before construction started, then enter what you made during the construction period. Use your best estimates — exact numbers are not required.</p>
+    </div>
+
+    <div id="revenue-comparison">
+      <!-- BASELINE PANEL -->
+      <div class="rev-panel baseline">
+        <h3>Before Construction</h3>
+        <p class="period-note">Baseline period: same months in the prior year, or your average before construction began</p>
+        <div class="mode-toggle" role="group" aria-label="Baseline input method">
+          <button class="mode-btn active-mode" onclick="setMode('baseline','monthly',this)">Monthly</button>
+          <button class="mode-btn" onclick="setMode('baseline','average',this)">Single Avg</button>
+          <button class="mode-btn" onclick="setMode('baseline','estimator',this)">Estimator</button>
+        </div>
+
+        <!-- MONTHLY -->
+        <div id="baseline-monthly" class="monthly-panel">
+          <div class="month-rows" id="baseline-rows"></div>
+          <button class="add-month-btn" onclick="addMonthRow('baseline')">+ Add Month</button>
+        </div>
+
+        <!-- SINGLE AVERAGE -->
+        <div id="baseline-average" class="single-avg-panel">
+          <div class="field" style="margin-bottom:8px;">
+            <label for="baseline-avg-val">Average Monthly Revenue (Before Construction)</label>
+            <input type="number" id="baseline-avg-val" placeholder="e.g. 19825" min="0" oninput="recalc()">
+          </div>
+          <p style="font-size:0.82rem;color:var(--asphalt);">This figure will be used for all comparison months.</p>
+        </div>
+
+        <!-- ESTIMATOR -->
+        <div id="baseline-estimator" class="estimator-panel">
+          <label style="display:block;margin-bottom:6px;">Average Daily Cash/Card Sales Before Construction</label>
+          <div class="slider-row">
+            <input type="range" id="baseline-daily-slider" min="0" max="5000" step="50" value="650" oninput="updateSlider('baseline')">
+            <span class="slider-val" id="baseline-daily-val">$650</span>
+          </div>
+          <div class="field" style="margin-bottom:10px;">
+            <label for="baseline-days">Days Open Per Week</label>
+            <input type="number" id="baseline-days" min="1" max="7" value="6" oninput="updateSlider('baseline')">
+          </div>
+          <div class="field" style="margin-bottom:10px;">
+            <label for="baseline-months-est">Months Before Construction Felt Normal</label>
+            <input type="number" id="baseline-months-est" min="1" max="12" value="4" oninput="recalc()">
+          </div>
+          <div class="implied-monthly" id="baseline-implied">
+            Implied monthly revenue: <strong id="baseline-implied-val">$0</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- IMPACT PANEL -->
+      <div class="rev-panel impact">
+        <h3>During Construction</h3>
+        <p class="period-note">Impact period: months when construction caused disruption (spring 2025 onward)</p>
+        <div class="mode-toggle" role="group" aria-label="Impact input method">
+          <button class="mode-btn active-mode" onclick="setMode('impact','monthly',this)">Monthly</button>
+          <button class="mode-btn" onclick="setMode('impact','average',this)">Single Avg</button>
+          <button class="mode-btn" onclick="setMode('impact','estimator',this)">Estimator</button>
+        </div>
+
+        <!-- MONTHLY -->
+        <div id="impact-monthly" class="monthly-panel">
+          <div class="month-rows" id="impact-rows"></div>
+          <button class="add-month-btn" onclick="addMonthRow('impact')">+ Add Month</button>
+        </div>
+
+        <!-- SINGLE AVERAGE -->
+        <div id="impact-average" class="single-avg-panel">
+          <div class="field" style="margin-bottom:8px;">
+            <label for="impact-avg-val">Average Monthly Revenue (During Construction)</label>
+            <input type="number" id="impact-avg-val" placeholder="e.g. 10875" min="0" oninput="recalc()">
+          </div>
+          <p style="font-size:0.82rem;color:var(--asphalt);">This figure will be used for all comparison months.</p>
+        </div>
+
+        <!-- ESTIMATOR -->
+        <div id="impact-estimator" class="estimator-panel">
+          <label style="display:block;margin-bottom:6px;">Average Daily Cash/Card Sales During Construction</label>
+          <div class="slider-row">
+            <input type="range" id="impact-daily-slider" min="0" max="5000" step="50" value="390" oninput="updateSlider('impact')">
+            <span class="slider-val" id="impact-daily-val">$390</span>
+          </div>
+          <div class="field" style="margin-bottom:10px;">
+            <label for="impact-days">Days Open Per Week</label>
+            <input type="number" id="impact-days" min="1" max="7" value="6" oninput="updateSlider('impact')">
+          </div>
+          <div class="field" style="margin-bottom:10px;">
+            <label for="impact-months-est">Number of Impact Months</label>
+            <input type="number" id="impact-months-est" min="1" max="12" value="4" oninput="recalc()">
+          </div>
+          <div class="implied-monthly" id="impact-implied">
+            Implied monthly revenue: <strong id="impact-implied-val">$0</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESULTS -->
+    <div id="results-area">
+      <h3>Calculated Results</h3>
+      <div class="stat-row">
+        <div class="stat-item total-loss">
+          <span class="stat-label">Total Documented Loss</span>
+          <span class="stat-value" id="stat-total-loss">$0</span>
+        </div>
+        <div class="stat-item baseline-total">
+          <span class="stat-label">Total Baseline Revenue</span>
+          <span class="stat-value" id="stat-baseline-total">$0</span>
+        </div>
+        <div class="stat-item pct-decline">
+          <span class="stat-label">Revenue Decline</span>
+          <span class="stat-value" id="stat-pct-decline">0%</span>
+        </div>
+        <div class="stat-item avg-loss">
+          <span class="stat-label">Avg. Monthly Loss</span>
+          <span class="stat-value" id="stat-avg-loss">$0</span>
+        </div>
+      </div>
+      <div id="tier-display"></div>
+      <div id="error-empty" class="error-msg">It looks like you haven't entered any revenue numbers yet. Start with the Baseline section — enter what your business was making before construction started.</div>
+      <div id="chart-wrapper">
+        <canvas id="revenue-chart" aria-label="Monthly revenue comparison bar chart"></canvas>
+      </div>
+    </div>
+
+    <div class="nav-btns" style="padding:0 0 8px;">
+      <button class="btn btn-primary" onclick="goToStep(2)">Next: Check Eligibility →</button>
+      <button class="btn btn-clear" onclick="startFresh()">Clear &amp; Start Over</button>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       MODULE 2: GRANT ELIGIBILITY CHECKER
+       ═══════════════════════════════════════ -->
+  <section id="module-2" class="module">
+    <div class="module-header">
+      <span class="mod-num">02</span>
+      <h2>Grant Eligibility Check</h2>
+    </div>
+
+    <div class="form-section">
+      <h3>Arcade Street / East 7th Street Mitigation Grant — Eligibility Review</h3>
+      <div id="eligibility-banner-area"></div>
+      <ul class="eligibility-list" id="eligibility-list" aria-label="Eligibility checklist">
+        <!-- populated by JS -->
+      </ul>
+    </div>
+
+    <div class="programs-panel">
+      <h3>Other Available Programs</h3>
+      <div class="program-entry">
+        <div class="prog-name">ESNDC Business Investment Fund</div>
+        <div class="prog-detail">Forgivable loans $2,000–$50,000 for East Side small businesses. Forgiven over 6-year period.</div>
+        <div class="prog-url">esndc.org</div>
+      </div>
+      <div class="program-entry">
+        <div class="prog-name">ESNDC East Community Fund (ECF)</div>
+        <div class="prog-detail">Working capital loans up to $20,000 + 12 hours free business coaching. Focus on BIPOC business owners on St. Paul's East Side.</div>
+        <div class="prog-url">esndc.org</div>
+      </div>
+      <div class="program-entry">
+        <div class="prog-name">ESABA Small Business Technical Assistance Hub</div>
+        <div class="prog-detail">Free technical assistance, referrals, and advocacy for East Side businesses.</div>
+        <div class="prog-url">esaba.org</div>
+      </div>
+      <div class="program-entry">
+        <div class="prog-name">MnDOT Business Impact Mitigation (Minn. Stat. §160.165)</div>
+        <div class="prog-detail">State-required mitigation for projects causing substantial business impact (access/parking/visibility impairment for one month or longer).</div>
+        <div class="prog-url">MnDOT District 5 project Business Liaison — dot.state.mn.us</div>
+      </div>
+      <div class="program-entry">
+        <div class="prog-name">Minnesota DEED Small Business Assistance</div>
+        <div class="prog-detail">Various grant and loan programs through Dept. of Employment and Economic Development.</div>
+        <div class="prog-url">mn.gov/deed</div>
+      </div>
+      <div class="program-entry">
+        <div class="prog-name">Latino Economic Development Center (LEDC)</div>
+        <div class="prog-detail">Business development, loans, and outreach for Latino and immigrant businesses on the East Side.</div>
+        <div class="prog-url">ledcmn.org</div>
+      </div>
+      <div class="hawj-note">
+        <strong>About this grant program:</strong> Senator Hawj's SF2520 established the current Arcade/East 7th mitigation grant program. For questions about that program, contact ESNDC at <strong>esndc.org</strong> or ESABA at <strong>esaba.org</strong>.
+      </div>
+    </div>
+
+    <div class="nav-btns">
+      <button class="btn btn-ghost" onclick="goToStep(1)">← Back to Calculator</button>
+      <button class="btn btn-primary" onclick="goToStep(3)">Next: Build Application →</button>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       MODULE 3: APPLICATION PACKAGE GENERATOR
+       ═══════════════════════════════════════ -->
+  <section id="module-3" class="module">
+    <div class="module-header">
+      <span class="mod-num">03</span>
+      <h2>Grant Application Package</h2>
+    </div>
+
+    <!-- Print-only header/footer -->
+    <div class="print-header">
+      <strong style="font-size:14pt;">Arcade Street / East 7th Street Business Mitigation Grant Application</strong><br>
+      <span style="font-size:9pt;">SF2520 (2025 Minnesota Legislature) — Administered by ESNDC / ESABA</span>
+    </div>
+    <div class="print-footer">
+      Prepared with East Side Business Grant Tool | District 67, St. Paul
+    </div>
+
+    <div id="application-doc">
+      <div class="app-doc-header">
+        <h2>Arcade Street / East 7th Street<br>Business Mitigation Grant Application</h2>
+        <div class="doc-subtitle">SF2520 (2025 Minnesota Legislature) — Administered by ESNDC / ESABA</div>
+      </div>
+
+      <!-- Section A -->
+      <div class="app-section" id="app-sec-a">
+        <h3>Section A — Business Information</h3>
+        <dl class="info-grid" id="app-biz-info">
+          <!-- populated by JS -->
+        </dl>
+      </div>
+
+      <!-- Section B -->
+      <div class="app-section" id="app-sec-b">
+        <h3>Section B — Construction Impact Statement</h3>
+        <div class="impact-narrative" id="app-narrative" contenteditable="true"></div>
+        <div class="edit-hint">You may edit this text directly before printing.</div>
+      </div>
+
+      <!-- Section C -->
+      <div class="app-section" id="app-sec-c">
+        <h3>Section C — Revenue Documentation</h3>
+        <table class="rev-table" id="app-rev-table">
+          <thead>
+            <tr>
+              <th>Month</th>
+              <th>Baseline Revenue</th>
+              <th>Impact Revenue</th>
+              <th>Monthly Loss</th>
+              <th>% Change</th>
+            </tr>
+          </thead>
+          <tbody id="app-rev-tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- Section D -->
+      <div class="app-section" id="app-sec-d">
+        <h3>Section D — Loss Summary</h3>
+        <p class="impact-narrative" id="app-loss-narrative"></p>
+      </div>
+
+      <!-- Section E -->
+      <div class="app-section" id="app-sec-e">
+        <h3>Section E — Grant Request</h3>
+        <div class="grant-request-box">
+          <div class="req-amount" id="app-grant-amount">$0</div>
+          <div class="req-note" id="app-grant-note"></div>
+        </div>
+        <p class="impact-narrative" id="app-grant-statement" style="margin-top:12px;"></p>
+      </div>
+
+      <!-- Section F -->
+      <div class="app-section" id="app-sec-f">
+        <h3>Section F — Owner Attestation</h3>
+        <div class="attestation-block">
+          <div class="field-group" style="margin-bottom:16px;">
+            <div class="field">
+              <label for="owner-name">Owner / Authorized Representative Name</label>
+              <input type="text" id="owner-name" placeholder="Full legal name">
+            </div>
+            <div class="field">
+              <label>Date</label>
+              <input type="text" id="attest-date" readonly>
+            </div>
+          </div>
+          <div class="sig-line"></div>
+          <div class="sig-label">Signature (sign above)</div>
+          <p style="margin-top:14px;font-size:0.88rem;color:var(--asphalt);">By signing, I attest that the revenue information provided above is accurate to the best of my knowledge and that my business meets the eligibility requirements for the Arcade Street / East 7th Street Business Mitigation Grant program established under SF2520 (2025).</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="print-actions">
+      <p>Review your application above. You may edit the impact statement text directly. When ready, print or save as PDF.</p>
+      <button class="btn btn-red" onclick="window.print()">Print / Save as PDF</button>
+      <button class="btn btn-ghost" onclick="goToStep(2)">← Back to Eligibility</button>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  A resource for East Side corridor businesses. Built with AI. Grant program information reflects SF2520 (2025 Minnesota Legislature) and ESNDC/ESABA program details as of 2025. Verify current program status at esaba.org or esndc.org.
+</footer>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════════
+const STORAGE_KEY = 'hawj-grant-tool-v1';
+let currentStep = 1;
+let revenueChart = null;
+
+// Modes for each panel
+const modes = { baseline: 'monthly', impact: 'monthly' };
+
+// Month label arrays
+const BASELINE_MONTHS = ['March 2024','April 2024','May 2024','June 2024'];
+const IMPACT_MONTHS   = ['March 2025','April 2025','May 2025','June 2025'];
+
+// Demo data
+const DEMO = {
+  bizName: 'East Side Kitchen (example only)',
+  bizType: 'Restaurant',
+  bizAddress: '1200 Arcade Street, St. Paul',
+  bizEmployees: '6',
+  bizYears: '9',
+  within300: 'yes',
+  under25: 'yes',
+  baselineMode: 'monthly',
+  impactMode: 'monthly',
+  baselineMonths: [
+    {label:'March 2024', val:18400},
+    {label:'April 2024', val:19100},
+    {label:'May 2024',   val:20300},
+    {label:'June 2024',  val:21500}
+  ],
+  impactMonths: [
+    {label:'March 2025', val:11200},
+    {label:'April 2025', val:9800},
+    {label:'May 2025',   val:10400},
+    {label:'June 2025',  val:12100}
+  ]
+};
+
+// ══════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('attest-date').value = new Date().toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'});
+
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (parsed && parsed.bizName && parsed.bizName !== DEMO.bizName) {
+        document.getElementById('resume-banner').style.display = 'flex';
+        return;
+      }
+    } catch(e) {}
+  }
+  loadDemo();
+});
+
+function loadDemo() {
+  document.getElementById('demo-banner').style.display = 'flex';
+  document.getElementById('biz-name').value        = DEMO.bizName;
+  document.getElementById('biz-type').value        = DEMO.bizType;
+  document.getElementById('biz-address').value     = DEMO.bizAddress;
+  document.getElementById('biz-employees').value   = DEMO.bizEmployees;
+  document.getElementById('biz-years').value       = DEMO.bizYears;
+  setRadio('within-300', DEMO.within300);
+  setRadio('under-25', DEMO.under25);
+
+  buildMonthRows('baseline', DEMO.baselineMonths);
+  buildMonthRows('impact', DEMO.impactMonths);
+  attachInputListeners();
+  recalc();
+}
+
+function setRadio(name, value) {
+  const el = document.querySelector(`input[name="${name}"][value="${value}"]`);
+  if (el) el.checked = true;
+}
+
+// ══════════════════════════════════════════════════════════════
+// MONTH ROW BUILDERS
+// ══════════════════════════════════════════════════════════════
+let baselineRowCount = 0;
+let impactRowCount = 0;
+
+function buildMonthRows(panel, dataArr) {
+  const container = document.getElementById(panel + '-rows');
+  container.innerHTML = '';
+  if (panel === 'baseline') baselineRowCount = 0;
+  else impactRowCount = 0;
+  dataArr.forEach(m => addMonthRow(panel, m.label, m.val));
+}
+
+function addMonthRow(panel, label, value) {
+  const container = document.getElementById(panel + '-rows');
+  const idx = (panel === 'baseline') ? ++baselineRowCount : ++impactRowCount;
+
+  // Default labels
+  if (!label) {
+    const defaults = panel === 'baseline' ? BASELINE_MONTHS : IMPACT_MONTHS;
+    label = defaults[idx - 1] || `Month ${idx}`;
+  }
+
+  const row = document.createElement('div');
+  row.className = 'month-row';
+  row.dataset.idx = idx;
+  row.innerHTML = `
+    <label for="${panel}-m${idx}">${escHtml(label)}</label>
+    <input type="number" id="${panel}-m${idx}" class="${panel}-month-input"
+           placeholder="$" min="0" value="${value !== undefined ? value : ''}"
+           aria-label="${escHtml(label)} revenue"
+           oninput="recalc(); saveData();">
+    <button class="remove-month" onclick="removeMonthRow(this,'${panel}')" aria-label="Remove month" title="Remove">×</button>`;
+  container.appendChild(row);
+  attachInputListeners();
+  recalc();
+}
+
+function removeMonthRow(btn, panel) {
+  btn.closest('.month-row').remove();
+  recalc();
+  saveData();
+}
+
+// ══════════════════════════════════════════════════════════════
+// MODE SWITCHING
+// ══════════════════════════════════════════════════════════════
+function setMode(panel, mode, btn) {
+  modes[panel] = mode;
+  // Toggle button styles
+  btn.closest('.mode-toggle').querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active-mode'));
+  btn.classList.add('active-mode');
+
+  const monthlyEl   = document.getElementById(panel + '-monthly');
+  const avgEl       = document.getElementById(panel + '-average');
+  const estimatorEl = document.getElementById(panel + '-estimator');
+
+  monthlyEl.classList.toggle('hidden', mode !== 'monthly');
+  avgEl.classList.toggle('visible', mode === 'average');
+  estimatorEl.classList.toggle('visible', mode === 'estimator');
+
+  recalc();
+  saveData();
+}
+
+function updateSlider(panel) {
+  const slider = document.getElementById(panel + '-daily-slider');
+  const val = parseInt(slider.value);
+  document.getElementById(panel + '-daily-val').textContent = '$' + val.toLocaleString();
+  const daysInput = document.getElementById(panel + '-days');
+  const days = parseInt(daysInput.value) || 6;
+  const monthly = Math.round((val * days * 52) / 12);
+  document.getElementById(panel + '-implied-val').textContent = '$' + monthly.toLocaleString();
+  recalc();
+  saveData();
+}
+
+// ══════════════════════════════════════════════════════════════
+// GET PANEL REVENUE DATA
+// ══════════════════════════════════════════════════════════════
+function getPanelData(panel) {
+  const mode = modes[panel];
+  const rows = [];
+
+  if (mode === 'monthly') {
+    document.querySelectorAll('.' + panel + '-month-input').forEach(inp => {
+      const label = inp.previousElementSibling ? inp.previousElementSibling.textContent.trim() : '';
+      const val = parseFloat(inp.value) || 0;
+      rows.push({ label, val });
+    });
+  } else if (mode === 'average') {
+    const avgVal = parseFloat(document.getElementById(panel + '-avg-val').value) || 0;
+    // Use 4 months as default comparison length
+    const months = panel === 'baseline' ? BASELINE_MONTHS : IMPACT_MONTHS;
+    months.forEach(m => rows.push({ label: m, val: avgVal }));
+  } else { // estimator
+    const slider = document.getElementById(panel + '-daily-slider');
+    const dailyVal = parseInt(slider.value) || 0;
+    const daysEl = document.getElementById(panel + '-days');
+    const days = parseInt(daysEl.value) || 6;
+    const monthly = Math.round((dailyVal * days * 52) / 12);
+    const monthsCountEl = panel === 'baseline'
+      ? document.getElementById('baseline-months-est')
+      : document.getElementById('impact-months-est');
+    const count = parseInt(monthsCountEl.value) || 4;
+    const labels = panel === 'baseline' ? BASELINE_MONTHS : IMPACT_MONTHS;
+    for (let i = 0; i < count; i++) {
+      rows.push({ label: labels[i] || `Month ${i+1}`, val: monthly });
+    }
+  }
+  return rows;
+}
+
+// ══════════════════════════════════════════════════════════════
+// CALCULATIONS
+// ══════════════════════════════════════════════════════════════
+function recalc() {
+  const baseline = getPanelData('baseline');
+  const impact   = getPanelData('impact');
+
+  const totalBaseline = baseline.reduce((s,r) => s + r.val, 0);
+  const totalImpact   = impact.reduce((s,r) => s + r.val, 0);
+
+  // Build comparison months (pair by index)
+  const count = Math.max(baseline.length, impact.length);
+  let totalLoss = 0;
+  const monthData = [];
+  for (let i = 0; i < count; i++) {
+    const b = baseline[i] ? baseline[i].val : 0;
+    const im = impact[i] ? impact[i].val : 0;
+    const loss = Math.max(0, b - im);
+    totalLoss += loss;
+    const pct = b > 0 ? ((b - im) / b * 100) : 0;
+    const label = impact[i] ? impact[i].label : (baseline[i] ? baseline[i].label : `Month ${i+1}`);
+    monthData.push({ label, baseline: b, impact: im, loss, pct });
+  }
+
+  const avgLoss = count > 0 ? totalLoss / count : 0;
+  const pctDecline = totalBaseline > 0 ? (totalLoss / totalBaseline * 100) : 0;
+
+  // Update stats
+  document.getElementById('stat-total-loss').textContent    = '$' + Math.round(totalLoss).toLocaleString();
+  document.getElementById('stat-baseline-total').textContent = '$' + Math.round(totalBaseline).toLocaleString();
+  document.getElementById('stat-pct-decline').textContent   = Math.round(pctDecline) + '%';
+  document.getElementById('stat-avg-loss').textContent      = '$' + Math.round(avgLoss).toLocaleString();
+
+  // Error state
+  const errEl = document.getElementById('error-empty');
+  if (totalBaseline === 0 && totalImpact === 0) {
+    errEl.classList.add('visible');
+  } else {
+    errEl.classList.remove('visible');
+  }
+
+  // Tier
+  const tierEl = document.getElementById('tier-display');
+  let tier, tierClass, tierText;
+  if (totalLoss === 0) {
+    tier = ''; tierClass = ''; tierText = '';
+  } else if (totalLoss < 1000) {
+    tier = 'Tier 1'; tierClass = 'tier-1';
+    tierText = 'Low impact — you still may be eligible for mitigation support.';
+  } else if (totalLoss <= 5000) {
+    tier = 'Tier 2'; tierClass = 'tier-2';
+    tierText = 'Moderate impact — the $5,000 grant may cover your full documented loss.';
+  } else if (totalLoss <= 15000) {
+    tier = 'Tier 3'; tierClass = 'tier-3';
+    tierText = 'Substantial impact — the grant covers part of your loss. Consider ESNDC loans for additional support.';
+  } else {
+    tier = 'Tier 4'; tierClass = 'tier-4';
+    tierText = 'Severe impact — grant covers partial loss. Contact ESNDC Business Investment Fund and DEED programs.';
+  }
+  tierEl.innerHTML = tier ? `<span class="tier-badge ${tierClass}">${tier}</span> <span style="font-size:0.88rem;opacity:0.85;margin-left:8px;">${tierText}</span>` : '';
+
+  // Chart
+  updateChart(monthData);
+
+  // Update eligibility (for module 2)
+  updateEligibility(totalLoss, pctDecline, monthData, count);
+
+  // Update application doc (for module 3)
+  updateApplicationDoc(totalLoss, pctDecline, avgLoss, monthData, count);
+
+  updateStepperStatus();
+}
+
+// ══════════════════════════════════════════════════════════════
+// CHART
+// ══════════════════════════════════════════════════════════════
+function updateChart(monthData) {
+  const labels   = monthData.map(m => m.label);
+  const baseData = monthData.map(m => m.baseline);
+  const impData  = monthData.map(m => m.impact);
+
+  if (revenueChart) {
+    revenueChart.data.labels = labels;
+    revenueChart.data.datasets[0].data = baseData;
+    revenueChart.data.datasets[1].data = impData;
+    revenueChart.update();
+    return;
+  }
+  const ctx = document.getElementById('revenue-chart').getContext('2d');
+  revenueChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Baseline (Before Construction)',
+          data: baseData,
+          backgroundColor: '#1A7A6E',
+          borderColor: '#1A7A6E',
+          borderWidth: 0
+        },
+        {
+          label: 'Impact (During Construction)',
+          data: impData,
+          backgroundColor: '#C0392B',
+          borderColor: '#C0392B',
+          borderWidth: 0
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { position: 'top', labels: { font: { family: 'Arial Narrow, Arial, sans-serif', size: 12 } } },
+        tooltip: {
+          callbacks: {
+            label: ctx => ctx.dataset.label + ': $' + ctx.parsed.y.toLocaleString()
+          }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: v => '$' + v.toLocaleString(),
+            font: { size: 11 }
+          }
+        }
+      }
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+// ELIGIBILITY
+// ══════════════════════════════════════════════════════════════
+function updateEligibility(totalLoss, pctDecline, monthData, count) {
+  const under25     = document.querySelector('input[name="under-25"]:checked');
+  const within300   = document.querySelector('input[name="within-300"]:checked');
+  const addressEl   = document.getElementById('biz-address');
+  const addr        = addressEl.value;
+
+  const isUnder25   = under25 && under25.value === 'yes';
+  const isWithin300 = within300 && (within300.value === 'yes' || within300.value === 'unsure');
+  const hasLoss     = totalLoss > 0;
+  const isOnCorridor = addr && addr !== '' && (addr.toLowerCase().includes('arcade') || addr.toLowerCase().includes('7th') || addr.toLowerCase().includes('payne') || addr.toLowerCase().includes('minnehaha') || addr.toLowerCase().includes('maryland'));
+
+  const criteria = [
+    {
+      label: 'Fewer than 25 employees (independently owned)',
+      met: isUnder25,
+      note: isUnder25 ? 'Confirmed per your entry.' : 'You indicated your business has 25 or more employees or is not independently owned. Contact ESNDC for guidance.'
+    },
+    {
+      label: 'Within 300 feet of active construction zone',
+      met: isWithin300,
+      note: isWithin300 ? 'Confirmed per your entry.' : 'You indicated you are not within 300 feet of construction. Contact ESNDC — they can verify eligibility based on your actual location.'
+    },
+    {
+      label: 'Documented revenue loss during construction period',
+      met: hasLoss,
+      note: hasLoss ? `Documented loss: $${Math.round(totalLoss).toLocaleString()} (${Math.round(pctDecline)}% decline).` : 'No revenue loss entered yet. Complete the Revenue Calculator in Step 1.'
+    },
+    {
+      label: 'Located on Arcade Street or East 7th Street corridor',
+      met: isOnCorridor,
+      note: isOnCorridor ? 'Corridor address confirmed.' : 'Select your address from the dropdown in Step 1 to confirm corridor location.'
+    }
+  ];
+
+  const listEl = document.getElementById('eligibility-list');
+  listEl.innerHTML = '';
+  let allMet = true;
+  criteria.forEach(c => {
+    if (!c.met) allMet = false;
+    const li = document.createElement('li');
+    li.innerHTML = `<span class="eli-icon">${c.met ? '✅' : '⚠️'}</span>
+      <div class="eli-text"><strong>${escHtml(c.label)}</strong>${escHtml(c.note)}</div>`;
+    listEl.appendChild(li);
+  });
+
+  const bannerArea = document.getElementById('eligibility-banner-area');
+  if (allMet) {
+    bannerArea.innerHTML = `<div class="eligibility-banner eligible-banner">
+      ✓ Eligible — Your business appears to qualify for a mitigation grant of up to $5,000.
+      <div class="next-step">Use Step 3 to generate your application package, then submit to ESNDC (esndc.org) or ESABA (esaba.org).</div>
+    </div>`;
+  } else {
+    bannerArea.innerHTML = `<div class="eligibility-banner review-banner">
+      ⚠ Review Needed — One or more eligibility criteria need attention (see below).
+      <div class="next-step">Contact ESNDC at esndc.org or ESABA at esaba.org for assistance determining your eligibility.</div>
+    </div>`;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// APPLICATION DOCUMENT
+// ══════════════════════════════════════════════════════════════
+function updateApplicationDoc(totalLoss, pctDecline, avgLoss, monthData, count) {
+  const bizName = document.getElementById('biz-name').value || '[Business Name]';
+  const bizType = document.getElementById('biz-type').value || '[Business Type]';
+  const bizAddr = document.getElementById('biz-address').value || '[Address]';
+  const bizEmp  = document.getElementById('biz-employees').value || '—';
+  const bizYrs  = document.getElementById('biz-years').value || '—';
+
+  // Section A
+  const infoGrid = document.getElementById('app-biz-info');
+  infoGrid.innerHTML = `
+    <dt>Business Name</dt><dd>${escHtml(bizName)}</dd>
+    <dt>Address</dt><dd>${escHtml(bizAddr)}</dd>
+    <dt>Business Type</dt><dd>${escHtml(bizType)}</dd>
+    <dt>Employees</dt><dd>${escHtml(bizEmp)} (including owner)</dd>
+    <dt>Years at Location</dt><dd>${escHtml(bizYrs)}</dd>`;
+
+  // Section B — narrative
+  const corridor = bizAddr.toLowerCase().includes('7th') ? 'East 7th Street' : 'Arcade Street';
+  const narrative = document.getElementById('app-narrative');
+  // Only set if empty or unchanged from last generation (don't overwrite user edits if content is present)
+  const generated = buildNarrative(bizName, bizType, bizAddr, corridor, totalLoss, count, pctDecline);
+  if (!narrative._userEdited) {
+    narrative.textContent = generated;
+  }
+  narrative.addEventListener('input', () => { narrative._userEdited = true; }, { once: false });
+
+  // Section C — revenue table
+  const tbody = document.getElementById('app-rev-tbody');
+  tbody.innerHTML = '';
+  monthData.forEach(m => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${escHtml(m.label)}</td>
+      <td>$${m.baseline.toLocaleString()}</td>
+      <td>$${m.impact.toLocaleString()}</td>
+      <td class="loss-col">$${m.loss.toLocaleString()}</td>
+      <td class="pct-col">${m.pct.toFixed(1)}%</td>`;
+    tbody.appendChild(tr);
+  });
+  const totalRow = document.createElement('tr');
+  totalRow.className = 'total-row';
+  const totalBaselineSum = monthData.reduce((s,m) => s+m.baseline, 0);
+  const totalImpactSum   = monthData.reduce((s,m) => s+m.impact, 0);
+  totalRow.innerHTML = `<td><strong>TOTAL</strong></td>
+    <td><strong>$${totalBaselineSum.toLocaleString()}</strong></td>
+    <td><strong>$${totalImpactSum.toLocaleString()}</strong></td>
+    <td class="loss-col"><strong>$${Math.round(totalLoss).toLocaleString()}</strong></td>
+    <td class="pct-col"><strong>${Math.round(pctDecline)}%</strong></td>`;
+  tbody.appendChild(totalRow);
+
+  // Section D — loss narrative
+  const startLabel = monthData[0] ? monthData[0].label : 'the construction period';
+  const endLabel   = monthData[monthData.length-1] ? monthData[monthData.length-1].label : '';
+  document.getElementById('app-loss-narrative').textContent =
+    `During the ${count}-month construction impact period from ${startLabel} to ${endLabel}, ` +
+    `${bizName} experienced a total documented revenue loss of $${Math.round(totalLoss).toLocaleString()}, representing ` +
+    `a ${Math.round(pctDecline)}% decline from the pre-construction baseline. ` +
+    `Average monthly loss was $${Math.round(avgLoss).toLocaleString()}.`;
+
+  // Section E — grant request
+  const grantAmt = Math.min(Math.round(totalLoss), 5000);
+  document.getElementById('app-grant-amount').textContent = '$' + grantAmt.toLocaleString();
+  document.getElementById('app-grant-note').textContent = grantAmt < totalLoss
+    ? `Maximum grant amount — total documented loss of $${Math.round(totalLoss).toLocaleString()} exceeds the $5,000 program cap.`
+    : `Equals documented loss of $${Math.round(totalLoss).toLocaleString()}.`;
+  document.getElementById('app-grant-statement').textContent =
+    `We respectfully request a construction mitigation grant in the amount of $${grantAmt.toLocaleString()} ` +
+    `to partially offset this documented revenue loss and support continued business operations during the ` +
+    `Arcade Street / East 7th Street reconstruction project.`;
+}
+
+function buildNarrative(bizName, bizType, bizAddr, corridor, totalLoss, months, pct) {
+  const typePhrase = bizType ? bizType.toLowerCase() : 'business';
+  return `${bizName} is a ${typePhrase} located at ${bizAddr} on the ${corridor} commercial corridor in St. Paul. ` +
+    `The MnDOT reconstruction project, which began in spring 2025, has directly impacted customer access, parking, ` +
+    `and visibility at this location. Construction-related lane closures and traffic disruption have caused a documented ` +
+    `reduction in customer traffic and revenue. Over a ${months}-month impact period, the business experienced a ` +
+    `${Math.round(pct)}% decline in revenue compared to the same period in the prior year, with a total documented ` +
+    `loss of $${Math.round(totalLoss).toLocaleString()}. These impacts are directly attributable to the road ` +
+    `construction work on the ${corridor} corridor as documented in the Revenue Comparison table below.`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// STEPPER NAVIGATION
+// ══════════════════════════════════════════════════════════════
+function goToStep(n) {
+  currentStep = n;
+  document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
+  document.getElementById('module-' + n).classList.add('active');
+  document.querySelectorAll('.step-btn').forEach(b => {
+    b.classList.remove('active');
+    if (parseInt(b.dataset.step) === n) b.classList.add('active');
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (n === 3) {
+    // Refresh application doc before viewing
+    const baseline = getPanelData('baseline');
+    const impact   = getPanelData('impact');
+    const totalBaseline = baseline.reduce((s,r) => s + r.val, 0);
+    const totalImpact   = impact.reduce((s,r) => s + r.val, 0);
+    const count = Math.max(baseline.length, impact.length);
+    let totalLoss = 0;
+    const monthData = [];
+    for (let i = 0; i < count; i++) {
+      const b  = baseline[i] ? baseline[i].val : 0;
+      const im = impact[i]   ? impact[i].val   : 0;
+      const loss = Math.max(0, b - im);
+      totalLoss += loss;
+      const pct = b > 0 ? ((b - im) / b * 100) : 0;
+      const label = impact[i] ? impact[i].label : (baseline[i] ? baseline[i].label : `Month ${i+1}`);
+      monthData.push({ label, baseline: b, impact: im, loss, pct });
+    }
+    const avgLoss    = count > 0 ? totalLoss / count : 0;
+    const pctDecline = totalBaseline > 0 ? (totalLoss / totalBaseline * 100) : 0;
+    updateApplicationDoc(totalLoss, pctDecline, avgLoss, monthData, count);
+  }
+}
+
+function updateStepperStatus() {
+  const baseline = getPanelData('baseline');
+  const impact   = getPanelData('impact');
+  const hasData  = baseline.some(r => r.val > 0) || impact.some(r => r.val > 0);
+
+  const s1 = document.getElementById('stepnum-1');
+  const s2 = document.getElementById('stepnum-2');
+
+  if (hasData && currentStep > 1) {
+    s1.textContent = '✓';
+    document.querySelector('[data-step="1"]').classList.add('done');
+  }
+  if (currentStep === 3) {
+    s2.textContent = '✓';
+    document.querySelector('[data-step="2"]').classList.add('done');
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// LOCALSTORAGE SAVE / RESTORE
+// ══════════════════════════════════════════════════════════════
+function attachInputListeners() {
+  document.querySelectorAll('input, select, textarea').forEach(el => {
+    if (!el._saveListenerAttached) {
+      el.addEventListener('change', saveData);
+      el._saveListenerAttached = true;
+    }
+  });
+}
+
+function saveData() {
+  try {
+    const data = {
+      bizName: document.getElementById('biz-name').value,
+      bizType: document.getElementById('biz-type').value,
+      bizAddress: document.getElementById('biz-address').value,
+      bizEmployees: document.getElementById('biz-employees').value,
+      bizYears: document.getElementById('biz-years').value,
+      within300: getRadioValue('within-300'),
+      under25: getRadioValue('under-25'),
+      baselineMode: modes.baseline,
+      impactMode: modes.impact,
+      baselineAvg: document.getElementById('baseline-avg-val').value,
+      impactAvg: document.getElementById('impact-avg-val').value,
+      baselineSlider: document.getElementById('baseline-daily-slider').value,
+      impactSlider: document.getElementById('impact-daily-slider').value,
+      baselineDays: document.getElementById('baseline-days').value,
+      impactDays: document.getElementById('impact-days').value,
+      baselineMonthsEst: document.getElementById('baseline-months-est').value,
+      impactMonthsEst: document.getElementById('impact-months-est').value,
+      baselineMonths: getMonthRowData('baseline'),
+      impactMonths: getMonthRowData('impact'),
+      ownerName: document.getElementById('owner-name').value
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch(e) {}
+}
+
+function getRadioValue(name) {
+  const el = document.querySelector(`input[name="${name}"]:checked`);
+  return el ? el.value : '';
+}
+
+function getMonthRowData(panel) {
+  const rows = [];
+  document.querySelectorAll('#' + panel + '-rows .month-row').forEach(row => {
+    const lbl = row.querySelector('label').textContent.trim();
+    const val = parseFloat(row.querySelector('input').value) || 0;
+    rows.push({ label: lbl, val });
+  });
+  return rows;
+}
+
+function resumeSaved() {
+  document.getElementById('resume-banner').style.display = 'none';
+  document.getElementById('demo-banner').style.display = 'none';
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return;
+  try {
+    const d = JSON.parse(raw);
+    document.getElementById('biz-name').value      = d.bizName || '';
+    document.getElementById('biz-type').value      = d.bizType || '';
+    document.getElementById('biz-address').value   = d.bizAddress || '';
+    document.getElementById('biz-employees').value = d.bizEmployees || '';
+    document.getElementById('biz-years').value     = d.bizYears || '';
+    if (d.within300) setRadio('within-300', d.within300);
+    if (d.under25)   setRadio('under-25', d.under25);
+
+    if (d.baselineMonths && d.baselineMonths.length) buildMonthRows('baseline', d.baselineMonths);
+    if (d.impactMonths   && d.impactMonths.length)   buildMonthRows('impact',   d.impactMonths);
+
+    document.getElementById('baseline-avg-val').value    = d.baselineAvg || '';
+    document.getElementById('impact-avg-val').value      = d.impactAvg || '';
+    document.getElementById('baseline-daily-slider').value = d.baselineSlider || 650;
+    document.getElementById('impact-daily-slider').value   = d.impactSlider || 390;
+    document.getElementById('baseline-days').value       = d.baselineDays || 6;
+    document.getElementById('impact-days').value         = d.impactDays || 6;
+    document.getElementById('baseline-months-est').value = d.baselineMonthsEst || 4;
+    document.getElementById('impact-months-est').value   = d.impactMonthsEst || 4;
+    if (d.ownerName) document.getElementById('owner-name').value = d.ownerName;
+
+    updateSlider('baseline');
+    updateSlider('impact');
+    attachInputListeners();
+    recalc();
+  } catch(e) {}
+}
+
+function startFresh() {
+  localStorage.removeItem(STORAGE_KEY);
+  document.getElementById('resume-banner').style.display  = 'none';
+  document.getElementById('demo-banner').style.display    = 'none';
+
+  document.getElementById('biz-name').value      = '';
+  document.getElementById('biz-type').value      = '';
+  document.getElementById('biz-address').value   = '';
+  document.getElementById('biz-employees').value = '';
+  document.getElementById('biz-years').value     = '';
+  document.querySelectorAll('input[name="within-300"], input[name="under-25"]').forEach(r => r.checked = false);
+  document.getElementById('baseline-avg-val').value = '';
+  document.getElementById('impact-avg-val').value   = '';
+  document.getElementById('owner-name').value = '';
+
+  buildMonthRows('baseline', BASELINE_MONTHS.map(l => ({ label: l, val: '' })));
+  buildMonthRows('impact',   IMPACT_MONTHS.map(l => ({ label: l, val: '' })));
+
+  updateSlider('baseline');
+  updateSlider('impact');
+  goToStep(1);
+  recalc();
+}
+
+// ══════════════════════════════════════════════════════════════
+// UTILITY
+// ══════════════════════════════════════════════════════════════
+function escHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// Init slider displays
+updateSlider('baseline');
+updateSlider('impact');
+</script>
+</body>
+</html>

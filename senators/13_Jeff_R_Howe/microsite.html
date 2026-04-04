@@ -1,0 +1,1729 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jeff R. Howe — Senate District 13</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,400&family=Oswald:wght@300;400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ─── RESET ───────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    /* ─── MODE SWITCHING ──────────────────────────────────── */
+    .pro-content  { display: block; }
+    .oppo-content { display: none; }
+    body.mode-oppo .pro-content  { display: none; }
+    body.mode-oppo .oppo-content { display: block; }
+
+    body { transition: opacity 0.22s ease; }
+    body.fading { opacity: 0; }
+
+    /* ─── FLIP BUTTON ─────────────────────────────────────── */
+    #flip-btn {
+      position: fixed;
+      top: 22px; right: 22px;
+      z-index: 9999;
+      border: 2px solid currentColor;
+      cursor: pointer;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      padding: 11px 18px;
+      transition: transform 0.18s, box-shadow 0.18s;
+    }
+    body:not(.mode-oppo) #flip-btn {
+      background: #0B2545;
+      color: #C8D8C0;
+      border-color: #C8D8C0;
+    }
+    body.mode-oppo #flip-btn {
+      background: #E8DFC8;
+      color: #1C1209;
+      border-color: #5C4A1E;
+    }
+    #flip-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+    }
+    .btn-pro-label, .btn-oppo-label { pointer-events: none; }
+    body:not(.mode-oppo) .btn-oppo-label { display: none; }
+    body.mode-oppo .btn-pro-label  { display: none; }
+
+
+    /* ═══════════════════════════════════════════════════════
+       PRO SITE — "Road Authority Notice"
+       Palette: highway-dept navy #0B2545
+                reflective silver #B8C4BE
+                roadway green #2B4A2E
+                signal yellow #E8C84A
+                near-white #F2F4EF
+    ═══════════════════════════════════════════════════════ */
+
+    body { overflow-x: hidden; }
+
+    .pro-content {
+      background: #F2F4EF;
+      font-family: 'DM Sans', system-ui, sans-serif;
+      color: #111A12;
+    }
+
+    /* ── PRO TOP BAND (highway dept. masthead) ── */
+    .pro-masthead {
+      background: #0B2545;
+      color: #F2F4EF;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 48px;
+      border-bottom: 6px solid #2B8040;
+    }
+    .pro-masthead-left {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      opacity: 0.7;
+      line-height: 1.7;
+    }
+    .pro-masthead-right {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      opacity: 0.6;
+    }
+
+    /* ── PRO HERO ── */
+    .pro-hero {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 92vh;
+    }
+
+    .pro-hero-left {
+      background: #0B2545;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 60px 52px 56px;
+    }
+
+    /* road-stripe accent */
+    .pro-hero-left::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 8px;
+      background: repeating-linear-gradient(
+        90deg,
+        #E8C84A 0px, #E8C84A 40px,
+        transparent 40px, transparent 72px
+      );
+    }
+
+    /* photo area */
+    .pro-photo-wrap {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      z-index: 0;
+    }
+    .pro-photo-wrap img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      object-position: center 15%;
+      filter: saturate(0.6) brightness(0.45);
+      mix-blend-mode: luminosity;
+    }
+    .pro-photo-wrap .photo-placeholder {
+      width: 100%; height: 100%;
+      background: linear-gradient(160deg, #0B2545 40%, #1A4060 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: rgba(255,255,255,0.3);
+      letter-spacing: 0.2em;
+    }
+
+    .pro-hero-left-content {
+      position: relative;
+      z-index: 2;
+    }
+
+    .pro-district-badge {
+      display: inline-block;
+      background: #2B8040;
+      color: #fff;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      margin-bottom: 28px;
+    }
+
+    .pro-senator-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(56px, 7vw, 96px);
+      line-height: 0.9;
+      color: #F2F4EF;
+      letter-spacing: 0.02em;
+      margin-bottom: 20px;
+    }
+
+    .pro-hero-tagline {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 400;
+      color: rgba(242,244,239,0.78);
+      line-height: 1.55;
+      max-width: 340px;
+      border-left: 3px solid #E8C84A;
+      padding-left: 16px;
+    }
+
+    /* RIGHT HERO PANEL */
+    .pro-hero-right {
+      background: #F2F4EF;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 60px 52px;
+      border-left: 1px solid #C8D4CC;
+    }
+
+    .pro-section-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: #2B8040;
+      margin-bottom: 14px;
+    }
+
+    .pro-hero-headline {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(36px, 4.5vw, 60px);
+      line-height: 1.0;
+      color: #0B2545;
+      margin-bottom: 24px;
+      letter-spacing: 0.02em;
+    }
+
+    .pro-hero-body {
+      font-size: 15px;
+      line-height: 1.65;
+      color: #2A3428;
+      max-width: 420px;
+    }
+    .pro-hero-body p + p {
+      margin-top: 12px;
+    }
+
+    /* ── STAT SIGNS BAND ── */
+    .pro-signs-band {
+      background: #0B2545;
+      padding: 52px 48px;
+      border-top: 6px solid #E8C84A;
+      border-bottom: 6px solid #E8C84A;
+    }
+
+    .pro-signs-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: #E8C84A;
+      margin-bottom: 36px;
+    }
+
+    .pro-signs-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    /* Reflective highway sign shape */
+    .pro-sign-card {
+      background: #112E4A;
+      border: 3px solid #2B8040;
+      border-radius: 4px;
+      padding: 32px 28px;
+      position: relative;
+      overflow: hidden;
+    }
+    .pro-sign-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, rgba(200,216,192,0.4), transparent);
+    }
+
+    .pro-sign-number {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(48px, 5vw, 72px);
+      color: #E8C84A;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .pro-sign-unit {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #7AA688;
+      margin-bottom: 12px;
+    }
+
+    .pro-sign-desc {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      color: rgba(242,244,239,0.72);
+      line-height: 1.5;
+    }
+
+    .pro-sign-footnote {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px;
+      color: rgba(255,255,255,0.3);
+      margin-top: 12px;
+      letter-spacing: 0.1em;
+    }
+
+    /* ── PRO MAIN SECTION ── */
+    .pro-main {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 0;
+    }
+
+    .pro-main-body {
+      padding: 64px 52px;
+      border-right: 1px solid #C8D4CC;
+    }
+
+    .pro-main-body h2 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(30px, 3.5vw, 48px);
+      color: #0B2545;
+      line-height: 1.05;
+      margin-bottom: 20px;
+      letter-spacing: 0.02em;
+    }
+
+    .pro-main-body p {
+      font-size: 15px;
+      line-height: 1.68;
+      color: #2A3428;
+      max-width: 600px;
+      margin-bottom: 16px;
+    }
+
+    /* Implementation timeline bar */
+    .pro-timeline {
+      margin: 36px 0;
+      border-top: 2px solid #0B2545;
+    }
+
+    .pro-timeline-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: #2B8040;
+      padding: 14px 0 20px;
+    }
+
+    .pro-timeline-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+      padding: 16px 0;
+      border-bottom: 1px solid #D8E0D4;
+    }
+
+    .pro-timeline-date {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: #0B2545;
+      min-width: 130px;
+      padding-top: 2px;
+    }
+
+    .pro-timeline-event {
+      font-size: 14px;
+      color: #2A3428;
+      line-height: 1.55;
+    }
+
+    .pro-timeline-marker {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: #2B8040;
+      margin-top: 4px;
+      flex-shrink: 0;
+    }
+
+    .pro-timeline-marker.yellow {
+      background: #E8C84A;
+    }
+
+    /* Right sidebar */
+    .pro-sidebar {
+      padding: 64px 36px;
+      background: #EBF0E8;
+    }
+
+    .pro-pullquote {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 28px;
+      color: #0B2545;
+      line-height: 1.15;
+      margin-bottom: 20px;
+    }
+
+    .pro-pullquote-attr {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #2B8040;
+      border-top: 2px solid #2B8040;
+      padding-top: 10px;
+      margin-bottom: 40px;
+    }
+
+    .pro-bio-block {
+      background: #0B2545;
+      color: #F2F4EF;
+      padding: 28px 24px;
+      border-radius: 2px;
+    }
+
+    .pro-bio-block h4 {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: #E8C84A;
+      margin-bottom: 16px;
+    }
+
+    .pro-bio-row {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .pro-bio-icon {
+      color: #7AA688;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+
+    .pro-bio-text {
+      font-size: 13px;
+      color: rgba(242,244,239,0.82);
+      line-height: 1.5;
+    }
+
+    /* ── PRO DISTRICT SECTION ── */
+    .pro-district {
+      background: #2B4A2E;
+      color: #F2F4EF;
+      padding: 60px 52px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+
+    .pro-district h3 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(28px, 3.5vw, 46px);
+      line-height: 1.05;
+      margin-bottom: 18px;
+      letter-spacing: 0.02em;
+    }
+
+    .pro-district p {
+      font-size: 14px;
+      line-height: 1.65;
+      color: rgba(242,244,239,0.78);
+    }
+    .pro-district p + p { margin-top: 12px; }
+
+    /* road-distance marker list */
+    .pro-district-markers {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .pro-district-marker {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 18px 20px;
+      background: rgba(255,255,255,0.08);
+      border-left: 4px solid #E8C84A;
+    }
+
+    .pro-marker-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 38px;
+      color: #E8C84A;
+      line-height: 1;
+      min-width: 60px;
+    }
+
+    .pro-marker-desc {
+      font-size: 13px;
+      color: rgba(242,244,239,0.82);
+      line-height: 1.5;
+    }
+    .pro-marker-desc strong {
+      display: block;
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      font-family: 'IBM Plex Mono', monospace;
+      color: #C8D8C0;
+      margin-bottom: 3px;
+    }
+
+    /* ── PRO FOOTNOTES ── */
+    .pro-footnotes {
+      background: #F2F4EF;
+      padding: 48px 52px;
+      border-top: 2px solid #C8D4CC;
+    }
+
+    .pro-footnotes h5 {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: #2B8040;
+      margin-bottom: 20px;
+    }
+
+    .pro-footnotes ol {
+      padding-left: 20px;
+    }
+
+    .pro-footnotes li {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: #4A5A48;
+      line-height: 1.6;
+      margin-bottom: 6px;
+    }
+
+    .pro-footnotes a {
+      color: #2B8040;
+      text-decoration: none;
+    }
+    .pro-footnotes a:hover { text-decoration: underline; }
+
+
+    /* ═══════════════════════════════════════════════════════
+       OPPO SITE — "Criminal Code File: SF3359"
+       Palette: case-file charcoal #1A1208
+                amber warning #C47B10
+                parchment #E8DFC8
+                muted red #8B2A1A
+                steel #4A4A52
+    ═══════════════════════════════════════════════════════ */
+
+    .oppo-content {
+      background: #1A1208;
+      font-family: 'IBM Plex Mono', monospace;
+      color: #E8DFC8;
+    }
+
+    /* ── OPPO HEADER / CASE FILE LABEL ── */
+    .oppo-header {
+      background: #0F0C06;
+      border-bottom: 3px solid #C47B10;
+      padding: 16px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .oppo-case-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: #C47B10;
+    }
+
+    .oppo-status-tag {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #0F0C06;
+      background: #C47B10;
+      padding: 4px 12px;
+    }
+
+    /* ── OPPO HERO ── */
+    .oppo-hero {
+      padding: 72px 52px 60px;
+      border-bottom: 1px solid #3A3020;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+
+    .oppo-hero-left {}
+
+    .oppo-case-number {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: #7A6A4A;
+      margin-bottom: 24px;
+    }
+
+    .oppo-headline {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(42px, 6vw, 80px);
+      line-height: 0.95;
+      color: #E8DFC8;
+      letter-spacing: 0.02em;
+      margin-bottom: 28px;
+    }
+
+    .oppo-headline span.accent {
+      color: #C47B10;
+    }
+
+    .oppo-charge-line {
+      font-size: 13px;
+      font-weight: 400;
+      color: #A89870;
+      line-height: 1.65;
+      max-width: 420px;
+      border-left: 3px solid #8B2A1A;
+      padding-left: 16px;
+    }
+
+    /* Photo / dossier right */
+    .oppo-hero-right {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .oppo-photo-frame {
+      position: relative;
+      background: #2A2010;
+      border: 1px solid #3A3020;
+      overflow: hidden;
+    }
+
+    .oppo-photo-frame img {
+      width: 100%;
+      max-height: 340px;
+      object-fit: cover;
+      object-position: center 15%;
+      filter: grayscale(100%) contrast(1.3) brightness(0.7);
+      display: block;
+    }
+
+    .oppo-photo-frame .photo-placeholder {
+      width: 100%;
+      height: 280px;
+      background: #2A2010;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      color: #5A4A30;
+      letter-spacing: 0.2em;
+    }
+
+    .oppo-photo-caption {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: rgba(10,8,4,0.85);
+      padding: 10px 14px;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #C47B10;
+    }
+
+    .oppo-dossier-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px;
+    }
+
+    .oppo-dossier-cell {
+      background: #221C0E;
+      padding: 14px 16px;
+      border: 1px solid #3A3020;
+    }
+
+    .oppo-dossier-key {
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: #7A6A4A;
+      margin-bottom: 4px;
+    }
+
+    .oppo-dossier-val {
+      font-size: 11px;
+      font-weight: 600;
+      color: #D4C8A8;
+    }
+
+    /* ── CHARGE BLOCK ── */
+    .oppo-charge-block {
+      background: #8B2A1A;
+      padding: 36px 52px;
+      border-top: 3px solid #C47B10;
+      border-bottom: 3px solid #C47B10;
+    }
+
+    .oppo-charge-block-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: rgba(232,223,200,0.6);
+      margin-bottom: 14px;
+    }
+
+    .oppo-charge-block-text {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(20px, 3vw, 32px);
+      color: #F2EAD0;
+      line-height: 1.2;
+      letter-spacing: 0.03em;
+    }
+
+    /* ── SEQUENCE / EVIDENCE ── */
+    .oppo-evidence {
+      padding: 64px 52px;
+      border-bottom: 1px solid #3A3020;
+    }
+
+    .oppo-section-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: #C47B10;
+      margin-bottom: 36px;
+    }
+
+    /* Sequence steps */
+    .oppo-sequence {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin-bottom: 60px;
+    }
+
+    .oppo-seq-step {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 24px;
+      padding: 28px 0;
+      border-bottom: 1px solid #2A2010;
+      align-items: start;
+    }
+
+    .oppo-seq-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 52px;
+      color: #3A3020;
+      line-height: 1;
+    }
+
+    .oppo-seq-content h4 {
+      font-size: 13px;
+      font-weight: 700;
+      color: #E8DFC8;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .oppo-seq-content p {
+      font-size: 12px;
+      font-weight: 400;
+      color: #A89870;
+      line-height: 1.65;
+    }
+
+    .oppo-seq-tag {
+      display: inline-block;
+      background: #2A2010;
+      border: 1px solid #C47B10;
+      color: #C47B10;
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      padding: 3px 9px;
+      margin-bottom: 10px;
+    }
+
+    /* ── CORE DOCUMENT BLOCK ── */
+    .oppo-doc-block {
+      background: #221C0E;
+      border: 1px solid #3A3020;
+      border-left: 4px solid #C47B10;
+      padding: 32px 36px;
+      margin-bottom: 60px;
+      position: relative;
+    }
+
+    .oppo-doc-title {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: #C47B10;
+      margin-bottom: 20px;
+    }
+
+    .oppo-doc-body {
+      font-size: 11px;
+      color: #C4B890;
+      line-height: 1.8;
+    }
+
+    .oppo-doc-body .redact {
+      background: #E8DFC8;
+      color: #221C0E;
+      padding: 1px 4px;
+      font-weight: 700;
+      position: relative;
+      cursor: default;
+      display: inline-block;
+      transition: background 0.18s, color 0.18s;
+    }
+    .oppo-doc-body .redact:hover {
+      background: #C47B10;
+      color: #0F0C06;
+    }
+
+    .oppo-doc-penalty {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px;
+      margin-top: 24px;
+    }
+
+    .oppo-penalty-cell {
+      background: #1A1208;
+      border: 1px solid #3A3020;
+      padding: 18px 20px;
+    }
+
+    .oppo-penalty-label {
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: #7A6A4A;
+      margin-bottom: 8px;
+    }
+
+    .oppo-penalty-value {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 26px;
+      color: #8B2A1A;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .oppo-penalty-desc {
+      font-size: 10px;
+      color: #A89870;
+      line-height: 1.5;
+    }
+
+    /* ── EVIDENCE CARDS ── */
+    .oppo-cards-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: #C47B10;
+      margin-bottom: 24px;
+    }
+
+    .oppo-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+    }
+
+    .oppo-card {
+      background: #221C0E;
+      border: 1px solid #2A2010;
+      padding: 28px 24px;
+      position: relative;
+      overflow: hidden;
+      cursor: default;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .oppo-card:hover {
+      background: #2A2010;
+      border-color: #C47B10;
+    }
+    .oppo-card:hover .oppo-card-reveal {
+      opacity: 1;
+    }
+
+    .oppo-card-num {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.25em;
+      color: #5A4A30;
+      margin-bottom: 16px;
+    }
+
+    .oppo-card-claim {
+      font-size: 11px;
+      font-weight: 700;
+      color: #E8DFC8;
+      line-height: 1.5;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .oppo-card-body {
+      font-size: 11px;
+      font-weight: 400;
+      color: #8A7A58;
+      line-height: 1.6;
+    }
+
+    .oppo-card-reveal {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: #8B2A1A;
+      padding: 10px 16px;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #F2EAD0;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    /* ── OPPO PROFILE COMPARISON ── */
+    .oppo-compare {
+      padding: 64px 52px;
+      border-bottom: 1px solid #3A3020;
+      background: #0F0C06;
+    }
+
+    .oppo-compare-grid {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 32px;
+      align-items: center;
+      max-width: 900px;
+    }
+
+    .oppo-compare-col h4 {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: #7A6A4A;
+      margin-bottom: 16px;
+    }
+
+    .oppo-compare-col p {
+      font-size: 12px;
+      color: #A89870;
+      line-height: 1.65;
+    }
+    .oppo-compare-col p + p { margin-top: 10px; }
+    .oppo-compare-col p strong {
+      color: #D4C8A8;
+      font-weight: 600;
+    }
+
+    .oppo-compare-vs {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 56px;
+      color: #3A3020;
+      text-align: center;
+    }
+
+    .oppo-compare-col.right p strong {
+      color: #C47B10;
+    }
+
+    /* ── OPPO FOOTNOTES ── */
+    .oppo-footnotes {
+      padding: 48px 52px;
+      border-top: 2px solid #3A3020;
+    }
+
+    .oppo-footnotes h5 {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: #C47B10;
+      margin-bottom: 20px;
+    }
+
+    .oppo-footnotes ol {
+      padding-left: 20px;
+    }
+
+    .oppo-footnotes li {
+      font-size: 10px;
+      color: #7A6A4A;
+      line-height: 1.7;
+      margin-bottom: 6px;
+    }
+
+    .oppo-footnotes a {
+      color: #A89870;
+      text-decoration: none;
+    }
+    .oppo-footnotes a:hover { text-decoration: underline; }
+
+    /* ─── RESPONSIVE ──────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .pro-masthead { padding: 14px 24px; }
+      .pro-hero { grid-template-columns: 1fr; }
+      .pro-hero-left { min-height: 56vw; padding: 40px 28px; }
+      .pro-hero-right { padding: 40px 28px; }
+      .pro-signs-band { padding: 40px 24px; }
+      .pro-signs-grid { grid-template-columns: 1fr; }
+      .pro-main { grid-template-columns: 1fr; }
+      .pro-main-body { padding: 40px 28px; border-right: none; border-bottom: 1px solid #C8D4CC; }
+      .pro-sidebar { padding: 40px 28px; }
+      .pro-district { grid-template-columns: 1fr; padding: 48px 28px; gap: 36px; }
+      .pro-footnotes { padding: 40px 28px; }
+
+      #flip-btn { top: 14px; right: 14px; }
+
+      .oppo-header { padding: 14px 24px; }
+      .oppo-hero { grid-template-columns: 1fr; padding: 48px 28px; gap: 36px; }
+      .oppo-charge-block { padding: 28px; }
+      .oppo-evidence { padding: 48px 28px; }
+      .oppo-seq-step { grid-template-columns: 60px 1fr; gap: 16px; }
+      .oppo-seq-num { font-size: 36px; }
+      .oppo-doc-penalty { grid-template-columns: 1fr; }
+      .oppo-cards { grid-template-columns: 1fr; }
+      .oppo-compare { padding: 48px 28px; }
+      .oppo-compare-grid { grid-template-columns: 1fr; gap: 24px; }
+      .oppo-compare-vs { font-size: 32px; }
+      .oppo-footnotes { padding: 40px 28px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── FLIP BUTTON ──────────────────────────────────────── -->
+  <button id="flip-btn" aria-label="Switch between supporter and opposition views">
+    <span class="btn-oppo-label">&#9654; View Opposition File</span>
+    <span class="btn-pro-label">&#9664; View Supporter Site</span>
+  </button>
+
+
+  <!-- ══════════════════════════════════════════════════════════
+       PRO SITE
+  ══════════════════════════════════════════════════════════ -->
+  <div class="pro-content" aria-label="Supporter site for Jeff R. Howe">
+
+    <!-- Masthead -->
+    <div class="pro-masthead">
+      <div class="pro-masthead-left">
+        Minnesota State Senate &nbsp;|&nbsp; District 13<br>
+        Benton County &amp; Stearns County
+      </div>
+      <div class="pro-masthead-right">
+        Road Authority Notice &mdash; Public Safety Infrastructure
+      </div>
+    </div>
+
+    <!-- Hero -->
+    <div class="pro-hero">
+
+      <!-- Left: photo + name -->
+      <div class="pro-hero-left">
+        <div class="pro-photo-wrap">
+          <img
+            src="https://www.senate.mn/graphics/13Howe.jpg"
+            alt="Senator Jeff R. Howe"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+          />
+          <div class="photo-placeholder" style="display:none;">[ SENATOR PHOTO ]</div>
+        </div>
+        <div class="pro-hero-left-content">
+          <div class="pro-district-badge">District 13 &mdash; Republican</div>
+          <div class="pro-senator-name">Jeff R.<br>Howe</div>
+          <div class="pro-hero-tagline">
+            Thirty-eight years protecting people. Now writing the law to close a gap that costs lives.
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: headline + body -->
+      <div class="pro-hero-right">
+        <div class="pro-section-label">The Case for Senator Howe</div>
+        <h1 class="pro-hero-headline">When seconds count, a sign shows the way</h1>
+        <div class="pro-hero-body">
+          <p>Jeff Howe spent 27 years in the fire service and 38 years in the military. He has stood next to people whose hearts stopped. He knows what happens when bystanders cannot find an AED in time.</p>
+          <p>Most AEDs in Minnesota sit inside buildings locked after hours. People nearby do not know they exist. There is no sign on the road telling a driver where to turn.</p>
+          <p>Howe authored legislation to fix that. The law requires MnDOT to design a standard AED wayfinding sign and directs road authorities to place signage within 180 days of a qualified request, and to the extent practicable within 60 days. The qualified participant, not the state, pays the sign costs.<sup>1</sup></p>
+        </div>
+      </div>
+
+    </div><!-- /pro-hero -->
+
+    <!-- Stat Signs Band -->
+    <div class="pro-signs-band">
+      <div class="pro-signs-label">&#9632; Key Provisions &mdash; By the Numbers</div>
+      <div class="pro-signs-grid">
+
+        <div class="pro-sign-card">
+          <div class="pro-sign-number" id="counter-60">60</div>
+          <div class="pro-sign-unit">Days &mdash; Target Placement</div>
+          <div class="pro-sign-desc">Road authorities must place AED directional signs within 60 days of a qualified request, where practicable. Hard deadline: 180 days.</div>
+          <div class="pro-sign-footnote">Ref: HF1290 Engrossment, 94th Legislature &sect; 1(d)</div>
+        </div>
+
+        <div class="pro-sign-card">
+          <div class="pro-sign-number" id="counter-sep">SEP 1</div>
+          <div class="pro-sign-unit">2025 &mdash; MnDOT Design Deadline</div>
+          <div class="pro-sign-desc">MnDOT must develop AED wayfinding sign designs with the universal AED symbol by September 1, 2025. The clock is running.</div>
+          <div class="pro-sign-footnote">Ref: HF1290 &sect; 1(a)</div>
+        </div>
+
+        <div class="pro-sign-card">
+          <div class="pro-sign-number" id="counter-0">$0</div>
+          <div class="pro-sign-unit">State Appropriation</div>
+          <div class="pro-sign-desc">The statute does not create a state appropriation for signage. Installation, maintenance, and removal costs are paid by the qualified participant to the relevant road authority.</div>
+          <div class="pro-sign-footnote">Ref: Minn. Stat. 160.802, subd. (d)</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Main Body + Sidebar -->
+    <div class="pro-main">
+
+      <div class="pro-main-body">
+        <div class="pro-section-label">Implementation Timeline</div>
+        <h2>A bill with deadlines, not promises</h2>
+        <p>Most public safety legislation leaves implementation to agency discretion. Howe's bill names the agency, names the sign standard, and sets both a best-efforts 60-day target and a 180-day outer deadline. That specificity is the product of a public-safety legislator writing an implementation statute instead of a slogan.</p>
+        <p>The cleanest pro case is statutory: the law now tells MnDOT and local road authorities exactly what to do and when to do it.<sup>2</sup></p>
+
+        <div class="pro-timeline">
+          <div class="pro-timeline-label">&#9654; LEGISLATIVE &amp; IMPLEMENTATION SEQUENCE</div>
+
+          <div class="pro-timeline-row">
+            <div class="pro-timeline-marker"></div>
+            <div class="pro-timeline-date">2025 &mdash; Session</div>
+            <div class="pro-timeline-event">HF1290 establishes outdoor public-access AED signage language that is later codified in Minn. Stat. 160.802.<sup>1</sup></div>
+          </div>
+
+          <div class="pro-timeline-row">
+            <div class="pro-timeline-marker yellow"></div>
+            <div class="pro-timeline-date">Sept. 1, 2025</div>
+            <div class="pro-timeline-event">MnDOT deadline to finalize AED wayfinding sign design. Must incorporate the universal AED symbol and consult with stakeholders on placement best practices to minimize sign clutter.</div>
+          </div>
+
+          <div class="pro-timeline-row">
+            <div class="pro-timeline-marker"></div>
+            <div class="pro-timeline-date">60 Days After Request</div>
+            <div class="pro-timeline-event">Target window for road authority to place directional sign following a qualified request. Signs positioned 200&ndash;300 feet before an intersection or 800&ndash;1,600 feet before an interchange.</div>
+          </div>
+
+          <div class="pro-timeline-row">
+            <div class="pro-timeline-marker yellow"></div>
+            <div class="pro-timeline-date">180 Days &mdash; Hard Limit</div>
+            <div class="pro-timeline-event">Absolute outer deadline for placement. The statute makes 60 days a practicable target, but 180 days the outside limit for a qualified request.</div>
+          </div>
+        </div>
+
+        <p>AEDs save lives only if bystanders can find them quickly. Howe's bill addresses the wayfinding problem directly, and the enacted language does it with specific deadlines and cost assignment.<sup>2</sup></p>
+
+      </div><!-- /pro-main-body -->
+
+      <div class="pro-sidebar">
+        <div class="pro-pullquote">
+          "He noticed an avoidable gap. He wrote a fix with deadlines. Then he put his name on it."
+        </div>
+        <div class="pro-pullquote-attr">Assessment &mdash; Pro Case, District 13</div>
+
+        <div class="pro-bio-block">
+          <h4>&#9632; Service Record &mdash; Jeff R. Howe</h4>
+          <div class="pro-bio-row">
+            <span class="pro-bio-icon">&#9670;</span>
+            <span class="pro-bio-text">27 years in the fire service &mdash; firefighter, fire marshal, fire and emergency management coordinator, fire chief, Rockville Fire Dept.</span>
+          </div>
+          <div class="pro-bio-row">
+            <span class="pro-bio-icon">&#9670;</span>
+            <span class="pro-bio-text">38 years, Minnesota Army National Guard. Retired 2017 as lieutenant colonel, deputy commander, 175th Regiment RTI.</span>
+          </div>
+          <div class="pro-bio-row">
+            <span class="pro-bio-icon">&#9670;</span>
+            <span class="pro-bio-text">U.S. Navy avionics technician, USS Kitty Hawk. Deployed during Iranian Hostage Crisis. Two decorated tours in Iraq.</span>
+          </div>
+          <div class="pro-bio-row">
+            <span class="pro-bio-icon">&#9670;</span>
+            <span class="pro-bio-text">Rockville City Council. House of Representatives 2013&ndash;2018. Senate 2018&ndash;present.</span>
+          </div>
+        </div>
+
+      </div><!-- /pro-sidebar -->
+
+    </div><!-- /pro-main -->
+
+    <!-- District Band -->
+    <div class="pro-district">
+      <div>
+        <div class="pro-section-label" style="color:#E8C84A;">District 13 &mdash; Benton and Stearns Counties</div>
+        <h3>Central Minnesota corridor country</h3>
+        <p>District 13 runs through the St. Cloud orbit &mdash; Stearns and Benton counties, commuter corridors, logistics routes, exurban subdivisions, school zones, and rural crossroads.</p>
+        <p>These are communities where response times are longer, where a cardiac event on a highway shoulder puts a bystander in a field with no directions and no time. AED signage in this district is not a suburban amenity. It is a rural necessity.</p>
+      </div>
+      <div class="pro-district-markers">
+        <div class="pro-district-marker">
+          <div class="pro-marker-num">2</div>
+          <div class="pro-marker-desc">
+            <strong>Counties Covered</strong>
+            Benton and Stearns &mdash; Central Minnesota, St. Cloud region
+          </div>
+        </div>
+        <div class="pro-district-marker">
+          <div class="pro-marker-num">14</div>
+          <div class="pro-marker-desc">
+            <strong>Years in the Legislature</strong>
+            House 2013&ndash;2018 / Senate 2018&ndash;present
+          </div>
+        </div>
+        <div class="pro-district-marker">
+          <div class="pro-marker-num">180</div>
+          <div class="pro-marker-desc">
+            <strong>Days &mdash; Outer Deadline</strong>
+            Statutory limit for sign placement after a qualified request
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footnotes -->
+    <div class="pro-footnotes">
+      <h5>&#9632; Sources &amp; Footnotes</h5>
+      <ol>
+        <li>HF1290 / Minn. Stat. 160.802: MnDOT sign-design deadline; placement within 180 days and to the extent practicable within 60 days; sign costs paid by the qualified participant. <a href="https://www.revisor.mn.gov/bills/94/2025/0/HF/1290/versions/1/" target="_blank">HF1290 bill text</a>; <a href="https://www.revisor.mn.gov/statutes/cite/160.802" target="_blank">Minn. Stat. 160.802</a></li>
+        <li>Minnesota Session Laws 2025, chapter 28, section 1, codifying outdoor public-access AED directional signage. <a href="https://www.revisor.mn.gov/laws/2025/0/Session%2BLaw/Chapter/28/" target="_blank">revisor.mn.gov</a></li>
+        <li>Senator Jeff R. Howe official member biography and service record. <a href="https://www.senate.mn/members/member_bio.html?mem_id=1239" target="_blank">senate.mn</a></li>
+      </ol>
+    </div>
+
+  </div><!-- /pro-content -->
+
+
+  <!-- ══════════════════════════════════════════════════════════
+       OPPO SITE
+  ══════════════════════════════════════════════════════════ -->
+  <div class="oppo-content" aria-label="Opposition accountability file for Jeff R. Howe">
+
+    <!-- Header -->
+    <div class="oppo-header">
+      <div class="oppo-case-label">Case File &mdash; SF3359 &nbsp;|&nbsp; Sen. Jeff R. Howe, District 13</div>
+      <div class="oppo-status-tag">Active Legislation &mdash; 94th Session</div>
+    </div>
+
+    <!-- Hero -->
+    <div class="oppo-hero">
+      <div class="oppo-hero-left">
+        <div class="oppo-case-number">File Ref: SF3359 &nbsp;//&nbsp; Chief Author: Howe, Jeff R. &nbsp;//&nbsp; 94th Legislature</div>
+        <h1 class="oppo-headline">He spent 38 years<br><span class="accent">protecting</span> people.<br>Now he wants to<br><span class="accent">arrest</span> them.</h1>
+        <div class="oppo-charge-line">
+          Senator Howe chief-authored SF3359, a bill that creates a new criminal offense called "residential protesting." Under the introduced text, protesting before or about a residence can trigger a misdemeanor, and repeat violations can become gross misdemeanors. The text does not add separate elements of violence, threats, or trespass.
+        </div>
+      </div>
+      <div class="oppo-hero-right">
+        <div class="oppo-photo-frame">
+          <img
+            src="https://www.senate.mn/graphics/13Howe.jpg"
+            alt="Senator Jeff R. Howe"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+          />
+          <div class="photo-placeholder" style="display:none;">[ SENATOR PHOTO ]</div>
+          <div class="oppo-photo-caption">Sen. Jeff R. Howe &mdash; District 13 &mdash; Chief Author, SF3359</div>
+        </div>
+        <div class="oppo-dossier-row">
+          <div class="oppo-dossier-cell">
+            <div class="oppo-dossier-key">Bill Number</div>
+            <div class="oppo-dossier-val">SF 3359 / HF 2809</div>
+          </div>
+          <div class="oppo-dossier-cell">
+            <div class="oppo-dossier-key">Session</div>
+            <div class="oppo-dossier-val">94th Legislature, 2025&ndash;26</div>
+          </div>
+          <div class="oppo-dossier-cell">
+            <div class="oppo-dossier-key">First Offense</div>
+            <div class="oppo-dossier-val">Misdemeanor</div>
+          </div>
+          <div class="oppo-dossier-cell">
+            <div class="oppo-dossier-key">Repeat Offense</div>
+            <div class="oppo-dossier-val">Gross Misdemeanor</div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /oppo-hero -->
+
+    <!-- Charge Block -->
+    <div class="oppo-charge-block">
+      <div class="oppo-charge-block-label">&#9654; Core Accusation</div>
+      <div class="oppo-charge-block-text">
+        Howe's bill criminalizes certain protest activity before or about a residence, even though the bill text does not require separate proof of violence, threats, or trespass.
+      </div>
+    </div>
+
+    <!-- Evidence Section -->
+    <div class="oppo-evidence">
+      <div class="oppo-section-label">&#9632; Sequence of Events</div>
+
+      <div class="oppo-sequence">
+
+        <div class="oppo-seq-step">
+          <div class="oppo-seq-num">01</div>
+          <div class="oppo-seq-content">
+            <div class="oppo-seq-tag">Bill Filing</div>
+            <h4>SF3359 is introduced and referred</h4>
+            <p>The official Revisor status page shows SF3359 was introduced on April 9, 2025 and referred to Judiciary and Public Safety. The bill's subject line is straightforward: residential protesting crime establishment.<sup>1</sup></p>
+          </div>
+        </div>
+
+        <div class="oppo-seq-step">
+          <div class="oppo-seq-num">02</div>
+          <div class="oppo-seq-content">
+            <div class="oppo-seq-tag">The Bill</div>
+            <h4>Howe chief-authors SF3359</h4>
+            <p>Howe introduces SF3359, establishing a new crime: "residential protesting." The introduced text says a person who protests before or about the residence or dwelling of another person commits the offense, with exceptions for residences used as businesses and for certain meeting spaces.<sup>2</sup></p>
+          </div>
+        </div>
+
+        <div class="oppo-seq-step">
+          <div class="oppo-seq-num">03</div>
+          <div class="oppo-seq-content">
+            <div class="oppo-seq-tag">The Penalties</div>
+            <h4>A peaceful first offense is a criminal record</h4>
+            <p>First violation: misdemeanor. Repeat violation or violation while subject to specified court orders: gross misdemeanor. Those penalty levels are written directly into the bill text and correspond to the existing Minnesota statutory definitions of misdemeanor and gross misdemeanor.<sup>3</sup></p>
+          </div>
+        </div>
+
+        <div class="oppo-seq-step">
+          <div class="oppo-seq-num">04</div>
+          <div class="oppo-seq-content">
+            <div class="oppo-seq-tag">The Contradiction</div>
+            <h4>The fire chief who now wants to criminalize the crowd</h4>
+            <p>Howe's official biography emphasizes public safety service &mdash; fire chief, lieutenant colonel, emergency management coordinator. That brand now sits alongside a bill that would add a new protest-related offense around residences.<sup>4</sup></p>
+          </div>
+        </div>
+
+      </div><!-- /sequence -->
+
+      <!-- Core Document Block -->
+      <div class="oppo-doc-block">
+        <div class="oppo-doc-title">&#9632; Bill Language &mdash; SF3359 Key Provisions (Paraphrased From Legislative Text)</div>
+        <div class="oppo-doc-body">
+          A person commits the offense of <span class="redact">residential protesting</span> if the person intentionally engages in protest activity at or near a <span class="redact">residence or dwelling</span> of another person.<br><br>
+          The bill does not add separate elements of <span class="redact">violence</span>, <span class="redact">threats</span>, or <span class="redact">trespass</span>. The conduct prohibited is protest activity at the location specified in the bill text.<br><br>
+          Exception: protests at a location that is also a <span class="redact">business</span> are not covered. Exception: protests at a location where a meeting is being held in common areas are not covered.
+        </div>
+        <div class="oppo-doc-penalty">
+          <div class="oppo-penalty-cell">
+            <div class="oppo-penalty-label">First Offense</div>
+            <div class="oppo-penalty-value">MISDEMEANOR</div>
+            <div class="oppo-penalty-desc">Criminal conviction. Up to 90 days in jail and/or $1,000 fine under MN misdemeanor standards. Appears on background checks.</div>
+          </div>
+          <div class="oppo-penalty-cell">
+            <div class="oppo-penalty-label">Repeat or Court-Order Violation</div>
+            <div class="oppo-penalty-value">GROSS MISD.</div>
+            <div class="oppo-penalty-desc">Up to 365 days in jail and/or $3,000 fine. Applies if prior conviction exists or if a protection order, restraining order, or no-contact order is in place.</div>
+          </div>
+        </div>
+      </div><!-- /doc-block -->
+
+      <!-- Evidence Cards -->
+      <div class="oppo-cards-label">&#9632; Evidence &mdash; Three Points of Exposure</div>
+      <div class="oppo-cards">
+
+        <div class="oppo-card">
+          <div class="oppo-card-num">EXHIBIT A</div>
+          <div class="oppo-card-claim">No separate violence element in the bill text</div>
+          <div class="oppo-card-body">SF3359 creates the offense based on protesting before or about a residence. The introduced text does not add separate elements requiring violence, intimidation, threats, or trespass.</div>
+          <div class="oppo-card-reveal">Source: SF3359 bill text, revisor.mn.gov</div>
+        </div>
+
+        <div class="oppo-card">
+          <div class="oppo-card-num">EXHIBIT B</div>
+          <div class="oppo-card-claim">The bill creates a new offense, not just a penalty tweak</div>
+          <div class="oppo-card-body">The Revisor description for SF3359 is "Residential protesting crime establishment provision." This is not a sentencing adjustment to an existing offense; it proposes a new offense in Minnesota Statutes chapter 609.</div>
+          <div class="oppo-card-reveal">Source: SF3359 status page and bill text</div>
+        </div>
+
+        <div class="oppo-card">
+          <div class="oppo-card-num">EXHIBIT C</div>
+          <div class="oppo-card-claim">Howe's brand is built on protecting people, not policing them</div>
+          <div class="oppo-card-body">27 years as a firefighter. 38 years in the military. His entire political identity is built around public safety. SF3359 adds criminal penalties to residential protest activity, which creates a sharper civil-liberties contrast than his public-safety biography might suggest.</div>
+          <div class="oppo-card-reveal">Source: Senate bio; SF3359</div>
+        </div>
+
+      </div><!-- /oppo-cards -->
+
+    </div><!-- /oppo-evidence -->
+
+    <!-- Brand vs. Record comparison -->
+    <div class="oppo-compare">
+      <div class="oppo-section-label">&#9632; The Contradiction &mdash; Brand vs. Record</div>
+      <div class="oppo-compare-grid">
+
+        <div class="oppo-compare-col">
+          <h4>What he says he stands for</h4>
+          <p><strong>Fire chief.</strong> Lieutenant colonel. Emergency management coordinator. Senator Howe built his entire public identity around the protection of people in their most vulnerable moments.</p>
+          <p>His AED bill is the clearest expression of that brand: notice a gap, close it, make the fix enforceable.</p>
+        </div>
+
+        <div class="oppo-compare-vs">VS</div>
+
+        <div class="oppo-compare-col right">
+          <h4>What SF3359 says about his record</h4>
+          <p><strong>Residential protest activity</strong> becomes a misdemeanor offense under the introduced bill, even though the text does not require separate proof of violence, threats, or trespass.</p>
+          <p>The same senator who spent 38 years protecting people from emergencies <strong>also authored a bill that broadens the criminal code around protest activity</strong> near residences.</p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Oppo Footnotes -->
+    <div class="oppo-footnotes">
+      <h5>&#9632; Sources &amp; Footnotes</h5>
+      <ol>
+        <li>SF3359 status page: introduced April 9, 2025; referred to Judiciary and Public Safety; official description "Residential protesting crime establishment provision." <a href="https://www.revisor.mn.gov/bills/94/2025/0/SF/3359/?body=senate" target="_blank">revisor.mn.gov</a></li>
+        <li>SF3359 introduced bill text: "A person who protests before or about the residence or dwelling of any person ... commits residential protesting." <a href="https://www.revisor.mn.gov/bills/text.php?number=SF3359&session=ls94&session_number=0&session_year=2025&version=0" target="_blank">revisor.mn.gov</a></li>
+        <li>Minnesota penalty definitions: misdemeanor and gross misdemeanor under Minn. Stat. &sect; 609.02. <a href="https://www.revisor.mn.gov/statutes/cite/609.02" target="_blank">revisor.mn.gov</a></li>
+        <li>Senator Jeff R. Howe official member biography and service record. <a href="https://www.senate.mn/members/member_bio.html?mem_id=1239" target="_blank">senate.mn</a></li>
+      </ol>
+    </div>
+
+  <!-- Auto-transition sentinel — observed by IntersectionObserver -->
+  <div id="brief-sentinel" style="height:1px;width:100%;"></div>
+
+  <!-- Subtle stamp — visible as user nears the bottom -->
+  <div class="machine-stamp">
+    <span class="machine-stamp-text">AI-GENERATED &nbsp;·&nbsp; 67 SENATORS &nbsp;·&nbsp; 63 PARALLEL AGENTS &nbsp;·&nbsp; ~4 HRS &nbsp;·&nbsp; ~$47</span>
+  </div>
+
+  </div><!-- /oppo-content -->
+
+
+  <!-- ── JS ────────────────────────────────────────────────── -->
+  <script>
+    const btn = document.getElementById('flip-btn');
+
+    btn.addEventListener('click', () => {
+      document.body.classList.add('fading');
+      setTimeout(() => {
+        document.body.classList.toggle('mode-oppo');
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        document.body.classList.remove('fading');
+      }, 220);
+    });
+
+    /* Counter animation for pro stat signs */
+    function animateCounter(el, target, suffix, duration) {
+      if (!el) return;
+      const isString = isNaN(parseInt(target));
+      if (isString) return; /* skip non-numeric */
+      let start = 0;
+      const end = parseInt(target);
+      const step = Math.ceil(end / (duration / 16));
+      const timer = setInterval(() => {
+        start = Math.min(start + step, end);
+        el.textContent = start + (suffix || '');
+        if (start >= end) clearInterval(timer);
+      }, 16);
+    }
+
+    /* Intersection observer to trigger counters when visible */
+    const counterTargets = [
+      { id: 'counter-60', val: 60, suffix: '' },
+      { id: 'counter-0',  val: 0,  suffix: '' }
+    ];
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const id = entry.target.id;
+          const found = counterTargets.find(c => c.id === id);
+          if (found) {
+            animateCounter(entry.target, found.val, found.suffix, 900);
+            observer.unobserve(entry.target);
+          }
+        }
+      });
+    }, { threshold: 0.3 });
+
+    counterTargets.forEach(c => {
+      const el = document.getElementById(c.id);
+      if (el) observer.observe(el);
+    });
+  </script>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     THE BRIEF — AI capabilities briefing
+═══════════════════════════════════════════════════════ -->
+<div class="brief-content">
+
+  <div class="brief-opening">
+    <p class="brief-made-by">Sixty-seven of these pages were made using one AI account in about thirty minutes. Six months ago an automated project like this would have been impossible.</p>
+  </div>
+
+  <div class="brief-chart-section">
+    <h2 class="brief-chart-title">This is the trend that made it possible.</h2>
+    <div class="brief-chart-frame">
+      <img
+        src="https://metr.org/assets/images/measuring-ai-ability-to-complete-long-tasks/length-of-tasks-log.png"
+        alt="METR chart: length of tasks AI agents can complete autonomously, doubling roughly every 7 months since 2019"
+        class="brief-metr-img"
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+      >
+      <div class="brief-chart-fallback" style="display:none;">
+        <p>Chart unavailable. See the original at <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">metr.org</a>.</p>
+      </div>
+    </div>
+    <p class="brief-chart-source">Source: <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR</a>, an independent AI evaluation lab.</p>
+    <p class="brief-chart-read">This chart tracks how long a task an AI agent can finish on its own. In 2019, the answer was about three seconds. By early 2023, it was six minutes. by mid 2025, over two hours. As of early 2026, Claude Opus 4.6 completes tasks that take a skilled human roughly twelve hours.</p>
+    <p class="brief-chart-read">The overall doubling time has been about seven months. But it is getting faster. <a href="https://metr.org/time-horizons/" target="_blank">When researchers fit only the most recent data</a>, the doubling time drops to four months. At that rate, AI agents capable of completing month-long autonomous projects arrive not in the early 2030s but around 2028.</p>
+  </div>
+
+  <div class="brief-so-what">
+    <h2 class="brief-so-what-title">What that means for lawmakers.</h2>
+    <p>Urgency. There was a narrative last year that AI had hit a wall in capabilities. It was a plausible perspective at the time. It isn't anymore. After breakthroughs late last year, AI systems' ability to automate cyberattacks, pathogen design, misinformation, mass surveillance, and vast swaths of white-collar work is advancing faster than ever.</p>
+    <p>The world will soon change faster than the typical pace of policymaking. The only solution is to act with atypical speed: AI regulations, data center moratoriums, calling for a federal pause on AI development, worker displacement funds. Some of these ideas already have bills introduced this session. Others should be explored soon. Time is limited, so if you feel behind on AI, the sources below are a good place to start.</p>
+    
+  </div>
+
+  <div class="brief-next">
+    <h2 class="brief-next-title">Start here.</h2>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">USE</span>
+      <a href="https://claude.ai/cowork" target="_blank">Claude Cowork</a> · <a href="https://claude.ai/code" target="_blank">Claude Code</a>
+      <span class="brief-link-detail">The tools that built this page. Cowork handles research and writing. Code is the agent that runs tasks, spawns sub-agents, and makes decisions on its own. Spend thirty minutes with one of these on a real problem from your week. That will teach you more than any briefing.</span>
+    </div>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR: Measuring AI Ability to Complete Long Tasks</a>
+      <span class="brief-link-detail">The source for the chart above. The METR trend is based on software tasks, but <a href="https://futuretech.mit.edu/publication/crashing-waves-vs-rising-tides-preliminary-findings-on-ai-automation-from-thousands-of-worker-evaluations-of-labor-market-tasks" target="_blank">MIT research on worker evaluations of labor market tasks</a> finds similar patterns across white-collar work broadly.</span>
+    </div>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://aiindex.stanford.edu/report/" target="_blank">Stanford HAI AI Index 2025</a>
+      <span class="brief-link-detail">The most comprehensive annual report on AI capabilities, economics, and policy across all 50 states.</span>
+    </div>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.imdb.com/title/tt39150120/" target="_blank">The AI Doc: Or How I Became an Apocaloptimist</a>
+      <span class="brief-link-detail">Daniel Roher's 2026 documentary, in theaters now. Roher interviews Amodei, Altman, Hassabis, and dozens more. If you see one thing on this list, see this.</span>
+    </div>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.youtube.com/watch?v=xoVJKj8lcNQ" target="_blank">The A.I. Dilemma</a>
+      <span class="brief-link-detail">Center for Humane Technology. 60 min, free on YouTube. Made for people with institutional power who need to understand AI quickly.</span>
+    </div>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">TRACK</span>
+      <a href="https://www.ncsl.org/technology-and-communication/artificial-intelligence" target="_blank">NCSL AI Legislation Tracker</a> ·
+      <a href="https://mn.gov/mnit/about-mnit/oit-programs/ai/" target="_blank">MN.IT AI Office</a>
+      <span class="brief-link-detail">Every AI bill in every state. Plus Minnesota's own AI program office. See where you stand relative to the field.</span>
+    </div>
+  </div>
+
+  <div class="brief-close">
+    <p class="brief-close-small">This project is not affiliated with any campaign, party, or organization.</p>
+    <button id="exit-brief-btn">← Back</button>
+  </div>
+
+</div><!-- /brief-content -->
+
+<style>
+.brief-content { display: none; }
+body.mode-brief .brief-content  { display: block; }
+body.mode-brief .pro-content    { display: none; }
+body.mode-brief .oppo-content   { display: none; }
+body.mode-brief #flip-btn       { display: none; }
+.brief-content { background: #0C0A08; color: #D4CCBE; font-family: 'Source Serif 4', Georgia, serif; font-size: 17px; line-height: 1.75; min-height: 100vh; }
+.brief-content a { color: #C0B49A; }
+.brief-content a:hover { color: #fff; }
+@keyframes glitch-seq {
+  0%   { filter: saturate(0) brightness(0.5); }
+  10%  { filter: hue-rotate(90deg) contrast(4) brightness(3); transform: skewX(4deg); }
+  12%  { filter: brightness(0.1); transform: none; }
+  25%  { filter: hue-rotate(200deg) invert(0.8); transform: translateX(6px); }
+  27%  { filter: brightness(0.05); transform: none; }
+  40%  { filter: blur(6px) brightness(0.02); }
+  44%  { filter: brightness(6); }
+  46%  { filter: none; transform: none; }
+  60%  { filter: hue-rotate(300deg) contrast(3) saturate(8); transform: skewX(-3deg); }
+  62%  { filter: none; transform: none; }
+  78%  { filter: blur(16px) brightness(0.01); }
+  82%  { filter: brightness(2); }
+  84%  { filter: none; }
+  100% { filter: none; transform: none; }
+}
+body.glitching { animation: glitch-seq 1.2s ease-in-out forwards; pointer-events: none; }
+.machine-stamp { background: #050505; border-top: 1px solid #111; padding: 16px 40px; text-align: center; }
+.machine-stamp-text { font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 0.22em; color: #222; text-transform: uppercase; animation: stamp-pulse 3s ease-in-out infinite; }
+@keyframes stamp-pulse { 0%, 100% { color: #222; } 50% { color: #4A3A2A; } }
+.brief-opening { max-width: 640px; margin: 0 auto; padding: 100px 40px 64px; }
+.brief-made-by { font-size: 20px; line-height: 1.65; color: #B8AE9C; margin-bottom: 20px; }
+.brief-made-by.last { color: #E8DED0; }
+.brief-chart-section { max-width: 740px; margin: 0 auto; padding: 48px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-chart-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 32px; font-style: italic; }
+.brief-chart-frame { background: #fff; border-radius: 4px; padding: 12px; margin-bottom: 12px; }
+.brief-metr-img { width: 100%; height: auto; display: block; }
+.brief-chart-fallback { padding: 40px; text-align: center; color: #666; font-size: 14px; }
+.brief-chart-fallback a { color: #888; }
+.brief-chart-source { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #5A5040; line-height: 1.6; margin-bottom: 28px; }
+.brief-chart-source a { color: #7A6A54; text-decoration: none; }
+.brief-chart-read { font-size: 17px; color: #B8AE9C; }
+.brief-so-what { max-width: 640px; margin: 0 auto; padding: 56px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-so-what-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 28px; font-style: italic; }
+.brief-so-what p { font-size: 17px; color: #B8AE9C; margin-bottom: 20px; }
+.brief-next { max-width: 640px; margin: 0 auto; padding: 56px 40px 48px; border-top: 1px solid #1E1A14; }
+.brief-next-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 14px; font-style: italic; }
+.brief-next-intro { font-size: 15px; color: #9A9080; margin-bottom: 36px; line-height: 1.65; }
+.brief-link-block { margin-bottom: 28px; line-height: 1.7; }
+.brief-link-tag { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.2em; color: #6A5A44; text-transform: uppercase; display: block; margin-bottom: 4px; }
+.brief-link-block a { font-weight: 600; color: #E0D6C4; text-decoration: underline; text-underline-offset: 3px; font-size: 16px; }
+.brief-link-block a:hover { color: #fff; }
+.brief-link-detail { display: block; font-size: 14px; color: #6A5E4C; margin-top: 2px; }
+.brief-close { max-width: 640px; margin: 0 auto; padding: 48px 40px 100px; border-top: 1px solid #1E1A14; }
+.brief-close p { font-family: 'Source Serif 4', Georgia, serif; font-size: 16px; color: #9A9080; margin-bottom: 32px; line-height: 1.7; }
+.brief-close-small { font-family: 'IBM Plex Mono', monospace !important; font-size: 11px !important; color: #3A3428 !important; letter-spacing: 0.04em; }
+#exit-brief-btn { background: none; border: 1px solid #2A2418; color: #5A5040; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; padding: 10px 20px; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
+#exit-brief-btn:hover { border-color: #8A7A64; color: #C0B49A; }
+@media (max-width: 900px) {
+  .brief-opening, .brief-so-what, .brief-next, .brief-close { padding-left: 24px; padding-right: 24px; }
+  .brief-chart-section { padding-left: 24px; padding-right: 24px; }
+  .brief-made-by { font-size: 18px; }
+  .brief-opening { padding-top: 64px; }
+  .machine-stamp { padding: 14px 20px; }
+}
+</style>
+
+<script>
+(function() {
+  let briefTriggered = false;
+  function startBriefTransition() {
+    if (briefTriggered) return;
+    if (!document.body.classList.contains('mode-oppo')) return;
+    briefTriggered = true;
+    const body = document.body;
+    body.style.transition = 'filter 2.5s ease-in';
+    body.style.filter = 'saturate(0) brightness(0.3)';
+    setTimeout(() => {
+      const hed = document.querySelector('.oppo-content h1') || document.querySelector('.oppo-content h2');
+      if (hed) {
+        const orig = hed.textContent;
+        const chars = '█▓▒░■□0123456789';
+        let n = 0;
+        const si = setInterval(() => {
+          n++;
+          hed.textContent = Array.from(orig).map(c => c === ' ' ? ' ' : chars[Math.floor(Math.random() * chars.length)]).join('');
+          if (n > 40) { clearInterval(si); hed.textContent = orig; }
+        }, 40);
+      }
+    }, 1200);
+    setTimeout(() => {
+      body.style.transition = '';
+      body.style.filter = '';
+      body.classList.add('glitching');
+      setTimeout(() => {
+        body.classList.remove('glitching');
+        body.classList.add('mode-brief');
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      }, 1500);
+    }, 2500);
+  }
+  const sentinel = document.getElementById('brief-sentinel');
+  if (sentinel && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) { io.disconnect(); setTimeout(startBriefTransition, 1200); }
+      });
+    }, { threshold: 0.5 });
+    io.observe(sentinel);
+  }
+  const flipBtn = document.getElementById('flip-btn');
+  if (flipBtn) { flipBtn.addEventListener('click', () => { if (document.body.classList.contains('mode-oppo')) briefTriggered = false; }); }
+})();
+document.addEventListener('click', (e) => {
+  if (e.target && e.target.id === 'exit-brief-btn') {
+    const body = document.body;
+    body.style.opacity = '0';
+    body.style.transition = 'opacity 0.3s';
+    setTimeout(() => { body.classList.remove('mode-brief'); body.classList.add('mode-oppo'); window.scrollTo({ top: 0, behavior: 'instant' }); body.style.opacity = '1'; }, 300);
+  }
+});
+</script>
+
+</body>
+</html>

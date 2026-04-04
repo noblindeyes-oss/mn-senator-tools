@@ -1,0 +1,1409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>School Safety Facility Funding Planner — SF1318</title>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Application archetype — sticky left sidebar (210px, dark slate) + full-width scrollable main panel. Sidebar is narrow and dark; main area is clinical near-white. Strong asymmetry.
+   2. Navigation: Vertical sidebar text links with cedar-green left accent bar on active item only. No tabs, no pills, no rounded tops.
+   3. Typography: Cambria (serif) for section headers and generated document; Tahoma for UI labels, nav, and form elements; Calibri for body/paragraph text. NO Georgia, NO Arial Narrow, NO Courier New.
+   4. Hero moment: Full-width stacked horizontal bar chart (80px tall) with bold palette fills dominating the revenue output area. Immediate visual payoff on calculation.
+   5. Color strategy: #5 — Cool dominant. Deep slate (#1F2B2E) and road-salt gray (#8A8E8F) are structural. Cedar green (#4A7C59) is primary accent. Sodium amber (#D4882A) is used only for warnings/alerts. 70%+ of sidebar and header is dark; content area is clinical cool white.
+   6. Entry experience: Compact dark header band with tool title + one-line subtitle. No explanatory paragraph. "Load Example" button is immediately visible. First input field is above the fold.
+   Additional: Dense/utilitarian spacing — 32px form rows, 12px section gaps. Real HTML tables for project data. No cards, no bordered callout boxes. Print CSS hides sidebar entirely, shows only Module 3 document.
+*/
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --slate: #1F2B2E;
+  --slate-light: #2A3A3E;
+  --gray: #8A8E8F;
+  --green: #4A7C59;
+  --green-light: #5E9A70;
+  --green-dark: #3A6347;
+  --amber: #D4882A;
+  --bg: #F7F8F8;
+  --bg-alt: #EDF0F0;
+  --text-dark: #1A1F1E;
+  --text-light: #E8ECEA;
+  --success: #3A7D5A;
+  --warning: #D4882A;
+  --alert: #B8312F;
+  --sidebar-w: 210px;
+}
+
+html { font-size: 14px; }
+body {
+  font-family: Calibri, sans-serif;
+  background: var(--bg);
+  color: var(--text-dark);
+  line-height: 1.45;
+  display: flex;
+  min-height: 100vh;
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  background: var(--slate);
+  color: var(--text-light);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 100;
+  overflow-y: auto;
+}
+
+.sidebar-brand {
+  padding: 18px 16px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.sidebar-brand h1 {
+  font-family: Cambria, serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  line-height: 1.25;
+  color: #fff;
+}
+.sidebar-brand .sf-tag {
+  display: inline-block;
+  margin-top: 6px;
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--green-light);
+}
+
+.sidebar-nav { padding: 12px 0; flex: 1; }
+.sidebar-nav button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  color: var(--text-light);
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 12.5px;
+  padding: 10px 16px 10px 20px;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: background 0.15s, border-color 0.15s;
+  opacity: 0.7;
+}
+.sidebar-nav button:hover { background: rgba(255,255,255,0.05); opacity: 1; }
+.sidebar-nav button.active {
+  border-left-color: var(--green);
+  background: rgba(74,124,89,0.12);
+  opacity: 1;
+  font-weight: 700;
+}
+.sidebar-nav button .mod-num {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--gray);
+  margin-bottom: 2px;
+  font-weight: 400;
+}
+
+.sidebar-help {
+  padding: 14px 16px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(232,236,234,0.6);
+}
+
+/* MAIN AREA */
+.main {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.header-band {
+  background: var(--slate);
+  padding: 16px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.header-band h2 {
+  font-family: Cambria, serif;
+  font-size: 20px;
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+}
+.header-band .subtitle {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 11.5px;
+  color: var(--gray);
+  margin-top: 2px;
+}
+.header-band .actions { display: flex; gap: 8px; align-items: center; }
+
+.btn {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 12px;
+  padding: 7px 14px;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: background 0.15s, transform 0.1s;
+}
+.btn:active { transform: scale(0.97); }
+.btn-green { background: var(--green); color: #fff; }
+.btn-green:hover { background: var(--green-light); }
+.btn-amber { background: var(--amber); color: #fff; }
+.btn-amber:hover { background: #c07a22; }
+.btn-outline {
+  background: transparent;
+  color: var(--text-light);
+  border: 1px solid var(--gray);
+}
+.btn-outline:hover { background: rgba(255,255,255,0.08); }
+.btn-slate { background: var(--slate-light); color: var(--text-light); }
+.btn-slate:hover { background: #354a4f; }
+
+.content {
+  flex: 1;
+  padding: 20px 28px 40px;
+}
+
+.module { display: none; }
+.module.active { display: block; }
+
+/* FORM STYLING */
+.form-section {
+  margin-bottom: 20px;
+}
+.form-section-title {
+  font-family: Cambria, serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--slate);
+  padding-bottom: 6px;
+  margin-bottom: 10px;
+  border-bottom: 2px solid var(--green);
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 20px;
+}
+.form-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+}
+.form-row.full { grid-column: 1 / -1; }
+.form-row label {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 12px;
+  color: var(--slate);
+  min-width: 0;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.form-row input[type="text"],
+.form-row input[type="number"] {
+  width: 150px;
+  min-width: 100px;
+  padding: 5px 8px;
+  border: 1px solid #C0C5C6;
+  border-radius: 2px;
+  font-family: Calibri, sans-serif;
+  font-size: 13px;
+  background: #fff;
+  color: var(--text-dark);
+  transition: border-color 0.15s;
+}
+.form-row input:focus {
+  outline: none;
+  border-color: var(--green);
+  box-shadow: 0 0 0 2px rgba(74,124,89,0.15);
+}
+.form-row .unit {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 11px;
+  color: var(--gray);
+  width: 50px;
+  flex-shrink: 0;
+}
+.form-row input.wide { width: 250px; }
+
+.example-label {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--amber);
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+/* REVENUE OUTPUT */
+.revenue-output {
+  margin-top: 16px;
+  background: var(--slate);
+  padding: 18px 20px;
+  border-radius: 3px;
+  color: var(--text-light);
+}
+.revenue-output h3 {
+  font-family: Cambria, serif;
+  font-size: 15px;
+  margin-bottom: 10px;
+  color: #fff;
+}
+.rev-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 3px 0;
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 12.5px;
+}
+.rev-row .rev-label { color: rgba(232,236,234,0.75); }
+.rev-row .rev-val { font-weight: 700; font-size: 13px; }
+.rev-row.total {
+  border-top: 1px solid rgba(255,255,255,0.15);
+  margin-top: 6px;
+  padding-top: 8px;
+}
+.rev-row.total .rev-label { color: #fff; font-weight: 700; }
+.rev-row.total .rev-val { color: var(--green-light); font-size: 18px; font-family: Cambria, serif; }
+
+.chart-area {
+  margin-top: 14px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 3px;
+  padding: 10px;
+}
+.chart-area canvas { display: block; width: 100%; height: 70px; border-radius: 2px; }
+
+.sf-note {
+  margin-top: 14px;
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 11px;
+  line-height: 1.55;
+  color: rgba(232,236,234,0.55);
+}
+.sf-note strong { color: var(--green-light); }
+
+/* MODULE 2 — PROJECT TABLE */
+.proj-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.proj-table-wrap {
+  overflow-x: auto;
+  margin-bottom: 16px;
+}
+table.proj-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+table.proj-table th {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  background: var(--slate);
+  color: var(--text-light);
+  padding: 8px 10px;
+  text-align: left;
+  font-weight: 700;
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+}
+table.proj-table td {
+  padding: 6px 10px;
+  vertical-align: middle;
+  border-bottom: 1px solid #D8DCDD;
+}
+table.proj-table tr:nth-child(even) td { background: var(--bg-alt); }
+table.proj-table tr:nth-child(odd) td { background: #fff; }
+table.proj-table tr.unchecked td { opacity: 0.45; }
+table.proj-table td input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--green);
+  cursor: pointer;
+}
+table.proj-table td input[type="number"] {
+  width: 80px;
+  padding: 3px 5px;
+  border: 1px solid #C0C5C6;
+  border-radius: 2px;
+  font-family: Calibri, sans-serif;
+  font-size: 12px;
+  background: #fff;
+  text-align: right;
+}
+table.proj-table td input[type="number"]:focus {
+  outline: none;
+  border-color: var(--green);
+}
+table.proj-table td select {
+  padding: 3px 5px;
+  border: 1px solid #C0C5C6;
+  border-radius: 2px;
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 11px;
+  background: #fff;
+}
+.status-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+.status-dot.green { background: var(--success); }
+.status-dot.amber { background: var(--warning); }
+.status-dot.red { background: var(--alert); }
+
+.proj-bar {
+  width: 100%;
+  height: 8px;
+  background: #D8DCDD;
+  border-radius: 4px;
+  overflow: hidden;
+  min-width: 60px;
+}
+.proj-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s;
+}
+
+.summary-band {
+  background: var(--slate);
+  color: var(--text-light);
+  padding: 16px 20px;
+  border-radius: 3px;
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+  align-items: baseline;
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 12.5px;
+}
+.summary-band .s-item { display: flex; flex-direction: column; gap: 2px; }
+.summary-band .s-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--gray); }
+.summary-band .s-val { font-size: 20px; font-family: Cambria, serif; font-weight: 700; }
+.summary-band .s-val.gap-val { color: var(--amber); }
+.summary-band .s-val.funded-val { color: var(--green-light); }
+.summary-band .s-note {
+  font-size: 11px;
+  color: rgba(232,236,234,0.55);
+  max-width: 350px;
+  line-height: 1.4;
+  align-self: center;
+}
+
+/* MODULE 3 — PLAN DOCUMENT */
+.plan-preview {
+  max-width: 820px;
+  margin: 0 auto;
+  background: #fff;
+  padding: 48px 52px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+  font-family: Cambria, serif;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text-dark);
+}
+.plan-preview h2 {
+  font-size: 20px;
+  font-weight: 700;
+  border-bottom: 2px solid var(--green);
+  padding-bottom: 6px;
+  margin-bottom: 14px;
+}
+.plan-preview h3 {
+  font-size: 15px;
+  font-weight: 700;
+  margin-top: 20px;
+  margin-bottom: 8px;
+  color: var(--slate);
+}
+.plan-preview p {
+  margin-bottom: 10px;
+}
+.plan-preview table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  margin: 10px 0 16px;
+}
+.plan-preview table th {
+  background: var(--bg-alt);
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 6px 8px;
+  text-align: left;
+  border-bottom: 2px solid var(--green);
+}
+.plan-preview table td {
+  padding: 5px 8px;
+  border-bottom: 1px solid #DDD;
+}
+.plan-preview .checklist { list-style: none; padding: 0; }
+.plan-preview .checklist li {
+  padding: 4px 0;
+  font-size: 13px;
+}
+.plan-preview .checklist li::before {
+  content: "\25A1";
+  margin-right: 8px;
+  color: var(--green);
+  font-size: 14px;
+}
+.plan-preview .legal-ref {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #555;
+  margin-top: 16px;
+}
+.plan-preview [contenteditable="true"]:focus {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+.plan-preview [contenteditable="true"]:hover {
+  background: rgba(74,124,89,0.04);
+}
+
+/* FOOTER */
+.main-footer {
+  padding: 16px 28px;
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 10.5px;
+  color: var(--gray);
+  line-height: 1.5;
+  border-top: 1px solid #D8DCDD;
+}
+
+/* MOBILE */
+@media (max-width: 767px) {
+  .sidebar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    bottom: auto;
+    width: 100%;
+    min-width: 0;
+    flex-direction: row;
+    align-items: center;
+    height: 48px;
+    overflow: hidden;
+  }
+  .sidebar-brand { padding: 8px 12px; }
+  .sidebar-brand h1 { font-size: 13px; }
+  .sidebar-brand .sf-tag { display: none; }
+  .sidebar-nav { display: flex; padding: 0; overflow-x: auto; }
+  .sidebar-nav button { white-space: nowrap; padding: 8px 14px; border-left: none; border-bottom: 3px solid transparent; }
+  .sidebar-nav button.active { border-bottom-color: var(--green); border-left: none; }
+  .sidebar-nav button .mod-num { display: none; }
+  .sidebar-help { display: none; }
+  .main { margin-left: 0; margin-top: 48px; }
+  .form-grid { grid-template-columns: 1fr; }
+  .header-band { padding: 12px 16px; }
+  .content { padding: 14px 16px 30px; }
+  .summary-band { flex-direction: column; gap: 12px; }
+}
+
+/* TOOLTIP for input help */
+.form-row .tip {
+  position: relative;
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--gray);
+  color: #fff;
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 14px;
+  cursor: help;
+  flex-shrink: 0;
+}
+.form-row .tip:hover::after {
+  content: attr(data-tip);
+  position: absolute;
+  left: 20px;
+  top: -4px;
+  background: var(--slate);
+  color: var(--text-light);
+  font-size: 11px;
+  font-weight: 400;
+  padding: 6px 10px;
+  border-radius: 3px;
+  white-space: nowrap;
+  max-width: 320px;
+  white-space: normal;
+  z-index: 200;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  line-height: 1.4;
+}
+
+/* H&S compliance toggle in project table */
+table.proj-table td .compliance-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 10px;
+  color: var(--gray);
+}
+table.proj-table td .compliance-toggle select {
+  width: 52px;
+  font-size: 10px;
+  padding: 1px 2px;
+}
+
+/* Source allocation breakdown display */
+.alloc-detail {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 10px;
+  color: var(--gray);
+  line-height: 1.35;
+}
+
+/* PRINT */
+@media print {
+  body { display: block; background: #fff; }
+  .sidebar,
+  .header-band,
+  .main-footer,
+  .no-print,
+  .proj-controls,
+  .form-section,
+  .revenue-output,
+  .chart-area,
+  .sf-note,
+  .example-label,
+  #mod1,
+  #mod2 { display: none !important; }
+  .main { margin-left: 0; width: 100%; }
+  .module { display: none !important; }
+  .module.mod3 { display: block !important; }
+  .plan-preview {
+    box-shadow: none;
+    padding: 0.5in;
+    max-width: 100%;
+    font-size: 11pt;
+    line-height: 1.5;
+  }
+  .plan-preview h2 {
+    font-size: 16pt;
+    border-bottom-width: 1pt;
+    margin-bottom: 12pt;
+    padding-bottom: 4pt;
+  }
+  .plan-preview h3 {
+    font-size: 12pt;
+    margin-top: 16pt;
+    margin-bottom: 6pt;
+    page-break-after: avoid;
+  }
+  .plan-preview p { font-size: 10.5pt; margin-bottom: 8pt; }
+  .plan-preview table {
+    font-size: 9.5pt;
+    page-break-inside: avoid;
+  }
+  .plan-preview table th {
+    font-size: 8.5pt;
+    background: #EEE !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .plan-preview .legal-ref { font-size: 9pt; }
+  .plan-preview .checklist li { font-size: 10pt; }
+  .content { padding: 0; }
+  /* Two-column layout for revenue + projects side-by-side */
+  .plan-preview .print-cols {
+    display: flex;
+    gap: 24pt;
+  }
+  .plan-preview .print-cols > div { flex: 1; }
+  @page {
+    margin: 0.75in;
+    size: letter;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar" role="navigation" aria-label="Module navigation">
+  <div class="sidebar-brand">
+    <h1>Safety Facility Funding Planner</h1>
+    <span class="sf-tag">SF1318 &middot; 2025</span>
+  </div>
+  <div class="sidebar-nav">
+    <button class="active" data-mod="1" onclick="switchModule(1)">
+      <span class="mod-num">Module 1</span>Revenue Calculator
+    </button>
+    <button data-mod="2" onclick="switchModule(2)">
+      <span class="mod-num">Module 2</span>Project Prioritizer
+    </button>
+    <button data-mod="3" onclick="switchModule(3)">
+      <span class="mod-num">Module 3</span>Plan Document
+    </button>
+  </div>
+  <div class="sidebar-help">
+    Osseo Area Schools secured entrance upgrades at three senior high schools as part of its Building a Better Future initiative — the kind of safety investment SF1318 was designed to clarify as eligible for LTFM funding going forward. SD-38 schools served by Osseo District 279 include North View Middle School and Brooklyn Middle School, both of which completed renovation and safety enhancement phases in 2025.
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="header-band">
+    <div>
+      <h2>School Safety Facility Funding Planner</h2>
+      <div class="subtitle">Revenue modeling for school safety upgrades under Minnesota LTFM and Health &amp; Safety levy — updated for SF1318 (2025)</div>
+    </div>
+    <div class="actions">
+      <button class="btn btn-amber" onclick="loadExample()" id="btnExample">Load Example: Osseo Area Schools</button>
+      <button class="btn btn-outline no-print" onclick="clearAll()">Clear</button>
+      <button class="btn btn-green no-print" onclick="switchModule(3); generatePlan(); window.print();">Print Plan</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- MODULE 1: REVENUE CALCULATOR -->
+    <div class="module mod1 active" id="mod1">
+
+      <div class="form-section">
+        <div class="form-section-title">District Profile</div>
+        <div id="exampleLabel" class="example-label" style="display:none;">Example figures — replace with your district's actual data</div>
+        <div class="form-grid">
+          <div class="form-row full">
+            <label for="distName">District name</label>
+            <input type="text" id="distName" class="wide" placeholder="e.g., Osseo Area Schools — ISD 279">
+          </div>
+          <div class="form-row">
+            <label for="apu">Adjusted Pupil Units (APU)</label>
+            <input type="number" id="apu" min="0" step="1" placeholder="11500">
+            <span class="unit">pupils</span>
+            <span class="tip" data-tip="The pupil-unit count your district uses for state funding formulas. Available from your district's finance office or MDE.">?</span>
+          </div>
+          <div class="form-row">
+            <label for="ltfmRate">LTFM revenue per pupil</label>
+            <input type="number" id="ltfmRate" min="0" step="1" value="380" placeholder="380">
+            <span class="unit">$/pupil</span>
+            <span class="tip" data-tip="Statutory maximum is $380/pupil (set in 2019). Your district's actual rate depends on board-approved 10-year plan and building age.">?</span>
+          </div>
+          <div class="form-row">
+            <label for="avgAge">Avg building age (years)</label>
+            <input type="number" id="avgAge" min="0" step="1" placeholder="45">
+            <span class="unit">years</span>
+            <span class="tip" data-tip="Average age of district buildings at the 2015 baseline. Used to estimate the proration factor. Buildings averaging 35 years or less prorate to zero.">?</span>
+          </div>
+          <div class="form-row">
+            <label for="proration">Proration factor (0–1)</label>
+            <input type="number" id="proration" min="0" max="1" step="0.01" placeholder="0.85">
+            <span class="unit"></span>
+            <span class="tip" data-tip="LTFM revenue is prorated based on building age. Factor of 1.0 = full amount; 0 = no revenue. Override with your district's specific factor if known.">?</span>
+          </div>
+          <div class="form-row">
+            <label for="ltfmCommit">LTFM committed (non-safety)</label>
+            <input type="number" id="ltfmCommit" min="0" step="1000" placeholder="2800000">
+            <span class="unit">$/yr</span>
+            <span class="tip" data-tip="Annual LTFM expenditure already committed in your 10-year plan for roofs, HVAC, plumbing, and other non-safety facility work.">?</span>
+          </div>
+          <div class="form-row">
+            <label for="hsLevy">Health &amp; Safety levy</label>
+            <input type="number" id="hsLevy" min="0" step="1000" placeholder="900000">
+            <span class="unit">$/yr</span>
+            <span class="tip" data-tip="Current annual H&S levy authorization under Minn. Stat. 123B.57. Has its own eligible-use categories distinct from LTFM.">?</span>
+          </div>
+          <div class="form-row">
+            <label for="refBond">Capital referendum debt service</label>
+            <input type="number" id="refBond" min="0" step="1000" placeholder="0">
+            <span class="unit">$/yr</span>
+            <span class="tip" data-tip="Annual debt service allocated to facilities from a voter-approved capital referendum. Leave at 0 if your district has no active referendum.">?</span>
+          </div>
+          <div class="form-row">
+            <label for="grants">Safety grants (state/federal)</label>
+            <input type="number" id="grants" min="0" step="1000" placeholder="0">
+            <span class="unit">$/yr</span>
+            <span class="tip" data-tip="School Safety Center grants, STOP School Violence Act, Bipartisan Safer Communities Act funds, or other safety-specific grants received this fiscal year.">?</span>
+          </div>
+        </div>
+        <div style="margin-top:12px;">
+          <button class="btn btn-green" onclick="calculateRevenue()">Calculate Revenue</button>
+        </div>
+      </div>
+
+      <div id="revenueOutput" class="revenue-output" style="display:none;">
+        <h3>Revenue Available for Safety Work</h3>
+        <div class="rev-row"><span class="rev-label">Total LTFM annual revenue</span><span class="rev-val" id="roLtfmTotal">—</span></div>
+        <div class="rev-row"><span class="rev-label">LTFM committed (non-safety)</span><span class="rev-val" id="roLtfmCommit">—</span></div>
+        <div class="rev-row"><span class="rev-label">LTFM headroom for safety (post-SF1318)</span><span class="rev-val" id="roLtfmAvail">—</span></div>
+        <div class="rev-row"><span class="rev-label">Health &amp; Safety levy</span><span class="rev-val" id="roHs">—</span></div>
+        <div class="rev-row"><span class="rev-label">Referendum funds</span><span class="rev-val" id="roRef">—</span></div>
+        <div class="rev-row"><span class="rev-label">Safety grants</span><span class="rev-val" id="roGrants">—</span></div>
+        <div class="rev-row total"><span class="rev-label">TOTAL available for safety facility work</span><span class="rev-val" id="roTotal">—</span></div>
+        <div class="chart-area">
+          <canvas id="fundingChart" height="70"></canvas>
+        </div>
+        <div class="sf-note">
+          <strong>SF1318 (Pha, 2025)</strong> expanded LTFM-eligible uses to include school safety facility enhancements. Before this change, security vestibules, access control systems, and safety lighting upgrades could not reliably be funded from LTFM revenue. This calculator reflects the post-SF1318 eligible pool.
+        </div>
+      </div>
+
+    </div>
+
+    <!-- MODULE 2: PROJECT PRIORITIZER -->
+    <div class="module mod2" id="mod2">
+
+      <div class="form-section">
+        <div class="form-section-title">Safety Project Prioritizer</div>
+        <div class="proj-controls">
+          <button class="btn btn-slate" onclick="selectAllProjects(true)">Select All</button>
+          <button class="btn btn-slate" onclick="selectAllProjects(false)">Deselect All</button>
+          <button class="btn btn-green" onclick="recalcProjects()">Recalculate</button>
+          <span style="font-family:Tahoma,sans-serif;font-size:11px;color:var(--gray);margin-left:8px;">Priority auto-scores. Override by editing the rank column.</span>
+        </div>
+      </div>
+
+      <div class="proj-table-wrap">
+        <table class="proj-table" id="projTable">
+          <thead>
+            <tr>
+              <th scope="col" style="width:36px;"></th>
+              <th scope="col">Priority</th>
+              <th scope="col">Project</th>
+              <th scope="col">Typical Range</th>
+              <th scope="col">Eligible Source</th>
+              <th scope="col" title="Is this project in the district's current H&S plan?">In H&amp;S Plan?</th>
+              <th scope="col">Buildings</th>
+              <th scope="col">Unit Cost</th>
+              <th scope="col">Total Cost</th>
+              <th scope="col">Covered</th>
+              <th scope="col">Gap</th>
+              <th scope="col" style="width:90px;">Coverage</th>
+              <th scope="col" style="width:40px;" title="Status: green=90%+, amber=50-89%, red=below 50%">Status</th>
+            </tr>
+          </thead>
+          <tbody id="projBody"></tbody>
+        </table>
+      </div>
+
+      <div class="summary-band" id="projSummary">
+        <div class="s-item">
+          <span class="s-label">Projects Selected</span>
+          <span class="s-val" id="sumProjects">0</span>
+        </div>
+        <div class="s-item">
+          <span class="s-label">Total Cost</span>
+          <span class="s-val" id="sumCost">$0</span>
+        </div>
+        <div class="s-item">
+          <span class="s-label">Revenue Identified</span>
+          <span class="s-val funded-val" id="sumRevenue">$0</span>
+        </div>
+        <div class="s-item">
+          <span class="s-label">Funding Gap</span>
+          <span class="s-val gap-val" id="sumGap">$0</span>
+        </div>
+        <div class="s-note" id="sumNote"></div>
+      </div>
+    </div>
+
+    <!-- MODULE 3: PLAN DOCUMENT -->
+    <div class="module mod3" id="mod3">
+      <div style="margin-bottom:12px;display:flex;gap:10px;align-items:center;" class="no-print">
+        <button class="btn btn-green" onclick="generatePlan()">Generate Plan Document</button>
+        <button class="btn btn-amber" onclick="window.print()">Print / Save PDF</button>
+        <span style="font-family:Tahoma,sans-serif;font-size:11px;color:var(--gray);">Click any text in the document below to edit before printing.</span>
+      </div>
+      <div class="plan-preview" id="planDoc">
+        <p style="color:var(--gray);font-family:Tahoma,sans-serif;font-size:12px;">Complete Modules 1 and 2, then click "Generate Plan Document" to build your printable funding plan.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="main-footer">
+    A resource for Minnesota school districts and SD-38 communities. Built with AI.
+    Reflects MN school finance law as of 2025, including SF1318 (amending &sect; 123B.595).
+    Not legal or financial advice — consult district counsel and MDE before obligating funds.
+  </div>
+</div>
+
+<script>
+// ===================== DATA =====================
+const PROJECTS = [
+  { id:'vestibule', name:'Security vestibule / entrance redesign', rangeMin:150000, rangeMax:450000, sources:['LTFM','H&S','Referendum'], risk:10, visibility:9 },
+  { id:'access', name:'Access control system (card readers, e-locks)', rangeMin:50000, rangeMax:200000, sources:['LTFM','H&S'], risk:9, visibility:5 },
+  { id:'cameras', name:'Interior/exterior security camera upgrade', rangeMin:20000, rangeMax:80000, sources:['LTFM','H&S'], risk:7, visibility:7 },
+  { id:'lighting', name:'Safety lighting (parking lot, pathways)', rangeMin:15000, rangeMax:60000, sources:['LTFM','H&S'], risk:6, visibility:8 },
+  { id:'visitor', name:'Visitor management kiosk (ID scanner)', rangeMin:8000, rangeMax:25000, sources:['H&S','Grant'], risk:6, visibility:6 },
+  { id:'doorhw', name:'Interior door hardware (classroom locks)', rangeMin:5000, rangeMax:30000, sources:['LTFM','H&S'], risk:8, visibility:4 },
+  { id:'intercom', name:'Intercom / two-way comm upgrade', rangeMin:10000, rangeMax:40000, sources:['H&S','LTFM'], risk:5, visibility:4 },
+  { id:'pa', name:'Emergency alert / PA system upgrade', rangeMin:20000, rangeMax:75000, sources:['H&S'], risk:5, visibility:5 },
+  { id:'fencing', name:'Fencing / perimeter control', rangeMin:30000, rangeMax:120000, sources:['LTFM','Referendum'], risk:7, visibility:8 },
+  { id:'saferoom', name:'Safe room / hardened interior space', rangeMin:75000, rangeMax:300000, sources:['Referendum','Grant','LTFM'], risk:9, visibility:4 }
+];
+
+let revenueData = null;
+
+// ===================== MODULE SWITCHING =====================
+function switchModule(n) {
+  document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
+  document.getElementById('mod' + n).classList.add('active');
+  document.querySelectorAll('.sidebar-nav button').forEach(b => b.classList.remove('active'));
+  document.querySelector('.sidebar-nav button[data-mod="' + n + '"]').classList.add('active');
+  if (n === 2) recalcProjects();
+  if (n === 3 && !document.getElementById('planDoc').dataset.generated) generatePlan();
+}
+
+// ===================== FORMATTING =====================
+function fmt(n) {
+  if (n == null || isNaN(n)) return '$0';
+  return '$' + Math.round(n).toLocaleString('en-US');
+}
+
+// ===================== MODULE 1: REVENUE =====================
+function getInputs() {
+  return {
+    distName: document.getElementById('distName').value || 'Unnamed District',
+    apu: parseFloat(document.getElementById('apu').value) || 0,
+    ltfmRate: parseFloat(document.getElementById('ltfmRate').value) || 380,
+    avgAge: parseFloat(document.getElementById('avgAge').value) || 0,
+    proration: parseFloat(document.getElementById('proration').value) || 0,
+    ltfmCommit: parseFloat(document.getElementById('ltfmCommit').value) || 0,
+    hsLevy: parseFloat(document.getElementById('hsLevy').value) || 0,
+    refBond: parseFloat(document.getElementById('refBond').value) || 0,
+    grants: parseFloat(document.getElementById('grants').value) || 0
+  };
+}
+
+function calculateRevenue() {
+  const d = getInputs();
+  const ltfmTotal = d.apu * d.ltfmRate * d.proration;
+  const ltfmAvail = Math.max(0, ltfmTotal - d.ltfmCommit);
+  const total = ltfmAvail + d.hsLevy + d.refBond + d.grants;
+
+  revenueData = { ltfmTotal, ltfmCommit: d.ltfmCommit, ltfmAvail, hsLevy: d.hsLevy, refBond: d.refBond, grants: d.grants, total };
+
+  document.getElementById('roLtfmTotal').textContent = fmt(ltfmTotal);
+  document.getElementById('roLtfmCommit').textContent = fmt(d.ltfmCommit);
+  document.getElementById('roLtfmAvail').textContent = fmt(ltfmAvail);
+  document.getElementById('roHs').textContent = fmt(d.hsLevy);
+  document.getElementById('roRef').textContent = fmt(d.refBond);
+  document.getElementById('roGrants').textContent = fmt(d.grants);
+  document.getElementById('roTotal').textContent = fmt(total);
+  document.getElementById('revenueOutput').style.display = 'block';
+
+  drawChart(ltfmAvail, d.hsLevy, d.refBond, d.grants);
+  saveState();
+}
+
+function drawChart(ltfm, hs, ref, grants) {
+  const canvas = document.getElementById('fundingChart');
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.parentElement.clientWidth - 20;
+  const h = 70;
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, w, h);
+
+  const segments = [
+    { label: 'LTFM Safety', value: ltfm, color: '#4A7C59' },
+    { label: 'H&S Levy', value: hs, color: '#5E9A70' },
+    { label: 'Referendum', value: ref, color: '#D4882A' },
+    { label: 'Grants', value: grants, color: '#8A8E8F' }
+  ].filter(s => s.value > 0);
+
+  const total = segments.reduce((a, s) => a + s.value, 0);
+  if (total === 0) return;
+
+  let x = 0;
+  const barH = 44;
+  const barY = 4;
+
+  segments.forEach(seg => {
+    const segW = (seg.value / total) * w;
+    ctx.fillStyle = seg.color;
+    ctx.fillRect(x, barY, segW, barH);
+
+    // Label
+    ctx.fillStyle = '#fff';
+    ctx.font = '700 11px Tahoma, Geneva, sans-serif';
+    const labelText = seg.label;
+    const valText = fmt(seg.value);
+    const labelW = ctx.measureText(labelText).width;
+    const valW = ctx.measureText(valText).width;
+    const maxTextW = Math.max(labelW, valW);
+
+    if (segW > maxTextW + 12) {
+      ctx.textBaseline = 'top';
+      ctx.fillText(labelText, x + 6, barY + 6);
+      ctx.font = '400 10px Tahoma, Geneva, sans-serif';
+      ctx.fillText(valText, x + 6, barY + 22);
+    }
+
+    // Bottom label if too narrow
+    if (segW <= maxTextW + 12 && segW > 20) {
+      ctx.fillStyle = seg.color;
+      ctx.font = '700 10px Tahoma, Geneva, sans-serif';
+      ctx.textBaseline = 'top';
+      ctx.fillText(labelText, x + 2, barY + barH + 4);
+      ctx.font = '400 9px Tahoma, Geneva, sans-serif';
+      ctx.fillText(valText, x + 2, barY + barH + 17);
+    }
+
+    x += segW;
+  });
+}
+
+// ===================== MODULE 2: PROJECTS =====================
+function buildProjectTable() {
+  const tbody = document.getElementById('projBody');
+  tbody.innerHTML = '';
+
+  PROJECTS.forEach((p, i) => {
+    const mid = Math.round((p.rangeMin + p.rangeMax) / 2);
+    const tr = document.createElement('tr');
+    tr.dataset.idx = i;
+    tr.className = 'unchecked';
+    tr.innerHTML = `
+      <td><input type="checkbox" id="pchk${i}" onchange="toggleProject(${i})" aria-label="Select ${p.name}"></td>
+      <td class="p-priority" style="font-weight:700;text-align:center;">—</td>
+      <td style="font-size:12px;">${p.name}</td>
+      <td style="font-family:Tahoma,sans-serif;font-size:11px;color:var(--gray);">${fmt(p.rangeMin)} – ${fmt(p.rangeMax)}</td>
+      <td style="font-family:Tahoma,sans-serif;font-size:11px;">${p.sources.join(', ')}</td>
+      <td><select id="pcomp${i}" onchange="recalcProjects()" style="width:52px;font-size:10px;padding:1px 2px;font-family:Tahoma,sans-serif;border:1px solid #C0C5C6;border-radius:2px;background:#fff;"><option value="yes">Yes</option><option value="no">No</option></select></td>
+      <td><input type="number" id="pbld${i}" value="1" min="1" step="1" style="width:50px;" onchange="recalcProjects()"></td>
+      <td><input type="number" id="pcost${i}" value="${mid}" min="0" step="1000" onchange="recalcProjects()"></td>
+      <td class="p-total" style="font-weight:700;">—</td>
+      <td class="p-covered">—</td>
+      <td class="p-gap">—</td>
+      <td class="p-bar"><div class="proj-bar"><div class="proj-bar-fill" style="width:0%;background:var(--gray);"></div></div></td>
+      <td class="p-status">—</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function toggleProject(i) {
+  const chk = document.getElementById('pchk' + i);
+  const tr = document.querySelector(`#projBody tr[data-idx="${i}"]`);
+  if (chk.checked) tr.classList.remove('unchecked');
+  else tr.classList.add('unchecked');
+  recalcProjects();
+}
+
+function selectAllProjects(on) {
+  PROJECTS.forEach((_, i) => {
+    document.getElementById('pchk' + i).checked = on;
+    const tr = document.querySelector(`#projBody tr[data-idx="${i}"]`);
+    if (on) tr.classList.remove('unchecked');
+    else tr.classList.add('unchecked');
+  });
+  recalcProjects();
+}
+
+function getComplianceScore(i) {
+  const sel = document.getElementById('pcomp' + i);
+  return sel && sel.value === 'yes' ? 8 : 3;
+}
+
+function computePriorityScore(p, i) {
+  const compliance = getComplianceScore(i);
+  return (p.risk * 0.5) + (compliance * 0.3) + (p.visibility * 0.2);
+}
+
+function recalcProjects() {
+  if (!revenueData) {
+    // Try to calc first
+    const d = getInputs();
+    if (d.apu > 0) calculateRevenue();
+    else return;
+  }
+
+  // Gather checked projects with scores
+  let checked = [];
+  PROJECTS.forEach((p, i) => {
+    if (document.getElementById('pchk' + i).checked) {
+      const bld = parseInt(document.getElementById('pbld' + i).value) || 1;
+      const cost = parseFloat(document.getElementById('pcost' + i).value) || 0;
+      const totalCost = bld * cost;
+      const score = computePriorityScore(p, i);
+      checked.push({ idx: i, proj: p, bld, cost, totalCost, score });
+    }
+  });
+
+  // Sort by score descending
+  checked.sort((a, b) => b.score - a.score);
+
+  // Allocate funds in priority order
+  // Build source pools
+  let pools = {
+    'LTFM': revenueData.ltfmAvail,
+    'H&S': revenueData.hsLevy,
+    'Referendum': revenueData.refBond,
+    'Grant': revenueData.grants
+  };
+
+  let totalSelected = 0, totalCovered = 0, totalGap = 0;
+  let priority = 1;
+
+  // Reset all rows first
+  PROJECTS.forEach((_, i) => {
+    const tr = document.querySelector(`#projBody tr[data-idx="${i}"]`);
+    tr.querySelector('.p-priority').textContent = '—';
+    tr.querySelector('.p-total').textContent = '—';
+    tr.querySelector('.p-covered').textContent = '—';
+    tr.querySelector('.p-gap').textContent = '—';
+    tr.querySelector('.p-bar .proj-bar-fill').style.width = '0%';
+    tr.querySelector('.p-bar .proj-bar-fill').style.background = 'var(--gray)';
+    tr.querySelector('.p-status').innerHTML = '—';
+  });
+
+  checked.forEach(item => {
+    const tr = document.querySelector(`#projBody tr[data-idx="${item.idx}"]`);
+    tr.querySelector('.p-priority').textContent = priority++;
+    tr.querySelector('.p-total').textContent = fmt(item.totalCost);
+
+    // Allocate from eligible sources
+    let remaining = item.totalCost;
+    let covered = 0;
+    item.proj.sources.forEach(src => {
+      if (remaining <= 0) return;
+      const avail = pools[src] || 0;
+      const take = Math.min(avail, remaining);
+      pools[src] = avail - take;
+      covered += take;
+      remaining -= take;
+    });
+
+    const gap = item.totalCost - covered;
+    const pct = item.totalCost > 0 ? (covered / item.totalCost * 100) : 0;
+
+    tr.querySelector('.p-covered').textContent = fmt(covered);
+    tr.querySelector('.p-gap').textContent = gap > 0 ? fmt(gap) : '—';
+
+    const fill = tr.querySelector('.p-bar .proj-bar-fill');
+    fill.style.width = Math.min(100, pct).toFixed(1) + '%';
+
+    let statusColor, statusTitle;
+    if (pct >= 90) { statusColor = 'green'; statusTitle = 'Fully funded (90%+)'; }
+    else if (pct >= 50) { statusColor = 'amber'; statusTitle = 'Partially funded (50-89%)'; }
+    else { statusColor = 'red'; statusTitle = 'Underfunded (below 50%)'; }
+
+    fill.style.background = statusColor === 'green' ? 'var(--success)' : statusColor === 'amber' ? 'var(--warning)' : 'var(--alert)';
+    tr.querySelector('.p-status').innerHTML = `<span class="status-dot ${statusColor}" title="${statusTitle}"></span>`;
+
+    totalSelected += item.totalCost;
+    totalCovered += covered;
+    totalGap += gap;
+
+    // Store for plan generation
+    item.covered = covered;
+    item.gap = gap;
+    item.pct = pct;
+    item.statusColor = statusColor;
+  });
+
+  // Update summary
+  document.getElementById('sumProjects').textContent = checked.length;
+  document.getElementById('sumCost').textContent = fmt(totalSelected);
+  document.getElementById('sumRevenue').textContent = fmt(revenueData.total);
+  document.getElementById('sumGap').textContent = totalGap > 0 ? fmt(totalGap) : '$0';
+
+  const noteEl = document.getElementById('sumNote');
+  if (totalGap > 0) {
+    noteEl.textContent = 'Unfunded gap may be eligible for state capital investment bonding request through the Capital Investment Committee.';
+  } else if (checked.length > 0) {
+    noteEl.textContent = 'All selected projects are fully covered by identified revenue sources.';
+  } else {
+    noteEl.textContent = '';
+  }
+
+  // Store for plan
+  window._lastProjCalc = { checked, totalSelected, totalCovered, totalGap };
+  saveState();
+}
+
+// ===================== MODULE 3: PLAN DOCUMENT =====================
+function generatePlan() {
+  const d = getInputs();
+  if (!revenueData) {
+    if (d.apu > 0) calculateRevenue();
+    else {
+      document.getElementById('planDoc').innerHTML = '<p style="color:var(--amber);font-family:Tahoma,sans-serif;font-size:12px;">Enter district data in Module 1 and select projects in Module 2 first.</p>';
+      return;
+    }
+  }
+  recalcProjects();
+
+  const calc = window._lastProjCalc || { checked: [], totalSelected: 0, totalCovered: 0, totalGap: 0 };
+  const year = new Date().getFullYear();
+
+  let projRows = '';
+  let pri = 1;
+  calc.checked.forEach(item => {
+    projRows += `<tr>
+      <td>${pri++}</td>
+      <td>${item.proj.name}</td>
+      <td style="text-align:center;">${item.bld}</td>
+      <td style="text-align:right;">${fmt(item.totalCost)}</td>
+      <td>${item.proj.sources.join(', ')}</td>
+      <td style="text-align:right;">${fmt(item.covered)}</td>
+      <td style="text-align:right;">${item.gap > 0 ? fmt(item.gap) : '—'}</td>
+    </tr>`;
+  });
+
+  // Build LTFM calculation detail line
+  const ltfmCalcStr = d.apu.toLocaleString() + ' APU &times; $' + d.ltfmRate + '/pupil &times; ' + d.proration + ' proration = ' + fmt(revenueData.ltfmTotal);
+
+  // Determine coverage status text
+  let coverageStatus;
+  if (calc.totalGap > 0) {
+    const gapPct = calc.totalSelected > 0 ? Math.round(calc.totalGap / calc.totalSelected * 100) : 0;
+    coverageStatus = 'A funding gap of ' + fmt(calc.totalGap) + ' (' + gapPct + '% of total project cost) remains and may warrant a capital investment bonding request or phased implementation across fiscal years.';
+  } else if (calc.checked.length > 0) {
+    coverageStatus = 'All selected projects are fully covered by identified revenue sources.';
+  } else {
+    coverageStatus = 'No safety projects have been selected for this plan.';
+  }
+
+  const html = `
+    <h2 contenteditable="true">${d.distName}<br>School Safety Facility Funding Plan — Fiscal Year ${year}</h2>
+
+    <h3>Executive Summary</h3>
+    <p contenteditable="true">${d.distName} serves approximately ${d.apu.toLocaleString()} adjusted pupil units. Under current revenue projections — including Long-Term Facilities Maintenance (LTFM) funding as expanded by SF1318, Health &amp; Safety levy authorization, and any additional capital or grant sources — the district has identified <strong>${fmt(revenueData.total)}</strong> in annual revenue available for school safety facility work.</p>
+    <p contenteditable="true">${calc.checked.length} priority safety project${calc.checked.length !== 1 ? 's have' : ' has'} been identified at a combined estimated cost of <strong>${fmt(calc.totalSelected)}</strong>. ${coverageStatus}</p>
+
+    <h3>Revenue Sources</h3>
+    <p style="font-size:12px;color:#666;" contenteditable="true">LTFM calculation: ${ltfmCalcStr}</p>
+    <table>
+      <thead>
+        <tr><th>Funding Stream</th><th style="text-align:right;">Annual Amount</th><th>Eligible Use Category</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>LTFM — Total annual revenue</td><td style="text-align:right;">${fmt(revenueData.ltfmTotal)}</td><td>All LTFM-eligible facility maintenance</td></tr>
+        <tr><td style="padding-left:20px;color:#888;">Less: committed to non-safety projects</td><td style="text-align:right;color:#888;">(${fmt(revenueData.ltfmCommit)})</td><td style="color:#888;">Existing 10-year plan obligations</td></tr>
+        <tr style="font-weight:600;"><td style="padding-left:20px;">LTFM safety headroom (post-SF1318)</td><td style="text-align:right;">${fmt(revenueData.ltfmAvail)}</td><td>Safety facility enhancements per Minn. Stat. &sect; 123B.595</td></tr>
+        <tr><td>Health &amp; Safety Levy</td><td style="text-align:right;">${fmt(revenueData.hsLevy)}</td><td>H&amp;S eligible categories per Minn. Stat. &sect; 123B.57</td></tr>
+        <tr><td>Capital Referendum Debt Service</td><td style="text-align:right;">${fmt(revenueData.refBond)}</td><td>Board-approved referendum purposes</td></tr>
+        <tr><td>State/Federal Safety Grants</td><td style="text-align:right;">${fmt(revenueData.grants)}</td><td>Per grant terms</td></tr>
+        <tr style="font-weight:700;border-top:2px solid var(--green);"><td>TOTAL AVAILABLE FOR SAFETY WORK</td><td style="text-align:right;">${fmt(revenueData.total)}</td><td></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Project Priority List</h3>
+    <p style="font-size:12px;color:#666;" contenteditable="true">Projects ranked by composite priority score: risk reduction (50%), H&amp;S plan compliance (30%), community visibility (20%). Revenue allocated in priority order from eligible sources until exhausted.</p>
+    <table>
+      <thead>
+        <tr><th>Rank</th><th>Project</th><th>Bldgs</th><th style="text-align:right;">Est. Cost</th><th>Funding Source</th><th style="text-align:right;">Covered</th><th style="text-align:right;">Gap</th></tr>
+      </thead>
+      <tbody>
+        ${projRows || '<tr><td colspan="7" style="color:var(--gray);">No projects selected</td></tr>'}
+        <tr style="font-weight:700;border-top:2px solid var(--green);">
+          <td colspan="3">TOTAL</td>
+          <td style="text-align:right;">${fmt(calc.totalSelected)}</td>
+          <td></td>
+          <td style="text-align:right;">${fmt(calc.totalCovered)}</td>
+          <td style="text-align:right;">${calc.totalGap > 0 ? fmt(calc.totalGap) : '—'}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Statutory References</h3>
+    <p class="legal-ref" contenteditable="true"><strong>LTFM Expansion:</strong> Long-Term Facilities Maintenance revenue eligibility expanded by SF1318 (Sen. Susan Pha, DFL-38, 2025), amending Minn. Stat. &sect; 123B.595. Districts should confirm specific project eligibility with MDE and district counsel before obligating LTFM funds.</p>
+    <p class="legal-ref" contenteditable="true"><strong>H&amp;S Levy:</strong> Health &amp; Safety levy funds (Minn. Stat. &sect; 123B.57) remain a separate revenue stream with distinct eligible use categories. A district may braid H&amp;S and LTFM funds for a single project only where each fund pays for separately eligible line items within that project.</p>
+    <p class="legal-ref" contenteditable="true"><strong>Capital Investment:</strong> Projects exceeding available LTFM and H&amp;S revenue may qualify for a state capital investment bonding request through the Capital Investment Committee. Contact the district's legislative delegation for current bonding bill timelines.</p>
+
+    <h3>Next Steps</h3>
+    <ul class="checklist" contenteditable="true">
+      <li>Update district 10-year LTFM plan to include safety enhancement line items</li>
+      <li>Confirm H&amp;S plan reflects priority projects</li>
+      <li>If capital gap exists, contact legislator's office re: capital investment bonding request</li>
+      <li>Consult district counsel on SF1318 eligibility for specific projects</li>
+      <li>Present funding plan to school board at next capital planning session</li>
+    </ul>
+
+    <p class="legal-ref" style="margin-top:24px;border-top:1px solid #CCC;padding-top:12px;" contenteditable="true">This plan was generated using the School Safety Facility Funding Planner, a resource tool reflecting Minnesota school finance law as of 2025. Figures are estimates based on user-entered data. Not legal or financial advice. Confirm all project eligibility and revenue calculations with your district's finance office, legal counsel, and the Minnesota Department of Education before obligating funds.</p>
+  `;
+
+  document.getElementById('planDoc').innerHTML = html;
+  document.getElementById('planDoc').dataset.generated = '1';
+}
+
+// ===================== EXAMPLE DATA =====================
+function loadExample() {
+  document.getElementById('distName').value = 'Osseo Area Schools — Independent School District 279';
+  document.getElementById('apu').value = 11500;
+  document.getElementById('ltfmRate').value = 380;
+  document.getElementById('avgAge').value = 45;
+  document.getElementById('proration').value = 0.85;
+  document.getElementById('ltfmCommit').value = 2800000;
+  document.getElementById('hsLevy').value = 900000;
+  document.getElementById('refBond').value = 0;
+  document.getElementById('grants').value = 0;
+  document.getElementById('exampleLabel').style.display = 'block';
+
+  calculateRevenue();
+
+  // Pre-select vestibule and access control as "completed — for reference"
+  document.getElementById('pchk0').checked = true;
+  document.getElementById('pbld0').value = 3;
+  document.getElementById('pcost0').value = 300000;
+  document.querySelector('#projBody tr[data-idx="0"]').classList.remove('unchecked');
+
+  document.getElementById('pchk1').checked = true;
+  document.getElementById('pbld1').value = 10;
+  document.getElementById('pcost1').value = 125000;
+  document.querySelector('#projBody tr[data-idx="1"]').classList.remove('unchecked');
+
+  // Select cameras too as a reasonable next project
+  document.getElementById('pchk2').checked = true;
+  document.getElementById('pbld2').value = 10;
+  document.getElementById('pcost2').value = 50000;
+  document.querySelector('#projBody tr[data-idx="2"]').classList.remove('unchecked');
+
+  recalcProjects();
+}
+
+function clearAll() {
+  document.querySelectorAll('#mod1 input').forEach(inp => {
+    if (inp.type === 'number') inp.value = inp.id === 'ltfmRate' ? 380 : '';
+    else inp.value = '';
+  });
+  document.getElementById('revenueOutput').style.display = 'none';
+  document.getElementById('exampleLabel').style.display = 'none';
+  revenueData = null;
+  selectAllProjects(false);
+  PROJECTS.forEach((_, i) => {
+    const mid = Math.round((PROJECTS[i].rangeMin + PROJECTS[i].rangeMax) / 2);
+    document.getElementById('pbld' + i).value = 1;
+    document.getElementById('pcost' + i).value = mid;
+    document.getElementById('pcomp' + i).value = 'yes';
+  });
+  document.getElementById('planDoc').innerHTML = '<p style="color:var(--gray);font-family:Tahoma,sans-serif;font-size:12px;">Complete Modules 1 and 2, then click "Generate Plan Document" to build your printable funding plan.</p>';
+  delete document.getElementById('planDoc').dataset.generated;
+  localStorage.removeItem('pha-safety-planner-v1');
+}
+
+// ===================== LOCAL STORAGE =====================
+function saveState() {
+  try {
+    const state = {
+      inputs: {},
+      checked: []
+    };
+    ['distName','apu','ltfmRate','avgAge','proration','ltfmCommit','hsLevy','refBond','grants'].forEach(id => {
+      state.inputs[id] = document.getElementById(id).value;
+    });
+    PROJECTS.forEach((_, i) => {
+      state.checked.push({
+        on: document.getElementById('pchk' + i).checked,
+        bld: document.getElementById('pbld' + i).value,
+        cost: document.getElementById('pcost' + i).value,
+        comp: document.getElementById('pcomp' + i).value
+      });
+    });
+    localStorage.setItem('pha-safety-planner-v1', JSON.stringify(state));
+  } catch(e) {}
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem('pha-safety-planner-v1');
+    if (!raw) return false;
+    const state = JSON.parse(raw);
+    if (state.inputs) {
+      Object.keys(state.inputs).forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = state.inputs[id];
+      });
+    }
+    if (state.checked) {
+      state.checked.forEach((c, i) => {
+        if (i >= PROJECTS.length) return;
+        document.getElementById('pchk' + i).checked = c.on;
+        document.getElementById('pbld' + i).value = c.bld;
+        document.getElementById('pcost' + i).value = c.cost;
+        if (c.comp) document.getElementById('pcomp' + i).value = c.comp;
+        const tr = document.querySelector(`#projBody tr[data-idx="${i}"]`);
+        if (c.on) tr.classList.remove('unchecked');
+        else tr.classList.add('unchecked');
+      });
+    }
+    // If we have APU data, calculate
+    if (state.inputs && parseFloat(state.inputs.apu) > 0) {
+      calculateRevenue();
+      recalcProjects();
+      return true;
+    }
+    return false;
+  } catch(e) { return false; }
+}
+
+// ===================== INIT =====================
+window.addEventListener('DOMContentLoaded', function() {
+  buildProjectTable();
+  const restored = loadState();
+  if (restored && document.getElementById('exampleLabel')) {
+    // Check if it's example data
+    if (document.getElementById('distName').value.includes('Osseo')) {
+      document.getElementById('exampleLabel').style.display = 'block';
+    }
+  }
+
+  // Resize chart on window resize
+  let resizeTimer;
+  window.addEventListener('resize', function() {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function() {
+      if (revenueData) drawChart(revenueData.ltfmAvail, revenueData.hsLevy, revenueData.refBond, revenueData.grants);
+    }, 200);
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,1591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prior Authorization Patient Appeal Guide &amp; Letter Builder</title>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Asymmetric two-column — narrow 220px resource sidebar on right (dark river-gray) with spacious main column; collapses to stacked accordion on mobile
+   2. Navigation: Numbered step dots connected by a thin line (stepper/wizard pattern), with progressive disclosure — no tabs at all
+   3. Typography: Georgia serif for letter body and pull-quote; 'Arial Narrow', Helvetica Neue, sans-serif condensed for headers and UI; NOT system-ui
+   4. Hero moment: Opening text block at 26px Georgia on a full-bleed warm amber wash, with dramatic 48px+ whitespace — the first thing you see dominates
+   5. Color commitment: River-gray (#6B7A85) as full sidebar background with light text; winter-amber (#C4922A) as full-bleed hero section background; beet-brown horizontal rules as section dividers; alert banners use saturated red/amber backgrounds
+   Additional: Form inputs are fully custom-styled with beet-brown focus rings and amber backgrounds on hover; strength meter uses three palette colors as filled bars; letter preview uses off-white bordered container with Georgia serif to mimic real letterhead
+*/
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --river-gray: #6B7A85;
+  --winter-amber: #C4922A;
+  --beet-brown: #7A4A28;
+  --bg-warm: #F5F1EB;
+  --text-dark: #1C1C1A;
+  --success: #2D6A4F;
+  --warning: #E9A84A;
+  --alert: #B81C1C;
+  --panel-bg: #EDEAE3;
+}
+
+html { font-size: 16px; scroll-behavior: smooth; }
+
+body {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  color: var(--text-dark);
+  background: #fff;
+  line-height: 1.55;
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ---------- MAIN COLUMN ---------- */
+.main-col {
+  flex: 1;
+  min-width: 0;
+  padding-bottom: 60px;
+}
+
+/* ---------- HERO / OPENING ---------- */
+.hero-section {
+  background: linear-gradient(135deg, #f0dbb8 0%, #e8c577 50%, #d4a94e 100%);
+  padding: 56px 48px 48px;
+}
+.hero-section .subtitle {
+  font-size: 13px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--beet-brown);
+  margin-bottom: 12px;
+  font-weight: 700;
+}
+.hero-section h1 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 30px;
+  font-weight: 400;
+  color: var(--text-dark);
+  line-height: 1.3;
+  margin-bottom: 28px;
+  max-width: 640px;
+}
+.hero-section .opening-text {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 18px;
+  line-height: 1.7;
+  color: #2a2a28;
+  max-width: 620px;
+}
+.hero-section .opening-text p { margin-bottom: 16px; }
+.hero-section .opening-text .hook {
+  font-size: 26px;
+  line-height: 1.45;
+  color: var(--text-dark);
+  margin-bottom: 20px;
+  font-style: italic;
+}
+.hero-section .reform-note {
+  font-size: 14px;
+  color: #4a4a46;
+  line-height: 1.6;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(122,74,40,0.3);
+  max-width: 620px;
+}
+
+/* ---------- STEPPER / PROGRESS ---------- */
+.stepper-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px 48px;
+  background: #fff;
+  border-bottom: 2px solid var(--beet-brown);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.step-dot {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 2px solid var(--river-gray);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--river-gray);
+  background: #fff;
+  transition: all 0.3s;
+  flex-shrink: 0;
+}
+.step-dot.active {
+  background: var(--winter-amber);
+  border-color: var(--winter-amber);
+  color: #fff;
+}
+.step-dot.completed {
+  background: var(--success);
+  border-color: var(--success);
+  color: #fff;
+}
+.step-line {
+  width: 80px;
+  height: 2px;
+  background: #ccc;
+  margin: 0 8px;
+  flex-shrink: 0;
+}
+.step-line.filled { background: var(--success); }
+.step-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--river-gray);
+  margin-left: 10px;
+  margin-right: 24px;
+}
+.step-label.active-label { color: var(--winter-amber); font-weight: 700; }
+
+/* ---------- SECTION CONTAINERS ---------- */
+.section-wrap {
+  padding: 40px 48px;
+}
+.section-wrap + .section-wrap {
+  border-top: 3px solid var(--beet-brown);
+}
+.section-wrap h2 {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--beet-brown);
+  margin-bottom: 6px;
+}
+.section-wrap .section-desc {
+  font-size: 15px;
+  color: #5a5a56;
+  margin-bottom: 28px;
+  max-width: 580px;
+}
+.section-hidden { display: none; }
+
+/* ---------- FORM STYLING ---------- */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 28px;
+  max-width: 680px;
+}
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+.form-group.full-width { grid-column: 1 / -1; }
+.form-group label {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--river-gray);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.tooltip-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--river-gray);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: help;
+  position: relative;
+  font-style: normal;
+  line-height: 1;
+}
+.tooltip-trigger .tooltip-text {
+  display: none;
+  position: absolute;
+  bottom: 130%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--text-dark);
+  color: #f0f0ee;
+  font-size: 13px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  padding: 10px 14px;
+  border-radius: 4px;
+  width: 280px;
+  line-height: 1.5;
+  z-index: 200;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+}
+.tooltip-trigger:hover .tooltip-text,
+.tooltip-trigger:focus .tooltip-text {
+  display: block;
+}
+input[type="text"],
+input[type="date"],
+select,
+textarea {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 16px;
+  padding: 12px 14px;
+  border: 2px solid #c5c0b8;
+  border-radius: 3px;
+  background: #faf9f6;
+  color: var(--text-dark);
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  min-height: 48px;
+}
+input[type="text"]:hover,
+input[type="date"]:hover,
+select:hover,
+textarea:hover {
+  background: #fdf6e8;
+}
+input[type="text"]:focus,
+input[type="date"]:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--beet-brown);
+  box-shadow: 0 0 0 3px rgba(122,74,40,0.18);
+  background: #fff;
+}
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B7A85' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+  cursor: pointer;
+}
+.radio-group {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 8px 16px;
+  border: 2px solid #c5c0b8;
+  border-radius: 3px;
+  transition: all 0.2s;
+  font-size: 15px;
+  min-height: 44px;
+}
+.radio-option:hover {
+  border-color: var(--winter-amber);
+  background: #fdf6e8;
+}
+.radio-option input[type="radio"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--beet-brown);
+  cursor: pointer;
+}
+.radio-option.selected {
+  border-color: var(--beet-brown);
+  background: rgba(196,146,42,0.1);
+}
+
+.btn-primary {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #fff;
+  background: var(--beet-brown);
+  border: none;
+  padding: 14px 36px;
+  border-radius: 3px;
+  cursor: pointer;
+  min-height: 48px;
+  transition: background 0.2s, transform 0.1s;
+  margin-top: 8px;
+}
+.btn-primary:hover { background: #5e3820; }
+.btn-primary:active { transform: scale(0.98); }
+.btn-primary:disabled {
+  background: #b0a89e;
+  cursor: not-allowed;
+}
+.btn-secondary {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--beet-brown);
+  background: transparent;
+  border: 2px solid var(--beet-brown);
+  padding: 10px 24px;
+  border-radius: 3px;
+  cursor: pointer;
+  min-height: 44px;
+  transition: all 0.2s;
+}
+.btn-secondary:hover {
+  background: var(--beet-brown);
+  color: #fff;
+}
+
+/* ---------- AUTOCOMPLETE ---------- */
+.autocomplete-wrap { position: relative; }
+.autocomplete-list {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 2px solid var(--beet-brown);
+  border-top: none;
+  border-radius: 0 0 3px 3px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 150;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+}
+.autocomplete-list.open { display: block; }
+.autocomplete-item {
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: 15px;
+  border-bottom: 1px solid #eee;
+}
+.autocomplete-item:hover,
+.autocomplete-item.highlighted { background: #fdf6e8; }
+
+/* ---------- COUNTY FIELD / NETWORK GAP ---------- */
+.network-alert {
+  background: rgba(233,168,74,0.15);
+  border: 1px solid var(--warning);
+  padding: 12px 16px;
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: #5a3e10;
+  display: none;
+}
+.network-alert.visible { display: block; }
+
+/* ---------- SECTION 2: DECISION TREE ---------- */
+.urgency-banner {
+  padding: 14px 20px;
+  font-size: 15px;
+  font-weight: 700;
+  display: none;
+  margin-bottom: 20px;
+  border-radius: 3px;
+}
+.urgency-banner.act-soon {
+  background: var(--warning);
+  color: #3d2800;
+  display: block;
+}
+.urgency-banner.deadline-risk {
+  background: var(--alert);
+  color: #fff;
+  display: block;
+}
+.urgency-banner .banner-icon {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 20px;
+  font-size: 13px;
+  font-weight: 900;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+.act-soon .banner-icon {
+  background: #3d2800;
+  color: var(--warning);
+}
+.deadline-risk .banner-icon {
+  background: #fff;
+  color: var(--alert);
+}
+
+/* Strength Meter */
+.strength-meter {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 20px 0 28px;
+  padding: 20px 24px;
+  background: var(--panel-bg);
+}
+.meter-bars {
+  display: flex;
+  gap: 6px;
+}
+.meter-bar {
+  width: 48px;
+  height: 14px;
+  border-radius: 2px;
+  background: #d0ccc4;
+  transition: background 0.3s;
+}
+.meter-bar.filled-1 { background: var(--river-gray); }
+.meter-bar.filled-2 { background: var(--winter-amber); }
+.meter-bar.filled-3 { background: var(--success); }
+.strength-label {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+.strength-label.fair { color: var(--river-gray); }
+.strength-label.good { color: var(--winter-amber); }
+.strength-label.strong { color: var(--success); }
+.strength-note {
+  font-size: 14px;
+  color: #5a5a56;
+  margin-top: -16px;
+  margin-bottom: 24px;
+  font-style: italic;
+}
+
+/* Deadline display */
+.deadline-block {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  margin-bottom: 24px;
+  font-weight: 700;
+  font-size: 15px;
+}
+.deadline-block.green { background: rgba(45,106,79,0.1); color: var(--success); border: 1px solid var(--success); }
+.deadline-block.amber { background: rgba(233,168,74,0.15); color: #7a5200; border: 1px solid var(--warning); }
+.deadline-block.red { background: rgba(184,28,28,0.1); color: var(--alert); border: 1px solid var(--alert); }
+.deadline-days {
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+/* Plan type notice */
+.plan-notice {
+  background: rgba(107,122,133,0.08);
+  padding: 14px 18px;
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  border-left: none;
+  border-top: 3px solid var(--river-gray);
+  color: #3a3a38;
+}
+
+/* Category flags */
+.category-flag {
+  background: rgba(196,146,42,0.1);
+  padding: 12px 16px;
+  font-size: 14px;
+  line-height: 1.55;
+  margin-bottom: 12px;
+  border-top: 2px solid var(--winter-amber);
+}
+.category-flag .flag-title {
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--beet-brown);
+  margin-bottom: 4px;
+}
+
+/* Action steps */
+.action-steps {
+  counter-reset: action-step;
+  margin-top: 24px;
+}
+.action-step {
+  counter-increment: action-step;
+  display: flex;
+  gap: 16px;
+  padding: 18px 0;
+  border-bottom: 1px solid #ddd;
+  align-items: flex-start;
+}
+.action-step:last-child { border-bottom: none; }
+.step-num {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--beet-brown);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 15px;
+}
+.step-content { flex: 1; }
+.step-content strong {
+  display: block;
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+.step-content p {
+  font-size: 14px;
+  color: #5a5a56;
+  line-height: 1.5;
+}
+.step-deadline-tag {
+  display: inline-block;
+  background: var(--winter-amber);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 2px;
+  margin-top: 6px;
+}
+
+/* ---------- SECTION 3: LETTER ---------- */
+.letter-container {
+  max-width: 680px;
+  background: #fcfaf5;
+  border: 2px solid #c5c0b8;
+  padding: 48px 52px;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 15px;
+  line-height: 1.7;
+  color: #1c1c1a;
+  position: relative;
+}
+.letter-container p { margin-bottom: 16px; }
+.letter-container .letter-date {
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+.letter-container .letter-address {
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+.letter-container .letter-subject {
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+.letter-container .letter-closing {
+  margin-top: 32px;
+}
+.letter-container .letter-sig {
+  margin-top: 40px;
+  border-top: 1px solid #999;
+  padding-top: 4px;
+  width: 240px;
+  font-size: 14px;
+}
+.editable-placeholder {
+  background: rgba(233,168,74,0.18);
+  border: 1px dashed var(--winter-amber);
+  padding: 6px 10px;
+  font-style: italic;
+  color: var(--beet-brown);
+  cursor: text;
+  display: inline-block;
+  min-width: 200px;
+  transition: background 0.2s;
+}
+.editable-placeholder:focus {
+  background: #fff;
+  border-color: var(--beet-brown);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(122,74,40,0.15);
+  font-style: normal;
+  color: var(--text-dark);
+}
+.editable-placeholder.edited {
+  background: transparent;
+  border: 1px solid #c5c0b8;
+  font-style: normal;
+  color: var(--text-dark);
+}
+.enclosures-checklist {
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid #c5c0b8;
+  font-size: 14px;
+}
+.enclosures-checklist h4 {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+}
+.enclosures-checklist label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  cursor: pointer;
+}
+.enclosures-checklist input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--beet-brown);
+  cursor: pointer;
+}
+.letter-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+/* ---------- RIGHT SIDEBAR ---------- */
+.sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  background: var(--river-gray);
+  color: #e8e6e1;
+  padding: 32px 20px;
+  font-size: 13px;
+  line-height: 1.6;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+.sidebar h3 {
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--winter-amber);
+  margin-bottom: 14px;
+  margin-top: 28px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+}
+.sidebar h3:first-child { margin-top: 0; }
+.sidebar .law-item {
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.sidebar .law-cite {
+  font-weight: 700;
+  color: #fff;
+  font-size: 13px;
+  display: block;
+  margin-bottom: 2px;
+}
+.sidebar .law-desc {
+  font-size: 12px;
+  color: #c5c0b8;
+  line-height: 1.5;
+}
+.sidebar .contact-item {
+  margin-bottom: 14px;
+}
+.sidebar .contact-name {
+  font-weight: 700;
+  color: #fff;
+  font-size: 13px;
+}
+.sidebar .contact-detail {
+  font-size: 12px;
+  color: #c5c0b8;
+}
+.sidebar a {
+  color: var(--winter-amber);
+  text-decoration: underline;
+}
+.sidebar a:hover { color: #e8c060; }
+
+/* ---------- FOOTER ---------- */
+.footer {
+  padding: 28px 48px;
+  font-size: 13px;
+  color: #7a7a76;
+  line-height: 1.6;
+  border-top: 2px solid var(--beet-brown);
+  background: var(--panel-bg);
+}
+
+/* ---------- MOBILE SIDEBAR ACCORDION ---------- */
+.sidebar-mobile {
+  display: none;
+  background: var(--river-gray);
+  color: #e8e6e1;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.sidebar-mobile-toggle {
+  display: none;
+  width: 100%;
+  background: var(--river-gray);
+  color: #fff;
+  border: none;
+  padding: 16px 48px;
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-align: left;
+}
+.sidebar-mobile-toggle:hover { background: #5c6b76; }
+.sidebar-mobile-toggle::after {
+  content: " +";
+  float: right;
+}
+.sidebar-mobile-toggle.open::after { content: " \2013"; }
+.sidebar-mobile .sidebar-content {
+  display: none;
+  padding: 20px 48px 28px;
+}
+.sidebar-mobile .sidebar-content.open { display: block; }
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 860px) {
+  body { flex-direction: column; }
+  .sidebar { display: none; }
+  .sidebar-mobile { display: block; }
+  .sidebar-mobile-toggle { display: block; }
+  .hero-section { padding: 36px 24px 32px; }
+  .hero-section h1 { font-size: 24px; }
+  .hero-section .opening-text .hook { font-size: 20px; }
+  .section-wrap { padding: 28px 24px; }
+  .stepper-bar { padding: 16px 20px; }
+  .step-line { width: 32px; }
+  .step-label { display: none; }
+  .form-grid { grid-template-columns: 1fr; gap: 16px; }
+  .letter-container { padding: 28px 24px; }
+  .footer { padding: 24px; }
+}
+
+/* ---------- PRINT ---------- */
+@media print {
+  body { display: block; background: #fff; }
+  .hero-section, .stepper-bar, .sidebar, .sidebar-mobile,
+  .sidebar-mobile-toggle, .footer, #section1, #section2,
+  .letter-actions, .btn-primary, .btn-secondary { display: none !important; }
+  #section3 { display: block !important; padding: 0; border: none; }
+  #section3 h2, #section3 .section-desc { display: none; }
+  .letter-container {
+    border: none;
+    padding: 0;
+    max-width: 100%;
+    font-size: 12pt;
+    box-shadow: none;
+    background: #fff;
+  }
+  .editable-placeholder {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #000;
+    font-style: normal;
+    color: #000;
+    padding: 0;
+  }
+  .editable-placeholder.placeholder-unedited {
+    color: transparent;
+    border-bottom: 1px solid #000;
+    min-width: 300px;
+    display: inline-block;
+  }
+  .enclosures-checklist { page-break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== MAIN COLUMN ==================== -->
+<div class="main-col">
+
+  <!-- HERO -->
+  <div class="hero-section">
+    <div class="subtitle">Prior Authorization Appeal Guide</div>
+    <h1>"Don't Accept the First Denial"</h1>
+    <div class="opening-text">
+      <p class="hook">When a health insurance company denies a treatment your doctor has ordered, that isn't necessarily the end.</p>
+      <p>Minnesota law gives you the right to appeal &mdash; and a well-prepared appeal succeeds more often than most people expect.</p>
+      <p>This tool walks you through the process step by step: understanding what happened, knowing your deadlines, and writing a clear appeal letter.</p>
+      <p><strong>It takes about 10 minutes. You don't need a lawyer.</strong></p>
+    </div>
+    <div class="reform-note">
+      In December 2025, the National Council of Insurance Legislators &mdash; the national organization of state insurance lawmakers &mdash; adopted a Prior Authorization Reform Model Act designed to speed up insurer decisions, require transparency about denial criteria, and protect patients' relationships with their doctors. Minnesota's own reform law took effect in 2026. This tool reflects the rights you have under current Minnesota law and federal rules.
+    </div>
+  </div>
+
+  <!-- STEPPER -->
+  <div class="stepper-bar">
+    <div class="step-dot active" id="dot1">1</div>
+    <span class="step-label active-label">What Happened</span>
+    <div class="step-line" id="line1"></div>
+    <div class="step-dot" id="dot2">2</div>
+    <span class="step-label">Your Options</span>
+    <div class="step-line" id="line2"></div>
+    <div class="step-dot" id="dot3">3</div>
+    <span class="step-label">Appeal Letter</span>
+  </div>
+
+  <!-- ===== SECTION 1: INTAKE ===== -->
+  <div class="section-wrap" id="section1">
+    <h2>Section 1: What Happened?</h2>
+    <p class="section-desc">Tell us the basics about your denial. Every field has a help icon you can hover for more information.</p>
+
+    <div class="form-grid">
+      <!-- Patient Name -->
+      <div class="form-group">
+        <label for="firstName">First Name
+          <span class="tooltip-trigger" tabindex="0">?<span class="tooltip-text">Your first name as it appears on your insurance card. This will be used to personalize your appeal letter.</span></span>
+        </label>
+        <input type="text" id="firstName" placeholder="e.g., Margaret" autocomplete="given-name">
+      </div>
+      <div class="form-group">
+        <label for="lastName">Last Name
+          <span class="tooltip-trigger" tabindex="0">?<span class="tooltip-text">Your last name as it appears on your insurance card.</span></span>
+        </label>
+        <input type="text" id="lastName" placeholder="e.g., Johnson" autocomplete="family-name">
+      </div>
+
+      <!-- Plan Type -->
+      <div class="form-group full-width">
+        <label for="planType">Insurance Plan Type
+          <span class="tooltip-trigger" tabindex="0">?<span class="tooltip-text">The type of plan determines which appeal rules apply. If you're unsure, check your insurance card or call the number on the back.</span></span>
+        </label>
+        <select id="planType">
+          <option value="">-- Select your plan type --</option>
+          <option value="mnsure">MNsure / Marketplace plan</option>
+          <option value="medicare_advantage">Medicare Advantage</option>
+          <option value="medicaid">Medicaid / Medical Assistance (MA)</option>
+          <option value="employer_large">Employer-sponsored plan (large employer, 50+ employees)</option>
+          <option value="employer_small">Employer-sponsored plan (small employer, &lt;50 employees)</option>
+          <option value="individual">Individual plan purchased directly from insurer</option>
+        </select>
+      </div>
+
+      <!-- Insurer -->
+      <div class="form-group full-width">
+        <label for="insurerName">Insurer Name
+          <span class="tooltip-trigger" tabindex="0">?<span class="tooltip-text">The insurance company that denied your claim. Start typing and select from the list, or type your own.</span></span>
+        </label>
+        <div class="autocomplete-wrap">
+          <input type="text" id="insurerName" placeholder="Start typing (e.g., Blue Cross...)" autocomplete="off">
+          <div class="autocomplete-list" id="insurerList"></div>
+        </div>
+      </div>
+
+      <!-- What was denied -->
+      <div class="form-group full-width">
+        <label for="denialCategory">What Was Denied?
+          <span class="tooltip-trigger" tabindex="0">?<span class="tooltip-text">Select the category that best describes the treatment, service, or item that was denied.</span></span>
+        </label>
+        <select id="denialCategory">
+          <option value="">-- Select category --</option>
+          <option value="prescription">Prescription medication</option>
+          <option value="specialist">Specialist visit / referral</option>
+          <option value="imaging">Diagnostic imaging (MRI, CT scan, PET)</option>
+          <option value="surgery">Surgery or procedure</option>
+          <option value="dme">Durable medical equipment (wheelchair, CPAP, etc.)</option>
+          <option value="therapy">Physical / occupational / speech therapy</option>
+          <option value="mental_health">Mental health or substance use treatment</option>
+          <option value="home_health">Home health or skilled nursing facility</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+
+      <!-- Other description -->
+      <div class="form-group full-width section-hidden" id="otherDescGroup">
+        <label for="otherDesc">Please Describe</label>
+        <input type="text" id="otherDesc" placeholder="Briefly describe the denied service">
+      </div>
+
+      <!-- Date of denial -->
+      <div class="form-group">
+        <label for="denialDate">Date of Denial
+          <span class="tooltip-trigger" tabindex="0">?<span class="tooltip-text">The date on your denial letter or notification. This is used to calculate your appeal deadlines.</span></span>
+        </label>
+        <input type="date" id="denialDate">
+      </div>
+
+      <!-- County (optional) -->
+      <div class="form-group">
+        <label for="county">County (optional)
+          <span class="tooltip-trigger" tabindex="0">?<span class="tooltip-text">Your county of residence. Helps identify if you may be in an area with network adequacy issues.</span></span>
+        </label>
+        <select id="county">
+          <option value="">-- Select county --</option>
+          <option value="becker">Becker</option>
+          <option value="beltrami">Beltrami</option>
+          <option value="clearwater">Clearwater</option>
+          <option value="hubbard">Hubbard</option>
+          <option value="lake_of_the_woods">Lake of the Woods</option>
+          <option value="mahnomen">Mahnomen</option>
+          <option value="todd">Todd</option>
+          <option value="wadena">Wadena</option>
+          <option value="other_county">Other county</option>
+        </select>
+        <div class="network-alert" id="networkAlert">
+          In many northwestern Minnesota counties, major hospital systems like Essentia Health are listed as out-of-network under several common plans. This means your local hospital may already be "out-of-network" before a prior authorization question even arises. If this applies to you, you may have a separate claim for a network adequacy exception.
+        </div>
+      </div>
+
+      <!-- Written denial? -->
+      <div class="form-group full-width">
+        <label>Did You Receive a Written Denial Notice?
+          <span class="tooltip-trigger" tabindex="0">?<span class="tooltip-text">A written denial letter strengthens your appeal because it documents exactly what was denied and the reason. If you haven't received one, you can request it.</span></span>
+        </label>
+        <div class="radio-group">
+          <label class="radio-option"><input type="radio" name="writtenDenial" value="yes"> Yes</label>
+          <label class="radio-option"><input type="radio" name="writtenDenial" value="no"> No</label>
+          <label class="radio-option"><input type="radio" name="writtenDenial" value="not_yet"> Not yet</label>
+        </div>
+      </div>
+
+      <!-- Doctor says necessary? -->
+      <div class="form-group full-width">
+        <label>Has Your Doctor Said This Treatment Is Medically Necessary?
+          <span class="tooltip-trigger" tabindex="0">?<span class="tooltip-text">Your doctor's written statement that the treatment is medically necessary is the most important piece of your appeal.</span></span>
+        </label>
+        <div class="radio-group">
+          <label class="radio-option"><input type="radio" name="doctorNecessity" value="yes"> Yes</label>
+          <label class="radio-option"><input type="radio" name="doctorNecessity" value="no"> No</label>
+          <label class="radio-option"><input type="radio" name="doctorNecessity" value="unsure"> Unsure</label>
+        </div>
+      </div>
+
+      <!-- Alternative suggested? -->
+      <div class="form-group full-width">
+        <label>Has the Insurer Suggested an Alternative Treatment Instead?
+          <span class="tooltip-trigger" tabindex="0">?<span class="tooltip-text">If the insurer denied your request but suggested a different treatment, that changes your appeal strategy. A denial without any alternative strengthens your case.</span></span>
+        </label>
+        <div class="radio-group">
+          <label class="radio-option"><input type="radio" name="altSuggested" value="yes"> Yes</label>
+          <label class="radio-option"><input type="radio" name="altSuggested" value="no"> No</label>
+        </div>
+      </div>
+
+    </div><!-- /form-grid -->
+
+    <div style="margin-top: 28px;">
+      <button class="btn-primary" id="submitIntake">Review My Options</button>
+    </div>
+  </div>
+
+  <!-- ===== SECTION 2: DECISION TREE ===== -->
+  <div class="section-wrap section-hidden" id="section2">
+    <h2>Section 2: What Are Your Options?</h2>
+    <p class="section-desc">Based on what you told us, here is your personalized action plan.</p>
+
+    <!-- Urgency banner -->
+    <div class="urgency-banner" id="urgencyBanner">
+      <span class="banner-icon">!</span>
+      <span id="urgencyText"></span>
+    </div>
+
+    <!-- Deadline block -->
+    <div class="deadline-block" id="deadlineBlock">
+      <span class="deadline-days" id="deadlineDays">--</span>
+      <span id="deadlineLabel">days remaining to file your internal appeal</span>
+    </div>
+
+    <!-- Plan type notice -->
+    <div class="plan-notice section-hidden" id="planNotice"></div>
+
+    <!-- Strength meter -->
+    <div class="strength-meter">
+      <div class="meter-bars">
+        <div class="meter-bar" id="bar1"></div>
+        <div class="meter-bar" id="bar2"></div>
+        <div class="meter-bar" id="bar3"></div>
+      </div>
+      <span class="strength-label" id="strengthLabel">--</span>
+      <span style="font-size:14px;color:#5a5a56;">Appeal Strength</span>
+    </div>
+    <div class="strength-note section-hidden" id="strengthNote"></div>
+
+    <!-- Category flags -->
+    <div id="categoryFlags"></div>
+
+    <!-- Action steps -->
+    <div class="action-steps" id="actionSteps"></div>
+
+    <div style="margin-top: 32px; display: flex; gap: 12px; flex-wrap: wrap;">
+      <button class="btn-primary" id="goToLetter">Generate My Appeal Letter</button>
+      <button class="btn-secondary" id="backToIntake">Edit My Answers</button>
+    </div>
+  </div>
+
+  <!-- ===== SECTION 3: LETTER ===== -->
+  <div class="section-wrap section-hidden" id="section3">
+    <h2>Section 3: Your Appeal Letter</h2>
+    <p class="section-desc">Review the letter below. Click any highlighted area to edit it with your specific details. When ready, print or save as PDF.</p>
+
+    <div class="letter-container" id="letterContainer"></div>
+
+    <div class="letter-actions">
+      <button class="btn-primary" id="printLetter">Print This Letter</button>
+      <button class="btn-secondary" id="backToTree">Back to Options</button>
+    </div>
+  </div>
+
+  <!-- MOBILE SIDEBAR -->
+  <button class="sidebar-mobile-toggle" id="sidebarToggle">Know Your Rights &amp; Resources</button>
+  <div class="sidebar-mobile" id="sidebarMobile">
+    <div class="sidebar-content" id="sidebarMobileContent">
+      <!-- Filled by JS -->
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    Built for rural Minnesotans navigating health coverage. Reflects Minnesota law as of 2026. This tool provides general information only and is not legal advice. For complex situations, contact Mid-Minnesota Legal Aid: mmla.org
+  </div>
+
+</div><!-- /main-col -->
+
+<!-- ==================== RIGHT SIDEBAR ==================== -->
+<div class="sidebar" id="sidebarDesktop">
+  <h3>Know Your Rights in Minnesota</h3>
+
+  <div class="law-item">
+    <span class="law-cite">Minn. Stat. 62M.05</span>
+    <span class="law-desc">Utilization Review: insurers must disclose the clinical criteria used in any adverse determination, within 5 business days of request.</span>
+  </div>
+  <div class="law-item">
+    <span class="law-cite">Minn. Stat. 62Q.68</span>
+    <span class="law-desc">Grievance Procedures: internal appeal decision must be made within 30 days (or 72 hours if urgent).</span>
+  </div>
+  <div class="law-item">
+    <span class="law-cite">Minn. Stat. 62Q.73</span>
+    <span class="law-desc">External Review: patient may request IRO review within 4 months of final internal adverse determination; the IRO decision is binding on the insurer.</span>
+  </div>
+  <div class="law-item">
+    <span class="law-cite">Federal MHPAEA</span>
+    <span class="law-desc">Mental health / substance use PA criteria must be no more restrictive than medical/surgical criteria for the same plan.</span>
+  </div>
+  <div class="law-item">
+    <span class="law-cite">No Surprises Act (2022)</span>
+    <span class="law-desc">For out-of-network emergency care, certain balance billing protections apply separately from PA rules.</span>
+  </div>
+
+  <h3>Who Can Help You</h3>
+
+  <div class="contact-item">
+    <div class="contact-name">MN Dept. of Commerce, Insurance Division</div>
+    <div class="contact-detail"><a href="https://mn.gov/commerce" target="_blank">mn.gov/commerce</a></div>
+    <div class="contact-detail">651-539-1500 / 800-657-3602</div>
+  </div>
+  <div class="contact-item">
+    <div class="contact-name">Mid-Minnesota Legal Aid</div>
+    <div class="contact-detail"><a href="https://mmla.org" target="_blank">mmla.org</a></div>
+    <div class="contact-detail">Free civil legal help for low-income rural Minnesotans, including health insurance disputes.</div>
+  </div>
+  <div class="contact-item">
+    <div class="contact-name">MNsure Navigators</div>
+    <div class="contact-detail">Find local help at <a href="https://mnsure.org/gethelp" target="_blank">mnsure.org/gethelp</a></div>
+  </div>
+  <div class="contact-item">
+    <div class="contact-name">Hospital Patient Advocates</div>
+    <div class="contact-detail">Major health systems (Essentia, St. Mary's/Sanford) have patient advocates who can assist with PA disputes. Ask your hospital's billing department.</div>
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // ===== INSURER AUTOCOMPLETE DATA =====
+  var INSURERS = [
+    'Blue Cross Blue Shield MN', 'Medica', 'HealthPartners', 'UCare',
+    'Sanford Health', 'Aetna', 'Cigna', 'UnitedHealthcare', 'PreferredOne'
+  ];
+
+  // ===== NETWORK GAP COUNTIES =====
+  var NETWORK_GAP_COUNTIES = ['becker','clearwater','hubbard','mahnomen','todd','wadena'];
+
+  // ===== DOM REFERENCES =====
+  var $ = function(id) { return document.getElementById(id); };
+
+  var firstNameEl = $('firstName');
+  var lastNameEl = $('lastName');
+  var planTypeEl = $('planType');
+  var insurerNameEl = $('insurerName');
+  var insurerListEl = $('insurerList');
+  var denialCategoryEl = $('denialCategory');
+  var otherDescGroup = $('otherDescGroup');
+  var otherDescEl = $('otherDesc');
+  var denialDateEl = $('denialDate');
+  var countyEl = $('county');
+  var networkAlertEl = $('networkAlert');
+
+  // ===== AUTOCOMPLETE =====
+  insurerNameEl.addEventListener('input', function() {
+    var val = this.value.toLowerCase();
+    if (val.length < 1) { insurerListEl.classList.remove('open'); return; }
+    var matches = INSURERS.filter(function(n) { return n.toLowerCase().indexOf(val) !== -1; });
+    if (matches.length === 0) { insurerListEl.classList.remove('open'); return; }
+    insurerListEl.innerHTML = matches.map(function(m) {
+      return '<div class="autocomplete-item">' + m + '</div>';
+    }).join('');
+    insurerListEl.classList.add('open');
+  });
+  insurerListEl.addEventListener('click', function(e) {
+    if (e.target.classList.contains('autocomplete-item')) {
+      insurerNameEl.value = e.target.textContent;
+      insurerListEl.classList.remove('open');
+      saveToStorage();
+    }
+  });
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.autocomplete-wrap')) insurerListEl.classList.remove('open');
+  });
+
+  // ===== COUNTY NETWORK GAP =====
+  countyEl.addEventListener('change', function() {
+    if (NETWORK_GAP_COUNTIES.indexOf(this.value) !== -1) {
+      networkAlertEl.classList.add('visible');
+    } else {
+      networkAlertEl.classList.remove('visible');
+    }
+    saveToStorage();
+  });
+
+  // ===== OTHER DENIAL CATEGORY =====
+  denialCategoryEl.addEventListener('change', function() {
+    if (this.value === 'other') {
+      otherDescGroup.classList.remove('section-hidden');
+    } else {
+      otherDescGroup.classList.add('section-hidden');
+    }
+    saveToStorage();
+  });
+
+  // ===== RADIO BUTTON STYLING =====
+  document.querySelectorAll('.radio-option input[type="radio"]').forEach(function(radio) {
+    radio.addEventListener('change', function() {
+      var group = this.closest('.radio-group');
+      group.querySelectorAll('.radio-option').forEach(function(opt) {
+        opt.classList.remove('selected');
+      });
+      this.closest('.radio-option').classList.add('selected');
+      saveToStorage();
+    });
+  });
+
+  // ===== SAVE / LOAD LOCAL STORAGE =====
+  function getIntakeData() {
+    return {
+      firstName: firstNameEl.value.trim(),
+      lastName: lastNameEl.value.trim(),
+      planType: planTypeEl.value,
+      insurerName: insurerNameEl.value.trim(),
+      denialCategory: denialCategoryEl.value,
+      otherDesc: otherDescEl.value.trim(),
+      denialDate: denialDateEl.value,
+      county: countyEl.value,
+      writtenDenial: getRadio('writtenDenial'),
+      doctorNecessity: getRadio('doctorNecessity'),
+      altSuggested: getRadio('altSuggested')
+    };
+  }
+
+  function getRadio(name) {
+    var el = document.querySelector('input[name="' + name + '"]:checked');
+    return el ? el.value : '';
+  }
+
+  function setRadio(name, value) {
+    if (!value) return;
+    var el = document.querySelector('input[name="' + name + '"][value="' + value + '"]');
+    if (el) {
+      el.checked = true;
+      el.closest('.radio-option').classList.add('selected');
+    }
+  }
+
+  function saveToStorage() {
+    try { localStorage.setItem('utke_pa_intake', JSON.stringify(getIntakeData())); } catch(e) {}
+  }
+
+  function loadFromStorage() {
+    try {
+      var saved = localStorage.getItem('utke_pa_intake');
+      if (!saved) return;
+      var d = JSON.parse(saved);
+      firstNameEl.value = d.firstName || '';
+      lastNameEl.value = d.lastName || '';
+      planTypeEl.value = d.planType || '';
+      insurerNameEl.value = d.insurerName || '';
+      denialCategoryEl.value = d.denialCategory || '';
+      otherDescEl.value = d.otherDesc || '';
+      denialDateEl.value = d.denialDate || '';
+      countyEl.value = d.county || '';
+      setRadio('writtenDenial', d.writtenDenial);
+      setRadio('doctorNecessity', d.doctorNecessity);
+      setRadio('altSuggested', d.altSuggested);
+      // trigger conditionals
+      if (d.denialCategory === 'other') otherDescGroup.classList.remove('section-hidden');
+      if (NETWORK_GAP_COUNTIES.indexOf(d.county) !== -1) networkAlertEl.classList.add('visible');
+    } catch(e) {}
+  }
+
+  // Auto-save on all inputs
+  document.querySelectorAll('#section1 input, #section1 select').forEach(function(el) {
+    el.addEventListener('change', saveToStorage);
+    el.addEventListener('input', saveToStorage);
+  });
+
+  // ===== SECTION NAVIGATION =====
+  function showSection(num) {
+    $('section1').classList.toggle('section-hidden', num !== 1);
+    $('section2').classList.toggle('section-hidden', num !== 2);
+    $('section3').classList.toggle('section-hidden', num !== 3);
+
+    // Update stepper dots
+    for (var i = 1; i <= 3; i++) {
+      var dot = $('dot' + i);
+      var labels = document.querySelectorAll('.step-label');
+      dot.classList.remove('active', 'completed');
+      if (labels[i-1]) { labels[i-1].classList.remove('active-label'); }
+      if (i < num) { dot.classList.add('completed'); }
+      else if (i === num) {
+        dot.classList.add('active');
+        if (labels[i-1]) labels[i-1].classList.add('active-label');
+      }
+    }
+    $('line1').classList.toggle('filled', num >= 2);
+    $('line2').classList.toggle('filled', num >= 3);
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ===== CATEGORY LABELS =====
+  var CATEGORY_LABELS = {
+    prescription: 'Prescription medication',
+    specialist: 'Specialist visit / referral',
+    imaging: 'Diagnostic imaging (MRI, CT scan, PET)',
+    surgery: 'Surgery or procedure',
+    dme: 'Durable medical equipment',
+    therapy: 'Physical / occupational / speech therapy',
+    mental_health: 'Mental health or substance use treatment',
+    home_health: 'Home health or skilled nursing facility',
+    other: 'Other'
+  };
+
+  // ===== BUILD SECTION 2 =====
+  function buildDecisionTree(data) {
+    // -- Deadline calculation --
+    var daysElapsed = 0;
+    var deadlineDate = '';
+    var hasDate = !!data.denialDate;
+    if (hasDate) {
+      var denial = new Date(data.denialDate + 'T00:00:00');
+      daysElapsed = Math.floor((Date.now() - denial.getTime()) / 86400000);
+      var deadlineDateObj = new Date(denial.getTime() + 30 * 86400000);
+      deadlineDate = deadlineDateObj.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    }
+    var daysRemaining = Math.max(0, 30 - daysElapsed);
+
+    // Urgency banner
+    var banner = $('urgencyBanner');
+    banner.classList.remove('act-soon', 'deadline-risk');
+    banner.style.display = 'none';
+    if (hasDate && daysElapsed > 25) {
+      banner.classList.add('deadline-risk');
+      banner.style.display = 'block';
+      $('urgencyText').textContent = 'DEADLINE RISK -- You have ' + daysRemaining + ' days or fewer remaining to file your standard internal appeal. Act immediately.';
+    } else if (hasDate && daysElapsed > 20) {
+      banner.classList.add('act-soon');
+      banner.style.display = 'block';
+      $('urgencyText').textContent = 'ACT SOON -- Your 30-day appeal window is closing. ' + daysRemaining + ' days remaining.';
+    }
+
+    // Deadline block
+    var db = $('deadlineBlock');
+    db.className = 'deadline-block';
+    if (hasDate) {
+      $('deadlineDays').textContent = daysRemaining;
+      $('deadlineLabel').textContent = 'days remaining to file your internal appeal (deadline: ' + deadlineDate + ')';
+      if (daysRemaining > 15) db.classList.add('green');
+      else if (daysRemaining > 5) db.classList.add('amber');
+      else db.classList.add('red');
+    } else {
+      $('deadlineDays').textContent = '??';
+      $('deadlineLabel').textContent = 'Enter your denial date to calculate your deadline';
+      db.classList.add('amber');
+    }
+
+    // Plan type notice
+    var planNotice = $('planNotice');
+    planNotice.classList.add('section-hidden');
+    planNotice.textContent = '';
+    var isMedicare = data.planType === 'medicare_advantage';
+    var isMedicaid = data.planType === 'medicaid';
+
+    if (isMedicare) {
+      planNotice.classList.remove('section-hidden');
+      planNotice.innerHTML = '<strong>Medicare Advantage Plans:</strong> Medicare Advantage plans follow federal appeal rules through the Medicare Appeals process. This tool covers the internal appeal step, but your external review goes through the Medicare system, not the Minnesota Department of Commerce.';
+    } else if (isMedicaid) {
+      planNotice.classList.remove('section-hidden');
+      planNotice.innerHTML = '<strong>Medicaid / Medical Assistance:</strong> Your plan follows the Minnesota DHS Grievance and Appeal process. If your internal appeal is denied, contact <strong>Mid-Minnesota Legal Aid</strong> (mmla.org) or a <strong>Minnesota Health Care Navigator</strong> for help with the next steps.';
+    }
+
+    // Strength meter
+    var score = 0;
+    if (data.writtenDenial === 'yes') score++;
+    if (data.doctorNecessity === 'yes') score++;
+    if (data.altSuggested === 'no') score++;
+
+    var bar1 = $('bar1'), bar2 = $('bar2'), bar3 = $('bar3');
+    bar1.className = 'meter-bar';
+    bar2.className = 'meter-bar';
+    bar3.className = 'meter-bar';
+    var strengthLabel = $('strengthLabel');
+    var strengthNote = $('strengthNote');
+    strengthNote.classList.add('section-hidden');
+
+    if (score >= 3) {
+      bar1.classList.add('filled-3');
+      bar2.classList.add('filled-3');
+      bar3.classList.add('filled-3');
+      strengthLabel.textContent = 'STRONG';
+      strengthLabel.className = 'strength-label strong';
+    } else if (score >= 2) {
+      bar1.classList.add('filled-2');
+      bar2.classList.add('filled-2');
+      strengthLabel.textContent = 'GOOD';
+      strengthLabel.className = 'strength-label good';
+    } else {
+      bar1.classList.add('filled-1');
+      strengthLabel.textContent = 'FAIR';
+      strengthLabel.className = 'strength-label fair';
+      strengthNote.classList.remove('section-hidden');
+      strengthNote.textContent = 'Your case may still succeed, but you will need your doctor\'s written support letter before submitting.';
+    }
+
+    // Category flags
+    var flagsContainer = $('categoryFlags');
+    flagsContainer.innerHTML = '';
+
+    if (data.denialCategory === 'mental_health') {
+      flagsContainer.innerHTML += '<div class="category-flag"><div class="flag-title">Mental Health Parity Rights</div>The Mental Health Parity and Addiction Equity Act (MHPAEA) requires that behavioral health prior authorization criteria cannot be more restrictive than medical/surgical criteria. If your denial seems inconsistent with how the plan handles comparable medical requests, this is a powerful additional argument for your appeal.</div>';
+    }
+    if (data.denialCategory === 'prescription') {
+      flagsContainer.innerHTML += '<div class="category-flag"><div class="flag-title">Prescription Exception Option</div>In addition to appealing the PA denial, you may also pursue a "formulary exception" request through your pharmacy or prescribing physician. Some plans allow this as a separate, faster pathway.</div>';
+    }
+    if (data.denialCategory === 'dme') {
+      flagsContainer.innerHTML += '<div class="category-flag"><div class="flag-title">Durable Medical Equipment</div>A Certificate of Medical Necessity (CMN) from your prescribing physician significantly strengthens appeals for durable medical equipment. Ask your doctor to provide one if they haven\'t already.</div>';
+    }
+
+    // Action steps
+    var stepsHTML = '';
+    stepsHTML += buildStep(1, 'Request the insurer\'s written clinical review criteria',
+      'Under Minnesota Statute 62M.05, your insurer is required to provide the specific clinical criteria used to deny your claim within 5 business days of your request. Call the number on your denial letter and request this in writing.',
+      'Insurer must respond within 5 business days');
+
+    stepsHTML += buildStep(2, 'Ask your doctor for a letter of medical necessity',
+      'Contact your treating physician\'s office and ask them to write a letter stating that the denied treatment is medically necessary for your condition. Be specific about why alternatives are insufficient.',
+      null);
+
+    var deadlineTag = hasDate ? 'Deadline: ' + deadlineDate : 'File within 30 days of denial';
+    stepsHTML += buildStep(3, 'File your Internal Appeal',
+      'Submit a formal written appeal to your insurer\'s Appeals and Grievances department. Include your denial letter, your doctor\'s letter, and any supporting medical records. The letter builder below will help you draft this.',
+      deadlineTag);
+
+    if (isMedicare) {
+      stepsHTML += buildStep(4, 'If denied again: request Medicare Appeals review',
+        'Medicare Advantage plans have a federal appeals process. If your internal appeal is denied, you can request a review through the Medicare system. Call 1-800-MEDICARE (1-800-633-4227) for guidance.',
+        'Within 60 days of internal denial');
+    } else if (isMedicaid) {
+      stepsHTML += buildStep(4, 'If denied again: request a State Fair Hearing',
+        'Under Minnesota DHS rules, you can request a state fair hearing. Contact Mid-Minnesota Legal Aid (mmla.org) for free assistance.',
+        'Within 90 days of adverse action notice');
+      stepsHTML += buildStep(5, 'Contact your county\'s Health Care Navigator',
+        'Health Care Navigators provide free, local help with insurance disputes. Find one at mnsure.org/gethelp or call your county human services office.',
+        null);
+    } else {
+      stepsHTML += buildStep(4, 'If denied again: request External Independent Review',
+        'Under Minnesota Statute 62Q.73, you may request an Independent Review Organization (IRO) review through the Minnesota Department of Commerce. The IRO decision is binding on the insurer. Call 651-539-1500 or 800-657-3602.',
+        'Within 4 months of final internal denial');
+    }
+
+    $('actionSteps').innerHTML = stepsHTML;
+  }
+
+  function buildStep(num, title, desc, deadline) {
+    var html = '<div class="action-step">';
+    html += '<div class="step-num">' + num + '</div>';
+    html += '<div class="step-content">';
+    html += '<strong>' + title + '</strong>';
+    html += '<p>' + desc + '</p>';
+    if (deadline) {
+      html += '<span class="step-deadline-tag">' + deadline + '</span>';
+    }
+    html += '</div></div>';
+    return html;
+  }
+
+  // ===== BUILD SECTION 3: LETTER =====
+  function buildLetter(data) {
+    var today = new Date();
+    var dateStr = today.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    var patientName = (data.firstName || '[Your First Name]') + ' ' + (data.lastName || '[Your Last Name]');
+    var insurerName = data.insurerName || '[Insurance Company Name]';
+    var denialDateStr = data.denialDate ? new Date(data.denialDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '[Date of Denial]';
+    var serviceType = data.denialCategory === 'other' ? (data.otherDesc || '[denied service]') : (CATEGORY_LABELS[data.denialCategory] || '[denied service]');
+    var isMHPAEA = data.denialCategory === 'mental_health';
+
+    // Calculate appeal deadline
+    var appealDeadline = '[30 days from denial date]';
+    if (data.denialDate) {
+      var dl = new Date(data.denialDate + 'T00:00:00');
+      dl.setDate(dl.getDate() + 30);
+      appealDeadline = dl.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    }
+
+    var html = '';
+    html += '<div class="letter-date">' + dateStr + '</div>';
+    html += '<div class="letter-address">';
+    html += 'Appeals and Grievances Department<br>';
+    html += insurerName + '<br>';
+    html += '<span class="editable-placeholder" contenteditable="true" data-placeholder="true">[Insurer mailing address -- check your denial letter or insurance card for the correct address]</span>';
+    html += '</div>';
+
+    html += '<div class="letter-subject">Re: Formal Appeal of Prior Authorization Denial dated ' + denialDateStr + ' for ' + serviceType + '</div>';
+
+    html += '<p>Dear Appeals and Grievances Department:</p>';
+
+    html += '<p>I am writing to formally appeal the denial of prior authorization for <strong>' + serviceType + '</strong>, as communicated in your letter dated ' + denialDateStr + '. I am requesting that you reverse this decision and authorize the requested treatment.</p>';
+
+    // Paragraph 1 - Medical Necessity
+    html += '<p><strong>Medical Necessity.</strong> My treating physician has determined that this treatment is medically necessary for my condition. ';
+    html += '<span class="editable-placeholder" contenteditable="true" data-placeholder="true">[Insert your doctor\'s specific explanation here -- for example: "Dr. Smith has stated that this MRI is essential to diagnose the source of my chronic lower back pain, which has not responded to six months of physical therapy and medication." Ask your doctor for this language.]</span>';
+    html += '</p>';
+
+    // Paragraph 2 - Clinical Criteria Challenge
+    html += '<p><strong>Request for Clinical Criteria.</strong> Pursuant to Minnesota Statute 62M.05, I request a copy of the specific clinical review criteria used to deny this claim. I am entitled to receive this within five business days of my request. This appeal is based on my treating physician\'s clinical judgment that this service is necessary, and I reserve the right to supplement this appeal once I have reviewed the criteria your organization applied.</p>';
+
+    // Paragraph 3 - MHPAEA (conditional)
+    if (isMHPAEA) {
+      html += '<p><strong>Mental Health Parity.</strong> I wish to note that the Mental Health Parity and Addiction Equity Act (MHPAEA) requires that prior authorization criteria for mental health and substance use disorder treatments be no more restrictive than the criteria applied to analogous medical and surgical benefits under the same plan. I request that your organization confirm, in writing, that the criteria applied to this denial are consistent with the parity requirements of federal law.</p>';
+    }
+
+    // Paragraph 4 - Urgency/Harm
+    html += '<p><strong>Impact of Delay.</strong> The denial of this treatment is causing harm to my health and well-being. ';
+    html += '<span class="editable-placeholder" contenteditable="true" data-placeholder="true">[Describe the impact in your own words -- for example: "I live in a rural area 90 minutes from the nearest specialist. The delay means my condition continues to worsen. I have already missed work due to this condition, and further delay will result in additional deterioration and financial hardship." Be specific about travel distance, condition changes, and any financial impact.]</span>';
+    html += '</p>';
+
+    // Paragraph 5 - Formal Request
+    html += '<p><strong>Request for Timely Decision.</strong> Pursuant to Minnesota Statute 62Q.68, I request that you render a written decision on this appeal within 30 calendar days of receipt (or 72 hours if this is an urgent/expedited matter). If this appeal is denied, I intend to exercise my right to External Independent Review through the Minnesota Department of Commerce, as provided under Minnesota Statute 62Q.73.</p>';
+
+    html += '<p>Please direct all correspondence regarding this appeal to:</p>';
+    html += '<p>';
+    html += patientName + '<br>';
+    html += '<span class="editable-placeholder" contenteditable="true" data-placeholder="true">[Your mailing address]</span><br>';
+    html += '<span class="editable-placeholder" contenteditable="true" data-placeholder="true">[Your phone number]</span>';
+    html += '</p>';
+
+    html += '<div class="letter-closing">Sincerely,</div>';
+    html += '<div class="letter-sig">' + patientName + '</div>';
+
+    // Enclosures
+    html += '<div class="enclosures-checklist">';
+    html += '<h4>Enclosures (attach the following with this letter):</h4>';
+    html += '<label><input type="checkbox"> Copy of denial notice</label>';
+    html += '<label><input type="checkbox"> Doctor\'s letter of medical necessity</label>';
+    html += '<label><input type="checkbox"> Relevant medical records</label>';
+    html += '<label><input type="checkbox"> This appeal letter (keep a copy for yourself)</label>';
+    html += '</div>';
+
+    $('letterContainer').innerHTML = html;
+
+    // Track edits on contenteditable placeholders
+    document.querySelectorAll('.editable-placeholder').forEach(function(el) {
+      el.addEventListener('focus', function() {
+        if (this.getAttribute('data-placeholder') === 'true') {
+          this.setAttribute('data-original', this.textContent);
+        }
+      });
+      el.addEventListener('blur', function() {
+        if (this.textContent !== this.getAttribute('data-original') && this.textContent.trim().length > 0) {
+          this.classList.add('edited');
+          this.setAttribute('data-placeholder', 'false');
+        }
+      });
+    });
+  }
+
+  // ===== POPULATE MOBILE SIDEBAR =====
+  function populateMobileSidebar() {
+    var desktop = $('sidebarDesktop');
+    $('sidebarMobileContent').innerHTML = desktop.innerHTML;
+  }
+
+  // ===== EVENT HANDLERS =====
+
+  // Submit intake
+  $('submitIntake').addEventListener('click', function() {
+    var data = getIntakeData();
+    buildDecisionTree(data);
+    showSection(2);
+  });
+
+  // Go to letter
+  $('goToLetter').addEventListener('click', function() {
+    var data = getIntakeData();
+    buildLetter(data);
+    showSection(3);
+  });
+
+  // Back buttons
+  $('backToIntake').addEventListener('click', function() { showSection(1); });
+  $('backToTree').addEventListener('click', function() { showSection(2); });
+
+  // Print
+  $('printLetter').addEventListener('click', function() {
+    // Mark unedited placeholders for print
+    document.querySelectorAll('.editable-placeholder').forEach(function(el) {
+      if (el.getAttribute('data-placeholder') === 'true') {
+        el.classList.add('placeholder-unedited');
+      } else {
+        el.classList.remove('placeholder-unedited');
+      }
+    });
+    window.print();
+  });
+
+  // Mobile sidebar toggle
+  $('sidebarToggle').addEventListener('click', function() {
+    var content = $('sidebarMobileContent');
+    var isOpen = content.classList.contains('open');
+    content.classList.toggle('open');
+    this.classList.toggle('open');
+  });
+
+  // ===== INIT =====
+  loadFromStorage();
+  populateMobileSidebar();
+
+})();
+</script>
+</body>
+</html>

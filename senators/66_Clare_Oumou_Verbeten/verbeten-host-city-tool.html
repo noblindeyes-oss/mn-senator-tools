@@ -1,0 +1,2353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Host-City Cost Equity Tool — Sen. Clare Oumou Verbeten, SD-66</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Interactive comparison table as the main view — full-width, no sidebar.
+      Inputs above, comparison table center-stage, narrative summary and claim doc below.
+      The table IS the tool. Color-blocked sections create distinct visual rooms.
+   2. Navigation: Compact sticky top bar with anchor links (Inputs, Comparison, Summary).
+      No tabs. Single continuous page. Monospace nav links in marigold on charcoal.
+   3. Typography: Verdana (body/UI), Cambria (headings/editorial), Lucida Console (data/numbers).
+      Wide tracking on section labels. Tight leading on hero number. Three distinct density zones.
+   4. Hero moment: Large "COST EQUITY GAP: $X.XM" in marigold on charcoal at 64px — dominates
+      the mid-page viewport. Text-shadow glow effect.
+   5. Color strategy: #6 — color-blocked sections. Teal (#00838f) for input zone, charcoal
+      (#263238) for hero zone, marigold (#f9a825) accent bands, off-white (#fefefe) for data
+      table, light teal (#e0f2f1) for transition zones. Each section has its own background.
+   6. Entry experience: Marigold confetti CSS particles (2s animation) settle to reveal the
+      tool title. Light, brief, celebratory.
+   Additional: No bordered callout boxes. No cards. No emoji icons. Density contrast between
+   dense comparison table (12-13px, tight rows) and spacious hero moment (64px number,
+   generous padding). Print CSS hides all inputs/nav, shows only the claim document in
+   letter format. LocalStorage persistence. Chart.js with graceful offline fallback.
+*/
+
+/* ── RESET ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ── CUSTOM PROPERTIES ── */
+:root {
+  --teal: #00838f;
+  --teal-dark: #005f6b;
+  --teal-light: #b2ebf2;
+  --teal-bg: #e0f2f1;
+  --marigold: #f9a825;
+  --marigold-light: #fff3c4;
+  --marigold-dim: #c68400;
+  --offwhite: #fefefe;
+  --charcoal: #263238;
+  --charcoal-mid: #37474f;
+  --charcoal-light: #455a64;
+  --text-dark: #1a1a1a;
+  --text-light: #eceff1;
+  --fair-red: #C0392B;
+  --fair-red-light: #f5b7b1;
+  --civic-green: #1E8449;
+  --civic-green-light: #abebc6;
+  --gray-mid: #5D6D7E;
+  --gray-light: #cfd8dc;
+  --shadow-subtle: 0 1px 4px rgba(0,0,0,0.08);
+  --shadow-lift: 0 4px 16px rgba(0,0,0,0.12);
+}
+
+/* ── BASE ── */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-dark);
+  background: var(--offwhite);
+  overflow-x: hidden;
+}
+
+/* ── CONFETTI ENTRY ANIMATION ── */
+.confetti-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9999;
+  animation: confettiFade 2.6s ease-out forwards;
+}
+
+@keyframes confettiFade {
+  0%   { opacity: 1; }
+  65%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.confetti-particle {
+  position: absolute;
+  width: 8px;
+  height: 14px;
+  background: var(--marigold);
+  opacity: 0.92;
+  animation: confettiFall 2.2s ease-in forwards;
+}
+
+.confetti-particle:nth-child(odd) {
+  background: var(--marigold-dim);
+  width: 6px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.confetti-particle:nth-child(3n) {
+  background: #ffcc02;
+  width: 10px;
+  height: 6px;
+}
+
+.confetti-particle:nth-child(5n) {
+  background: var(--teal-light);
+  width: 7px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.confetti-particle:nth-child(7n) {
+  background: var(--marigold);
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+
+@keyframes confettiFall {
+  0%   { transform: translateY(-30px) rotate(0deg); opacity: 0.92; }
+  15%  { opacity: 1; }
+  100% { transform: translateY(108vh) rotate(780deg); opacity: 0; }
+}
+
+/* ── STICKY TOP NAV BAR ── */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--charcoal);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  height: 44px;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.topbar a {
+  color: var(--marigold);
+  text-decoration: none;
+  font-family: 'Lucida Console', Monaco, monospace;
+  padding: 0 14px;
+  transition: color 0.2s;
+}
+
+.topbar a:hover,
+.topbar a:focus {
+  color: var(--offwhite);
+}
+
+.topbar .brand {
+  font-family: Cambria, serif;
+  font-size: 13px;
+  color: var(--offwhite);
+  letter-spacing: 0.5px;
+  text-transform: none;
+  font-weight: 700;
+}
+
+.topbar .nav-links {
+  display: flex;
+  align-items: center;
+}
+
+/* ── TITLE SECTION — TEAL BAND ── */
+.title-band {
+  background: var(--teal);
+  color: var(--offwhite);
+  padding: 52px 32px 44px;
+  text-align: center;
+}
+
+.title-band h1 {
+  font-family: Cambria, serif;
+  font-size: 38px;
+  font-weight: 700;
+  line-height: 1.12;
+  margin-bottom: 12px;
+  letter-spacing: -0.5px;
+}
+
+.title-band .subtitle {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 12px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--marigold);
+  margin-bottom: 20px;
+}
+
+.title-band .lead {
+  max-width: 740px;
+  margin: 0 auto;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--teal-light);
+}
+
+.title-band .lead strong {
+  color: var(--offwhite);
+}
+
+/* ── BACKGROUND INFO COLLAPSIBLE ── */
+.bg-toggle {
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  color: var(--marigold);
+  text-decoration: underline;
+  background: none;
+  border: none;
+  font-family: Verdana, Geneva, sans-serif;
+  padding: 8px 0;
+  margin-top: 16px;
+}
+
+.bg-toggle:hover {
+  color: var(--marigold-light);
+}
+
+.bg-info {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--teal-light);
+  text-align: left;
+  max-width: 640px;
+  margin: 8px auto 0;
+}
+
+.bg-info.open {
+  max-height: 400px;
+}
+
+.bg-info p {
+  margin-bottom: 8px;
+  padding-left: 12px;
+  border-left: 2px solid var(--teal-dark);
+}
+
+/* ── SECTION UTILITY CLASSES ── */
+.section-teal {
+  background: var(--teal);
+  color: var(--offwhite);
+  padding: 40px 28px;
+}
+
+.section-charcoal {
+  background: var(--charcoal);
+  color: var(--text-light);
+  padding: 52px 28px;
+}
+
+.section-marigold {
+  background: var(--marigold);
+  color: var(--charcoal);
+  padding: 32px 28px;
+}
+
+.section-offwhite {
+  background: var(--offwhite);
+  color: var(--text-dark);
+  padding: 40px 28px;
+}
+
+.section-light {
+  background: var(--teal-bg);
+  color: var(--text-dark);
+  padding: 36px 28px;
+}
+
+.section-charcoal-mid {
+  background: var(--charcoal-mid);
+  color: var(--text-light);
+  padding: 36px 28px;
+}
+
+.inner {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.inner-narrow {
+  max-width: 740px;
+  margin: 0 auto;
+}
+
+/* ── SECTION HEADINGS ── */
+h2.sec-head {
+  font-family: Cambria, serif;
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  line-height: 1.2;
+}
+
+h2.sec-head-sm {
+  font-family: Cambria, serif;
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  line-height: 1.25;
+}
+
+/* ── CATEGORY PANEL HEADINGS ── */
+h3.cat-head {
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 11px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  color: var(--teal-dark);
+  transition: color 0.15s;
+  user-select: none;
+}
+
+h3.cat-head:hover {
+  color: var(--teal);
+}
+
+h3.cat-head .arrow {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid currentColor;
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+
+h3.cat-head.open .arrow {
+  transform: rotate(180deg);
+}
+
+h3.cat-head .cat-total {
+  margin-left: auto;
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 13px;
+  color: var(--fair-red);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* ── COLLAPSIBLE PANELS ── */
+.cat-panel {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.35s ease;
+  padding: 0 4px;
+}
+
+.cat-panel.open {
+  max-height: 600px;
+}
+
+/* ── FORM STYLING ── */
+.input-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 20px;
+  padding: 12px 0;
+}
+
+.input-grid.cols3 {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.field label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: var(--teal-dark);
+  font-family: Verdana, Geneva, sans-serif;
+}
+
+.section-teal .field label {
+  color: var(--marigold);
+}
+
+.field input,
+.field select {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 13px;
+  padding: 7px 10px;
+  border: 2px solid var(--teal-light);
+  border-radius: 3px;
+  background: var(--offwhite);
+  color: var(--charcoal);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.field input:focus,
+.field select:focus {
+  outline: none;
+  border-color: var(--marigold);
+  box-shadow: 0 0 0 3px rgba(249, 168, 37, 0.25);
+}
+
+.field input::placeholder {
+  color: #90a4ae;
+  font-size: 11px;
+}
+
+.field select {
+  cursor: pointer;
+}
+
+/* ── HELP TIPS (inline, no callout box) ── */
+.help-tip {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--gray-mid);
+  margin-bottom: 10px;
+  font-style: italic;
+}
+
+.section-teal .help-tip {
+  color: var(--teal-light);
+}
+
+/* ── INFO MARKER (CSS shape, not emoji) ── */
+.info-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--teal);
+  color: var(--offwhite);
+  font-family: Cambria, serif;
+  font-size: 11px;
+  font-weight: 700;
+  font-style: italic;
+  cursor: help;
+  position: relative;
+  vertical-align: middle;
+  margin-left: 4px;
+  flex-shrink: 0;
+}
+
+.info-mark:hover::after {
+  content: attr(data-tip);
+  position: absolute;
+  left: 24px;
+  top: -4px;
+  background: var(--charcoal);
+  color: var(--offwhite);
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 400;
+  padding: 8px 12px;
+  border-radius: 3px;
+  width: 240px;
+  line-height: 1.45;
+  z-index: 50;
+  box-shadow: var(--shadow-lift);
+  white-space: normal;
+}
+
+/* ── HERO GAP MOMENT — CHARCOAL BAND ── */
+.hero-gap {
+  text-align: center;
+  padding: 60px 28px 56px;
+}
+
+.hero-gap .label {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 13px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--marigold-dim);
+  margin-bottom: 8px;
+}
+
+.hero-gap .amount {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 64px;
+  font-weight: 700;
+  color: var(--marigold);
+  line-height: 1;
+  margin-bottom: 14px;
+  text-shadow: 0 2px 16px rgba(249, 168, 37, 0.3);
+}
+
+.hero-gap .note {
+  font-size: 13px;
+  color: var(--text-light);
+  max-width: 520px;
+  margin: 0 auto;
+  line-height: 1.55;
+}
+
+/* ── COMPARISON TABLE ── */
+.comp-table-wrap {
+  overflow-x: auto;
+  margin: 20px 0;
+  -webkit-overflow-scrolling: touch;
+}
+
+table.comp {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+table.comp thead {
+  background: var(--teal-dark);
+  color: var(--offwhite);
+}
+
+table.comp th {
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+table.comp th:not(:first-child) {
+  text-align: right;
+}
+
+table.comp td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--gray-light);
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 13px;
+}
+
+table.comp td:first-child {
+  font-family: Verdana, Geneva, sans-serif;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+table.comp td:not(:first-child) {
+  text-align: right;
+}
+
+table.comp tbody tr:nth-child(even) {
+  background: var(--teal-bg);
+}
+
+table.comp tbody tr:nth-child(odd) {
+  background: var(--offwhite);
+}
+
+table.comp tbody tr:hover {
+  background: var(--marigold-light);
+}
+
+table.comp tfoot {
+  background: var(--charcoal);
+  color: var(--marigold);
+  font-weight: 700;
+}
+
+table.comp tfoot td {
+  padding: 12px;
+  font-size: 14px;
+  border: none;
+}
+
+/* ── PER-UNIT METRICS ROW ── */
+.metrics-row {
+  display: flex;
+  gap: 32px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 32px 0 16px;
+}
+
+.metric-block {
+  text-align: center;
+  min-width: 180px;
+}
+
+.metric-block .val {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 34px;
+  font-weight: 700;
+  color: var(--teal);
+  line-height: 1.1;
+}
+
+.metric-block .mlabel {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--gray-mid);
+  margin-top: 5px;
+  font-family: Verdana, Geneva, sans-serif;
+}
+
+.section-charcoal .metric-block .val {
+  color: var(--marigold);
+}
+
+.section-charcoal .metric-block .mlabel {
+  color: var(--teal-light);
+}
+
+/* ── VISITOR COST CONTRAST BAND ── */
+.visitor-cost-band {
+  background: var(--charcoal-mid);
+  padding: 28px 28px;
+  text-align: center;
+}
+
+.visitor-cost-band .pair {
+  display: flex;
+  justify-content: center;
+  gap: 48px;
+  flex-wrap: wrap;
+  align-items: baseline;
+}
+
+.visitor-cost-band .pair-item {
+  text-align: center;
+}
+
+.visitor-cost-band .pair-item .big-val {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 42px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.visitor-cost-band .pair-item .big-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-top: 6px;
+  font-family: Verdana, Geneva, sans-serif;
+}
+
+.visitor-cost-band .city-val {
+  color: var(--fair-red-light);
+}
+
+.visitor-cost-band .reimb-val {
+  color: var(--civic-green-light);
+}
+
+.visitor-cost-band .city-label {
+  color: var(--fair-red-light);
+}
+
+.visitor-cost-band .reimb-label {
+  color: var(--civic-green-light);
+}
+
+.visitor-cost-band .vs {
+  font-family: Cambria, serif;
+  font-size: 18px;
+  font-style: italic;
+  color: var(--gray-light);
+  align-self: center;
+}
+
+/* ── CHART CONTAINERS ── */
+.chart-box {
+  max-width: 720px;
+  margin: 24px auto;
+  position: relative;
+  height: 300px;
+}
+
+.chart-box canvas {
+  width: 100% !important;
+  max-height: 300px;
+}
+
+.chart-fallback {
+  text-align: center;
+  color: var(--gray-mid);
+  font-size: 12px;
+  font-style: italic;
+  padding: 20px;
+}
+
+/* ── TREND TABLE ── */
+table.trend {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 13px;
+}
+
+table.trend th {
+  background: var(--teal-dark);
+  color: var(--offwhite);
+  padding: 9px 12px;
+  text-align: left;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  font-family: Verdana, Geneva, sans-serif;
+}
+
+table.trend th:not(:first-child) {
+  text-align: right;
+}
+
+table.trend td {
+  padding: 7px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  font-family: 'Lucida Console', Monaco, monospace;
+}
+
+table.trend td:first-child {
+  font-family: Verdana, Geneva, sans-serif;
+  font-weight: 600;
+}
+
+table.trend td:not(:first-child) {
+  text-align: right;
+}
+
+table.trend input {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 12px;
+  width: 120px;
+  padding: 5px 8px;
+  border: 1px solid var(--teal-dark);
+  border-radius: 2px;
+  text-align: right;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--offwhite);
+  transition: border-color 0.2s, background 0.2s;
+}
+
+table.trend input:focus {
+  border-color: var(--marigold);
+  background: rgba(255, 255, 255, 0.18);
+  outline: none;
+}
+
+table.trend input::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 10px;
+}
+
+/* ── TREND NOTE ── */
+.trend-note {
+  font-family: Cambria, serif;
+  font-size: 15px;
+  font-style: italic;
+  color: var(--marigold-light);
+  margin-top: 16px;
+  line-height: 1.55;
+}
+
+/* ── CLAIM DOCUMENT ── */
+.claim-doc {
+  max-width: 700px;
+  margin: 0 auto;
+  background: #fff;
+  color: #111;
+  padding: 52px 56px;
+  font-family: Cambria, serif;
+  font-size: 14px;
+  line-height: 1.6;
+  box-shadow: var(--shadow-lift);
+}
+
+.claim-doc h2 {
+  font-size: 20px;
+  margin: 28px 0 8px;
+  font-weight: 700;
+  color: var(--charcoal);
+}
+
+.claim-doc h3 {
+  font-size: 14px;
+  margin: 22px 0 6px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--charcoal-light);
+}
+
+.claim-doc .doc-header {
+  text-align: center;
+  margin-bottom: 32px;
+  border-bottom: 3px double var(--charcoal);
+  padding-bottom: 22px;
+}
+
+.claim-doc .doc-header h1 {
+  font-size: 22px;
+  margin-bottom: 4px;
+  letter-spacing: 0.3px;
+  color: var(--charcoal);
+}
+
+.claim-doc .doc-header p {
+  font-size: 12px;
+  color: var(--gray-mid);
+}
+
+.claim-doc table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 14px 0;
+  font-size: 13px;
+}
+
+.claim-doc table th {
+  background: #eceff1;
+  padding: 7px 10px;
+  text-align: left;
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--charcoal);
+}
+
+.claim-doc table th:not(:first-child) {
+  text-align: right;
+}
+
+.claim-doc table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--gray-light);
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 12px;
+}
+
+.claim-doc table td:first-child {
+  font-family: Cambria, serif;
+  font-size: 13px;
+}
+
+.claim-doc table td:not(:first-child) {
+  text-align: right;
+}
+
+.claim-doc table tfoot td {
+  font-weight: 700;
+  border-top: 2px solid var(--charcoal);
+  border-bottom: none;
+}
+
+.claim-doc .sig-block {
+  margin-top: 40px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 28px;
+}
+
+.claim-doc .sig-line {
+  border-top: 1px solid #333;
+  padding-top: 5px;
+  font-size: 12px;
+  margin-top: 44px;
+  color: var(--gray-mid);
+}
+
+.claim-doc .statutory {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--charcoal-light);
+  padding: 14px 0;
+  border-top: 1px solid #b0bec5;
+  margin-top: 24px;
+}
+
+.claim-doc [contenteditable] {
+  outline: none;
+  border-bottom: 1px dashed #b0bec5;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.claim-doc [contenteditable]:focus {
+  border-bottom-color: var(--marigold);
+  background: var(--marigold-light);
+}
+
+/* ── BUTTONS ── */
+.btn {
+  display: inline-block;
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 10px 26px;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn:focus {
+  outline: 2px solid var(--marigold);
+  outline-offset: 2px;
+}
+
+.btn-marigold {
+  background: var(--marigold);
+  color: var(--charcoal);
+}
+
+.btn-marigold:hover {
+  background: var(--marigold-dim);
+  color: var(--offwhite);
+  box-shadow: var(--shadow-subtle);
+}
+
+.btn-teal {
+  background: var(--teal);
+  color: var(--offwhite);
+}
+
+.btn-teal:hover {
+  background: var(--teal-dark);
+}
+
+.btn-charcoal {
+  background: var(--charcoal);
+  color: var(--marigold);
+}
+
+.btn-charcoal:hover {
+  background: var(--charcoal-mid);
+}
+
+/* ── SEPARATOR ── */
+.marigold-rule {
+  height: 4px;
+  background: var(--marigold);
+  border: none;
+}
+
+/* ── FOOTER ── */
+.site-footer {
+  background: var(--charcoal);
+  color: #78909c;
+  padding: 22px 28px;
+  font-size: 11px;
+  text-align: center;
+  line-height: 1.65;
+  border-top: 3px solid var(--teal-dark);
+}
+
+.site-footer strong {
+  color: var(--marigold);
+  font-weight: 600;
+}
+
+/* ── PRINT STYLES ── */
+@media print {
+  body {
+    background: #fff;
+    font-size: 12px;
+  }
+
+  .topbar,
+  .title-band,
+  .confetti-overlay,
+  #inputs-section,
+  #comparison-section,
+  .visitor-cost-band,
+  #trend-section,
+  .site-footer,
+  .marigold-rule,
+  .no-print {
+    display: none !important;
+  }
+
+  .claim-doc {
+    box-shadow: none;
+    padding: 0;
+    max-width: 100%;
+  }
+
+  .section-offwhite,
+  .section-charcoal,
+  .section-charcoal-mid,
+  .section-teal,
+  .section-marigold,
+  .section-light {
+    background: #fff !important;
+    color: #111 !important;
+    padding: 0 !important;
+  }
+
+  .claim-doc [contenteditable] {
+    border-bottom: none;
+  }
+
+  .claim-doc table th {
+    background: #eee !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .claim-doc .sig-block {
+    page-break-inside: avoid;
+  }
+
+  @page {
+    margin: 0.85in 1in;
+  }
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .input-grid,
+  .input-grid.cols3 {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-gap .amount {
+    font-size: 40px;
+  }
+
+  .metrics-row {
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .visitor-cost-band .pair {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .visitor-cost-band .pair-item .big-val {
+    font-size: 32px;
+  }
+
+  .claim-doc {
+    padding: 24px 18px;
+  }
+
+  .claim-doc .sig-block {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar {
+    padding: 0 12px;
+    font-size: 10px;
+  }
+
+  .topbar a {
+    padding: 0 8px;
+  }
+
+  .topbar .brand {
+    font-size: 11px;
+  }
+
+  .title-band h1 {
+    font-size: 26px;
+  }
+
+  table.trend input {
+    width: 90px;
+    font-size: 11px;
+  }
+
+  .info-mark:hover::after {
+    left: auto;
+    right: 0;
+    width: 200px;
+  }
+}
+
+@media (max-width: 480px) {
+  .topbar .brand {
+    display: none;
+  }
+
+  .hero-gap .amount {
+    font-size: 32px;
+  }
+
+  .metric-block .val {
+    font-size: 26px;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- CONFETTI OVERLAY -->
+<div class="confetti-overlay" id="confettiOverlay" aria-hidden="true"></div>
+
+<!-- STICKY TOP NAV -->
+<nav class="topbar" role="navigation" aria-label="Page sections">
+  <span class="brand">Host-City Cost Equity Tool</span>
+  <div class="nav-links">
+    <a href="#inputs-section">Inputs</a>
+    <a href="#comparison-section">Comparison</a>
+    <a href="#summary-section">Summary</a>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- TITLE BAND — TEAL                       -->
+<!-- ═══════════════════════════════════════ -->
+<header class="title-band" id="top">
+  <div class="inner">
+    <div class="subtitle">Municipal Event Burden Calculator &amp; Reimbursement Case Builder</div>
+    <h1>"What Does Hosting the State Fair<br>Actually Cost Us?"</h1>
+    <p class="lead">
+      <strong>SF3068</strong>, authored by Sen. Clare Oumou Verbeten, is the first Minnesota law to require the State Agricultural Society to reimburse host cities for fair-related costs. The harder problem is what comes next: cities need to document those costs to collect. <strong>This tool was built to help them do exactly that.</strong>
+    </p>
+    <div>
+      <button class="bg-toggle" onclick="toggleBg()" aria-expanded="false" aria-controls="bgInfo">
+        Background: State Fair context &#9662;
+      </button>
+      <div class="bg-info" id="bgInfo" role="region" aria-label="Background information">
+        <!-- VERIFY: All figures below from software brief / confirmed public sources -->
+        <p>The Minnesota State Fair draws approximately 1.9 million visitors over 12 days (1,940,869 in 2025; record: 2,126,551 in 2019).</p>
+        <p>The fairgrounds occupy 322 acres in Falcon Heights. Two-thirds of Falcon Heights is public land — the fairgrounds and the University of Minnesota's St. Paul campus — leaving the city with a structurally small tax base.</p>
+        <p>Falcon Heights has approximately 5,000 residents (4,984 per 2023 estimate).</p>
+        <p>The State Agricultural Society is a public corporation governed by Minnesota Statutes, chapter 37. Prior to SF3068, no statute required it to reimburse host cities for event-related service costs.</p>
+        <p>SF3068 was chief-authored by Sen. Clare Oumou Verbeten (SD-66) and introduced March 27, 2025. Companion bill: HF3099.</p>
+      </div>
+    </div>
+  </div>
+</header>
+
+<hr class="marigold-rule">
+
+<!-- ═══════════════════════════════════════ -->
+<!-- INPUTS SECTION — LIGHT TEAL BG          -->
+<!-- ═══════════════════════════════════════ -->
+<section class="section-light" id="inputs-section">
+  <div class="inner">
+    <h2 class="sec-head" style="color:var(--teal-dark)">
+      City &amp; Event Inputs
+    </h2>
+
+    <div class="input-grid cols3">
+      <div class="field">
+        <label for="cityName">City Name</label>
+        <input type="text" id="cityName" value="Falcon Heights" placeholder="e.g., Falcon Heights">
+      </div>
+      <div class="field">
+        <label for="eventName">Event Name</label>
+        <input type="text" id="eventName" value="Minnesota State Fair" placeholder="e.g., Minnesota State Fair">
+      </div>
+      <div class="field">
+        <label for="operatorType">Event Operator Type</label>
+        <select id="operatorType">
+          <option value="State Agricultural Society" selected>State Agricultural Society</option>
+          <option value="Stadium Authority">Stadium Authority</option>
+          <option value="University">University</option>
+          <option value="Other State Entity">Other State Entity</option>
+          <option value="Private with State Lease">Private with State Lease</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="eventDays">Event Duration (days)</label>
+        <input type="number" id="eventDays" value="12" min="1" placeholder="12">
+      </div>
+      <div class="field">
+        <label for="attendance">Total Attendance</label>
+        <input type="number" id="attendance" value="1940869" min="0" placeholder="1940869">
+      </div>
+      <div class="field">
+        <label for="cityPop">City Population</label>
+        <input type="number" id="cityPop" value="4984" min="1" placeholder="4984">
+      </div>
+    </div>
+
+    <!-- SERVICE COST CATEGORIES -->
+    <h2 class="sec-head" style="color:var(--teal-dark);margin-top:28px">
+      Service Cost Categories
+      <span class="info-mark" data-tip="SF3068 specifies six reimbursable categories. Enter costs for each below. All calculations are live — change any input and totals update automatically.">i</span>
+    </h2>
+    <p class="help-tip" style="color:var(--gray-mid)">
+      SF3068 establishes the reimbursement requirement. Specific amounts and timelines will be determined through the claim process. Document your costs thoroughly to support your claim.
+    </p>
+
+    <!-- ── Panel 1: Public Safety / Police ── -->
+    <div class="cat-section" data-cat="police">
+      <h3 class="cat-head open" onclick="toggleCat(this)">
+        <span class="arrow"></span>
+        Public Safety / Police
+        <span class="cat-total" id="catTotal_police">$0</span>
+      </h3>
+      <div class="cat-panel open">
+        <p class="help-tip">
+          During the 12-day State Fair, St. Paul typically deploys additional officers for traffic and crowd management in adjacent neighborhoods (Como, St. Anthony Park, Hamline-Midway). Enter the total overtime and deployment costs your city records for this period.
+        </p>
+        <div class="input-grid">
+          <div class="field">
+            <label>Officers deployed per day</label>
+            <input type="number" class="cost-input" data-cat="police" data-key="staff" min="0" placeholder="Enter your city's actual count">
+          </div>
+          <div class="field">
+            <label>Avg overtime rate ($/hr)</label>
+            <input type="number" class="cost-input" data-cat="police" data-key="rate" min="0" value="65" step="0.01" placeholder="65">
+          </div>
+          <div class="field">
+            <label>Avg hours per officer/day</label>
+            <input type="number" class="cost-input" data-cat="police" data-key="hours" min="0" placeholder="Enter hours">
+          </div>
+          <div class="field">
+            <label>Equipment &amp; supply costs ($)</label>
+            <input type="number" class="cost-input" data-cat="police" data-key="equip" min="0" placeholder="Enter costs">
+          </div>
+          <div class="field">
+            <label>
+              Mutual aid costs ($)
+              <span class="info-mark" data-tip="Officers borrowed from neighboring jurisdictions — include the invoiced cost from those departments.">i</span>
+            </label>
+            <input type="number" class="cost-input" data-cat="police" data-key="mutual" min="0" placeholder="Enter costs">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Panel 2: Fire and EMS ── -->
+    <div class="cat-section" data-cat="fire">
+      <h3 class="cat-head" onclick="toggleCat(this)">
+        <span class="arrow"></span>
+        Fire and EMS
+        <span class="cat-total" id="catTotal_fire">$0</span>
+      </h3>
+      <div class="cat-panel">
+        <p class="help-tip">
+          Include firefighter and paramedic overtime, consumable medical supplies, and ambulance deployment costs incurred during the event period.
+        </p>
+        <div class="input-grid">
+          <div class="field">
+            <label>Firefighters/paramedics per day</label>
+            <input type="number" class="cost-input" data-cat="fire" data-key="staff" min="0" placeholder="Enter count">
+          </div>
+          <div class="field">
+            <label>Avg overtime rate ($/hr)</label>
+            <input type="number" class="cost-input" data-cat="fire" data-key="rate" min="0" value="65" step="0.01">
+          </div>
+          <div class="field">
+            <label>Avg hours per person/day</label>
+            <input type="number" class="cost-input" data-cat="fire" data-key="hours" min="0" placeholder="Enter hours">
+          </div>
+          <div class="field">
+            <label>Equipment &amp; consumables ($)</label>
+            <input type="number" class="cost-input" data-cat="fire" data-key="equip" min="0" placeholder="Enter costs">
+          </div>
+          <div class="field">
+            <label>Ambulance/unit deployment ($)</label>
+            <input type="number" class="cost-input" data-cat="fire" data-key="ambulance" min="0" placeholder="Enter costs">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Panel 3: Traffic Management ── -->
+    <div class="cat-section" data-cat="traffic">
+      <h3 class="cat-head" onclick="toggleCat(this)">
+        <span class="arrow"></span>
+        Traffic Management
+        <span class="cat-total" id="catTotal_traffic">$0</span>
+      </h3>
+      <div class="cat-panel">
+        <p class="help-tip">
+          Traffic control officers, signage, barricade rental, and signal infrastructure wear from heavy vehicle volumes around the fairgrounds and neighboring streets.
+        </p>
+        <div class="input-grid">
+          <div class="field">
+            <label>Traffic staff per day</label>
+            <input type="number" class="cost-input" data-cat="traffic" data-key="staff" min="0" placeholder="Enter count">
+          </div>
+          <div class="field">
+            <label>Avg hourly rate ($/hr)</label>
+            <input type="number" class="cost-input" data-cat="traffic" data-key="rate" min="0" value="55" step="0.01">
+          </div>
+          <div class="field">
+            <label>Hours per day</label>
+            <input type="number" class="cost-input" data-cat="traffic" data-key="hours" min="0" placeholder="Enter hours">
+          </div>
+          <div class="field">
+            <label>Signage, barricades, rental ($)</label>
+            <input type="number" class="cost-input" data-cat="traffic" data-key="equip" min="0" placeholder="Enter costs">
+          </div>
+          <div class="field">
+            <label>
+              Signal/infrastructure wear ($)
+              <span class="info-mark" data-tip="Estimate the cost of traffic signal cycling, temporary modifications, and road surface wear attributable to event traffic.">i</span>
+            </label>
+            <input type="number" class="cost-input" data-cat="traffic" data-key="infra" min="0" placeholder="Enter estimate">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Panel 4: Sanitation Services ── -->
+    <div class="cat-section" data-cat="sanitation">
+      <h3 class="cat-head" onclick="toggleCat(this)">
+        <span class="arrow"></span>
+        Sanitation Services
+        <span class="cat-total" id="catTotal_sanitation">$0</span>
+      </h3>
+      <div class="cat-panel">
+        <p class="help-tip">
+          Sanitation crew overtime, trash and recycling collection vehicles, and disposal fees for waste generated in neighborhoods adjacent to the fairgrounds during the event.
+        </p>
+        <div class="input-grid">
+          <div class="field">
+            <label>Sanitation staff per day</label>
+            <input type="number" class="cost-input" data-cat="sanitation" data-key="staff" min="0" placeholder="Enter count">
+          </div>
+          <div class="field">
+            <label>Avg hourly rate ($/hr)</label>
+            <input type="number" class="cost-input" data-cat="sanitation" data-key="rate" min="0" value="45" step="0.01">
+          </div>
+          <div class="field">
+            <label>Hours per day</label>
+            <input type="number" class="cost-input" data-cat="sanitation" data-key="hours" min="0" placeholder="Enter hours">
+          </div>
+          <div class="field">
+            <label>Vehicle / equipment costs ($)</label>
+            <input type="number" class="cost-input" data-cat="sanitation" data-key="equip" min="0" placeholder="Enter costs">
+          </div>
+          <div class="field">
+            <label>Waste disposal fees ($)</label>
+            <input type="number" class="cost-input" data-cat="sanitation" data-key="disposal" min="0" placeholder="Enter fees">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Panel 5: Neighborhood Cleanup & Restoration ── -->
+    <div class="cat-section" data-cat="cleanup">
+      <h3 class="cat-head" onclick="toggleCat(this)">
+        <span class="arrow"></span>
+        Neighborhood Cleanup &amp; Restoration
+        <span class="cat-total" id="catTotal_cleanup">$0</span>
+      </h3>
+      <div class="cat-panel">
+        <p class="help-tip">
+          Post-event cleanup includes street sweeping, pothole and curb repair, signage replacement, and restoration of public areas. Costs often extend weeks beyond the event itself.
+        </p>
+        <div class="input-grid">
+          <div class="field">
+            <label>
+              Cleanup staff-days (total)
+              <span class="info-mark" data-tip="Total person-days spent on cleanup: event period plus aftermath weeks. Multiply number of crew by days worked.">i</span>
+            </label>
+            <input type="number" class="cost-input" data-cat="cleanup" data-key="staffdays" min="0" placeholder="Enter total staff-days">
+          </div>
+          <div class="field">
+            <label>Avg daily labor cost ($)</label>
+            <input type="number" class="cost-input" data-cat="cleanup" data-key="dailycost" min="0" value="350" step="0.01">
+          </div>
+          <div class="field">
+            <label>Materials &amp; supplies ($)</label>
+            <input type="number" class="cost-input" data-cat="cleanup" data-key="materials" min="0" placeholder="Enter costs">
+          </div>
+          <div class="field">
+            <label>Infrastructure repair ($)</label>
+            <input type="number" class="cost-input" data-cat="cleanup" data-key="repair" min="0" placeholder="Potholes, curbs, signs">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Panel 6: Administrative & Coordination ── -->
+    <div class="cat-section" data-cat="admin">
+      <h3 class="cat-head" onclick="toggleCat(this)">
+        <span class="arrow"></span>
+        Administrative &amp; Coordination
+        <span class="cat-total" id="catTotal_admin">$0</span>
+      </h3>
+      <div class="cat-panel">
+        <p class="help-tip">
+          Staff time for pre-event planning, inter-agency coordination, permit processing, and other administrative overhead attributable to the event.
+        </p>
+        <div class="input-grid">
+          <div class="field">
+            <label>Staff hours (planning/coord)</label>
+            <input type="number" class="cost-input" data-cat="admin" data-key="hours" min="0" placeholder="Enter hours">
+          </div>
+          <div class="field">
+            <label>Avg hourly rate ($/hr)</label>
+            <input type="number" class="cost-input" data-cat="admin" data-key="rate" min="0" value="50" step="0.01">
+          </div>
+          <div class="field">
+            <label>Permit processing costs ($)</label>
+            <input type="number" class="cost-input" data-cat="admin" data-key="permits" min="0" placeholder="Enter costs">
+          </div>
+          <div class="field">
+            <label>Other admin costs ($)</label>
+            <input type="number" class="cost-input" data-cat="admin" data-key="other" min="0" placeholder="Enter costs">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reimbursement & General Fund inputs -->
+    <div style="margin-top:26px;padding-top:20px;border-top:3px solid var(--teal)">
+      <h2 class="sec-head-sm" style="color:var(--teal-dark)">Reimbursement &amp; Budget Context</h2>
+      <div class="input-grid">
+        <div class="field">
+          <label for="reimbursement">Current Reimbursement Received ($)</label>
+          <input type="number" id="reimbursement" value="0" min="0" placeholder="0">
+        </div>
+        <div class="field">
+          <label for="generalFund">
+            City Annual General Fund ($)
+            <span class="info-mark" data-tip="Enter your city's total annual general fund budget to see the cost gap as a percentage of your operating budget.">i</span>
+          </label>
+          <input type="number" id="generalFund" min="0" placeholder="Enter to see gap as % of budget">
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- HERO GAP MOMENT — CHARCOAL BAND         -->
+<!-- ═══════════════════════════════════════ -->
+<section class="section-charcoal hero-gap" id="comparison-section" aria-label="Cost equity gap">
+  <div class="label">Cost Equity Gap</div>
+  <div class="amount" id="heroGap" aria-live="polite">$0</div>
+  <div class="note" id="heroNote">Enter your city's actual costs above to calculate the reimbursement gap.</div>
+</section>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- VISITOR COST CONTRAST BAND              -->
+<!-- ═══════════════════════════════════════ -->
+<div class="visitor-cost-band" aria-label="Per-visitor cost comparison">
+  <div class="pair">
+    <div class="pair-item">
+      <div class="big-val city-val" id="bandCityPerVisitor">$0.00</div>
+      <div class="big-label city-label">What each fair visitor costs the city</div>
+    </div>
+    <div class="vs">vs.</div>
+    <div class="pair-item">
+      <div class="big-val reimb-val" id="bandReimbPerVisitor">$0.00</div>
+      <div class="big-label reimb-label">What the event operator reimburses per visitor</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- COMPARISON TABLE — OFF-WHITE            -->
+<!-- ═══════════════════════════════════════ -->
+<section class="section-offwhite">
+  <div class="inner">
+    <h2 class="sec-head" style="color:var(--teal)">Cost Comparison by Category</h2>
+    <div class="comp-table-wrap">
+      <table class="comp" id="compTable" role="table" aria-label="Cost comparison by service category">
+        <thead>
+          <tr>
+            <th scope="col">Service Category</th>
+            <th scope="col">Personnel Cost</th>
+            <th scope="col">Non-Personnel</th>
+            <th scope="col">Category Total</th>
+            <th scope="col">Reimbursed</th>
+            <th scope="col">Net Gap</th>
+          </tr>
+        </thead>
+        <tbody id="compBody">
+          <!-- Populated by JS -->
+        </tbody>
+        <tfoot>
+          <tr>
+            <td>Grand Total</td>
+            <td id="tfPersonnel">$0</td>
+            <td id="tfNonPers">$0</td>
+            <td id="tfTotal">$0</td>
+            <td id="tfReimb">$0</td>
+            <td id="tfGap">$0</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- Summary metrics row -->
+    <div class="metrics-row">
+      <div class="metric-block">
+        <div class="val" id="metricPerVisitor">$0.00</div>
+        <div class="mlabel">Cost per visitor</div>
+      </div>
+      <div class="metric-block">
+        <div class="val" id="metricPerResident">$0.00</div>
+        <div class="mlabel">Cost per resident</div>
+      </div>
+      <div class="metric-block">
+        <div class="val" id="metricReimbPerVisitor">$0.00</div>
+        <div class="mlabel">Reimbursed per visitor</div>
+      </div>
+      <div class="metric-block">
+        <div class="val" id="metricGapPct">&mdash;</div>
+        <div class="mlabel">Gap % of general fund</div>
+      </div>
+    </div>
+
+    <!-- Bar chart -->
+    <div class="chart-box no-print" id="barChartBox">
+      <canvas id="barChart" aria-label="Horizontal bar chart showing costs by category"></canvas>
+    </div>
+  </div>
+</section>
+
+<hr class="marigold-rule">
+
+<!-- ═══════════════════════════════════════ -->
+<!-- MULTI-YEAR TREND TRACKER — TEAL         -->
+<!-- ═══════════════════════════════════════ -->
+<section class="section-teal" id="trend-section">
+  <div class="inner">
+    <h2 class="sec-head">Multi-Year Trend Tracker</h2>
+    <p style="font-size:13px;color:var(--teal-light);margin-bottom:16px;max-width:680px">
+      Log cost data for up to 5 years to illustrate the cumulative burden. The equity argument for SF3068 is a cumulative one: it is not just that the cost is large this year. It is that the cities have absorbed this cost year after year with no relief.
+    </p>
+    <table class="trend" id="trendTable" role="table" aria-label="Multi-year cost trend data">
+      <thead>
+        <tr>
+          <th scope="col">Year</th>
+          <th scope="col">Total Cost ($)</th>
+          <th scope="col">Reimbursement ($)</th>
+          <th scope="col">Attendance</th>
+          <th scope="col">Gap ($)</th>
+        </tr>
+      </thead>
+      <tbody id="trendBody">
+        <!-- 5 rows generated by JS on load -->
+      </tbody>
+    </table>
+    <div class="trend-note" id="trendNote" aria-live="polite"></div>
+
+    <div class="chart-box no-print" style="margin-top:24px">
+      <canvas id="trendChart" aria-label="Line chart showing cost and reimbursement trends over years"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- CLAIM DOCUMENT — OFF-WHITE (PRINTABLE)  -->
+<!-- ═══════════════════════════════════════ -->
+<section class="section-offwhite" id="summary-section">
+  <div class="inner-narrow" style="margin-bottom:24px;text-align:center">
+    <h2 class="sec-head" style="color:var(--teal)">Reimbursement Claim Document</h2>
+    <p style="font-size:13px;color:var(--gray-mid);margin-bottom:6px">
+      This document auto-generates from your inputs. Edit any text below before printing.
+    </p>
+    <p style="font-size:12px;color:var(--gray-mid);margin-bottom:16px">
+      When printed, only this document appears — input panels and navigation are hidden.
+    </p>
+    <button class="btn btn-marigold no-print" onclick="window.print()" aria-label="Print the reimbursement claim document">
+      Print Claim Document
+    </button>
+    <button class="btn btn-teal no-print" style="margin-left:10px" onclick="resetAll()" aria-label="Clear all entered data">
+      Reset All Data
+    </button>
+  </div>
+
+  <div class="claim-doc" id="claimDoc">
+    <div class="doc-header">
+      <h1 contenteditable="true" id="claimTitle">Municipal Event Cost Reimbursement Claim</h1>
+      <p>
+        <span id="claimCityEvent">City of Falcon Heights &mdash; Minnesota State Fair</span>
+        &nbsp;|&nbsp; Claim Period: <span contenteditable="true" id="claimPeriod">2025</span>
+        &nbsp;|&nbsp; Prepared: <span id="claimDate"></span>
+      </p>
+    </div>
+
+    <h2>Executive Summary</h2>
+    <p contenteditable="true" id="claimExecSummary">
+      [This section will auto-populate when cost data is entered in the calculator above.]
+    </p>
+
+    <h3>Cost Detail by Service Category</h3>
+    <table id="claimCostTable">
+      <thead>
+        <tr>
+          <th scope="col">Category</th>
+          <th scope="col">Personnel</th>
+          <th scope="col">Non-Personnel</th>
+          <th scope="col">Total</th>
+        </tr>
+      </thead>
+      <tbody id="claimCostBody">
+        <!-- Populated by JS -->
+      </tbody>
+      <tfoot>
+        <tr>
+          <td>Grand Total</td>
+          <td id="claimPers">$0</td>
+          <td id="claimNonPers">$0</td>
+          <td id="claimTotal">$0</td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <h3>Per-Visitor and Per-Resident Impact</h3>
+    <p id="claimMetrics">Enter cost data in the calculator to generate impact metrics.</p>
+
+    <div id="claimTrendSection" style="display:none">
+      <h3>Multi-Year Cost Trend</h3>
+      <table id="claimTrendTable">
+        <thead>
+          <tr>
+            <th scope="col">Year</th>
+            <th scope="col">Total Cost</th>
+            <th scope="col">Reimbursement</th>
+            <th scope="col">Gap</th>
+          </tr>
+        </thead>
+        <tbody id="claimTrendBody"></tbody>
+      </table>
+      <p id="claimTrendNote" style="font-style:italic;margin-top:10px;font-size:13px"></p>
+    </div>
+
+    <div class="statutory">
+      <h3 style="margin-top:0">Statutory Basis</h3>
+      <!-- VERIFY: Statutory citation from software brief — matches SF3068 language -->
+      Minnesota Statutes, section 37.13, subdivision 1, as amended by 2025 Session Laws &mdash; requires the State Agricultural Society to reimburse host cities for public safety, fire, emergency medical services, traffic management, sanitation, and neighborhood cleanup costs incurred as a result of events held on the fairgrounds. (SF3068 / companion HF3099, 2025 session; chief author Sen. Clare Oumou Verbeten, SD-66.)
+    </div>
+
+    <h3>Certification</h3>
+    <p contenteditable="true" id="claimCertification">
+      City of <span class="cert-city">Falcon Heights</span> certifies that the above cost figures reflect actual expenditures as documented in city financial records for the stated period.
+    </p>
+
+    <div class="sig-block">
+      <div><div class="sig-line">Mayor</div></div>
+      <div><div class="sig-line">Finance Director</div></div>
+      <div><div class="sig-line">Date</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  A resource for <strong>SD-66</strong> and Minnesota host cities. Built with AI for Sen. Clare Oumou Verbeten.
+  Statutory references reflect Minnesota law as of 2025. This tool generates cost documentation
+  for informational and advocacy purposes; consult your city attorney for legal advice.
+</footer>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- JAVASCRIPT                              -->
+<!-- ═══════════════════════════════════════ -->
+<script>
+(function () {
+  'use strict';
+
+  /* ───────────────────────────────────────
+     CONFETTI PARTICLE GENERATOR
+     ─────────────────────────────────────── */
+  var overlay = document.getElementById('confettiOverlay');
+  var CONFETTI_COUNT = 60;
+  for (var i = 0; i < CONFETTI_COUNT; i++) {
+    var p = document.createElement('div');
+    p.className = 'confetti-particle';
+    p.style.left = (Math.random() * 100) + 'vw';
+    p.style.animationDelay = (Math.random() * 0.9) + 's';
+    p.style.animationDuration = (1.5 + Math.random() * 0.9) + 's';
+    overlay.appendChild(p);
+  }
+  setTimeout(function () { overlay.remove(); }, 3200);
+
+  /* ───────────────────────────────────────
+     SET TODAY'S DATE ON CLAIM DOC
+     ─────────────────────────────────────── */
+  document.getElementById('claimDate').textContent =
+    new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+  /* ───────────────────────────────────────
+     CATEGORY DEFINITIONS
+     Maps each category to its input keys
+     so we know how to calculate personnel
+     vs. non-personnel costs.
+     ─────────────────────────────────────── */
+  var categories = [
+    { key: 'police',     name: 'Public Safety / Police',            type: 'standard', nonPersonnelKeys: ['equip', 'mutual'] },
+    { key: 'fire',       name: 'Fire and EMS',                      type: 'standard', nonPersonnelKeys: ['equip', 'ambulance'] },
+    { key: 'traffic',    name: 'Traffic Management',                type: 'standard', nonPersonnelKeys: ['equip', 'infra'] },
+    { key: 'sanitation', name: 'Sanitation Services',               type: 'standard', nonPersonnelKeys: ['equip', 'disposal'] },
+    { key: 'cleanup',    name: 'Neighborhood Cleanup & Restoration',type: 'cleanup',  nonPersonnelKeys: ['materials', 'repair'] },
+    { key: 'admin',      name: 'Administrative & Coordination',     type: 'admin',    nonPersonnelKeys: ['permits', 'other'] }
+  ];
+
+  /* ───────────────────────────────────────
+     UTILITY FUNCTIONS
+     ─────────────────────────────────────── */
+  function getVal(cat, key) {
+    var el = document.querySelector('.cost-input[data-cat="' + cat + '"][data-key="' + key + '"]');
+    return el ? (parseFloat(el.value) || 0) : 0;
+  }
+
+  function fmt(n) {
+    return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  }
+
+  function fmt2(n) {
+    return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function fmtM(n) {
+    if (Math.abs(n) >= 1e6) return '$' + (n / 1e6).toFixed(1) + 'M';
+    if (Math.abs(n) >= 1e3) return '$' + (n / 1e3).toFixed(0) + 'K';
+    return fmt(n);
+  }
+
+  function fmtPct(n) {
+    return n.toFixed(1) + '%';
+  }
+
+  /* ───────────────────────────────────────
+     CALCULATE A SINGLE CATEGORY'S COSTS
+     Returns { personnel, nonPers, total }
+     ─────────────────────────────────────── */
+  function calcCategory(cat) {
+    var personnel = 0;
+    var nonPers = 0;
+    var days = parseFloat(document.getElementById('eventDays').value) || 1;
+
+    if (cat.type === 'cleanup') {
+      // Cleanup uses staff-days x daily cost
+      personnel = getVal(cat.key, 'staffdays') * getVal(cat.key, 'dailycost');
+    } else if (cat.type === 'admin') {
+      // Admin uses hours x rate (no event-days multiplier)
+      personnel = getVal(cat.key, 'hours') * getVal(cat.key, 'rate');
+    } else {
+      // Standard: staff x hours x rate x days
+      var staff = getVal(cat.key, 'staff');
+      var rate = getVal(cat.key, 'rate');
+      var hrs = getVal(cat.key, 'hours');
+      personnel = staff * rate * hrs * days;
+    }
+
+    // Sum non-personnel keys
+    cat.nonPersonnelKeys.forEach(function (k) {
+      nonPers += getVal(cat.key, k);
+    });
+
+    return { personnel: personnel, nonPers: nonPers, total: personnel + nonPers };
+  }
+
+  /* ───────────────────────────────────────
+     UPDATE ALL OUTPUTS
+     Called on every input change.
+     ─────────────────────────────────────── */
+  function updateAll() {
+    var attendance = parseFloat(document.getElementById('attendance').value) || 1;
+    var pop = parseFloat(document.getElementById('cityPop').value) || 1;
+    var reimb = parseFloat(document.getElementById('reimbursement').value) || 0;
+    var gf = parseFloat(document.getElementById('generalFund').value) || 0;
+    var cityName = document.getElementById('cityName').value || '[City]';
+    var eventName = document.getElementById('eventName').value || '[Event]';
+    var operatorType = document.getElementById('operatorType').value;
+
+    var totalPers = 0;
+    var totalNonPers = 0;
+    var grandTotal = 0;
+    var rows = [];
+    var barLabels = [];
+    var barCosts = [];
+
+    // Calculate each category
+    categories.forEach(function (cat) {
+      var c = calcCategory(cat);
+      totalPers += c.personnel;
+      totalNonPers += c.nonPers;
+      grandTotal += c.total;
+      rows.push({ name: cat.name, personnel: c.personnel, nonPers: c.nonPers, total: c.total });
+      barLabels.push(cat.name);
+      barCosts.push(c.total);
+
+      // Update inline category total
+      var catTotalEl = document.getElementById('catTotal_' + cat.key);
+      if (catTotalEl) {
+        catTotalEl.textContent = c.total > 0 ? fmt(c.total) : '$0';
+        catTotalEl.style.color = c.total > 0 ? 'var(--fair-red)' : 'var(--gray-mid)';
+      }
+    });
+
+    var gap = grandTotal - reimb;
+
+    /* ── Comparison Table ── */
+    var tbody = document.getElementById('compBody');
+    tbody.innerHTML = '';
+    rows.forEach(function (r) {
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td>' + r.name + '</td>' +
+        '<td>' + fmt(r.personnel) + '</td>' +
+        '<td>' + fmt(r.nonPers) + '</td>' +
+        '<td>' + fmt(r.total) + '</td>' +
+        '<td>' + fmt(0) + '</td>' +
+        '<td>' + fmt(r.total) + '</td>';
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById('tfPersonnel').textContent = fmt(totalPers);
+    document.getElementById('tfNonPers').textContent = fmt(totalNonPers);
+    document.getElementById('tfTotal').textContent = fmt(grandTotal);
+    document.getElementById('tfReimb').textContent = fmt(reimb);
+    document.getElementById('tfGap').textContent = fmt(gap);
+
+    /* ── Hero Gap ── */
+    document.getElementById('heroGap').textContent = fmtM(gap);
+    if (grandTotal > 0) {
+      document.getElementById('heroNote').textContent =
+        cityName + ' absorbs ' + fmt(grandTotal) + ' in event costs. The ' +
+        eventName + ' operator reimburses ' + fmt(reimb) + '.';
+    } else {
+      document.getElementById('heroNote').textContent =
+        'Enter your city\'s actual costs above to calculate the reimbursement gap.';
+    }
+
+    /* ── Visitor Cost Contrast Band ── */
+    var perVisitor = attendance > 0 ? grandTotal / attendance : 0;
+    var reimbPerVisitor = attendance > 0 ? reimb / attendance : 0;
+    document.getElementById('bandCityPerVisitor').textContent = fmt2(perVisitor);
+    document.getElementById('bandReimbPerVisitor').textContent = fmt2(reimbPerVisitor);
+
+    /* ── Per-Unit Metrics Row ── */
+    document.getElementById('metricPerVisitor').textContent = fmt2(perVisitor);
+    document.getElementById('metricPerResident').textContent = pop > 0 ? fmt2(grandTotal / pop) : '$0.00';
+    document.getElementById('metricReimbPerVisitor').textContent = fmt2(reimbPerVisitor);
+    document.getElementById('metricGapPct').textContent =
+      gf > 0 ? fmtPct((gap / gf) * 100) : 'Enter general fund';
+
+    /* ── Bar Chart ── */
+    updateBarChart(barLabels, barCosts);
+
+    /* ── Claim Document Updates ── */
+    document.getElementById('claimCityEvent').innerHTML =
+      'City of ' + cityName + ' &mdash; ' + eventName;
+
+    document.querySelectorAll('.cert-city').forEach(function (el) {
+      el.textContent = cityName;
+    });
+
+    // Claim cost table
+    var clBody = document.getElementById('claimCostBody');
+    clBody.innerHTML = '';
+    rows.forEach(function (r) {
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td>' + r.name + '</td>' +
+        '<td>' + fmt(r.personnel) + '</td>' +
+        '<td>' + fmt(r.nonPers) + '</td>' +
+        '<td>' + fmt(r.total) + '</td>';
+      clBody.appendChild(tr);
+    });
+    document.getElementById('claimPers').textContent = fmt(totalPers);
+    document.getElementById('claimNonPers').textContent = fmt(totalNonPers);
+    document.getElementById('claimTotal').textContent = fmt(grandTotal);
+
+    // Claim executive summary (auto-generated template)
+    if (grandTotal > 0) {
+      var yrs = countTrendYears();
+      var yrText = yrs > 1 ? ' over ' + yrs + ' documented years' : '';
+      var execText =
+        'The City of ' + cityName + ' incurred ' + fmt(grandTotal) +
+        ' in direct costs providing public services for the ' + eventName + yrText + '. ' +
+        'The event operator (' + operatorType + ') reimbursed ' + fmt(reimb) +
+        ', leaving a cost equity gap of ' + fmt(gap) + '. ' +
+        'This amounts to ' + fmt2(perVisitor) + ' per visitor and ' +
+        fmt2(grandTotal / pop) + ' per city resident.';
+
+      if (gf > 0) {
+        execText += ' The gap represents ' + fmtPct((gap / gf) * 100) +
+          ' of the city\'s annual general fund.';
+      }
+
+      execText += ' Under Minnesota Statutes, section 37.13, subdivision 1 (as amended by SF3068, 2025), ' +
+        'the city is entitled to reimbursement for these costs.';
+
+      document.getElementById('claimExecSummary').textContent = execText;
+    }
+
+    // Claim per-unit metrics
+    if (grandTotal > 0) {
+      var metricsHtml =
+        '<strong>Cost per visitor:</strong> ' + fmt2(perVisitor) + '<br>' +
+        '<strong>Cost per city resident:</strong> ' + fmt2(grandTotal / pop) + '<br>' +
+        '<strong>Reimbursed per visitor:</strong> ' + fmt2(reimbPerVisitor);
+      if (gf > 0) {
+        metricsHtml += '<br><strong>Gap as % of general fund:</strong> ' + fmtPct((gap / gf) * 100);
+      }
+      document.getElementById('claimMetrics').innerHTML = metricsHtml;
+    } else {
+      document.getElementById('claimMetrics').textContent =
+        'Enter cost data in the calculator to generate impact metrics.';
+    }
+
+    // Persist
+    saveToLocalStorage();
+  }
+
+  /* ───────────────────────────────────────
+     BAR CHART (Chart.js, horizontal)
+     ─────────────────────────────────────── */
+  var barChartInstance = null;
+
+  function updateBarChart(labels, costs) {
+    var box = document.getElementById('barChartBox');
+    if (typeof Chart === 'undefined') {
+      box.innerHTML = '<p class="chart-fallback">Chart.js unavailable offline. Refer to the comparison table above for data.</p>';
+      return;
+    }
+
+    var ctx = document.getElementById('barChart');
+    if (!ctx) return;
+    if (barChartInstance) barChartInstance.destroy();
+
+    var chartColors = [
+      '#C0392B', // Police — fairground red
+      '#e74c3c', // Fire — lighter red
+      '#00838f', // Traffic — teal
+      '#5D6D7E', // Sanitation — asphalt gray
+      '#f9a825', // Cleanup — marigold
+      '#1E8449'  // Admin — civic green
+    ];
+
+    barChartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Category Cost ($)',
+          data: costs,
+          backgroundColor: chartColors,
+          borderWidth: 0,
+          borderRadius: 3
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function (ctx) { return fmt(ctx.raw); }
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+              callback: function (v) { return fmtM(v); },
+              color: '#455a64',
+              font: { family: 'Lucida Console, Monaco, monospace', size: 11 }
+            },
+            grid: { color: '#e0e0e0' }
+          },
+          y: {
+            ticks: {
+              color: '#263238',
+              font: { family: 'Verdana, Geneva, sans-serif', size: 11 }
+            },
+            grid: { display: false }
+          }
+        }
+      }
+    });
+  }
+
+  /* ───────────────────────────────────────
+     MULTI-YEAR TREND TRACKER
+     ─────────────────────────────────────── */
+  var currentYear = new Date().getFullYear();
+  var trendBody = document.getElementById('trendBody');
+
+  // Generate 5 year rows (current year first, then 4 prior)
+  for (var y = 0; y < 5; y++) {
+    var yr = currentYear - y;
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td>' + yr + '</td>' +
+      '<td><input type="number" class="trend-cost" data-yr="' + yr + '" min="0" placeholder="Enter total cost"></td>' +
+      '<td><input type="number" class="trend-reimb" data-yr="' + yr + '" min="0" placeholder="0"></td>' +
+      '<td><input type="number" class="trend-att" data-yr="' + yr + '" min="0" placeholder="Attendance"></td>' +
+      '<td class="trend-gap" data-yr="' + yr + '">$0</td>';
+    trendBody.appendChild(tr);
+  }
+
+  function countTrendYears() {
+    var n = 0;
+    document.querySelectorAll('.trend-cost').forEach(function (el) {
+      if (parseFloat(el.value) > 0) n++;
+    });
+    return n;
+  }
+
+  var trendChartInstance = null;
+
+  function updateTrend() {
+    var years = [];
+    var costs = [];
+    var reimbs = [];
+    var gaps = [];
+    var hasData = false;
+
+    document.querySelectorAll('.trend-cost').forEach(function (el) {
+      var yr = el.dataset.yr;
+      var cost = parseFloat(el.value) || 0;
+      var reimbEl = document.querySelector('.trend-reimb[data-yr="' + yr + '"]');
+      var reimb = reimbEl ? (parseFloat(reimbEl.value) || 0) : 0;
+      var gapEl = document.querySelector('.trend-gap[data-yr="' + yr + '"]');
+      if (gapEl) gapEl.textContent = fmt(cost - reimb);
+
+      if (cost > 0) {
+        hasData = true;
+        years.unshift(parseInt(yr));
+        costs.unshift(cost);
+        reimbs.unshift(reimb);
+        gaps.unshift(cost - reimb);
+      }
+    });
+
+    // Generate trend note
+    var noteEl = document.getElementById('trendNote');
+    if (years.length >= 2) {
+      var startCost = costs[0];
+      var endCost = costs[costs.length - 1];
+      var pctChange = startCost > 0 ? ((endCost - startCost) / startCost * 100).toFixed(0) : 0;
+      var totalReimb = reimbs.reduce(function (a, b) { return a + b; }, 0);
+      var cumulativeGap = gaps.reduce(function (a, b) { return a + b; }, 0);
+
+      var noteText = 'Over ' + years.length + ' years (' + years[0] + '\u2013' +
+        years[years.length - 1] + '), hosting costs ';
+
+      if (parseInt(pctChange) > 0) {
+        noteText += 'grew ' + pctChange + '%';
+      } else if (parseInt(pctChange) < 0) {
+        noteText += 'decreased ' + Math.abs(pctChange) + '%';
+      } else {
+        noteText += 'remained flat';
+      }
+
+      if (totalReimb === 0) {
+        noteText += ' while reimbursement remained at $0.';
+      } else {
+        noteText += ' while total reimbursement was ' + fmt(totalReimb) + '.';
+      }
+
+      noteText += ' Cumulative unreimbursed cost: ' + fmt(cumulativeGap) + '.';
+
+      // CAGR calculation
+      if (years.length > 1 && startCost > 0 && endCost > 0) {
+        var n = years.length - 1;
+        var cagr = (Math.pow(endCost / startCost, 1 / n) - 1) * 100;
+        noteText += ' Cost CAGR: ' + cagr.toFixed(1) + '%.';
+      }
+
+      noteEl.textContent = noteText;
+    } else {
+      noteEl.textContent = hasData
+        ? 'Enter at least two years of data to see trend analysis.'
+        : '';
+    }
+
+    // Update claim document trend section
+    var claimTrendSec = document.getElementById('claimTrendSection');
+    if (years.length >= 2) {
+      claimTrendSec.style.display = 'block';
+      var ctb = document.getElementById('claimTrendBody');
+      ctb.innerHTML = '';
+      years.forEach(function (yr, i) {
+        var tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td>' + yr + '</td>' +
+          '<td>' + fmt(costs[i]) + '</td>' +
+          '<td>' + fmt(reimbs[i]) + '</td>' +
+          '<td>' + fmt(gaps[i]) + '</td>';
+        ctb.appendChild(tr);
+      });
+      document.getElementById('claimTrendNote').textContent = noteEl.textContent;
+    } else {
+      claimTrendSec.style.display = 'none';
+    }
+
+    // Trend chart
+    updateTrendChart(years, costs, reimbs);
+    saveToLocalStorage();
+  }
+
+  function updateTrendChart(years, costs, reimbs) {
+    if (typeof Chart === 'undefined') return;
+    if (years.length < 2) return;
+
+    var ctx = document.getElementById('trendChart');
+    if (!ctx) return;
+    if (trendChartInstance) trendChartInstance.destroy();
+
+    trendChartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: years,
+        datasets: [
+          {
+            label: 'Total Cost',
+            data: costs,
+            borderColor: '#C0392B',
+            backgroundColor: 'rgba(192, 57, 43, 0.12)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 5,
+            pointBackgroundColor: '#C0392B',
+            borderWidth: 2.5
+          },
+          {
+            label: 'Reimbursement',
+            data: reimbs,
+            borderColor: '#1E8449',
+            borderDash: [6, 4],
+            backgroundColor: 'transparent',
+            tension: 0.3,
+            pointRadius: 5,
+            pointBackgroundColor: '#1E8449',
+            borderWidth: 2.5
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            labels: {
+              color: '#eceff1',
+              font: { family: 'Verdana, Geneva, sans-serif', size: 11 }
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: function (ctx) { return ctx.dataset.label + ': ' + fmt(ctx.raw); }
+            }
+          }
+        },
+        scales: {
+          y: {
+            ticks: {
+              callback: function (v) { return fmtM(v); },
+              color: '#b0bec5',
+              font: { family: 'Lucida Console, Monaco, monospace', size: 11 }
+            },
+            grid: { color: 'rgba(255, 255, 255, 0.08)' }
+          },
+          x: {
+            ticks: {
+              color: '#b0bec5',
+              font: { family: 'Verdana, Geneva, sans-serif', size: 11 }
+            },
+            grid: { display: false }
+          }
+        }
+      }
+    });
+  }
+
+  /* ───────────────────────────────────────
+     CATEGORY PANEL TOGGLE
+     ─────────────────────────────────────── */
+  window.toggleCat = function (el) {
+    el.classList.toggle('open');
+    var panel = el.nextElementSibling;
+    panel.classList.toggle('open');
+  };
+
+  /* ───────────────────────────────────────
+     BACKGROUND INFO TOGGLE
+     ─────────────────────────────────────── */
+  window.toggleBg = function () {
+    var info = document.getElementById('bgInfo');
+    var btn = info.previousElementSibling;
+    info.classList.toggle('open');
+    btn.setAttribute('aria-expanded', info.classList.contains('open'));
+  };
+
+  /* ───────────────────────────────────────
+     RESET ALL DATA
+     ─────────────────────────────────────── */
+  window.resetAll = function () {
+    if (!confirm('Clear all entered cost data and trend data? This cannot be undone.')) return;
+    localStorage.removeItem('hostcity_data');
+
+    // Reset cost inputs (but keep default rates)
+    document.querySelectorAll('.cost-input').forEach(function (el) {
+      if (['rate', 'dailycost'].indexOf(el.dataset.key) === -1) {
+        el.value = '';
+      }
+    });
+
+    // Reset trend inputs
+    document.querySelectorAll('.trend-cost, .trend-reimb, .trend-att').forEach(function (el) {
+      el.value = '';
+    });
+
+    // Reset reimbursement and general fund
+    document.getElementById('reimbursement').value = '0';
+    document.getElementById('generalFund').value = '';
+
+    updateAll();
+    updateTrend();
+  };
+
+  /* ───────────────────────────────────────
+     LOCAL STORAGE — PERSIST INPUTS
+     ─────────────────────────────────────── */
+  function saveToLocalStorage() {
+    try {
+      var data = {};
+
+      // Named inputs
+      ['cityName', 'eventName', 'operatorType', 'eventDays', 'attendance',
+       'cityPop', 'reimbursement', 'generalFund'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) data[id] = el.value;
+      });
+
+      // Cost inputs
+      document.querySelectorAll('.cost-input').forEach(function (el) {
+        var id = el.dataset.cat + '_' + el.dataset.key;
+        data[id] = el.value;
+      });
+
+      // Trend inputs
+      document.querySelectorAll('.trend-cost').forEach(function (el) {
+        data['tc_' + el.dataset.yr] = el.value;
+      });
+      document.querySelectorAll('.trend-reimb').forEach(function (el) {
+        data['tr_' + el.dataset.yr] = el.value;
+      });
+      document.querySelectorAll('.trend-att').forEach(function (el) {
+        data['ta_' + el.dataset.yr] = el.value;
+      });
+
+      localStorage.setItem('hostcity_data', JSON.stringify(data));
+    } catch (e) {
+      // localStorage unavailable — silently fail
+    }
+  }
+
+  function loadFromLocalStorage() {
+    try {
+      var raw = localStorage.getItem('hostcity_data');
+      if (!raw) return;
+      var data = JSON.parse(raw);
+
+      // Named inputs
+      ['cityName', 'eventName', 'operatorType', 'eventDays', 'attendance',
+       'cityPop', 'reimbursement', 'generalFund'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el && data[id] !== undefined) el.value = data[id];
+      });
+
+      // Cost inputs
+      document.querySelectorAll('.cost-input').forEach(function (el) {
+        var id = el.dataset.cat + '_' + el.dataset.key;
+        if (data[id] !== undefined && data[id] !== '') el.value = data[id];
+      });
+
+      // Trend inputs
+      document.querySelectorAll('.trend-cost').forEach(function (el) {
+        var id = 'tc_' + el.dataset.yr;
+        if (data[id] !== undefined && data[id] !== '') el.value = data[id];
+      });
+      document.querySelectorAll('.trend-reimb').forEach(function (el) {
+        var id = 'tr_' + el.dataset.yr;
+        if (data[id] !== undefined && data[id] !== '') el.value = data[id];
+      });
+      document.querySelectorAll('.trend-att').forEach(function (el) {
+        var id = 'ta_' + el.dataset.yr;
+        if (data[id] !== undefined && data[id] !== '') el.value = data[id];
+      });
+    } catch (e) {
+      // localStorage unavailable — silently fail
+    }
+  }
+
+  /* ───────────────────────────────────────
+     EVENT LISTENERS
+     ─────────────────────────────────────── */
+  var mainInputIds = [
+    'eventDays', 'attendance', 'cityPop', 'reimbursement',
+    'generalFund', 'cityName', 'eventName', 'operatorType'
+  ];
+
+  mainInputIds.forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('input', updateAll);
+      el.addEventListener('change', updateAll);
+    }
+  });
+
+  document.querySelectorAll('.cost-input').forEach(function (el) {
+    el.addEventListener('input', updateAll);
+    el.addEventListener('change', updateAll);
+  });
+
+  document.querySelectorAll('.trend-cost, .trend-reimb, .trend-att').forEach(function (el) {
+    el.addEventListener('input', updateTrend);
+    el.addEventListener('change', updateTrend);
+  });
+
+  /* ───────────────────────────────────────
+     INITIALIZATION
+     ─────────────────────────────────────── */
+  loadFromLocalStorage();
+  updateAll();
+  updateTrend();
+
+})();
+</script>
+</body>
+</html>

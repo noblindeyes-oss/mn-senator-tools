@@ -1,0 +1,1528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MN Legislative Ethics Accountability Dashboard — Sen. John Marty (SD-40)</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Full-width page with sticky left sidebar navigation + scrolling main content area;
+      CSS Grid two-column shell — not a centered single-column card stack.
+   2. Navigation: Vertical sidebar nav list with section anchors and active highlight —
+      not rounded-top tabs, not segmented controls.
+   3. Typography: Georgia serif body text with bold condensed system sans-serif for headers
+      (font-family: 'Arial Narrow', Arial, sans-serif for headers) — newspaper/government-
+      report feel; contrast between serif body and condensed header.
+   Additional: Stats shown as horizontal bar-backed inline numbers, not result-card grid;
+      signal badges are prominent labeled pill badges; section backgrounds use palette
+      colors directly (brick-red header band, steel-blue info band, no parchment anywhere).
+*/
+
+/* ── RESET & BASE ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --brick:     #8B2222;
+  --brick-dk:  #6a1a1a;
+  --steel:     #3A6186;
+  --steel-lt:  #dde8f2;
+  --concrete:  #6B7280;
+  --bg:        #F5F5F0;
+  --text:      #1C1C1C;
+  --border:    #D1D5DB;
+  --green:     #2A5C45;
+  --green-lt:  #d4edda;
+  --yellow:    #C9952A;
+  --yellow-lt: #fff3cd;
+  --alert:     #B91C1C;
+  --alert-lt:  #fde8e8;
+  --white:     #ffffff;
+  --sidebar-w: 220px;
+  --header-h:  72px;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--bg);
+}
+
+/* ── HEADER BAND ── */
+#site-header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: var(--header-h);
+  background: var(--brick);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  z-index: 100;
+  border-bottom: 3px solid var(--brick-dk);
+}
+#site-header .header-inner {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+#site-header h1 {
+  font-family: 'Arial Narrow', Arial, 'Helvetica Neue', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+#site-header .header-sub {
+  font-family: Georgia, serif;
+  font-size: 0.82rem;
+  color: #e8c5c5;
+  font-style: italic;
+}
+.header-badge {
+  margin-left: auto;
+  background: var(--brick-dk);
+  border: 1px solid rgba(255,255,255,0.25);
+  color: #f5d0d0;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+
+/* ── TWO-COLUMN SHELL ── */
+#shell {
+  display: grid;
+  grid-template-columns: var(--sidebar-w) 1fr;
+  margin-top: var(--header-h);
+  min-height: calc(100vh - var(--header-h));
+}
+
+/* ── SIDEBAR ── */
+#sidebar {
+  position: sticky;
+  top: var(--header-h);
+  height: calc(100vh - var(--header-h));
+  overflow-y: auto;
+  background: #1f1f1f;
+  color: #e0e0e0;
+  padding: 24px 0 40px;
+  border-right: 2px solid var(--brick-dk);
+}
+.sidebar-section-label {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #777;
+  padding: 18px 20px 6px;
+}
+#sidebar nav ul { list-style: none; }
+#sidebar nav ul li a {
+  display: block;
+  padding: 9px 20px;
+  color: #c8c8c8;
+  text-decoration: none;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.88rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  border-left: 3px solid transparent;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+#sidebar nav ul li a:hover {
+  background: #2e2e2e;
+  color: #fff;
+  border-left-color: var(--steel);
+}
+#sidebar nav ul li a.active {
+  background: #2a2a2a;
+  color: #fff;
+  border-left-color: var(--brick);
+  font-weight: 700;
+}
+.sidebar-divider {
+  border: none;
+  border-top: 1px solid #333;
+  margin: 14px 20px;
+}
+.sidebar-module-btn {
+  display: block;
+  margin: 6px 16px;
+  padding: 10px 14px;
+  background: transparent;
+  border: 1px solid #444;
+  border-radius: 3px;
+  color: #c8c8c8;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  width: calc(100% - 32px);
+}
+.sidebar-module-btn:hover {
+  background: #2e2e2e;
+  border-color: var(--steel);
+  color: #fff;
+}
+.sidebar-module-btn.active {
+  background: var(--brick);
+  border-color: var(--brick);
+  color: #fff;
+}
+
+/* ── MAIN CONTENT ── */
+#main {
+  padding: 32px 40px 60px;
+  max-width: 900px;
+}
+
+/* ── MODULE PANELS ── */
+.module-panel { display: none; }
+.module-panel.active { display: block; }
+
+/* ── INTRO EPIGRAPH ── */
+.epigraph {
+  margin: 0 0 32px;
+  padding: 28px 40px;
+  background: var(--steel);
+  color: #fff;
+  position: relative;
+}
+.epigraph::before {
+  content: '\201C';
+  font-family: Georgia, serif;
+  font-size: 5rem;
+  line-height: 0.8;
+  color: rgba(255,255,255,0.25);
+  position: absolute;
+  top: 16px;
+  left: 16px;
+}
+.epigraph p {
+  font-family: Georgia, serif;
+  font-size: 1.0rem;
+  font-style: italic;
+  line-height: 1.7;
+  margin-left: 20px;
+}
+.epigraph .source-note {
+  margin-top: 14px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.75rem;
+  font-style: normal;
+  color: rgba(255,255,255,0.7);
+  letter-spacing: 0.03em;
+  margin-left: 20px;
+}
+
+/* ── SECTION HEADERS ── */
+.section-heading {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--brick);
+  border-bottom: 2px solid var(--brick);
+  padding-bottom: 5px;
+  margin: 28px 0 16px;
+}
+.section-heading:first-child { margin-top: 0; }
+
+/* ── SENATOR SELECTOR ── */
+.control-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.control-row label {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--concrete);
+}
+.control-row select,
+.control-row input[type="number"] {
+  font-family: Georgia, serif;
+  font-size: 0.92rem;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--white);
+  color: var(--text);
+  min-width: 220px;
+}
+.control-row select:focus,
+.control-row input:focus {
+  outline: 2px solid var(--steel);
+  outline-offset: 1px;
+}
+
+/* ── PROFILE LAYOUT ── */
+.profile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+.profile-field {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.profile-field:nth-child(odd) { background: var(--white); }
+.profile-field:nth-child(even) { background: #f0f0eb; }
+.profile-field .field-label {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--concrete);
+  margin-bottom: 3px;
+}
+.profile-field .field-value {
+  font-family: Georgia, serif;
+  font-size: 0.92rem;
+  color: var(--text);
+  font-weight: 400;
+}
+.profile-field.full-width {
+  grid-column: 1 / -1;
+}
+
+/* ── FEATURED BADGE ── */
+.featured-badge {
+  display: inline-block;
+  background: var(--brick);
+  color: #fff;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 2px;
+  margin-bottom: 12px;
+}
+
+/* ── SIGNAL BADGES ── */
+.signal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border-radius: 2px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.signal-badge .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.signal-green  { background: var(--green-lt);  color: var(--green);  border: 1px solid var(--green); }
+.signal-green .dot  { background: var(--green); }
+.signal-yellow { background: var(--yellow-lt); color: #7a5a10; border: 1px solid var(--yellow); }
+.signal-yellow .dot { background: var(--yellow); }
+.signal-red    { background: var(--alert-lt);  color: var(--alert);  border: 1px solid var(--alert); }
+.signal-red .dot    { background: var(--alert); }
+
+/* ── PAC FLAG CHIPS ── */
+.flag-chip {
+  display: inline-block;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 2px;
+  margin-right: 4px;
+}
+.flag-yes { background: var(--alert-lt); color: var(--alert); border: 1px solid #f5c0c0; }
+.flag-no  { background: var(--green-lt); color: var(--green); border: 1px solid #b0d9c2; }
+
+/* ── ETHICS NOTES LIST ── */
+.ethics-list {
+  list-style: none;
+  padding: 0;
+}
+.ethics-list li {
+  padding: 7px 0 7px 20px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  font-family: Georgia, serif;
+  font-size: 0.9rem;
+}
+.ethics-list li::before {
+  content: '▸';
+  position: absolute;
+  left: 0;
+  color: var(--steel);
+  font-size: 0.8rem;
+}
+
+/* ── HORIZONTAL STAT BARS ── */
+.stat-bar-row {
+  margin: 8px 0;
+}
+.stat-bar-row .stat-label {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--concrete);
+  margin-bottom: 4px;
+}
+.stat-bar-track {
+  height: 22px;
+  background: #e8e8e4;
+  border-radius: 2px;
+  position: relative;
+  overflow: hidden;
+}
+.stat-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  transition: width 0.5s ease;
+}
+.stat-bar-fill .bar-label {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+}
+
+/* ── CONFLICT DETECTOR ── */
+.conflict-demo-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.conflict-demo-row select {
+  font-family: Georgia, serif;
+  font-size: 0.92rem;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--white);
+  flex: 1;
+  min-width: 180px;
+}
+.conflict-result-box {
+  padding: 20px 24px;
+  border-top: 4px solid;
+  margin: 16px 0;
+  background: var(--white);
+}
+.conflict-result-box.green  { border-color: var(--green); }
+.conflict-result-box.yellow { border-color: var(--yellow); }
+.conflict-result-box.red    { border-color: var(--alert); }
+.conflict-result-box h3 {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--concrete);
+  margin-bottom: 10px;
+}
+.conflict-result-box p {
+  font-family: Georgia, serif;
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: var(--text);
+  margin-top: 10px;
+}
+.conflict-result-box .stat-line {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.85rem;
+  color: var(--concrete);
+  margin-top: 8px;
+}
+.conflict-result-box .legal-cite {
+  margin-top: 14px;
+  padding: 10px 14px;
+  background: var(--steel-lt);
+  border-radius: 2px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.78rem;
+  color: var(--steel);
+  letter-spacing: 0.02em;
+}
+
+/* ── CALC MODULE ── */
+.calc-inputs {
+  background: var(--white);
+  border: 1px solid var(--border);
+  padding: 20px 24px;
+  margin-bottom: 20px;
+}
+.calc-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.calc-row label {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--concrete);
+  min-width: 200px;
+}
+.calc-row input[type="range"] {
+  flex: 1;
+  min-width: 140px;
+  accent-color: var(--brick);
+}
+.calc-row input[type="number"] {
+  font-family: Georgia, serif;
+  font-size: 0.92rem;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--white);
+  width: 110px;
+}
+.range-value {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--brick);
+  min-width: 60px;
+}
+.calc-outputs {
+  margin: 20px 0;
+}
+.calc-output-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.calc-output-row:nth-child(odd) { background: var(--white); }
+.calc-output-row:nth-child(even) { background: #f0f0eb; }
+.calc-output-row .out-label {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--concrete);
+}
+.calc-output-row .out-value {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.calc-output-row.savings .out-value { color: var(--green); }
+.calc-output-row.savings .out-label { color: var(--green); }
+.chart-container {
+  background: var(--white);
+  border: 1px solid var(--border);
+  padding: 20px;
+  margin-top: 20px;
+}
+.chart-title {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--concrete);
+  margin-bottom: 12px;
+}
+#perDiemChart { max-height: 280px; }
+
+/* ── BILL INFO BOX ── */
+.bill-info-band {
+  background: var(--steel);
+  color: var(--white);
+  padding: 16px 20px;
+  margin: 20px 0;
+}
+.bill-info-band h4 {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.bill-info-band p,
+.bill-info-band li {
+  font-family: Georgia, serif;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: rgba(255,255,255,0.9);
+}
+.bill-info-band ul {
+  margin: 8px 0 0 18px;
+}
+.bill-info-band ul li { margin-bottom: 4px; }
+
+/* ── FOOTNOTES ── */
+.footnotes {
+  margin-top: 32px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.footnotes p {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.75rem;
+  color: var(--concrete);
+  line-height: 1.5;
+  margin-bottom: 4px;
+}
+
+/* ── DATA TABLE ── */
+table.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: Georgia, serif;
+  font-size: 0.88rem;
+  margin: 12px 0;
+}
+table.data-table thead th {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--white);
+  background: var(--concrete);
+  padding: 8px 12px;
+  text-align: left;
+}
+table.data-table tbody tr:nth-child(odd)  { background: var(--white); }
+table.data-table tbody tr:nth-child(even) { background: #f0f0eb; }
+table.data-table tbody td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+/* ── DEMO LABEL ── */
+.demo-label {
+  display: inline-block;
+  background: #fff3cd;
+  color: #7a5a10;
+  border: 1px solid var(--yellow);
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 2px;
+  vertical-align: middle;
+  margin-left: 6px;
+}
+
+/* ── FOOTER ── */
+#site-footer {
+  grid-column: 2;
+  background: #1f1f1f;
+  color: #888;
+  padding: 18px 40px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  line-height: 1.6;
+  border-top: 2px solid var(--brick-dk);
+}
+#site-footer a {
+  color: var(--steel);
+  text-decoration: none;
+}
+#site-footer a:hover { text-decoration: underline; }
+
+/* ── PRINT CSS ── */
+@media print {
+  #site-header, #sidebar, #site-footer { display: none !important; }
+  #shell { display: block; margin-top: 0; }
+  #main { padding: 0; max-width: 100%; }
+  .module-panel { display: none !important; }
+  .module-panel.active { display: block !important; }
+  .control-row, .calc-inputs, .conflict-demo-row { display: none !important; }
+  .conflict-result-box { page-break-inside: avoid; }
+  .profile-grid { page-break-inside: avoid; }
+  @page { margin: 1in; }
+  body { font-size: 11pt; color: #000; background: #fff; }
+  .section-heading { color: #000; border-color: #000; }
+  .epigraph { background: #eee; color: #000; }
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  :root { --sidebar-w: 0px; }
+  #shell { grid-template-columns: 1fr; }
+  #sidebar { display: none; }
+  #main { padding: 20px 16px 40px; }
+  .profile-grid { grid-template-columns: 1fr; }
+  #site-footer { grid-column: 1; }
+}
+</style>
+</head>
+<body>
+
+<!-- SITE HEADER -->
+<header id="site-header" role="banner">
+  <div class="header-inner">
+    <h1>MN Legislative Ethics Accountability Dashboard</h1>
+    <span class="header-sub">Financial disclosures · campaign donors · conflict signals · per diem reform</span>
+  </div>
+  <span class="header-badge">Civic Education Tool</span>
+</header>
+
+<!-- TWO-COLUMN SHELL -->
+<div id="shell">
+
+  <!-- SIDEBAR NAV -->
+  <aside id="sidebar" role="navigation" aria-label="Module navigation">
+    <div class="sidebar-section-label">Modules</div>
+    <button class="sidebar-module-btn active" data-module="profile" aria-pressed="true">
+      I. Ethics Profile Viewer
+    </button>
+    <button class="sidebar-module-btn" data-module="conflict" aria-pressed="false">
+      II. Conflict Detector
+    </button>
+    <button class="sidebar-module-btn" data-module="perdiem" aria-pressed="false">
+      III. Per Diem Calculator
+    </button>
+    <hr class="sidebar-divider">
+    <div class="sidebar-section-label">Quick Links</div>
+    <nav>
+      <ul>
+        <li><a href="https://cfboard.sos.state.mn.us" target="_blank" rel="noopener">Campaign Finance Board</a></li>
+        <li><a href="https://www.revisor.mn.gov" target="_blank" rel="noopener">Revisor of Statutes</a></li>
+        <li><a href="https://www.senate.mn/members/" target="_blank" rel="noopener">Senate Member Directory</a></li>
+      </ul>
+    </nav>
+    <hr class="sidebar-divider">
+    <div class="sidebar-section-label">About This Tool</div>
+    <nav>
+      <ul>
+        <li><a href="#" id="print-btn">Print / Export</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main id="main" role="main">
+
+    <!-- ══════════════════════════════════════════════ -->
+    <!-- MODULE 1: ETHICS PROFILE VIEWER               -->
+    <!-- ══════════════════════════════════════════════ -->
+    <section class="module-panel active" id="panel-profile" aria-labelledby="mod1-heading">
+
+      <div class="epigraph">
+        <p>In 1993, Senator John Marty authored the law that banned lobbyist gifts to Minnesota public officials. In 2025, he introduced SF1316 to end per diem payments during regular session. This tool was built to make the accountability framework he has spent his career building visible to any citizen who wants to use it.</p>
+        <p class="source-note">Data: MN Campaign Finance Board public filings · Legislative Salary Council · Office of the Revisor of Statutes · legislator financial disclosure statements. This tool does not update automatically.</p>
+      </div>
+
+      <h2 class="section-heading" id="mod1-heading">I. Legislator Ethics Profile Viewer</h2>
+
+      <div class="control-row">
+        <label for="senator-select">Select Senator:</label>
+        <select id="senator-select" aria-label="Select a Minnesota senator">
+          <!-- Populated by JS -->
+        </select>
+      </div>
+
+      <div id="profile-output">
+        <!-- Populated by JS -->
+      </div>
+
+      <div class="footnotes" id="profile-footnotes">
+        <p>* Campaign finance data reflects the most recent complete filing period available at the MN Campaign Finance Board (cfboard.sos.state.mn.us).</p>
+        <p>* Financial disclosure data from Statements of Economic Interest filed with the MN Senate. Demo senator entries are illustrative only and clearly labeled.</p>
+        <p>* "Per diem eligible" status reflects current law (Minn. Stat. § 3.099). SF1316 (2025) would modify this for regular session.</p>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════ -->
+    <!-- MODULE 2: CONFLICT DETECTOR                   -->
+    <!-- ══════════════════════════════════════════════ -->
+    <section class="module-panel" id="panel-conflict" aria-labelledby="mod2-heading">
+
+      <h2 class="section-heading" id="mod2-heading">II. Conflict Detector — Bill Topic vs. Donor Overlap</h2>
+
+      <p style="font-size:0.92rem; margin-bottom:20px; line-height:1.65;">
+        When a senator votes on legislation that affects a specific industry, do their campaign donors include entities in that industry? Select a senator and a bill topic to generate a three-tier conflict signal.
+      </p>
+
+      <div class="conflict-demo-row">
+        <div style="display:flex;flex-direction:column;gap:6px;flex:1;">
+          <label for="conflict-senator" style="font-family:'Arial Narrow',Arial,sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--concrete);">Senator</label>
+          <select id="conflict-senator" aria-label="Select senator for conflict check">
+            <!-- Populated by JS -->
+          </select>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;flex:1;">
+          <label for="conflict-topic" style="font-family:'Arial Narrow',Arial,sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--concrete);">Bill Topic / Industry</label>
+          <select id="conflict-topic" aria-label="Select bill topic for conflict check">
+            <option value="healthcare">Healthcare / Pharmaceutical Regulation</option>
+            <option value="agriculture">Agricultural Subsidies / Rural Infrastructure</option>
+            <option value="energy">Energy / Utilities / Fossil Fuel Regulation</option>
+            <option value="realestate">Real Estate / Housing / Zoning</option>
+            <option value="finance">Financial Services / Banking Regulation</option>
+            <option value="education">Education / Teacher Pay / School Funding</option>
+            <option value="tobacco">Tobacco / Alcohol / Cannabis Regulation</option>
+            <option value="transportation">Transportation / Highway Contracting</option>
+            <option value="ethics" selected>Campaign Finance / Ethics Reform</option>
+          </select>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;justify-content:flex-end;">
+          <button id="conflict-run" style="padding:9px 20px;background:var(--brick);color:#fff;border:none;border-radius:2px;font-family:'Arial Narrow',Arial,sans-serif;font-size:0.88rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;">Run Check</button>
+        </div>
+      </div>
+
+      <div id="conflict-output">
+        <!-- Populated by JS -->
+      </div>
+
+      <div class="footnotes">
+        <p>* Conflict signals are determined by cross-referencing the senator's campaign donor sector profile against the selected bill topic's affected industry. This is an educational demonstration, not a legal finding.</p>
+        <p>* Under Minnesota law, a legislator is not required to recuse unless they have a direct personal financial interest (Minn. Stat. § 10A). The MN Senate Ethics Committee may review conduct creating the appearance of impropriety.</p>
+        <p>* Demo senator entries use clearly labeled illustrative data. Only John Marty's data is drawn from verified public filings.</p>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════ -->
+    <!-- MODULE 3: PER DIEM REFORM EXPLAINER & CALC    -->
+    <!-- ══════════════════════════════════════════════ -->
+    <section class="module-panel" id="panel-perdiem" aria-labelledby="mod3-heading">
+
+      <h2 class="section-heading" id="mod3-heading">III. Per Diem Reform Explainer &amp; Calculator</h2>
+
+      <div class="bill-info-band" role="region" aria-label="SF1316 bill summary">
+        <h4>SF1316 — Per Diem Prohibition During Regular Session (94th Legislature, 2025–2026)</h4>
+        <p><strong>Full title:</strong> "Per diem payments prohibition during a regular session of the legislature." Introduced February 13, 2025 (Senate journal p. 373). Authors: Marty, Bahr, Putnam, Kupec, Rest. Referred to State and Local Government Committee.</p>
+        <ul>
+          <li>Would prohibit per diem payments to legislators <em>during</em> regular session entirely</li>
+          <li>Restricts compensation to salary, health insurance, retirement contributions, and other compensation specifically authorized by statute</li>
+          <li>Members may still receive per diem when the legislature is not meeting in regular session</li>
+          <li>Effective date as introduced: July 1, 2025</li>
+        </ul>
+      </div>
+
+      <h3 class="section-heading" style="margin-top:24px;">What Is Legislative Per Diem?</h3>
+      <p style="font-size:0.92rem;line-height:1.65;margin-bottom:12px;">
+        Minnesota legislators receive a daily expense allowance (per diem) when the legislature is in session, in addition to their base salary. The per diem rate is set by the Legislative Salary Council under Minn. Stat. § 3.099. Per diem is paid for each day the legislature meets — floor sessions, committee hearings, and caucus days. During a typical regular session (January–May), this accumulates to a substantial supplement beyond salary.
+      </p>
+      <p style="font-size:0.92rem;line-height:1.65;margin-bottom:20px;">
+        Legislators who reside more than 50 miles from the State Capitol receive a higher per diem rate than those who live within 50 miles. The exact current rates are published by the Legislative Salary Council. <strong>Enter the current verified rate below</strong> (see Minn. Stat. § 3.099 or the Legislative Salary Council's current schedule at <a href="https://www.revisor.mn.gov/statutes/cite/3.099" target="_blank" rel="noopener" style="color:var(--steel);">revisor.mn.gov/statutes/cite/3.099</a>).
+      </p>
+
+      <h3 class="section-heading">Calculator — SF1316 Fiscal Impact</h3>
+
+      <div class="calc-inputs" role="form" aria-label="Per diem calculator inputs">
+        <div class="calc-row">
+          <label for="session-days">Session Days (slider)</label>
+          <input type="range" id="session-days" min="60" max="120" value="90" step="1" aria-label="Number of session days, 60 to 120">
+          <span class="range-value" id="session-days-display">90 days</span>
+        </div>
+        <div class="calc-row">
+          <label for="perdiem-rate">Per Diem Rate ($/day) <span class="demo-label">Enter Verified Figure</span></label>
+          <input type="number" id="perdiem-rate" value="96" min="0" step="1" aria-label="Per diem rate in dollars per day. Verify current rate from Minn. Stat. section 3.099">
+          <span style="font-family:'Arial Narrow',Arial,sans-serif;font-size:0.75rem;color:var(--concrete);">Verify: Minn. Stat. § 3.099</span>
+        </div>
+        <div class="calc-row">
+          <label for="leg-count">Number of Legislators Subject to Reform</label>
+          <input type="number" id="leg-count" value="134" min="1" max="201" step="1" aria-label="Number of legislators subject to reform">
+          <span style="font-family:'Arial Narrow',Arial,sans-serif;font-size:0.75rem;color:var(--concrete);">Senate: 67 · House: 67</span>
+        </div>
+        <div class="calc-row">
+          <label for="salary-annual">Annual Salary ($/year)</label>
+          <input type="number" id="salary-annual" value="52009" min="1" step="1" aria-label="Annual legislative salary in dollars">
+          <span style="font-family:'Arial Narrow',Arial,sans-serif;font-size:0.75rem;color:var(--concrete);">Source: Legislative Salary Council — verify current figure</span>
+        </div>
+      </div>
+
+      <div class="calc-outputs" id="calc-outputs" aria-live="polite" aria-label="Calculator results">
+        <!-- Populated by JS -->
+      </div>
+
+      <div class="chart-container">
+        <div class="chart-title">Compensation Breakdown: Per Diem vs. Salary — Current Law vs. SF1316</div>
+        <canvas id="perDiemChart" aria-label="Bar chart comparing per diem and salary under current law versus SF1316" role="img"></canvas>
+        <p id="chart-fallback" style="display:none;font-family:'Arial Narrow',Arial,sans-serif;font-size:0.82rem;color:var(--concrete);margin-top:8px;">Chart unavailable — Chart.js could not be loaded. Values are shown in the table above.</p>
+      </div>
+
+      <div class="footnotes">
+        <p>* Annual salary figure of $52,009 appeared in public sources as of 2023–2024. Verify the current figure from the Legislative Salary Council before relying on this output.</p>
+        <p>* Per diem rate defaults to $96/day as a placeholder. The actual current rate must be verified from Minn. Stat. § 3.099 or the Legislative Salary Council's current published schedule.</p>
+        <p>* SF1316 facts verified from revisor.mn.gov (94th Legislature, 2025–2026). Bill status as of February 2025: referred to State and Local Government Committee.</p>
+        <p>* SF485 (statewide billboard moratorium) also authored by Marty, McEwen, Hawj — introduced January 17, 2025; approved as amended by Transportation Committee April 3, 2025; referred to State and Local Government Committee.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer id="site-footer" role="contentinfo">
+    A resource for Minnesota civic education. Built with AI. Reflects public records available as of April 2026.<br>
+    Source your own data: <a href="https://cfboard.sos.state.mn.us" target="_blank" rel="noopener">cfboard.sos.state.mn.us</a> ·
+    <a href="https://www.revisor.mn.gov" target="_blank" rel="noopener">revisor.mn.gov</a> ·
+    <a href="https://www.senate.mn" target="_blank" rel="noopener">senate.mn</a>
+  </footer>
+
+</div><!-- /#shell -->
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// DATA — All senator records. Verify dollar figures from
+// public sources before presenting as authoritative.
+// Demo entries are clearly labeled; only Marty's data is drawn
+// from verified public filings.
+// ══════════════════════════════════════════════════════════════
+
+const SENATORS = [
+  {
+    id: "marty-40",
+    name: "John Marty",
+    district: "SD-40",
+    party: "DFL",
+    firstElected: 1986,
+    currentTerm: "12th term",
+    location: "Roseville, Ramsey County",
+    committees: ["Finance (Chair)", "State and Local Government", "Legislative Commission to End Poverty (Co-Chair)"],
+    perDiemEligible: true,
+    perDiemNote: "Eligible under current law (Minn. Stat. § 3.099). SF1316 — Marty's own bill — would prohibit this during regular session effective July 1, 2025.",
+    campaignFinance: {
+      acceptsPAC: false,
+      acceptsLobbyist: false,
+      maxContribution: 200,
+      largestDonorSector: "Individual small donors (capped at $200/person)",
+      totalRaisedNote: "See current CFBoard filing at cfboard.sos.state.mn.us",
+      donorOverlapFlags: {}
+    },
+    disclosedInterests: [],
+    disclosedInterestsNote: "No business, investment, or employment interests beyond legislative salary disclosed (per public statements). Statement of Economic Interest on file with MN Senate.",
+    ethicsNotes: [
+      "Author: Minnesota lobbyist gift ban (1993, codified at Minn. Stat. § 10A.071) — one of the first such laws in the country",
+      "Author: Campaign finance reform legislation (1993) — imposed contribution limits and disclosure requirements",
+      "Author: SF1316 (2025) — per diem prohibition during regular session",
+      "Author: SF485 (2025) — statewide billboard moratorium",
+      "Co-chair: Legislative Commission to End Poverty",
+      "B.A. in Ethics, St. Olaf College (1978); son of theologian Dr. Martin Marty"
+    ],
+    conflictProfile: {
+      healthcare: "green",
+      agriculture: "green",
+      energy: "green",
+      realestate: "green",
+      finance: "green",
+      education: "green",
+      tobacco: "green",
+      transportation: "green",
+      ethics: "green"
+    },
+    conflictNotes: {
+      ethics: "Sen. Marty accepts no PAC, lobbyist, or special interest contributions. His campaign is funded exclusively by individual donors capped at $200. On SF1316 — the per diem prohibition bill he authored — he is the subject of the reform, not a beneficiary of the status quo. No donor overlap with any regulated industry sector has been identified."
+    },
+    featured: true,
+    isDemo: false
+  },
+  {
+    id: "demo-agri",
+    name: "Demo Sen. A. Thompson",
+    district: "SD-XX (Demo)",
+    party: "Demo Party",
+    firstElected: 2010,
+    currentTerm: "Demo entry",
+    location: "[Rural district — demo data]",
+    committees: ["Agriculture, Broadband, and Rural Development", "Environment, Climate, and Legacy"],
+    perDiemEligible: true,
+    perDiemNote: "Eligible under current law (Minn. Stat. § 3.099). Resides more than 50 miles from Capitol — receives higher per diem rate.",
+    campaignFinance: {
+      acceptsPAC: true,
+      acceptsLobbyist: true,
+      maxContribution: 600,
+      largestDonorSector: "Agricultural industry PACs and cooperatives (illustrative)",
+      totalRaisedNote: "[Demo figure — illustrative only]",
+      donorOverlapFlags: {
+        agriculture: { pct: 34, note: "Approx. 34% of total contributions from agricultural sector PACs and cooperatives [DEMO — illustrative]" },
+        transportation: { pct: 12, note: "Approx. 12% from transportation/infrastructure sector [DEMO — illustrative]" }
+      }
+    },
+    disclosedInterests: [
+      "Ownership interest in family farm operation [DEMO — illustrative]",
+      "Board member, regional agricultural cooperative [DEMO — illustrative]"
+    ],
+    disclosedInterestsNote: "All entries are illustrative demo data. Not based on any real senator's filings.",
+    ethicsNotes: [],
+    conflictProfile: {
+      healthcare: "green",
+      agriculture: "red",
+      energy: "green",
+      realestate: "green",
+      finance: "green",
+      education: "green",
+      tobacco: "green",
+      transportation: "yellow",
+      ethics: "yellow"
+    },
+    conflictNotes: {
+      agriculture: "Sen. Thompson (Demo) serves on the Agriculture committee which will hear bills affecting the agricultural industry. Their campaign has received approximately 34% of its total contributions from donors in this sector, AND they sit on the committee with direct jurisdiction over agricultural legislation. [This is a DEMO entry illustrating a RED signal — all data is illustrative.]",
+      transportation: "Sen. Thompson (Demo) has received approximately 12% of total contributions from transportation/infrastructure sector donors. The committee assignment does not directly cover transportation. [DEMO — illustrative only.]",
+      ethics: "Sen. Thompson (Demo) accepts PAC contributions and lobbyist money, including from regulated industries. Their campaign finance profile would receive scrutiny under the transparency framework SF1316 advances. [DEMO — illustrative.]"
+    },
+    featured: false,
+    isDemo: true
+  },
+  {
+    id: "demo-health",
+    name: "Demo Sen. B. Paulson",
+    district: "SD-YY (Demo)",
+    party: "Demo Party",
+    firstElected: 2016,
+    currentTerm: "Demo entry",
+    location: "[Suburban district — demo data]",
+    committees: ["Health and Human Services Finance and Policy", "Judiciary and Public Safety"],
+    perDiemEligible: true,
+    perDiemNote: "Eligible under current law (Minn. Stat. § 3.099).",
+    campaignFinance: {
+      acceptsPAC: true,
+      acceptsLobbyist: false,
+      maxContribution: 600,
+      largestDonorSector: "Healthcare and pharmaceutical sector (illustrative)",
+      totalRaisedNote: "[Demo figure — illustrative only]",
+      donorOverlapFlags: {
+        healthcare: { pct: 28, note: "Approx. 28% of contributions from healthcare/pharma sector PACs [DEMO — illustrative]" }
+      }
+    },
+    disclosedInterests: [
+      "Employed part-time as a registered nurse [DEMO — illustrative]"
+    ],
+    disclosedInterestsNote: "All entries are illustrative demo data.",
+    ethicsNotes: [],
+    conflictProfile: {
+      healthcare: "red",
+      agriculture: "green",
+      energy: "green",
+      realestate: "green",
+      finance: "green",
+      education: "green",
+      tobacco: "yellow",
+      transportation: "green",
+      ethics: "yellow"
+    },
+    conflictNotes: {
+      healthcare: "Sen. Paulson (Demo) serves on Health and Human Services Finance and Policy, which will hear bills affecting the healthcare/pharmaceutical industry. Their campaign has received approximately 28% of its contributions from this sector, AND they sit on the committee with direct jurisdiction. [DEMO — illustrative RED signal.]",
+      tobacco: "Sen. Paulson (Demo) has no direct committee assignment over tobacco/cannabis regulation, but the healthcare committee has ancillary jurisdiction. Some donor overlap noted. [DEMO — illustrative YELLOW signal.]",
+      ethics: "Sen. Paulson (Demo) accepts PAC contributions. No lobbyist money. Campaign finance profile is mixed. [DEMO — illustrative.]"
+    },
+    featured: false,
+    isDemo: true
+  },
+  {
+    id: "demo-energy",
+    name: "Demo Sen. C. Erikson",
+    district: "SD-ZZ (Demo)",
+    party: "Demo Party",
+    firstElected: 2008,
+    currentTerm: "Demo entry",
+    location: "[Outstate district — demo data]",
+    committees: ["Energy, Utilities, Environment, and Climate", "Capital Investment"],
+    perDiemEligible: true,
+    perDiemNote: "Eligible under current law (Minn. Stat. § 3.099). Resides more than 50 miles from Capitol.",
+    campaignFinance: {
+      acceptsPAC: true,
+      acceptsLobbyist: true,
+      maxContribution: 600,
+      largestDonorSector: "Energy/utilities sector PACs and corporate donors (illustrative)",
+      totalRaisedNote: "[Demo figure — illustrative only]",
+      donorOverlapFlags: {
+        energy: { pct: 41, note: "Approx. 41% of contributions from energy/utilities sector [DEMO — illustrative]" },
+        transportation: { pct: 15, note: "Approx. 15% from transportation/infrastructure sector [DEMO — illustrative]" }
+      }
+    },
+    disclosedInterests: [
+      "Stockholder in regional utility company [DEMO — illustrative]",
+      "Spouse employed by natural gas distributor [DEMO — illustrative]"
+    ],
+    disclosedInterestsNote: "All entries are illustrative demo data.",
+    ethicsNotes: [],
+    conflictProfile: {
+      healthcare: "green",
+      agriculture: "green",
+      energy: "red",
+      realestate: "green",
+      finance: "green",
+      education: "green",
+      tobacco: "green",
+      transportation: "yellow",
+      ethics: "yellow"
+    },
+    conflictNotes: {
+      energy: "Sen. Erikson (Demo) serves on Energy, Utilities, Environment, and Climate, which will hear bills affecting the energy/utilities industry. Their campaign has received approximately 41% of contributions from this sector, AND they sit on the committee with direct jurisdiction. Disclosed financial interests include utility company stock. [DEMO — illustrative RED signal.]",
+      transportation: "Sen. Erikson (Demo) has received approximately 15% of contributions from transportation/infrastructure sector donors. Capital Investment committee has jurisdiction over transportation infrastructure. [DEMO — illustrative YELLOW signal.]",
+      ethics: "Sen. Erikson (Demo) accepts PAC and lobbyist contributions across multiple regulated industries. Campaign finance profile raises transparency questions. [DEMO — illustrative.]"
+    },
+    featured: false,
+    isDemo: true
+  }
+];
+
+const BILL_TOPICS = {
+  healthcare:     "Healthcare / Pharmaceutical Regulation",
+  agriculture:    "Agricultural Subsidies / Rural Infrastructure",
+  energy:         "Energy / Utilities / Fossil Fuel Regulation",
+  realestate:     "Real Estate / Housing / Zoning",
+  finance:        "Financial Services / Banking Regulation",
+  education:      "Education / Teacher Pay / School Funding",
+  tobacco:        "Tobacco / Alcohol / Cannabis Regulation",
+  transportation: "Transportation / Highway Contracting",
+  ethics:         "Campaign Finance / Ethics Reform"
+};
+
+const PERDIEM_DATA = {
+  salaryAnnual: 52009,
+  rateDefault: 96,
+  totalLegislators: 134,
+  senateCount: 67,
+  houseCount: 67,
+  defaultSessionDays: 90
+};
+
+// ── LocalStorage state ──────────────────────────────────────
+function loadState() {
+  try {
+    return JSON.parse(localStorage.getItem('marty-dashboard') || '{}');
+  } catch(e) { return {}; }
+}
+function saveState(state) {
+  try { localStorage.setItem('marty-dashboard', JSON.stringify(state)); } catch(e) {}
+}
+let appState = loadState();
+
+// ── MODULE SWITCHING ────────────────────────────────────────
+const moduleButtons = document.querySelectorAll('.sidebar-module-btn');
+const modulePanels  = document.querySelectorAll('.module-panel');
+
+function activateModule(moduleId) {
+  moduleButtons.forEach(btn => {
+    const isThis = btn.dataset.module === moduleId;
+    btn.classList.toggle('active', isThis);
+    btn.setAttribute('aria-pressed', isThis ? 'true' : 'false');
+  });
+  modulePanels.forEach(panel => {
+    panel.classList.toggle('active', panel.id === 'panel-' + moduleId);
+  });
+  appState.activeModule = moduleId;
+  saveState(appState);
+  if (moduleId === 'perdiem') updateCalc();
+}
+
+moduleButtons.forEach(btn => {
+  btn.addEventListener('click', () => activateModule(btn.dataset.module));
+});
+
+document.getElementById('print-btn').addEventListener('click', e => {
+  e.preventDefault();
+  window.print();
+});
+
+// ── MODULE 1: PROFILE VIEWER ────────────────────────────────
+const senatorSelect = document.getElementById('senator-select');
+
+// Populate senator dropdown
+SENATORS.forEach(s => {
+  const opt = document.createElement('option');
+  opt.value = s.id;
+  opt.textContent = s.name + ' (' + s.district + ')' + (s.isDemo ? ' [Demo]' : '');
+  if (s.featured) opt.selected = true;
+  senatorSelect.appendChild(opt);
+});
+
+// Also populate conflict senator dropdowns
+['conflict-senator'].forEach(id => {
+  const sel = document.getElementById(id);
+  SENATORS.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.id;
+    opt.textContent = s.name + ' (' + s.district + ')' + (s.isDemo ? ' [Demo]' : '');
+    if (s.featured) opt.selected = true;
+    sel.appendChild(opt);
+  });
+});
+
+function fmt(bool) {
+  if (bool === true)  return '<span class="flag-chip flag-yes">Yes</span>';
+  if (bool === false) return '<span class="flag-chip flag-no">No</span>';
+  return '—';
+}
+
+function renderProfile(senatorId) {
+  const s = SENATORS.find(x => x.id === senatorId);
+  if (!s) return;
+  const out = document.getElementById('profile-output');
+
+  const yearsServed = 2026 - s.firstElected;
+  const committees  = s.committees.join(' · ');
+  const disclosures = s.disclosedInterests.length
+    ? s.disclosedInterests.map(d => '<li>' + d + '</li>').join('')
+    : '<li style="color:var(--concrete);">None disclosed beyond legislative salary</li>';
+  const ethicsList  = s.ethicsNotes.length
+    ? s.ethicsNotes.map(n => '<li>' + n + '</li>').join('')
+    : '<li style="color:var(--concrete);">No documented ethics complaints, gift-ban violations, or per diem controversies on record.</li>';
+
+  const demoWarning = s.isDemo
+    ? '<div style="background:var(--yellow-lt);border:1px solid var(--yellow);padding:10px 14px;margin-bottom:14px;font-family:\'Arial Narrow\',Arial,sans-serif;font-size:0.82rem;color:#7a5a10;"><strong>DEMO ENTRY</strong> — All data in this record is illustrative only and does not represent any real senator\'s filings.</div>'
+    : '';
+
+  const featuredBadge = s.featured
+    ? '<div class="featured-badge">Featured: Author of Minnesota\'s 1993 Lobbyist Gift Ban</div>'
+    : (s.isDemo ? '<div class="featured-badge" style="background:var(--yellow);color:#fff;">Demo Entry — Illustrative Data Only</div>' : '');
+
+  out.innerHTML = demoWarning + featuredBadge + `
+    <div class="profile-grid">
+      <div class="profile-field">
+        <div class="field-label">Name</div>
+        <div class="field-value"><strong>${s.name}</strong></div>
+      </div>
+      <div class="profile-field">
+        <div class="field-label">District</div>
+        <div class="field-value">${s.district} — ${s.location}</div>
+      </div>
+      <div class="profile-field">
+        <div class="field-label">Party</div>
+        <div class="field-value">${s.party}</div>
+      </div>
+      <div class="profile-field">
+        <div class="field-label">Years in Office</div>
+        <div class="field-value">First elected ${s.firstElected} · ${s.currentTerm} · ~${yearsServed} years served</div>
+      </div>
+      <div class="profile-field full-width">
+        <div class="field-label">Committee Assignments</div>
+        <div class="field-value">${committees}</div>
+      </div>
+      <div class="profile-field full-width">
+        <div class="field-label">Per Diem Status</div>
+        <div class="field-value">
+          ${s.perDiemEligible
+            ? '<span class="signal-badge signal-yellow"><span class="dot" aria-hidden="true"></span>Eligible under current law</span>'
+            : '<span class="signal-badge signal-green"><span class="dot" aria-hidden="true"></span>Not eligible</span>'}
+          <br><span style="font-size:0.85rem;color:var(--concrete);margin-top:4px;display:inline-block;">${s.perDiemNote}</span>
+        </div>
+      </div>
+      <div class="profile-field">
+        <div class="field-label">Accepts PAC Money?</div>
+        <div class="field-value">${fmt(s.campaignFinance.acceptsPAC)}</div>
+      </div>
+      <div class="profile-field">
+        <div class="field-label">Accepts Lobbyist Money?</div>
+        <div class="field-value">${fmt(s.campaignFinance.acceptsLobbyist)}</div>
+      </div>
+      <div class="profile-field">
+        <div class="field-label">Max Single Contribution</div>
+        <div class="field-value">$${s.campaignFinance.maxContribution.toLocaleString()}</div>
+      </div>
+      <div class="profile-field">
+        <div class="field-label">Largest Donor Sector</div>
+        <div class="field-value">${s.campaignFinance.largestDonorSector}</div>
+      </div>
+      <div class="profile-field full-width">
+        <div class="field-label">Campaign Finance Total Raised</div>
+        <div class="field-value">${s.campaignFinance.totalRaisedNote}</div>
+      </div>
+      <div class="profile-field full-width">
+        <div class="field-label">Disclosed Financial Interests (Statement of Economic Interest)</div>
+        <div class="field-value">
+          <ul class="ethics-list">${disclosures}</ul>
+          <span style="font-size:0.8rem;color:var(--concrete);">${s.disclosedInterestsNote}</span>
+        </div>
+      </div>
+      <div class="profile-field full-width">
+        <div class="field-label">Ethics Record &amp; Notable Actions</div>
+        <div class="field-value"><ul class="ethics-list">${ethicsList}</ul></div>
+      </div>
+    </div>
+  `;
+
+  appState.selectedSenator = senatorId;
+  saveState(appState);
+}
+
+senatorSelect.addEventListener('change', () => {
+  renderProfile(senatorSelect.value);
+  // Sync conflict senator select
+  document.getElementById('conflict-senator').value = senatorSelect.value;
+});
+
+// ── MODULE 2: CONFLICT DETECTOR ─────────────────────────────
+function runConflictCheck() {
+  const senId  = document.getElementById('conflict-senator').value;
+  const topic  = document.getElementById('conflict-topic').value;
+  const s      = SENATORS.find(x => x.id === senId);
+  if (!s) return;
+
+  const signal   = (s.conflictProfile && s.conflictProfile[topic]) || 'green';
+  const topicLabel = BILL_TOPICS[topic] || topic;
+  const overlap  = s.campaignFinance.donorOverlapFlags[topic];
+  const noteText = (s.conflictNotes && s.conflictNotes[topic])
+    ? s.conflictNotes[topic]
+    : buildDefaultNote(s, signal, topicLabel, overlap);
+
+  const demoWarning = s.isDemo
+    ? '<div style="background:var(--yellow-lt);border:1px solid var(--yellow);padding:8px 12px;margin-bottom:12px;font-family:\'Arial Narrow\',Arial,sans-serif;font-size:0.8rem;color:#7a5a10;"><strong>DEMO ENTRY:</strong> All data for this senator is illustrative only.</div>'
+    : '';
+
+  let signalClass, signalLabel, ariaLabel;
+  if (signal === 'green')  { signalClass = 'signal-green';  signalLabel = 'GREEN — No Conflict Signal';   ariaLabel = 'Green: no conflict signal detected.'; }
+  if (signal === 'yellow') { signalClass = 'signal-yellow'; signalLabel = 'YELLOW — Donor Overlap Detected'; ariaLabel = 'Yellow: donor overlap with this bill\'s industry detected.'; }
+  if (signal === 'red')    { signalClass = 'signal-red';    signalLabel = 'RED — Committee + Donor Overlap';  ariaLabel = 'Red: senator sits on committee hearing this bill AND has donor overlap with the affected industry.'; }
+
+  let statLine = '';
+  if (overlap) {
+    statLine = `<div class="stat-line">Sector share of total contributions: ~${overlap.pct}% — ${overlap.note}</div>`;
+  }
+
+  const html = `
+    ${demoWarning}
+    <div class="conflict-result-box ${signal}" role="region" aria-label="Conflict check result">
+      <h3>Conflict Check: ${s.name} (${s.district}) — ${topicLabel}</h3>
+      <span class="${signalClass} signal-badge" aria-label="${ariaLabel}">
+        <span class="dot" aria-hidden="true"></span>${signalLabel}
+      </span>
+      ${statLine}
+      <p>${noteText}</p>
+      <div class="legal-cite">
+        Minn. Stat. § 10A — Campaign Finance and Public Disclosure. Minn. Stat. § 10A.071 — Gift prohibition (Marty, 1993). Minn. Stat. § 3.099 — Legislative per diem. MN Senate Ethics Committee jurisdiction: conduct creating appearance of impropriety.
+      </div>
+    </div>
+  `;
+
+  document.getElementById('conflict-output').innerHTML = html;
+  appState.conflictSenator = senId;
+  appState.conflictTopic   = topic;
+  saveState(appState);
+}
+
+function buildDefaultNote(s, signal, topicLabel, overlap) {
+  const committeesStr = s.committees.join(', ');
+  const pct = overlap ? overlap.pct + '%' : '0%';
+  if (signal === 'green') {
+    return `Sen. ${s.name} serves on ${committeesStr}. No disclosed campaign donor overlap with the ${topicLabel} industry has been identified. Under Minnesota law, a legislator is not required to recuse unless they have a direct personal financial interest (Minn. Stat. § 10A). The Minnesota Senate Ethics Committee may review conduct that creates the appearance of impropriety.`;
+  }
+  if (signal === 'yellow') {
+    return `Sen. ${s.name} serves on ${committeesStr}. Their campaign has received approximately ${pct} of its total contributions from donors in the ${topicLabel} sector. Under Minnesota law, a legislator is not required to recuse unless they have a direct personal financial interest (Minn. Stat. § 10A). The Minnesota Senate Ethics Committee may review conduct that creates the appearance of impropriety.`;
+  }
+  if (signal === 'red') {
+    return `Sen. ${s.name} serves on ${committeesStr}, which will hear bills affecting the ${topicLabel} industry. Their campaign has received approximately ${pct} of its total contributions from donors in this sector. Under Minnesota law, a legislator is not required to recuse unless they have a direct personal financial interest (Minn. Stat. § 10A). The Minnesota Senate Ethics Committee may review conduct that creates the appearance of impropriety. This combination — committee jurisdiction AND donor overlap — is what accountability tools are designed to surface.`;
+  }
+  return '';
+}
+
+document.getElementById('conflict-run').addEventListener('click', runConflictCheck);
+document.getElementById('conflict-senator').addEventListener('change', runConflictCheck);
+document.getElementById('conflict-topic').addEventListener('change', runConflictCheck);
+
+// ── MODULE 3: PER DIEM CALCULATOR ───────────────────────────
+let perDiemChart = null;
+
+function updateCalc() {
+  const days    = parseInt(document.getElementById('session-days').value) || 90;
+  const rate    = parseFloat(document.getElementById('perdiem-rate').value) || PERDIEM_DATA.rateDefault;
+  const legs    = parseInt(document.getElementById('leg-count').value) || PERDIEM_DATA.totalLegislators;
+  const salary  = parseFloat(document.getElementById('salary-annual').value) || PERDIEM_DATA.salaryAnnual;
+
+  document.getElementById('session-days-display').textContent = days + ' days';
+
+  const totalPerDiemSession = days * rate * legs;
+  const annualSalaryAll     = salary * legs;
+  const savingsSession      = totalPerDiemSession;
+  const savingsAnnual       = savingsSession; // per diem is per session; assume 1 regular session/year
+  const avgPerLeg           = days * rate;
+  const totalCompCurrentLaw = annualSalaryAll + totalPerDiemSession;
+  const perDiemPct          = (totalPerDiemSession / totalCompCurrentLaw * 100).toFixed(1);
+  const salaryPct           = (annualSalaryAll / totalCompCurrentLaw * 100).toFixed(1);
+
+  const fmt2 = n => '$' + Math.round(n).toLocaleString();
+
+  document.getElementById('calc-outputs').innerHTML = `
+    <div class="calc-outputs">
+      <div class="calc-output-row">
+        <span class="out-label">Total Per Diem Paid — Current Law (this session)</span>
+        <span class="out-value">${fmt2(totalPerDiemSession)}</span>
+      </div>
+      <div class="calc-output-row">
+        <span class="out-label">Total Annual Salary — All Legislators</span>
+        <span class="out-value">${fmt2(annualSalaryAll)}</span>
+      </div>
+      <div class="calc-output-row">
+        <span class="out-label">Total Compensation — Current Law (salary + per diem)</span>
+        <span class="out-value">${fmt2(totalCompCurrentLaw)}</span>
+      </div>
+      <div class="calc-output-row">
+        <span class="out-label">Average Per Diem Per Legislator — This Session</span>
+        <span class="out-value">${fmt2(avgPerLeg)}</span>
+      </div>
+      <div class="calc-output-row savings">
+        <span class="out-label">Savings Under SF1316 — Per Session</span>
+        <span class="out-value">${fmt2(savingsSession)}</span>
+      </div>
+      <div class="calc-output-row savings">
+        <span class="out-label">Savings Under SF1316 — Estimated Annual</span>
+        <span class="out-value">${fmt2(savingsAnnual)}</span>
+      </div>
+      <div class="calc-output-row">
+        <span class="out-label">Per Diem as % of Total Compensation — Current Law</span>
+        <span class="out-value">${perDiemPct}%</span>
+      </div>
+      <div class="calc-output-row">
+        <span class="out-label">Salary as % of Total Compensation — Current Law</span>
+        <span class="out-value">${salaryPct}%</span>
+      </div>
+    </div>
+  `;
+
+  renderChart(annualSalaryAll, totalPerDiemSession);
+}
+
+function renderChart(salaryTotal, perDiemTotal) {
+  const ctx = document.getElementById('perDiemChart');
+  if (!ctx) return;
+
+  if (typeof Chart === 'undefined') {
+    document.getElementById('chart-fallback').style.display = 'block';
+    return;
+  }
+  document.getElementById('chart-fallback').style.display = 'none';
+
+  const labels = ['Current Law', 'Under SF1316'];
+  const salaryData   = [salaryTotal, salaryTotal];
+  const perDiemData  = [perDiemTotal, 0];
+
+  if (perDiemChart) { perDiemChart.destroy(); }
+
+  perDiemChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Annual Salary (all legislators)',
+          data: salaryData,
+          backgroundColor: '#3A6186',
+          borderColor: '#2d4e6e',
+          borderWidth: 1
+        },
+        {
+          label: 'Per Diem (this session)',
+          data: perDiemData,
+          backgroundColor: '#8B2222',
+          borderColor: '#6a1a1a',
+          borderWidth: 1
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: 'top',
+          labels: {
+            font: { family: "'Arial Narrow', Arial, sans-serif", size: 12 }
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return context.dataset.label + ': $' + Math.round(context.parsed.y).toLocaleString();
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          stacked: true,
+          ticks: { font: { family: "'Arial Narrow', Arial, sans-serif", size: 12 } },
+          grid: { display: false }
+        },
+        y: {
+          stacked: true,
+          ticks: {
+            font: { family: "'Arial Narrow', Arial, sans-serif", size: 11 },
+            callback: v => '$' + (v / 1000000).toFixed(1) + 'M'
+          },
+          title: {
+            display: true,
+            text: 'Total ($)',
+            font: { family: "'Arial Narrow', Arial, sans-serif", size: 11 }
+          }
+        }
+      }
+    }
+  });
+}
+
+// ── CALCULATOR EVENT LISTENERS ──────────────────────────────
+document.getElementById('session-days').addEventListener('input', updateCalc);
+document.getElementById('perdiem-rate').addEventListener('input', updateCalc);
+document.getElementById('leg-count').addEventListener('input', updateCalc);
+document.getElementById('salary-annual').addEventListener('input', updateCalc);
+
+// ── INITIALIZE ──────────────────────────────────────────────
+(function init() {
+  // Restore module state
+  const savedModule = appState.activeModule || 'profile';
+  activateModule(savedModule);
+
+  // Restore senator selection
+  const savedSenator = appState.selectedSenator || 'marty-40';
+  senatorSelect.value = savedSenator;
+  renderProfile(savedSenator);
+
+  // Restore conflict state
+  if (appState.conflictSenator) {
+    document.getElementById('conflict-senator').value = appState.conflictSenator;
+  }
+  if (appState.conflictTopic) {
+    document.getElementById('conflict-topic').value = appState.conflictTopic;
+  }
+  runConflictCheck();
+
+  // Initialize calculator
+  updateCalc();
+})();
+</script>
+</body>
+</html>

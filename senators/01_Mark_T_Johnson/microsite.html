@@ -1,0 +1,1782 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mark T. Johnson — Senate District 1</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,300;1,9..40,400&family=DM+Serif+Display:ital@0;1&family=Oswald:wght@300;400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── RESET ────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    /* ── MODE SWITCHING ───────────────────────────────────── */
+    .pro-content  { display: block; }
+    .oppo-content { display: none; }
+    body.mode-oppo .pro-content  { display: none; }
+    body.mode-oppo .oppo-content { display: block; }
+
+    /* ── FADE OVERLAY ─────────────────────────────────────── */
+    #fade-veil {
+      position: fixed;
+      inset: 0;
+      background: #1a1208;
+      z-index: 8888;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 220ms ease;
+    }
+    #fade-veil.visible { opacity: 1; pointer-events: all; }
+
+    /* ── FLIP BUTTON ──────────────────────────────────────── */
+    #flip-btn {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      z-index: 9999;
+      border: 2px solid currentColor;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      padding: 12px 20px;
+      border-radius: 2px;
+      transition: transform 0.18s, box-shadow 0.18s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    body:not(.mode-oppo) #flip-btn {
+      background: #1a1208;
+      color: #E8C96A;
+      border-color: #E8C96A;
+    }
+    body.mode-oppo #flip-btn {
+      background: #E8C96A;
+      color: #1a1208;
+      border-color: #1a1208;
+    }
+    #flip-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+    }
+    #flip-btn::before {
+      content: '';
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+      flex-shrink: 0;
+    }
+    .btn-pro-label, .btn-oppo-label { pointer-events: none; }
+    body:not(.mode-oppo) .btn-oppo-label { display: none; }
+    body.mode-oppo .btn-pro-label { display: none; }
+
+
+    /* ═══════════════════════════════════════════════════════
+       PRO SITE
+       Palette: river-gray #C8CCCF · beet-brown #3D2714
+                winter-amber #E8C96A · off-white #F7F4EE
+                text-dark #1a1208
+    ═══════════════════════════════════════════════════════ */
+
+    .pro-content {
+      background: #F7F4EE;
+      font-family: 'DM Sans', sans-serif;
+      color: #1a1208;
+    }
+
+    /* ── PRO MASTHEAD ─────────────────────────────────────── */
+    .pro-masthead {
+      background: #3D2714;
+      border-bottom: 6px solid #E8C96A;
+      padding: 18px 48px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .pro-masthead-district {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #E8C96A;
+    }
+    .pro-masthead-rule {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      color: #9B8C7A;
+      text-transform: uppercase;
+    }
+
+    /* ── PRO HERO ─────────────────────────────────────────── */
+    .pro-hero {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      min-height: 92vh;
+      border-bottom: 4px solid #3D2714;
+    }
+
+    .pro-hero-photo-rail {
+      background: #C8CCCF;
+      position: relative;
+      overflow: hidden;
+    }
+    .pro-hero-photo-rail img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 15%;
+      filter: sepia(20%) contrast(1.05) brightness(1.02);
+      display: block;
+    }
+    .pro-photo-fallback {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #8A9399;
+      color: #F7F4EE;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 64px;
+      letter-spacing: 0.06em;
+    }
+    .pro-photo-fallback span {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-top: 8px;
+      color: #dce0e3;
+    }
+    .pro-photo-caption {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(transparent, rgba(26,18,8,0.85));
+      padding: 40px 28px 20px;
+      color: #E8C96A;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .pro-hero-text {
+      background: #F7F4EE;
+      padding: 72px 64px 72px 60px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border-left: 4px solid #3D2714;
+    }
+    .pro-eyebrow {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #7A5C3A;
+      margin-bottom: 20px;
+    }
+    .pro-hero-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(72px, 8vw, 112px);
+      line-height: 0.92;
+      color: #3D2714;
+      letter-spacing: 0.02em;
+      margin-bottom: 28px;
+    }
+    .pro-hero-name em {
+      display: block;
+      color: #E8C96A;
+      font-style: normal;
+    }
+    .pro-hero-frame {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: clamp(20px, 2.4vw, 26px);
+      line-height: 1.38;
+      color: #1a1208;
+      max-width: 480px;
+      border-left: 4px solid #E8C96A;
+      padding-left: 24px;
+      margin-bottom: 48px;
+    }
+    .pro-hero-sub {
+      font-size: 14px;
+      line-height: 1.65;
+      color: #5A4A38;
+      max-width: 440px;
+    }
+
+    /* ── PRO STAT BAND ────────────────────────────────────── */
+    .pro-stat-band {
+      background: #3D2714;
+      border-bottom: 4px solid #E8C96A;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .pro-stat-cell {
+      padding: 44px 48px;
+      border-right: 1px solid rgba(232,201,106,0.2);
+    }
+    .pro-stat-cell:last-child { border-right: none; }
+    .pro-stat-number {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 72px;
+      line-height: 1;
+      color: #E8C96A;
+      letter-spacing: 0.02em;
+    }
+    .pro-stat-unit {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 28px;
+      color: #C8CCCF;
+      letter-spacing: 0.06em;
+    }
+    .pro-stat-label {
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #9B8C7A;
+      margin-top: 10px;
+    }
+    .pro-stat-source {
+      font-size: 10px;
+      color: #6B5C4E;
+      margin-top: 6px;
+    }
+    .pro-stat-source a { color: #9B8C7A; }
+
+    /* ── PRO BILL SECTION ─────────────────────────────────── */
+    .pro-bill-section {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      border-bottom: 4px solid #3D2714;
+    }
+    .pro-bill-sidebar {
+      background: #EDE8DF;
+      padding: 72px 48px;
+      border-right: 4px solid #3D2714;
+    }
+    .pro-bill-sidebar-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #7A5C3A;
+      margin-bottom: 16px;
+    }
+    .pro-bill-number {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 56px;
+      line-height: 1;
+      color: #3D2714;
+      letter-spacing: 0.04em;
+    }
+    .pro-bill-fullname {
+      font-size: 13px;
+      font-weight: 500;
+      color: #5A4A38;
+      margin-top: 12px;
+      line-height: 1.5;
+    }
+    .pro-bill-tag {
+      display: inline-block;
+      background: #E8C96A;
+      color: #1a1208;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      padding: 5px 12px;
+      margin-top: 20px;
+    }
+    .pro-bill-main {
+      padding: 72px 64px;
+    }
+    .pro-bill-headline {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(44px, 5vw, 64px);
+      line-height: 0.96;
+      color: #3D2714;
+      letter-spacing: 0.03em;
+      margin-bottom: 32px;
+    }
+    .pro-bill-body p {
+      font-size: 16px;
+      line-height: 1.7;
+      color: #2A1F14;
+      margin-bottom: 20px;
+      max-width: 580px;
+    }
+    .pro-bill-body p strong {
+      color: #3D2714;
+      font-weight: 700;
+    }
+    .pro-breakdown {
+      margin-top: 36px;
+      border: 2px solid #3D2714;
+      padding: 28px 32px;
+      max-width: 560px;
+    }
+    .pro-breakdown-title {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #7A5C3A;
+      margin-bottom: 16px;
+    }
+    .pro-breakdown-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 10px 0;
+      border-bottom: 1px solid #DDD5C8;
+      font-size: 14px;
+    }
+    .pro-breakdown-row:last-child { border-bottom: none; }
+    .pro-breakdown-item { color: #2A1F14; }
+    .pro-breakdown-amount {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px;
+      letter-spacing: 0.04em;
+      color: #3D2714;
+    }
+
+    /* ── PRO DISTRICT BAND ────────────────────────────────── */
+    .pro-district-band {
+      background: #C8CCCF;
+      position: relative;
+      overflow: hidden;
+      min-height: 360px;
+      display: flex;
+      align-items: flex-end;
+      border-bottom: 4px solid #3D2714;
+    }
+    .pro-district-bg {
+      position: absolute;
+      inset: 0;
+    }
+    .pro-district-bg img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 60%;
+      filter: saturate(0.7) contrast(1.1);
+    }
+    .pro-district-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to right,
+        rgba(26,18,8,0.85) 0%,
+        rgba(26,18,8,0.5) 55%,
+        rgba(26,18,8,0.1) 100%
+      );
+    }
+    .pro-district-content {
+      position: relative;
+      z-index: 2;
+      padding: 72px 64px;
+      max-width: 680px;
+    }
+    .pro-district-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #E8C96A;
+      margin-bottom: 16px;
+    }
+    .pro-district-quote {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(26px, 3.2vw, 38px);
+      line-height: 1.3;
+      color: #F7F4EE;
+      margin-bottom: 20px;
+    }
+    .pro-district-caption {
+      font-size: 12px;
+      color: #C8CCCF;
+      font-style: italic;
+    }
+
+    /* ── PRO PULL QUOTE ───────────────────────────────────── */
+    .pro-pullquote-section {
+      background: #E8C96A;
+      padding: 80px 64px;
+      border-bottom: 4px solid #3D2714;
+      display: grid;
+      grid-template-columns: 1fr 3fr;
+      gap: 48px;
+      align-items: center;
+    }
+    .pro-pullquote-label {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 32px;
+      line-height: 1;
+      color: #3D2714;
+      letter-spacing: 0.08em;
+    }
+    .pro-pullquote-text {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(24px, 2.8vw, 34px);
+      line-height: 1.35;
+      color: #1a1208;
+    }
+    .pro-pullquote-text cite {
+      display: block;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      font-style: normal;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #5A4A38;
+      margin-top: 16px;
+    }
+
+    /* ── PRO TRACK RECORD ─────────────────────────────────── */
+    .pro-record-section {
+      padding: 72px 64px;
+      border-bottom: 4px solid #3D2714;
+      background: #F7F4EE;
+    }
+    .pro-record-header {
+      display: flex;
+      align-items: baseline;
+      gap: 24px;
+      margin-bottom: 48px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid #3D2714;
+    }
+    .pro-record-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 52px;
+      color: #3D2714;
+      letter-spacing: 0.04em;
+    }
+    .pro-record-subtitle {
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #7A5C3A;
+    }
+    .pro-record-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 28px;
+    }
+    .pro-record-card {
+      border: 2px solid #C8CCCF;
+      padding: 32px 28px;
+      background: #FDFBF8;
+      transition: border-color 0.2s;
+    }
+    .pro-record-card:hover { border-color: #3D2714; }
+    .pro-record-card-year {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 18px;
+      letter-spacing: 0.1em;
+      color: #E8C96A;
+      background: #3D2714;
+      display: inline-block;
+      padding: 2px 10px;
+      margin-bottom: 14px;
+    }
+    .pro-record-card-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 20px;
+      color: #1a1208;
+      margin-bottom: 10px;
+      line-height: 1.25;
+    }
+    .pro-record-card-body {
+      font-size: 13px;
+      line-height: 1.65;
+      color: #5A4A38;
+    }
+    .pro-record-card-source {
+      font-size: 10px;
+      color: #9B8C7A;
+      margin-top: 12px;
+    }
+
+    /* ── PRO FOOTNOTES ────────────────────────────────────── */
+    .pro-footnotes {
+      background: #EDE8DF;
+      border-top: 4px solid #3D2714;
+      padding: 48px 64px;
+    }
+    .pro-footnotes-title {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #7A5C3A;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #C8CCCF;
+    }
+    .pro-footnotes ol {
+      list-style: decimal;
+      padding-left: 20px;
+    }
+    .pro-footnotes li {
+      font-size: 12px;
+      line-height: 1.6;
+      color: #5A4A38;
+      margin-bottom: 8px;
+    }
+    .pro-footnotes a { color: #3D2714; }
+
+
+    /* ═══════════════════════════════════════════════════════
+       OPPO SITE
+       Palette: near-black #0D0D0D · file-gray #1F1F1F
+                alert-amber #D4860A · paper-off #F2EDE4
+                penalty-red #9B2020
+    ═══════════════════════════════════════════════════════ */
+
+    .oppo-content {
+      background: #0D0D0D;
+      font-family: 'DM Sans', sans-serif;
+      color: #F2EDE4;
+    }
+
+    /* ── OPPO CASE HEADER ─────────────────────────────────── */
+    .oppo-case-bar {
+      background: #0D0D0D;
+      border-bottom: 3px solid #D4860A;
+      padding: 14px 48px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .oppo-case-ref {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #D4860A;
+    }
+    .oppo-case-date {
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      color: #6B6B6B;
+      text-transform: uppercase;
+    }
+
+    /* ── OPPO HERO ────────────────────────────────────────── */
+    .oppo-hero {
+      background: #0D0D0D;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      min-height: 88vh;
+      border-bottom: 3px solid #D4860A;
+    }
+    .oppo-hero-photo {
+      position: relative;
+      overflow: hidden;
+      background: #1F1F1F;
+    }
+    .oppo-hero-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 15%;
+      filter: grayscale(100%) contrast(1.3) brightness(0.75);
+      display: block;
+    }
+    .oppo-photo-fallback {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #1a1a1a;
+      color: #4B4B4B;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 64px;
+      letter-spacing: 0.06em;
+    }
+    .oppo-photo-fallback span {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-top: 8px;
+      color: #3B3B3B;
+    }
+    .oppo-photo-vignette {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to right,
+        transparent 60%,
+        #0D0D0D 100%
+      );
+    }
+    /* stamp */
+    .oppo-stamp {
+      position: absolute;
+      top: 28px;
+      left: 28px;
+      width: 96px;
+      height: 96px;
+      border: 4px solid #9B2020;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform: rotate(-18deg);
+      animation: stamp-wobble 6s ease-in-out infinite;
+    }
+    .oppo-stamp-text {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 13px;
+      letter-spacing: 0.12em;
+      color: #9B2020;
+      text-align: center;
+      line-height: 1.2;
+    }
+    @keyframes stamp-wobble {
+      0%, 100% { transform: rotate(-18deg); }
+      50% { transform: rotate(-22deg); }
+    }
+
+    .oppo-hero-text {
+      padding: 80px 72px 80px 64px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .oppo-eyebrow {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+      color: #D4860A;
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .oppo-eyebrow::before {
+      content: '';
+      display: block;
+      width: 28px;
+      height: 2px;
+      background: #D4860A;
+      flex-shrink: 0;
+    }
+    .oppo-hero-headline {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(56px, 7vw, 96px);
+      line-height: 0.93;
+      letter-spacing: 0.02em;
+      color: #F2EDE4;
+      margin-bottom: 36px;
+    }
+    .oppo-hero-headline em {
+      display: block;
+      color: #9B2020;
+      font-style: normal;
+    }
+    .oppo-hero-deck {
+      font-size: 18px;
+      line-height: 1.6;
+      color: #B0A898;
+      max-width: 540px;
+      margin-bottom: 40px;
+    }
+    .oppo-hero-deck strong {
+      color: #F2EDE4;
+      font-weight: 700;
+    }
+    .oppo-accusation-box {
+      border: 2px solid #9B2020;
+      padding: 24px 28px;
+      max-width: 520px;
+      background: rgba(155,32,32,0.08);
+    }
+    .oppo-accusation-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+      color: #9B2020;
+      margin-bottom: 10px;
+    }
+    .oppo-accusation-text {
+      font-size: 15px;
+      line-height: 1.55;
+      color: #F2EDE4;
+    }
+
+    /* ── OPPO SEQUENCE ────────────────────────────────────── */
+    .oppo-sequence {
+      background: #111111;
+      border-bottom: 3px solid #D4860A;
+      padding: 80px 64px;
+    }
+    .oppo-sequence-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 44px;
+      letter-spacing: 0.06em;
+      color: #D4860A;
+      margin-bottom: 56px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid #2A2A2A;
+    }
+    .oppo-steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+    }
+    .oppo-step {
+      padding: 32px 36px;
+      border-left: 3px solid #2A2A2A;
+      position: relative;
+    }
+    .oppo-step:first-child { border-left: 3px solid #D4860A; }
+    .oppo-step-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 64px;
+      line-height: 1;
+      color: #2A2A2A;
+      margin-bottom: 12px;
+    }
+    .oppo-step:first-child .oppo-step-num { color: #D4860A; }
+    .oppo-step-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #D4860A;
+      margin-bottom: 10px;
+    }
+    .oppo-step-text {
+      font-size: 14px;
+      line-height: 1.65;
+      color: #9B9289;
+    }
+    .oppo-step-text strong { color: #F2EDE4; font-weight: 600; }
+
+    /* ── OPPO DOCUMENT BLOCK ──────────────────────────────── */
+    .oppo-doc-section {
+      background: #0D0D0D;
+      border-bottom: 3px solid #D4860A;
+      padding: 80px 64px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: start;
+    }
+    .oppo-doc-left {}
+    .oppo-doc-heading {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 48px;
+      letter-spacing: 0.04em;
+      color: #F2EDE4;
+      margin-bottom: 24px;
+    }
+    .oppo-doc-body p {
+      font-size: 15px;
+      line-height: 1.7;
+      color: #9B9289;
+      margin-bottom: 16px;
+    }
+    .oppo-doc-body strong { color: #F2EDE4; }
+
+    .oppo-doc-right {}
+    .oppo-doc-card {
+      background: #F2EDE4;
+      color: #0D0D0D;
+      padding: 36px 32px;
+      position: relative;
+      border-top: 6px solid #9B2020;
+    }
+    .oppo-doc-card-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+      color: #9B2020;
+      margin-bottom: 20px;
+    }
+    .oppo-doc-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 12px 0;
+      border-bottom: 1px solid #D5CFC6;
+      font-size: 14px;
+      position: relative;
+    }
+    .oppo-doc-line:last-child { border-bottom: none; }
+    .oppo-doc-line-label { color: #5A5148; font-weight: 400; }
+    .oppo-doc-line-value {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      letter-spacing: 0.06em;
+      color: #0D0D0D;
+    }
+    .oppo-doc-line-value.alert { color: #9B2020; }
+    .oppo-doc-redact {
+      position: relative;
+      display: inline-block;
+    }
+    .oppo-doc-redact::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: #0D0D0D;
+      transition: opacity 0.25s;
+    }
+    .oppo-doc-redact:hover::after { opacity: 0; }
+    .oppo-doc-card-footer {
+      margin-top: 20px;
+      padding: 12px 16px;
+      background: rgba(155,32,32,0.08);
+      border-left: 3px solid #9B2020;
+      font-size: 12px;
+      color: #5A5148;
+      line-height: 1.55;
+    }
+    .oppo-doc-card-footer strong { color: #9B2020; }
+
+    /* ── OPPO EVIDENCE CARDS ──────────────────────────────── */
+    .oppo-evidence-section {
+      background: #111111;
+      border-bottom: 3px solid #D4860A;
+      padding: 80px 64px;
+    }
+    .oppo-evidence-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 44px;
+      letter-spacing: 0.06em;
+      color: #F2EDE4;
+      margin-bottom: 48px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid #2A2A2A;
+    }
+    .oppo-evidence-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    .oppo-ev-card {
+      border: 2px solid #2A2A2A;
+      padding: 36px 28px;
+      background: #0D0D0D;
+      position: relative;
+      transition: border-color 0.22s, background 0.22s;
+      cursor: default;
+    }
+    .oppo-ev-card:hover {
+      border-color: #9B2020;
+      background: rgba(155,32,32,0.06);
+    }
+    .oppo-ev-card::before {
+      content: attr(data-num);
+      position: absolute;
+      top: 20px;
+      right: 24px;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 52px;
+      color: #1A1A1A;
+      line-height: 1;
+      transition: color 0.22s;
+    }
+    .oppo-ev-card:hover::before { color: rgba(155,32,32,0.18); }
+    .oppo-ev-tag {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #D4860A;
+      margin-bottom: 16px;
+    }
+    .oppo-ev-stat {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 52px;
+      line-height: 1;
+      letter-spacing: 0.04em;
+      color: #F2EDE4;
+      margin-bottom: 12px;
+    }
+    .oppo-ev-stat .unit {
+      font-size: 28px;
+      color: #9B2020;
+    }
+    .oppo-ev-body {
+      font-size: 14px;
+      line-height: 1.65;
+      color: #9B9289;
+    }
+    .oppo-ev-body strong { color: #F2EDE4; }
+    .oppo-ev-source {
+      font-size: 10px;
+      color: #4B4B4B;
+      margin-top: 16px;
+    }
+    .oppo-ev-source a { color: #6B6B6B; }
+
+    /* ── OPPO BRAND GAP ───────────────────────────────────── */
+    .oppo-gap-section {
+      background: #9B2020;
+      padding: 72px 64px;
+      border-bottom: 3px solid #D4860A;
+    }
+    .oppo-gap-inner {
+      max-width: 800px;
+    }
+    .oppo-gap-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+      color: rgba(242,237,228,0.6);
+      margin-bottom: 20px;
+    }
+    .oppo-gap-headline {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(44px, 5.5vw, 72px);
+      line-height: 0.95;
+      letter-spacing: 0.03em;
+      color: #F2EDE4;
+      margin-bottom: 28px;
+    }
+    .oppo-gap-body {
+      font-size: 16px;
+      line-height: 1.65;
+      color: rgba(242,237,228,0.85);
+    }
+
+    /* ── OPPO FOOTNOTES ───────────────────────────────────── */
+    .oppo-footnotes {
+      background: #0D0D0D;
+      border-top: 3px solid #2A2A2A;
+      padding: 48px 64px;
+    }
+    .oppo-footnotes-title {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #D4860A;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #2A2A2A;
+    }
+    .oppo-footnotes ol {
+      list-style: decimal;
+      padding-left: 20px;
+    }
+    .oppo-footnotes li {
+      font-size: 12px;
+      line-height: 1.6;
+      color: #6B6B6B;
+      margin-bottom: 8px;
+    }
+    .oppo-footnotes a { color: #9B9289; }
+
+    /* ── RESPONSIVE ───────────────────────────────────────── */
+    @media (max-width: 960px) {
+      .pro-masthead { padding: 16px 24px; }
+      .pro-hero { grid-template-columns: 1fr; }
+      .pro-hero-photo-rail { min-height: 380px; }
+      .pro-hero-text { padding: 48px 28px; border-left: none; border-top: 4px solid #3D2714; }
+      .pro-stat-band { grid-template-columns: 1fr; }
+      .pro-stat-cell { border-right: none; border-bottom: 1px solid rgba(232,201,106,0.2); padding: 32px 28px; }
+      .pro-bill-section { grid-template-columns: 1fr; }
+      .pro-bill-sidebar { border-right: none; border-bottom: 4px solid #3D2714; padding: 40px 28px; }
+      .pro-bill-main { padding: 40px 28px; }
+      .pro-record-grid { grid-template-columns: 1fr; }
+      .pro-pullquote-section { grid-template-columns: 1fr; padding: 48px 28px; }
+      .pro-district-content { padding: 48px 28px; }
+      .pro-footnotes { padding: 40px 28px; }
+
+      .oppo-case-bar { padding: 12px 24px; }
+      .oppo-hero { grid-template-columns: 1fr; }
+      .oppo-hero-photo { min-height: 320px; }
+      .oppo-hero-text { padding: 48px 28px; }
+      .oppo-steps { grid-template-columns: 1fr 1fr; }
+      .oppo-sequence { padding: 48px 28px; }
+      .oppo-doc-section { grid-template-columns: 1fr; padding: 48px 28px; gap: 36px; }
+      .oppo-evidence-grid { grid-template-columns: 1fr; }
+      .oppo-evidence-section { padding: 48px 28px; }
+      .oppo-gap-section { padding: 48px 28px; }
+      .oppo-footnotes { padding: 40px 28px; }
+      #flip-btn { bottom: 16px; right: 16px; font-size: 10px; padding: 10px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── FADE VEIL ──────────────────────────────────────────── -->
+<div id="fade-veil"></div>
+
+<!-- ── FLIP BUTTON ───────────────────────────────────────── -->
+<button id="flip-btn" aria-label="Switch site mode">
+  <span class="btn-oppo-label">View Supporter Site</span>
+  <span class="btn-pro-label">View Opposition File</span>
+</button>
+
+
+<!-- ════════════════════════════════════════════════════════
+     PRO SITE — "The Builder from Border Country"
+════════════════════════════════════════════════════════ -->
+<div class="pro-content" role="main" aria-label="Supporter site">
+
+  <!-- MASTHEAD -->
+  <header class="pro-masthead">
+    <div class="pro-masthead-district">Minnesota Senate — District 1 &nbsp;|&nbsp; Republican</div>
+    <div class="pro-masthead-rule">Kittson · Marshall · Pennington · Polk · Red Lake · Roseau Counties</div>
+  </header>
+
+  <!-- HERO -->
+  <section class="pro-hero">
+    <div class="pro-hero-photo-rail">
+      <img
+        src="https://www.senate.mn/graphics/01Johnson.jpg"
+        alt="Senator Mark T. Johnson"
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+      />
+      <div class="pro-photo-fallback" style="display:none;">
+        MTJ
+        <span>Sen. Mark T. Johnson</span>
+      </div>
+      <div class="pro-photo-caption">Senator Mark T. Johnson &mdash; East Grand Forks</div>
+    </div>
+
+    <div class="pro-hero-text">
+      <div class="pro-eyebrow">Minnesota State Senator &mdash; District 1</div>
+      <div class="pro-hero-name">
+        Mark T.<br>
+        <em>Johnson</em>
+      </div>
+      <div class="pro-hero-frame">
+        Northwest Minnesota needs a senator who delivers real projects, not Capitol talking points. Johnson does the work.
+      </div>
+      <p class="pro-hero-sub">
+        A small business owner and attorney from East Grand Forks, Johnson has served District 1 since 2016. He chairs the Republican Senate caucus and sits on committees that shape rural infrastructure, agriculture, and state bonding. When Red Lake Falls needed help, he wrote the bill himself.
+      </p>
+    </div>
+  </section>
+
+  <!-- STAT BAND -->
+  <section class="pro-stat-band" aria-label="Key statistics">
+    <div class="pro-stat-cell">
+      <div class="pro-stat-number" data-target="5947000" id="stat-bond">$0</div>
+      <div class="pro-stat-label">State bond dollars proposed in SF630 for Red Lake Falls infrastructure<sup><a href="#fn-pro-1" style="color:#E8C96A">1</a></sup></div>
+      <div class="pro-stat-source">SF630, 94th Legislature (2025)</div>
+    </div>
+    <div class="pro-stat-cell">
+      <div class="pro-stat-number" data-target="9" id="stat-years"><span class="pro-stat-unit">9+</span></div>
+      <div class="pro-stat-label">Years representing District 1 in the Minnesota Senate<sup><a href="#fn-pro-2" style="color:#E8C96A">2</a></sup></div>
+      <div class="pro-stat-source">Elected 2016, re-elected 2020, 2022</div>
+    </div>
+    <div class="pro-stat-cell">
+      <div class="pro-stat-number"><span class="pro-stat-unit">8</span></div>
+      <div class="pro-stat-label">Counties represented &mdash; the full northwest corner of Minnesota<sup><a href="#fn-pro-3" style="color:#E8C96A">3</a></sup></div>
+      <div class="pro-stat-source">District 1: Clay, Kittson, Marshall, Norman, Pennington, Polk, Red Lake, Roseau</div>
+    </div>
+  </section>
+
+  <!-- BILL SECTION -->
+  <section class="pro-bill-section" aria-label="Key legislation">
+    <div class="pro-bill-sidebar">
+      <div class="pro-bill-sidebar-label">Chief-Authored Bill</div>
+      <div class="pro-bill-number">SF 630</div>
+      <div class="pro-bill-fullname">Capital Investment: Infrastructure Rehabilitation, City of Red Lake Falls</div>
+      <div class="pro-bill-tag">94th Legislature &mdash; 2025</div>
+    </div>
+    <div class="pro-bill-main">
+      <div class="pro-bill-headline">Fixing the pipes before they fail</div>
+      <div class="pro-bill-body">
+        <p>
+          Red Lake Falls sits at the center of Pennington County, a river town of about 1,400 people whose sanitary sewers, storm sewers, streets, and sidewalks were built decades ago and are now deteriorating. When a system fails in a town that size, there is no backup. The repair cost falls entirely on local property owners who can least afford it.
+        </p>
+        <p>
+          Johnson chief-authored SF630, which proposed <strong>$5,947,000 in state bond funds</strong> for Red Lake Falls. The bill covers predesign, design, construction, and equipment for a full infrastructure rehabilitation package: sanitary and storm sewer systems repaired or replaced, streets rebuilt, sidewalks restored, curbs and gutters corrected.<sup><a href="#fn-pro-1">1</a></sup>
+        </p>
+        <p>
+          This is a named city, a named dollar amount, and a specific scope of work in the official bond file. The Revisor status page shows SF630 was introduced and referred in 2025, putting the Red Lake Falls project on the record even though it was not enacted in that form.<sup><a href="#fn-pro-1">1</a></sup>
+        </p>
+      </div>
+      <div class="pro-breakdown">
+        <div class="pro-breakdown-title">SF630 &mdash; Funding Breakdown</div>
+        <div class="pro-breakdown-row">
+          <span class="pro-breakdown-item">Sanitary &amp; storm sewer rehabilitation</span>
+          <span class="pro-breakdown-amount">Included</span>
+        </div>
+        <div class="pro-breakdown-row">
+          <span class="pro-breakdown-item">Street repair &amp; reconstruction</span>
+          <span class="pro-breakdown-amount">Included</span>
+        </div>
+        <div class="pro-breakdown-row">
+          <span class="pro-breakdown-item">Sidewalk, curb &amp; gutter restoration</span>
+          <span class="pro-breakdown-amount">Included</span>
+        </div>
+        <div class="pro-breakdown-row">
+          <span class="pro-breakdown-item">Total state bond appropriation</span>
+          <span class="pro-breakdown-amount">$5,947,000</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DISTRICT BAND -->
+  <section class="pro-district-band" aria-label="District character">
+    <div class="pro-district-bg">
+      <img
+        src="https://images.unsplash.com/photo-1560493676-04071c5f467b?w=1400&q=80"
+        alt="Northwest Minnesota farmland and river country"
+        onerror="this.style.display='none';"
+      />
+      <div class="pro-district-overlay"></div>
+    </div>
+    <div class="pro-district-content">
+      <div class="pro-district-label">District 1 &mdash; Northwest Border Country</div>
+      <div class="pro-district-quote">
+        "This is farm ground, river towns, and small manufacturers. The question here is never abstract. It is whether the sewer holds, whether the road is passable, and whether state government is working for small towns or against them."
+      </div>
+      <div class="pro-district-caption">
+        District 1 spans eight counties in northwest Minnesota: Clay, Kittson, Marshall, Norman, Pennington, Polk, Red Lake, and Roseau.
+      </div>
+    </div>
+  </section>
+
+  <!-- PULL QUOTE -->
+  <section class="pro-pullquote-section" aria-label="Senator quote">
+    <div class="pro-pullquote-label">On The Record</div>
+    <div class="pro-pullquote-text">
+      SF630 put Red Lake Falls's infrastructure request into the 2025 bond file with a named scope and a named dollar amount.
+      <cite>Context: SF630 as introduced<sup><a href="#fn-pro-1">1</a></sup></cite>
+    </div>
+  </section>
+
+  <!-- TRACK RECORD -->
+  <section class="pro-record-section" aria-label="Legislative record">
+    <div class="pro-record-header">
+      <div class="pro-record-title">Legislative Record</div>
+      <div class="pro-record-subtitle">Selected highlights from District 1</div>
+    </div>
+    <div class="pro-record-grid">
+      <div class="pro-record-card">
+        <div class="pro-record-card-year">2023</div>
+        <div class="pro-record-card-title">Senate Minority Leader</div>
+        <div class="pro-record-card-body">
+          Johnson was elected Senate Minority Leader by his caucus in January 2023. Current Senate pages list him as Minority Leader, a member of Finance, and ranking minority member on Rules and Administration.
+        </div>
+        <div class="pro-record-card-source">Source: <a href="https://www.senate.mn/members?id=leadership">Minnesota Senate Leadership roster</a><sup><a href="#fn-pro-2">2</a></sup></div>
+      </div>
+      <div class="pro-record-card">
+        <div class="pro-record-card-year">2025</div>
+        <div class="pro-record-card-title">Red Lake Falls Bond Bill</div>
+        <div class="pro-record-card-body">
+          Johnson chief-authored SF630 in the 94th Legislature, proposing $5,947,000 in state bonds for infrastructure rehabilitation in the city of Red Lake Falls, Pennington County. The bill was introduced and referred in 2025.
+        </div>
+        <div class="pro-record-card-source">Source: <a href="https://www.revisor.mn.gov/bills/bill.php?b=senate&f=SF630&ssn=0&y=2025">revisor.mn.gov SF630</a><sup><a href="#fn-pro-1">1</a></sup></div>
+      </div>
+      <div class="pro-record-card">
+        <div class="pro-record-card-year">District</div>
+        <div class="pro-record-card-title">Border Country Representation</div>
+        <div class="pro-record-card-body">
+          Johnson's district includes Clay, Kittson, Marshall, Norman, Pennington, Polk, Red Lake, and Roseau Counties. His Senate member page lists East Grand Forks as his home community.
+        </div>
+        <div class="pro-record-card-source">Source: <a href="https://www.senate.mn/members/member_bio.html?mem_id=1217">senate.mn member bio</a><sup><a href="#fn-pro-3">3</a></sup></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTNOTES -->
+  <footer class="pro-footnotes" aria-label="Sources and footnotes">
+    <div class="pro-footnotes-title">Sources &amp; Footnotes</div>
+    <ol>
+      <li id="fn-pro-1">
+        SF630, 94th Legislature (2025). Chief author: Sen. Mark T. Johnson. Revisor status page shows the bill was introduced and referred; the bill text proposed a $5,947,000 bond appropriation for infrastructure rehabilitation in the City of Red Lake Falls, Pennington County. <a href="https://www.revisor.mn.gov/bills/94/2025/0/SF/630/?body=senate" target="_blank">Revisor status</a> and <a href="https://www.revisor.mn.gov/bills/text.php?number=SF630&session=ls94&session_number=0&session_year=2025&version=0" target="_blank">as-introduced text</a>.
+      </li>
+      <li id="fn-pro-2">
+        Official Senate pages list Johnson as <a href="https://www.senate.mn/members?id=leadership" target="_blank">Minority Leader</a>, a member of <a href="https://www.senate.mn/committees/committee_bio.html?cmte_id=1007" target="_blank">Finance</a>, and ranking minority member on <a href="https://www.senate.mn/members/member_bio.html?leg_id=15485" target="_blank">Rules and Administration</a>.
+      </li>
+      <li id="fn-pro-3">
+        Senator bio: <a href="https://www.senate.mn/members/member_bio.html?mem_id=1217" target="_blank">senate.mn member page</a>. Official district map for Senate District 1: <a href="https://www.gis.leg.mn/pdf/leg2022/senate/01.pdf" target="_blank">Minnesota Legislature GIS PDF</a>. The district map identifies Clay, Kittson, Marshall, Norman, Pennington, Polk, Red Lake, and Roseau Counties in the district.
+      </li>
+    </ol>
+  </footer>
+
+</div><!-- end .pro-content -->
+
+
+<!-- ════════════════════════════════════════════════════════
+     OPPO SITE — "Second Time, Same Mistake"
+════════════════════════════════════════════════════════ -->
+<div class="oppo-content" role="main" aria-label="Opposition research file">
+
+  <!-- CASE BAR -->
+  <header class="oppo-case-bar">
+    <div class="oppo-case-ref">CFB Enforcement File &mdash; Mark Johnson for MN Senate</div>
+    <div class="oppo-case-date">Conciliation Agreement &mdash; July 2023 &nbsp;|&nbsp; District 1</div>
+  </header>
+
+  <!-- HERO -->
+  <section class="oppo-hero">
+    <div class="oppo-hero-photo">
+      <img
+        src="https://www.senate.mn/graphics/01Johnson.jpg"
+        alt="Senator Mark T. Johnson"
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+      />
+      <div class="oppo-photo-fallback" style="display:none;">
+        MTJ
+        <span>Sen. Mark T. Johnson</span>
+      </div>
+      <div class="oppo-photo-vignette"></div>
+      <div class="oppo-stamp">
+        <div class="oppo-stamp-text">2ND<br>OFFENSE</div>
+      </div>
+    </div>
+
+    <div class="oppo-hero-text">
+      <div class="oppo-eyebrow">Minnesota Campaign Finance Board &mdash; Enforcement Action</div>
+      <div class="oppo-hero-headline">
+        The Caucus Lawyer<br>
+        <em>Broke the Rules Twice</em>
+      </div>
+      <div class="oppo-hero-deck">
+        Mark Johnson serves as a <strong>Senate leader and committee member on Rules and Administration and Finance</strong>. The Campaign Finance Board found his campaign committee accepted <strong>$150 more than the law allows</strong> from special sources, did not return it within 90 days, and had already committed the same aggregate-limit violation before.
+      </div>
+      <div class="oppo-accusation-box">
+        <div class="oppo-accusation-label">Board Finding &mdash; July 2023</div>
+        <div class="oppo-accusation-text">
+          "Mark Johnson for MN Senate accepted $21,950 in special-source contributions against a $21,800 limit. Because the excess was not returned within 90 days, the Board treated it as accepted. The Board noted this was the committee's <strong>second aggregate special-source violation</strong>."<sup><a href="#fn-op-1" style="color:#D4860A">1</a></sup>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SEQUENCE -->
+  <section class="oppo-sequence" aria-label="What happened, in order">
+    <div class="oppo-sequence-title">What Happened &mdash; In Order</div>
+    <div class="oppo-steps">
+      <div class="oppo-step">
+        <div class="oppo-step-num">01</div>
+        <div class="oppo-step-label">First Violation</div>
+        <div class="oppo-step-text">
+          Johnson's campaign committee committed its <strong>first aggregate special-source violation</strong> in an earlier election cycle. The Board recorded it. The committee was on notice.
+        </div>
+      </div>
+      <div class="oppo-step">
+        <div class="oppo-step-num">02</div>
+        <div class="oppo-step-label">Second Violation</div>
+        <div class="oppo-step-text">
+          During the <strong>2021-2022 election cycle</strong>, the committee accepted $21,950 in special-source contributions. The legal limit was $21,800. The overage was <strong>$150</strong>.
+        </div>
+      </div>
+      <div class="oppo-step">
+        <div class="oppo-step-num">03</div>
+        <div class="oppo-step-label">No Correction</div>
+        <div class="oppo-step-text">
+          The excess was <strong>not returned within 90 days</strong> of deposit, the legally required window. Because Johnson's committee missed that deadline, the Board treated the overage as accepted. The agreement also required later documentation showing the $150 had been returned.
+        </div>
+      </div>
+      <div class="oppo-step">
+        <div class="oppo-step-num">04</div>
+        <div class="oppo-step-label">Penalty Imposed</div>
+        <div class="oppo-step-text">
+          The Board issued a <strong>$300 civil penalty</strong> under the July 2023 conciliation agreement. Of that, <strong>$200 was stayed</strong>, and <strong>$100 was due within 30 days</strong>.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DOCUMENT BLOCK -->
+  <section class="oppo-doc-section" aria-label="Board document and evidence">
+    <div class="oppo-doc-left">
+      <div class="oppo-doc-heading">The Numbers the Board Found</div>
+      <div class="oppo-doc-body">
+        <p>
+          Minnesota law caps the total amount a state Senate candidate can accept from "special sources" &mdash; corporations, partnerships, lobbyists, and political funds &mdash; in an election cycle. The limit exists to prevent exactly the kind of donor dependency that critics say warps legislative priorities.
+        </p>
+        <p>
+          Johnson's committee exceeded that limit. The $150 excess sounds small. The pattern is not. A candidate who has already been cited for the same violation has no excuse for a second one. That is especially true for a <strong>senator who holds senior caucus leadership roles</strong>.
+        </p>
+        <p>
+          The conciliation agreement shows Johnson's committee accepted the penalty rather than contest the Board's findings. The violation is not disputed.<sup><a href="#fn-op-1">1</a></sup>
+        </p>
+      </div>
+    </div>
+    <div class="oppo-doc-right">
+      <div class="oppo-doc-card">
+        <div class="oppo-doc-card-label">CFB Conciliation Agreement &mdash; July 2023 &mdash; Mark Johnson for MN Senate</div>
+        <div class="oppo-doc-line">
+          <span class="oppo-doc-line-label">Special-source limit (2021-22 Senate cycle)</span>
+          <span class="oppo-doc-line-value">$21,800</span>
+        </div>
+        <div class="oppo-doc-line">
+          <span class="oppo-doc-line-label">Actual special-source contributions accepted</span>
+          <span class="oppo-doc-line-value alert">$21,950</span>
+        </div>
+        <div class="oppo-doc-line">
+          <span class="oppo-doc-line-label">Amount over the legal limit</span>
+          <span class="oppo-doc-line-value alert">$150</span>
+        </div>
+        <div class="oppo-doc-line">
+          <span class="oppo-doc-line-label">Days to return excess (legal window)</span>
+          <span class="oppo-doc-line-value">90</span>
+        </div>
+        <div class="oppo-doc-line">
+          <span class="oppo-doc-line-label">Days to return excess (actual)</span>
+          <span class="oppo-doc-line-value alert">Not returned within 90 days</span>
+        </div>
+        <div class="oppo-doc-line">
+          <span class="oppo-doc-line-label">Civil penalty imposed</span>
+          <span class="oppo-doc-line-value alert">$300</span>
+        </div>
+        <div class="oppo-doc-line">
+          <span class="oppo-doc-line-label">Penalty stayed</span>
+          <span class="oppo-doc-line-value">$200</span>
+        </div>
+        <div class="oppo-doc-line">
+          <span class="oppo-doc-line-label">Prior violations of same rule</span>
+          <span class="oppo-doc-line-value alert">1 (noted by Board)</span>
+        </div>
+        <div class="oppo-doc-card-footer">
+          <strong>Note:</strong> The Board specifically noted this was the committee's <strong>second aggregate special-source violation</strong>. A stayed penalty means any future violation can trigger payment of the stayed amount plus new penalties.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EVIDENCE CARDS -->
+  <section class="oppo-evidence-section" aria-label="Three evidence facts">
+    <div class="oppo-evidence-title">Three Facts. One Pattern.</div>
+    <div class="oppo-evidence-grid">
+
+      <div class="oppo-ev-card" data-num="01">
+        <div class="oppo-ev-tag">Compliance Failure</div>
+        <div class="oppo-ev-stat">2<span class="unit">x</span></div>
+        <div class="oppo-ev-body">
+          Johnson's committee was cited for <strong>two separate aggregate special-source violations</strong> across different election cycles. The Board documented the prior violation when issuing the July 2023 agreement. A first violation is a mistake. A second one is a pattern.
+        </div>
+        <div class="oppo-ev-source">
+          Source: <a href="https://cfb.mn.gov/citizen-resources/the-board/board-decisions/enforcement-actions/" target="_blank">MN Campaign Finance Board enforcement actions</a><sup><a href="#fn-op-1">1</a></sup>
+        </div>
+      </div>
+
+      <div class="oppo-ev-card" data-num="02">
+        <div class="oppo-ev-tag">Missed Deadline</div>
+        <div class="oppo-ev-stat">90<span class="unit"> days</span></div>
+        <div class="oppo-ev-body">
+          Minnesota law gives campaigns <strong>90 days to return excess contributions</strong>. Johnson's committee failed to return the $150 overage within that window. This is not a technicality. The 90-day cure period exists precisely so campaigns can fix mistakes. His committee did not use it.
+        </div>
+        <div class="oppo-ev-source">
+          Source: MN Stat. § 10A.20; CFB conciliation agreement, July 2023<sup><a href="#fn-op-1">1</a></sup>
+        </div>
+      </div>
+
+      <div class="oppo-ev-card" data-num="03">
+        <div class="oppo-ev-tag">Brand Contradiction</div>
+        <div class="oppo-ev-stat"><span class="unit">Leader</span></div>
+        <div class="oppo-ev-body">
+          Johnson is listed on official Senate pages as Minority Leader, a Finance member, and ranking minority member on Rules and Administration. Those are institutional roles that depend on rule-following credibility. The Campaign Finance Board found his committee missed a basic campaign-finance compliance rule twice.
+        </div>
+        <div class="oppo-ev-source">
+          Source: Official Senate leadership and committee pages; CFB agreement July 2023<sup><a href="#fn-op-1">1</a></sup><sup>, </sup><sup><a href="#fn-op-2">2</a></sup>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- BRAND GAP -->
+  <section class="oppo-gap-section" aria-label="The brand contradiction">
+    <div class="oppo-gap-inner">
+      <div class="oppo-gap-label">The Gap Between Brand and Record</div>
+      <div class="oppo-gap-headline">He runs as the lawyer who knows the rules. His campaign broke them twice.</div>
+      <div class="oppo-gap-body">
+        Mark Johnson's public role is institutional: Senate Minority Leader, Finance member, and ranking minority member on Rules and Administration. The Campaign Finance Board's record shows his own campaign committee missed a donor-limit rule that every Senate candidate in Minnesota must follow, and the Board treated the 2021-2022 overage as accepted because it was not returned within 90 days. For a senator whose case rests on process credibility, that record matters.
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTNOTES -->
+  <footer class="oppo-footnotes" aria-label="Sources and footnotes">
+    <div class="oppo-footnotes-title">Sources &amp; Footnotes</div>
+    <ol>
+      <li id="fn-op-1">
+        Minnesota Campaign Finance and Public Disclosure Board. Conciliation Agreement, July 2023, "Mark Johnson for MN Senate." The agreement states the committee accepted $21,950 in special-source contributions against a $21,800 limit in the 2021-2022 cycle, did not return the excess within 90 days, committed a second aggregate special-source violation, had to provide later documentation that the $150 had been returned, and owed a $300 civil penalty with $200 stayed and $100 due within 30 days. <a href="https://register.cfb.mn.gov/pdf/bdactions/1642_Conciliation_Agreement.pdf" target="_blank">CFB conciliation agreement PDF</a>.
+      </li>
+      <li id="fn-op-2">
+        Official Senate pages list Johnson as <a href="https://www.senate.mn/members?id=leadership" target="_blank">Minority Leader</a>, a member of <a href="https://www.senate.mn/committees/committee_bio.html?cmte_id=1007" target="_blank">Finance</a>, and ranking minority member on <a href="https://www.senate.mn/members/member_bio.html?leg_id=15485" target="_blank">Rules and Administration</a>.
+      </li>
+    </ol>
+  </footer>
+
+
+  <!-- Auto-transition sentinel — observed by IntersectionObserver -->
+  <div id="brief-sentinel" style="height:1px;width:100%;"></div>
+
+  <!-- Subtle stamp — visible as user nears the bottom -->
+  <div class="machine-stamp">
+    <span class="machine-stamp-text">AI-GENERATED &nbsp;·&nbsp; 67 SENATORS &nbsp;·&nbsp; 63 PARALLEL AGENTS &nbsp;·&nbsp; ~4 HRS &nbsp;·&nbsp; ~$47</span>
+  </div>
+
+</div><!-- end .oppo-content -->
+
+
+<script>
+  /* ── FLIP LOGIC ───────────────────────────────────────── */
+  const body    = document.body;
+  const btn     = document.getElementById('flip-btn');
+  const veil    = document.getElementById('fade-veil');
+  let   isOppo  = false;
+
+  btn.addEventListener('click', () => {
+    // Fade in
+    veil.classList.add('visible');
+
+    setTimeout(() => {
+      isOppo = !isOppo;
+      if (isOppo) {
+        body.classList.add('mode-oppo');
+      } else {
+        body.classList.remove('mode-oppo');
+      }
+      window.scrollTo({ top: 0, behavior: 'instant' });
+
+      // Fade out
+      requestAnimationFrame(() => {
+        veil.classList.remove('visible');
+      });
+    }, 220);
+  });
+
+  /* ── NUMBER COUNTER ANIMATION ─────────────────────────── */
+  function animateCounter(el, target, prefix, suffix, duration) {
+    const start = performance.now();
+    const isLarge = target >= 1000;
+
+    function easeOutExpo(t) {
+      return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+    }
+
+    function tick(now) {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = easeOutExpo(progress);
+      const current = Math.round(eased * target);
+
+      if (isLarge) {
+        el.textContent = prefix + '$' + current.toLocaleString();
+      } else {
+        el.textContent = prefix + current + suffix;
+      }
+
+      if (progress < 1) {
+        requestAnimationFrame(tick);
+      } else {
+        if (isLarge) {
+          el.textContent = prefix + '$' + target.toLocaleString();
+        } else {
+          el.textContent = prefix + target + suffix;
+        }
+      }
+    }
+    requestAnimationFrame(tick);
+  }
+
+  /* ── INTERSECTION OBSERVER FOR COUNTERS ───────────────── */
+  const statBond = document.getElementById('stat-bond');
+  if (statBond) {
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          animateCounter(statBond, 5947000, '', '', 2000);
+          obs.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.3 });
+    obs.observe(statBond);
+  }
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     THE BRIEF — AI capabilities briefing
+═══════════════════════════════════════════════════════ -->
+<div class="brief-content">
+
+  <div class="brief-opening">
+    <p class="brief-made-by">Sixty-seven of these pages were made using one AI account in about thirty minutes. Six months ago an automated project like this would have been impossible.</p>
+  </div>
+
+  <div class="brief-chart-section">
+    <h2 class="brief-chart-title">This is the trend that made it possible.</h2>
+    <div class="brief-chart-frame">
+      <img
+        src="https://metr.org/assets/images/measuring-ai-ability-to-complete-long-tasks/length-of-tasks-log.png"
+        alt="METR chart: length of tasks AI agents can complete autonomously, doubling roughly every 7 months since 2019"
+        class="brief-metr-img"
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+      >
+      <div class="brief-chart-fallback" style="display:none;">
+        <p>Chart unavailable. See the original at <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">metr.org</a>.</p>
+      </div>
+    </div>
+    <p class="brief-chart-source">Source: <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR</a>, an independent AI evaluation lab.</p>
+    <p class="brief-chart-read">This chart tracks how long a task an AI agent can finish on its own. In 2019, the answer was about three seconds. By early 2023, it was six minutes. by mid 2025, over two hours. As of early 2026, Claude Opus 4.6 completes tasks that take a skilled human roughly twelve hours.</p>
+    <p class="brief-chart-read">The overall doubling time has been about seven months. But it is getting faster. <a href="https://metr.org/time-horizons/" target="_blank">When researchers fit only the most recent data</a>, the doubling time drops to four months. At that rate, AI agents capable of completing month-long autonomous projects arrive not in the early 2030s but around 2028.</p>
+  </div>
+
+  <div class="brief-so-what">
+    <h2 class="brief-so-what-title">What that means for lawmakers.</h2>
+    <p>Urgency. There was a narrative last year that AI had hit a wall in capabilities. It was a plausible perspective at the time. It isn't anymore. After breakthroughs late last year, AI systems' ability to automate cyberattacks, pathogen design, misinformation, mass surveillance, and vast swaths of white-collar work is advancing faster than ever.</p>
+    <p>The world will soon change faster than the typical pace of policymaking. The only solution is to act with atypical speed: AI regulations, data center moratoriums, calling for a federal pause on AI development, worker displacement funds. Some of these ideas already have bills introduced this session. Others should be explored soon. Time is limited, so if you feel behind on AI, the sources below are a good place to start.</p>
+    
+  </div>
+
+  <div class="brief-next">
+    <h2 class="brief-next-title">Start here.</h2>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">USE</span>
+      <a href="https://claude.ai/cowork" target="_blank">Claude Cowork</a> · <a href="https://claude.ai/code" target="_blank">Claude Code</a>
+      <span class="brief-link-detail">The tools that built this page. Cowork handles research and writing. Code is the agent that runs tasks, spawns sub-agents, and makes decisions on its own. Spend thirty minutes with one of these on a real problem from your week. That will teach you more than any briefing.</span>
+    </div>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR: Measuring AI Ability to Complete Long Tasks</a>
+      <span class="brief-link-detail">The source for the chart above. The METR trend is based on software tasks, but <a href="https://futuretech.mit.edu/publication/crashing-waves-vs-rising-tides-preliminary-findings-on-ai-automation-from-thousands-of-worker-evaluations-of-labor-market-tasks" target="_blank">MIT research on worker evaluations of labor market tasks</a> finds similar patterns across white-collar work broadly.</span>
+    </div>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://aiindex.stanford.edu/report/" target="_blank">Stanford HAI AI Index 2025</a>
+      <span class="brief-link-detail">The most comprehensive annual report on AI capabilities, economics, and policy across all 50 states.</span>
+    </div>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.imdb.com/title/tt39150120/" target="_blank">The AI Doc: Or How I Became an Apocaloptimist</a>
+      <span class="brief-link-detail">Daniel Roher's 2026 documentary, in theaters now. Roher interviews Amodei, Altman, Hassabis, and dozens more. If you see one thing on this list, see this.</span>
+    </div>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.youtube.com/watch?v=xoVJKj8lcNQ" target="_blank">The A.I. Dilemma</a>
+      <span class="brief-link-detail">Center for Humane Technology. 60 min, free on YouTube. Made for people with institutional power who need to understand AI quickly.</span>
+    </div>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">TRACK</span>
+      <a href="https://www.ncsl.org/technology-and-communication/artificial-intelligence" target="_blank">NCSL AI Legislation Tracker</a> ·
+      <a href="https://mn.gov/mnit/about-mnit/oit-programs/ai/" target="_blank">MN.IT AI Office</a>
+      <span class="brief-link-detail">Every AI bill in every state. Plus Minnesota's own AI program office. See where you stand relative to the field.</span>
+    </div>
+  </div>
+
+  <div class="brief-close">
+    <p class="brief-close-small">This project is not affiliated with any campaign, party, or organization.</p>
+    <button id="exit-brief-btn">← Back</button>
+  </div>
+
+</div><!-- /brief-content -->
+
+<style>
+.brief-content { display: none; }
+body.mode-brief .brief-content  { display: block; }
+body.mode-brief .pro-content    { display: none; }
+body.mode-brief .oppo-content   { display: none; }
+body.mode-brief #flip-btn       { display: none; }
+
+.brief-content {
+  background: #0C0A08;
+  color: #D4CCBE;
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 17px;
+  line-height: 1.75;
+  min-height: 100vh;
+}
+.brief-content a { color: #C0B49A; }
+.brief-content a:hover { color: #fff; }
+
+@keyframes glitch-seq {
+  0%   { filter: saturate(0) brightness(0.5); }
+  10%  { filter: hue-rotate(90deg) contrast(4) brightness(3); transform: skewX(4deg); }
+  12%  { filter: brightness(0.1); transform: none; }
+  25%  { filter: hue-rotate(200deg) invert(0.8); transform: translateX(6px); }
+  27%  { filter: brightness(0.05); transform: none; }
+  40%  { filter: blur(6px) brightness(0.02); }
+  44%  { filter: brightness(6); }
+  46%  { filter: none; transform: none; }
+  60%  { filter: hue-rotate(300deg) contrast(3) saturate(8); transform: skewX(-3deg); }
+  62%  { filter: none; transform: none; }
+  78%  { filter: blur(16px) brightness(0.01); }
+  82%  { filter: brightness(2); }
+  84%  { filter: none; }
+  100% { filter: none; transform: none; }
+}
+body.glitching {
+  animation: glitch-seq 1.2s ease-in-out forwards;
+  pointer-events: none;
+}
+
+.machine-stamp {
+  background: #050505;
+  border-top: 1px solid #111;
+  padding: 16px 40px;
+  text-align: center;
+}
+.machine-stamp-text {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 0.22em;
+  color: #222;
+  text-transform: uppercase;
+  animation: stamp-pulse 3s ease-in-out infinite;
+}
+@keyframes stamp-pulse {
+  0%, 100% { color: #222; }
+  50% { color: #4A3A2A; }
+}
+
+.brief-opening { max-width: 640px; margin: 0 auto; padding: 100px 40px 64px; }
+.brief-made-by { font-size: 20px; line-height: 1.65; color: #B8AE9C; margin-bottom: 20px; }
+.brief-made-by.last { color: #E8DED0; }
+
+.brief-chart-section { max-width: 740px; margin: 0 auto; padding: 48px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-chart-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 32px; font-style: italic; }
+.brief-chart-frame { background: #fff; border-radius: 4px; padding: 12px; margin-bottom: 12px; }
+.brief-metr-img { width: 100%; height: auto; display: block; }
+.brief-chart-fallback { padding: 40px; text-align: center; color: #666; font-size: 14px; }
+.brief-chart-fallback a { color: #888; }
+.brief-chart-source { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #5A5040; line-height: 1.6; margin-bottom: 28px; }
+.brief-chart-source a { color: #7A6A54; text-decoration: none; }
+.brief-chart-read { font-size: 17px; color: #B8AE9C; }
+
+.brief-so-what { max-width: 640px; margin: 0 auto; padding: 56px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-so-what-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 28px; font-style: italic; }
+.brief-so-what p { font-size: 17px; color: #B8AE9C; margin-bottom: 20px; }
+
+.brief-next { max-width: 640px; margin: 0 auto; padding: 56px 40px 48px; border-top: 1px solid #1E1A14; }
+.brief-next-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 14px; font-style: italic; }
+.brief-next-intro { font-size: 15px; color: #9A9080; margin-bottom: 36px; line-height: 1.65; }
+.brief-link-block { margin-bottom: 28px; line-height: 1.7; }
+.brief-link-tag { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.2em; color: #6A5A44; text-transform: uppercase; display: block; margin-bottom: 4px; }
+.brief-link-block a { font-weight: 600; color: #E0D6C4; text-decoration: underline; text-underline-offset: 3px; font-size: 16px; }
+.brief-link-block a:hover { color: #fff; }
+.brief-link-detail { display: block; font-size: 14px; color: #6A5E4C; margin-top: 2px; }
+
+.brief-close { max-width: 640px; margin: 0 auto; padding: 48px 40px 100px; border-top: 1px solid #1E1A14; }
+.brief-close p { font-family: 'Source Serif 4', Georgia, serif; font-size: 16px; color: #9A9080; margin-bottom: 32px; line-height: 1.7; }
+.brief-close-small { font-family: 'IBM Plex Mono', monospace !important; font-size: 11px !important; color: #3A3428 !important; letter-spacing: 0.04em; }
+#exit-brief-btn { background: none; border: 1px solid #2A2418; color: #5A5040; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; padding: 10px 20px; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
+#exit-brief-btn:hover { border-color: #8A7A64; color: #C0B49A; }
+
+@media (max-width: 900px) {
+  .brief-opening, .brief-so-what, .brief-next, .brief-close { padding-left: 24px; padding-right: 24px; }
+  .brief-chart-section { padding-left: 24px; padding-right: 24px; }
+  .brief-made-by { font-size: 18px; }
+  .brief-opening { padding-top: 64px; }
+  .machine-stamp { padding: 14px 20px; }
+}
+</style>
+
+<script>
+(function() {
+  let briefTriggered = false;
+
+  function startBriefTransition() {
+    if (briefTriggered) return;
+    if (!document.body.classList.contains('mode-oppo')) return;
+    briefTriggered = true;
+    const body = document.body;
+
+    body.style.transition = 'filter 2.5s ease-in';
+    body.style.filter = 'saturate(0) brightness(0.3)';
+
+    setTimeout(() => {
+      const hed = document.querySelector('.oppo-content h1') || document.querySelector('.oppo-content h2');
+      if (hed) {
+        const orig = hed.textContent;
+        const chars = '█▓▒░■□0123456789';
+        let n = 0;
+        const si = setInterval(() => {
+          n++;
+          hed.textContent = Array.from(orig).map(c => c === ' ' ? ' ' : chars[Math.floor(Math.random() * chars.length)]).join('');
+          if (n > 40) { clearInterval(si); hed.textContent = orig; }
+        }, 40);
+      }
+    }, 1200);
+
+    setTimeout(() => {
+      body.style.transition = '';
+      body.style.filter = '';
+      body.classList.add('glitching');
+
+      setTimeout(() => {
+        body.classList.remove('glitching');
+        body.classList.add('mode-brief');
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      }, 1500);
+    }, 2500);
+  }
+
+  const sentinel = document.getElementById('brief-sentinel');
+  if (sentinel && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          io.disconnect();
+          setTimeout(startBriefTransition, 1200);
+        }
+      });
+    }, { threshold: 0.5 });
+    io.observe(sentinel);
+  }
+
+  const flipBtn = document.getElementById('flip-btn');
+  if (flipBtn) {
+    flipBtn.addEventListener('click', () => {
+      if (document.body.classList.contains('mode-oppo')) briefTriggered = false;
+    });
+  }
+})();
+
+document.addEventListener('click', (e) => {
+  if (e.target && e.target.id === 'exit-brief-btn') {
+    const body = document.body;
+    body.style.opacity = '0';
+    body.style.transition = 'opacity 0.3s';
+    setTimeout(() => {
+      body.classList.remove('mode-brief');
+      body.classList.add('mode-oppo');
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      body.style.opacity = '1';
+    }, 300);
+  }
+});
+</script>
+
+</body>
+</html>

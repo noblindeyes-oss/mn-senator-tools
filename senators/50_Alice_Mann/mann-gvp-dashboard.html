@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minnesota Gun Violence Data Tracker — Senator Alice Mann, SD-50</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Scrolling data narrative — alternating full-width bands of dark (steel) and light (white), no max-width shell, no cards. Content constrained per-section with varying widths.
+   2. Navigation: Thin floating progress bar at top (4px). No tabs, no sidebar. Scroll IS the story.
+   3. Typography: Trebuchet MS (headers), Tahoma (body), Lucida Console (data/numbers) — NO Georgia, NO Arial Narrow, NO Courier New.
+   4. Hero moment: Amber dot expands into circle, mortality figure fades in. Full-viewport opening. Stark, solemn.
+   5. Color strategy: #6 (color-blocked sections) — STEEL AND AMBER. Gun-metal steel #37474f, warm amber #ff8f00, soft white #fafafa, memorial black #1a1a1a. Each band a distinct environment.
+   6. Entry experience: Single amber dot center-screen expands, then "551" fades in. No text preamble.
+   Additional: No bordered callout boxes. No cards. No emoji. Dense data tables alternate with spacious editorial sections. Clinical voice — short, direct sentences.
+*/
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --steel: #37474f;
+  --steel-light: #455a64;
+  --steel-dark: #263238;
+  --amber: #ff8f00;
+  --amber-light: #ffa726;
+  --amber-dark: #e65100;
+  --white: #fafafa;
+  --black: #1a1a1a;
+  --green: #43a047;
+  --yellow: #fdd835;
+  --red: #e53935;
+  --muted: #78909c;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--black);
+  background: var(--black);
+  overflow-x: hidden;
+}
+
+/* ── PROGRESS BAR ── */
+#progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 4px;
+  background: var(--amber);
+  z-index: 9999;
+  width: 0%;
+  transition: width 0.1s linear;
+}
+
+/* ── ENTRY EXPERIENCE ── */
+#entry-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--black);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.6s ease;
+}
+#entry-overlay.fade-out { opacity: 0; pointer-events: none; }
+
+#amber-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--amber);
+  transition: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+#amber-dot.expanded {
+  width: 220px;
+  height: 220px;
+  background: transparent;
+  border: 3px solid var(--amber);
+}
+
+#mortality-number {
+  position: absolute;
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 72px;
+  font-weight: bold;
+  color: var(--amber);
+  opacity: 0;
+  transition: opacity 0.8s ease;
+  text-align: center;
+  line-height: 1;
+}
+#mortality-number.visible { opacity: 1; }
+#mortality-label {
+  position: absolute;
+  margin-top: 100px;
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 13px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--muted);
+  opacity: 0;
+  transition: opacity 0.8s ease 0.3s;
+}
+#mortality-label.visible { opacity: 1; }
+
+/* ── BAND SYSTEM ── */
+.band {
+  width: 100%;
+  padding: 60px 0;
+}
+.band-dark {
+  background: var(--steel);
+  color: var(--white);
+}
+.band-light {
+  background: var(--white);
+  color: var(--black);
+}
+.band-black {
+  background: var(--black);
+  color: #ccc;
+}
+.band-amber {
+  background: var(--amber);
+  color: var(--black);
+}
+
+.band-inner {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+.band-inner.wide { max-width: 1100px; }
+.band-inner.narrow { max-width: 720px; }
+
+/* ── TYPOGRAPHY ── */
+h1, h2, h3 {
+  font-family: 'Trebuchet MS', sans-serif;
+  font-weight: 700;
+  line-height: 1.2;
+}
+h1 { font-size: 36px; margin-bottom: 16px; }
+h2 {
+  font-size: 24px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+h3 { font-size: 18px; margin-bottom: 12px; }
+
+.section-number {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 11px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--amber);
+  display: block;
+  margin-bottom: 8px;
+}
+.band-light .section-number,
+.band-amber .section-number { color: var(--steel); }
+
+.data-number {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 48px;
+  font-weight: bold;
+  line-height: 1.1;
+}
+.data-label {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-top: 6px;
+}
+.source-note {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 4px;
+  font-style: normal;
+}
+.band-dark .source-note { color: #90a4ae; }
+
+/* ── INTRO BAND (post-hero context) ── */
+.intro-text {
+  font-size: 16px;
+  line-height: 1.8;
+  max-width: 680px;
+}
+.intro-text strong { color: var(--amber); }
+.band-light .intro-text strong { color: var(--amber-dark); }
+
+/* ── STAT CALLOUTS (no cards — just type and negative space) ── */
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 32px;
+  text-align: center;
+  padding: 20px 0;
+}
+.stat-item .data-number { color: var(--amber); }
+.stat-item.highlight { position: relative; }
+.stat-item.highlight::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 3px;
+  background: var(--amber);
+}
+
+/* ── COVERAGE MATRIX TABLE ── */
+.matrix-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin: 24px 0 16px;
+}
+.matrix-table th {
+  font-family: 'Trebuchet MS', sans-serif;
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 10px 6px;
+  text-align: center;
+  border-bottom: 2px solid var(--amber);
+  color: var(--white);
+}
+.matrix-table th:first-child {
+  text-align: left;
+  min-width: 140px;
+}
+.matrix-table td {
+  padding: 12px 6px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.matrix-table td:first-child {
+  text-align: left;
+  font-family: 'Trebuchet MS', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+}
+.matrix-table tbody tr:hover { background: rgba(255,143,0,0.06); }
+
+.indicator {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+.indicator.green { background: var(--green); }
+.indicator.yellow { background: var(--yellow); }
+.indicator.red { background: var(--red); }
+
+.legend {
+  display: flex;
+  gap: 24px;
+  font-size: 12px;
+  margin-top: 12px;
+  color: #90a4ae;
+}
+.legend span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ── DATA SOURCE DESCRIPTIONS ── */
+.source-block {
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+.band-dark .source-block { border-bottom-color: rgba(255,255,255,0.08); }
+.source-block:last-child { border-bottom: none; margin-bottom: 0; }
+
+.source-block h3 {
+  font-family: 'Trebuchet MS', sans-serif;
+  color: var(--amber-dark);
+  margin-bottom: 4px;
+}
+.band-dark .source-block h3 { color: var(--amber); }
+
+.source-block .agency {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+.source-meta {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 4px 16px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.source-meta dt {
+  font-family: 'Trebuchet MS', sans-serif;
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--amber);
+  padding-top: 2px;
+}
+.band-light .source-meta dt { color: var(--steel); }
+.source-meta dd { margin-bottom: 6px; }
+
+/* ── GAP SUMMARY ── */
+.gap-summary {
+  background: var(--black);
+  color: var(--white);
+  padding: 28px 32px;
+  margin-top: 32px;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.gap-summary h3 {
+  color: var(--amber);
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.gap-summary ul {
+  list-style: none;
+  padding: 0;
+}
+.gap-summary li {
+  padding-left: 20px;
+  position: relative;
+  margin-bottom: 12px;
+}
+.gap-summary li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 8px;
+  height: 8px;
+  background: var(--amber);
+  border-radius: 50%;
+}
+
+/* ── CHARTS ── */
+.chart-container {
+  position: relative;
+  max-width: 700px;
+  margin: 0 auto 32px;
+}
+.chart-container canvas { max-height: 360px; }
+.chart-note {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 8px;
+  line-height: 1.5;
+  text-align: center;
+}
+.band-dark .chart-note { color: #90a4ae; }
+
+.illustrative-label {
+  display: inline-block;
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  background: var(--amber);
+  color: var(--black);
+  padding: 3px 10px;
+  margin-bottom: 16px;
+}
+
+/* ── DATA COMPLETENESS BARS ── */
+.bar-chart-row {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+.bar-chart-row .bar-label {
+  font-family: 'Trebuchet MS', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  text-align: right;
+}
+.bar-group {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.bar-track {
+  flex: 1;
+  height: 18px;
+  background: rgba(255,255,255,0.08);
+  position: relative;
+  overflow: hidden;
+}
+.band-light .bar-track { background: rgba(0,0,0,0.06); }
+.bar-fill {
+  height: 100%;
+  transition: width 0.8s ease;
+}
+.bar-fill.coverage { background: var(--steel-light); }
+.bar-fill.timeliness { background: var(--amber); }
+.bar-fill.detail { background: var(--green); }
+.bar-value {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 11px;
+  width: 24px;
+  text-align: right;
+}
+.bar-legend {
+  display: flex;
+  gap: 20px;
+  margin-top: 12px;
+  font-size: 11px;
+}
+.bar-legend span { display: flex; align-items: center; gap: 6px; }
+.bar-legend .swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+}
+
+/* ── MODULE 3: ANNUAL REPORT TEMPLATE ── */
+.report-doc {
+  background: #fff;
+  color: var(--black);
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 48px 56px;
+  box-shadow: 0 4px 40px rgba(0,0,0,0.3);
+  font-size: 14px;
+  line-height: 1.7;
+}
+.report-header {
+  text-align: center;
+  padding-bottom: 24px;
+  border-bottom: 2px solid var(--steel);
+  margin-bottom: 28px;
+}
+.report-header .state-name {
+  font-family: 'Trebuchet MS', sans-serif;
+  font-size: 14px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--steel);
+}
+.report-header .dept-name {
+  font-family: 'Trebuchet MS', sans-serif;
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.report-header .office-name {
+  font-family: 'Trebuchet MS', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--black);
+  margin-top: 12px;
+}
+.report-header .report-title {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 16px;
+  color: var(--steel);
+  margin-top: 8px;
+}
+
+.report-section {
+  margin-bottom: 28px;
+}
+.report-section h3 {
+  font-family: 'Trebuchet MS', sans-serif;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--steel);
+  padding-bottom: 6px;
+  border-bottom: 1px solid #ccc;
+  margin-bottom: 12px;
+}
+
+.editable-field {
+  display: inline;
+  padding: 1px 6px;
+  border-bottom: 2px solid var(--amber);
+  background: rgba(255,143,0,0.05);
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 13px;
+  color: var(--steel-dark);
+  min-width: 60px;
+  outline: none;
+  transition: background 0.2s;
+}
+.editable-field:focus {
+  background: rgba(255,143,0,0.12);
+  border-bottom-color: var(--amber-dark);
+}
+.editable-field:empty::before {
+  content: attr(data-placeholder);
+  color: #aaa;
+}
+
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin: 16px 0;
+}
+.report-table th {
+  font-family: 'Trebuchet MS', sans-serif;
+  text-align: left;
+  padding: 8px 10px;
+  background: var(--steel);
+  color: var(--white);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.report-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #e0e0e0;
+}
+.report-table td:last-child { text-align: right; }
+.report-table .editable-field {
+  display: inline-block;
+  min-width: 80px;
+  text-align: right;
+}
+
+.report-textarea {
+  width: 100%;
+  min-height: 120px;
+  border: 1px solid #ccc;
+  padding: 12px;
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--black);
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.report-textarea:focus { border-color: var(--amber); }
+
+.year-select {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 14px;
+  padding: 4px 8px;
+  border: 2px solid var(--amber);
+  background: transparent;
+  color: var(--steel-dark);
+  outline: none;
+  cursor: pointer;
+}
+
+.btn-print {
+  display: inline-block;
+  font-family: 'Trebuchet MS', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  background: var(--steel);
+  color: var(--white);
+  border: none;
+  padding: 12px 32px;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-top: 24px;
+}
+.btn-print:hover { background: var(--amber-dark); color: var(--white); }
+
+/* ── FOOTER ── */
+.footer-band {
+  padding: 40px 0;
+  font-size: 12px;
+  color: #666;
+  text-align: center;
+  line-height: 1.6;
+}
+.footer-band .band-inner { max-width: 640px; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .stat-row { grid-template-columns: repeat(2, 1fr); gap: 24px; }
+  .data-number { font-size: 36px; }
+  .matrix-table { font-size: 11px; }
+  .matrix-table th, .matrix-table td { padding: 8px 3px; }
+  .source-meta { grid-template-columns: 1fr; }
+  .report-doc { padding: 28px 20px; }
+  .band { padding: 40px 0; }
+  h1 { font-size: 28px; }
+  h2 { font-size: 20px; }
+  .bar-chart-row { grid-template-columns: 100px 1fr; }
+}
+
+/* ── PRINT STYLES ── */
+@media print {
+  body { background: #fff; color: #000; }
+  #progress-bar, #entry-overlay,
+  .band:not(#report-band),
+  .btn-print { display: none !important; }
+  #report-band {
+    display: block !important;
+    background: #fff;
+    padding: 0;
+  }
+  .report-doc {
+    box-shadow: none;
+    padding: 0;
+    max-width: 100%;
+  }
+  .editable-field {
+    border-bottom: 1px solid #999;
+    background: transparent;
+  }
+  .report-textarea { border: 1px solid #999; }
+  .year-select { border: 1px solid #999; }
+}
+</style>
+</head>
+<body>
+
+<!-- PROGRESS BAR -->
+<div id="progress-bar"></div>
+
+<!-- ENTRY OVERLAY -->
+<div id="entry-overlay">
+  <div id="amber-dot"></div>
+  <div id="mortality-number">551</div>
+  <div id="mortality-label">Minnesotans killed by firearms each year</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- BAND 1: FRAMING STATEMENT (dark) -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="band band-dark" style="padding-top:80px;">
+  <div class="band-inner narrow">
+    <span class="section-number">The Problem</span>
+    <h1 style="color:var(--amber);margin-bottom:24px;">We are trying to treat a condition without a diagnostic panel.</h1>
+    <p class="intro-text">
+      Senator Mann's SF513 proposes something precise: a state office with a director, annual reports, and a mandate to collect data that Minnesota doesn't currently have in one place. This tool was built to show what that office would actually use — and what the state is missing without it.
+    </p>
+    <p class="intro-text" style="margin-top:16px;">
+      Minnesota's gun violence data is fragmented across four separate systems. Different scopes. Different latencies. Different methodologies. No single system captures both fatal and nonfatal firearm injuries with consistent mechanism coding statewide.
+    </p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- BAND 2: KEY STATISTICS (amber) -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="band band-amber" style="padding:40px 0;">
+  <div class="band-inner wide">
+    <div class="stat-row">
+      <div class="stat-item">
+        <div class="data-number" style="color:var(--black);">551</div>
+        <div class="data-label" style="color:var(--steel-dark);">Avg. annual firearm deaths</div>
+        <div class="source-note" style="color:rgba(0,0,0,0.5);">Everytown Research, citing CDC</div>
+      </div>
+      <div class="stat-item">
+        <div class="data-number" style="color:var(--black);">~1,100</div>
+        <div class="data-label" style="color:var(--steel-dark);">Est. annual nonfatal injuries</div>
+        <div class="source-note" style="color:rgba(0,0,0,0.5);">No unified MN tracking system</div>
+      </div>
+      <div class="stat-item">
+        <div class="data-number" style="color:var(--black);">$6.6B</div>
+        <div class="data-label" style="color:var(--steel-dark);">Annual economic cost in MN</div>
+        <div class="source-note" style="color:rgba(0,0,0,0.5);">Everytown/EveryStat</div>
+      </div>
+      <div class="stat-item highlight">
+        <div class="data-number" style="color:var(--black);">0</div>
+        <div class="data-label" style="color:var(--steel-dark);">Dedicated state offices</div>
+        <div class="source-note" style="color:rgba(0,0,0,0.5);">As of 2025 — author's note</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- BAND 3: MODULE 1 — DATA LANDSCAPE SOURCES (light) -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="band band-light">
+  <div class="band-inner">
+    <span class="section-number">Module 1 — Data Landscape</span>
+    <h2 style="color:var(--steel);">Minnesota's Four Data Systems</h2>
+
+    <div class="source-block">
+      <h3>Minnesota Violent Death Reporting System (MNVDRS)</h3>
+      <div class="agency">MN Department of Health, Injury &amp; Violence Prevention</div>
+      <dl class="source-meta">
+        <dt>Captures</dt>
+        <dd>Firearm deaths — homicide, suicide, legal intervention, unintentional, undetermined intent</dd>
+        <dt>Scope</dt>
+        <dd>Statewide; county-level breakdowns available</dd>
+        <dt>Latency</dt>
+        <dd>12-18 months behind current year</dd>
+        <dt>Limitation</dt>
+        <dd>Deaths only. Does not capture nonfatal firearm injuries, which outnumber deaths roughly 2:1 nationally. Does not capture incidents without ER contact.</dd>
+        <dt>Methodology</dt>
+        <dd>Three-source triangulation: death certificates + medical examiner records + law enforcement records (gold standard)</dd>
+      </dl>
+    </div>
+
+    <div class="source-block">
+      <h3>MDH Injury Data / MIDAS</h3>
+      <div class="agency">MN Department of Health — Minnesota Interactive Data Access System</div>
+      <dl class="source-meta">
+        <dt>Captures</dt>
+        <dd>Emergency department visits and hospitalizations, including some firearm-mechanism codes; also tracks fatal injury by mechanism</dd>
+        <dt>Scope</dt>
+        <dd>Statewide; hospital-level discharge data</dd>
+        <dt>Latency</dt>
+        <dd>12-24 months</dd>
+        <dt>Limitation</dt>
+        <dd>Requires ICD-10 external cause codes (W32-W34, X72-X74, X93-X95, Y22-Y24, Y35.0). Not all hospitals code consistently. Does not capture incidents where person did not seek care or died before hospital contact.</dd>
+      </dl>
+    </div>
+
+    <div class="source-block">
+      <h3>MDH Syndromic Surveillance</h3>
+      <div class="agency">MN Department of Health</div>
+      <dl class="source-meta">
+        <dt>Captures</dt>
+        <dd>Real-time ED chief complaints; can flag injury patterns</dd>
+        <dt>Scope</dt>
+        <dd>Participating hospitals (not 100% coverage)</dd>
+        <dt>Latency</dt>
+        <dd>Near real-time (24-72 hours)</dd>
+        <dt>Limitation</dt>
+        <dd>Designed for outbreak detection — very blunt on mechanism. Does not reliably distinguish firearm injuries from other penetrating trauma. No case-level detail. No follow-up.</dd>
+      </dl>
+    </div>
+
+    <div class="source-block">
+      <!-- VERIFY: WISQARS description from software brief, cross-checked against CDC public documentation -->
+      <h3>CDC WISQARS</h3>
+      <div class="agency">U.S. Centers for Disease Control and Prevention — Web-based Injury Statistics Query and Reporting System</div>
+      <dl class="source-meta">
+        <dt>Captures</dt>
+        <dd>Fatal and nonfatal injury data; firearm deaths and injuries</dd>
+        <dt>Scope</dt>
+        <dd>National, with state-level breakdowns</dd>
+        <dt>Latency</dt>
+        <dd>1-3 years depending on data type</dd>
+        <dt>Limitation</dt>
+        <dd>MN-specific data has wide confidence intervals at county level due to small numbers. National tool not designed for state-level program management. Does not integrate with MN-specific prevention programs.</dd>
+      </dl>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- BAND 4: COVERAGE MATRIX (dark) -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="band band-dark">
+  <div class="band-inner wide">
+    <span class="section-number">Module 1 — Coverage Matrix</span>
+    <h2>What Each System Captures</h2>
+
+    <div style="overflow-x:auto;">
+    <table class="matrix-table">
+      <thead>
+        <tr>
+          <th>Data System</th>
+          <th>Homicide</th>
+          <th>Suicide</th>
+          <th>Unintent.</th>
+          <th>Nonfatal Injury</th>
+          <th>Children (&lt;18)</th>
+          <th>Race / Ethnicity</th>
+          <th>Geography (County)</th>
+          <th>Near Real-Time</th>
+          <th>Incident Detail</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>MNVDRS</td>
+          <td><span class="indicator green"></span></td>
+          <td><span class="indicator green"></span></td>
+          <td><span class="indicator green"></span></td>
+          <td><span class="indicator red"></span></td>
+          <td><span class="indicator green"></span></td>
+          <td><span class="indicator green"></span></td>
+          <td><span class="indicator green"></span></td>
+          <td><span class="indicator red"></span></td>
+          <td><span class="indicator green"></span></td>
+        </tr>
+        <tr>
+          <td>MIDAS</td>
+          <td><span class="indicator yellow"></span></td>
+          <td><span class="indicator yellow"></span></td>
+          <td><span class="indicator yellow"></span></td>
+          <td><span class="indicator green"></span></td>
+          <td><span class="indicator yellow"></span></td>
+          <td><span class="indicator yellow"></span></td>
+          <td><span class="indicator green"></span></td>
+          <td><span class="indicator red"></span></td>
+          <td><span class="indicator yellow"></span></td>
+        </tr>
+        <tr>
+          <td>Syndromic</td>
+          <td><span class="indicator red"></span></td>
+          <td><span class="indicator red"></span></td>
+          <td><span class="indicator red"></span></td>
+          <td><span class="indicator yellow"></span></td>
+          <td><span class="indicator red"></span></td>
+          <td><span class="indicator red"></span></td>
+          <td><span class="indicator yellow"></span></td>
+          <td><span class="indicator green"></span></td>
+          <td><span class="indicator red"></span></td>
+        </tr>
+        <tr>
+          <td>WISQARS</td>
+          <td><span class="indicator green"></span></td>
+          <td><span class="indicator green"></span></td>
+          <td><span class="indicator green"></span></td>
+          <td><span class="indicator green"></span></td>
+          <td><span class="indicator green"></span></td>
+          <td><span class="indicator green"></span></td>
+          <td><span class="indicator yellow"></span></td>
+          <td><span class="indicator red"></span></td>
+          <td><span class="indicator red"></span></td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="legend">
+      <span><span class="indicator green" style="width:12px;height:12px;"></span> Captures well</span>
+      <span><span class="indicator yellow" style="width:12px;height:12px;"></span> Partial / inconsistent</span>
+      <span><span class="indicator red" style="width:12px;height:12px;"></span> Does not capture</span>
+    </div>
+
+    <div class="gap-summary">
+      <h3>Coverage Gap Summary</h3>
+      <ul>
+        <li>No single system captures both fatal and nonfatal firearm injuries with consistent mechanism coding statewide.</li>
+        <li>Nonfatal injuries — estimated at 2x the number of deaths — are the largest data gap in current Minnesota surveillance.</li>
+        <li>A dedicated Office of Gun Violence Prevention would require a unified reporting protocol linking MNVDRS, MIDAS, and law-enforcement incident data under a single annual data release.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- BAND 5: MODULE 2 — TREND LINE CHART (light) -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="band band-light">
+  <div class="band-inner">
+    <span class="section-number">Module 2 — Minnesota Firearm Injury Snapshot</span>
+    <h2 style="color:var(--steel);">Annual Firearm Deaths — Trend</h2>
+    <span class="illustrative-label" style="background:var(--steel);color:var(--white);">Illustrative Data</span>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:20px;">
+      Figures shown are representative of publicly available state and national estimates. They will be replaced with official MDH figures upon publication.
+    </p>
+    <div class="chart-container">
+      <canvas id="trendChart"></canvas>
+    </div>
+    <p class="chart-note" style="color:var(--steel);">
+      Minnesota averages approximately 551 firearm deaths annually. Approximately 73% are suicides — the largest and most preventable category.<br>
+      <span style="font-size:11px;">Source: Everytown Research (citing CDC data). Representative estimates — not official MDH data.</span>
+    </p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- BAND 6: DONUT CHART (dark) -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="band band-dark">
+  <div class="band-inner">
+    <h2>Firearm Deaths by Intent</h2>
+    <span class="illustrative-label">Illustrative Data</span>
+    <div class="chart-container" style="max-width:420px;">
+      <canvas id="donutChart"></canvas>
+    </div>
+    <p class="chart-note">
+      National research suggests nonfatal firearm injuries occur at approximately 2x the rate of deaths — implying ~1,100 Minnesotans injured but surviving annually. Minnesota has no unified nonfatal injury tracking system.<br>
+      <span style="font-size:11px;">Source: CDC WISQARS national proportions applied illustratively to MN. Representative estimates.</span>
+    </p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- BAND 7: DATA COMPLETENESS SCORES (light) -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="band band-light">
+  <div class="band-inner">
+    <h2 style="color:var(--steel);">Data System Quality Assessment</h2>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:1px;">Editorial Scoring — 0 to 10 Scale</p>
+    <span class="illustrative-label" style="background:var(--steel);color:var(--white);">Editorial Assessment</span>
+
+    <div style="margin-top:24px;" id="bar-chart-area">
+      <!-- MNVDRS -->
+      <div class="bar-chart-row">
+        <div class="bar-label">MNVDRS</div>
+        <div style="display:flex;flex-direction:column;gap:3px;width:100%;">
+          <div class="bar-group"><div class="bar-track"><div class="bar-fill coverage" style="width:70%"></div></div><span class="bar-value" style="color:var(--steel);">7</span></div>
+          <div class="bar-group"><div class="bar-track"><div class="bar-fill timeliness" style="width:40%"></div></div><span class="bar-value" style="color:var(--steel);">4</span></div>
+          <div class="bar-group"><div class="bar-track"><div class="bar-fill detail" style="width:90%"></div></div><span class="bar-value" style="color:var(--steel);">9</span></div>
+        </div>
+      </div>
+      <!-- MIDAS -->
+      <div class="bar-chart-row">
+        <div class="bar-label">MIDAS</div>
+        <div style="display:flex;flex-direction:column;gap:3px;width:100%;">
+          <div class="bar-group"><div class="bar-track"><div class="bar-fill coverage" style="width:60%"></div></div><span class="bar-value" style="color:var(--steel);">6</span></div>
+          <div class="bar-group"><div class="bar-track"><div class="bar-fill timeliness" style="width:50%"></div></div><span class="bar-value" style="color:var(--steel);">5</span></div>
+          <div class="bar-group"><div class="bar-track"><div class="bar-fill detail" style="width:50%"></div></div><span class="bar-value" style="color:var(--steel);">5</span></div>
+        </div>
+      </div>
+      <!-- Syndromic -->
+      <div class="bar-chart-row">
+        <div class="bar-label">Syndromic</div>
+        <div style="display:flex;flex-direction:column;gap:3px;width:100%;">
+          <div class="bar-group"><div class="bar-track"><div class="bar-fill coverage" style="width:40%"></div></div><span class="bar-value" style="color:var(--steel);">4</span></div>
+          <div class="bar-group"><div class="bar-track"><div class="bar-fill timeliness" style="width:90%"></div></div><span class="bar-value" style="color:var(--steel);">9</span></div>
+          <div class="bar-group"><div class="bar-track"><div class="bar-fill detail" style="width:20%"></div></div><span class="bar-value" style="color:var(--steel);">2</span></div>
+        </div>
+      </div>
+      <!-- WISQARS -->
+      <div class="bar-chart-row">
+        <div class="bar-label">WISQARS</div>
+        <div style="display:flex;flex-direction:column;gap:3px;width:100%;">
+          <div class="bar-group"><div class="bar-track"><div class="bar-fill coverage" style="width:80%"></div></div><span class="bar-value" style="color:var(--steel);">8</span></div>
+          <div class="bar-group"><div class="bar-track"><div class="bar-fill timeliness" style="width:30%"></div></div><span class="bar-value" style="color:var(--steel);">3</span></div>
+          <div class="bar-group"><div class="bar-track"><div class="bar-fill detail" style="width:70%"></div></div><span class="bar-value" style="color:var(--steel);">7</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bar-legend" style="color:var(--steel);">
+      <span><span class="swatch" style="background:var(--steel-light);"></span> Coverage</span>
+      <span><span class="swatch" style="background:var(--amber);"></span> Timeliness</span>
+      <span><span class="swatch" style="background:var(--green);"></span> Mechanism Detail</span>
+    </div>
+    <p class="chart-note" style="color:var(--steel);margin-top:16px;">
+      An Office of Gun Violence Prevention would set uniform quality standards and fill identified gaps through coordinated reporting requirements.
+    </p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- BAND 8: DISTRICT 50 CONTEXT (black / solemn) -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="band band-black" style="padding:48px 0;">
+  <div class="band-inner narrow">
+    <span class="section-number">District Context</span>
+    <h2 style="color:#ccc;font-size:20px;">SD-50: Edina and Southwest First-Ring Suburbs</h2>
+    <!-- VERIFY: Population and demographic figures from 2020 Census as cited in software brief -->
+    <p style="font-size:14px;line-height:1.8;color:#999;">
+      Population ~53,494 &middot; Median household income ~$91,847 &middot; Median age 45.2 &middot; 24.2% under 18 &middot; 20.7% over 65
+    </p>
+    <p style="font-size:14px;line-height:1.8;color:#bbb;margin-top:16px;">
+      An affluent, aging suburb with a significant pediatric and elderly population. The suicide rate in high-income older suburban populations is often above average. The safe-storage-for-children message resonates in an upper-middle-class family district. District 50 residents experience gun violence through a different lens than urban core or rural populations — the prevention frame (safe storage, crisis intervention, data-driven targeting) fits this constituency.
+    </p>
+    <p class="source-note" style="margin-top:12px;">Source: 2020 U.S. Census; demographic interpretation from district research.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- BAND 9: MODULE 3 — ANNUAL REPORT TEMPLATE (steel dark) -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="band band-dark" id="report-band" style="padding:60px 0 80px;">
+  <div class="band-inner wide">
+    <span class="section-number">Module 3 — Annual Report Template</span>
+    <h2>What SF513's Annual Report Would Look Like</h2>
+    <p style="font-size:13px;color:#90a4ae;margin-bottom:32px;max-width:680px;">
+      This is the annual report the Office of Gun Violence Prevention would publish under SF513. Fields marked with amber underlines are editable — type in actual figures. The report auto-saves to your browser.
+    </p>
+
+    <div class="report-doc" id="report-document">
+      <div class="report-header">
+        <div class="state-name">State of Minnesota</div>
+        <div class="dept-name">Department of Health</div>
+        <div class="office-name">Office of Gun Violence Prevention</div>
+        <div class="report-title">
+          Annual Report &mdash;
+          <select class="year-select" id="report-year" aria-label="Report year">
+            <option value="2025">2025</option>
+            <option value="2026" selected>2026</option>
+            <option value="2027">2027</option>
+            <option value="2028">2028</option>
+            <option value="2029">2029</option>
+            <option value="2030">2030</option>
+          </select>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-top:8px;">
+          Prepared pursuant to SF513 / <span class="editable-field" contenteditable="true" data-placeholder="statute citation" data-key="mann_gvp_statute"></span>
+        </div>
+        <div style="font-size:13px;margin-top:8px;">
+          Office Director: <span class="editable-field" contenteditable="true" data-placeholder="Director name" data-key="mann_gvp_director"></span>
+        </div>
+      </div>
+
+      <!-- SECTION 1: EXECUTIVE SUMMARY -->
+      <div class="report-section">
+        <h3>1. Executive Summary</h3>
+        <p>
+          In <span class="editable-field" contenteditable="true" data-placeholder="YEAR" data-key="mann_gvp_es_year"></span>,
+          Minnesota recorded an estimated
+          <span class="editable-field" contenteditable="true" data-placeholder="total deaths" data-key="mann_gvp_es_deaths"></span>
+          firearm-related deaths and
+          <span class="editable-field" contenteditable="true" data-placeholder="total injuries" data-key="mann_gvp_es_injuries"></span>
+          nonfatal firearm injuries requiring emergency care.
+          <span class="editable-field" contenteditable="true" data-placeholder="suicide %" data-key="mann_gvp_es_suicide_pct"></span>% of deaths were self-inflicted;
+          <span class="editable-field" contenteditable="true" data-placeholder="homicide %" data-key="mann_gvp_es_homicide_pct"></span>% were homicides.
+          The Office coordinated public-health campaigns reaching
+          <span class="editable-field" contenteditable="true" data-placeholder="campaign reach" data-key="mann_gvp_es_reach"></span> Minnesotans
+          and distributed
+          <span class="editable-field" contenteditable="true" data-placeholder="$ amount" data-key="mann_gvp_es_grants"></span> in prevention grants
+          to community organizations.
+        </p>
+      </div>
+
+      <!-- SECTION 2: DATA SUMMARY TABLE -->
+      <div class="report-section">
+        <h3>2. Data Summary</h3>
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th>Measure</th>
+              <th>Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Total firearm deaths</td>
+              <td><span class="editable-field" contenteditable="true" data-placeholder="—" data-key="mann_gvp_t_total"></span></td>
+            </tr>
+            <tr>
+              <td>Deaths — Homicide</td>
+              <td><span class="editable-field" contenteditable="true" data-placeholder="—" data-key="mann_gvp_t_homicide"></span></td>
+            </tr>
+            <tr>
+              <td>Deaths — Suicide</td>
+              <td><span class="editable-field" contenteditable="true" data-placeholder="—" data-key="mann_gvp_t_suicide"></span></td>
+            </tr>
+            <tr>
+              <td>Deaths — Unintentional</td>
+              <td><span class="editable-field" contenteditable="true" data-placeholder="—" data-key="mann_gvp_t_unintentional"></span></td>
+            </tr>
+            <tr>
+              <td>Deaths — Undetermined</td>
+              <td><span class="editable-field" contenteditable="true" data-placeholder="—" data-key="mann_gvp_t_undetermined"></span></td>
+            </tr>
+            <tr>
+              <td>Nonfatal injuries (ED visits)</td>
+              <td><span class="editable-field" contenteditable="true" data-placeholder="—" data-key="mann_gvp_t_nonfatal_ed"></span></td>
+            </tr>
+            <tr>
+              <td>Nonfatal injuries (hospitalizations)</td>
+              <td><span class="editable-field" contenteditable="true" data-placeholder="—" data-key="mann_gvp_t_nonfatal_hosp"></span></td>
+            </tr>
+            <tr>
+              <td>Children and youth deaths (under 18)</td>
+              <td><span class="editable-field" contenteditable="true" data-placeholder="—" data-key="mann_gvp_t_child"></span></td>
+            </tr>
+            <tr>
+              <td>Rate per 100,000 population</td>
+              <td><span class="editable-field" contenteditable="true" data-placeholder="—" data-key="mann_gvp_t_rate"></span></td>
+            </tr>
+            <tr>
+              <td>County with highest rate</td>
+              <td><span class="editable-field" contenteditable="true" data-placeholder="County — rate" data-key="mann_gvp_t_high_county"></span></td>
+            </tr>
+            <tr>
+              <td>County with lowest rate</td>
+              <td><span class="editable-field" contenteditable="true" data-placeholder="County — rate" data-key="mann_gvp_t_low_county"></span></td>
+            </tr>
+            <tr>
+              <td>Year-over-year change</td>
+              <td><span class="editable-field" contenteditable="true" data-placeholder="+/- %" data-key="mann_gvp_t_yoy"></span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- SECTION 3: PREVENTION ACTIVITIES -->
+      <div class="report-section">
+        <h3>3. Prevention Activities</h3>
+        <textarea class="report-textarea" id="prevention-text" data-key="mann_gvp_prevention" aria-label="Prevention activities text">Public-health campaigns conducted this year included [LIST CAMPAIGNS]. The Office coordinated with the Department of Public Safety on [DPS COORDINATION ACTIVITIES]. Community grants were awarded to [NUMBER] organizations in [NUMBER] counties, focusing on [PRIORITY AREAS].</textarea>
+      </div>
+
+      <!-- SECTION 4: LEGISLATIVE RECOMMENDATIONS -->
+      <div class="report-section">
+        <h3>4. Legislative Recommendations</h3>
+        <textarea class="report-textarea" id="recommendations-text" data-key="mann_gvp_recommendations" style="min-height:160px;" aria-label="Legislative recommendations text">&#x2022; Establish mandatory electronic reporting of nonfatal firearm injuries by emergency departments to MDH within [TIMEFRAME].
+
+&#x2022; Fund a statewide safe-storage public awareness campaign with a budget of $[AMOUNT], targeting households with children and firearms.
+
+&#x2022; Commission a study of [IDENTIFIED DATA GAP] to address the surveillance shortfall identified in this report.</textarea>
+      </div>
+
+      <div style="text-align:center;">
+        <button class="btn-print" onclick="window.print()">Preview Annual Report</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- FOOTER -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="band band-light footer-band">
+  <div class="band-inner">
+    A resource for SD-50 and Minnesota public-health policy. Built with AI.
+    Data sourced from MDH, CDC, and Everytown Research as noted. Illustrative
+    figures are clearly marked and do not represent official MDH data.
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- ACCESSIBLE DATA TABLES (hidden, for screen readers)   -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div style="position:absolute;left:-9999px;top:-9999px;" aria-label="Chart data in table format">
+  <table aria-label="Annual Firearm Deaths Trend Data">
+    <caption>Annual Firearm Deaths in Minnesota (Representative Estimates)</caption>
+    <thead><tr><th>Year</th><th>Suicide</th><th>Homicide</th><th>Unintentional/Other</th><th>Total</th></tr></thead>
+    <tbody>
+      <tr><td>2018</td><td>~380</td><td>~60</td><td>~15</td><td>~455</td></tr>
+      <tr><td>2019</td><td>~390</td><td>~70</td><td>~18</td><td>~478</td></tr>
+      <tr><td>2020</td><td>~400</td><td>~85</td><td>~15</td><td>~500</td></tr>
+      <tr><td>2021</td><td>~380</td><td>~90</td><td>~20</td><td>~490</td></tr>
+      <tr><td>2022</td><td>~410</td><td>~100</td><td>~18</td><td>~528</td></tr>
+    </tbody>
+  </table>
+  <table aria-label="Firearm Deaths by Intent">
+    <caption>Firearm Deaths by Intent (Representative Proportions)</caption>
+    <thead><tr><th>Intent</th><th>Percentage</th></tr></thead>
+    <tbody>
+      <tr><td>Suicide</td><td>73%</td></tr>
+      <tr><td>Homicide</td><td>18%</td></tr>
+      <tr><td>Unintentional</td><td>5%</td></tr>
+      <tr><td>Undetermined</td><td>4%</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════
+   ENTRY ANIMATION
+   ══════════════════════════════════════════════════ */
+(function() {
+  var overlay = document.getElementById('entry-overlay');
+  var dot = document.getElementById('amber-dot');
+  var num = document.getElementById('mortality-number');
+  var label = document.getElementById('mortality-label');
+
+  // Step 1: After 300ms, expand the dot
+  setTimeout(function() {
+    dot.classList.add('expanded');
+  }, 300);
+
+  // Step 2: After 1200ms, show the number
+  setTimeout(function() {
+    num.classList.add('visible');
+    label.classList.add('visible');
+  }, 1200);
+
+  // Step 3: After 3000ms total, fade out the overlay
+  setTimeout(function() {
+    overlay.classList.add('fade-out');
+    setTimeout(function() {
+      overlay.style.display = 'none';
+    }, 700);
+  }, 3000);
+})();
+
+/* ══════════════════════════════════════════════════
+   SCROLL PROGRESS BAR
+   ══════════════════════════════════════════════════ */
+(function() {
+  var bar = document.getElementById('progress-bar');
+  window.addEventListener('scroll', function() {
+    var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    var docHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    var pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+    bar.style.width = pct + '%';
+  }, { passive: true });
+})();
+
+/* ══════════════════════════════════════════════════
+   CHART.JS — TREND LINE
+   ══════════════════════════════════════════════════ */
+(function() {
+  var ctx = document.getElementById('trendChart');
+  if (!ctx) return;
+
+  var suicideData = [380, 390, 400, 380, 410];
+  var homicideData = [60, 70, 85, 90, 100];
+  var otherData = [15, 18, 15, 20, 18];
+  var totalData = suicideData.map(function(v, i) {
+    return v + homicideData[i] + otherData[i];
+  });
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ['2018', '2019', '2020', '2021', '2022'],
+      datasets: [
+        {
+          label: 'Total',
+          data: totalData,
+          borderColor: '#fafafa',
+          backgroundColor: 'rgba(250,250,250,0.1)',
+          borderWidth: 2,
+          pointRadius: 4,
+          pointBackgroundColor: '#fafafa',
+          tension: 0.2
+        },
+        {
+          label: 'Suicide',
+          data: suicideData,
+          borderColor: '#42a5f5',
+          backgroundColor: 'rgba(66,165,245,0.08)',
+          borderWidth: 2,
+          pointRadius: 3,
+          pointBackgroundColor: '#42a5f5',
+          tension: 0.2
+        },
+        {
+          label: 'Homicide',
+          data: homicideData,
+          borderColor: '#e53935',
+          backgroundColor: 'rgba(229,57,53,0.08)',
+          borderWidth: 2,
+          pointRadius: 3,
+          pointBackgroundColor: '#e53935',
+          tension: 0.2
+        },
+        {
+          label: 'Unintentional / Other',
+          data: otherData,
+          borderColor: '#ff8f00',
+          backgroundColor: 'rgba(255,143,0,0.08)',
+          borderWidth: 2,
+          pointRadius: 3,
+          pointBackgroundColor: '#ff8f00',
+          tension: 0.2
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      interaction: { intersect: false, mode: 'index' },
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            color: '#37474f',
+            font: { family: 'Tahoma', size: 12 },
+            padding: 16,
+            usePointStyle: true,
+            pointStyle: 'circle'
+          }
+        },
+        tooltip: {
+          backgroundColor: '#263238',
+          titleFont: { family: 'Trebuchet MS', size: 13 },
+          bodyFont: { family: 'Lucida Console', size: 12 },
+          padding: 12,
+          callbacks: {
+            label: function(ctx) {
+              return ctx.dataset.label + ': ~' + ctx.parsed.y;
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 600,
+          ticks: {
+            color: '#78909c',
+            font: { family: 'Lucida Console', size: 11 },
+            stepSize: 100
+          },
+          grid: { color: 'rgba(0,0,0,0.06)' },
+          title: {
+            display: true,
+            text: 'Approximate Deaths',
+            color: '#78909c',
+            font: { family: 'Tahoma', size: 11 }
+          }
+        },
+        x: {
+          ticks: {
+            color: '#78909c',
+            font: { family: 'Lucida Console', size: 11 }
+          },
+          grid: { display: false }
+        }
+      }
+    }
+  });
+})();
+
+/* ══════════════════════════════════════════════════
+   CHART.JS — DONUT
+   ══════════════════════════════════════════════════ */
+(function() {
+  var ctx = document.getElementById('donutChart');
+  if (!ctx) return;
+
+  new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Suicide (73%)', 'Homicide (18%)', 'Unintentional (5%)', 'Undetermined (4%)'],
+      datasets: [{
+        data: [73, 18, 5, 4],
+        backgroundColor: ['#42a5f5', '#e53935', '#ff8f00', '#78909c'],
+        borderColor: '#37474f',
+        borderWidth: 2,
+        hoverOffset: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      cutout: '58%',
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            color: '#ccc',
+            font: { family: 'Tahoma', size: 12 },
+            padding: 14,
+            usePointStyle: true,
+            pointStyle: 'circle'
+          }
+        },
+        tooltip: {
+          backgroundColor: '#263238',
+          titleFont: { family: 'Trebuchet MS', size: 13 },
+          bodyFont: { family: 'Lucida Console', size: 12 },
+          padding: 12
+        }
+      }
+    },
+    plugins: [{
+      id: 'centerText',
+      afterDraw: function(chart) {
+        var width = chart.width;
+        var height = chart.height;
+        var ctx2 = chart.ctx;
+        ctx2.save();
+
+        // Number
+        ctx2.font = 'bold 28px "Lucida Console", Monaco, monospace';
+        ctx2.fillStyle = '#ff8f00';
+        ctx2.textAlign = 'center';
+        ctx2.textBaseline = 'middle';
+        ctx2.fillText('551', width / 2, height / 2 - 10);
+
+        // Label
+        ctx2.font = '10px Tahoma, Geneva, sans-serif';
+        ctx2.fillStyle = '#90a4ae';
+        ctx2.fillText('avg. deaths/year', width / 2, height / 2 + 14);
+
+        ctx2.restore();
+      }
+    }]
+  });
+})();
+
+/* ══════════════════════════════════════════════════
+   LOCAL STORAGE — PERSIST EDITABLE FIELDS
+   ══════════════════════════════════════════════════ */
+(function() {
+  // contenteditable spans
+  var editableFields = document.querySelectorAll('.editable-field[data-key]');
+  editableFields.forEach(function(field) {
+    var key = field.getAttribute('data-key');
+    var saved = localStorage.getItem(key);
+    if (saved !== null) {
+      field.textContent = saved;
+    }
+    field.addEventListener('input', function() {
+      localStorage.setItem(key, field.textContent);
+    });
+  });
+
+  // textareas
+  var textareas = document.querySelectorAll('textarea[data-key]');
+  textareas.forEach(function(ta) {
+    var key = ta.getAttribute('data-key');
+    var saved = localStorage.getItem(key);
+    if (saved !== null) {
+      ta.value = saved;
+    }
+    ta.addEventListener('input', function() {
+      localStorage.setItem(key, ta.value);
+    });
+  });
+
+  // year select
+  var yearSelect = document.getElementById('report-year');
+  if (yearSelect) {
+    var savedYear = localStorage.getItem('mann_gvp_year');
+    if (savedYear) yearSelect.value = savedYear;
+    yearSelect.addEventListener('change', function() {
+      localStorage.setItem('mann_gvp_year', yearSelect.value);
+    });
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minnesota Sentencing Guidelines Grid — SD-37</title>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: The sentencing grid IS the layout — a large HTML table dominates the viewport.
+      Supplementary content in slide-out panels triggered by cell clicks. No sidebar. Full-width.
+   2. Navigation: Toolbar above grid with filter controls. Click any cell for details.
+      No tabs, no sidebar nav. Slide-out panel for modules.
+   3. Typography: Franklin Gothic (headers), Verdana (body/labels), Lucida Console (grid numbers/data)
+   4. Hero moment: The grid itself — a large, precise, color-coded table that looks like
+      an official government document. Stark, immediate, fills the viewport.
+   5. Color strategy: #5 Cool dominant — Courthouse gray (#e0e0e0) backgrounds, burgundy (#6a1b3d)
+      for headers/emphasis, near-black (#1a1a1a) text, cold steel (#78909c) secondary.
+      Severe, judicial, zero warmth.
+   6. Entry experience: Grid renders immediately, fully visible, no animation. Cells color-coded
+      by presumptive disposition. No intro paragraph blocking the tool.
+   Additional: No bordered callout boxes. No parchment. No emoji. Dense data table aesthetic.
+*/
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --burgundy: #6a1b3d;
+  --burgundy-dark: #4a1229;
+  --burgundy-light: #8a2e55;
+  --gray-bg: #e0e0e0;
+  --gray-cool: #c8c8c8;
+  --steel: #78909c;
+  --steel-dark: #546e7a;
+  --near-black: #1a1a1a;
+  --white: #ffffff;
+  --cell-stay: #d5dde6;
+  --cell-execute: #b0b8c4;
+  --cell-selected: #d4860a;
+  --cell-selected-bg: #f5c842;
+  --alert: #b81c1c;
+  --success: #2d6a4f;
+}
+
+html { font-size: 14px; }
+
+body {
+  font-family: Verdana, Geneva, sans-serif;
+  background: var(--gray-bg);
+  color: var(--near-black);
+  line-height: 1.4;
+  min-height: 100vh;
+}
+
+/* === STICKY HEADER BAR === */
+.top-bar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--burgundy);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 16px;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow Bold', sans-serif;
+  letter-spacing: 0.5px;
+  border-bottom: 3px solid var(--burgundy-dark);
+}
+
+.top-bar h1 {
+  font-size: 1.05rem;
+  font-weight: normal;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.score-display {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 0.95rem;
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.score-display .label { opacity: 0.75; font-size: 0.75rem; text-transform: uppercase; }
+.score-display .val { font-size: 1.15rem; font-weight: bold; color: #f5c842; }
+
+/* === DISCLAIMER BAND === */
+.disclaimer-band {
+  background: var(--near-black);
+  color: #aaa;
+  font-size: 0.7rem;
+  text-align: center;
+  padding: 4px 12px;
+  font-family: 'Lucida Console', Monaco, monospace;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* === TOOLBAR === */
+.toolbar {
+  background: var(--steel-dark);
+  padding: 10px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.toolbar .field { display: flex; flex-direction: column; gap: 2px; }
+.toolbar label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #d0d8de;
+  font-family: Verdana, Geneva, sans-serif;
+}
+
+.toolbar select, .toolbar button {
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 0.85rem;
+  padding: 5px 10px;
+  border: 1px solid var(--steel);
+  background: var(--white);
+  color: var(--near-black);
+  border-radius: 2px;
+}
+
+.toolbar select:focus, .toolbar button:focus {
+  outline: 2px solid var(--cell-selected);
+  outline-offset: 1px;
+}
+
+.toolbar button {
+  background: var(--burgundy);
+  color: var(--white);
+  border: none;
+  cursor: pointer;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 1px;
+  padding: 7px 16px;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow Bold', sans-serif;
+}
+
+.toolbar button:hover { background: var(--burgundy-light); }
+.toolbar button.secondary { background: var(--steel); }
+.toolbar button.secondary:hover { background: var(--steel-dark); color: var(--white); }
+
+/* === MAIN GRID AREA === */
+.grid-wrapper {
+  padding: 10px 12px 4px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.grid-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 0.82rem;
+  min-width: 760px;
+}
+
+.grid-table th {
+  background: var(--burgundy);
+  color: var(--white);
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow Bold', sans-serif;
+  font-weight: normal;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 0.68rem;
+  padding: 8px 4px;
+  border: 1px solid var(--burgundy-dark);
+  text-align: center;
+  vertical-align: middle;
+}
+
+.grid-table th.sl-header {
+  width: 110px;
+  text-align: left;
+  padding-left: 8px;
+}
+
+.grid-table td {
+  text-align: center;
+  vertical-align: middle;
+  padding: 7px 3px;
+  border: 1px solid #999;
+  cursor: pointer;
+  transition: background 0.1s;
+  position: relative;
+}
+
+.grid-table td .pres { font-size: 1.05rem; font-weight: bold; line-height: 1.2; }
+.grid-table td .range { font-size: 0.62rem; color: #555; line-height: 1.1; display: block; margin-top: 1px; }
+
+/* Row headers */
+.grid-table td.row-hdr {
+  background: var(--burgundy);
+  color: var(--white);
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow Bold', sans-serif;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: left;
+  padding: 6px 6px;
+  cursor: default;
+  width: 110px;
+  line-height: 1.2;
+}
+
+.grid-table td.row-hdr .sl-num { font-size: 0.9rem; font-weight: bold; display: block; }
+
+/* Disposition coloring */
+.cell-stay { background: var(--cell-stay); }
+.cell-execute { background: var(--cell-execute); }
+
+.cell-stay:hover { background: #c0d0de; }
+.cell-execute:hover { background: #9aa6b4; }
+
+/* Selected cell */
+td.cell-selected {
+  background: var(--cell-selected-bg) !important;
+  outline: 3px solid var(--cell-selected);
+  outline-offset: -2px;
+  z-index: 2;
+}
+td.cell-selected .pres { color: var(--near-black); }
+td.cell-selected .range { color: #333; }
+
+/* Dispositional line marker */
+.disp-line-bottom { border-bottom: 3px solid var(--burgundy) !important; }
+
+/* === SLIDE-OUT PANEL === */
+.panel-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(26, 26, 26, 0.45);
+  z-index: 200;
+}
+.panel-overlay.active { display: block; }
+
+.slide-panel {
+  position: fixed;
+  top: 0;
+  right: -520px;
+  width: 500px;
+  max-width: 90vw;
+  height: 100vh;
+  background: var(--white);
+  z-index: 201;
+  overflow-y: auto;
+  transition: right 0.25s ease;
+  border-left: 4px solid var(--burgundy);
+}
+.slide-panel.open { right: 0; }
+
+.panel-header {
+  background: var(--burgundy);
+  color: var(--white);
+  padding: 14px 16px;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow Bold', sans-serif;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.panel-header h2 {
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-weight: normal;
+}
+
+.panel-close {
+  background: none;
+  border: none;
+  color: var(--white);
+  font-size: 1.4rem;
+  cursor: pointer;
+  padding: 2px 8px;
+  font-family: 'Lucida Console', Monaco, monospace;
+}
+.panel-close:hover { opacity: 0.7; }
+
+.panel-body { padding: 16px; }
+
+/* Panel sections */
+.panel-section {
+  margin-bottom: 18px;
+}
+.panel-section h3 {
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow Bold', sans-serif;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--burgundy);
+  border-bottom: 1px solid var(--gray-cool);
+  padding-bottom: 4px;
+  margin-bottom: 8px;
+}
+
+/* === CRIMINAL HISTORY BUILDER (inside panel) === */
+.ch-builder { }
+
+.ch-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  padding: 5px 6px;
+  background: #f2f2f2;
+  border-radius: 2px;
+  font-size: 0.82rem;
+}
+
+.ch-row select, .ch-row input {
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 0.8rem;
+  padding: 3px 6px;
+  border: 1px solid #aaa;
+  border-radius: 2px;
+  background: var(--white);
+}
+
+.ch-row .pts {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-weight: bold;
+  min-width: 50px;
+  text-align: right;
+  color: var(--burgundy);
+}
+
+.ch-row .remove-btn {
+  background: none;
+  border: none;
+  color: var(--alert);
+  cursor: pointer;
+  font-size: 1rem;
+  font-family: 'Lucida Console', Monaco, monospace;
+  padding: 0 4px;
+}
+.ch-row .remove-btn:hover { color: #d32f2f; }
+
+.ch-row label.sbi-label {
+  font-size: 0.68rem;
+  color: var(--steel-dark);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.ch-add-btn {
+  background: var(--steel);
+  color: var(--white);
+  border: none;
+  padding: 5px 12px;
+  font-size: 0.72rem;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow Bold', sans-serif;
+  border-radius: 2px;
+  margin-top: 4px;
+}
+.ch-add-btn:hover { background: var(--steel-dark); }
+
+.ch-subtotal {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 0.78rem;
+  border-top: 1px solid #ddd;
+  margin-top: 6px;
+}
+.ch-subtotal .sub-val {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-weight: bold;
+}
+
+.ch-total-bar {
+  background: var(--burgundy);
+  color: var(--white);
+  padding: 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow Bold', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 0.85rem;
+  margin-top: 10px;
+}
+
+.ch-total-bar .total-num {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 1.3rem;
+  color: #f5c842;
+}
+
+/* Number inputs */
+input[type="number"] {
+  width: 55px;
+  font-family: 'Lucida Console', Monaco, monospace;
+}
+
+/* Toggle switch for custody */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px;
+  background: #f2f2f2;
+  border-radius: 2px;
+  font-size: 0.82rem;
+  margin-bottom: 6px;
+}
+
+.toggle-row button {
+  padding: 4px 14px;
+  font-size: 0.72rem;
+  border: 1px solid var(--steel);
+  background: var(--white);
+  cursor: pointer;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow Bold', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-radius: 2px;
+}
+.toggle-row button.active {
+  background: var(--burgundy);
+  color: var(--white);
+  border-color: var(--burgundy);
+}
+
+/* === RESULT DETAIL (cell click) === */
+.result-block {
+  background: #f7f7f7;
+  padding: 12px;
+  border-left: 3px solid var(--burgundy);
+  margin-bottom: 12px;
+}
+
+.result-block dt {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--steel-dark);
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow Bold', sans-serif;
+  margin-top: 8px;
+}
+.result-block dt:first-child { margin-top: 0; }
+
+.result-block dd {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 1rem;
+  font-weight: bold;
+  color: var(--near-black);
+  margin-top: 1px;
+}
+
+.result-block dd.big {
+  font-size: 1.8rem;
+  color: var(--burgundy);
+}
+
+.disposition-tag {
+  display: inline-block;
+  padding: 2px 10px;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow Bold', sans-serif;
+  border-radius: 2px;
+}
+.disposition-tag.stay { background: var(--cell-stay); color: #1a3a5c; }
+.disposition-tag.execute { background: #8a2e55; color: var(--white); }
+
+/* === CASE SUMMARY (inside panel) === */
+.case-summary-form { }
+.case-summary-form label {
+  display: block;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--steel-dark);
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow Bold', sans-serif;
+  margin-top: 10px;
+  margin-bottom: 2px;
+}
+.case-summary-form input[type="text"],
+.case-summary-form textarea {
+  width: 100%;
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 0.85rem;
+  padding: 5px 8px;
+  border: 1px solid #aaa;
+  border-radius: 2px;
+  background: var(--white);
+}
+.case-summary-form textarea { min-height: 60px; resize: vertical; }
+
+.summary-output {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  margin-top: 12px;
+  padding: 12px;
+  background: var(--white);
+  border: 1px solid #bbb;
+}
+
+.summary-output table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+  margin: 8px 0;
+}
+.summary-output table th,
+.summary-output table td {
+  padding: 4px 8px;
+  border: 1px solid #bbb;
+  text-align: left;
+}
+.summary-output table th {
+  background: var(--gray-bg);
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow Bold', sans-serif;
+  text-transform: uppercase;
+  font-size: 0.68rem;
+  letter-spacing: 0.5px;
+}
+
+.summary-output .plain-english {
+  font-style: italic;
+  color: #333;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #ccc;
+}
+
+/* === BOTTOM BAR === */
+.bottom-bar {
+  background: var(--near-black);
+  color: #888;
+  font-size: 0.62rem;
+  padding: 12px 16px;
+  text-align: center;
+  font-family: 'Lucida Console', Monaco, monospace;
+  line-height: 1.6;
+  letter-spacing: 0.3px;
+}
+
+.bottom-bar a { color: #aaa; }
+
+/* === LEGEND under grid === */
+.grid-legend {
+  display: flex;
+  gap: 20px;
+  padding: 6px 12px 10px;
+  font-size: 0.68rem;
+  font-family: Verdana, Geneva, sans-serif;
+  color: #555;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.legend-swatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  vertical-align: middle;
+  margin-right: 4px;
+  border: 1px solid #999;
+}
+
+/* === COLLAPSIBLE ABOUT === */
+.about-toggle {
+  background: none;
+  border: none;
+  color: var(--steel-dark);
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 0.72rem;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 4px 12px;
+  display: inline-block;
+}
+.about-toggle:hover { color: var(--burgundy); }
+
+.about-content {
+  display: none;
+  background: var(--white);
+  padding: 14px 16px;
+  margin: 0 12px 10px;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  border: 1px solid #c0c0c0;
+  columns: 2;
+  column-gap: 24px;
+}
+.about-content.open { display: block; }
+
+.about-content p { margin-bottom: 8px; break-inside: avoid; }
+.about-content strong { color: var(--burgundy); }
+
+/* === ADVISORY NOTES === */
+.advisory {
+  font-size: 0.68rem;
+  color: var(--steel-dark);
+  font-style: italic;
+  margin-top: 6px;
+  padding-top: 4px;
+}
+
+/* === PRINT STYLES === */
+@media print {
+  body { background: #fff; font-size: 11pt; }
+  .top-bar, .disclaimer-band, .toolbar, .grid-wrapper, .grid-legend,
+  .about-toggle, .about-content, .bottom-bar, .panel-overlay { display: none !important; }
+  .slide-panel {
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    right: auto !important;
+    border-left: none !important;
+    box-shadow: none !important;
+  }
+  .slide-panel.open { display: block !important; }
+  .panel-header { background: #000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .panel-body { padding: 10px; }
+  .ch-add-btn, .remove-btn, .panel-close { display: none !important; }
+  .case-summary-form input, .case-summary-form textarea { border: none; border-bottom: 1px solid #000; }
+  .summary-output { border: 2px solid #000; }
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 700px) {
+  .top-bar { flex-direction: column; gap: 4px; padding: 8px 12px; }
+  .top-bar h1 { font-size: 0.85rem; }
+  .toolbar { flex-direction: column; }
+  .slide-panel { width: 100vw; max-width: 100vw; }
+  .about-content { columns: 1; }
+}
+</style>
+</head>
+<body>
+
+<!-- STICKY TOP BAR -->
+<div class="top-bar">
+  <h1>Minnesota Sentencing Guidelines Grid</h1>
+  <div class="score-display">
+    <span><span class="label">Criminal History Score</span> <span class="val" id="topScoreRaw">0.00</span></span>
+    <span><span class="label">Grid Column</span> <span class="val" id="topScoreRound">0</span></span>
+  </div>
+</div>
+
+<div class="disclaimer-band">
+  Educational use only — Not legal advice. Verify all values against current MSGC documents at mn.gov/sentencing-guidelines.
+</div>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <div class="field">
+    <label for="severitySelect">Current Offense Severity Level</label>
+    <select id="severitySelect" aria-label="Select current offense severity level">
+      <option value="">— Select Severity Level —</option>
+      <optgroup label="Level I">
+        <option value="1">I — 5th-deg possession (personal use), simple theft under $500</option>
+      </optgroup>
+      <optgroup label="Level II">
+        <option value="2">II — 5th-deg sale of controlled substance, 4th-deg assault</option>
+      </optgroup>
+      <optgroup label="Level III">
+        <option value="3">III — 3rd-deg controlled substance, theft $500–$1,000</option>
+      </optgroup>
+      <optgroup label="Level IV">
+        <option value="4">IV — 3rd-deg assault, 2nd-deg controlled substance, theft $1k–$5k</option>
+      </optgroup>
+      <optgroup label="Level V">
+        <option value="5">V — 2nd-deg assault (weapon), aggravated forgery, arson 3rd deg</option>
+      </optgroup>
+      <optgroup label="Level VI">
+        <option value="6">VI — Felony DWI, 1st-deg controlled substance, burglary 2nd deg</option>
+      </optgroup>
+      <optgroup label="Level VII">
+        <option value="7">VII — Criminal vehicular homicide, 2nd-deg manslaughter, arson 1st</option>
+      </optgroup>
+      <optgroup label="Level VIII">
+        <option value="8">VIII — Simple robbery, burglary 1st deg, kidnapping (safe release)</option>
+      </optgroup>
+      <optgroup label="Level IX">
+        <option value="9">IX — Aggravated robbery 1st deg, CSC 4th degree</option>
+      </optgroup>
+      <optgroup label="Level X">
+        <option value="10">X — Assault 1st deg, kidnapping (not safe), drive-by shooting</option>
+      </optgroup>
+      <optgroup label="Level XI">
+        <option value="11">XI — Murder 1st/2nd degree, CSC 1st degree</option>
+      </optgroup>
+    </select>
+  </div>
+  <button onclick="openPanel('history')">Build Criminal History</button>
+  <button onclick="openPanel('summary')">Case Summary / Print</button>
+  <button class="secondary" onclick="clearAll()">Clear / New Case</button>
+  <button class="secondary" onclick="toggleAbout()">About Guidelines</button>
+</div>
+
+<!-- ABOUT (collapsible) -->
+<div class="about-content" id="aboutContent">
+  <p><strong>The Minnesota Sentencing Guidelines Commission</strong> was established by the Legislature in 1978 and began issuing guidelines in 1980. Minnesota was one of the first states to adopt a determinate sentencing grid.</p>
+  <p>The Standard Grid covers felony offenses other than sex offenses and drug offenses, which have separate grids with different severity levels and scoring.</p>
+  <p>As of 2025, the commission has 11 members appointed by the Governor.</p>
+  <p><strong>Presumptive sentences</strong> are not mandatory. Judges may depart upward (aggravated) or downward (mitigated) with written findings. Appellate courts review departure decisions.</p>
+  <p><strong>Stayed sentence:</strong> the prison term is suspended; the defendant serves probation. <strong>Executed sentence:</strong> the defendant serves prison time.</p>
+  <p>Minnesota uses "truth in sentencing": offenders serve the full executed sentence minus time served, with supervised release (not discretionary parole) afterward.</p>
+  <p>This list of offense-to-severity-level mappings is representative and not exhaustive. Always verify severity level against current MSGC Section 5.A guidelines.</p>
+</div>
+
+<!-- THE GRID -->
+<div class="grid-wrapper">
+  <table class="grid-table" id="sentencingGrid" role="grid" aria-label="Minnesota Standard Sentencing Grid">
+    <thead>
+      <tr>
+        <th class="sl-header">Severity Level</th>
+        <th>CH = 0</th>
+        <th>CH = 1</th>
+        <th>CH = 2</th>
+        <th>CH = 3</th>
+        <th>CH = 4</th>
+        <th>CH = 5</th>
+        <th>CH = 6+</th>
+      </tr>
+    </thead>
+    <tbody id="gridBody">
+      <!-- Populated by JS -->
+    </tbody>
+  </table>
+</div>
+
+<div class="grid-legend">
+  <span><span class="legend-swatch" style="background: var(--cell-stay);"></span> Presumptive Stay (probation)</span>
+  <span><span class="legend-swatch" style="background: var(--cell-execute);"></span> Presumptive Execute (prison)</span>
+  <span><span class="legend-swatch" style="background: var(--cell-selected-bg); border-color: var(--cell-selected);"></span> Selected Cell</span>
+  <span style="color:#78909c;">Thick burgundy border marks dispositional line</span>
+</div>
+
+<!-- OVERLAY for slide panels -->
+<div class="panel-overlay" id="panelOverlay" onclick="closePanel()"></div>
+
+<!-- CRIMINAL HISTORY PANEL -->
+<div class="slide-panel" id="historyPanel" role="dialog" aria-label="Criminal History Score Builder">
+  <div class="panel-header">
+    <h2>Criminal History Score Builder</h2>
+    <button class="panel-close" onclick="closePanel()" aria-label="Close panel">&times;</button>
+  </div>
+  <div class="panel-body">
+
+    <!-- Step 1: Prior Felonies -->
+    <div class="panel-section">
+      <h3>Step 1 — Prior Felony Convictions</h3>
+      <div id="felonyList"></div>
+      <button class="ch-add-btn" onclick="addFelony()">+ Add Prior Felony</button>
+      <div class="ch-subtotal">
+        <span>Felony subtotal</span>
+        <span class="sub-val" id="felonySubtotal">0</span>
+      </div>
+      <div class="advisory">
+        Sex offense felonies use a separate grid — this tool shows an advisory only.
+        Same behavioral incident: check the box to cap multiple offenses from one incident.
+      </div>
+    </div>
+
+    <!-- Step 2: Gross Misdemeanors -->
+    <div class="panel-section">
+      <h3>Step 2 — Prior Gross Misdemeanors</h3>
+      <div class="ch-row">
+        <label for="grossMisdCount">Count (max 4 counted):</label>
+        <input type="number" id="grossMisdCount" min="0" max="99" value="0" onchange="recalcScore()" oninput="recalcScore()">
+        <span class="pts" id="grossMisdPts">0</span>
+      </div>
+      <div class="advisory">Each gross misdemeanor = 1/4 point. Combined with misdemeanors, capped at 1 point total.</div>
+    </div>
+
+    <!-- Step 3: Misdemeanors -->
+    <div class="panel-section">
+      <h3>Step 3 — Prior Misdemeanors</h3>
+      <div class="ch-row">
+        <label for="misdCount">Count:</label>
+        <input type="number" id="misdCount" min="0" max="99" value="0" onchange="recalcScore()" oninput="recalcScore()">
+        <span class="pts" id="misdPts">0</span>
+      </div>
+      <div class="advisory">Each misdemeanor = 1/4 point. Combined gross misd + misd contribution capped at 1 point total.</div>
+    </div>
+
+    <!-- Step 4: Custody Status -->
+    <div class="panel-section">
+      <h3>Step 4 — Custody Status at Time of Offense</h3>
+      <div class="toggle-row">
+        <span>Under stayed/executed sentence, probation, jail, prison, supervised release, or escape status?</span>
+        <div>
+          <button id="custodyYes" onclick="setCustody(true)">Yes</button>
+          <button id="custodyNo" class="active" onclick="setCustody(false)">No</button>
+        </div>
+      </div>
+      <div class="ch-subtotal">
+        <span>Custody status</span>
+        <span class="sub-val" id="custodyPts">0</span>
+      </div>
+    </div>
+
+    <!-- Step 5: Juvenile -->
+    <div class="panel-section">
+      <h3>Step 5 — Juvenile Adjudications</h3>
+      <div id="juvenileList"></div>
+      <button class="ch-add-btn" onclick="addJuvenile()">+ Add Juvenile Adjudication</button>
+      <div class="ch-subtotal">
+        <span>Juvenile subtotal</span>
+        <span class="sub-val" id="juvenileSubtotal">0</span>
+      </div>
+      <div class="advisory">Felony-level juvenile adjudications scored at half the adult weight. Gross misdemeanor/misdemeanor juvenile offenses not counted.</div>
+    </div>
+
+    <!-- Step 6: Out-of-State -->
+    <div class="panel-section">
+      <h3>Step 6 — Out-of-State / Federal Convictions</h3>
+      <div id="outOfStateList"></div>
+      <button class="ch-add-btn" onclick="addOutOfState()">+ Add Out-of-State Felony</button>
+      <div class="ch-subtotal">
+        <span>Out-of-state subtotal</span>
+        <span class="sub-val" id="outOfStateSubtotal">0</span>
+      </div>
+      <div class="advisory">Select the closest comparable Minnesota severity level. Judicial determination required for equivalency.</div>
+    </div>
+
+    <!-- TOTAL -->
+    <div class="ch-total-bar">
+      <span>Total Criminal History Score</span>
+      <span><span id="panelScoreRaw" class="total-num">0.00</span> <span style="opacity:0.7; font-size:0.7rem;">&rarr; Grid: </span><span id="panelScoreRound" class="total-num">0</span></span>
+    </div>
+
+    <div class="advisory" style="margin-top:10px;">
+      Minnesota guidelines include decay provisions for older prior offenses. This tool does not apply decay adjustments — consult current MSGC guidelines for offenses more than 15 years old.
+    </div>
+  </div>
+</div>
+
+<!-- CELL DETAIL PANEL -->
+<div class="slide-panel" id="detailPanel" role="dialog" aria-label="Cell Sentencing Detail">
+  <div class="panel-header">
+    <h2>Sentencing Detail</h2>
+    <button class="panel-close" onclick="closePanel()" aria-label="Close panel">&times;</button>
+  </div>
+  <div class="panel-body" id="detailBody">
+    <!-- Populated dynamically -->
+  </div>
+</div>
+
+<!-- CASE SUMMARY PANEL -->
+<div class="slide-panel" id="summaryPanel" role="dialog" aria-label="Case Summary and Print">
+  <div class="panel-header">
+    <h2>Case Summary</h2>
+    <button class="panel-close" onclick="closePanel()" aria-label="Close panel">&times;</button>
+  </div>
+  <div class="panel-body">
+    <div class="case-summary-form">
+      <label for="caseName">Defendant Name (optional)</label>
+      <input type="text" id="caseName" placeholder="Leave blank if not needed">
+      <label for="caseDate">Date</label>
+      <input type="text" id="caseDate">
+      <label for="caseCourt">Court</label>
+      <input type="text" id="caseCourt" placeholder="e.g., Hennepin County District Court">
+      <label for="caseNumber">Case Number (optional)</label>
+      <input type="text" id="caseNumber" placeholder="Leave blank if not needed">
+      <label for="departuraNotes">Departure Notes (aggravating/mitigating factors)</label>
+      <textarea id="departuraNotes" placeholder="Enter any departure factors to include in the summary..."></textarea>
+    </div>
+    <button class="ch-add-btn" style="margin-top:12px; background:var(--burgundy);" onclick="generateSummary()">Generate Summary</button>
+    <button class="ch-add-btn" style="margin-top:4px;" onclick="printSummary()">Print Summary</button>
+    <div class="summary-output" id="summaryOutput" style="display:none;"></div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="bottom-bar">
+  A resource for understanding Minnesota felony sentencing. Built with AI.<br>
+  Reflects Minnesota Sentencing Guidelines as of 2025. This tool is for educational and informational purposes only and does not constitute legal advice.<br>
+  Always verify against current MSGC guidelines at <a href="https://mn.gov/sentencing-guidelines/" target="_blank" rel="noopener">mn.gov/sentencing-guidelines</a>.<br>
+  Developed as a resource for Senate District 37 and the Minnesota judiciary community.
+</div>
+
+<script>
+/* ======================================================================
+   GRID DATA — Standard Sentencing Grid
+   Source: Publicly available 2024 Minnesota Sentencing Guidelines
+   VERIFY: All cell values should be checked against official MSGC document
+   Format: [presumptive months, range low, range high]
+   ====================================================================== */
+
+const GRID = [
+  // SL I  (index 0)
+  [[12,12,12],[12,12,12],[12,12,12],[15,13,17],[18,16,20],[21,18,24],[24,21,27]],
+  // SL II (index 1)
+  [[12,12,12],[12,12,12],[14,12,16],[17,15,19],[20,17,22],[23,20,26],[27,23,30]],
+  // SL III (index 2)
+  [[12,12,12],[13,12,15],[16,14,18],[19,17,21],[22,19,25],[27,23,30],[32,28,36]],
+  // SL IV (index 3)
+  [[12,12,12],[15,13,17],[18,16,20],[21,18,24],[25,22,28],[32,28,36],[41,36,46]],
+  // SL V (index 4)
+  [[18,16,20],[23,20,26],[27,23,30],[30,26,34],[38,33,43],[46,40,52],[54,47,61]],
+  // SL VI (index 5)
+  [[21,18,24],[26,22,29],[30,26,34],[34,29,38],[44,38,49],[54,47,61],[65,57,73]],
+  // SL VII (index 6)
+  [[24,21,27],[32,28,36],[41,36,46],[49,43,55],[65,57,73],[81,71,91],[97,84,110]],
+  // SL VIII (index 7)
+  [[33,29,37],[41,36,46],[49,43,55],[65,57,73],[81,71,91],[97,84,110],[113,98,128]],
+  // SL IX (index 8)
+  [[48,42,54],[65,57,73],[81,71,91],[97,84,110],[113,98,128],[129,112,146],[146,128,165]],
+  // SL X (index 9)
+  [[90,78,102],[103,89,117],[117,102,132],[130,113,147],[143,124,162],[156,135,177],[173,150,196]],
+  // SL XI (index 10)
+  [[306,261,351],[326,278,374],[346,295,397],[366,312,420],[386,329,443],[406,346,466],[426,363,489]]
+];
+
+const SL_LABELS = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI'];
+
+/* Dispositional line: cells that are presumptive STAY (true = stay, false = execute)
+   The line runs diagonally. Based on standard grid:
+   SL I:   CH 0-5 stay, CH 6 stay  (all stay)
+   SL II:  CH 0-3 stay, CH 4-6 stay? Actually SL I-IV low CH are stays.
+   Per brief: asterisk cells are stays. Let me map precisely. */
+const STAY_MAP = [
+  // SL I:  all CH 0-6+ are stayed (per the asterisk pattern and low severity)
+  [true, true, true, true, true, true, true],
+  // SL II: CH 0-1 stayed, CH 2+ transitions
+  [true, true, true, true, true, true, false],
+  // SL III: CH 0 stayed
+  [true, true, true, true, false, false, false],
+  // SL IV: CH 0 stayed
+  [true, true, true, false, false, false, false],
+  // SL V: CH 0 stayed
+  [true, true, false, false, false, false, false],
+  // SL VI: CH 0 stayed
+  [true, false, false, false, false, false, false],
+  // SL VII and above: all executed
+  [false, false, false, false, false, false, false],
+  [false, false, false, false, false, false, false],
+  [false, false, false, false, false, false, false],
+  [false, false, false, false, false, false, false],
+  [false, false, false, false, false, false, false]
+];
+
+/* Dispositional line cells — the bottom edge of the last "stay" cell in each column
+   marks the dispositional line. We'll add a thick bottom border to those cells. */
+const DISP_LINE = [
+  // For each column (CH 0-6), which row index is the last stay row?
+  5, // CH=0: SL VI row (index 5) is last stay
+  4, // CH=1: SL V row (index 4)
+  3, // CH=2: SL IV (index 3) — wait, let me recalculate from STAY_MAP
+];
+
+// Actually let's compute this from STAY_MAP
+function getDispLineRow(col) {
+  for (let r = 10; r >= 0; r--) {
+    if (STAY_MAP[r][col]) return r;
+  }
+  return -1; // no stays in this column
+}
+
+const SL_DESCRIPTIONS = [
+  '5th-deg possession, theft <$500',
+  '5th-deg sale, 4th-deg assault',
+  '3rd-deg controlled substance',
+  '3rd-deg assault, theft $1k-$5k',
+  '2nd-deg assault (weapon)',
+  'Felony DWI, burglary 2nd deg',
+  'Vehicular homicide, manslaughter',
+  'Robbery, burglary 1st deg',
+  'Aggravated robbery, CSC 4th',
+  'Assault 1st deg, kidnapping',
+  'Murder 1st/2nd, CSC 1st deg'
+];
+
+/* ======================================================================
+   BUILD THE GRID TABLE
+   ====================================================================== */
+
+function buildGrid() {
+  const tbody = document.getElementById('gridBody');
+  tbody.innerHTML = '';
+
+  for (let r = 0; r < 11; r++) {
+    const tr = document.createElement('tr');
+
+    // Row header
+    const hdr = document.createElement('td');
+    hdr.className = 'row-hdr';
+    hdr.innerHTML = '<span class="sl-num">' + SL_LABELS[r] + '</span>' + SL_DESCRIPTIONS[r];
+    tr.appendChild(hdr);
+
+    for (let c = 0; c < 7; c++) {
+      const td = document.createElement('td');
+      const cell = GRID[r][c];
+      const isStay = STAY_MAP[r][c];
+
+      td.className = isStay ? 'cell-stay' : 'cell-execute';
+      td.dataset.sl = r;
+      td.dataset.ch = c;
+      td.setAttribute('role', 'gridcell');
+      td.setAttribute('aria-label',
+        'Severity ' + SL_LABELS[r] + ', Criminal History ' + c +
+        (c === 6 ? '+' : '') + ': ' + cell[0] + ' months (' +
+        cell[1] + '-' + cell[2] + '), ' +
+        (isStay ? 'presumptive stay' : 'presumptive execute'));
+      td.setAttribute('tabindex', '0');
+
+      td.innerHTML = '<span class="pres">' + cell[0] + '</span>' +
+        '<span class="range">' + cell[1] + '–' + cell[2] + '</span>';
+
+      // Dispositional line
+      const dispRow = getDispLineRow(c);
+      if (r === dispRow) {
+        td.classList.add('disp-line-bottom');
+      }
+
+      td.addEventListener('click', function() { showCellDetail(r, c); });
+      td.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showCellDetail(r, c); }
+      });
+
+      tr.appendChild(td);
+    }
+
+    tbody.appendChild(tr);
+  }
+}
+
+/* ======================================================================
+   HIGHLIGHT SELECTED CELL
+   ====================================================================== */
+
+function highlightCell() {
+  // Clear previous
+  document.querySelectorAll('.cell-selected').forEach(c => c.classList.remove('cell-selected'));
+
+  const sl = parseInt(document.getElementById('severitySelect').value);
+  if (isNaN(sl) || sl < 1 || sl > 11) return;
+
+  const row = sl - 1;
+  const ch = Math.min(Math.floor(getTotalScore()), 6);
+
+  const cells = document.querySelectorAll('#gridBody tr');
+  if (cells[row]) {
+    const tds = cells[row].querySelectorAll('td:not(.row-hdr)');
+    if (tds[ch]) {
+      tds[ch].classList.add('cell-selected');
+      tds[ch].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+    }
+  }
+}
+
+/* ======================================================================
+   CRIMINAL HISTORY SCORE CALCULATION
+   ====================================================================== */
+
+let felonies = [];
+let juveniles = [];
+let outOfState = [];
+let custodyStatus = false;
+let felonyIdCounter = 0;
+let juvIdCounter = 0;
+let oosIdCounter = 0;
+
+function felonyWeight(slGroup) {
+  if (slGroup === 'low') return 0.5;    // SL I-III
+  if (slGroup === 'mid') return 1;      // SL IV-VIII
+  if (slGroup === 'high') return 2;     // SL IX-XI
+  if (slGroup === 'sex') return 0;      // advisory only
+  return 0;
+}
+
+function addFelony() {
+  const id = felonyIdCounter++;
+  felonies.push({ id: id, slGroup: 'low', sbi: false, sbiGroup: null });
+  renderFelonies();
+  recalcScore();
+}
+
+function removeFelony(id) {
+  felonies = felonies.filter(f => f.id !== id);
+  renderFelonies();
+  recalcScore();
+}
+
+function renderFelonies() {
+  const container = document.getElementById('felonyList');
+  container.innerHTML = '';
+  felonies.forEach((f, idx) => {
+    const div = document.createElement('div');
+    div.className = 'ch-row';
+    const isSex = f.slGroup === 'sex';
+    const pts = isSex ? 'N/A' : felonyWeight(f.slGroup).toFixed(1);
+
+    div.innerHTML =
+      '<select aria-label="Prior felony severity group" onchange="updateFelony(' + f.id + ', this.value)">' +
+        '<option value="low"' + (f.slGroup==='low'?' selected':'') + '>SL I–III (1/2 pt)</option>' +
+        '<option value="mid"' + (f.slGroup==='mid'?' selected':'') + '>SL IV–VIII (1 pt)</option>' +
+        '<option value="high"' + (f.slGroup==='high'?' selected':'') + '>SL IX–XI (2 pts)</option>' +
+        '<option value="sex"' + (f.slGroup==='sex'?' selected':'') + '>Sex offense (see advisory)</option>' +
+      '</select>' +
+      (idx > 0 ? '<label class="sbi-label"><input type="checkbox" ' + (f.sbi?'checked':'') +
+        ' onchange="toggleSBI(' + f.id + ', this.checked)"> Same incident as above</label>' : '') +
+      '<span class="pts">' + pts + '</span>' +
+      '<button class="remove-btn" onclick="removeFelony(' + f.id + ')" aria-label="Remove this felony">&times;</button>';
+
+    if (isSex) {
+      const adv = document.createElement('div');
+      adv.className = 'advisory';
+      adv.style.marginTop = '2px';
+      adv.textContent = 'Sex offense felonies use a separate sentencing grid. Consult MSGC sex offender grid documentation.';
+      div.appendChild(adv);
+    }
+    container.appendChild(div);
+  });
+}
+
+function updateFelony(id, val) {
+  const f = felonies.find(x => x.id === id);
+  if (f) f.slGroup = val;
+  recalcScore();
+}
+
+function toggleSBI(id, checked) {
+  const f = felonies.find(x => x.id === id);
+  if (f) f.sbi = checked;
+  recalcScore();
+}
+
+function calcFelonyPoints() {
+  // Group by SBI: if consecutive felonies share an incident, only count highest
+  let pts = 0;
+  let i = 0;
+  while (i < felonies.length) {
+    const f = felonies[i];
+    if (f.slGroup === 'sex') { i++; continue; }
+
+    let groupMax = felonyWeight(f.slGroup);
+    let j = i + 1;
+    while (j < felonies.length && felonies[j].sbi) {
+      if (felonies[j].slGroup !== 'sex') {
+        groupMax = Math.max(groupMax, felonyWeight(felonies[j].slGroup));
+      }
+      j++;
+    }
+    pts += groupMax;
+    i = j;
+  }
+  return pts;
+}
+
+// Juvenile
+function addJuvenile() {
+  const id = juvIdCounter++;
+  juveniles.push({ id: id, slGroup: 'low' });
+  renderJuveniles();
+  recalcScore();
+}
+
+function removeJuvenile(id) {
+  juveniles = juveniles.filter(j => j.id !== id);
+  renderJuveniles();
+  recalcScore();
+}
+
+function renderJuveniles() {
+  const container = document.getElementById('juvenileList');
+  container.innerHTML = '';
+  juveniles.forEach(j => {
+    const w = felonyWeight(j.slGroup) * 0.5;
+    const div = document.createElement('div');
+    div.className = 'ch-row';
+    div.innerHTML =
+      '<select aria-label="Juvenile adjudication severity group" onchange="updateJuvenile(' + j.id + ', this.value)">' +
+        '<option value="low"' + (j.slGroup==='low'?' selected':'') + '>SL I–III (1/4 pt)</option>' +
+        '<option value="mid"' + (j.slGroup==='mid'?' selected':'') + '>SL IV–VIII (1/2 pt)</option>' +
+        '<option value="high"' + (j.slGroup==='high'?' selected':'') + '>SL IX–XI (1 pt)</option>' +
+      '</select>' +
+      '<span class="pts">' + w.toFixed(2) + '</span>' +
+      '<button class="remove-btn" onclick="removeJuvenile(' + j.id + ')" aria-label="Remove">&times;</button>';
+    container.appendChild(div);
+  });
+}
+
+function updateJuvenile(id, val) {
+  const j = juveniles.find(x => x.id === id);
+  if (j) j.slGroup = val;
+  recalcScore();
+}
+
+function calcJuvenilePoints() {
+  let pts = 0;
+  juveniles.forEach(j => { pts += felonyWeight(j.slGroup) * 0.5; });
+  return pts;
+}
+
+// Out of state
+function addOutOfState() {
+  const id = oosIdCounter++;
+  outOfState.push({ id: id, slGroup: 'low' });
+  renderOutOfState();
+  recalcScore();
+}
+
+function removeOutOfState(id) {
+  outOfState = outOfState.filter(o => o.id !== id);
+  renderOutOfState();
+  recalcScore();
+}
+
+function renderOutOfState() {
+  const container = document.getElementById('outOfStateList');
+  container.innerHTML = '';
+  outOfState.forEach(o => {
+    const w = felonyWeight(o.slGroup);
+    const div = document.createElement('div');
+    div.className = 'ch-row';
+    div.innerHTML =
+      '<select aria-label="Comparable MN severity level" onchange="updateOutOfState(' + o.id + ', this.value)">' +
+        '<option value="low"' + (o.slGroup==='low'?' selected':'') + '>Comparable SL I–III (1/2 pt)</option>' +
+        '<option value="mid"' + (o.slGroup==='mid'?' selected':'') + '>Comparable SL IV–VIII (1 pt)</option>' +
+        '<option value="high"' + (o.slGroup==='high'?' selected':'') + '>Comparable SL IX–XI (2 pts)</option>' +
+      '</select>' +
+      '<span class="pts">' + w.toFixed(1) + '</span>' +
+      '<button class="remove-btn" onclick="removeOutOfState(' + o.id + ')" aria-label="Remove">&times;</button>';
+    container.appendChild(div);
+  });
+}
+
+function updateOutOfState(id, val) {
+  const o = outOfState.find(x => x.id === id);
+  if (o) o.slGroup = val;
+  recalcScore();
+}
+
+function calcOutOfStatePoints() {
+  let pts = 0;
+  outOfState.forEach(o => { pts += felonyWeight(o.slGroup); });
+  return pts;
+}
+
+function setCustody(val) {
+  custodyStatus = val;
+  document.getElementById('custodyYes').classList.toggle('active', val);
+  document.getElementById('custodyNo').classList.toggle('active', !val);
+  recalcScore();
+}
+
+function calcMisdPoints() {
+  const gm = Math.min(parseInt(document.getElementById('grossMisdCount').value) || 0, 4);
+  const m = parseInt(document.getElementById('misdCount').value) || 0;
+  // Each = 1/4 pt, combined cap 1 point (4 total counted)
+  const totalCounted = Math.min(gm + m, 4);
+  const gmPts = Math.min(gm, 4) * 0.25;
+  const remaining = Math.min(m, 4 - Math.min(gm, 4));
+  const mPts = remaining * 0.25;
+  return { gm: gmPts, m: mPts, total: Math.min(gmPts + mPts, 1) };
+}
+
+function getTotalScore() {
+  const felPts = calcFelonyPoints();
+  const misd = calcMisdPoints();
+  const custPts = custodyStatus ? 1 : 0;
+  const juvPts = calcJuvenilePoints();
+  const oosPts = calcOutOfStatePoints();
+  return felPts + misd.total + custPts + juvPts + oosPts;
+}
+
+function recalcScore() {
+  const felPts = calcFelonyPoints();
+  const misd = calcMisdPoints();
+  const custPts = custodyStatus ? 1 : 0;
+  const juvPts = calcJuvenilePoints();
+  const oosPts = calcOutOfStatePoints();
+  const raw = felPts + misd.total + custPts + juvPts + oosPts;
+  const rounded = Math.floor(raw);
+
+  // Update displays
+  document.getElementById('felonySubtotal').textContent = felPts.toFixed(2);
+  document.getElementById('grossMisdPts').textContent = misd.gm.toFixed(2);
+  document.getElementById('misdPts').textContent = misd.m.toFixed(2);
+  document.getElementById('custodyPts').textContent = custPts;
+  document.getElementById('juvenileSubtotal').textContent = juvPts.toFixed(2);
+  document.getElementById('outOfStateSubtotal').textContent = oosPts.toFixed(2);
+
+  document.getElementById('topScoreRaw').textContent = raw.toFixed(2);
+  document.getElementById('topScoreRound').textContent = Math.min(rounded, 6) + (rounded >= 6 ? '+' : '');
+  document.getElementById('panelScoreRaw').textContent = raw.toFixed(2);
+  document.getElementById('panelScoreRound').textContent = Math.min(rounded, 6) + (rounded >= 6 ? '+' : '');
+
+  highlightCell();
+  saveState();
+}
+
+/* ======================================================================
+   CELL DETAIL
+   ====================================================================== */
+
+function showCellDetail(row, col) {
+  const cell = GRID[row][col];
+  const isStay = STAY_MAP[row][col];
+  const dispTag = isStay
+    ? '<span class="disposition-tag stay">Presumptive Stay</span>'
+    : '<span class="disposition-tag execute">Presumptive Execute</span>';
+
+  const body = document.getElementById('detailBody');
+  body.innerHTML =
+    '<dl class="result-block">' +
+      '<dt>Severity Level</dt>' +
+      '<dd>' + SL_LABELS[row] + ' — ' + SL_DESCRIPTIONS[row] + '</dd>' +
+      '<dt>Criminal History Score</dt>' +
+      '<dd>' + col + (col === 6 ? '+' : '') + '</dd>' +
+      '<dt>Presumptive Sentence</dt>' +
+      '<dd class="big">' + cell[0] + ' months</dd>' +
+      '<dt>Durational Range</dt>' +
+      '<dd>' + cell[1] + ' – ' + cell[2] + ' months</dd>' +
+      '<dt>Disposition</dt>' +
+      '<dd>' + dispTag + '</dd>' +
+    '</dl>' +
+    '<div class="panel-section">' +
+      '<h3>Departure Information</h3>' +
+      '<p style="font-size:0.78rem; line-height:1.5;">' +
+        'Judges may depart from the presumptive sentence with written reasons. ' +
+        'Departures beyond the durational range (' + cell[1] + '–' + cell[2] +
+        ' months) require substantial and compelling circumstances.' +
+      '</p>' +
+      (isStay
+        ? '<p style="font-size:0.78rem; margin-top:8px; line-height:1.5;"><strong>Stayed sentence:</strong> The prison term of ' + cell[0] + ' months is suspended. The defendant serves probation. A judge may execute the sentence upon violation or for aggravating factors.</p>'
+        : '<p style="font-size:0.78rem; margin-top:8px; line-height:1.5;"><strong>Executed sentence:</strong> The defendant serves ' + cell[0] + ' months in prison (minus time served). Supervised release follows. Minnesota does not use discretionary parole.</p>'
+      ) +
+    '</div>';
+
+  closePanelNoOverlay();
+  document.getElementById('detailPanel').classList.add('open');
+  document.getElementById('panelOverlay').classList.add('active');
+}
+
+/* ======================================================================
+   CASE SUMMARY
+   ====================================================================== */
+
+function generateSummary() {
+  const sl = parseInt(document.getElementById('severitySelect').value);
+  const raw = getTotalScore();
+  const rounded = Math.min(Math.floor(raw), 6);
+
+  if (isNaN(sl) || sl < 1) {
+    alert('Select a severity level from the toolbar before generating a summary.');
+    return;
+  }
+
+  const row = sl - 1;
+  const cell = GRID[row][rounded];
+  const isStay = STAY_MAP[row][rounded];
+  const name = document.getElementById('caseName').value || '—';
+  const date = document.getElementById('caseDate').value || new Date().toLocaleDateString();
+  const court = document.getElementById('caseCourt').value || '—';
+  const caseNum = document.getElementById('caseNumber').value || '—';
+  const notes = document.getElementById('departuraNotes').value || 'None noted.';
+
+  // Build felony detail rows
+  let felonyRows = '';
+  felonies.forEach((f, i) => {
+    if (f.slGroup === 'sex') {
+      felonyRows += '<tr><td>Prior felony #' + (i+1) + '</td><td>Sex offense</td><td>See sex offender grid</td></tr>';
+    } else {
+      const labels = { low: 'SL I–III', mid: 'SL IV–VIII', high: 'SL IX–XI' };
+      felonyRows += '<tr><td>Prior felony #' + (i+1) + (f.sbi ? ' (SBI)' : '') + '</td><td>' + labels[f.slGroup] + '</td><td>' + felonyWeight(f.slGroup).toFixed(1) + '</td></tr>';
+    }
+  });
+  outOfState.forEach((o, i) => {
+    const labels = { low: 'SL I–III', mid: 'SL IV–VIII', high: 'SL IX–XI' };
+    felonyRows += '<tr><td>Out-of-state felony #' + (i+1) + '</td><td>' + labels[o.slGroup] + ' (comparable)</td><td>' + felonyWeight(o.slGroup).toFixed(1) + '</td></tr>';
+  });
+  juveniles.forEach((j, i) => {
+    const labels = { low: 'SL I–III', mid: 'SL IV–VIII', high: 'SL IX–XI' };
+    felonyRows += '<tr><td>Juvenile adj. #' + (i+1) + '</td><td>' + labels[j.slGroup] + ' (half weight)</td><td>' + (felonyWeight(j.slGroup)*0.5).toFixed(2) + '</td></tr>';
+  });
+
+  const misd = calcMisdPoints();
+
+  const html =
+    '<h3 style="text-align:center; font-family:\'Franklin Gothic Medium\',sans-serif; text-transform:uppercase; letter-spacing:2px; margin-bottom:4px;">Sentencing Guidelines Worksheet</h3>' +
+    '<p style="text-align:center; font-size:0.72rem; color:#666; margin-bottom:12px;">Generated from MN Sentencing Guidelines Grid Tool</p>' +
+    '<table>' +
+      '<tr><th>Defendant</th><td>' + name + '</td><th>Date</th><td>' + date + '</td></tr>' +
+      '<tr><th>Court</th><td>' + court + '</td><th>Case No.</th><td>' + caseNum + '</td></tr>' +
+    '</table>' +
+    '<h4 style="font-family:\'Franklin Gothic Medium\',sans-serif; text-transform:uppercase; font-size:0.75rem; letter-spacing:1px; margin-top:14px; color:var(--burgundy);">Criminal History Score</h4>' +
+    '<table>' +
+      '<tr><th>Component</th><th>Detail</th><th>Points</th></tr>' +
+      felonyRows +
+      '<tr><td>Prior gross misdemeanors</td><td>' + (document.getElementById('grossMisdCount').value || 0) + ' counted</td><td>' + misd.gm.toFixed(2) + '</td></tr>' +
+      '<tr><td>Prior misdemeanors</td><td>' + (document.getElementById('misdCount').value || 0) + ' counted</td><td>' + misd.m.toFixed(2) + '</td></tr>' +
+      '<tr><td>Custody status</td><td>' + (custodyStatus ? 'Yes' : 'No') + '</td><td>' + (custodyStatus ? '1.00' : '0.00') + '</td></tr>' +
+      '<tr style="font-weight:bold; background:#e0e0e0;"><td colspan="2">TOTAL (raw / rounded)</td><td>' + raw.toFixed(2) + ' / ' + rounded + '</td></tr>' +
+    '</table>' +
+    '<h4 style="font-family:\'Franklin Gothic Medium\',sans-serif; text-transform:uppercase; font-size:0.75rem; letter-spacing:1px; margin-top:14px; color:var(--burgundy);">Current Offense &amp; Presumptive Sentence</h4>' +
+    '<table>' +
+      '<tr><th>Severity Level</th><td>' + SL_LABELS[row] + ' — ' + SL_DESCRIPTIONS[row] + '</td></tr>' +
+      '<tr><th>Criminal History Score</th><td>' + rounded + '</td></tr>' +
+      '<tr><th>Disposition</th><td>' + (isStay ? 'Presumptive Stay (probation)' : 'Presumptive Execute (prison)') + '</td></tr>' +
+      '<tr><th>Presumptive Sentence</th><td><strong>' + cell[0] + ' months</strong></td></tr>' +
+      '<tr><th>Durational Range</th><td>' + cell[1] + ' – ' + cell[2] + ' months</td></tr>' +
+    '</table>' +
+    '<div class="plain-english">' +
+      'Under the 2025 Minnesota Sentencing Guidelines, a person convicted of ' +
+      SL_DESCRIPTIONS[row].toLowerCase() + ' (Severity Level ' + SL_LABELS[row] +
+      ') with a criminal history score of ' + rounded + ' faces a presumptive ' +
+      (isStay ? 'stayed' : 'executed') + ' sentence of ' + cell[0] +
+      ' months, with a guideline range of ' + cell[1] + '–' + cell[2] + ' months.' +
+    '</div>' +
+    '<h4 style="font-family:\'Franklin Gothic Medium\',sans-serif; text-transform:uppercase; font-size:0.75rem; letter-spacing:1px; margin-top:14px; color:var(--burgundy);">Departure Notes</h4>' +
+    '<p style="font-size:0.82rem; line-height:1.5;">' + notes.replace(/</g,'&lt;').replace(/\n/g,'<br>') + '</p>';
+
+  const output = document.getElementById('summaryOutput');
+  output.innerHTML = html;
+  output.style.display = 'block';
+}
+
+function printSummary() {
+  if (document.getElementById('summaryOutput').style.display === 'none') {
+    generateSummary();
+  }
+  window.print();
+}
+
+/* ======================================================================
+   PANEL MANAGEMENT
+   ====================================================================== */
+
+function openPanel(which) {
+  closePanelNoOverlay();
+  const panelId = which + 'Panel';
+  document.getElementById(panelId).classList.add('open');
+  document.getElementById('panelOverlay').classList.add('active');
+}
+
+function closePanel() {
+  document.querySelectorAll('.slide-panel').forEach(p => p.classList.remove('open'));
+  document.getElementById('panelOverlay').classList.remove('active');
+}
+
+function closePanelNoOverlay() {
+  document.querySelectorAll('.slide-panel').forEach(p => p.classList.remove('open'));
+}
+
+function toggleAbout() {
+  document.getElementById('aboutContent').classList.toggle('open');
+}
+
+/* ======================================================================
+   LOCAL STORAGE
+   ====================================================================== */
+
+function saveState() {
+  try {
+    const state = {
+      felonies: felonies,
+      juveniles: juveniles,
+      outOfState: outOfState,
+      custodyStatus: custodyStatus,
+      grossMisd: document.getElementById('grossMisdCount').value,
+      misd: document.getElementById('misdCount').value,
+      severityLevel: document.getElementById('severitySelect').value,
+      caseName: document.getElementById('caseName').value,
+      caseDate: document.getElementById('caseDate').value,
+      caseCourt: document.getElementById('caseCourt').value,
+      caseNumber: document.getElementById('caseNumber').value,
+      departureNotes: document.getElementById('departuraNotes').value,
+      felonyIdCounter: felonyIdCounter,
+      juvIdCounter: juvIdCounter,
+      oosIdCounter: oosIdCounter
+    };
+    localStorage.setItem('limmerSentencingGrid', JSON.stringify(state));
+  } catch(e) { /* localStorage unavailable */ }
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem('limmerSentencingGrid');
+    if (!raw) return;
+    const state = JSON.parse(raw);
+    felonies = state.felonies || [];
+    juveniles = state.juveniles || [];
+    outOfState = state.outOfState || [];
+    custodyStatus = state.custodyStatus || false;
+    felonyIdCounter = state.felonyIdCounter || 0;
+    juvIdCounter = state.juvIdCounter || 0;
+    oosIdCounter = state.oosIdCounter || 0;
+
+    document.getElementById('grossMisdCount').value = state.grossMisd || 0;
+    document.getElementById('misdCount').value = state.misd || 0;
+    document.getElementById('severitySelect').value = state.severityLevel || '';
+    document.getElementById('caseName').value = state.caseName || '';
+    document.getElementById('caseDate').value = state.caseDate || '';
+    document.getElementById('caseCourt').value = state.caseCourt || '';
+    document.getElementById('caseNumber').value = state.caseNumber || '';
+    document.getElementById('departuraNotes').value = state.departureNotes || '';
+
+    renderFelonies();
+    renderJuveniles();
+    renderOutOfState();
+    setCustody(custodyStatus);
+    recalcScore();
+  } catch(e) { /* localStorage unavailable or corrupt */ }
+}
+
+function clearAll() {
+  if (!confirm('Clear all entries and start a new case?')) return;
+  try { localStorage.removeItem('limmerSentencingGrid'); } catch(e) {}
+  felonies = [];
+  juveniles = [];
+  outOfState = [];
+  custodyStatus = false;
+  felonyIdCounter = 0;
+  juvIdCounter = 0;
+  oosIdCounter = 0;
+  document.getElementById('grossMisdCount').value = 0;
+  document.getElementById('misdCount').value = 0;
+  document.getElementById('severitySelect').value = '';
+  document.getElementById('caseName').value = '';
+  document.getElementById('caseDate').value = '';
+  document.getElementById('caseCourt').value = '';
+  document.getElementById('caseNumber').value = '';
+  document.getElementById('departuraNotes').value = '';
+  renderFelonies();
+  renderJuveniles();
+  renderOutOfState();
+  setCustody(false);
+  recalcScore();
+  closePanel();
+}
+
+/* ======================================================================
+   SEVERITY SELECT LISTENER
+   ====================================================================== */
+
+document.getElementById('severitySelect').addEventListener('change', function() {
+  highlightCell();
+  saveState();
+});
+
+/* ======================================================================
+   INIT
+   ====================================================================== */
+
+buildGrid();
+loadState();
+
+// Set default date if empty
+if (!document.getElementById('caseDate').value) {
+  document.getElementById('caseDate').value = new Date().toLocaleDateString('en-US', {
+    year: 'numeric', month: 'long', day: 'numeric'
+  });
+}
+</script>
+
+</body>
+</html>

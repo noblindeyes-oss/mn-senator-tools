@@ -1,0 +1,1978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minnesota Election Administration Compliance Tracker — SD-28</title>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Fixed sidebar + scrolling main content — classic application layout with pine-green
+      left nav panel, not a centered single-column shell.
+   2. Navigation: Vertical sidebar link list with active-state left border accent (sidebar context,
+      not a tab bar) — each module is a full-page section, not a tabbed panel.
+   3. Typography: Georgia serif for body text and descriptions; Arial Narrow condensed for headers
+      and labels; Courier New monospace for all statute citations inline.
+   Additional: Dark saturated pine-green sidebar (#2D5A27) dominates the left column;
+      deadline table uses alternating row shading with color-coded urgency rows (no white cards);
+      stat summary uses inline bar-fill pattern not result cards; no parchment background —
+      clean #F5F4F0 document background with #E8E6E0 section dividers.
+*/
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --gray:    #5A6472;
+  --green:   #2D5A27;
+  --orange:  #D4600A;
+  --bg:      #F5F4F0;
+  --text:    #1C1C1C;
+  --success: #2D5A27;
+  --warn:    #D4A017;
+  --alert:   #B91C1C;
+  --neutral: #E8E6E0;
+  --sidebar-w: 220px;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 15px;
+  color: var(--text);
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ── SIDEBAR ─────────────────────────────────────────────── */
+#sidebar {
+  position: fixed;
+  top: 0; left: 0;
+  width: var(--sidebar-w);
+  height: 100vh;
+  background: var(--green);
+  color: #e8f0e6;
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+  overflow-y: auto;
+}
+
+#sidebar-header {
+  padding: 20px 16px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+}
+
+#sidebar-header .state-seal {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.6);
+  margin-bottom: 6px;
+}
+
+#sidebar-header h1 {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #fff;
+  letter-spacing: 0.02em;
+}
+
+#sidebar-header .district-badge {
+  margin-top: 8px;
+  display: inline-block;
+  background: var(--orange);
+  color: #fff;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 2px 7px;
+  text-transform: uppercase;
+}
+
+#sidebar nav {
+  flex: 1;
+  padding: 12px 0;
+}
+
+#sidebar nav a {
+  display: block;
+  padding: 10px 16px 10px 18px;
+  color: rgba(255,255,255,0.75);
+  text-decoration: none;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  border-left: 3px solid transparent;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  cursor: pointer;
+}
+
+#sidebar nav a:hover {
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+}
+
+#sidebar nav a.active {
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+  border-left-color: var(--orange);
+}
+
+#sidebar nav .nav-sub {
+  font-size: 11px;
+  color: rgba(255,255,255,0.45);
+  padding: 6px 16px 2px 21px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+#sidebar-footer {
+  padding: 12px 16px;
+  border-top: 1px solid rgba(255,255,255,0.12);
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 10px;
+  color: rgba(255,255,255,0.4);
+  line-height: 1.5;
+}
+
+/* ── MAIN LAYOUT ─────────────────────────────────────────── */
+#main-wrapper {
+  margin-left: var(--sidebar-w);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+#page-header {
+  background: var(--gray);
+  color: #fff;
+  padding: 18px 32px;
+  border-bottom: 3px solid var(--orange);
+}
+
+#page-header .header-row {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+}
+
+#page-header h2 {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: #fff;
+}
+
+#page-header .subtitle {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 13px;
+  color: rgba(255,255,255,0.65);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+#intro-band {
+  background: #fff;
+  border-bottom: 2px solid var(--neutral);
+  padding: 16px 32px;
+}
+
+#intro-band p {
+  font-size: 14px;
+  line-height: 1.65;
+  color: #3a3a3a;
+  max-width: 760px;
+}
+
+#intro-band .context-note {
+  margin-top: 8px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 12px;
+  color: var(--gray);
+  letter-spacing: 0.02em;
+  font-style: normal;
+}
+
+#content-area {
+  flex: 1;
+  padding: 28px 32px 40px;
+}
+
+/* ── MODULE SECTIONS ─────────────────────────────────────── */
+.module-section {
+  display: none;
+}
+.module-section.active {
+  display: block;
+}
+
+.module-title {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--green);
+  border-bottom: 2px solid var(--green);
+  padding-bottom: 6px;
+  margin-bottom: 20px;
+}
+
+/* ── FORM CONTROLS ───────────────────────────────────────── */
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 18px;
+  align-items: flex-end;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-group label {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--gray);
+}
+
+.form-group select,
+.form-group input[type="date"],
+.form-group input[type="number"],
+.form-group input[type="text"] {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 14px;
+  padding: 6px 10px;
+  border: 1px solid #bbb;
+  background: #fff;
+  color: var(--text);
+  min-width: 160px;
+  height: 34px;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.form-group select:focus,
+.form-group input:focus {
+  outline: 2px solid var(--green);
+  outline-offset: 0;
+  border-color: var(--green);
+}
+
+.btn {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 7px 16px;
+  border: none;
+  cursor: pointer;
+  height: 34px;
+  transition: background 0.15s;
+}
+
+.btn-primary {
+  background: var(--green);
+  color: #fff;
+}
+.btn-primary:hover { background: #224a1e; }
+
+.btn-secondary {
+  background: var(--gray);
+  color: #fff;
+}
+.btn-secondary:hover { background: #454f5c; }
+
+.btn-accent {
+  background: var(--orange);
+  color: #fff;
+}
+.btn-accent:hover { background: #b35208; }
+
+.btn-outline {
+  background: transparent;
+  border: 1.5px solid var(--gray);
+  color: var(--gray);
+}
+.btn-outline:hover { background: var(--neutral); }
+
+.btn-sm {
+  font-size: 11px;
+  padding: 4px 10px;
+  height: 26px;
+}
+
+.demo-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+  padding: 12px 16px;
+  background: #eef3ee;
+  border-top: 3px solid var(--green);
+}
+
+.demo-row span {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--green);
+  align-self: center;
+}
+
+/* ── DEADLINE TABLE ──────────────────────────────────────── */
+#today-row {
+  margin-bottom: 14px;
+}
+
+#today-row label {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--gray);
+  margin-right: 8px;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  margin-top: 4px;
+}
+
+table.deadline-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+table.deadline-table thead tr {
+  background: var(--gray);
+  color: #fff;
+}
+
+table.deadline-table thead th {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 8px 10px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+table.deadline-table tbody tr {
+  border-bottom: 1px solid #ddd;
+}
+
+table.deadline-table tbody tr:nth-child(even) {
+  background: #f0eee9;
+}
+table.deadline-table tbody tr:nth-child(odd) {
+  background: #fff;
+}
+
+table.deadline-table tbody tr.row-urgent {
+  background: #fde8e8 !important;
+  color: var(--alert);
+}
+
+table.deadline-table tbody tr.row-warning {
+  background: #fef3d0 !important;
+  color: #7a4f00;
+}
+
+table.deadline-table tbody tr.row-ok {
+  background: #e8f4e8 !important;
+  color: #1a3d18;
+}
+
+table.deadline-table tbody tr.row-past {
+  color: #999;
+}
+
+table.deadline-table td {
+  padding: 7px 10px;
+  vertical-align: top;
+  line-height: 1.4;
+}
+
+table.deadline-table td.date-col {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+table.deadline-table td.days-col {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 12px;
+  white-space: nowrap;
+  text-align: right;
+}
+
+table.deadline-table td.citation-col {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 11px;
+  white-space: nowrap;
+  color: var(--gray);
+}
+
+table.deadline-table tr.row-urgent td.citation-col { color: #9b1c1c; }
+table.deadline-table tr.row-warning td.citation-col { color: #7a4f00; }
+table.deadline-table tr.row-ok td.citation-col { color: #1a3d18; }
+table.deadline-table tr.row-past td.citation-col { color: #bbb; }
+
+table.deadline-table td.official-col {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 12px;
+}
+
+#no-deadline-msg {
+  padding: 24px;
+  background: #fff;
+  border: 1px solid var(--neutral);
+  text-align: center;
+  color: var(--gray);
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 14px;
+  letter-spacing: 0.03em;
+}
+
+/* ── LEGEND ──────────────────────────────────────────────── */
+.table-legend {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-swatch {
+  width: 14px;
+  height: 14px;
+  display: inline-block;
+  border: 1px solid rgba(0,0,0,0.15);
+}
+
+/* ── CHECKLIST MODULE ────────────────────────────────────── */
+.checklist-nav {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid var(--neutral);
+  padding-bottom: 0;
+}
+
+.checklist-nav button {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 7px 16px;
+  border: none;
+  background: var(--neutral);
+  color: var(--gray);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  transition: background 0.12s;
+}
+
+.checklist-nav button:hover {
+  background: #d5d3cc;
+}
+
+.checklist-nav button.active {
+  background: #fff;
+  color: var(--green);
+  border-bottom-color: var(--green);
+}
+
+.checklist-panel {
+  display: none;
+}
+.checklist-panel.active {
+  display: block;
+}
+
+.checklist-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.checklist-title {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.checklist-progress {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--green);
+}
+
+.progress-bar-wrap {
+  height: 6px;
+  background: var(--neutral);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: var(--green);
+  transition: width 0.3s;
+}
+
+.checklist-list {
+  list-style: none;
+}
+
+.checklist-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--neutral);
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+.checklist-list li:nth-child(even) {
+  background: #fafaf7;
+}
+
+.checklist-list li input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  margin-top: 2px;
+  accent-color: var(--green);
+  cursor: pointer;
+}
+
+.checklist-list li .item-label {
+  flex: 1;
+}
+
+.checklist-list li .item-label cite {
+  display: inline;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 11px;
+  font-style: normal;
+  color: var(--gray);
+  margin-left: 4px;
+}
+
+.checklist-list li.checked-item {
+  opacity: 0.55;
+}
+
+.checklist-list li.checked-item .item-label {
+  text-decoration: line-through;
+  color: #888;
+}
+
+.checklist-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+/* ── AUDIT CALCULATOR ────────────────────────────────────── */
+.audit-grid {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 28px;
+  align-items: start;
+}
+
+.audit-controls h3 {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--gray);
+  margin-bottom: 12px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--neutral);
+}
+
+.minimum-req-box {
+  background: #fff;
+  border: 1.5px solid var(--neutral);
+  border-top: 3px solid var(--gray);
+  padding: 14px 16px;
+  margin-bottom: 18px;
+}
+
+.minimum-req-box .req-label {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--gray);
+  margin-bottom: 4px;
+}
+
+.minimum-req-box .req-value {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.minimum-req-box .req-detail {
+  font-size: 12px;
+  color: var(--gray);
+  margin-top: 2px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+}
+
+.precinct-table-wrap {
+  overflow-x: auto;
+}
+
+table.precinct-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+table.precinct-table thead tr {
+  background: var(--gray);
+  color: #fff;
+}
+
+table.precinct-table thead th {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 7px 9px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+table.precinct-table tbody tr {
+  border-bottom: 1px solid var(--neutral);
+}
+
+table.precinct-table tbody tr:nth-child(even) {
+  background: #f5f4f0;
+}
+
+table.precinct-table td {
+  padding: 7px 9px;
+  vertical-align: middle;
+}
+
+table.precinct-table td input[type="text"],
+table.precinct-table td input[type="number"] {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 13px;
+  padding: 4px 6px;
+  border: 1px solid #ccc;
+  width: 100%;
+  min-width: 0;
+  height: 28px;
+}
+
+table.precinct-table td.variance-col {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.status-pass {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--success);
+  text-transform: uppercase;
+}
+
+.status-fail {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--alert);
+  text-transform: uppercase;
+}
+
+.btn-remove {
+  background: none;
+  border: none;
+  color: var(--alert);
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 700;
+  padding: 2px 6px;
+  line-height: 1;
+  font-family: Arial, sans-serif;
+}
+.btn-remove:hover { color: #7a0000; }
+
+#summary-panel {
+  background: #fff;
+  border: 1.5px solid var(--neutral);
+  border-top: 4px solid var(--gray);
+  padding: 18px 20px;
+  margin-top: 20px;
+}
+
+#summary-panel h3 {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gray);
+  margin-bottom: 12px;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--neutral);
+  font-size: 13px;
+}
+
+.summary-row:last-child { border-bottom: none; }
+
+.summary-row .s-label {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  color: var(--gray);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.summary-row .s-value {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.s-ok { color: var(--success); }
+.s-warn { color: var(--alert); }
+
+.escalation-banner {
+  display: none;
+  margin-top: 16px;
+  background: var(--alert);
+  color: #fff;
+  padding: 14px 18px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  line-height: 1.5;
+}
+
+.escalation-banner.show { display: block; }
+
+.escalation-banner cite {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 12px;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.audit-print-note {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 11px;
+  color: var(--gray);
+  margin-top: 12px;
+}
+
+/* ── FOOTER ──────────────────────────────────────────────── */
+#page-footer {
+  margin-left: 0;
+  background: #fff;
+  border-top: 2px solid var(--neutral);
+  padding: 14px 32px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 11px;
+  color: #888;
+  line-height: 1.6;
+}
+
+/* ── PRINT STYLES ────────────────────────────────────────── */
+@media print {
+  #sidebar { display: none !important; }
+  #main-wrapper { margin-left: 0 !important; }
+  #page-header { background: #000 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  #intro-band { display: none; }
+  #content-area { padding: 0; }
+  .module-section { display: none !important; }
+  .module-section.active { display: block !important; }
+  .demo-row { display: none; }
+  .form-row { display: none; }
+  #today-row { display: none; }
+  .btn { display: none; }
+  .checklist-nav { display: none; }
+  .checklist-actions { display: none; }
+  .checklist-panel { display: none !important; }
+  .checklist-panel.active { display: block !important; }
+  .audit-controls .btn { display: none; }
+  .btn-remove { display: none; }
+  table { page-break-inside: auto; }
+  tr { page-break-inside: avoid; }
+  .escalation-banner { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .table-legend { display: none; }
+  #page-footer { margin-left: 0; }
+  .print-show { display: block !important; }
+}
+
+.print-show { display: none; }
+
+</style>
+</head>
+<body>
+
+<!-- ═══ SIDEBAR ═══════════════════════════════════════════════ -->
+<nav id="sidebar">
+  <div id="sidebar-header">
+    <div class="state-seal">State of Minnesota</div>
+    <h1>Election Administration<br>Compliance Tracker</h1>
+    <div class="district-badge">SD-28 Resource</div>
+  </div>
+  <nav>
+    <div class="nav-sub">Modules</div>
+    <a href="#" class="nav-link active" data-module="mod-deadlines">&#9654; Deadline Calculator</a>
+    <a href="#" class="nav-link" data-module="mod-checklists">&#9654; Compliance Checklists</a>
+    <a href="#" class="nav-link" data-module="mod-audit">&#9654; Audit Discrepancy Calc.</a>
+    <div class="nav-sub" style="margin-top:16px;">Statutes</div>
+    <a href="#" onclick="return false;" style="cursor:default;font-size:11px;padding:4px 16px;color:rgba(255,255,255,0.35);">§ 203B.121 Ballot Board</a>
+    <a href="#" onclick="return false;" style="cursor:default;font-size:11px;padding:4px 16px;color:rgba(255,255,255,0.35);">§ 204B.14 Precincts</a>
+    <a href="#" onclick="return false;" style="cursor:default;font-size:11px;padding:4px 16px;color:rgba(255,255,255,0.35);">§ 204B.16 Polling Places</a>
+    <a href="#" onclick="return false;" style="cursor:default;font-size:11px;padding:4px 16px;color:rgba(255,255,255,0.35);">§ 204B.27 SOS Duties</a>
+    <a href="#" onclick="return false;" style="cursor:default;font-size:11px;padding:4px 16px;color:rgba(255,255,255,0.35);">§ 206.89 Post-Elec. Review</a>
+    <a href="#" onclick="return false;" style="cursor:default;font-size:11px;padding:4px 16px;color:rgba(255,255,255,0.35);">§ 204C Canvassing</a>
+  </nav>
+  <div id="sidebar-footer">
+    Reflects MN statutes as of 2025.<br>
+    Not legal advice. Verify all deadlines<br>
+    with the MN Secretary of State.
+  </div>
+</nav>
+
+<!-- ═══ MAIN WRAPPER ══════════════════════════════════════════ -->
+<div id="main-wrapper">
+
+  <header id="page-header">
+    <div class="header-row">
+      <h2>Minnesota Local Election Administration Compliance Tracker</h2>
+    </div>
+    <div class="subtitle">Every Deadline. Every Statute. Every Step.</div>
+  </header>
+
+  <div id="intro-band">
+    <p>Senator Koran serves as Ranking Member on the Minnesota Senate Elections Committee — and his district's exurban counties are managing growing voter rolls with the same small election administration offices they've always had. This tool was built to help those officials keep up.</p>
+    <p class="context-note">Minnesota local election officials — county auditors, city clerks, and township clerks — manage dozens of overlapping statutory deadlines across every election cycle. This tool translates Minnesota election law (Chapters 203B, 204B, 204C, and 206.89) into a date-specific compliance calendar, phase-by-phase checklists, and a post-election audit calculator. Enter your election date to get started.</p>
+  </div>
+
+  <main id="content-area">
+
+    <!-- ══════════════════════════════════════════════════════
+         MODULE 1: DEADLINE CALCULATOR
+    ══════════════════════════════════════════════════════ -->
+    <section class="module-section active" id="mod-deadlines">
+      <div class="module-title">Module 1 — Election Deadline Calculator</div>
+
+      <div class="demo-row">
+        <span>Load Example:</span>
+        <button class="btn btn-primary btn-sm" onclick="loadDemo('isanti')">Isanti County — 2024 State General</button>
+        <button class="btn btn-secondary btn-sm" onclick="loadDemo('chisago')">Chisago County — 2024 State General</button>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="elec-type">Election Type</label>
+          <select id="elec-type">
+            <option value="state-primary">State Primary (August, even year)</option>
+            <option value="state-general" selected>State General Election (November, even year)</option>
+            <option value="special">Special Election (any date)</option>
+            <option value="muni-primary">Municipal Primary</option>
+            <option value="muni-general">Municipal General Election</option>
+            <option value="school">School District Election</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="elec-date">Election Date</label>
+          <input type="date" id="elec-date" value="">
+        </div>
+        <div class="form-group">
+          <label for="juris-type">Jurisdiction Type</label>
+          <select id="juris-type">
+            <option value="county">County (administered by county auditor)</option>
+            <option value="city-large">City/Town &gt;400 registered voters (municipal clerk)</option>
+            <option value="city-small">City/Town ≤400 registered voters (county auditor)</option>
+            <option value="township">Township (township clerk)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="county-sel">County</label>
+          <select id="county-sel">
+            <option value="Isanti">Isanti</option>
+            <option value="Chisago">Chisago</option>
+            <option value="Aitkin">Aitkin</option>
+            <option value="Anoka">Anoka</option>
+            <option value="Becker">Becker</option>
+            <option value="Beltrami">Beltrami</option>
+            <option value="Benton">Benton</option>
+            <option value="Big Stone">Big Stone</option>
+            <option value="Blue Earth">Blue Earth</option>
+            <option value="Brown">Brown</option>
+            <option value="Carlton">Carlton</option>
+            <option value="Carver">Carver</option>
+            <option value="Cass">Cass</option>
+            <option value="Clearwater">Clearwater</option>
+            <option value="Cook">Cook</option>
+            <option value="Cottonwood">Cottonwood</option>
+            <option value="Crow Wing">Crow Wing</option>
+            <option value="Dakota">Dakota</option>
+            <option value="Dodge">Dodge</option>
+            <option value="Douglas">Douglas</option>
+            <option value="Faribault">Faribault</option>
+            <option value="Fillmore">Fillmore</option>
+            <option value="Freeborn">Freeborn</option>
+            <option value="Goodhue">Goodhue</option>
+            <option value="Grant">Grant</option>
+            <option value="Hennepin">Hennepin</option>
+            <option value="Houston">Houston</option>
+            <option value="Hubbard">Hubbard</option>
+            <option value="Itasca">Itasca</option>
+            <option value="Jackson">Jackson</option>
+            <option value="Kanabec">Kanabec</option>
+            <option value="Kandiyohi">Kandiyohi</option>
+            <option value="Kittson">Kittson</option>
+            <option value="Koochiching">Koochiching</option>
+            <option value="Lac qui Parle">Lac qui Parle</option>
+            <option value="Lake">Lake</option>
+            <option value="Lake of the Woods">Lake of the Woods</option>
+            <option value="Le Sueur">Le Sueur</option>
+            <option value="Lincoln">Lincoln</option>
+            <option value="Lyon">Lyon</option>
+            <option value="McLeod">McLeod</option>
+            <option value="Mahnomen">Mahnomen</option>
+            <option value="Marshall">Marshall</option>
+            <option value="Martin">Martin</option>
+            <option value="Meeker">Meeker</option>
+            <option value="Mille Lacs">Mille Lacs</option>
+            <option value="Morrison">Morrison</option>
+            <option value="Mower">Mower</option>
+            <option value="Murray">Murray</option>
+            <option value="Nicollet">Nicollet</option>
+            <option value="Nobles">Nobles</option>
+            <option value="Norman">Norman</option>
+            <option value="Olmsted">Olmsted</option>
+            <option value="Otter Tail">Otter Tail</option>
+            <option value="Pennington">Pennington</option>
+            <option value="Pine">Pine</option>
+            <option value="Pipestone">Pipestone</option>
+            <option value="Polk">Polk</option>
+            <option value="Pope">Pope</option>
+            <option value="Ramsey">Ramsey</option>
+            <option value="Red Lake">Red Lake</option>
+            <option value="Redwood">Redwood</option>
+            <option value="Renville">Renville</option>
+            <option value="Rice">Rice</option>
+            <option value="Rock">Rock</option>
+            <option value="Roseau">Roseau</option>
+            <option value="Scott">Scott</option>
+            <option value="Sherburne">Sherburne</option>
+            <option value="Sibley">Sibley</option>
+            <option value="St. Louis">St. Louis</option>
+            <option value="Stearns">Stearns</option>
+            <option value="Steele">Steele</option>
+            <option value="Stevens">Stevens</option>
+            <option value="Swift">Swift</option>
+            <option value="Todd">Todd</option>
+            <option value="Traverse">Traverse</option>
+            <option value="Wabasha">Wabasha</option>
+            <option value="Wadena">Wadena</option>
+            <option value="Waseca">Waseca</option>
+            <option value="Washington">Washington</option>
+            <option value="Watonwan">Watonwan</option>
+            <option value="Wilkin">Wilkin</option>
+            <option value="Winona">Winona</option>
+            <option value="Wright">Wright</option>
+            <option value="Yellow Medicine">Yellow Medicine</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>&nbsp;</label>
+          <button class="btn btn-primary" onclick="generateDeadlines()">Generate Deadlines</button>
+        </div>
+      </div>
+
+      <div id="today-row">
+        <label for="today-date">Today's Date (for color-coding):</label>
+        <input type="date" id="today-date" style="font-family:'Arial Narrow',Arial,sans-serif;font-size:13px;padding:4px 8px;border:1px solid #bbb;">
+      </div>
+
+      <div id="deadline-output">
+        <div id="no-deadline-msg">Select an election date and click <strong>Generate Deadlines</strong> to build the compliance calendar.</div>
+      </div>
+
+      <div class="table-legend">
+        <div class="legend-item"><span class="legend-swatch" style="background:#fde8e8;"></span> Within 7 days</div>
+        <div class="legend-item"><span class="legend-swatch" style="background:#fef3d0;"></span> 8–21 days out</div>
+        <div class="legend-item"><span class="legend-swatch" style="background:#e8f4e8;"></span> More than 21 days out</div>
+        <div class="legend-item"><span class="legend-swatch" style="background:#f5f5f5;border-color:#ccc;"></span> <span style="color:#999;">Already passed</span></div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════
+         MODULE 2: COMPLIANCE CHECKLISTS
+    ══════════════════════════════════════════════════════ -->
+    <section class="module-section" id="mod-checklists">
+      <div class="module-title">Module 2 — Phase-by-Phase Compliance Checklists</div>
+
+      <div class="checklist-nav" id="cl-nav">
+        <button class="active" onclick="switchChecklist('A', this)">A — Pre-Election Setup</button>
+        <button onclick="switchChecklist('B', this)">B — Absentee Ballot Board</button>
+        <button onclick="switchChecklist('C', this)">C — Post-Election Review</button>
+        <button onclick="switchChecklist('D', this)">D — Canvassing &amp; Certification</button>
+      </div>
+
+      <!-- TAB A -->
+      <div class="checklist-panel active" id="cl-A">
+        <div class="checklist-header">
+          <div class="checklist-title">A — Pre-Election Setup</div>
+          <div class="checklist-progress" id="prog-A">0 of 13 complete (0%)</div>
+        </div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill" id="bar-A" style="width:0%"></div></div>
+        <ul class="checklist-list" id="list-A">
+          <li><input type="checkbox" id="A0" onchange="saveCheck('A',0,this)"><label for="A0" class="item-label">Polling place(s) designated by ordinance or resolution.<cite>§ 204B.16</cite></label></li>
+          <li><input type="checkbox" id="A1" onchange="saveCheck('A',1,this)"><label for="A1" class="item-label">Polling place accessibility confirmed (width, ramp, parking).<cite>§ 204B.16</cite></label></li>
+          <li><input type="checkbox" id="A2" onchange="saveCheck('A',2,this)"><label for="A2" class="item-label">Polling place change notice mailed to all affected households (25-day window).<cite>§ 204B.16</cite></label></li>
+          <li><input type="checkbox" id="A3" onchange="saveCheck('A',3,this)"><label for="A3" class="item-label">Notice posted in large print at closed polling place (if applicable).<cite>§ 204B.16</cite></label></li>
+          <li><input type="checkbox" id="A4" onchange="saveCheck('A',4,this)"><label for="A4" class="item-label">Precinct boundary changes filed with Secretary of State within 30 days of ordinance.<cite>§ 204B.14</cite></label></li>
+          <li><input type="checkbox" id="A5" onchange="saveCheck('A',5,this)"><label for="A5" class="item-label">Ballot board established by ordinance or resolution.<cite>§ 203B.121</cite></label></li>
+          <li><input type="checkbox" id="A6" onchange="saveCheck('A',6,this)"><label for="A6" class="item-label">Ballot board members appointed; members from different major parties confirmed.<cite>§ 203B.121</cite></label></li>
+          <li><input type="checkbox" id="A7" onchange="saveCheck('A',7,this)"><label for="A7" class="item-label">All ballot board members received absentee ballot processing training.<cite>§ 203B.121</cite></label></li>
+          <li><input type="checkbox" id="A8" onchange="saveCheck('A',8,this)"><label for="A8" class="item-label">Compensation for ballot board members arranged.<cite>§ 203B.121</cite></label></li>
+          <li><input type="checkbox" id="A9" onchange="saveCheck('A',9,this)"><label for="A9" class="item-label">Blank election forms received from Secretary of State (14-day window).<cite>§ 204B.27</cite></label></li>
+          <li><input type="checkbox" id="A10" onchange="saveCheck('A',10,this)"><label for="A10" class="item-label">Absentee ballot applications being accepted and processed.</label></li>
+          <li><input type="checkbox" id="A11" onchange="saveCheck('A',11,this)"><label for="A11" class="item-label">Sample ballot prepared and posted (confirm with SOS guidance).</label></li>
+          <li><input type="checkbox" id="A12" onchange="saveCheck('A',12,this)"><label for="A12" class="item-label">Election judges appointed from list of trained judges.<cite>§ 204B.19–204B.22</cite></label></li>
+        </ul>
+        <div class="checklist-actions">
+          <button class="btn btn-accent btn-sm" onclick="printChecklist()">Print This Checklist</button>
+          <button class="btn btn-outline btn-sm" onclick="resetChecklist('A')">Reset Tab</button>
+        </div>
+      </div>
+
+      <!-- TAB B -->
+      <div class="checklist-panel" id="cl-B">
+        <div class="checklist-header">
+          <div class="checklist-title">B — Absentee Ballot Board Processing</div>
+          <div class="checklist-progress" id="prog-B">0 of 10 complete (0%)</div>
+        </div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill" id="bar-B" style="width:0%"></div></div>
+        <ul class="checklist-list" id="list-B">
+          <li><input type="checkbox" id="B0" onchange="saveCheck('B',0,this)"><label for="B0" class="item-label">Envelope-opening not begun before Day −19.<cite>§ 203B.121</cite></label></li>
+          <li><input type="checkbox" id="B1" onchange="saveCheck('B',1,this)"><label for="B1" class="item-label">Two or more board members present for all signature envelope review.</label></li>
+          <li><input type="checkbox" id="B2" onchange="saveCheck('B',2,this)"><label for="B2" class="item-label">Each envelope reviewed against the six statutory acceptance criteria.</label></li>
+          <li><input type="checkbox" id="B3" onchange="saveCheck('B',3,this)"><label for="B3" class="item-label">"Accepted" / "Rejected" marked on each envelope by reviewing members.</label></li>
+          <li><input type="checkbox" id="B4" onchange="saveCheck('B',4,this)"><label for="B4" class="item-label">Rejected envelopes: rejection reason documented.</label></li>
+          <li><input type="checkbox" id="B5" onchange="saveCheck('B',5,this)"><label for="B5" class="item-label">Rejected ballots 5+ days out: replacement ballot mailed to voter.<cite>§ 203B.121</cite></label></li>
+          <li><input type="checkbox" id="B6" onchange="saveCheck('B',6,this)"><label for="B6" class="item-label">Rejected ballots within 5 days: voter contact attempted and documented in incident log.<cite>§ 203B.121</cite></label></li>
+          <li><input type="checkbox" id="B7" onchange="saveCheck('B',7,this)"><label for="B7" class="item-label">Ballot count before opening matches count after opening; discrepancies logged.<cite>§ 203B.121</cite></label></li>
+          <li><input type="checkbox" id="B8" onchange="saveCheck('B',8,this)"><label for="B8" class="item-label">Results tabulated and added to precinct summary statements after election day.</label></li>
+          <li><input type="checkbox" id="B9" onchange="saveCheck('B',9,this)"><label for="B9" class="item-label">Rejection notices mailed to affected voters (6–10 week post-election window).<cite>§ 203B.121</cite></label></li>
+        </ul>
+        <div class="checklist-actions">
+          <button class="btn btn-accent btn-sm" onclick="printChecklist()">Print This Checklist</button>
+          <button class="btn btn-outline btn-sm" onclick="resetChecklist('B')">Reset Tab</button>
+        </div>
+      </div>
+
+      <!-- TAB C -->
+      <div class="checklist-panel" id="cl-C">
+        <div class="checklist-header">
+          <div class="checklist-title">C — Post-Election Review</div>
+          <div class="checklist-progress" id="prog-C">0 of 9 complete (0%)</div>
+        </div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill" id="bar-C" style="width:0%"></div></div>
+        <ul class="checklist-list" id="list-C">
+          <li><input type="checkbox" id="C0" onchange="saveCheck('C',0,this)"><label for="C0" class="item-label">Post-election review official confirmed (county auditor or designee; delegation within 24 hours after canvass if delegating to municipal clerk).<cite>§ 206.89</cite></label></li>
+          <li><input type="checkbox" id="C1" onchange="saveCheck('C',1,this)"><label for="C1" class="item-label">Number of precincts to review calculated: fewer than 50,000 registered voters → min. 2; 50,000–100,000 → min. 3; over 100,000 → min. 4 or 3% (whichever is greater).<cite>§ 206.89</cite></label></li>
+          <li><input type="checkbox" id="C2" onchange="saveCheck('C',2,this)"><label for="C2" class="item-label">At least one selected precinct has more than 150 votes cast.<cite>§ 206.89</cite></label></li>
+          <li><input type="checkbox" id="C3" onchange="saveCheck('C',3,this)"><label for="C3" class="item-label">Review not begun before Day +9.<cite>§ 206.89</cite></label></li>
+          <li><input type="checkbox" id="C4" onchange="saveCheck('C',4,this)"><label for="C4" class="item-label">Review complete by Day +14.<cite>§ 206.89</cite></label></li>
+          <li><input type="checkbox" id="C5" onchange="saveCheck('C',5,this)"><label for="C5" class="item-label">Variance thresholds checked: &lt;1,200 ballots ≤2 votes; 1,200–1,599 ≤3; 1,600–1,999 ≤4; 2,000+ ≤5.<cite>§ 206.89</cite></label></li>
+          <li><input type="checkbox" id="C6" onchange="saveCheck('C',6,this)"><label for="C6" class="item-label">If variance exceeded: additional review of at least 3 more precincts initiated within 1 day.<cite>§ 206.89</cite></label></li>
+          <li><input type="checkbox" id="C7" onchange="saveCheck('C',7,this)"><label for="C7" class="item-label">If second review shows continued discrepancy: all remaining precincts reviewed within 6 days.<cite>§ 206.89</cite></label></li>
+          <li><input type="checkbox" id="C8" onchange="saveCheck('C',8,this)"><label for="C8" class="item-label">Results submitted to county canvassing board before canvass deadline.</label></li>
+        </ul>
+        <div class="checklist-actions">
+          <button class="btn btn-accent btn-sm" onclick="printChecklist()">Print This Checklist</button>
+          <button class="btn btn-outline btn-sm" onclick="resetChecklist('C')">Reset Tab</button>
+        </div>
+      </div>
+
+      <!-- TAB D -->
+      <div class="checklist-panel" id="cl-D">
+        <div class="checklist-header">
+          <div class="checklist-title">D — Canvassing and Certification</div>
+          <div class="checklist-progress" id="prog-D">0 of 7 complete (0%)</div>
+        </div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill" id="bar-D" style="width:0%"></div></div>
+        <ul class="checklist-list" id="list-D">
+          <li><input type="checkbox" id="D0" onchange="saveCheck('D',0,this)"><label for="D0" class="item-label">Election returns received from all precincts.</label></li>
+          <li><input type="checkbox" id="D1" onchange="saveCheck('D',1,this)"><label for="D1" class="item-label">County canvassing board assembled (confirm membership per § 204C).<cite>§ 204C</cite></label></li>
+          <li><input type="checkbox" id="D2" onchange="saveCheck('D',2,this)"><label for="D2" class="item-label">Summary statements reviewed and certified.</label></li>
+          <li><input type="checkbox" id="D3" onchange="saveCheck('D',3,this)"><label for="D3" class="item-label">Statewide canvass coordination with Secretary of State completed.</label></li>
+          <li><input type="checkbox" id="D4" onchange="saveCheck('D',4,this)"><label for="D4" class="item-label">Certificates of election prepared for winning candidates.</label></li>
+          <li><input type="checkbox" id="D5" onchange="saveCheck('D',5,this)"><label for="D5" class="item-label">Election records retained per statutory record retention schedule.</label></li>
+          <li><input type="checkbox" id="D6" onchange="saveCheck('D',6,this)"><label for="D6" class="item-label">Voted ballots preserved: 22-month retention for federal elections; 6 months for others (confirm applicable standard).</label></li>
+        </ul>
+        <div class="checklist-actions">
+          <button class="btn btn-accent btn-sm" onclick="printChecklist()">Print This Checklist</button>
+          <button class="btn btn-outline btn-sm" onclick="resetChecklist('D')">Reset Tab</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════
+         MODULE 3: AUDIT DISCREPANCY CALCULATOR
+    ══════════════════════════════════════════════════════ -->
+    <section class="module-section" id="mod-audit">
+      <div class="module-title">Module 3 — Audit Discrepancy Calculator</div>
+
+      <div class="demo-row">
+        <span>Load Example:</span>
+        <button class="btn btn-primary btn-sm" onclick="loadAuditDemo()">Isanti County — 2024 State General (Demo)</button>
+      </div>
+
+      <div class="audit-grid">
+        <div class="audit-controls">
+          <h3>County Registration</h3>
+          <div class="form-group" style="margin-bottom:14px;">
+            <label for="audit-county">County Name (for printout)</label>
+            <input type="text" id="audit-county" placeholder="e.g. Isanti" style="font-family:'Arial Narrow',Arial,sans-serif;font-size:14px;padding:6px 10px;border:1px solid #bbb;width:100%;height:34px;">
+          </div>
+          <div class="form-group" style="margin-bottom:14px;">
+            <label for="audit-elec-date">Election Date (for printout)</label>
+            <input type="date" id="audit-elec-date" style="font-family:'Arial Narrow',Arial,sans-serif;font-size:14px;padding:6px 10px;border:1px solid #bbb;width:100%;height:34px;">
+          </div>
+          <div class="form-group" style="margin-bottom:18px;">
+            <label for="reg-voters">Total County Registered Voters</label>
+            <input type="number" id="reg-voters" min="0" placeholder="e.g. 28000" oninput="recalcAudit()" style="font-family:'Arial Narrow',Arial,sans-serif;font-size:14px;padding:6px 10px;border:1px solid #bbb;width:100%;height:34px;">
+          </div>
+
+          <div class="minimum-req-box" id="min-req-box">
+            <div class="req-label">Minimum Precincts Required</div>
+            <div class="req-value" id="min-req-value">—</div>
+            <div class="req-detail" id="min-req-detail">Enter registered voter count above.</div>
+          </div>
+
+          <button class="btn btn-primary" onclick="addPrecinct()" style="width:100%;margin-bottom:10px;">+ Add Precinct</button>
+          <button class="btn btn-accent" onclick="printAudit()" style="width:100%;">Print Audit Results</button>
+          <p class="audit-print-note">Print generates a report suitable for the canvassing board package.</p>
+        </div>
+
+        <div>
+          <div class="precinct-table-wrap">
+            <table class="precinct-table" id="precinct-table">
+              <thead>
+                <tr>
+                  <th>Precinct Name</th>
+                  <th>Total Ballots</th>
+                  <th>Electronic Count</th>
+                  <th>Manual Count</th>
+                  <th>Variance</th>
+                  <th>Threshold</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="precinct-tbody">
+                <tr id="no-precinct-row">
+                  <td colspan="8" style="text-align:center;color:#999;padding:20px;font-family:'Arial Narrow',Arial,sans-serif;font-size:13px;">Click "Add Precinct" to begin entering data.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div id="summary-panel">
+            <h3>Review Summary</h3>
+            <div class="summary-row">
+              <span class="s-label">Minimum Precincts Required</span>
+              <span class="s-value" id="sum-min">—</span>
+            </div>
+            <div class="summary-row">
+              <span class="s-label">Precincts Reviewed</span>
+              <span class="s-value" id="sum-reviewed">0</span>
+            </div>
+            <div class="summary-row">
+              <span class="s-label">Precincts Meeting Minimum</span>
+              <span class="s-value" id="sum-meets-min">—</span>
+            </div>
+            <div class="summary-row">
+              <span class="s-label">All Precincts Within Variance</span>
+              <span class="s-value" id="sum-variance">—</span>
+            </div>
+          </div>
+
+          <div class="escalation-banner" id="esc-banner-1">
+            ESCALATION REQUIRED — Review at least 3 additional precincts. Complete within 1 day of this finding. <cite>Minn. Stat. § 206.89</cite>
+          </div>
+          <div class="escalation-banner" id="esc-banner-2">
+            COUNTYWIDE REVIEW REQUIRED — All remaining precincts must be reviewed within 6 days. <cite>Minn. Stat. § 206.89</cite>
+          </div>
+
+          <p style="font-family:'Arial Narrow',Arial,sans-serif;font-size:11px;color:#999;margin-top:10px;">Example uses approximate figures for illustration. Verify all figures with official county voter registration records.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer id="page-footer">
+    A resource for SD-28 communities and Minnesota election administrators. Built with AI. Reflects Minnesota election statutes as of 2025. Not legal advice — verify all deadlines with the Minnesota Secretary of State's office (sos.state.mn.us). | Statute references: Minn. Stat. §§ 203B.121, 204B.14, 204B.16, 204B.27, 204C, 206.89
+  </footer>
+
+</div><!-- end #main-wrapper -->
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════════════════════
+document.querySelectorAll('.nav-link').forEach(function(link) {
+  link.addEventListener('click', function(e) {
+    e.preventDefault();
+    var target = this.getAttribute('data-module');
+    document.querySelectorAll('.nav-link').forEach(function(l) { l.classList.remove('active'); });
+    this.classList.add('active');
+    document.querySelectorAll('.module-section').forEach(function(s) { s.classList.remove('active'); });
+    document.getElementById(target).classList.add('active');
+  });
+});
+
+// ══════════════════════════════════════════════════════════════
+// DATE UTILITIES
+// ══════════════════════════════════════════════════════════════
+function parseLocalDate(str) {
+  // str = "YYYY-MM-DD"
+  var parts = str.split('-');
+  return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+}
+
+function addDays(date, days) {
+  var d = new Date(date.getTime());
+  d.setDate(d.getDate() + days);
+  return d;
+}
+
+function formatDate(d) {
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  return days[d.getDay()] + ', ' + months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+}
+
+function toDateStr(d) {
+  var y = d.getFullYear();
+  var m = ('0'+(d.getMonth()+1)).slice(-2);
+  var dd = ('0'+d.getDate()).slice(-2);
+  return y + '-' + m + '-' + dd;
+}
+
+// ══════════════════════════════════════════════════════════════
+// MODULE 1 — DEADLINE CALCULATOR
+// ══════════════════════════════════════════════════════════════
+
+// Initialize today
+(function() {
+  var today = new Date();
+  document.getElementById('today-date').value = toDateStr(today);
+  document.getElementById('today-date').addEventListener('change', function() {
+    // Re-render if a table already exists
+    var tbl = document.querySelector('table.deadline-table');
+    if (tbl) { generateDeadlines(); }
+  });
+})();
+
+function getOfficialByJurisdiction(jurisType, deadlineCategory) {
+  var map = {
+    'county':      'County Auditor',
+    'city-large':  'Municipal Clerk',
+    'city-small':  'County Auditor',
+    'township':    'Township Clerk'
+  };
+  return map[jurisType] || 'Local Election Official';
+}
+
+function buildDeadlines(elecDate, jurisType) {
+  // Returns array: { label, date, citation, official, notes, category }
+  var deadlines = [];
+  var official = getOfficialByJurisdiction(jurisType, '');
+
+  // Dec 31 prior year: find December 31 of the year before the election
+  var dec31Year = elecDate.getFullYear() - 1;
+  // If election is in the same year but early (e.g. March), still use prior year Dec 31
+  var dec31Date = new Date(dec31Year, 11, 31); // Dec 31 of prior year
+
+  deadlines.push({
+    label: 'Designate polling places by ordinance or resolution',
+    date: dec31Date,
+    daysOffset: null,
+    citation: 'Minn. Stat. § 204B.16',
+    official: official,
+    notes: 'Annual deadline — December 31 of year prior to election',
+    category: 'pre'
+  });
+
+  // 90 days before election
+  deadlines.push({
+    label: 'Final deadline for new polling place designations to take effect',
+    date: addDays(elecDate, -90),
+    daysOffset: -90,
+    citation: 'Minn. Stat. § 204B.16',
+    official: official,
+    notes: '90 days before election',
+    category: 'pre'
+  });
+
+  // 70 days before election (10 weeks)
+  deadlines.push({
+    label: 'Deadline to adopt any precinct boundary changes',
+    date: addDays(elecDate, -70),
+    daysOffset: -70,
+    citation: 'Minn. Stat. § 204B.14',
+    official: official,
+    notes: '70 days (10 weeks) before election',
+    category: 'pre'
+  });
+
+  // 56 days before
+  deadlines.push({
+    label: 'Begin posting polling place notice at clerk/auditor office',
+    date: addDays(elecDate, -56),
+    daysOffset: -56,
+    citation: 'Minn. Stat. § 204B.16',
+    official: official,
+    notes: '56 days before election',
+    category: 'pre'
+  });
+
+  // 30 days: File precinct changes with SOS (relative note — this fires within 30 days of ordinance)
+  deadlines.push({
+    label: 'File precinct ordinance with Secretary of State (within 30 days of ordinance approval)',
+    date: addDays(elecDate, -40), // approximate: 40 days before election as practical window marker
+    daysOffset: null,
+    citation: 'Minn. Stat. § 204B.14',
+    official: official,
+    notes: 'Within 30 days of precinct ordinance approval; shown here at Day −40 as reference marker',
+    category: 'pre'
+  });
+
+  // 25 days before
+  deadlines.push({
+    label: 'Mail nonforwardable notice to affected households if polling place changed',
+    date: addDays(elecDate, -25),
+    daysOffset: -25,
+    citation: 'Minn. Stat. § 204B.16',
+    official: official,
+    notes: '25 days before election; required only if polling place changed',
+    category: 'pre'
+  });
+
+  // 19 days before
+  deadlines.push({
+    label: 'Earliest date ballot board may begin opening absentee ballot envelopes',
+    date: addDays(elecDate, -19),
+    daysOffset: -19,
+    citation: 'Minn. Stat. § 203B.121',
+    official: official + ' / Ballot Board',
+    notes: 'Envelope-opening not permitted before this date',
+    category: 'pre'
+  });
+
+  // 14 days before
+  deadlines.push({
+    label: 'Secretary of State must transmit blank election forms to county auditors',
+    date: addDays(elecDate, -14),
+    daysOffset: -14,
+    citation: 'Minn. Stat. § 204B.27',
+    official: 'Secretary of State',
+    notes: '14 days before election',
+    category: 'pre'
+  });
+
+  deadlines.push({
+    label: 'Absentee ballot application acceptance window opens',
+    date: addDays(elecDate, -14),
+    daysOffset: -14,
+    citation: 'Minn. Stat. § 203B.121',
+    official: official,
+    notes: 'Acceptance window varies by election type; confirm with SOS',
+    category: 'pre'
+  });
+
+  // Election Day
+  deadlines.push({
+    label: 'ELECTION DAY',
+    date: elecDate,
+    daysOffset: 0,
+    citation: '',
+    official: official,
+    notes: 'Day 0',
+    category: 'election'
+  });
+
+  // Post-election: absentee rejected ballot notice
+  deadlines.push({
+    label: 'Rejected absentee ballot notice mailed to affected voters (begins)',
+    date: addDays(elecDate, 42),
+    daysOffset: null,
+    citation: 'Minn. Stat. § 203B.121',
+    official: official + ' / Ballot Board',
+    notes: '6–10 week post-election window (Day +42 to Day +70)',
+    category: 'post'
+  });
+
+  // Post-election review: Day +1
+  deadlines.push({
+    label: 'County auditor may designate municipal clerk as post-election review official',
+    date: addDays(elecDate, 1),
+    daysOffset: 1,
+    citation: 'Minn. Stat. § 206.89',
+    official: 'County Auditor',
+    notes: 'Designation must occur within 24 hours after canvass',
+    category: 'post'
+  });
+
+  // Post-election review: Day +9
+  deadlines.push({
+    label: 'Earliest post-election review may begin',
+    date: addDays(elecDate, 9),
+    daysOffset: 9,
+    citation: 'Minn. Stat. § 206.89',
+    official: 'Post-Election Review Official',
+    notes: 'Review cannot begin before this date',
+    category: 'post'
+  });
+
+  // Post-election review: Day +14
+  deadlines.push({
+    label: 'All post-election reviews must be COMPLETE',
+    date: addDays(elecDate, 14),
+    daysOffset: 14,
+    citation: 'Minn. Stat. § 206.89',
+    official: 'Post-Election Review Official',
+    notes: 'Hard deadline; no extensions',
+    category: 'post'
+  });
+
+  // Day +1 after discrepancy
+  deadlines.push({
+    label: 'Report discrepancy triggering additional review (within 1 day of finding)',
+    date: addDays(elecDate, 10),
+    daysOffset: null,
+    citation: 'Minn. Stat. § 206.89',
+    official: 'County Auditor',
+    notes: 'Day +1 after review discrepancy found; shown at Day +10 as reference',
+    category: 'post'
+  });
+
+  // Day +20 approx: countywide review must complete within 6 days of trigger
+  deadlines.push({
+    label: 'Countywide review complete (within 6 days of triggering event if escalated)',
+    date: addDays(elecDate, 20),
+    daysOffset: null,
+    citation: 'Minn. Stat. § 206.89',
+    official: 'Post-Election Review Official',
+    notes: 'Applies only if second escalation triggered; shown at Day +20 as reference',
+    category: 'post'
+  });
+
+  // Sort by date
+  deadlines.sort(function(a, b) { return a.date.getTime() - b.date.getTime(); });
+  return deadlines;
+}
+
+function generateDeadlines() {
+  var elecDateVal = document.getElementById('elec-date').value;
+  if (!elecDateVal) {
+    document.getElementById('deadline-output').innerHTML = '<div id="no-deadline-msg">Please select an election date first.</div>';
+    return;
+  }
+
+  var elecDate = parseLocalDate(elecDateVal);
+  var jurisType = document.getElementById('juris-type').value;
+  var county = document.getElementById('county-sel').value;
+  var elecType = document.getElementById('elec-type').options[document.getElementById('elec-type').selectedIndex].text;
+  var todayVal = document.getElementById('today-date').value;
+  var today = todayVal ? parseLocalDate(todayVal) : new Date();
+
+  var deadlines = buildDeadlines(elecDate, jurisType);
+
+  var html = '<h3 style="font-family:\'Arial Narrow\',Arial,sans-serif;font-size:14px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:var(--gray);margin-bottom:10px;">';
+  html += county + ' County — ' + elecType + ' — ' + formatDate(elecDate) + '</h3>';
+  html += '<div class="table-wrapper"><table class="deadline-table"><thead><tr>';
+  html += '<th>Deadline Date</th><th style="text-align:right;">Days</th><th>Statutory Citation</th><th>Task Description</th><th>Responsible Official</th><th>Notes</th>';
+  html += '</tr></thead><tbody>';
+
+  deadlines.forEach(function(dl) {
+    var daysUntil = Math.round((dl.date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    var rowClass = '';
+    if (dl.daysOffset === 0) {
+      rowClass = ''; // Election day: neutral
+    } else if (daysUntil < 0) {
+      rowClass = 'row-past';
+    } else if (daysUntil <= 7) {
+      rowClass = 'row-urgent';
+    } else if (daysUntil <= 21) {
+      rowClass = 'row-warning';
+    } else {
+      rowClass = 'row-ok';
+    }
+
+    var daysText = '';
+    if (dl.daysOffset === 0) {
+      daysText = 'Day 0';
+    } else if (dl.daysOffset !== null) {
+      daysText = dl.daysOffset > 0 ? 'Day +' + dl.daysOffset : 'Day ' + dl.daysOffset;
+    } else {
+      daysText = '';
+    }
+
+    html += '<tr class="' + rowClass + '">';
+    html += '<td class="date-col">' + formatDate(dl.date) + '</td>';
+    html += '<td class="days-col">' + daysText + '</td>';
+    html += '<td class="citation-col">' + (dl.citation || '—') + '</td>';
+    html += '<td>' + escHtml(dl.label) + '</td>';
+    html += '<td class="official-col">' + escHtml(dl.official) + '</td>';
+    html += '<td style="font-size:11px;color:inherit;font-family:Georgia,serif;">' + escHtml(dl.notes) + '</td>';
+    html += '</tr>';
+  });
+
+  html += '</tbody></table></div>';
+  html += '<div style="margin-top:10px;text-align:right;"><button class="btn btn-outline btn-sm" onclick="window.print()">Print Deadline Calendar</button></div>';
+
+  document.getElementById('deadline-output').innerHTML = html;
+
+  // Save to localStorage
+  try {
+    localStorage.setItem('koran_elec_date', elecDateVal);
+    localStorage.setItem('koran_elec_type', document.getElementById('elec-type').value);
+    localStorage.setItem('koran_juris_type', jurisType);
+    localStorage.setItem('koran_county', county);
+  } catch(e) {}
+}
+
+function loadDemo(which) {
+  var sel = document.getElementById('elec-type');
+  sel.value = 'state-general';
+  document.getElementById('elec-date').value = '2024-11-05';
+  document.getElementById('juris-type').value = 'county';
+  document.getElementById('county-sel').value = which === 'isanti' ? 'Isanti' : 'Chisago';
+  generateDeadlines();
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Restore saved state on load
+(function() {
+  try {
+    var savedDate = localStorage.getItem('koran_elec_date');
+    var savedType = localStorage.getItem('koran_elec_type');
+    var savedJuris = localStorage.getItem('koran_juris_type');
+    var savedCounty = localStorage.getItem('koran_county');
+    if (savedDate) {
+      document.getElementById('elec-date').value = savedDate;
+      if (savedType) document.getElementById('elec-type').value = savedType;
+      if (savedJuris) document.getElementById('juris-type').value = savedJuris;
+      if (savedCounty) document.getElementById('county-sel').value = savedCounty;
+      generateDeadlines();
+    }
+  } catch(e) {}
+})();
+
+
+// ══════════════════════════════════════════════════════════════
+// MODULE 2 — CHECKLISTS
+// ══════════════════════════════════════════════════════════════
+
+var checklistCounts = { A: 13, B: 10, C: 9, D: 7 };
+var activeChecklist = 'A';
+
+function switchChecklist(tab, btn) {
+  document.querySelectorAll('.checklist-panel').forEach(function(p) { p.classList.remove('active'); });
+  document.querySelectorAll('.checklist-nav button').forEach(function(b) { b.classList.remove('active'); });
+  document.getElementById('cl-' + tab).classList.add('active');
+  btn.classList.add('active');
+  activeChecklist = tab;
+}
+
+function saveCheck(tab, idx, el) {
+  var key = 'koran_checklist_tab' + tab + '_item_' + idx;
+  try { localStorage.setItem(key, el.checked ? 'checked' : ''); } catch(e) {}
+  updateChecklistProgress(tab);
+  updateItemStyle(tab, idx, el.checked);
+}
+
+function updateItemStyle(tab, idx, checked) {
+  var id = tab + idx;
+  var li = document.getElementById(id) ? document.getElementById(id).parentElement : null;
+  if (li) {
+    if (checked) { li.classList.add('checked-item'); }
+    else { li.classList.remove('checked-item'); }
+  }
+}
+
+function updateChecklistProgress(tab) {
+  var total = checklistCounts[tab];
+  var checked = 0;
+  for (var i = 0; i < total; i++) {
+    var el = document.getElementById(tab + i);
+    if (el && el.checked) checked++;
+  }
+  var pct = total > 0 ? Math.round(checked / total * 100) : 0;
+  document.getElementById('prog-' + tab).textContent = checked + ' of ' + total + ' complete (' + pct + '%)';
+  document.getElementById('bar-' + tab).style.width = pct + '%';
+}
+
+function resetChecklist(tab) {
+  if (!confirm('Reset all checkboxes in this tab? This cannot be undone.')) return;
+  var total = checklistCounts[tab];
+  for (var i = 0; i < total; i++) {
+    var el = document.getElementById(tab + i);
+    if (el) {
+      el.checked = false;
+      updateItemStyle(tab, i, false);
+    }
+    try { localStorage.removeItem('koran_checklist_tab' + tab + '_item_' + i); } catch(e) {}
+  }
+  updateChecklistProgress(tab);
+}
+
+function printChecklist() {
+  window.print();
+}
+
+// Restore checklist state
+(function() {
+  ['A','B','C','D'].forEach(function(tab) {
+    var total = checklistCounts[tab];
+    for (var i = 0; i < total; i++) {
+      try {
+        var key = 'koran_checklist_tab' + tab + '_item_' + i;
+        var val = localStorage.getItem(key);
+        if (val === 'checked') {
+          var el = document.getElementById(tab + i);
+          if (el) {
+            el.checked = true;
+            updateItemStyle(tab, i, true);
+          }
+        }
+      } catch(e) {}
+    }
+    updateChecklistProgress(tab);
+  });
+})();
+
+
+// ══════════════════════════════════════════════════════════════
+// MODULE 3 — AUDIT CALCULATOR
+// ══════════════════════════════════════════════════════════════
+
+var precincts = []; // array of { name, total, electronic, manual }
+
+function getMinPrecincts(regVoters) {
+  if (!regVoters || regVoters <= 0) return { min: 0, label: 'Enter registered voter count.' };
+  if (regVoters < 50000) return { min: 2, label: 'Fewer than 50,000 registered voters → minimum 2 precincts' };
+  if (regVoters <= 100000) return { min: 3, label: '50,000–100,000 registered voters → minimum 3 precincts' };
+  var pct3 = Math.ceil(regVoters * 0.03 / 100); // This is 3% of total precincts — but we don't know total precincts
+  // Per statute: over 100,000 → min 4 or 3% of precincts, whichever is greater
+  // Since we don't know total precincts, show 4 as minimum
+  return { min: 4, label: 'Over 100,000 registered voters → minimum 4 precincts (or 3%, whichever is greater)' };
+}
+
+function getVarianceThreshold(totalBallots) {
+  if (totalBallots < 1200) return 2;
+  if (totalBallots < 1600) return 3;
+  if (totalBallots < 2000) return 4;
+  return 5;
+}
+
+function addPrecinct(data) {
+  data = data || { name: '', total: '', electronic: '', manual: '' };
+  precincts.push(data);
+  renderPrecinctTable();
+  savePrecinctsToStorage();
+}
+
+function removePrecinct(idx) {
+  precincts.splice(idx, 1);
+  renderPrecinctTable();
+  recalcAudit();
+  savePrecinctsToStorage();
+}
+
+function renderPrecinctTable() {
+  var tbody = document.getElementById('precinct-tbody');
+  if (precincts.length === 0) {
+    tbody.innerHTML = '<tr id="no-precinct-row"><td colspan="8" style="text-align:center;color:#999;padding:20px;font-family:\'Arial Narrow\',Arial,sans-serif;font-size:13px;">Click "Add Precinct" to begin entering data.</td></tr>';
+    recalcAudit();
+    return;
+  }
+
+  var rows = '';
+  precincts.forEach(function(p, idx) {
+    var variance = '';
+    var threshold = '';
+    var statusHtml = '';
+
+    var total = parseInt(p.total) || 0;
+    var elec = parseInt(p.electronic) || 0;
+    var man = parseInt(p.manual) || 0;
+
+    if (p.total !== '' && p.electronic !== '' && p.manual !== '') {
+      variance = Math.abs(elec - man);
+      threshold = getVarianceThreshold(total);
+      if (variance <= threshold) {
+        statusHtml = '<span class="status-pass">&#10003; Pass</span>';
+      } else {
+        statusHtml = '<span class="status-fail">&#9888; ESCALATION</span>';
+      }
+    }
+
+    rows += '<tr>';
+    rows += '<td><input type="text" value="' + escHtml(p.name) + '" placeholder="Precinct name" oninput="updatePrecinct(' + idx + ',\'name\',this.value)" style="width:160px;"></td>';
+    rows += '<td><input type="number" value="' + (p.total !== '' ? p.total : '') + '" placeholder="0" min="0" oninput="updatePrecinct(' + idx + ',\'total\',this.value)" style="width:80px;"></td>';
+    rows += '<td><input type="number" value="' + (p.electronic !== '' ? p.electronic : '') + '" placeholder="0" min="0" oninput="updatePrecinct(' + idx + ',\'electronic\',this.value)" style="width:80px;"></td>';
+    rows += '<td><input type="number" value="' + (p.manual !== '' ? p.manual : '') + '" placeholder="0" min="0" oninput="updatePrecinct(' + idx + ',\'manual\',this.value)" style="width:80px;"></td>';
+    rows += '<td class="variance-col">' + (variance !== '' ? variance : '—') + '</td>';
+    rows += '<td style="font-family:\'Arial Narrow\',Arial,sans-serif;font-size:12px;">' + (threshold !== '' ? '≤' + threshold : '—') + '</td>';
+    rows += '<td>' + statusHtml + '</td>';
+    rows += '<td><button class="btn-remove" onclick="removePrecinct(' + idx + ')" title="Remove precinct">&times;</button></td>';
+    rows += '</tr>';
+  });
+
+  tbody.innerHTML = rows;
+  recalcAudit();
+}
+
+function updatePrecinct(idx, field, value) {
+  precincts[idx][field] = value;
+  // Re-render only the status cells
+  recalcAuditDisplay();
+  savePrecinctsToStorage();
+}
+
+function recalcAudit() {
+  recalcAuditDisplay();
+}
+
+function recalcAuditDisplay() {
+  var regVoters = parseInt(document.getElementById('reg-voters').value) || 0;
+  var minInfo = getMinPrecincts(regVoters);
+
+  document.getElementById('min-req-value').textContent = minInfo.min > 0 ? minInfo.min : '—';
+  document.getElementById('min-req-detail').textContent = minInfo.label;
+  document.getElementById('sum-min').textContent = minInfo.min > 0 ? minInfo.min : '—';
+
+  var count = precincts.length;
+  document.getElementById('sum-reviewed').textContent = count;
+
+  var meetsEl = document.getElementById('sum-meets-min');
+  if (minInfo.min > 0) {
+    if (count >= minInfo.min) {
+      meetsEl.textContent = 'YES (' + count + ' of ' + minInfo.min + ' required)';
+      meetsEl.className = 's-value s-ok';
+    } else {
+      meetsEl.textContent = 'NO (' + count + ' of ' + minInfo.min + ' required)';
+      meetsEl.className = 's-value s-warn';
+    }
+  } else {
+    meetsEl.textContent = '—';
+    meetsEl.className = 's-value';
+  }
+
+  // Check variance
+  var allPass = true;
+  var anyFail = false;
+  var hasData = false;
+
+  precincts.forEach(function(p) {
+    if (p.total !== '' && p.electronic !== '' && p.manual !== '') {
+      hasData = true;
+      var variance = Math.abs((parseInt(p.electronic)||0) - (parseInt(p.manual)||0));
+      var threshold = getVarianceThreshold(parseInt(p.total)||0);
+      if (variance > threshold) { allPass = false; anyFail = true; }
+    }
+  });
+
+  var varEl = document.getElementById('sum-variance');
+  if (!hasData || count === 0) {
+    varEl.textContent = '—';
+    varEl.className = 's-value';
+  } else if (allPass) {
+    varEl.textContent = 'YES — All Within Threshold';
+    varEl.className = 's-value s-ok';
+  } else {
+    varEl.textContent = 'NO — Variance Exceeded';
+    varEl.className = 's-value s-warn';
+  }
+
+  // Escalation banners
+  var esc1 = document.getElementById('esc-banner-1');
+  var esc2 = document.getElementById('esc-banner-2');
+  esc1.classList.remove('show');
+  esc2.classList.remove('show');
+
+  if (anyFail && hasData) {
+    esc1.classList.add('show');
+  }
+
+  // Re-render rows to show updated status
+  if (precincts.length > 0) {
+    var tbody = document.getElementById('precinct-tbody');
+    var rows = tbody.querySelectorAll('tr');
+    rows.forEach(function(row, idx) {
+      if (idx >= precincts.length) return;
+      var p = precincts[idx];
+      var total = parseInt(p.total) || 0;
+      var elec = parseInt(p.electronic) || 0;
+      var man = parseInt(p.manual) || 0;
+      var cells = row.querySelectorAll('td');
+      if (cells.length < 7) return;
+
+      if (p.total !== '' && p.electronic !== '' && p.manual !== '') {
+        var variance = Math.abs(elec - man);
+        var threshold = getVarianceThreshold(total);
+        cells[4].textContent = variance;
+        cells[5].textContent = '≤' + threshold;
+        if (variance <= threshold) {
+          cells[6].innerHTML = '<span class="status-pass">&#10003; Pass</span>';
+        } else {
+          cells[6].innerHTML = '<span class="status-fail">&#9888; ESCALATION</span>';
+        }
+      } else {
+        cells[4].textContent = '—';
+        cells[5].textContent = '—';
+        cells[6].innerHTML = '';
+      }
+    });
+  }
+}
+
+function savePrecinctsToStorage() {
+  try {
+    localStorage.setItem('koran_precincts', JSON.stringify(precincts));
+    localStorage.setItem('koran_audit_county', document.getElementById('audit-county').value || '');
+    localStorage.setItem('koran_audit_date', document.getElementById('audit-elec-date').value || '');
+    localStorage.setItem('koran_audit_voters', document.getElementById('reg-voters').value || '');
+  } catch(e) {}
+}
+
+function loadAuditDemo() {
+  document.getElementById('audit-county').value = 'Isanti';
+  document.getElementById('audit-elec-date').value = '2024-11-05';
+  document.getElementById('reg-voters').value = '28000';
+
+  precincts = [
+    { name: 'Cambridge City W1', total: '847', electronic: '847', manual: '848' },
+    { name: 'North Branch P1', total: '1340', electronic: '1340', manual: '1343' }
+  ];
+  renderPrecinctTable();
+  recalcAudit();
+}
+
+// Restore audit state
+(function() {
+  try {
+    var savedPrecincts = localStorage.getItem('koran_precincts');
+    var savedCounty = localStorage.getItem('koran_audit_county');
+    var savedDate = localStorage.getItem('koran_audit_date');
+    var savedVoters = localStorage.getItem('koran_audit_voters');
+
+    if (savedCounty) document.getElementById('audit-county').value = savedCounty;
+    if (savedDate) document.getElementById('audit-elec-date').value = savedDate;
+    if (savedVoters) document.getElementById('reg-voters').value = savedVoters;
+
+    if (savedPrecincts) {
+      var parsed = JSON.parse(savedPrecincts);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        precincts = parsed;
+        renderPrecinctTable();
+      }
+    }
+    recalcAudit();
+  } catch(e) {}
+})();
+
+document.getElementById('audit-county').addEventListener('input', savePrecinctsToStorage);
+document.getElementById('audit-elec-date').addEventListener('input', savePrecinctsToStorage);
+document.getElementById('reg-voters').addEventListener('input', recalcAudit);
+
+function printAudit() {
+  // Switch to audit module if not already active
+  document.querySelectorAll('.nav-link').forEach(function(l) { l.classList.remove('active'); });
+  document.querySelectorAll('.module-section').forEach(function(s) { s.classList.remove('active'); });
+  document.getElementById('mod-audit').classList.add('active');
+  document.querySelector('[data-module="mod-audit"]').classList.add('active');
+  window.print();
+}
+
+</script>
+</body>
+</html>

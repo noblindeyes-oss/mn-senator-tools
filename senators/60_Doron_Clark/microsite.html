@@ -1,0 +1,1903 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Senator Doron Clark — District 60</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,300;1,8..60,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+/* =============================================
+   BASE RESET & TOKENS
+   ============================================= */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+:root {
+  /* Pro palette — brick, river, civic */
+  --pro-brick:    #8B2E1A;
+  --pro-brick-dk: #6B2013;
+  --pro-river:    #1C4F7A;
+  --pro-river-lt: #2A6FA8;
+  --pro-gray:     #4A5259;
+  --pro-gray-lt:  #8C959E;
+  --pro-cream:    #F4EFE6;
+  --pro-paper:    #FAF7F2;
+  --pro-rule:     #C9BBA8;
+  --pro-ink:      #1C1A18;
+
+  /* Oppo palette — desaturated, flagged, forensic */
+  --op-charcoal:  #1A1C1E;
+  --op-ash:       #2D3035;
+  --op-slate:     #3E444C;
+  --op-red:       #C0392B;
+  --op-red-lt:    #E74C3C;
+  --op-yellow:    #D4A017;
+  --op-paper:     #E8E4DC;
+  --op-rule:      #555B63;
+  --op-ink:       #E8E4DC;
+  --op-subink:    #A8AFB8;
+
+  --font-head: 'Oswald', sans-serif;
+  --font-body: 'Source Serif 4', serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+
+  --toggle-z: 1000;
+  --fade-ms: 220ms;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--pro-paper);
+  color: var(--pro-ink);
+  transition: background var(--fade-ms) ease, color var(--fade-ms) ease;
+  overflow-x: hidden;
+}
+
+/* =============================================
+   MODE SWITCHING
+   ============================================= */
+.pro-content  { display: block; }
+.oppo-content { display: none; }
+
+body.mode-oppo .pro-content  { display: none; }
+body.mode-oppo .oppo-content { display: block; }
+
+body.mode-oppo {
+  background: var(--op-charcoal);
+  color: var(--op-ink);
+}
+
+/* =============================================
+   TOGGLE BUTTON
+   ============================================= */
+#flip-btn {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: var(--toggle-z);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 22px;
+  font-family: var(--font-head);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  transition: background var(--fade-ms) ease, color var(--fade-ms) ease, box-shadow var(--fade-ms) ease;
+  clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+}
+
+/* Pro mode button */
+#flip-btn {
+  background: var(--pro-brick);
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(139,46,26,0.45);
+}
+#flip-btn:hover {
+  background: var(--pro-brick-dk);
+  box-shadow: 0 6px 28px rgba(139,46,26,0.6);
+}
+
+body.mode-oppo #flip-btn {
+  background: var(--op-red);
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(192,57,43,0.55);
+}
+body.mode-oppo #flip-btn:hover {
+  background: var(--op-red-lt);
+}
+
+#flip-btn .btn-arrow {
+  font-size: 16px;
+  transition: transform 0.18s ease;
+}
+#flip-btn:hover .btn-arrow { transform: translateX(3px); }
+
+/* =============================================
+   SHARED UTILITY CLASSES
+   ============================================= */
+.mono  { font-family: var(--font-mono); }
+.upper { text-transform: uppercase; }
+.rule-h { border: none; border-top: 2px solid currentColor; }
+.rule-thick { border: none; border-top: 5px solid currentColor; }
+
+/* Footnote style */
+sup.fn { font-family: var(--font-mono); font-size: 0.65em; vertical-align: super; }
+
+
+/* =============================================
+   =============================================
+   PRO SITE
+   =============================================
+   ============================================= */
+
+/* --- PRO: File Header --- */
+.pro-file-header {
+  background: var(--pro-brick);
+  color: #fff;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.pro-file-header::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 28px,
+    rgba(255,255,255,0.025) 28px,
+    rgba(255,255,255,0.025) 56px
+  );
+  pointer-events: none;
+}
+
+.pro-topbar {
+  background: var(--pro-brick-dk);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 40px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.65);
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+}
+
+.pro-topbar .file-ref {
+  color: rgba(255,255,255,0.85);
+  font-weight: 500;
+}
+
+.pro-hero {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 0;
+  min-height: 480px;
+  position: relative;
+}
+
+.pro-hero-text {
+  padding: 52px 52px 52px 52px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 18px;
+}
+
+.pro-district-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.6);
+  border-left: 3px solid var(--pro-river-lt);
+  padding-left: 12px;
+}
+
+.pro-hero-name {
+  font-family: var(--font-head);
+  font-size: clamp(52px, 7vw, 88px);
+  font-weight: 700;
+  line-height: 0.9;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.pro-hero-name span {
+  display: block;
+  font-size: clamp(28px, 3.5vw, 44px);
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  color: rgba(255,255,255,0.7);
+}
+
+.pro-hero-argument {
+  font-family: var(--font-body);
+  font-size: clamp(16px, 2vw, 20px);
+  font-weight: 300;
+  line-height: 1.5;
+  color: rgba(255,255,255,0.88);
+  max-width: 520px;
+  border-top: 1px solid rgba(255,255,255,0.25);
+  padding-top: 18px;
+  margin-top: 4px;
+}
+
+.pro-hero-img-block {
+  position: relative;
+  overflow: hidden;
+  background: var(--pro-river);
+}
+
+.pro-hero-img-block img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 15%;
+  filter: saturate(0.85) brightness(0.9);
+  display: block;
+}
+
+.pro-hero-img-block .img-caption {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: rgba(28,79,122,0.85);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.75);
+  padding: 10px 16px;
+  text-transform: uppercase;
+}
+
+.pro-photo-placeholder {
+  width: 100%;
+  height: 100%;
+  min-height: 280px;
+  background: linear-gradient(160deg, var(--pro-river) 0%, var(--pro-river-lt) 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: rgba(255,255,255,0.5);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+}
+
+.pro-photo-placeholder svg {
+  opacity: 0.3;
+}
+
+/* --- PRO: Project Stats Band --- */
+.pro-stats-band {
+  background: var(--pro-river);
+  color: #fff;
+  padding: 36px 52px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  border-top: 4px solid var(--pro-river-lt);
+}
+
+.pro-stat {
+  padding: 0 32px 0 0;
+  border-right: 1px solid rgba(255,255,255,0.15);
+}
+
+.pro-stat:last-child { border-right: none; padding-right: 0; }
+.pro-stat:not(:first-child) { padding-left: 32px; }
+
+.pro-stat-num {
+  font-family: var(--font-head);
+  font-size: clamp(36px, 5vw, 58px);
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+}
+
+.pro-stat-num .unit {
+  font-size: 0.55em;
+  font-weight: 400;
+  color: rgba(255,255,255,0.6);
+  letter-spacing: 0.05em;
+}
+
+.pro-stat-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.55);
+  margin-top: 6px;
+}
+
+.pro-stat-note {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: rgba(255,255,255,0.7);
+  margin-top: 6px;
+  font-style: italic;
+}
+
+/* --- PRO: Body Content --- */
+.pro-body {
+  background: var(--pro-paper);
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 64px 52px;
+}
+
+.pro-section-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--pro-brick);
+  border-bottom: 2px solid var(--pro-brick);
+  padding-bottom: 6px;
+  margin-bottom: 28px;
+  display: inline-block;
+}
+
+.pro-body h2 {
+  font-family: var(--font-head);
+  font-size: clamp(28px, 3.5vw, 42px);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--pro-brick);
+  line-height: 1.1;
+  margin-bottom: 20px;
+}
+
+.pro-body p {
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.7;
+  color: var(--pro-gray);
+  margin-bottom: 16px;
+  max-width: 680px;
+}
+
+.pro-body p strong {
+  color: var(--pro-ink);
+  font-weight: 600;
+}
+
+/* --- PRO: Project File Card --- */
+.pro-project-card {
+  background: var(--pro-cream);
+  border-left: 5px solid var(--pro-brick);
+  padding: 36px 40px;
+  margin: 40px 0;
+  position: relative;
+}
+
+.pro-project-card::before {
+  content: 'PROJECT FILE';
+  position: absolute;
+  top: -12px;
+  left: 28px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  background: var(--pro-brick);
+  color: #fff;
+  padding: 4px 10px;
+}
+
+.pro-project-card .project-num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  color: var(--pro-brick);
+  margin-bottom: 12px;
+}
+
+.pro-project-card h3 {
+  font-family: var(--font-head);
+  font-size: 22px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--pro-ink);
+  margin-bottom: 14px;
+}
+
+.pro-project-card p {
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--pro-gray);
+  margin-bottom: 0;
+  max-width: none;
+}
+
+.pro-spec-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.pro-spec-item {
+  background: #fff;
+  border: 1px solid var(--pro-rule);
+  padding: 14px 18px;
+}
+
+.pro-spec-item .spec-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--pro-gray-lt);
+  margin-bottom: 4px;
+}
+
+.pro-spec-item .spec-val {
+  font-family: var(--font-head);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--pro-brick);
+}
+
+/* --- PRO: Pull Quote --- */
+.pro-pull-quote {
+  border-top: 5px solid var(--pro-river);
+  border-bottom: 1px solid var(--pro-rule);
+  padding: 36px 0;
+  margin: 48px 0;
+}
+
+.pro-pull-quote blockquote {
+  font-family: var(--font-head);
+  font-size: clamp(22px, 3vw, 32px);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  line-height: 1.25;
+  color: var(--pro-river);
+  max-width: 720px;
+}
+
+.pro-pull-quote cite {
+  display: block;
+  margin-top: 16px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--pro-gray-lt);
+  font-style: normal;
+}
+
+/* --- PRO: Context band --- */
+.pro-context-band {
+  background: var(--pro-cream);
+  border-top: 1px solid var(--pro-rule);
+  border-bottom: 1px solid var(--pro-rule);
+  padding: 48px 52px;
+  margin: 0;
+}
+
+.pro-context-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 52px;
+  align-items: start;
+}
+
+.pro-context-label-col {
+  padding-top: 4px;
+}
+
+.pro-context-label-col h3 {
+  font-family: var(--font-head);
+  font-size: 28px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--pro-river);
+  line-height: 1.1;
+  margin-bottom: 16px;
+}
+
+.pro-context-label-col p {
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--pro-gray);
+}
+
+.pro-context-content p {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--pro-gray);
+  margin-bottom: 14px;
+}
+
+.pro-context-content p:last-child { margin-bottom: 0; }
+
+/* --- PRO: Footnotes --- */
+.pro-footnotes {
+  background: var(--pro-ink);
+  color: rgba(255,255,255,0.55);
+  padding: 36px 52px;
+}
+
+.pro-footnotes-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.pro-footnotes h4 {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.35);
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.pro-footnotes ol {
+  list-style: decimal;
+  padding-left: 18px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 40px;
+}
+
+.pro-footnotes ol li {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  color: rgba(255,255,255,0.45);
+}
+
+.pro-footnotes ol li a {
+  color: rgba(255,255,255,0.55);
+}
+
+
+/* =============================================
+   =============================================
+   OPPO SITE
+   =============================================
+   ============================================= */
+
+/* --- OPPO: Case Header --- */
+.op-header {
+  background: var(--op-charcoal);
+  border-bottom: 3px solid var(--op-red);
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.op-header::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 22px,
+    rgba(255,255,255,0.015) 22px,
+    rgba(255,255,255,0.015) 23px
+  );
+  pointer-events: none;
+}
+
+.op-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 40px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--op-subink);
+  background: #111315;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  position: relative;
+  z-index: 2;
+}
+
+.op-topbar .case-id {
+  color: var(--op-yellow);
+  font-weight: 500;
+}
+
+.op-topbar .classification {
+  background: var(--op-red);
+  color: #fff;
+  padding: 3px 10px;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  font-weight: 500;
+}
+
+.op-hero {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  min-height: 440px;
+  position: relative;
+  z-index: 2;
+}
+
+.op-hero-img-block {
+  background: var(--op-ash);
+  position: relative;
+  overflow: hidden;
+  border-right: 1px solid rgba(255,255,255,0.08);
+}
+
+.op-hero-img-block img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 15%;
+  filter: grayscale(100%) contrast(1.2) brightness(0.7);
+  display: block;
+}
+
+.op-photo-placeholder {
+  width: 100%;
+  height: 100%;
+  min-height: 260px;
+  background: var(--op-ash);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--op-subink);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+}
+
+.op-hero-img-block .stamp-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-18deg);
+  font-family: var(--font-head);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--op-red);
+  border: 3px solid var(--op-red);
+  padding: 8px 16px;
+  opacity: 0.7;
+  text-transform: uppercase;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.op-hero-text {
+  padding: 48px 52px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 20px;
+}
+
+.op-case-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--op-yellow);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.op-case-label::before {
+  content: '';
+  display: block;
+  width: 24px;
+  height: 2px;
+  background: var(--op-yellow);
+}
+
+.op-hero-headline {
+  font-family: var(--font-head);
+  font-size: clamp(28px, 4vw, 52px);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  line-height: 1.05;
+  color: var(--op-ink);
+}
+
+.op-hero-headline .accusation-line {
+  color: var(--op-red);
+  display: block;
+}
+
+.op-hero-sub {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--op-subink);
+  max-width: 560px;
+  border-left: 3px solid var(--op-rule);
+  padding-left: 18px;
+}
+
+/* --- OPPO: Key finding strip --- */
+.op-finding-strip {
+  background: var(--op-red);
+  color: #fff;
+  padding: 16px 52px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.op-finding-strip::before {
+  content: '▶';
+  font-size: 10px;
+}
+
+/* --- OPPO: Body --- */
+.op-body {
+  background: var(--op-charcoal);
+  color: var(--op-ink);
+  padding: 64px 52px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.op-body h2 {
+  font-family: var(--font-head);
+  font-size: clamp(22px, 3vw, 34px);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--op-ink);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.op-body h2::before {
+  content: '';
+  display: block;
+  width: 4px;
+  height: 100%;
+  min-height: 28px;
+  background: var(--op-red);
+  flex-shrink: 0;
+}
+
+.op-section-tag {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--op-yellow);
+  border-bottom: 1px solid var(--op-rule);
+  padding-bottom: 6px;
+  margin-bottom: 28px;
+  display: inline-block;
+}
+
+.op-body p {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--op-subink);
+  margin-bottom: 16px;
+  max-width: 680px;
+}
+
+.op-body p strong {
+  color: var(--op-ink);
+  font-weight: 600;
+}
+
+/* --- OPPO: Sequence / Timeline --- */
+.op-sequence {
+  margin: 44px 0;
+  position: relative;
+}
+
+.op-sequence::before {
+  content: '';
+  position: absolute;
+  left: 28px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--op-rule);
+}
+
+.op-seq-item {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 0 24px;
+  margin-bottom: 32px;
+  position: relative;
+}
+
+.op-seq-item:last-child { margin-bottom: 0; }
+
+.op-seq-num {
+  width: 56px;
+  height: 56px;
+  background: var(--op-ash);
+  border: 2px solid var(--op-rule);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--op-red);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.op-seq-content {
+  padding: 8px 0;
+}
+
+.op-seq-content .seq-date {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  color: var(--op-yellow);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.op-seq-content h4 {
+  font-family: var(--font-head);
+  font-size: 18px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--op-ink);
+  margin-bottom: 8px;
+}
+
+.op-seq-content p {
+  font-size: 14px;
+  margin-bottom: 0;
+  max-width: none;
+}
+
+/* --- OPPO: Proof Block / Document --- */
+.op-proof-block {
+  background: var(--op-paper);
+  color: var(--op-charcoal);
+  border: 1px solid #B0A898;
+  margin: 44px 0;
+  position: relative;
+}
+
+.op-proof-block::before {
+  content: 'CORE DOCUMENT';
+  position: absolute;
+  top: -11px;
+  left: 20px;
+  background: var(--op-red);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.22em;
+  padding: 4px 10px;
+}
+
+.op-proof-header {
+  background: #D8D2C7;
+  padding: 16px 28px;
+  border-bottom: 1px solid #B0A898;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: #5A544E;
+}
+
+.op-proof-header .doc-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--op-charcoal);
+  margin-bottom: 4px;
+}
+
+.op-proof-body {
+  padding: 28px;
+}
+
+.op-proof-body p {
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.65;
+  color: #3A3530;
+  margin-bottom: 12px;
+  max-width: none;
+}
+
+.op-proof-body p:last-child { margin-bottom: 0; }
+
+/* Redaction bars */
+.redact {
+  display: inline-block;
+  background: var(--op-charcoal);
+  color: transparent;
+  border-radius: 1px;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.2s ease;
+  padding: 0 2px;
+  user-select: none;
+}
+
+.redact::after {
+  content: attr(data-reveal);
+  position: absolute;
+  top: 0; left: 0;
+  color: var(--op-red);
+  background: #EEE8E0;
+  padding: 0 2px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.redact:hover {
+  background: transparent;
+}
+
+.redact:hover::after {
+  opacity: 1;
+}
+
+.op-proof-key {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: #7A7060;
+  border-top: 1px solid #C0B8AC;
+  padding-top: 10px;
+  margin-top: 16px;
+}
+
+/* --- OPPO: Evidence Cards --- */
+.op-evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  margin: 44px 0;
+  background: var(--op-rule);
+}
+
+.op-card {
+  background: var(--op-ash);
+  padding: 28px;
+  cursor: default;
+  transition: background 0.18s ease, border-top 0.18s ease;
+  border-top: 3px solid transparent;
+  position: relative;
+}
+
+.op-card:hover {
+  background: #252830;
+  border-top-color: var(--op-red);
+}
+
+.op-card-tag {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--op-yellow);
+  margin-bottom: 12px;
+}
+
+.op-card h4 {
+  font-family: var(--font-head);
+  font-size: 17px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--op-ink);
+  margin-bottom: 12px;
+  line-height: 1.2;
+}
+
+.op-card p {
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--op-subink);
+  margin-bottom: 0;
+  max-width: none;
+}
+
+/* Hostile hover state text reveal */
+.op-card .hostile-reveal {
+  display: none;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--op-red);
+  margin-top: 14px;
+  border-top: 1px solid var(--op-rule);
+  padding-top: 10px;
+}
+
+.op-card:hover .hostile-reveal {
+  display: block;
+}
+
+/* --- OPPO: Contradiction block --- */
+.op-contradiction {
+  background: #0E1012;
+  border: 1px solid var(--op-rule);
+  border-left: 4px solid var(--op-red);
+  padding: 32px;
+  margin: 40px 0;
+}
+
+.op-contradiction .contra-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--op-red);
+  margin-bottom: 18px;
+}
+
+.op-contradiction .contra-grid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 20px;
+  align-items: center;
+}
+
+.op-contradiction .contra-col h5 {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--op-subink);
+  margin-bottom: 10px;
+}
+
+.op-contradiction .contra-col p {
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 0;
+  max-width: none;
+}
+
+.op-contradiction .contra-vs {
+  font-family: var(--font-head);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--op-red);
+  text-align: center;
+}
+
+/* --- OPPO: Footnotes --- */
+.op-footnotes {
+  background: #0A0C0E;
+  color: rgba(255,255,255,0.3);
+  padding: 32px 52px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+.op-footnotes-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.op-footnotes h4 {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.2);
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.op-footnotes ol {
+  list-style: decimal;
+  padding-left: 18px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 40px;
+}
+
+.op-footnotes ol li {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+}
+
+.op-footnotes ol li a {
+  color: rgba(255,255,255,0.35);
+}
+
+/* =============================================
+   RESPONSIVE — 900px minimum
+   ============================================= */
+@media (max-width: 1050px) {
+  .pro-hero { grid-template-columns: 1fr; }
+  .pro-hero-img-block { min-height: 280px; }
+  .pro-stats-band { grid-template-columns: 1fr 1fr; gap: 24px; padding: 32px; }
+  .pro-stat:last-child { grid-column: 1 / -1; border-right: none; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 20px; }
+  .pro-stat { border-right: none; padding: 0; }
+  .pro-context-inner { grid-template-columns: 1fr; gap: 20px; }
+  .op-hero { grid-template-columns: 1fr; }
+  .op-hero-img-block { min-height: 240px; }
+  .op-evidence-grid { grid-template-columns: 1fr; }
+  .op-contradiction .contra-grid { grid-template-columns: 1fr; }
+  .op-contradiction .contra-vs { display: none; }
+  .pro-spec-grid { grid-template-columns: 1fr; }
+  .pro-footnotes ol { grid-template-columns: 1fr; }
+  .op-footnotes ol { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 900px) {
+  .pro-topbar, .op-topbar { padding: 10px 20px; }
+  .pro-hero-text { padding: 32px 24px; }
+  .pro-stats-band { padding: 24px; }
+  .pro-body { padding: 40px 24px; }
+  .pro-project-card { padding: 28px 24px; }
+  .pro-context-band { padding: 36px 24px; }
+  .pro-footnotes { padding: 28px 24px; }
+  .op-hero-text { padding: 32px 24px; }
+  .op-body { padding: 40px 24px; }
+  .op-proof-body { padding: 20px; }
+  .op-finding-strip { padding: 14px 24px; font-size: 10px; }
+  .op-footnotes { padding: 28px 24px; }
+  .op-contradiction { padding: 24px; }
+}
+
+/* =============================================
+   COUNTER ANIMATION
+   ============================================= */
+.count-up { display: inline-block; }
+
+/* Redact hover hint */
+.redact-hint {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--op-subink);
+  margin-top: 8px;
+  font-style: italic;
+  opacity: 0.7;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- ======================================================
+     TOGGLE BUTTON
+     ====================================================== -->
+<button id="flip-btn" aria-label="Switch view mode">
+  <span id="btn-label">VIEW ACCOUNTABILITY FILE</span>
+  <span class="btn-arrow">&#8594;</span>
+</button>
+
+
+<!-- ======================================================
+     PRO SITE
+     ====================================================== -->
+<div class="pro-content">
+
+  <!-- File Header -->
+  <header class="pro-file-header">
+    <div class="pro-topbar">
+      <span class="file-ref">MN SENATE // DISTRICT 60 // PROJECT FILE</span>
+      <span>SF3567 &nbsp;|&nbsp; 94th Legislature (2025&ndash;2026)</span>
+      <span>CLARK, DORON &nbsp;// DFL</span>
+    </div>
+
+    <div class="pro-hero">
+      <div class="pro-hero-text">
+        <div class="pro-district-label">Minnesota Senate &bull; District 60 &bull; Northeast &amp; Southeast Minneapolis</div>
+        <h1 class="pro-hero-name">
+          Doron<br>Clark
+          <span>Senator, District 60</span>
+        </h1>
+        <p class="pro-hero-argument">
+          District 60 has a flooding problem. Infrastructure built in 1908 backs up into alleys, basements, and intersections. Clark introduced a $25 million bonding request for a named storm sewer project. That is the kind of district-specific record voters can actually verify.
+        </p>
+      </div>
+
+      <div class="pro-hero-img-block">
+        <img
+          src="https://www.senate.mn/graphics/60Clark.jpg"
+          alt="Senator Doron Clark"
+          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+        >
+        <div class="pro-photo-placeholder" style="display:none;">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+            <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+          </svg>
+          <span>Senator Doron Clark</span>
+          <span>District 60</span>
+        </div>
+        <div class="img-caption">Senator Doron Clark &mdash; District 60 &bull; Photo: senate.mn</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Stats Band -->
+  <div class="pro-stats-band">
+    <div class="pro-stat">
+      <div class="pro-stat-num">
+        $<span class="count-up" data-target="25">0</span><span class="unit">M</span>
+      </div>
+      <div class="pro-stat-label">SF3567 bond request</div>
+      <div class="pro-stat-note">State bonding for 13th Ave NE storm sewer</div>
+    </div>
+    <div class="pro-stat">
+      <div class="pro-stat-num">
+        <span class="count-up" data-target="2100">0</span><span class="unit"> ft</span>
+      </div>
+      <div class="pro-stat-label">New storm sewer pipe</div>
+      <div class="pro-stat-note">Under 13th Avenue NE to Mississippi River outfall</div>
+    </div>
+    <div class="pro-stat">
+      <div class="pro-stat-num">
+        <span class="count-up" data-target="117">0</span><span class="unit"> yrs</span>
+      </div>
+      <div class="pro-stat-label">Age of existing infrastructure</div>
+      <div class="pro-stat-note">Much of 13th Ave NE's system dates to 1908</div>
+    </div>
+  </div>
+
+  <!-- Main Body -->
+  <div class="pro-body">
+    <div class="pro-section-tag">The Core Work</div>
+    <h2>When the alley floods, the state needs to show up</h2>
+    <p>
+      Residents along 13th Avenue NE have watched alleys flood and stay flooded for days. The catch basins, curbs, and fire hydrants on that corridor trace their origins to 1908. <sup class="fn">1</sup> That is not a maintenance problem. It is a capital investment problem.
+    </p>
+    <p>
+      Clark's first major bill addresses it directly. <strong>SF3567 would provide a $25 million bond-funded grant</strong> for a storm sewer reconstruction project running approximately 2,100 feet under 13th Avenue NE to a Mississippi River outfall. <sup class="fn">2</sup> It was introduced as a capital request, not enacted funding.
+    </p>
+    <p>
+      State legislators, including Clark, participated in a public meeting with Minneapolis Public Works to walk neighbors through the project scope. The reconstruction would touch sidewalks, curbs, catch basins, and fire hydrants along the full corridor.
+    </p>
+
+    <!-- Project Card -->
+    <div class="pro-project-card">
+      <div class="project-num">MN SENATE BILL NO. SF3567 &bull; 94TH LEGISLATURE &bull; 2025&ndash;2026</div>
+      <h3>13th Avenue NE Storm Sewer Reconstruction</h3>
+      <p>
+        A capital appropriation and bond issuance for storm sewer infrastructure beneath 13th Avenue NE in Minneapolis. The project replaces aging combined and stormwater infrastructure that has caused persistent flooding for residential and commercial properties in Northeast Minneapolis.
+      </p>
+      <div class="pro-spec-grid">
+        <div class="pro-spec-item">
+          <div class="spec-label">Appropriation</div>
+          <div class="spec-val">$25,000,000</div>
+        </div>
+        <div class="pro-spec-item">
+          <div class="spec-label">Project Length</div>
+          <div class="spec-val">~2,100 ft</div>
+        </div>
+        <div class="pro-spec-item">
+          <div class="spec-label">Terminus</div>
+          <div class="spec-val">Mississippi River Outfall</div>
+        </div>
+        <div class="pro-spec-item">
+          <div class="spec-label">Bill Status</div>
+          <div class="spec-val">Capital Investment</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pull Quote -->
+    <div class="pro-pull-quote">
+      <blockquote>
+        "Much of 13th Avenue's infrastructure dates to approximately 1908. There will need to be a complete street reconstruction."
+      </blockquote>
+      <cite>Minneapolis Public Works &mdash; August 2025 community meeting, as reported by MyNortheaster <sup class="fn">1</sup></cite>
+    </div>
+
+    <div class="pro-section-tag">Why it fits this district</div>
+    <h2>Northeast Minneapolis does not have an abstract flooding problem</h2>
+    <p>
+      District 60 runs through some of the densest urban neighborhoods in the state. It includes Northeast Minneapolis, Marcy Holmes, Cedar Riverside, and the University of Minnesota corridor. <sup class="fn">3</sup> These are neighborhoods where flooding is not a weather event. It is a property damage event with a bill attached.
+    </p>
+    <p>
+      The 13th Avenue project is not a conceptual commitment. It names a specific corridor, a specific pipe route, a specific outfall point, and a specific dollar amount. That kind of precision reflects Clark's professional background. He spent years in ethics and compliance work at Medtronic before running for office. <sup class="fn">4</sup> Detail-heavy, verifiable claims are how he operates.
+    </p>
+  </div>
+
+  <!-- Context Band -->
+  <div class="pro-context-band">
+    <div class="pro-context-inner">
+      <div class="pro-context-label-col">
+        <h3>Who Clark Is</h3>
+        <p>First-term senator. Compliance and systems professional. 25-year Northeast Minneapolis resident. Won a January 28, 2025 special election and took the oath on February 3, 2025.</p>
+      </div>
+      <div class="pro-context-content">
+        <p>
+          Clark won Senate District 60 on January 28, 2025, in a special election called after the death of Senator Kari Dziedzic. <sup class="fn">4</sup> He carried the race with 90.9 percent of the vote and was sworn in on February 3, 2025. <sup class="fn">5</sup> The win restored DFL control of the Minnesota Senate.
+        </p>
+        <p>
+          Before the Senate, Clark worked in the ethics department at Medtronic. He served on the Edison Activities Council, the Hamline University board, and as finance manager at Northeast United Methodist Church. <sup class="fn">6</sup> He has lived in the Marcy Holmes neighborhood for roughly 25 years. The district is not an abstract constituency for him. He is a constituent.
+        </p>
+        <p>
+          That background shows up in how he legislates. The storm sewer bill is not a press-release commitment. It names the street, the length, the outfall, and the appropriation. That is the work of someone who reads engineering documents for a living.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pro Footnotes -->
+  <footer class="pro-footnotes">
+    <div class="pro-footnotes-inner">
+      <h4>Sources &amp; Footnotes</h4>
+      <ol>
+        <li>MyNortheaster, "Stormwater, accessibility and road closures: Residents, reps and City employees discuss future of 13th Ave," August 2025. <a href="https://www.mynortheaster.com/news/stormwater-accessibility-and-road-closures-residents-reps-and-city-employees-discuss-future-of-13th-ave/" target="_blank">mynortheaster.com</a></li>
+        <li>SF3567, 94th Legislature (2025&ndash;2026), as introduced. <a href="https://www.revisor.mn.gov/bills/94/2026/0/SF/3567/" target="_blank">revisor.mn.gov/bills/94/2026/0/SF/3567</a></li>
+        <li>Minnesota Senate DFL, "Senator Doron Clark." <a href="https://senatedfl.mn/senators/doron-clark/" target="_blank">senatedfl.mn</a></li>
+        <li>Doron Clark for Senate, "About Doron." <a href="https://www.doronforsenate.org/about" target="_blank">doronforsenate.org</a></li>
+        <li>Minnesota Secretary of State special-election results and 2025 Senate preamble showing Clark's February 3, 2025 oath. <a href="https://electionresults.sos.mn.gov/20250128_27" target="_blank">electionresults.sos.mn.gov/20250128_27</a>; <a href="https://www.senate.mn/journals/2025-2026/2025Preamble.pdf" target="_blank">senate.mn/journals/2025-2026/2025Preamble.pdf</a></li>
+        <li>MyNortheaster, "Tiebreaker: Meet Doron Clark, your new state senator." <a href="https://www.mynortheaster.com/news/tiebreaker-meet-doron-clark-your-new-state-senator/" target="_blank">mynortheaster.com</a></li>
+      </ol>
+    </div>
+  </footer>
+
+</div><!-- end .pro-content -->
+
+
+<!-- ======================================================
+     OPPO SITE
+     ====================================================== -->
+<div class="oppo-content" style="display:none;">
+
+  <!-- Case Header -->
+  <header class="op-header">
+    <div class="op-topbar">
+      <span>ACCOUNTABILITY FILE &bull; DISTRICT 60</span>
+      <span class="case-id">FILE NO. SF2286 &bull; 94TH LEGISLATURE</span>
+      <span class="classification">VERIFIED RECORD</span>
+    </div>
+
+    <div class="op-hero">
+      <div class="op-hero-img-block">
+        <img
+          src="https://www.senate.mn/graphics/60Clark.jpg"
+          alt="Senator Doron Clark"
+          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+        >
+        <div class="op-photo-placeholder" style="display:none;">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+            <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+          </svg>
+          <span>Senator Doron Clark</span>
+        </div>
+        <div class="stamp-overlay">PREEMPTION</div>
+      </div>
+
+      <div class="op-hero-text">
+        <div class="op-case-label">Accountability File &bull; Senator Doron Clark &bull; District 60</div>
+        <h1 class="op-hero-headline">
+          The compliance officer<br>
+          <span class="accusation-line">who overrode the rules.</span>
+        </h1>
+        <p class="op-hero-sub">
+          Clark runs on systems, detail, and discipline. Then he authored SF2286 &mdash; a bill that would make qualifying multifamily projects a permitted use in many 7-county metro commercial districts and impose a 75-foot height floor. Cities would still retain some permit and subdivision review tools, but the bill clearly preempts key local zoning choices.
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Finding Strip -->
+  <div class="op-finding-strip">
+    SF2286 would make qualifying multifamily projects a permitted use in many metro commercial districts and set a 75-foot height floor
+  </div>
+
+  <!-- Oppo Body -->
+  <div class="op-body">
+
+    <!-- Section: Sequence -->
+    <div class="op-section-tag">Sequence of Events</div>
+    <h2>What Clark did, and in what order</h2>
+
+    <div class="op-sequence">
+
+      <div class="op-seq-item">
+        <div class="op-seq-num">01</div>
+        <div class="op-seq-content">
+          <div class="seq-date">Jan. 28 / Feb. 3, 2025</div>
+          <h4>Clark wins the special election and takes office days later</h4>
+          <p>Clark wins the District 60 special election with 90.9% of the vote and is sworn in on February 3, 2025. His professional background is ethics and compliance at Medtronic. His campaign message centers on systems thinking, procedural competence, and finishing the work of the district. <sup class="fn">1</sup></p>
+        </div>
+      </div>
+
+      <div class="op-seq-item">
+        <div class="op-seq-num">02</div>
+        <div class="op-seq-content">
+          <div class="seq-date">March 6, 2025</div>
+          <h4>Clark introduces SF2286: metro commercial-zoning preemption</h4>
+          <p>Clark chief-authors SF2286, which would make qualifying multifamily residential development &mdash; defined as 13 or more units or a qualifying mixed-use building &mdash; a permitted use in many commercially zoned districts across the 7-county metro. The bill also bars covered municipalities from imposing height limits below 75 feet, while still leaving some permit and subdivision review authority in place. <sup class="fn">2</sup></p>
+        </div>
+      </div>
+
+      <div class="op-seq-item">
+        <div class="op-seq-num">03</div>
+        <div class="op-seq-content">
+          <div class="seq-date">March 11, 2025</div>
+          <h4>Cities testify: infrastructure cannot absorb the mandate</h4>
+          <p>The bill is heard by the Senate Housing and Homelessness Prevention Committee. Local government leaders testify that sudden increases in housing density will strain local water and sewer infrastructure. City officials describe the effort as removing local decision-making from cities entirely. <sup class="fn">3</sup></p>
+        </div>
+      </div>
+
+      <div class="op-seq-item">
+        <div class="op-seq-num">04</div>
+        <div class="op-seq-content">
+          <div class="seq-date">Ongoing, 2025</div>
+          <h4>The League of Minnesota Cities flags the preemption risk</h4>
+          <p>The League of Minnesota Cities, which represents local governments statewide, flags the bill as an attempt to preempt local zoning and land use authority. Cities had blocked similar legislation in prior sessions. The current bill is more targeted but retains the core preemption mechanism. <sup class="fn">4</sup></p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Proof Block -->
+    <div class="op-section-tag">Core Document</div>
+
+    <div class="op-proof-block">
+      <div class="op-proof-header">
+        <div class="doc-title">SF 2286 &bull; 94th Legislature (2025&ndash;2026) &bull; Senate Housing and Homelessness Prevention Committee</div>
+        <div>Chief Author: Clark, Doron &bull; Introduced: March 6, 2025 &bull; Status: Committee heard March 11, 2025</div>
+      </div>
+      <div class="op-proof-body">
+        <p>
+          "A multifamily residential development shall be a permitted use in any zoning district in a municipality that authorizes commercial uses, except if such zoning district also authorizes <span class="redact" data-reveal="heavy industrial uses">&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;</span> as a permitted use."
+        </p>
+        <p>
+          "Municipalities in the counties of Anoka, Carver, Dakota, Hennepin, Ramsey, Scott, and Washington must not impose a height limitation that is less than <span class="redact" data-reveal="75 feet above grade">&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;</span>."
+        </p>
+        <p>
+          "A multifamily residential development [means] a single residential building with at least <span class="redact" data-reveal="13 units">&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;</span>, or a mixed-use building with commercial use on the ground floor and at least half of the usable square footage dedicated to residential use."
+        </p>
+        <div class="op-proof-key">Source: revisor.mn.gov/bills/94/2025/0/SF/2286 &bull; Hover redacted text to reveal</div>
+      </div>
+    </div>
+    <div class="redact-hint">Hover over blacked-out text above to reveal the bill language.</div>
+
+    <!-- Contradiction Block -->
+    <div class="op-section-tag">The Contradiction</div>
+    <h2>A compliance officer who preempted the process</h2>
+
+    <div class="op-contradiction">
+      <div class="contra-label">Brand vs. Record</div>
+      <div class="contra-grid">
+        <div class="contra-col">
+          <h5>What Clark ran on</h5>
+          <p style="color: #A8AFB8; font-size: 14px; line-height: 1.6; max-width: none;">Systems thinking. Procedural discipline. Ethics and compliance expertise at Medtronic. Finishing the work of the district. Community engagement before action.</p>
+        </div>
+        <div class="contra-vs">VS</div>
+        <div class="contra-col">
+          <h5>What SF2286 does</h5>
+          <p style="color: #C0392B; font-size: 14px; line-height: 1.6; max-width: none;">Preempts key local zoning choices by making qualifying multifamily projects a permitted use in many metro commercial districts and setting a 75-foot height floor, even though cities still retain some permit and subdivision review tools.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Evidence Cards -->
+    <div class="op-section-tag">Evidence</div>
+    <h2>Three things the bill actually does</h2>
+
+    <div class="op-evidence-grid">
+
+      <div class="op-card">
+        <div class="op-card-tag">Exhibit A &bull; Mandatory Use</div>
+        <h4>Qualifying multifamily projects become a permitted use in many commercial zones</h4>
+        <p>
+          SF2286 makes qualifying multifamily residential a permitted use by statute in many metro commercial districts. Cities still keep some permit, subdivision, and health-and-safety tools, but the bill removes a major layer of local discretion over whether that use belongs there. <sup class="fn">2</sup>
+        </p>
+        <div class="hostile-reveal">
+          &#9654; The bill shifts a large zoning choice from city hall to state statute.
+        </div>
+      </div>
+
+      <div class="op-card">
+        <div class="op-card-tag">Exhibit B &bull; Height Preemption</div>
+        <h4>A state floor of 75 feet, regardless of neighborhood context</h4>
+        <p>
+          The bill bars covered metro municipalities from imposing height limits below 75 feet for covered developments. That is a statewide floor in places that may already have locally adopted corridor plans and height rules. <sup class="fn">2</sup>
+        </p>
+        <div class="hostile-reveal">
+          &#9654; The file is strongest on the statewide rule itself, not on any one unmapped corridor example.
+        </div>
+      </div>
+
+      <div class="op-card">
+        <div class="op-card-tag">Exhibit C &bull; Infrastructure Gap</div>
+        <h4>Density mandated. Sewer capacity not funded.</h4>
+        <p>
+          Cities testified that sudden density increases will strain local water and sewer infrastructure. <sup class="fn">3</sup> Meanwhile, Clark's separate infrastructure bill (SF3567) is a single-corridor capital request, not a metro-wide sewer plan.
+        </p>
+        <div class="hostile-reveal">
+          &#9654; The senator who wrote the flooding bill also wrote the density mandate with no sewer plan.
+        </div>
+      </div>
+
+    </div>
+
+    <div class="op-section-tag">The Bottom Line</div>
+    <h2>What voters in District 60 should ask</h2>
+    <p>
+      Clark's professional identity is built around compliance systems, procedural discipline, and getting the details right. His storm sewer bill reflects that. It names a specific corridor and a specific sum.
+    </p>
+    <p>
+      SF2286 is different. It does not follow the local process. It replaces it. Across a seven-county region, it mandates what cities must allow, how tall buildings can be, and removes the discretionary review that neighborhoods use to shape development in their own commercial corridors.
+    </p>
+    <p>
+      <strong>That is not systems thinking. That is a top-down override by someone who ran against top-down overrides.</strong>
+    </p>
+
+  </div><!-- end op-body -->
+
+  <!-- Oppo Footnotes -->
+  <footer class="op-footnotes">
+    <div class="op-footnotes-inner">
+      <h4>Sources &amp; Verified Claims</h4>
+      <ol>
+        <li>Minnesota Secretary of State special-election results and 2025 Senate preamble showing Clark's February 3, 2025 oath. <a href="https://electionresults.sos.mn.gov/20250128_27" target="_blank">electionresults.sos.mn.gov/20250128_27</a>; <a href="https://www.senate.mn/journals/2025-2026/2025Preamble.pdf" target="_blank">senate.mn/journals/2025-2026/2025Preamble.pdf</a></li>
+        <li>SF2286 as introduced, including the permitted-use and 75-foot-height provisions and the exceptions for heavy-industrial districts and certain local review authority. <a href="https://www.revisor.mn.gov/bills/94/2025/0/SF/2286/versions/0/" target="_blank">revisor.mn.gov/bills/94/2025/0/SF/2286/versions/0</a></li>
+        <li>Minnesota Reformer coverage of local-government objections to the 2025 housing bills. <a href="https://minnesotareformer.com/2025/03/11/heres-whats-in-the-bipartisan-housing-bills-that-are-making-cities-nervous/" target="_blank">minnesotareformer.com</a></li>
+        <li>SF3567 as introduced. <a href="https://www.revisor.mn.gov/bills/94/2026/0/SF/3567/versions/0/" target="_blank">revisor.mn.gov/bills/94/2026/0/SF/3567/versions/0</a></li>
+      </ol>
+    </div>
+  </footer>
+
+  <!-- Auto-transition sentinel — observed by IntersectionObserver -->
+  <div id="brief-sentinel" style="height:1px;width:100%;"></div>
+
+  <!-- Subtle stamp — visible as user nears the bottom -->
+  <div class="machine-stamp">
+    <span class="machine-stamp-text">AI-GENERATED &nbsp;·&nbsp; 67 SENATORS &nbsp;·&nbsp; 63 PARALLEL AGENTS &nbsp;·&nbsp; ~4 HRS &nbsp;·&nbsp; ~$47</span>
+  </div>
+
+</div><!-- end .oppo-content -->
+
+
+<!-- ======================================================
+     JAVASCRIPT
+     ====================================================== -->
+<script>
+(function () {
+  'use strict';
+
+  /* --- Mode toggle --- */
+  const btn = document.getElementById('flip-btn');
+  const label = document.getElementById('btn-label');
+  const body = document.body;
+
+  btn.addEventListener('click', function () {
+    const goingOppo = !body.classList.contains('mode-oppo');
+
+    // Fade out
+    body.style.opacity = '0';
+    body.style.transition = 'opacity 110ms ease';
+
+    setTimeout(function () {
+      body.classList.toggle('mode-oppo', goingOppo);
+      label.textContent = goingOppo ? 'VIEW SUPPORTER FILE' : 'VIEW ACCOUNTABILITY FILE';
+      window.scrollTo({ top: 0, behavior: 'instant' });
+
+      // Fade in
+      body.style.opacity = '1';
+    }, 110);
+  });
+
+  /* --- Counter animation --- */
+  function animateCounter(el) {
+    const target = parseInt(el.getAttribute('data-target'), 10);
+    const duration = 1200;
+    const start = performance.now();
+
+    function step(now) {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      // Ease out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = Math.round(eased * target);
+
+      // Format with commas
+      el.textContent = current.toLocaleString();
+
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      }
+    }
+
+    requestAnimationFrame(step);
+  }
+
+  function runCounters() {
+    document.querySelectorAll('.count-up').forEach(function (el) {
+      if (el.dataset.animated) return;
+      el.dataset.animated = '1';
+      animateCounter(el);
+    });
+  }
+
+  // Run counters when pro side is visible (on load and after toggle back)
+  // Use IntersectionObserver on the stats band
+  const statsBand = document.querySelector('.pro-stats-band');
+  if (statsBand && 'IntersectionObserver' in window) {
+    const obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          runCounters();
+        }
+      });
+    }, { threshold: 0.3 });
+    obs.observe(statsBand);
+  } else {
+    // Fallback: run immediately
+    runCounters();
+  }
+
+  // Re-run counters on toggle back to pro
+  btn.addEventListener('click', function () {
+    setTimeout(function () {
+      if (!body.classList.contains('mode-oppo')) {
+        document.querySelectorAll('.count-up').forEach(function (el) {
+          delete el.dataset.animated;
+        });
+        runCounters();
+      }
+    }, 200);
+  });
+
+})();
+</script>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     THE BRIEF — AI capabilities briefing
+═══════════════════════════════════════════════════════ -->
+<div class="brief-content">
+
+  <div class="brief-opening">
+    <p class="brief-made-by">Sixty-seven of these pages were made using one AI account in about thirty minutes. Six months ago an automated project like this would have been impossible.</p>
+  </div>
+
+  <div class="brief-chart-section">
+    <h2 class="brief-chart-title">This is the trend that made it possible.</h2>
+    <div class="brief-chart-frame">
+      <img
+        src="https://metr.org/assets/images/measuring-ai-ability-to-complete-long-tasks/length-of-tasks-log.png"
+        alt="METR chart: length of tasks AI agents can complete autonomously, doubling roughly every 7 months since 2019"
+        class="brief-metr-img"
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+      >
+      <div class="brief-chart-fallback" style="display:none;">
+        <p>Chart unavailable. See the original at <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">metr.org</a>.</p>
+      </div>
+    </div>
+    <p class="brief-chart-source">Source: <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR</a>, an independent AI evaluation lab.</p>
+    <p class="brief-chart-read">This chart tracks how long a task an AI agent can finish on its own. In 2019, the answer was about three seconds. By early 2023, it was six minutes. by mid 2025, over two hours. As of early 2026, Claude Opus 4.6 completes tasks that take a skilled human roughly twelve hours.</p>
+    <p class="brief-chart-read">The overall doubling time has been about seven months. But it is getting faster. <a href="https://metr.org/time-horizons/" target="_blank">When researchers fit only the most recent data</a>, the doubling time drops to four months. At that rate, AI agents capable of completing month-long autonomous projects arrive not in the early 2030s but around 2028.</p>
+  </div>
+
+  <div class="brief-so-what">
+    <h2 class="brief-so-what-title">What that means for lawmakers.</h2>
+    <p>Urgency. There was a narrative last year that AI had hit a wall in capabilities. It was a plausible perspective at the time. It isn't anymore. After breakthroughs late last year, AI systems' ability to automate cyberattacks, pathogen design, misinformation, mass surveillance, and vast swaths of white-collar work is advancing faster than ever.</p>
+    <p>The world will soon change faster than the typical pace of policymaking. The only solution is to act with atypical speed: AI regulations, data center moratoriums, calling for a federal pause on AI development, worker displacement funds. Some of these ideas already have bills introduced this session. Others should be explored soon. Time is limited, so if you feel behind on AI, the sources below are a good place to start.</p>
+    
+  </div>
+
+  <div class="brief-next">
+    <h2 class="brief-next-title">Start here.</h2>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">USE</span>
+      <a href="https://claude.ai/cowork" target="_blank">Claude Cowork</a> · <a href="https://claude.ai/code" target="_blank">Claude Code</a>
+      <span class="brief-link-detail">The tools that built this page. Cowork handles research and writing. Code is the agent that runs tasks, spawns sub-agents, and makes decisions on its own. Spend thirty minutes with one of these on a real problem from your week. That will teach you more than any briefing.</span>
+    </div>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR: Measuring AI Ability to Complete Long Tasks</a>
+      <span class="brief-link-detail">The source for the chart above. The METR trend is based on software tasks, but <a href="https://futuretech.mit.edu/publication/crashing-waves-vs-rising-tides-preliminary-findings-on-ai-automation-from-thousands-of-worker-evaluations-of-labor-market-tasks" target="_blank">MIT research on worker evaluations of labor market tasks</a> finds similar patterns across white-collar work broadly.</span>
+    </div>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://aiindex.stanford.edu/report/" target="_blank">Stanford HAI AI Index 2025</a>
+      <span class="brief-link-detail">The most comprehensive annual report on AI capabilities, economics, and policy across all 50 states.</span>
+    </div>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.imdb.com/title/tt39150120/" target="_blank">The AI Doc: Or How I Became an Apocaloptimist</a>
+      <span class="brief-link-detail">Daniel Roher's 2026 documentary, in theaters now. Roher interviews Amodei, Altman, Hassabis, and dozens more. If you see one thing on this list, see this.</span>
+    </div>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.youtube.com/watch?v=xoVJKj8lcNQ" target="_blank">The A.I. Dilemma</a>
+      <span class="brief-link-detail">Center for Humane Technology. 60 min, free on YouTube. Made for people with institutional power who need to understand AI quickly.</span>
+    </div>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">TRACK</span>
+      <a href="https://www.ncsl.org/technology-and-communication/artificial-intelligence" target="_blank">NCSL AI Legislation Tracker</a> ·
+      <a href="https://mn.gov/mnit/about-mnit/oit-programs/ai/" target="_blank">MN.IT AI Office</a>
+      <span class="brief-link-detail">Every AI bill in every state. Plus Minnesota's own AI program office. See where you stand relative to the field.</span>
+    </div>
+  </div>
+
+  <div class="brief-close">
+    <p class="brief-close-small">This project is not affiliated with any campaign, party, or organization.</p>
+    <button id="exit-brief-btn">← Back</button>
+  </div>
+
+</div><!-- /brief-content -->
+
+<style>
+.brief-content { display: none; }
+body.mode-brief .brief-content  { display: block; }
+body.mode-brief .pro-content    { display: none; }
+body.mode-brief .oppo-content   { display: none; }
+body.mode-brief #flip-btn       { display: none; }
+.brief-content { background: #0C0A08; color: #D4CCBE; font-family: 'Source Serif 4', Georgia, serif; font-size: 17px; line-height: 1.75; min-height: 100vh; }
+.brief-content a { color: #C0B49A; }
+.brief-content a:hover { color: #fff; }
+@keyframes glitch-seq {
+  0%   { filter: saturate(0) brightness(0.5); }
+  10%  { filter: hue-rotate(90deg) contrast(4) brightness(3); transform: skewX(4deg); }
+  12%  { filter: brightness(0.1); transform: none; }
+  25%  { filter: hue-rotate(200deg) invert(0.8); transform: translateX(6px); }
+  27%  { filter: brightness(0.05); transform: none; }
+  40%  { filter: blur(6px) brightness(0.02); }
+  44%  { filter: brightness(6); }
+  46%  { filter: none; transform: none; }
+  60%  { filter: hue-rotate(300deg) contrast(3) saturate(8); transform: skewX(-3deg); }
+  62%  { filter: none; transform: none; }
+  78%  { filter: blur(16px) brightness(0.01); }
+  82%  { filter: brightness(2); }
+  84%  { filter: none; }
+  100% { filter: none; transform: none; }
+}
+body.glitching { animation: glitch-seq 1.2s ease-in-out forwards; pointer-events: none; }
+.machine-stamp { background: #050505; border-top: 1px solid #111; padding: 16px 40px; text-align: center; }
+.machine-stamp-text { font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 0.22em; color: #222; text-transform: uppercase; animation: stamp-pulse 3s ease-in-out infinite; }
+@keyframes stamp-pulse { 0%, 100% { color: #222; } 50% { color: #4A3A2A; } }
+.brief-opening { max-width: 640px; margin: 0 auto; padding: 100px 40px 64px; }
+.brief-made-by { font-size: 20px; line-height: 1.65; color: #B8AE9C; margin-bottom: 20px; }
+.brief-made-by.last { color: #E8DED0; }
+.brief-chart-section { max-width: 740px; margin: 0 auto; padding: 48px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-chart-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 32px; font-style: italic; }
+.brief-chart-frame { background: #fff; border-radius: 4px; padding: 12px; margin-bottom: 12px; }
+.brief-metr-img { width: 100%; height: auto; display: block; }
+.brief-chart-fallback { padding: 40px; text-align: center; color: #666; font-size: 14px; }
+.brief-chart-fallback a { color: #888; }
+.brief-chart-source { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #5A5040; line-height: 1.6; margin-bottom: 28px; }
+.brief-chart-source a { color: #7A6A54; text-decoration: none; }
+.brief-chart-read { font-size: 17px; color: #B8AE9C; }
+.brief-so-what { max-width: 640px; margin: 0 auto; padding: 56px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-so-what-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 28px; font-style: italic; }
+.brief-so-what p { font-size: 17px; color: #B8AE9C; margin-bottom: 20px; }
+.brief-next { max-width: 640px; margin: 0 auto; padding: 56px 40px 48px; border-top: 1px solid #1E1A14; }
+.brief-next-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 14px; font-style: italic; }
+.brief-next-intro { font-size: 15px; color: #9A9080; margin-bottom: 36px; line-height: 1.65; }
+.brief-link-block { margin-bottom: 28px; line-height: 1.7; }
+.brief-link-tag { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.2em; color: #6A5A44; text-transform: uppercase; display: block; margin-bottom: 4px; }
+.brief-link-block a { font-weight: 600; color: #E0D6C4; text-decoration: underline; text-underline-offset: 3px; font-size: 16px; }
+.brief-link-block a:hover { color: #fff; }
+.brief-link-detail { display: block; font-size: 14px; color: #6A5E4C; margin-top: 2px; }
+.brief-close { max-width: 640px; margin: 0 auto; padding: 48px 40px 100px; border-top: 1px solid #1E1A14; }
+.brief-close p { font-family: 'Source Serif 4', Georgia, serif; font-size: 16px; color: #9A9080; margin-bottom: 32px; line-height: 1.7; }
+.brief-close-small { font-family: 'IBM Plex Mono', monospace !important; font-size: 11px !important; color: #3A3428 !important; letter-spacing: 0.04em; }
+#exit-brief-btn { background: none; border: 1px solid #2A2418; color: #5A5040; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; padding: 10px 20px; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
+#exit-brief-btn:hover { border-color: #8A7A64; color: #C0B49A; }
+@media (max-width: 900px) {
+  .brief-opening, .brief-so-what, .brief-next, .brief-close { padding-left: 24px; padding-right: 24px; }
+  .brief-chart-section { padding-left: 24px; padding-right: 24px; }
+  .brief-made-by { font-size: 18px; }
+  .brief-opening { padding-top: 64px; }
+  .machine-stamp { padding: 14px 20px; }
+}
+</style>
+
+<script>
+(function() {
+  let briefTriggered = false;
+  function startBriefTransition() {
+    if (briefTriggered) return;
+    if (!document.body.classList.contains('mode-oppo')) return;
+    briefTriggered = true;
+    const body = document.body;
+    body.style.transition = 'filter 2.5s ease-in';
+    body.style.filter = 'saturate(0) brightness(0.3)';
+    setTimeout(() => {
+      const hed = document.querySelector('.oppo-content h1') || document.querySelector('.oppo-content h2');
+      if (hed) {
+        const orig = hed.textContent;
+        const chars = '█▓▒░■□0123456789';
+        let n = 0;
+        const si = setInterval(() => {
+          n++;
+          hed.textContent = Array.from(orig).map(c => c === ' ' ? ' ' : chars[Math.floor(Math.random() * chars.length)]).join('');
+          if (n > 40) { clearInterval(si); hed.textContent = orig; }
+        }, 40);
+      }
+    }, 1200);
+    setTimeout(() => {
+      body.style.transition = '';
+      body.style.filter = '';
+      body.classList.add('glitching');
+      setTimeout(() => {
+        body.classList.remove('glitching');
+        body.classList.add('mode-brief');
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      }, 1500);
+    }, 2500);
+  }
+  const sentinel = document.getElementById('brief-sentinel');
+  if (sentinel && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) { io.disconnect(); setTimeout(startBriefTransition, 1200); }
+      });
+    }, { threshold: 0.5 });
+    io.observe(sentinel);
+  }
+  const flipBtn = document.getElementById('flip-btn');
+  if (flipBtn) { flipBtn.addEventListener('click', () => { if (document.body.classList.contains('mode-oppo')) briefTriggered = false; }); }
+})();
+document.addEventListener('click', (e) => {
+  if (e.target && e.target.id === 'exit-brief-btn') {
+    const body = document.body;
+    body.style.opacity = '0';
+    body.style.transition = 'opacity 0.3s';
+    setTimeout(() => { body.classList.remove('mode-brief'); body.classList.add('mode-oppo'); window.scrollTo({ top: 0, behavior: 'instant' }); body.style.opacity = '1'; }, 300);
+  }
+});
+</script>
+
+</body>
+</html>

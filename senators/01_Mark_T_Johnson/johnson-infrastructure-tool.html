@@ -1,0 +1,1555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Small-City Infrastructure Bonding Readiness Tool — SD-1</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Accordion report — full-width expandable sections with summary bars, no sidebar, no cards
+   2. Navigation: Accordion headers ARE the navigation; top dashboard bar shows aggregate stats
+   3. Typography: Tahoma (sans, body/UI), Palatino (serif, headings/editorial), Consolas (mono, data/numbers)
+   4. Hero moment: Large "$XXM TOTAL INFRASTRUCTURE NEED" in timber gold (#8b6914) on iron dark (#2b2b2b) in the dashboard bar
+   5. Color strategy: #3 — Dark dominant. Iron dark (#2b2b2b) is the environment. Timber gold, snow white, northern-red are structural.
+   6. Entry experience: Compass rose SVG spins once settling north, then accordion sections slide in from left
+   Additional: No bordered callout boxes. No parchment. No cards. Dense data tables inside accordions. Dramatic density contrast between collapsed (tight) and expanded (data-rich). IRON AND TIMBER palette throughout.
+*/
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --iron: #2b2b2b;
+  --iron-light: #3a3a3a;
+  --iron-mid: #4a4a4a;
+  --timber: #8b6914;
+  --timber-light: #b8912a;
+  --timber-dim: #6b510f;
+  --snow: #f8f8f8;
+  --snow-dim: #e0e0e0;
+  --red: #a52422;
+  --green: #2D6A4F;
+  --yellow: #E9C46A;
+  --font-body: Tahoma, Geneva, sans-serif;
+  --font-head: 'Palatino Linotype', Palatino, 'Book Antiqua', serif;
+  --font-data: Consolas, 'Liberation Mono', monospace;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--snow);
+  background: var(--iron);
+  min-height: 100vh;
+}
+
+/* ── LOADING / ENTRY EXPERIENCE ── */
+#entry-overlay {
+  position: fixed; inset: 0;
+  background: var(--iron);
+  z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity 0.6s ease;
+}
+#entry-overlay.fade-out { opacity: 0; pointer-events: none; }
+
+#compass-svg {
+  width: 120px; height: 120px;
+  animation: compassSpin 1.8s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+}
+@keyframes compassSpin {
+  0%   { transform: rotate(0deg); }
+  60%  { transform: rotate(380deg); }
+  80%  { transform: rotate(355deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ── DASHBOARD BAR ── */
+#dashboard {
+  background: var(--iron);
+  border-bottom: 3px solid var(--timber);
+  padding: 28px 32px 20px;
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+#dashboard.visible { opacity: 1; transform: translateY(0); }
+
+.dash-title {
+  font-family: var(--font-head);
+  font-size: 13px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--snow-dim);
+  margin-bottom: 6px;
+}
+
+.dash-hero {
+  font-family: var(--font-data);
+  font-size: 44px;
+  font-weight: bold;
+  color: var(--timber-light);
+  letter-spacing: -1px;
+  line-height: 1.1;
+  margin-bottom: 14px;
+}
+
+.dash-stats {
+  display: flex;
+  gap: 36px;
+  flex-wrap: wrap;
+}
+
+.dash-stat {
+  display: flex;
+  flex-direction: column;
+}
+.dash-stat-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: #999;
+}
+.dash-stat-value {
+  font-family: var(--font-data);
+  font-size: 20px;
+  color: var(--snow);
+  font-weight: bold;
+}
+
+.dash-context {
+  margin-top: 16px;
+  font-size: 13px;
+  color: #aaa;
+  max-width: 780px;
+  line-height: 1.6;
+}
+.dash-context strong { color: var(--timber-light); }
+
+/* ── ACCORDION CONTAINER ── */
+#accordion-wrap {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px 20px 60px;
+}
+
+/* ── ACCORDION SECTIONS ── */
+.acc-section {
+  margin-bottom: 2px;
+  opacity: 0;
+  transform: translateX(-40px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.acc-section.visible { opacity: 1; transform: translateX(0); }
+
+.acc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--iron-light);
+  padding: 14px 20px;
+  cursor: pointer;
+  user-select: none;
+  border-left: 4px solid var(--timber-dim);
+  transition: background 0.15s, border-color 0.15s;
+}
+.acc-header:hover {
+  background: var(--iron-mid);
+  border-left-color: var(--timber-light);
+}
+.acc-header.active {
+  background: var(--iron-mid);
+  border-left-color: var(--timber-light);
+}
+
+.acc-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.acc-number {
+  font-family: var(--font-data);
+  font-size: 11px;
+  color: var(--timber);
+  background: var(--iron);
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.acc-label {
+  font-family: var(--font-head);
+  font-size: 16px;
+  color: var(--snow);
+  letter-spacing: 0.3px;
+}
+
+.acc-header-right {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  font-family: var(--font-data);
+  font-size: 12px;
+}
+
+.acc-badge {
+  padding: 3px 10px;
+  border-radius: 2px;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.acc-badge.green { background: var(--green); color: #fff; }
+.acc-badge.yellow { background: var(--yellow); color: #1a1a1a; }
+.acc-badge.red { background: var(--red); color: #fff; }
+
+.acc-arrow {
+  width: 18px; height: 18px;
+  transition: transform 0.25s ease;
+  fill: #888;
+}
+.acc-header.active .acc-arrow { transform: rotate(180deg); fill: var(--timber-light); }
+
+.acc-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease;
+  background: #222;
+}
+.acc-body-inner {
+  padding: 24px 24px 28px;
+}
+
+/* ── FORM STYLING ── */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 24px;
+}
+.form-grid.three-col { grid-template-columns: 1fr 1fr 1fr; }
+.form-group { display: flex; flex-direction: column; }
+.form-group.full-width { grid-column: 1 / -1; }
+
+label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #999;
+  margin-bottom: 4px;
+  font-family: var(--font-body);
+}
+
+input, select, textarea {
+  background: var(--iron);
+  border: 1px solid #555;
+  color: var(--snow);
+  font-family: var(--font-data);
+  font-size: 14px;
+  padding: 8px 10px;
+  border-radius: 2px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--timber-light);
+}
+select { cursor: pointer; }
+select option { background: var(--iron); color: var(--snow); }
+textarea { resize: vertical; min-height: 80px; font-size: 13px; }
+
+input[type="number"] { -moz-appearance: textfield; }
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+/* ── BUTTONS ── */
+.btn {
+  font-family: var(--font-body);
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 10px 22px;
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--timber); color: #fff; }
+.btn-primary:hover { background: var(--timber-light); }
+.btn-secondary { background: var(--iron-mid); color: var(--snow); border: 1px solid #666; }
+.btn-secondary:hover { background: #555; }
+
+.btn-row { display: flex; gap: 12px; margin-top: 18px; flex-wrap: wrap; }
+
+/* ── RESULTS / OUTPUT ── */
+.result-band {
+  background: var(--iron);
+  padding: 18px 20px;
+  margin-top: 20px;
+  border-left: 3px solid var(--timber);
+}
+
+.result-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 6px 0;
+  border-bottom: 1px solid #333;
+}
+.result-row:last-child { border-bottom: none; }
+
+.result-label {
+  font-size: 12px;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.result-value {
+  font-family: var(--font-data);
+  font-size: 16px;
+  font-weight: bold;
+  color: var(--snow);
+}
+.result-value.good { color: var(--green); }
+.result-value.warn { color: var(--yellow); }
+.result-value.bad { color: var(--red); }
+
+/* ── TIMELINE ── */
+.timeline-track {
+  position: relative;
+  padding: 20px 0 20px 36px;
+}
+.timeline-track::before {
+  content: '';
+  position: absolute;
+  left: 14px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--timber-dim);
+}
+.tl-item {
+  position: relative;
+  margin-bottom: 22px;
+}
+.tl-dot {
+  position: absolute;
+  left: -28px;
+  top: 3px;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--timber);
+  border: 2px solid var(--iron);
+}
+.tl-item.critical .tl-dot { background: var(--red); }
+.tl-date {
+  font-family: var(--font-data);
+  font-size: 12px;
+  color: var(--timber-light);
+  letter-spacing: 0.5px;
+}
+.tl-title {
+  font-family: var(--font-head);
+  font-size: 15px;
+  color: var(--snow);
+  margin: 2px 0;
+}
+.tl-detail {
+  font-size: 12px;
+  color: #999;
+  line-height: 1.5;
+}
+.tl-responsible {
+  font-family: var(--font-data);
+  font-size: 11px;
+  color: var(--timber);
+  margin-top: 2px;
+}
+
+/* ── CHECKLIST ── */
+.checklist { list-style: none; padding: 0; }
+.checklist li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid #333;
+  font-size: 13px;
+  color: #ccc;
+}
+.checklist li:last-child { border-bottom: none; }
+.check-box {
+  width: 18px; height: 18px;
+  border: 2px solid #666;
+  border-radius: 2px;
+  flex-shrink: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s;
+  margin-top: 1px;
+}
+.check-box.checked {
+  background: var(--green);
+  border-color: var(--green);
+}
+.check-box.checked::after {
+  content: '';
+  width: 5px; height: 9px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  margin-top: -2px;
+}
+
+/* ── CHART CONTAINER ── */
+.chart-wrap {
+  background: var(--iron);
+  padding: 16px;
+  margin-top: 18px;
+  max-width: 600px;
+}
+.chart-wrap canvas { max-height: 280px; }
+
+/* ── NARRATIVE PREVIEW ── */
+#narrative-output {
+  background: var(--snow);
+  color: #1a1a1a;
+  padding: 32px 36px;
+  margin-top: 18px;
+  font-family: var(--font-head);
+  font-size: 13px;
+  line-height: 1.7;
+  max-height: 500px;
+  overflow-y: auto;
+}
+#narrative-output h2 {
+  font-family: var(--font-head);
+  font-size: 18px;
+  color: #1a1a1a;
+  margin: 20px 0 8px;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 4px;
+}
+#narrative-output h2:first-child { margin-top: 0; }
+#narrative-output table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+  font-family: var(--font-data);
+  font-size: 12px;
+}
+#narrative-output th, #narrative-output td {
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  text-align: left;
+}
+#narrative-output th { background: #e8e8e8; font-weight: bold; }
+#narrative-output p { margin: 8px 0; }
+#narrative-output [contenteditable="true"]:focus { outline: 2px solid var(--timber); }
+
+/* ── AFFORDABILITY WARNING BANDS ── */
+.warning-band {
+  padding: 10px 16px;
+  margin-top: 14px;
+  font-size: 12px;
+  font-family: var(--font-body);
+}
+.warning-band.yellow-warn { background: #3d350f; color: var(--yellow); }
+.warning-band.red-warn { background: #3a1212; color: #ff6b6b; }
+
+/* ── HELP TEXT ── */
+.help-text {
+  font-size: 11px;
+  color: #777;
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+/* ── SECTION DIVIDER ── */
+.section-divider {
+  height: 1px;
+  background: var(--timber-dim);
+  margin: 20px 0;
+  opacity: 0.4;
+}
+
+/* ── FOOTER ── */
+#footer {
+  text-align: center;
+  padding: 30px 20px;
+  font-size: 11px;
+  color: #666;
+  letter-spacing: 1px;
+}
+
+/* ── PRINT STYLES ── */
+@media print {
+  body { background: #fff; color: #1a1a1a; font-size: 12px; }
+  #entry-overlay, #dashboard, #accordion-wrap, #footer { display: none !important; }
+  #print-output { display: block !important; }
+  #print-output {
+    font-family: var(--font-head);
+    color: #1a1a1a;
+    padding: 20px;
+    line-height: 1.6;
+  }
+  #print-output h1 { font-size: 18px; margin-bottom: 6px; }
+  #print-output h2 { font-size: 14px; border-bottom: 1px solid #999; padding-bottom: 3px; margin: 16px 0 6px; }
+  #print-output table { width: 100%; border-collapse: collapse; margin: 10px 0; font-family: var(--font-data); font-size: 11px; }
+  #print-output th, #print-output td { padding: 4px 8px; border: 1px solid #999; text-align: left; }
+  #print-output th { background: #eee; }
+  #print-output p { margin: 6px 0; }
+}
+
+#print-output { display: none; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 700px) {
+  .form-grid { grid-template-columns: 1fr; }
+  .form-grid.three-col { grid-template-columns: 1fr; }
+  .dash-hero { font-size: 28px; }
+  .dash-stats { gap: 18px; }
+  #accordion-wrap { padding: 12px 10px 40px; }
+  .acc-header { padding: 12px 14px; }
+  .acc-body-inner { padding: 16px 14px 20px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ════ ENTRY OVERLAY ════ -->
+<div id="entry-overlay">
+  <svg id="compass-svg" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="60" cy="60" r="56" fill="none" stroke="#8b6914" stroke-width="2"/>
+    <circle cx="60" cy="60" r="48" fill="none" stroke="#444" stroke-width="1"/>
+    <!-- N/S/E/W tick marks -->
+    <line x1="60" y1="6" x2="60" y2="16" stroke="#8b6914" stroke-width="2"/>
+    <line x1="60" y1="104" x2="60" y2="114" stroke="#666" stroke-width="1.5"/>
+    <line x1="6" y1="60" x2="16" y2="60" stroke="#666" stroke-width="1.5"/>
+    <line x1="104" y1="60" x2="114" y2="60" stroke="#666" stroke-width="1.5"/>
+    <!-- Cardinal letters -->
+    <text x="60" y="30" text-anchor="middle" fill="#8b6914" font-family="Consolas,monospace" font-size="12" font-weight="bold">N</text>
+    <text x="60" y="100" text-anchor="middle" fill="#666" font-family="Consolas,monospace" font-size="10">S</text>
+    <text x="26" y="64" text-anchor="middle" fill="#666" font-family="Consolas,monospace" font-size="10">W</text>
+    <text x="94" y="64" text-anchor="middle" fill="#666" font-family="Consolas,monospace" font-size="10">E</text>
+    <!-- Compass needle north (red) -->
+    <polygon points="60,18 54,58 60,52 66,58" fill="#a52422"/>
+    <!-- Compass needle south (dark) -->
+    <polygon points="60,102 54,62 60,68 66,62" fill="#555"/>
+    <!-- Center dot -->
+    <circle cx="60" cy="60" r="4" fill="#8b6914"/>
+  </svg>
+</div>
+
+<!-- ════ DASHBOARD BAR ════ -->
+<header id="dashboard">
+  <div class="dash-title">Senate District 1 &mdash; Northwest Minnesota Infrastructure</div>
+  <div class="dash-hero" id="hero-total">$0 TOTAL INFRASTRUCTURE NEED</div>
+  <div class="dash-stats">
+    <div class="dash-stat">
+      <span class="dash-stat-label">State Bond Request</span>
+      <span class="dash-stat-value" id="dash-bond">$0</span>
+    </div>
+    <div class="dash-stat">
+      <span class="dash-stat-label">Federal Share</span>
+      <span class="dash-stat-value" id="dash-fed">$0</span>
+    </div>
+    <div class="dash-stat">
+      <span class="dash-stat-label">Local Match</span>
+      <span class="dash-stat-value" id="dash-local">$0</span>
+    </div>
+    <div class="dash-stat">
+      <span class="dash-stat-label">Debt Service Coverage</span>
+      <span class="dash-stat-value" id="dash-dscr">&mdash;</span>
+    </div>
+  </div>
+  <div class="dash-context">
+    Senator Johnson's SF630 secured <strong>$5.9 million</strong> in state bonds for Red Lake Falls &mdash;
+    but hundreds of small Minnesota cities are still figuring out how to make the numbers work.
+    This tool was built to help them.
+  </div>
+</header>
+
+<!-- ════ ACCORDION ════ -->
+<main id="accordion-wrap">
+
+  <!-- ──── SECTION 1: PROJECT FINANCE CALCULATOR ──── -->
+  <div class="acc-section" data-delay="0">
+    <div class="acc-header active" onclick="toggleAcc(this)">
+      <div class="acc-header-left">
+        <span class="acc-number">1</span>
+        <span class="acc-label">Project Finance Calculator</span>
+      </div>
+      <div class="acc-header-right">
+        <span class="acc-badge green" id="badge-calc">READY</span>
+        <svg class="acc-arrow" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+      </div>
+    </div>
+    <div class="acc-body" id="body-calc" style="max-height:3000px;">
+      <div class="acc-body-inner">
+
+        <div class="form-grid" style="margin-bottom:18px;">
+          <div class="form-group">
+            <label for="city-name">City Name</label>
+            <input type="text" id="city-name" placeholder="e.g., Red Lake Falls">
+          </div>
+          <div class="form-group">
+            <label for="project-type">Project Type</label>
+            <select id="project-type">
+              <option value="sewer">Sanitary Sewer Rehabilitation</option>
+              <option value="water">Water Main Replacement</option>
+              <option value="storm">Storm Sewer System</option>
+              <option value="street">Street Reconstruction</option>
+              <option value="combined">Combined Infrastructure</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="total-cost">Total Estimated Project Cost ($)</label>
+            <input type="number" id="total-cost" placeholder="5947000" min="0" step="1000">
+          </div>
+          <div class="form-group">
+            <label for="population">City Population</label>
+            <input type="number" id="population" placeholder="1400" min="1">
+          </div>
+          <div class="form-group">
+            <label for="billing-accounts">Number of Utility Billing Accounts</label>
+            <input type="number" id="billing-accounts" placeholder="620" min="1">
+          </div>
+          <div class="form-group">
+            <label for="annual-revenue">Current Annual Utility Revenue ($)</label>
+            <input type="number" id="annual-revenue" placeholder="500000" min="0" step="1000">
+          </div>
+          <div class="form-group">
+            <label for="existing-debt">Existing Annual Debt Service ($)</label>
+            <input type="number" id="existing-debt" placeholder="85000" min="0" step="1000">
+          </div>
+          <div class="form-group">
+            <label for="current-rate">Current Monthly Water/Sewer Rate ($/household)</label>
+            <input type="number" id="current-rate" placeholder="67" min="0" step="0.01">
+          </div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="bond-request">Proposed State Bond Request ($)</label>
+            <input type="number" id="bond-request" placeholder="5947000" min="0" step="1000">
+            <span class="help-text">Auto-fills to 100% of project cost; adjust as needed</span>
+          </div>
+          <div class="form-group">
+            <label for="fed-program">Federal Program Participation</label>
+            <select id="fed-program">
+              <option value="none">None</option>
+              <option value="usda">USDA Water &amp; Waste Disposal (up to 75%)</option>
+              <option value="iija">IIJA / State Revolving Fund (80/20)</option>
+              <option value="cwf">MN DNR Clean Water Fund (50/50)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="interest-rate">Bond Interest Rate (%)</label>
+            <input type="number" id="interest-rate" value="4.5" min="0" max="15" step="0.1">
+          </div>
+          <div class="form-group">
+            <label for="bond-term">Bond Term (years)</label>
+            <input type="number" id="bond-term" value="20" min="1" max="40">
+          </div>
+        </div>
+
+        <!-- VERIFY: Federal program percentages from software brief -->
+        <div class="help-text" style="margin-top:10px; max-width:700px;">
+          <strong style="color:#999;">Federal program notes:</strong>
+          USDA WEP covers up to 75% (MHI must be ≤80% of state median).
+          IIJA/SRF typically requires 20% local match; principal forgiveness possible for disadvantaged communities.
+          DNR Clean Water Fund is 50/50 match, administered through MPCA.
+          84% of federal IIJA infrastructure dollars require a state match &mdash; the bonding request often unlocks federal money.
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="calculate()">Calculate</button>
+          <button class="btn btn-secondary" onclick="loadExample()">Load Example: Red Lake Falls</button>
+          <button class="btn btn-secondary" onclick="clearForm()">Clear</button>
+        </div>
+
+        <!-- Results -->
+        <div id="calc-results" style="display:none;">
+          <div class="result-band">
+            <div class="result-row">
+              <span class="result-label">Total Project Cost</span>
+              <span class="result-value" id="r-total"></span>
+            </div>
+            <div class="result-row">
+              <span class="result-label">State Bond Amount</span>
+              <span class="result-value" id="r-bond"></span>
+            </div>
+            <div class="result-row">
+              <span class="result-label">Federal Share</span>
+              <span class="result-value" id="r-fed"></span>
+            </div>
+            <div class="result-row">
+              <span class="result-label">Required Local Match</span>
+              <span class="result-value" id="r-local"></span>
+            </div>
+          </div>
+
+          <div class="result-band" style="margin-top:4px;">
+            <div class="result-row">
+              <span class="result-label">New Annual Debt Service (Bond Only)</span>
+              <span class="result-value" id="r-debt"></span>
+            </div>
+            <div class="result-row">
+              <span class="result-label">Total Annual Debt Service (Existing + New)</span>
+              <span class="result-value" id="r-total-debt"></span>
+            </div>
+            <div class="result-row">
+              <span class="result-label">Debt Service Coverage Ratio</span>
+              <span class="result-value" id="r-dscr"></span>
+            </div>
+            <div class="result-row">
+              <span class="result-label">Required Monthly Rate Increase</span>
+              <span class="result-value" id="r-rate-inc"></span>
+            </div>
+            <div class="result-row">
+              <span class="result-label">New Monthly Rate Per Household</span>
+              <span class="result-value" id="r-new-rate"></span>
+            </div>
+            <div class="result-row">
+              <span class="result-label">Rate Increase Percentage</span>
+              <span class="result-value" id="r-rate-pct"></span>
+            </div>
+          </div>
+
+          <div id="affordability-warning"></div>
+
+          <div class="chart-wrap">
+            <canvas id="rate-chart"></canvas>
+          </div>
+
+          <div class="help-text" style="margin-top:10px;">
+            Calculation: Annual Debt Service = P x [r(1+r)^n] / [(1+r)^n - 1], monthly compounding.
+            DSCR = (Revenue - est. O&amp;M at 40%) / Total Debt Service.
+            Rate increase solves for DSCR = 1.25x target.
+          </div>
+        </div>
+
+        <!-- County Ditch 45 context -->
+        <!-- VERIFY: County Ditch 45 details from software brief -->
+        <div class="help-text" style="margin-top:20px; padding-top:12px; border-top:1px solid #333; max-width:700px;">
+          <strong style="color:#999;">Other SD-1 infrastructure context:</strong>
+          County Ditch 45 (Roseau/Kittson/Marshall counties) is a $17M multi-county agricultural drainage project.
+          Multi-county ditch projects use a different financing mechanism &mdash; county drainage districts with
+          assessments on benefited properties &mdash; rather than municipal bonding.
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ──── SECTION 2: BONDING TIMELINE TRACKER ──── -->
+  <div class="acc-section" data-delay="100">
+    <div class="acc-header" onclick="toggleAcc(this)">
+      <div class="acc-header-left">
+        <span class="acc-number">2</span>
+        <span class="acc-label">MN Bonding Timeline Tracker</span>
+      </div>
+      <div class="acc-header-right">
+        <span class="acc-badge yellow">7 MILESTONES</span>
+        <svg class="acc-arrow" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+      </div>
+    </div>
+    <div class="acc-body" id="body-timeline">
+      <div class="acc-body-inner">
+
+        <div class="timeline-track">
+          <div class="tl-item">
+            <div class="tl-dot"></div>
+            <div class="tl-date">April (odd year)</div>
+            <div class="tl-title">MMB Issues Capital Budget Instructions</div>
+            <div class="tl-detail">Minnesota Management &amp; Budget sends capital budget instructions to state agencies. Signals the start of the bonding cycle.</div>
+            <div class="tl-responsible">Responsible: MMB / State agencies</div>
+          </div>
+
+          <div class="tl-item critical">
+            <div class="tl-dot"></div>
+            <div class="tl-date">June 15 (odd year) &mdash; DEADLINE</div>
+            <div class="tl-title">Local Government Submission Deadline</div>
+            <div class="tl-detail">City council resolution, project narrative, rationale, and local contribution letter must all be submitted. This is the most critical deadline for local governments.</div>
+            <div class="tl-responsible">Responsible: City / City Administrator</div>
+          </div>
+
+          <div class="tl-item">
+            <div class="tl-dot"></div>
+            <div class="tl-date">August (odd year)</div>
+            <div class="tl-title">Agency Compilation &amp; MMB Submission</div>
+            <div class="tl-detail">State agencies compile local requests and submit consolidated capital budget requests to MMB.</div>
+            <div class="tl-responsible">Responsible: State agencies / MMB</div>
+          </div>
+
+          <div class="tl-item">
+            <div class="tl-dot"></div>
+            <div class="tl-date">January (even year)</div>
+            <div class="tl-title">Governor Submits Capital Budget</div>
+            <div class="tl-detail">Governor's capital budget recommendation goes to the Legislature. Your project may or may not be included.</div>
+            <div class="tl-responsible">Responsible: Governor's office</div>
+          </div>
+
+          <div class="tl-item">
+            <div class="tl-dot"></div>
+            <div class="tl-date">February &ndash; May (even year)</div>
+            <div class="tl-title">Legislative Bonding Bill Hearings</div>
+            <div class="tl-detail">Capital Investment committees in both chambers hold hearings. Legislators advocate for their district projects. Testimony may be requested.</div>
+            <div class="tl-responsible">Responsible: Legislator / City (testimony)</div>
+          </div>
+
+          <div class="tl-item critical">
+            <div class="tl-dot"></div>
+            <div class="tl-date">May (even year)</div>
+            <div class="tl-title">Floor Votes &mdash; 3/5 Supermajority Required</div>
+            <div class="tl-detail">Bonding bill requires a three-fifths supermajority in both the House and Senate. This high threshold means many projects fail &mdash; and a failed bill means a 2-year wait.</div>
+            <div class="tl-responsible">Responsible: Legislature</div>
+          </div>
+
+          <div class="tl-item">
+            <div class="tl-dot"></div>
+            <div class="tl-date">Summer (even year)</div>
+            <div class="tl-title">Governor Signs; MMB Releases Bond Proceeds</div>
+            <div class="tl-detail">Governor signs or vetoes the bonding bill. If signed, MMB releases bond proceeds according to the bill's conditions.</div>
+            <div class="tl-responsible">Responsible: Governor / MMB</div>
+          </div>
+        </div>
+
+        <div style="font-size:12px; color:var(--red); margin-top:4px; font-family:var(--font-data);">
+          Note: MN Legislature typically passes bonding bills every other year. A failed bill means a 2-year wait.
+        </div>
+
+        <div class="section-divider"></div>
+
+        <div style="font-family:var(--font-head); font-size:16px; color:var(--snow); margin-bottom:14px;">
+          June 15 Submission Package Checklist
+        </div>
+
+        <ul class="checklist" id="submission-checklist">
+          <li>
+            <span class="check-box" onclick="toggleCheck(this)"></span>
+            <span>City council resolution authorizing bond request (with specific dollar amount)</span>
+          </li>
+          <li>
+            <span class="check-box" onclick="toggleCheck(this)"></span>
+            <span>Project description (2&ndash;3 paragraphs: what, why, scope)</span>
+          </li>
+          <li>
+            <span class="check-box" onclick="toggleCheck(this)"></span>
+            <span>Community need narrative (population served, age of infrastructure, failure risk)</span>
+          </li>
+          <li>
+            <span class="check-box" onclick="toggleCheck(this)"></span>
+            <span>Local contribution statement (cash, in-kind, federal leveraging)</span>
+          </li>
+          <li>
+            <span class="check-box" onclick="toggleCheck(this)"></span>
+            <span>Project readiness statement (engineering complete? permits secured?)</span>
+          </li>
+          <li>
+            <span class="check-box" onclick="toggleCheck(this)"></span>
+            <span>Operating cost impact analysis (how does this affect future utility rates?)</span>
+          </li>
+          <li>
+            <span class="check-box" onclick="toggleCheck(this)"></span>
+            <span>Map or photos of the project area</span>
+          </li>
+        </ul>
+
+        <div class="help-text" style="margin-top:14px;">
+          Check items as you complete them. Progress persists on page reload via localStorage.
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ──── SECTION 3: APPLICATION NARRATIVE GENERATOR ──── -->
+  <div class="acc-section" data-delay="200">
+    <div class="acc-header" onclick="toggleAcc(this)">
+      <div class="acc-header-left">
+        <span class="acc-number">3</span>
+        <span class="acc-label">Application Narrative Generator</span>
+      </div>
+      <div class="acc-header-right">
+        <span class="acc-badge green" id="badge-narr">GENERATE</span>
+        <svg class="acc-arrow" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+      </div>
+    </div>
+    <div class="acc-body" id="body-narrative">
+      <div class="acc-body-inner">
+
+        <div style="font-size:13px; color:#aaa; margin-bottom:16px; max-width:680px; line-height:1.6;">
+          Generate a formatted bonding request document using data from the Finance Calculator.
+          Run a calculation first, then generate. All text is editable inline before printing.
+        </div>
+
+        <div class="form-grid" style="margin-bottom:14px;">
+          <div class="form-group">
+            <label for="narr-phase">Project Phase Name</label>
+            <input type="text" id="narr-phase" placeholder="Phase 1" value="Phase 1">
+          </div>
+          <div class="form-group">
+            <label for="narr-timeline">Estimated Construction Timeline</label>
+            <input type="text" id="narr-timeline" placeholder="18 months" value="18 months">
+          </div>
+          <div class="form-group full-width">
+            <label for="narr-additional">Additional Project Context (optional)</label>
+            <textarea id="narr-additional" placeholder="Add any additional context about the project, community, or infrastructure condition..."></textarea>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="generateNarrative()">Generate Narrative</button>
+          <button class="btn btn-secondary" onclick="printNarrative()">Print Document</button>
+        </div>
+
+        <div id="narrative-output"></div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ──── SECTION 4: SD-1 CONTEXT & FEDERAL PROGRAMS ──── -->
+  <div class="acc-section" data-delay="300">
+    <div class="acc-header" onclick="toggleAcc(this)">
+      <div class="acc-header-left">
+        <span class="acc-number">4</span>
+        <span class="acc-label">Federal Program Reference</span>
+      </div>
+      <div class="acc-header-right">
+        <span class="acc-badge yellow">4 PROGRAMS</span>
+        <svg class="acc-arrow" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+      </div>
+    </div>
+    <div class="acc-body" id="body-programs">
+      <div class="acc-body-inner">
+
+        <!-- VERIFY: Federal program details from software brief -->
+        <table style="width:100%; border-collapse:collapse; font-size:12px;">
+          <thead>
+            <tr style="border-bottom:2px solid var(--timber);">
+              <th style="text-align:left; padding:8px 10px; color:var(--timber-light); font-family:var(--font-data); font-size:11px; text-transform:uppercase; letter-spacing:1px;">Program</th>
+              <th style="text-align:left; padding:8px 10px; color:var(--timber-light); font-family:var(--font-data); font-size:11px; text-transform:uppercase; letter-spacing:1px;">Federal Share</th>
+              <th style="text-align:left; padding:8px 10px; color:var(--timber-light); font-family:var(--font-data); font-size:11px; text-transform:uppercase; letter-spacing:1px;">Local Match</th>
+              <th style="text-align:left; padding:8px 10px; color:var(--timber-light); font-family:var(--font-data); font-size:11px; text-transform:uppercase; letter-spacing:1px;">Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid #333;">
+              <td style="padding:8px 10px; color:var(--snow); font-weight:bold;">USDA Water &amp; Waste Disposal</td>
+              <td style="padding:8px 10px; font-family:var(--font-data);">Up to 75%</td>
+              <td style="padding:8px 10px; font-family:var(--font-data);">25% minimum</td>
+              <td style="padding:8px 10px; color:#999;">Below-market rate. MHI must be &le;80% of state median.</td>
+            </tr>
+            <tr style="border-bottom:1px solid #333;">
+              <td style="padding:8px 10px; color:var(--snow); font-weight:bold;">IIJA / State Revolving Fund</td>
+              <td style="padding:8px 10px; font-family:var(--font-data);">Up to 80%</td>
+              <td style="padding:8px 10px; font-family:var(--font-data);">20% typical</td>
+              <td style="padding:8px 10px; color:#999;">Principal forgiveness available for disadvantaged communities.</td>
+            </tr>
+            <tr style="border-bottom:1px solid #333;">
+              <td style="padding:8px 10px; color:var(--snow); font-weight:bold;">MN DNR Clean Water Fund</td>
+              <td style="padding:8px 10px; font-family:var(--font-data);">50%</td>
+              <td style="padding:8px 10px; font-family:var(--font-data);">50%</td>
+              <td style="padding:8px 10px; color:#999;">Wastewater projects. Administered through MPCA.</td>
+            </tr>
+            <tr>
+              <td style="padding:8px 10px; color:var(--snow); font-weight:bold;">MN State Bonding (Capital Investment)</td>
+              <td style="padding:8px 10px; font-family:var(--font-data);">Varies</td>
+              <td style="padding:8px 10px; font-family:var(--font-data);">Varies</td>
+              <td style="padding:8px 10px; color:#999;">Requires 3/5 supermajority. Biennial cycle. Often needed to unlock federal match.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div style="margin-top:18px; font-size:12px; color:var(--timber-light); font-family:var(--font-data);">
+          84% of federal IIJA infrastructure dollars require a Minnesota state match.
+        </div>
+
+        <!-- VERIFY: Red Lake Falls federal companion data from software brief -->
+        <div class="section-divider"></div>
+        <div style="font-family:var(--font-head); font-size:15px; color:var(--snow); margin-bottom:8px;">
+          Red Lake Falls &mdash; Overlapping Capital Needs
+        </div>
+        <div style="font-size:12px; color:#aaa; line-height:1.6;">
+          In addition to the $5,947,000 state bond request (SF630, 2025) for sanitary sewer, storm sewer,
+          streets, and sidewalk/curb/gutter, Red Lake Falls has a separate water tower project funded by
+          a $906,000 USDA grant and $8.31M USDA loan. The city implemented 3% water/sewer rate increases
+          in January 2026 for debt service on the water tower project alone. Multiple overlapping capital
+          needs are typical for SD-1 communities.
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ════ FOOTER ════ -->
+<div id="footer">
+  A resource for SD-1 communities and rural Minnesota. Built with AI. Data reflects Minnesota bonding process as of 2025.
+</div>
+
+<!-- ════ PRINT OUTPUT (hidden, shown only when printing) ════ -->
+<div id="print-output"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// ENTRY ANIMATION
+// ═══════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(function() {
+    document.getElementById('entry-overlay').classList.add('fade-out');
+    document.getElementById('dashboard').classList.add('visible');
+
+    var sections = document.querySelectorAll('.acc-section');
+    sections.forEach(function(sec, i) {
+      setTimeout(function() {
+        sec.classList.add('visible');
+      }, 200 + i * 150);
+    });
+  }, 2200);
+
+  setTimeout(function() {
+    var ov = document.getElementById('entry-overlay');
+    if (ov) ov.style.display = 'none';
+  }, 3000);
+
+  restoreState();
+});
+
+// ═══════════════════════════════════════════════════════
+// ACCORDION LOGIC
+// ═══════════════════════════════════════════════════════
+function toggleAcc(header) {
+  var isActive = header.classList.contains('active');
+  var body = header.nextElementSibling;
+
+  if (isActive) {
+    header.classList.remove('active');
+    body.style.maxHeight = '0';
+  } else {
+    header.classList.add('active');
+    body.style.maxHeight = body.scrollHeight + 'px';
+    setTimeout(function() {
+      if (header.classList.contains('active')) {
+        body.style.maxHeight = body.scrollHeight + 'px';
+      }
+    }, 400);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// CHECKLIST LOGIC
+// ═══════════════════════════════════════════════════════
+function toggleCheck(el) {
+  el.classList.toggle('checked');
+  saveChecklist();
+}
+
+function saveChecklist() {
+  var checks = document.querySelectorAll('#submission-checklist .check-box');
+  var state = [];
+  checks.forEach(function(c) { state.push(c.classList.contains('checked')); });
+  try { localStorage.setItem('johnson_checklist', JSON.stringify(state)); } catch(e) {}
+}
+
+function restoreChecklist() {
+  try {
+    var state = JSON.parse(localStorage.getItem('johnson_checklist'));
+    if (state && Array.isArray(state)) {
+      var checks = document.querySelectorAll('#submission-checklist .check-box');
+      checks.forEach(function(c, i) {
+        if (state[i]) c.classList.add('checked');
+      });
+    }
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════════════════════════
+// LOCALSTORAGE — FORM STATE
+// ═══════════════════════════════════════════════════════
+var formFields = [
+  'city-name', 'project-type', 'total-cost', 'population', 'billing-accounts',
+  'annual-revenue', 'existing-debt', 'current-rate', 'bond-request', 'fed-program',
+  'interest-rate', 'bond-term'
+];
+
+function saveState() {
+  var data = {};
+  formFields.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) data[id] = el.value;
+  });
+  try { localStorage.setItem('johnson_form', JSON.stringify(data)); } catch(e) {}
+}
+
+function restoreState() {
+  restoreChecklist();
+  try {
+    var data = JSON.parse(localStorage.getItem('johnson_form'));
+    if (data) {
+      formFields.forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el && data[id] !== undefined && data[id] !== '') el.value = data[id];
+      });
+      if (data['total-cost'] && data['billing-accounts'] && data['annual-revenue']) {
+        calculate();
+      }
+    }
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════════════════════════
+// LOAD EXAMPLE: RED LAKE FALLS
+// ═══════════════════════════════════════════════════════
+function loadExample() {
+  // VERIFY: All example data from software brief
+  document.getElementById('city-name').value = 'Red Lake Falls';
+  document.getElementById('project-type').value = 'combined';
+  document.getElementById('total-cost').value = '5947000';
+  document.getElementById('population').value = '1400';
+  document.getElementById('billing-accounts').value = '620';
+  document.getElementById('annual-revenue').value = '500000';
+  document.getElementById('existing-debt').value = '85000';
+  document.getElementById('current-rate').value = '67';
+  document.getElementById('bond-request').value = '5947000';
+  document.getElementById('fed-program').value = 'none';
+  document.getElementById('interest-rate').value = '4.5';
+  document.getElementById('bond-term').value = '20';
+  calculate();
+}
+
+// ═══════════════════════════════════════════════════════
+// CLEAR FORM
+// ═══════════════════════════════════════════════════════
+function clearForm() {
+  formFields.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) {
+      if (id === 'interest-rate') el.value = '4.5';
+      else if (id === 'bond-term') el.value = '20';
+      else if (el.tagName === 'SELECT') el.selectedIndex = 0;
+      else el.value = '';
+    }
+  });
+  document.getElementById('calc-results').style.display = 'none';
+  updateDashboard(0, 0, 0, 0, null);
+  try { localStorage.removeItem('johnson_form'); } catch(e) {}
+  if (rateChart) { rateChart.destroy(); rateChart = null; }
+}
+
+// ═══════════════════════════════════════════════════════
+// CALCULATION ENGINE
+// ═══════════════════════════════════════════════════════
+var lastCalc = null;
+var rateChart = null;
+
+function getNum(id) {
+  return parseFloat(document.getElementById(id).value) || 0;
+}
+
+function fmt(n) {
+  if (n >= 1e6) return '$' + (n / 1e6).toFixed(2) + 'M';
+  if (n >= 1e3) return '$' + Math.round(n).toLocaleString();
+  return '$' + n.toFixed(2);
+}
+
+function fmtShort(n) {
+  if (n >= 1e6) return '$' + (n / 1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return '$' + Math.round(n / 1000) + 'K';
+  return '$' + Math.round(n);
+}
+
+function calculate() {
+  var totalCost = getNum('total-cost');
+  var population = getNum('population');
+  var accounts = getNum('billing-accounts');
+  var annualRevenue = getNum('annual-revenue');
+  var existingDebt = getNum('existing-debt');
+  var currentRate = getNum('current-rate');
+  var bondRequest = getNum('bond-request');
+  var rate = getNum('interest-rate') / 100;
+  var termYears = getNum('bond-term');
+  var fedProgram = document.getElementById('fed-program').value;
+
+  if (totalCost <= 0 || accounts <= 0 || annualRevenue <= 0) {
+    return;
+  }
+
+  // Auto-fill bond request if empty
+  if (bondRequest <= 0) {
+    bondRequest = totalCost;
+    document.getElementById('bond-request').value = totalCost;
+  }
+
+  // Federal share calculation
+  var fedShare = 0;
+  var localMatchPct = 0;
+  switch (fedProgram) {
+    case 'usda':
+      fedShare = totalCost * 0.75;
+      localMatchPct = 0.25;
+      break;
+    case 'iija':
+      fedShare = totalCost * 0.80;
+      localMatchPct = 0.20;
+      break;
+    case 'cwf':
+      fedShare = totalCost * 0.50;
+      localMatchPct = 0.50;
+      break;
+    default:
+      fedShare = 0;
+      localMatchPct = 0;
+  }
+
+  var localMatch = fedProgram === 'none' ? 0 : totalCost * localMatchPct;
+  // Bond covers whatever isn't covered by federal
+  var effectiveBond = Math.min(bondRequest, totalCost - fedShare);
+  if (effectiveBond < 0) effectiveBond = 0;
+
+  // Annual debt service: standard amortization formula
+  // Monthly payment = P * [r(1+r)^n] / [(1+r)^n - 1]
+  var monthlyRate = rate / 12;
+  var numPayments = termYears * 12;
+  var annualDebtService = 0;
+
+  if (effectiveBond > 0 && monthlyRate > 0 && numPayments > 0) {
+    var monthlyPayment = effectiveBond * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) /
+                         (Math.pow(1 + monthlyRate, numPayments) - 1);
+    annualDebtService = monthlyPayment * 12;
+  } else if (effectiveBond > 0 && rate === 0) {
+    annualDebtService = effectiveBond / termYears;
+  }
+
+  // DSCR = Net Revenue Available / Total Debt Service
+  // Estimate O&M at 40% of revenue (standard utility assumption for small cities)
+  var estimatedOM = annualRevenue * 0.40;
+  var netRevenue = annualRevenue - estimatedOM;
+  var totalDebt = existingDebt + annualDebtService;
+  var dscr = totalDebt > 0 ? netRevenue / totalDebt : 0;
+
+  // Rate increase needed to achieve DSCR = 1.25x
+  // Required: (annualRevenue + additionalRevenue - OM_new) / totalDebt = 1.25
+  // OM_new = (annualRevenue + additionalRevenue) * 0.40
+  // (annualRevenue + X) * 0.60 = 1.25 * totalDebt
+  // X = (1.25 * totalDebt / 0.60) - annualRevenue
+  var requiredRevenue = (1.25 * totalDebt) / 0.60;
+  var additionalRevenue = Math.max(0, requiredRevenue - annualRevenue);
+  var monthlyIncrease = accounts > 0 ? additionalRevenue / accounts / 12 : 0;
+  var newMonthlyRate = currentRate + monthlyIncrease;
+  var ratePctIncrease = currentRate > 0 ? (monthlyIncrease / currentRate) * 100 : 0;
+
+  // Store for narrative generator
+  lastCalc = {
+    cityName: document.getElementById('city-name').value || 'City',
+    projectType: document.getElementById('project-type').options[document.getElementById('project-type').selectedIndex].text,
+    totalCost: totalCost,
+    bondRequest: effectiveBond,
+    fedShare: fedShare,
+    localMatch: localMatch,
+    annualDebtService: annualDebtService,
+    totalDebt: totalDebt,
+    dscr: dscr,
+    monthlyIncrease: monthlyIncrease,
+    newMonthlyRate: newMonthlyRate,
+    ratePctIncrease: ratePctIncrease,
+    currentRate: currentRate,
+    population: population,
+    accounts: accounts,
+    fedProgram: fedProgram,
+    interestRate: rate,
+    termYears: termYears
+  };
+
+  // Display results
+  document.getElementById('calc-results').style.display = 'block';
+  document.getElementById('r-total').textContent = fmt(totalCost);
+  document.getElementById('r-bond').textContent = fmt(effectiveBond);
+  document.getElementById('r-fed').textContent = fedShare > 0 ? fmt(fedShare) : 'None';
+  document.getElementById('r-local').textContent = localMatch > 0 ? fmt(localMatch) : (fedProgram === 'none' ? 'N/A (no federal program)' : '$0');
+  document.getElementById('r-debt').textContent = fmt(annualDebtService);
+  document.getElementById('r-total-debt').textContent = fmt(totalDebt);
+
+  // DSCR coloring
+  var dscrEl = document.getElementById('r-dscr');
+  dscrEl.textContent = dscr.toFixed(2) + 'x';
+  dscrEl.className = 'result-value ' + (dscr >= 1.25 ? 'good' : dscr >= 1.0 ? 'warn' : 'bad');
+
+  document.getElementById('r-rate-inc').textContent = '+$' + monthlyIncrease.toFixed(2) + '/month';
+  document.getElementById('r-new-rate').textContent = '$' + newMonthlyRate.toFixed(2) + '/month';
+
+  var pctEl = document.getElementById('r-rate-pct');
+  pctEl.textContent = '+' + ratePctIncrease.toFixed(1) + '%';
+  pctEl.className = 'result-value ' + (ratePctIncrease <= 25 ? 'good' : ratePctIncrease <= 40 ? 'warn' : 'bad');
+
+  // Affordability warning
+  var warnDiv = document.getElementById('affordability-warning');
+  warnDiv.innerHTML = '';
+  if (ratePctIncrease > 40) {
+    warnDiv.innerHTML = '<div class="warning-band red-warn">AFFORDABILITY ALERT: Rate increase exceeds 40% of current rate. Consider phased construction, additional federal program participation, or low-income rate assistance programs to reduce household burden.</div>';
+  } else if (ratePctIncrease > 25) {
+    warnDiv.innerHTML = '<div class="warning-band yellow-warn">AFFORDABILITY CAUTION: Rate increase exceeds 25% of current rate. Evaluate whether phased construction or additional federal funding could reduce the per-household impact.</div>';
+  }
+
+  // Update dashboard
+  updateDashboard(totalCost, effectiveBond, fedShare, localMatch, dscr);
+
+  // Build 10-year rate trajectory chart
+  buildChart(currentRate, monthlyIncrease, termYears);
+
+  // Re-measure accordion body
+  var calcBody = document.getElementById('body-calc');
+  setTimeout(function() {
+    calcBody.style.maxHeight = calcBody.scrollHeight + 'px';
+  }, 100);
+
+  // Save state
+  saveState();
+}
+
+function updateDashboard(total, bond, fed, local, dscr) {
+  document.getElementById('hero-total').textContent =
+    (total > 0 ? fmtShort(total) : '$0') + ' TOTAL INFRASTRUCTURE NEED';
+  document.getElementById('dash-bond').textContent = total > 0 ? fmtShort(bond) : '$0';
+  document.getElementById('dash-fed').textContent = fed > 0 ? fmtShort(fed) : '$0';
+  document.getElementById('dash-local').textContent = local > 0 ? fmtShort(local) : '$0';
+  var dscrEl = document.getElementById('dash-dscr');
+  if (dscr !== null && dscr > 0) {
+    dscrEl.textContent = dscr.toFixed(2) + 'x';
+    dscrEl.style.color = dscr >= 1.25 ? '#2D6A4F' : dscr >= 1.0 ? '#E9C46A' : '#a52422';
+  } else {
+    dscrEl.textContent = '\u2014';
+    dscrEl.style.color = '';
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// 10-YEAR RATE TRAJECTORY CHART
+// ═══════════════════════════════════════════════════════
+function buildChart(currentRate, monthlyIncrease, termYears) {
+  if (typeof Chart === 'undefined') return;
+
+  var ctx = document.getElementById('rate-chart');
+  if (rateChart) { rateChart.destroy(); }
+
+  var labels = [];
+  var projected = [];
+  var baseline = [];
+  var years = Math.min(10, termYears);
+
+  for (var i = 0; i <= years; i++) {
+    labels.push(i === 0 ? 'Current' : 'Year ' + i);
+    baseline.push(currentRate);
+    projected.push(i === 0 ? currentRate : currentRate + monthlyIncrease);
+  }
+
+  rateChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Current Rate (no project)',
+          data: baseline,
+          backgroundColor: 'rgba(122,133,145,0.5)',
+          borderColor: '#7A8591',
+          borderWidth: 1
+        },
+        {
+          label: 'Projected Rate (with project)',
+          data: projected,
+          backgroundColor: 'rgba(139,105,20,0.7)',
+          borderColor: '#8b6914',
+          borderWidth: 1
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          labels: { color: '#aaa', font: { family: 'Tahoma', size: 11 } }
+        },
+        title: {
+          display: true,
+          text: 'Monthly Water/Sewer Rate Trajectory ($/household)',
+          color: '#ccc',
+          font: { family: 'Palatino Linotype, Palatino, serif', size: 14 }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: '#888', font: { family: 'Consolas, monospace', size: 10 } },
+          grid: { color: '#333' }
+        },
+        y: {
+          ticks: {
+            color: '#888',
+            font: { family: 'Consolas, monospace', size: 10 },
+            callback: function(val) { return '$' + val; }
+          },
+          grid: { color: '#333' },
+          beginAtZero: true
+        }
+      }
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// NARRATIVE GENERATOR
+// ═══════════════════════════════════════════════════════
+function generateNarrative() {
+  if (!lastCalc) {
+    document.getElementById('narrative-output').innerHTML =
+      '<p style="color:#a52422; font-family:Tahoma,sans-serif; font-size:13px; padding:16px;">Run the Finance Calculator first (Section 1) to generate project data.</p>';
+    var nb = document.getElementById('body-narrative');
+    nb.style.maxHeight = nb.scrollHeight + 'px';
+    return;
+  }
+
+  var c = lastCalc;
+  var phase = document.getElementById('narr-phase').value || 'Phase 1';
+  var timeline = document.getElementById('narr-timeline').value || '18 months';
+  var additional = document.getElementById('narr-additional').value;
+
+  var fedProgramName = '';
+  switch (c.fedProgram) {
+    case 'usda': fedProgramName = 'USDA Water & Waste Disposal Loan Program'; break;
+    case 'iija': fedProgramName = 'IIJA Bipartisan Infrastructure / State Revolving Fund'; break;
+    case 'cwf': fedProgramName = 'MN DNR Clean Water Fund'; break;
+    default: fedProgramName = '';
+  }
+
+  var html = '<div contenteditable="true">';
+
+  // Title
+  html += '<h2>City of ' + esc(c.cityName) + ' ' + esc(c.projectType) + ' &mdash; ' + esc(phase) + '</h2>';
+
+  // Community Need
+  html += '<h2>Community Need</h2>';
+  html += '<p>The City of ' + esc(c.cityName) + ' (population approximately ' + c.population.toLocaleString() + ') ';
+  html += 'faces critical infrastructure needs in its ' + esc(c.projectType.toLowerCase()) + ' systems. ';
+  html += 'Aging infrastructure poses increasing risk of service failure, environmental compliance violations, ';
+  html += 'and public health concerns. The city\'s limited tax base &mdash; typical of northwest Minnesota communities &mdash; ';
+  html += 'makes self-financing impractical without state bonding support.</p>';
+  if (additional) {
+    html += '<p>' + esc(additional) + '</p>';
+  }
+
+  // Project Description
+  html += '<h2>Project Description</h2>';
+  html += '<p>This project encompasses ' + esc(c.projectType.toLowerCase()) + ' improvements ';
+  html += 'with an estimated construction timeline of ' + esc(timeline) + '. ';
+  html += 'The project will be competitively bid following all applicable state procurement requirements. ';
+  html += 'Engineering design and environmental review will be completed prior to construction.</p>';
+
+  // Financial Summary
+  html += '<h2>Financial Summary</h2>';
+  html += '<table>';
+  html += '<tr><th>Item</th><th>Amount</th></tr>';
+  html += '<tr><td>Total Estimated Project Cost</td><td>' + fmt(c.totalCost) + '</td></tr>';
+  html += '<tr><td>State Bond Request</td><td>' + fmt(c.bondRequest) + '</td></tr>';
+  if (c.fedShare > 0) {
+    html += '<tr><td>Federal Share (' + esc(fedProgramName) + ')</td><td>' + fmt(c.fedShare) + '</td></tr>';
+    html += '<tr><td>Required Local Match</td><td>' + fmt(c.localMatch) + '</td></tr>';
+  }
+  html += '<tr><td>Bond Interest Rate</td><td>' + (c.interestRate * 100).toFixed(1) + '%, ' + c.termYears + '-year term</td></tr>';
+  html += '<tr><td>Projected Annual Debt Service</td><td>' + fmt(c.annualDebtService) + '</td></tr>';
+  html += '<tr><td>Debt Service Coverage Ratio</td><td>' + c.dscr.toFixed(2) + 'x</td></tr>';
+  html += '<tr><td>Projected Monthly Rate Impact</td><td>+$' + c.monthlyIncrease.toFixed(2) + '/household (+' + c.ratePctIncrease.toFixed(1) + '%)</td></tr>';
+  html += '</table>';
+
+  // Local Contribution
+  html += '<h2>Local Contribution Statement</h2>';
+  if (c.fedProgram !== 'none') {
+    html += '<p>The City of ' + esc(c.cityName) + ' is pursuing federal funding through the ';
+    html += esc(fedProgramName) + ', which would provide ' + fmt(c.fedShare) + ' in federal support. ';
+    html += 'The local match of ' + fmt(c.localMatch) + ' will be funded through a combination of ';
+    html += 'utility revenues and the requested state bond allocation.</p>';
+  } else {
+    html += '<p>The City of ' + esc(c.cityName) + ' will fund this project primarily through the ';
+    html += 'requested state bond allocation of ' + fmt(c.bondRequest) + '. The city commits to maintaining utility rates sufficient ';
+    html += 'to cover ongoing debt service obligations.</p>';
+  }
+
+  // Legislator Coordination
+  html += '<h2>Legislator Coordination</h2>';
+  html += '<p>This project is consistent with Senate District 1 priorities for rural infrastructure ';
+  html += 'maintenance. Northwest Minnesota communities face infrastructure costs that can exceed ';
+  html += '$500,000 per household in small cities &mdash; often on homes valued under $100,000. ';
+  html += 'State bonding support is essential to make these projects financially viable ';
+  html += 'and to unlock available federal matching funds.</p>';
+
+  html += '</div>';
+
+  document.getElementById('narrative-output').innerHTML = html;
+
+  // Re-measure accordion
+  var nb = document.getElementById('body-narrative');
+  setTimeout(function() {
+    nb.style.maxHeight = nb.scrollHeight + 'px';
+  }, 100);
+
+  document.getElementById('badge-narr').textContent = 'READY';
+  document.getElementById('badge-narr').className = 'acc-badge green';
+}
+
+function esc(str) {
+  var d = document.createElement('div');
+  d.appendChild(document.createTextNode(str));
+  return d.innerHTML;
+}
+
+// ═══════════════════════════════════════════════════════
+// PRINT NARRATIVE
+// ═══════════════════════════════════════════════════════
+function printNarrative() {
+  if (!lastCalc) {
+    generateNarrative();
+    if (!lastCalc) return;
+  }
+
+  var narr = document.getElementById('narrative-output').innerHTML;
+  if (!narr || narr.indexOf('Run the Finance Calculator') !== -1) {
+    generateNarrative();
+    narr = document.getElementById('narrative-output').innerHTML;
+  }
+
+  document.getElementById('print-output').innerHTML =
+    '<h1 style="text-align:center; border-bottom:2px solid #333; padding-bottom:8px; margin-bottom:12px;">Minnesota Capital Investment Request</h1>' +
+    '<p style="text-align:center; font-size:11px; color:#666; margin-bottom:20px;">Senate District 1 &mdash; Generated with Infrastructure Bonding Readiness Tool</p>' +
+    narr;
+
+  window.print();
+}
+
+// ═══════════════════════════════════════════════════════
+// AUTO-FILL BOND REQUEST ON COST CHANGE
+// ═══════════════════════════════════════════════════════
+document.getElementById('total-cost').addEventListener('change', function() {
+  var bondEl = document.getElementById('bond-request');
+  if (!bondEl.value || bondEl.value === '0') {
+    bondEl.value = this.value;
+  }
+});
+</script>
+</body>
+</html>

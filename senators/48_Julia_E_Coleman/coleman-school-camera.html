@@ -1,0 +1,2165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MN School Camera Readiness &amp; Grant Planner — SF4906</title>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Control-room dashboard — full-width dark header status bar, then grid of "camera feed" cards for buildings; wizard steps operate within this shell
+   2. Navigation: Filter toggles in header bar (by district, compliance status, funding need) + numbered step indicators as compact pill buttons
+   3. Typography: Franklin Gothic for headers/nav, Calibri for body/forms, Consolas for data readouts and scores
+   4. Hero moment: Large "XX% COMPLIANT" figure in electric blue (72px+) on dark header bar
+   5. Color strategy: #7 Inverted — dark backgrounds as default, light text throughout, electric blue for active states, muted green for compliant, alert red for gaps
+   6. Entry experience: Cards flicker on one by one like monitors powering up — 2 seconds total
+   Additional: Security monitor / surveillance-tech aesthetic. No parchment, no bordered callout boxes, no emoji icons.
+*/
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg-dark: #1e1e1e;
+  --bg-panel: #252525;
+  --bg-card: #2a2a2a;
+  --bg-input: #333;
+  --electric-blue: #2196f3;
+  --compliant-green: #4caf50;
+  --alert-red: #f44336;
+  --caution-amber: #D4861A;
+  --text-primary: #e0e0e0;
+  --text-secondary: #999;
+  --text-muted: #666;
+  --border-subtle: #3a3a3a;
+}
+
+html { font-size: 15px; }
+
+body {
+  background: var(--bg-dark);
+  color: var(--text-primary);
+  font-family: Calibri, 'Segoe UI', sans-serif;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* ── HEADER STATUS BAR ── */
+.header-bar {
+  background: #141414;
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.system-title {
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow Bold', sans-serif;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: var(--text-secondary);
+}
+
+.system-title span {
+  color: var(--electric-blue);
+}
+
+.live-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: Consolas, monospace;
+  font-size: 0.7rem;
+  color: var(--compliant-green);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.live-dot {
+  width: 6px; height: 6px;
+  background: var(--compliant-green);
+  border-radius: 50%;
+  animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.hero-compliance {
+  text-align: right;
+}
+
+.hero-compliance .hero-number {
+  font-family: Consolas, monospace;
+  font-size: 2.8rem;
+  font-weight: bold;
+  color: var(--electric-blue);
+  line-height: 1;
+  letter-spacing: -1px;
+}
+
+.hero-compliance .hero-label {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text-secondary);
+}
+
+/* ── STEP NAV (pill buttons in header) ── */
+.step-nav {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.step-pill {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 5px 14px;
+  border: 1px solid var(--border-subtle);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 2px;
+}
+
+.step-pill:hover { color: var(--text-primary); border-color: var(--text-secondary); }
+.step-pill.active { background: var(--electric-blue); color: #fff; border-color: var(--electric-blue); }
+.step-pill.complete { background: var(--compliant-green); color: #fff; border-color: var(--compliant-green); }
+
+/* ── FILTER BAR ── */
+.filter-bar {
+  background: #1a1a1a;
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 8px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 0.75rem;
+}
+
+.filter-bar label {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-secondary);
+  font-size: 0.65rem;
+}
+
+.filter-toggle {
+  font-family: Calibri, sans-serif;
+  font-size: 0.75rem;
+  padding: 3px 10px;
+  border: 1px solid var(--border-subtle);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.2s;
+}
+
+.filter-toggle:hover { border-color: var(--electric-blue); color: var(--text-primary); }
+.filter-toggle.active { background: var(--electric-blue); color: #fff; border-color: var(--electric-blue); }
+
+.filter-sep { width: 1px; height: 16px; background: var(--border-subtle); }
+
+/* ── MAIN CONTENT ── */
+.main-content {
+  padding: 20px 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* ── WELCOME / LANDING ── */
+.landing-screen {
+  display: grid;
+  grid-template-columns: 55% 45%;
+  gap: 40px;
+  min-height: 70vh;
+  align-items: center;
+  padding: 40px 0;
+}
+
+.landing-left h1 {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 1.6rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--electric-blue);
+  margin-bottom: 12px;
+}
+
+.landing-left .subtitle {
+  font-family: Calibri, sans-serif;
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+  max-width: 520px;
+  line-height: 1.6;
+}
+
+.landing-left .sf-note {
+  font-family: Consolas, monospace;
+  font-size: 0.75rem;
+  color: var(--caution-amber);
+  margin-bottom: 24px;
+}
+
+.landing-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-primary {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-size: 0.8rem;
+  padding: 12px 28px;
+  background: var(--electric-blue);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-primary:hover { background: #1976d2; }
+
+.btn-secondary {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-size: 0.8rem;
+  padding: 12px 28px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover { border-color: var(--text-primary); color: var(--text-primary); }
+
+/* ── LANDING RIGHT: Step preview cards ── */
+.step-preview-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.step-preview-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  opacity: 0;
+  transform: translateX(20px);
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.step-preview-card.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.step-num {
+  font-family: Consolas, monospace;
+  font-size: 1.4rem;
+  color: var(--electric-blue);
+  min-width: 30px;
+}
+
+.step-preview-info .sp-title {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-primary);
+}
+
+.step-preview-info .sp-desc {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
+/* ── CAMERA FEED CARDS (building grid in Step 2) ── */
+.building-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.camera-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  padding: 16px;
+  position: relative;
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+
+.camera-card.powered-on { opacity: 1; }
+
+.camera-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--electric-blue);
+  opacity: 0.6;
+}
+
+.camera-card.compliant::before { background: var(--compliant-green); }
+.camera-card.flagged::before { background: var(--alert-red); }
+.camera-card.caution::before { background: var(--caution-amber); }
+
+.card-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.card-building-name {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.card-status-badge {
+  font-family: Consolas, monospace;
+  font-size: 0.65rem;
+  padding: 2px 8px;
+  border-radius: 2px;
+  text-transform: uppercase;
+}
+
+.badge-live { background: rgba(33,150,243,0.2); color: var(--electric-blue); }
+.badge-ok { background: rgba(76,175,80,0.2); color: var(--compliant-green); }
+.badge-warn { background: rgba(212,134,26,0.2); color: var(--caution-amber); }
+.badge-alert { background: rgba(244,67,54,0.2); color: var(--alert-red); }
+
+.card-stats {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+.card-stat {
+  font-family: Consolas, monospace;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
+.card-stat strong {
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+/* ── FORM ELEMENTS (styled to match dark theme) ── */
+.form-group {
+  margin-bottom: 14px;
+}
+
+.form-group label {
+  display: block;
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  font-family: Calibri, sans-serif;
+  font-size: 0.9rem;
+  padding: 8px 10px;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--electric-blue);
+}
+
+.form-group select {
+  cursor: pointer;
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.form-row-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 14px;
+}
+
+/* ── CHECKBOX GROUP ── */
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: Calibri, sans-serif;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  text-transform: none;
+  letter-spacing: 0;
+  cursor: pointer;
+}
+
+.checkbox-group input[type="checkbox"] {
+  accent-color: var(--electric-blue);
+  width: 16px; height: 16px;
+}
+
+/* ── STEP PANELS ── */
+.step-panel {
+  display: none;
+  animation: fadePanel 0.3s ease;
+}
+
+.step-panel.active { display: block; }
+
+@keyframes fadePanel {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.step-header-band {
+  background: linear-gradient(135deg, #1a1a1a, #252525);
+  border: 1px solid var(--border-subtle);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  border-left: 3px solid var(--electric-blue);
+}
+
+/* Using left accent on step headers only — this is structural, not a callout box */
+
+.step-header-band h2 {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--electric-blue);
+}
+
+.step-header-band p {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+/* ── TWO-COLUMN LAYOUT for Steps 2, 3 ── */
+.split-layout {
+  display: grid;
+  grid-template-columns: 60% 40%;
+  gap: 24px;
+}
+
+.side-panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  padding: 20px;
+  position: sticky;
+  top: 80px;
+  align-self: start;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+}
+
+.side-panel h3 {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+/* ── READINESS SCORE ── */
+.score-display {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.score-number {
+  font-family: Consolas, monospace;
+  font-size: 4.5rem;
+  font-weight: bold;
+  line-height: 1;
+  color: var(--electric-blue);
+}
+
+.score-bar-track {
+  height: 4px;
+  background: var(--bg-input);
+  margin: 12px 0 8px;
+  position: relative;
+}
+
+.score-bar-fill {
+  height: 100%;
+  background: var(--compliant-green);
+  transition: width 0.6s ease;
+}
+
+.score-label {
+  font-family: Consolas, monospace;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
+.score-interpretation {
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  margin-top: 12px;
+  padding: 10px;
+  background: rgba(33,150,243,0.08);
+  border: 1px solid rgba(33,150,243,0.2);
+}
+
+/* ── HORIZONTAL BAR STATS ── */
+.bar-stat {
+  margin-bottom: 12px;
+}
+
+.bar-stat-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-bottom: 3px;
+}
+
+.bar-stat-label strong {
+  font-family: Consolas, monospace;
+  color: var(--text-primary);
+}
+
+.bar-track {
+  height: 6px;
+  background: var(--bg-input);
+}
+
+.bar-fill {
+  height: 100%;
+  transition: width 0.4s ease;
+}
+
+.bar-fill.blue { background: var(--electric-blue); }
+.bar-fill.green { background: var(--compliant-green); }
+.bar-fill.amber { background: var(--caution-amber); }
+.bar-fill.red { background: var(--alert-red); }
+
+/* ── COMPLIANCE CHECKLIST ── */
+.compliance-item {
+  padding: 14px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  margin-bottom: 8px;
+}
+
+.compliance-item h4 {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.compliance-item p {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+
+.compliance-options {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.compliance-options label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.compliance-options input[type="radio"] {
+  accent-color: var(--electric-blue);
+}
+
+.compliance-status-icon {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+.status-green { background: var(--compliant-green); }
+.status-amber { background: var(--caution-amber); }
+.status-red { background: var(--alert-red); }
+
+/* ── GRANT POOL DISPLAY ── */
+.grant-pool-box {
+  background: rgba(33,150,243,0.08);
+  border: 1px solid rgba(33,150,243,0.25);
+  padding: 12px 16px;
+  margin: 16px 0;
+}
+
+.grant-pool-box .pool-label {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--electric-blue);
+  margin-bottom: 4px;
+}
+
+.grant-pool-box .pool-value {
+  font-family: Consolas, monospace;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.grant-pool-box .pool-note {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  margin-top: 6px;
+}
+
+/* ── BUILDING ROW (Step 2 form) ── */
+.building-form-row {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  padding: 16px;
+  margin-bottom: 12px;
+  position: relative;
+}
+
+.building-form-row .bldg-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.building-form-row .bldg-num {
+  font-family: Consolas, monospace;
+  font-size: 0.7rem;
+  color: var(--electric-blue);
+  text-transform: uppercase;
+}
+
+.btn-remove-bldg {
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  cursor: pointer;
+  font-family: Consolas, monospace;
+}
+
+.btn-remove-bldg:hover { border-color: var(--alert-red); color: var(--alert-red); }
+
+.btn-add-building {
+  background: transparent;
+  border: 1px dashed var(--border-subtle);
+  color: var(--text-secondary);
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 12px;
+  width: 100%;
+  cursor: pointer;
+  margin-top: 4px;
+  transition: all 0.2s;
+}
+
+.btn-add-building:hover { border-color: var(--electric-blue); color: var(--electric-blue); }
+
+/* ── NAVIGATION BUTTONS ── */
+.nav-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 28px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* ── STEP 5 APPLICATION PREVIEW ── */
+.app-preview {
+  background: #fff;
+  color: #1c1c1e;
+  padding: 40px;
+  font-family: Calibri, sans-serif;
+  line-height: 1.6;
+  max-width: 850px;
+  margin: 0 auto;
+}
+
+.app-preview h2 {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: #1c1c1e;
+  border-bottom: 2px solid #1c1c1e;
+  padding-bottom: 4px;
+  margin: 24px 0 12px;
+}
+
+.app-preview h2:first-child { margin-top: 0; }
+
+.app-preview table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+  font-size: 0.85rem;
+}
+
+.app-preview table th {
+  background: #f0f0f0;
+  text-align: left;
+  padding: 6px 10px;
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.app-preview table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.app-preview [contenteditable] {
+  border: 1px dashed transparent;
+  padding: 2px 4px;
+  transition: border-color 0.2s;
+}
+
+.app-preview [contenteditable]:hover {
+  border-color: #ccc;
+}
+
+.app-preview [contenteditable]:focus {
+  border-color: var(--electric-blue);
+  outline: none;
+  background: #f8f9ff;
+}
+
+.app-preview .flag-text {
+  color: var(--alert-red);
+  font-weight: bold;
+}
+
+.app-preview .caution-text {
+  color: var(--caution-amber);
+  font-style: italic;
+}
+
+.app-header {
+  text-align: center;
+  padding-bottom: 20px;
+  border-bottom: 3px solid #1c1c1e;
+  margin-bottom: 24px;
+}
+
+.app-header h1 {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+}
+
+.app-header .app-sub {
+  font-size: 0.8rem;
+  color: #666;
+  margin-top: 4px;
+}
+
+.edit-hint {
+  font-family: Consolas, monospace;
+  font-size: 0.68rem;
+  color: var(--caution-amber);
+  text-align: center;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* ── FOOTER ── */
+.site-footer {
+  background: #141414;
+  border-top: 1px solid var(--border-subtle);
+  padding: 16px 24px;
+  text-align: center;
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  margin-top: 40px;
+  line-height: 1.6;
+}
+
+/* ── FLICKER ANIMATION ── */
+@keyframes monitor-on {
+  0% { opacity: 0; filter: brightness(2) saturate(0); }
+  30% { opacity: 0.6; filter: brightness(1.5) saturate(0.3); }
+  50% { opacity: 0.3; }
+  70% { opacity: 0.9; filter: brightness(1.1) saturate(0.8); }
+  100% { opacity: 1; filter: brightness(1) saturate(1); }
+}
+
+.flicker-in {
+  animation: monitor-on 0.5s ease forwards;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .landing-screen { grid-template-columns: 1fr; gap: 24px; padding: 20px 0; }
+  .split-layout { grid-template-columns: 1fr; }
+  .side-panel { position: static; max-height: none; }
+  .header-bar { flex-wrap: wrap; gap: 10px; }
+  .step-nav { order: 3; width: 100%; justify-content: center; }
+  .form-row, .form-row-3 { grid-template-columns: 1fr; }
+  .building-grid { grid-template-columns: 1fr; }
+  .hero-compliance .hero-number { font-size: 2rem; }
+  .filter-bar { flex-wrap: wrap; }
+  .app-preview { padding: 20px; }
+}
+
+/* ── PRINT ── */
+@media print {
+  body { background: #fff; color: #000; }
+  .header-bar, .filter-bar, .step-nav, .nav-buttons,
+  .landing-screen, .site-footer, .edit-hint,
+  .step-header-band, .side-panel { display: none !important; }
+  .step-panel { display: block !important; }
+  .step-panel:not(#step5) { display: none !important; }
+  #step5 { display: block !important; }
+  .app-preview {
+    max-width: 100%;
+    padding: 0;
+    box-shadow: none;
+  }
+  .app-preview h2 { page-break-after: avoid; }
+  .app-preview table { page-break-inside: avoid; }
+  .app-preview [contenteditable]:hover,
+  .app-preview [contenteditable]:focus {
+    border-color: transparent;
+    background: transparent;
+  }
+  @page { margin: 1in; }
+}
+
+/* ── LOCAL STORAGE BANNER ── */
+.restore-banner {
+  background: rgba(33,150,243,0.12);
+  border: 1px solid rgba(33,150,243,0.3);
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.restore-banner span {
+  font-size: 0.82rem;
+  color: var(--text-primary);
+}
+
+.restore-banner button {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 0.7rem;
+  padding: 5px 14px;
+  cursor: pointer;
+  border: none;
+  margin-left: 8px;
+}
+
+.restore-btn-yes { background: var(--electric-blue); color: #fff; }
+.restore-btn-no { background: var(--bg-input); color: var(--text-secondary); border: 1px solid var(--border-subtle); }
+
+/* ── MISC ── */
+.section-label {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text-secondary);
+  margin: 20px 0 10px;
+}
+
+.info-line {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-top: 6px;
+}
+
+.info-line strong { color: var(--text-primary); }
+
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- ═══ HEADER STATUS BAR ═══ -->
+<header class="header-bar">
+  <div class="header-left">
+    <div class="system-title">MN School Camera <span>Readiness</span></div>
+    <div class="live-indicator"><div class="live-dot"></div> SF4906 Grant Planner</div>
+  </div>
+  <nav class="step-nav" id="stepNav">
+    <button class="step-pill active" data-step="0">Start</button>
+    <button class="step-pill" data-step="1">1 Profile</button>
+    <button class="step-pill" data-step="2">2 Cameras</button>
+    <button class="step-pill" data-step="3">3 Safety</button>
+    <button class="step-pill" data-step="4">4 Privacy</button>
+    <button class="step-pill" data-step="5">5 Apply</button>
+  </nav>
+  <div class="header-right">
+    <div class="hero-compliance">
+      <div class="hero-number" id="heroCompliance">--</div>
+      <div class="hero-label">System Compliance</div>
+    </div>
+  </div>
+</header>
+
+<!-- ═══ FILTER BAR ═══ -->
+<div class="filter-bar" id="filterBar">
+  <label>Filters</label>
+  <button class="filter-toggle active" data-filter="all">All Buildings</button>
+  <button class="filter-toggle" data-filter="compliant">Compliant</button>
+  <button class="filter-toggle" data-filter="caution">Needs Work</button>
+  <button class="filter-toggle" data-filter="flagged">Flagged</button>
+  <div class="filter-sep"></div>
+  <button class="filter-toggle" data-filter="metro">Metro</button>
+  <button class="filter-toggle" data-filter="greater">Greater MN</button>
+</div>
+
+<!-- ═══ MAIN CONTENT ═══ -->
+<main class="main-content">
+
+  <!-- RESTORE BANNER (hidden by default) -->
+  <div class="restore-banner hidden" id="restoreBanner">
+    <span>Saved progress detected. Continue where you left off?</span>
+    <div>
+      <button class="restore-btn-yes" onclick="restoreState()">Continue</button>
+      <button class="restore-btn-no" onclick="dismissRestore()">Start Fresh</button>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 0: LANDING ═══ -->
+  <div class="step-panel active" id="step0">
+    <div class="landing-screen">
+      <div class="landing-left">
+        <h1>School Camera Readiness &amp; Grant Planner</h1>
+        <p class="subtitle">Senator Coleman's SF4906 created Minnesota's school safety video analytics grant program — targeting schools that already have cameras but lack the software to make them actively protective. This tool helps you answer every question that grant application will ask.</p>
+        <p class="sf-note">SF4906 // 94th Legislature (2025-2026) // Video Analytics Grant Program</p>
+        <div class="landing-buttons">
+          <button class="btn-primary" onclick="goToStep(1)">Start Assessment</button>
+          <button class="btn-secondary" onclick="loadExampleData()">Load Example Data</button>
+        </div>
+      </div>
+      <div class="step-preview-stack" id="stepPreviewStack">
+        <div class="step-preview-card">
+          <div class="step-num">01</div>
+          <div class="step-preview-info">
+            <div class="sp-title">District Profile</div>
+            <div class="sp-desc">School type, location, grant pool assignment</div>
+          </div>
+        </div>
+        <div class="step-preview-card">
+          <div class="step-num">02</div>
+          <div class="step-preview-info">
+            <div class="sp-title">Camera Infrastructure</div>
+            <div class="sp-desc">Building-by-building inventory and readiness scoring</div>
+          </div>
+        </div>
+        <div class="step-preview-card">
+          <div class="step-num">03</div>
+          <div class="step-preview-info">
+            <div class="sp-title">Safety Documentation</div>
+            <div class="sp-desc">Incident history, monitoring gaps, training readiness</div>
+          </div>
+        </div>
+        <div class="step-preview-card">
+          <div class="step-num">04</div>
+          <div class="step-preview-info">
+            <div class="sp-title">Privacy Compliance</div>
+            <div class="sp-desc">SF4906 data-privacy requirements checklist</div>
+          </div>
+        </div>
+        <div class="step-preview-card">
+          <div class="step-num">05</div>
+          <div class="step-preview-info">
+            <div class="sp-title">Grant Application</div>
+            <div class="sp-desc">Print-ready application package with editable narratives</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 1: DISTRICT PROFILE ═══ -->
+  <div class="step-panel" id="step1">
+    <div class="step-header-band">
+      <h2>Step 1 — District Profile</h2>
+      <p>Establish your school or district context for the SF4906 grant application.</p>
+    </div>
+
+    <div style="max-width: 700px;">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="districtName">School or District Name</label>
+          <input type="text" id="districtName" placeholder="e.g., Eastern Carver County Schools">
+        </div>
+        <div class="form-group">
+          <label for="cityZip">City / Zip Code</label>
+          <input type="text" id="cityZip" placeholder="e.g., Chaska, 55318">
+        </div>
+      </div>
+
+      <div class="form-row-3">
+        <div class="form-group">
+          <label for="schoolType">School Type</label>
+          <select id="schoolType">
+            <option value="">Select...</option>
+            <option value="public">Public K-12</option>
+            <option value="charter">Public Charter</option>
+            <option value="nonpublic">Nonpublic / Private</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="countySelect">County</label>
+          <select id="countySelect"></select>
+        </div>
+        <div class="form-group">
+          <label for="metroStatus">Metro / Greater MN</label>
+          <select id="metroStatus">
+            <option value="">Auto-detected...</option>
+            <option value="metro">Seven-County Metro</option>
+            <option value="greater">Greater Minnesota</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="totalBuildings">Total School Buildings</label>
+          <input type="number" id="totalBuildings" min="1" max="20" placeholder="e.g., 3">
+        </div>
+        <div class="form-group">
+          <label for="totalStudents">Total Enrolled Students</label>
+          <input type="number" id="totalStudents" min="0" placeholder="e.g., 2400">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="contactName">Safety Contact — Name</label>
+          <input type="text" id="contactName" placeholder="e.g., Jane Doe">
+        </div>
+        <div class="form-group">
+          <label for="contactRole">Safety Contact — Role</label>
+          <input type="text" id="contactRole" placeholder="e.g., Director of Facilities">
+        </div>
+      </div>
+
+      <div id="grantPoolDisplay" class="grant-pool-box hidden">
+        <div class="pool-label">Your Grant Pool</div>
+        <div class="pool-value" id="grantPoolValue"></div>
+        <div class="pool-note">SF4906 requires at minimum 3 grants per pool. Pools: Public Metro, Nonpublic Metro, Public Greater MN, Nonpublic Greater MN.</div>
+      </div>
+
+      <div class="section-label" style="margin-top: 20px;">SF4906 Grant Pool Structure</div>
+      <div style="font-size: 0.78rem; color: var(--text-secondary); line-height: 1.7;">
+        <strong style="color: var(--text-primary);">Public schools, metro area:</strong> minimum 3 grants<br>
+        <strong style="color: var(--text-primary);">Nonpublic schools, metro area:</strong> minimum 3 grants<br>
+        <strong style="color: var(--text-primary);">Public schools, greater MN:</strong> minimum 3 grants<br>
+        <strong style="color: var(--text-primary);">Nonpublic schools, greater MN:</strong> minimum 3 grants<br>
+        <span style="color: var(--text-muted);">Metro counties: Anoka, Carver, Dakota, Hennepin, Ramsey, Scott, Washington</span>
+      </div>
+    </div>
+
+    <div class="nav-buttons">
+      <button class="btn-secondary" onclick="goToStep(0)">Back</button>
+      <button class="btn-primary" onclick="goToStep(2)">Next: Camera Inventory</button>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 2: CAMERA INFRASTRUCTURE ═══ -->
+  <div class="step-panel" id="step2">
+    <div class="step-header-band">
+      <h2>Step 2 — Camera Infrastructure Inventory</h2>
+      <p>Enter camera details for each building. SF4906 requires applicants to demonstrate existing camera infrastructure.</p>
+    </div>
+
+    <div class="split-layout">
+      <div class="form-area">
+        <div id="buildingRows"></div>
+        <button class="btn-add-building" id="addBuildingBtn" onclick="addBuildingRow()">+ Add Building (max 8)</button>
+      </div>
+
+      <div class="side-panel">
+        <h3>Infrastructure Summary</h3>
+        <div class="score-display">
+          <div class="score-number" id="readinessScore">--</div>
+          <div class="score-bar-track"><div class="score-bar-fill" id="readinessBar" style="width:0"></div></div>
+          <div class="score-label">Analytics Readiness Score (0-100)</div>
+          <div class="score-interpretation" id="scoreInterpretation">Enter building data to calculate your readiness score.</div>
+        </div>
+
+        <div class="bar-stat">
+          <div class="bar-stat-label"><span>Total Cameras</span> <strong id="totalCamStat">0</strong></div>
+        </div>
+        <div class="bar-stat">
+          <div class="bar-stat-label"><span>IP / Networked</span> <strong id="ipCamPct">0%</strong></div>
+          <div class="bar-track"><div class="bar-fill blue" id="ipCamBar" style="width:0"></div></div>
+        </div>
+        <div class="bar-stat">
+          <div class="bar-stat-label"><span>Analog (Legacy)</span> <strong id="analogCamPct">0%</strong></div>
+          <div class="bar-track"><div class="bar-fill amber" id="analogCamBar" style="width:0"></div></div>
+        </div>
+
+        <div class="info-line" style="margin-top:16px;">
+          Note: The readiness score is a self-assessment guide. Actual eligibility is determined by the Commissioner of Education.
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-buttons">
+      <button class="btn-secondary" onclick="goToStep(1)">Back</button>
+      <button class="btn-primary" onclick="goToStep(3)">Next: Safety Docs</button>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 3: SAFETY NEED DOCUMENTATION ═══ -->
+  <div class="step-panel" id="step3">
+    <div class="step-header-band">
+      <h2>Step 3 — Safety Need Documentation</h2>
+      <p>SF4906 requires applicants to show "documented safety needs." Build that documentation here.</p>
+    </div>
+
+    <div class="split-layout">
+      <div class="form-area">
+        <!-- Section A -->
+        <div class="section-label">A — Incident History</div>
+        <div class="form-group">
+          <label>Has the school had documented safety incidents in the past 3 years?</label>
+          <select id="hasIncidents" onchange="toggleIncidentFields()">
+            <option value="">Select...</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+            <option value="prefer-not">Prefer not to state</option>
+          </select>
+        </div>
+
+        <div id="incidentDetails" class="hidden">
+          <div class="form-group">
+            <label>Incident Types (select all that apply)</label>
+            <div class="checkbox-group">
+              <label><input type="checkbox" name="incident" value="unauthorized_entry"> Unauthorized entry or attempted unauthorized entry</label>
+              <label><input type="checkbox" name="incident" value="threats"> Threats received (verbal, written, or digital)</label>
+              <label><input type="checkbox" name="incident" value="altercations"> Physical altercations requiring police response</label>
+              <label><input type="checkbox" name="incident" value="weapon"> Weapon on campus (confirmed or suspected)</label>
+              <label><input type="checkbox" name="incident" value="restraining"> Restraining order / person of concern enforcement</label>
+              <label><input type="checkbox" name="incident" value="other"> Other</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="incidentOther">If other, describe</label>
+            <input type="text" id="incidentOther" placeholder="Brief description">
+          </div>
+          <div class="form-group">
+            <label for="incidentCount">Approximate number of documented incidents</label>
+            <select id="incidentCount">
+              <option value="">Select...</option>
+              <option value="1-2">1-2</option>
+              <option value="3-5">3-5</option>
+              <option value="6-10">6-10</option>
+              <option value="10+">10+</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Section B -->
+        <div class="section-label">B — Current Monitoring Gaps</div>
+        <div class="form-group">
+          <label>Areas currently lacking adequate coverage</label>
+          <div class="checkbox-group">
+            <label><input type="checkbox" name="gap" value="after_hours"> After-hours building access points</label>
+            <label><input type="checkbox" name="gap" value="restricted"> Restricted access areas (server rooms, chemical storage)</label>
+            <label><input type="checkbox" name="gap" value="blind_spots"> Blind spots in hallways or stairwells</label>
+            <label><input type="checkbox" name="gap" value="bus"> Bus loading/unloading zones</label>
+            <label><input type="checkbox" name="gap" value="perimeter"> Perimeter entrances not currently staffed</label>
+            <label><input type="checkbox" name="gap" value="law_enforcement"> No current real-time camera feed to law enforcement</label>
+          </div>
+        </div>
+
+        <!-- Section C -->
+        <div class="section-label">C — Staff Training Readiness</div>
+        <div class="form-group">
+          <label>Training and readiness indicators</label>
+          <div class="checkbox-group">
+            <label><input type="checkbox" name="training" value="coordinator"> School has designated a safety coordinator or staff lead</label>
+            <label><input type="checkbox" name="training" value="vendor"> District has identified a vendor or system for analytics</label>
+            <label><input type="checkbox" name="training" value="budget"> Staff training budget has been estimated or allocated</label>
+            <label><input type="checkbox" name="training" value="law_liaison"> Law enforcement liaison identified for alert integration</label>
+          </div>
+        </div>
+
+        <div id="trainingNotes" style="margin-top: 8px;"></div>
+      </div>
+
+      <div class="side-panel">
+        <h3>Documentation Summary</h3>
+        <div class="bar-stat">
+          <div class="bar-stat-label"><span>Incident Status</span> <strong id="incidentSummary">--</strong></div>
+        </div>
+        <div class="bar-stat">
+          <div class="bar-stat-label"><span>Coverage Gaps Identified</span> <strong id="gapCount">0</strong></div>
+        </div>
+        <div class="bar-stat">
+          <div class="bar-stat-label"><span>Training Readiness</span> <strong id="trainingPct">0%</strong></div>
+          <div class="bar-track"><div class="bar-fill green" id="trainingBar" style="width:0"></div></div>
+        </div>
+        <div class="info-line" style="margin-top: 16px;">
+          The Commissioner evaluates documented safety needs and training readiness as competitive factors.
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-buttons">
+      <button class="btn-secondary" onclick="goToStep(2)">Back</button>
+      <button class="btn-primary" onclick="goToStep(4)">Next: Privacy Check</button>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 4: PRIVACY COMPLIANCE ═══ -->
+  <div class="step-panel" id="step4">
+    <div class="step-header-band">
+      <h2>Step 4 — Privacy Compliance Checklist</h2>
+      <p>SF4906 includes specific data-privacy requirements. Walk through each one.</p>
+    </div>
+
+    <div style="max-width: 800px;">
+      <div class="compliance-item" data-req="0">
+        <h4><span class="compliance-status-icon" id="reqIcon0"></span> Requirement 1: Facial Image Masking by Default</h4>
+        <p>Does your proposed analytics system employ facial image masking by default for general monitoring, with masking disabled only for documented security purposes under written policy?</p>
+        <div class="compliance-options">
+          <label><input type="radio" name="req0" value="compliant" onchange="updateCompliance()"> Yes — compliant</label>
+          <label><input type="radio" name="req0" value="caution" onchange="updateCompliance()"> Uncertain — needs vendor verification</label>
+          <label><input type="radio" name="req0" value="flag" onchange="updateCompliance()"> No — flag raised</label>
+        </div>
+      </div>
+
+      <div class="compliance-item" data-req="1">
+        <h4><span class="compliance-status-icon" id="reqIcon1"></span> Requirement 2: Facial Recognition Scope Limitation</h4>
+        <p>If facial recognition is used, is it limited to narrowly defined, high-risk watch lists governed by written policy approved by district administration?</p>
+        <div class="compliance-options">
+          <label><input type="radio" name="req1" value="compliant" onchange="updateCompliance()"> Yes — compliant</label>
+          <label><input type="radio" name="req1" value="compliant" onchange="updateCompliance()"> We do not plan to use facial recognition</label>
+          <label><input type="radio" name="req1" value="caution" onchange="updateCompliance()"> Uncertain</label>
+          <label><input type="radio" name="req1" value="flag" onchange="updateCompliance()"> No</label>
+        </div>
+      </div>
+
+      <div class="compliance-item" data-req="2">
+        <h4><span class="compliance-status-icon" id="reqIcon2"></span> Requirement 3: State and Federal Privacy Law</h4>
+        <p>Has your district confirmed that the proposed system complies with FERPA, MN Government Data Practices Act, and applicable state education data law?</p>
+        <div class="compliance-options">
+          <label><input type="radio" name="req2" value="compliant" onchange="updateCompliance()"> Yes, legal counsel reviewed</label>
+          <label><input type="radio" name="req2" value="caution" onchange="updateCompliance()"> In progress</label>
+          <label><input type="radio" name="req2" value="flag" onchange="updateCompliance()"> Not yet addressed</label>
+        </div>
+      </div>
+
+      <div class="compliance-item" data-req="3">
+        <h4><span class="compliance-status-icon" id="reqIcon3"></span> Requirement 4: Data Retention Policy</h4>
+        <p>Does your district have a written policy governing how long video analytics data is retained and who has access to it?</p>
+        <div class="compliance-options">
+          <label><input type="radio" name="req3" value="compliant" onchange="updateCompliance()"> Yes, existing policy covers this</label>
+          <label><input type="radio" name="req3" value="caution" onchange="updateCompliance()"> Will adopt new policy</label>
+          <label><input type="radio" name="req3" value="flag" onchange="updateCompliance()"> Not yet addressed</label>
+        </div>
+      </div>
+
+      <div class="compliance-item" data-req="4">
+        <h4><span class="compliance-status-icon" id="reqIcon4"></span> Requirement 5: Existing Infrastructure Priority</h4>
+        <p>Does your application prioritize the use of existing camera infrastructure rather than purchasing new camera hardware?</p>
+        <div class="compliance-options">
+          <label><input type="radio" name="req4" value="compliant" onchange="updateCompliance()"> Yes — primary use case</label>
+          <label><input type="radio" name="req4" value="caution" onchange="updateCompliance()"> Mostly, with some hardware additions</label>
+          <label><input type="radio" name="req4" value="flag" onchange="updateCompliance()"> Primarily new hardware</label>
+        </div>
+        <p class="info-line" style="margin-top:8px;">SF4906 explicitly restricts grants from funding new camera hardware "except where necessary to integrate with existing camera systems." A primarily new-hardware application is unlikely to be competitive.</p>
+      </div>
+
+      <!-- Compliance Summary -->
+      <div style="margin-top: 20px; padding: 16px; background: var(--bg-panel); border: 1px solid var(--border-subtle);">
+        <div class="section-label" style="margin-top:0;">Compliance Summary</div>
+        <div style="display: flex; gap: 24px; margin-top: 8px;">
+          <div>
+            <span class="compliance-status-icon status-green"></span>
+            <span style="font-family: Consolas, monospace; font-size: 1.2rem;" id="compGreenCount">0</span>
+            <span style="font-size: 0.75rem; color: var(--text-secondary);"> Compliant</span>
+          </div>
+          <div>
+            <span class="compliance-status-icon status-amber"></span>
+            <span style="font-family: Consolas, monospace; font-size: 1.2rem;" id="compAmberCount">0</span>
+            <span style="font-size: 0.75rem; color: var(--text-secondary);"> Needs Clarification</span>
+          </div>
+          <div>
+            <span class="compliance-status-icon status-red"></span>
+            <span style="font-family: Consolas, monospace; font-size: 1.2rem;" id="compRedCount">0</span>
+            <span style="font-size: 0.75rem; color: var(--text-secondary);"> Flagged</span>
+          </div>
+        </div>
+        <div class="info-line" id="compSummaryText" style="margin-top: 10px;"></div>
+      </div>
+    </div>
+
+    <div class="nav-buttons">
+      <button class="btn-secondary" onclick="goToStep(3)">Back</button>
+      <button class="btn-primary" onclick="generateApplication(); goToStep(5);">Generate Application</button>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 5: GRANT APPLICATION ═══ -->
+  <div class="step-panel" id="step5">
+    <div class="step-header-band">
+      <h2>Step 5 — Grant Application Package</h2>
+      <p>Review and edit the auto-generated application. All text blocks are editable — click to modify before printing.</p>
+    </div>
+
+    <div class="edit-hint">Click any text block to edit before printing</div>
+
+    <div class="app-preview" id="appPreview">
+      <!-- Populated by JS -->
+    </div>
+
+    <div class="nav-buttons">
+      <button class="btn-secondary" onclick="goToStep(4)">Back</button>
+      <button class="btn-primary" onclick="window.print()">Print Application</button>
+    </div>
+  </div>
+
+</main>
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="site-footer">
+  A resource for Minnesota schools applying under SF4906. Built with AI.<br>
+  Reflects SF4906 as introduced in the 94th Legislature (2025-2026). Consult your district's legal counsel and the Minnesota Department of Education for official guidance.
+  <!-- VERIFY: SF4906 bill text details are drawn from software brief; verify against official legislative text -->
+</footer>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   STATE & CONSTANTS
+   ══════════════════════════════════════════════════════════════ */
+const METRO_COUNTIES = ['Anoka','Carver','Dakota','Hennepin','Ramsey','Scott','Washington'];
+const MN_COUNTIES = ['Aitkin','Anoka','Becker','Beltrami','Benton','Big Stone','Blue Earth','Brown','Carlton','Carver','Cass','Chippewa','Chisago','Clay','Clearwater','Cook','Cottonwood','Crow Wing','Dakota','Dodge','Douglas','Faribault','Fillmore','Freeborn','Goodhue','Grant','Hennepin','Houston','Hubbard','Isanti','Itasca','Jackson','Kanabec','Kandiyohi','Kittson','Koochiching','Lac qui Parle','Lake','Lake of the Woods','Le Sueur','Lincoln','Lyon','Mahnomen','Marshall','Martin','McLeod','Meeker','Mille Lacs','Morrison','Mower','Murray','Nicollet','Nobles','Norman','Olmsted','Otter Tail','Pennington','Pine','Pipestone','Polk','Pope','Ramsey','Red Lake','Redwood','Renville','Rice','Rock','Roseau','Scott','Sherburne','Sibley','St. Louis','Stearns','Steele','Stevens','Swift','Todd','Traverse','Wabasha','Wadena','Waseca','Washington','Watonwan','Wilkin','Winona','Wright','Yellow Medicine'];
+const STORAGE_KEY = 'coleman_sf4906_state';
+
+let currentStep = 0;
+let completedSteps = new Set();
+let buildingCount = 0;
+
+const complianceLabels = [
+  'Facial Image Masking by Default',
+  'Facial Recognition Scope Limitation',
+  'State and Federal Privacy Law',
+  'Data Retention Policy',
+  'Existing Infrastructure Priority'
+];
+
+/* ══════════════════════════════════════════════════════════════
+   ENTRY ANIMATION — cards flicker on like monitors
+   ══════════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  const cards = document.querySelectorAll('.step-preview-card');
+  const interval = 2000 / cards.length;
+  cards.forEach((card, i) => {
+    setTimeout(() => {
+      card.classList.add('visible');
+      card.classList.add('flicker-in');
+    }, i * interval);
+  });
+
+  // Populate county dropdown
+  const countyEl = document.getElementById('countySelect');
+  countyEl.innerHTML = '<option value="">Select county...</option>' + MN_COUNTIES.map(c => `<option value="${c}">${c}</option>`).join('');
+
+  // Check localStorage
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    document.getElementById('restoreBanner').classList.remove('hidden');
+  }
+
+  // Auto-detect metro status on county change
+  document.getElementById('countySelect').addEventListener('change', function() {
+    const county = this.value;
+    if (county) {
+      const metro = METRO_COUNTIES.includes(county) ? 'metro' : 'greater';
+      document.getElementById('metroStatus').value = metro;
+      updateGrantPool();
+    }
+  });
+
+  document.getElementById('schoolType').addEventListener('change', updateGrantPool);
+  document.getElementById('metroStatus').addEventListener('change', updateGrantPool);
+
+  // Add first building row
+  addBuildingRow();
+
+  // Listen for training checkbox changes
+  document.querySelectorAll('input[name="training"]').forEach(cb => {
+    cb.addEventListener('change', updateStep3Summary);
+  });
+  document.querySelectorAll('input[name="gap"]').forEach(cb => {
+    cb.addEventListener('change', updateStep3Summary);
+  });
+  document.getElementById('hasIncidents').addEventListener('change', updateStep3Summary);
+
+  // Filter bar
+  document.querySelectorAll('.filter-toggle').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.filter-toggle').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+});
+
+/* ══════════════════════════════════════════════════════════════
+   NAVIGATION
+   ══════════════════════════════════════════════════════════════ */
+function goToStep(n) {
+  // Mark current as complete if moving forward
+  if (n > currentStep && currentStep > 0) {
+    completedSteps.add(currentStep);
+  }
+
+  currentStep = n;
+
+  // Update panels
+  document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('step' + n).classList.add('active');
+
+  // Update pills
+  document.querySelectorAll('.step-pill').forEach(pill => {
+    const s = parseInt(pill.dataset.step);
+    pill.classList.remove('active', 'complete');
+    if (s === n) pill.classList.add('active');
+    else if (completedSteps.has(s)) pill.classList.add('complete');
+  });
+
+  // Save state
+  saveState();
+
+  // Update hero compliance
+  updateHeroCompliance();
+
+  // Scroll to top
+  window.scrollTo(0, 0);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   GRANT POOL
+   ══════════════════════════════════════════════════════════════ */
+function updateGrantPool() {
+  const type = document.getElementById('schoolType').value;
+  const metro = document.getElementById('metroStatus').value;
+  const display = document.getElementById('grantPoolDisplay');
+  const value = document.getElementById('grantPoolValue');
+
+  if (type && metro) {
+    display.classList.remove('hidden');
+    const typeLabel = (type === 'nonpublic') ? 'Nonpublic' : 'Public';
+    const metroLabel = (metro === 'metro') ? 'Metro Area' : 'Greater Minnesota';
+    value.textContent = typeLabel + ' — ' + metroLabel + ' (minimum 3 grants in this pool)';
+  } else {
+    display.classList.add('hidden');
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   STEP 2: BUILDING ROWS
+   ══════════════════════════════════════════════════════════════ */
+function addBuildingRow(data) {
+  if (buildingCount >= 8) return;
+  const idx = buildingCount;
+  buildingCount++;
+
+  const container = document.getElementById('buildingRows');
+  const row = document.createElement('div');
+  row.className = 'building-form-row';
+  row.dataset.building = idx;
+  row.id = 'bldg_' + idx;
+
+  const d = data || {};
+
+  row.innerHTML = `
+    <div class="bldg-header">
+      <span class="bldg-num">Building ${idx + 1}</span>
+      ${idx > 0 ? `<button class="btn-remove-bldg" onclick="removeBuildingRow(${idx})">Remove</button>` : ''}
+    </div>
+    <div class="form-row-3">
+      <div class="form-group">
+        <label>Building Name</label>
+        <input type="text" data-field="name" value="${d.name || ''}" placeholder="e.g., Lincoln Elementary" onchange="recalcScore()">
+      </div>
+      <div class="form-group">
+        <label>IP/Networked Cameras</label>
+        <input type="number" data-field="ip_cameras" min="0" value="${d.ip_cameras || ''}" placeholder="0" onchange="recalcScore()" oninput="recalcScore()">
+      </div>
+      <div class="form-group">
+        <label>Analog Cameras</label>
+        <input type="number" data-field="analog_cameras" min="0" value="${d.analog_cameras || ''}" placeholder="0" onchange="recalcScore()" oninput="recalcScore()">
+      </div>
+    </div>
+    <div class="form-row-3">
+      <div class="form-group">
+        <label>Camera System / NVR</label>
+        <input type="text" data-field="system" value="${d.system || ''}" placeholder="e.g., Genetec, Milestone" onchange="recalcScore()">
+      </div>
+      <div class="form-group">
+        <label>Camera Age</label>
+        <select data-field="age" onchange="recalcScore()">
+          <option value="">Select...</option>
+          <option value="0-3" ${d.age==='0-3'?'selected':''}>Less than 3 years</option>
+          <option value="3-7" ${d.age==='3-7'?'selected':''}>3-7 years</option>
+          <option value="7-12" ${d.age==='7-12'?'selected':''}>7-12 years</option>
+          <option value="12+" ${d.age==='12+'?'selected':''}>12+ years</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Network Connection</label>
+        <select data-field="network" onchange="recalcScore()">
+          <option value="">Select...</option>
+          <option value="fiber" ${d.network==='fiber'?'selected':''}>Dedicated fiber / LAN</option>
+          <option value="shared" ${d.network==='shared'?'selected':''}>Shared LAN</option>
+          <option value="cellular" ${d.network==='cellular'?'selected':''}>Cellular / wireless</option>
+          <option value="none" ${d.network==='none'?'selected':''}>No network connection</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Current Monitoring</label>
+        <select data-field="monitoring" onchange="recalcScore()">
+          <option value="">Select...</option>
+          <option value="fulltime" ${d.monitoring==='fulltime'?'selected':''}>Full-time security desk</option>
+          <option value="remote" ${d.monitoring==='remote'?'selected':''}>Remote monitoring service</option>
+          <option value="parttime" ${d.monitoring==='parttime'?'selected':''}>Part-time monitoring</option>
+          <option value="recorded" ${d.monitoring==='recorded'?'selected':''}>Recorded only</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Coverage Gaps</label>
+        <div class="checkbox-group" style="flex-direction:row; flex-wrap:wrap; gap:4px 12px;">
+          <label style="font-size:0.78rem;"><input type="checkbox" data-field="gap_exterior" ${d.gap_exterior?'checked':''}> Ext. entrances</label>
+          <label style="font-size:0.78rem;"><input type="checkbox" data-field="gap_parking" ${d.gap_parking?'checked':''}> Parking</label>
+          <label style="font-size:0.78rem;"><input type="checkbox" data-field="gap_hallways" ${d.gap_hallways?'checked':''}> Hallways</label>
+          <label style="font-size:0.78rem;"><input type="checkbox" data-field="gap_cafeteria" ${d.gap_cafeteria?'checked':''}> Cafeteria</label>
+          <label style="font-size:0.78rem;"><input type="checkbox" data-field="gap_gym" ${d.gap_gym?'checked':''}> Gym</label>
+          <label style="font-size:0.78rem;"><input type="checkbox" data-field="gap_bus" ${d.gap_bus?'checked':''}> Bus loading</label>
+        </div>
+      </div>
+    </div>
+  `;
+
+  container.appendChild(row);
+
+  if (buildingCount >= 8) {
+    document.getElementById('addBuildingBtn').style.display = 'none';
+  }
+
+  recalcScore();
+}
+
+function removeBuildingRow(idx) {
+  const row = document.getElementById('bldg_' + idx);
+  if (row) row.remove();
+  recalcScore();
+}
+
+function getBuildingData() {
+  const rows = document.querySelectorAll('.building-form-row');
+  const buildings = [];
+  rows.forEach(row => {
+    const get = (field) => {
+      const el = row.querySelector(`[data-field="${field}"]`);
+      return el ? (el.type === 'checkbox' ? el.checked : el.value) : '';
+    };
+    buildings.push({
+      name: get('name'),
+      ip_cameras: parseInt(get('ip_cameras')) || 0,
+      analog_cameras: parseInt(get('analog_cameras')) || 0,
+      system: get('system'),
+      age: get('age'),
+      network: get('network'),
+      monitoring: get('monitoring'),
+      gap_exterior: get('gap_exterior'),
+      gap_parking: get('gap_parking'),
+      gap_hallways: get('gap_hallways'),
+      gap_cafeteria: get('gap_cafeteria'),
+      gap_gym: get('gap_gym'),
+      gap_bus: get('gap_bus')
+    });
+  });
+  return buildings;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   READINESS SCORE CALCULATION
+   ══════════════════════════════════════════════════════════════ */
+function recalcScore() {
+  const buildings = getBuildingData();
+  let totalIP = 0, totalAnalog = 0;
+  let networkWeighted = 0, ageWeighted = 0, monitoringSum = 0;
+  let totalCams = 0, bldgWithCams = 0;
+
+  const networkMap = { fiber: 1.0, shared: 0.6, cellular: 0.3, none: 0.0 };
+  const ageMap = { '0-3': 1.0, '3-7': 0.7, '7-12': 0.35, '12+': 0.0 };
+  const monMap = { fulltime: 1.0, remote: 0.8, parttime: 0.6, recorded: 0.2 };
+
+  buildings.forEach(b => {
+    const cams = b.ip_cameras + b.analog_cameras;
+    totalIP += b.ip_cameras;
+    totalAnalog += b.analog_cameras;
+    totalCams += cams;
+    if (cams > 0) {
+      bldgWithCams++;
+      networkWeighted += (networkMap[b.network] || 0) * cams;
+      ageWeighted += (ageMap[b.age] || 0) * cams;
+    }
+    monitoringSum += (monMap[b.monitoring] || 0);
+  });
+
+  const networkedPct = totalCams > 0 ? (totalIP / totalCams) * 100 : 0;
+  const networkPts = totalCams > 0 ? (networkWeighted / totalCams) : 0;
+  const agePts = totalCams > 0 ? (ageWeighted / totalCams) : 0;
+  const monPts = buildings.length > 0 ? (monitoringSum / buildings.length) : 0;
+
+  const score = Math.round(networkedPct * 0.40 + networkPts * 20 + agePts * 20 + monPts * 20);
+  const finalScore = Math.max(0, Math.min(100, score));
+
+  // Update display
+  document.getElementById('readinessScore').textContent = totalCams > 0 ? finalScore : '--';
+  document.getElementById('readinessBar').style.width = totalCams > 0 ? finalScore + '%' : '0';
+
+  const barFill = document.getElementById('readinessBar');
+  if (finalScore >= 75) barFill.style.background = 'var(--compliant-green)';
+  else if (finalScore >= 50) barFill.style.background = 'var(--electric-blue)';
+  else if (finalScore >= 25) barFill.style.background = 'var(--caution-amber)';
+  else barFill.style.background = 'var(--alert-red)';
+
+  let interp = 'Enter building data to calculate your readiness score.';
+  if (totalCams > 0) {
+    if (finalScore >= 75) interp = 'Strong candidate. Existing infrastructure is well-suited for analytics overlay.';
+    else if (finalScore >= 50) interp = 'Viable candidate. Some integration work likely needed.';
+    else if (finalScore >= 25) interp = 'Possible candidate. Significant compatibility assessment recommended before applying.';
+    else interp = 'Infrastructure upgrade likely required before analytics layer is viable.';
+  }
+  document.getElementById('scoreInterpretation').textContent = interp;
+
+  // Stats
+  document.getElementById('totalCamStat').textContent = totalCams;
+  const ipPct = totalCams > 0 ? Math.round((totalIP / totalCams) * 100) : 0;
+  document.getElementById('ipCamPct').textContent = ipPct + '%';
+  document.getElementById('ipCamBar').style.width = ipPct + '%';
+  document.getElementById('analogCamPct').textContent = (100 - ipPct) + '%';
+  document.getElementById('analogCamBar').style.width = (100 - ipPct) + '%';
+
+  updateHeroCompliance();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   STEP 3 SUMMARY
+   ══════════════════════════════════════════════════════════════ */
+function toggleIncidentFields() {
+  const val = document.getElementById('hasIncidents').value;
+  document.getElementById('incidentDetails').classList.toggle('hidden', val !== 'yes');
+  updateStep3Summary();
+}
+
+function updateStep3Summary() {
+  const hasInc = document.getElementById('hasIncidents').value;
+  document.getElementById('incidentSummary').textContent =
+    hasInc === 'yes' ? 'Documented' : hasInc === 'no' ? 'None reported' : hasInc === 'prefer-not' ? 'Declined' : '--';
+
+  const gaps = document.querySelectorAll('input[name="gap"]:checked').length;
+  document.getElementById('gapCount').textContent = gaps;
+
+  const training = document.querySelectorAll('input[name="training"]');
+  const checked = document.querySelectorAll('input[name="training"]:checked').length;
+  const pct = Math.round((checked / training.length) * 100);
+  document.getElementById('trainingPct').textContent = pct + '%';
+  document.getElementById('trainingBar').style.width = pct + '%';
+
+  // Training notes
+  const notesEl = document.getElementById('trainingNotes');
+  const unchecked = [];
+  training.forEach(cb => {
+    if (!cb.checked) {
+      const label = cb.parentElement.textContent.trim();
+      unchecked.push(label);
+    }
+  });
+  if (unchecked.length > 0 && checked > 0) {
+    notesEl.innerHTML = '<p class="info-line" style="color: var(--caution-amber);">Consider addressing before submission: ' + unchecked.join('; ') + '.</p>';
+  } else {
+    notesEl.innerHTML = '';
+  }
+
+  updateHeroCompliance();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   STEP 4: COMPLIANCE
+   ══════════════════════════════════════════════════════════════ */
+function updateCompliance() {
+  let green = 0, amber = 0, red = 0;
+  for (let i = 0; i < 5; i++) {
+    const selected = document.querySelector(`input[name="req${i}"]:checked`);
+    const icon = document.getElementById('reqIcon' + i);
+    icon.className = 'compliance-status-icon';
+    if (selected) {
+      const val = selected.value;
+      if (val === 'compliant') { green++; icon.classList.add('status-green'); }
+      else if (val === 'caution') { amber++; icon.classList.add('status-amber'); }
+      else if (val === 'flag') { red++; icon.classList.add('status-red'); }
+    }
+  }
+  document.getElementById('compGreenCount').textContent = green;
+  document.getElementById('compAmberCount').textContent = amber;
+  document.getElementById('compRedCount').textContent = red;
+
+  let summary = '';
+  const answered = green + amber + red;
+  if (answered > 0) {
+    summary = `Your application has ${green} item${green !== 1 ? 's' : ''} that appear${green === 1 ? 's' : ''} compliant`;
+    if (amber > 0) summary += `, ${amber} that need${amber === 1 ? 's' : ''} clarification before submission`;
+    if (red > 0) summary += `, and ${red} that may disqualify the application as currently structured`;
+    summary += '.';
+  }
+  document.getElementById('compSummaryText').textContent = summary;
+
+  updateHeroCompliance();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   HERO COMPLIANCE DISPLAY
+   ══════════════════════════════════════════════════════════════ */
+function updateHeroCompliance() {
+  const el = document.getElementById('heroCompliance');
+  // Combine readiness score and compliance for an overall figure
+  let answered = 0, green = 0;
+  for (let i = 0; i < 5; i++) {
+    const selected = document.querySelector(`input[name="req${i}"]:checked`);
+    if (selected) {
+      answered++;
+      if (selected.value === 'compliant') green++;
+    }
+  }
+
+  if (answered === 0) {
+    el.textContent = '--';
+    return;
+  }
+
+  const pct = Math.round((green / 5) * 100);
+  el.textContent = pct + '%';
+
+  if (pct >= 80) el.style.color = 'var(--compliant-green)';
+  else if (pct >= 40) el.style.color = 'var(--electric-blue)';
+  else el.style.color = 'var(--alert-red)';
+}
+
+/* ══════════════════════════════════════════════════════════════
+   STEP 5: APPLICATION GENERATOR
+   ══════════════════════════════════════════════════════════════ */
+function generateApplication() {
+  const distName = document.getElementById('districtName').value || '[School/District Name]';
+  const city = document.getElementById('cityZip').value || '[City]';
+  const typeEl = document.getElementById('schoolType');
+  const typeLabel = typeEl.selectedIndex > 0 ? typeEl.options[typeEl.selectedIndex].text : '[School Type]';
+  const metro = document.getElementById('metroStatus').value;
+  const metroLabel = metro === 'metro' ? 'Seven-County Metro' : metro === 'greater' ? 'Greater Minnesota' : '[Region]';
+  const pool = (typeEl.value === 'nonpublic' ? 'Nonpublic' : 'Public') + ' — ' + metroLabel;
+  const contact = document.getElementById('contactName').value || '[Contact Name]';
+  const role = document.getElementById('contactRole').value || '[Role]';
+  const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+  const buildings = getBuildingData();
+  let totalIP = 0, totalAnalog = 0;
+  buildings.forEach(b => { totalIP += b.ip_cameras; totalAnalog += b.analog_cameras; });
+  const totalCams = totalIP + totalAnalog;
+  const ipPct = totalCams > 0 ? Math.round((totalIP / totalCams) * 100) : 0;
+  const primarySystem = buildings.length > 0 && buildings[0].system ? buildings[0].system : '[camera system]';
+
+  // Readiness score
+  const scoreEl = document.getElementById('readinessScore').textContent;
+
+  // Incidents
+  const hasInc = document.getElementById('hasIncidents').value;
+  const incidentTypes = [];
+  document.querySelectorAll('input[name="incident"]:checked').forEach(cb => {
+    incidentTypes.push(cb.parentElement.textContent.trim());
+  });
+  const incCount = document.getElementById('incidentCount') ? document.getElementById('incidentCount').value : '';
+
+  // Gaps
+  const gaps = [];
+  document.querySelectorAll('input[name="gap"]:checked').forEach(cb => {
+    gaps.push(cb.parentElement.textContent.trim().toLowerCase());
+  });
+
+  // Training
+  const trainingItems = [];
+  const trainingTodo = [];
+  document.querySelectorAll('input[name="training"]').forEach(cb => {
+    const label = cb.parentElement.textContent.trim();
+    if (cb.checked) trainingItems.push(label);
+    else trainingTodo.push(label);
+  });
+
+  // Compliance
+  const compStatements = [];
+  for (let i = 0; i < 5; i++) {
+    const selected = document.querySelector(`input[name="req${i}"]:checked`);
+    let status = 'unanswered', val = '';
+    if (selected) {
+      val = selected.value;
+      status = val;
+    }
+    compStatements.push({ label: complianceLabels[i], status: status });
+  }
+
+  // Build table rows
+  let tableRows = '';
+  buildings.forEach(b => {
+    if (b.name || b.ip_cameras || b.analog_cameras) {
+      const ageLabels = {'0-3':'<3 yr','3-7':'3-7 yr','7-12':'7-12 yr','12+':'12+ yr'};
+      const netLabels = {fiber:'Dedicated',shared:'Shared LAN',cellular:'Cellular',none:'None'};
+      tableRows += `<tr>
+        <td>${b.name || '--'}</td>
+        <td>${b.ip_cameras}</td>
+        <td>${b.analog_cameras}</td>
+        <td>${b.system || '--'}</td>
+        <td>${netLabels[b.network] || '--'}</td>
+        <td>${ageLabels[b.age] || '--'}</td>
+      </tr>`;
+    }
+  });
+
+  // Safety narrative
+  let safetyNarrative = '';
+  if (hasInc === 'yes' && incidentTypes.length > 0) {
+    safetyNarrative = `${distName} has documented ${incCount || 'multiple'} safety incidents in the past three years, including ${incidentTypes.join('; ').toLowerCase()}. These incidents have identified gaps in the district's ability to provide real-time detection and law enforcement alerting.`;
+  } else if (hasInc === 'no') {
+    const gapText = gaps.length > 0 ? gaps.join(', ') : 'multiple areas';
+    safetyNarrative = `While ${distName} has not experienced documented incidents requiring police response in the reporting period, systematic coverage gaps have been identified at ${gapText} that present preventable risk.`;
+  } else {
+    safetyNarrative = `${distName} has identified coverage gaps and monitoring limitations that the proposed analytics system would address. [Expand this narrative with district-specific details.]`;
+  }
+
+  // Compliance section
+  let compHTML = '';
+  compStatements.forEach(c => {
+    if (c.status === 'compliant') {
+      compHTML += `<p>${c.label}: <strong>Compliant.</strong> The district affirms compliance with this requirement.</p>`;
+    } else if (c.status === 'caution') {
+      compHTML += `<p class="caution-text">${c.label}: District is in process of confirming compliance with this requirement.</p>`;
+    } else if (c.status === 'flag') {
+      compHTML += `<p class="flag-text">${c.label}: This requirement has not yet been addressed — do not submit until resolved.</p>`;
+    } else {
+      compHTML += `<p>${c.label}: [Not yet assessed]</p>`;
+    }
+  });
+
+  // Training section
+  let trainingHTML = '';
+  trainingItems.forEach(t => { trainingHTML += `<p><strong>Completed:</strong> ${t}</p>`; });
+  trainingTodo.forEach(t => { trainingHTML += `<p style="color:#888;"><em>[To be completed prior to submission]</em> ${t}</p>`; });
+
+  const html = `
+    <div class="app-header">
+      <h1>SF4906 Grant Application — Video Analytics for School Safety</h1>
+      <div class="app-sub">State of Minnesota — Department of Education — 94th Legislature (2025-2026)</div>
+    </div>
+
+    <h2>Section 1 — Applicant Information</h2>
+    <table>
+      <tr><td style="width:200px;font-weight:bold;">School/District</td><td contenteditable="true">${distName}</td></tr>
+      <tr><td style="font-weight:bold;">City</td><td contenteditable="true">${city}</td></tr>
+      <tr><td style="font-weight:bold;">School Type</td><td>${typeLabel}</td></tr>
+      <tr><td style="font-weight:bold;">Grant Pool</td><td>${pool}</td></tr>
+      <tr><td style="font-weight:bold;">Primary Contact</td><td contenteditable="true">${contact}, ${role}</td></tr>
+      <tr><td style="font-weight:bold;">Date Prepared</td><td>${today}</td></tr>
+    </table>
+
+    <h2>Section 2 — Existing Camera Infrastructure Summary</h2>
+    <table>
+      <tr><th>Building</th><th>IP Cameras</th><th>Analog</th><th>System</th><th>Network</th><th>Age</th></tr>
+      ${tableRows || '<tr><td colspan="6">[No building data entered]</td></tr>'}
+    </table>
+    <div contenteditable="true" style="margin-top:12px; line-height:1.7;">
+      <p>The ${distName} currently operates ${totalCams} cameras across ${buildings.length} building${buildings.length !== 1 ? 's' : ''}, of which ${ipPct}% are IP-networked and managed through ${primarySystem}. The existing infrastructure provides a foundation for analytics software integration without requiring significant new camera hardware.</p>
+      <p><strong>Analytics Readiness Score: ${scoreEl}/100</strong></p>
+    </div>
+
+    <h2>Section 3 — Documented Safety Need</h2>
+    <div contenteditable="true" style="line-height:1.7;">
+      <p>${safetyNarrative}</p>
+      ${gaps.length > 0 ? `<p>Current monitoring gaps include: ${gaps.join(', ')}.</p>` : ''}
+    </div>
+
+    <h2>Section 4 — Proposed Use of Grant Funds</h2>
+    <div contenteditable="true" style="line-height:1.7;">
+      <p>Grant funds would be applied to software licensing, system integration, and staff training for a video analytics overlay on the district's existing ${primarySystem} camera infrastructure. Specifically: software licensing for analytics capabilities; integration labor to connect analytics platform to existing cameras; and staff training for monitoring and alert response — as permitted under Minnesota Statutes pursuant to SF4906.</p>
+    </div>
+
+    <h2>Section 5 — Staff Training Plan</h2>
+    <div contenteditable="true" style="line-height:1.7;">
+      ${trainingHTML || '<p>[Enter training readiness information in Step 3]</p>'}
+    </div>
+
+    <h2>Section 6 — Privacy Compliance Attestation</h2>
+    <div contenteditable="true" style="line-height:1.7;">
+      ${compHTML}
+    </div>
+
+    <h2>Section 7 — Local Contribution and Sustainability</h2>
+    <div contenteditable="true" style="line-height:1.7; min-height:60px;">
+      <p>[Describe any local funding, in-kind contributions, or existing vendor relationships that reduce the grant request. If none, note the district's commitment to sustaining the system beyond the grant period.]</p>
+    </div>
+  `;
+
+  document.getElementById('appPreview').innerHTML = html;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   LOCAL STORAGE
+   ══════════════════════════════════════════════════════════════ */
+function saveState() {
+  try {
+    const state = {
+      step: currentStep,
+      completed: Array.from(completedSteps),
+      districtName: document.getElementById('districtName').value,
+      cityZip: document.getElementById('cityZip').value,
+      schoolType: document.getElementById('schoolType').value,
+      countySelect: document.getElementById('countySelect').value,
+      metroStatus: document.getElementById('metroStatus').value,
+      totalBuildings: document.getElementById('totalBuildings').value,
+      totalStudents: document.getElementById('totalStudents').value,
+      contactName: document.getElementById('contactName').value,
+      contactRole: document.getElementById('contactRole').value,
+      buildings: getBuildingData(),
+      hasIncidents: document.getElementById('hasIncidents').value,
+      incidentCount: document.getElementById('incidentCount') ? document.getElementById('incidentCount').value : '',
+      incidentTypes: Array.from(document.querySelectorAll('input[name="incident"]:checked')).map(cb => cb.value),
+      incidentOther: document.getElementById('incidentOther').value,
+      gaps: Array.from(document.querySelectorAll('input[name="gap"]:checked')).map(cb => cb.value),
+      training: Array.from(document.querySelectorAll('input[name="training"]:checked')).map(cb => cb.value),
+      compliance: []
+    };
+    for (let i = 0; i < 5; i++) {
+      const sel = document.querySelector(`input[name="req${i}"]:checked`);
+      state.compliance.push(sel ? sel.value : null);
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch(e) { /* silent fail */ }
+}
+
+function restoreState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const s = JSON.parse(raw);
+
+    document.getElementById('districtName').value = s.districtName || '';
+    document.getElementById('cityZip').value = s.cityZip || '';
+    document.getElementById('schoolType').value = s.schoolType || '';
+    document.getElementById('countySelect').value = s.countySelect || '';
+    document.getElementById('metroStatus').value = s.metroStatus || '';
+    document.getElementById('totalBuildings').value = s.totalBuildings || '';
+    document.getElementById('totalStudents').value = s.totalStudents || '';
+    document.getElementById('contactName').value = s.contactName || '';
+    document.getElementById('contactRole').value = s.contactRole || '';
+
+    updateGrantPool();
+
+    // Restore buildings
+    if (s.buildings && s.buildings.length > 0) {
+      document.getElementById('buildingRows').innerHTML = '';
+      buildingCount = 0;
+      s.buildings.forEach(b => addBuildingRow(b));
+    }
+
+    // Restore incidents
+    document.getElementById('hasIncidents').value = s.hasIncidents || '';
+    toggleIncidentFields();
+    if (s.incidentTypes) {
+      s.incidentTypes.forEach(v => {
+        const cb = document.querySelector(`input[name="incident"][value="${v}"]`);
+        if (cb) cb.checked = true;
+      });
+    }
+    if (s.incidentCount) document.getElementById('incidentCount').value = s.incidentCount;
+    if (s.incidentOther) document.getElementById('incidentOther').value = s.incidentOther;
+
+    // Restore gaps
+    if (s.gaps) {
+      s.gaps.forEach(v => {
+        const cb = document.querySelector(`input[name="gap"][value="${v}"]`);
+        if (cb) cb.checked = true;
+      });
+    }
+
+    // Restore training
+    if (s.training) {
+      s.training.forEach(v => {
+        const cb = document.querySelector(`input[name="training"][value="${v}"]`);
+        if (cb) cb.checked = true;
+      });
+    }
+
+    // Restore compliance
+    if (s.compliance) {
+      s.compliance.forEach((val, i) => {
+        if (val) {
+          const radios = document.querySelectorAll(`input[name="req${i}"]`);
+          radios.forEach(r => { if (r.value === val) r.checked = true; });
+        }
+      });
+      updateCompliance();
+    }
+
+    updateStep3Summary();
+    recalcScore();
+
+    completedSteps = new Set(s.completed || []);
+    goToStep(s.step || 1);
+  } catch(e) { goToStep(1); }
+  dismissRestore();
+}
+
+function dismissRestore() {
+  document.getElementById('restoreBanner').classList.add('hidden');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   EXAMPLE DATA
+   ══════════════════════════════════════════════════════════════ */
+function loadExampleData() {
+  document.getElementById('districtName').value = 'Example District (Southwest Metro, MN)';
+  document.getElementById('cityZip').value = 'Chaska, 55318';
+  document.getElementById('schoolType').value = 'public';
+  document.getElementById('countySelect').value = 'Carver';
+  document.getElementById('metroStatus').value = 'metro';
+  document.getElementById('totalBuildings').value = '3';
+  document.getElementById('totalStudents').value = '2400';
+  document.getElementById('contactName').value = 'Sample Contact';
+  document.getElementById('contactRole').value = 'Director of Facilities';
+  updateGrantPool();
+
+  // Buildings
+  document.getElementById('buildingRows').innerHTML = '';
+  buildingCount = 0;
+  addBuildingRow({ name: 'Westwood Elementary', ip_cameras: 12, analog_cameras: 3, system: 'Genetec', age: '3-7', network: 'shared', monitoring: 'recorded', gap_exterior: true, gap_bus: true });
+  addBuildingRow({ name: 'Lakeside Middle School', ip_cameras: 14, analog_cameras: 2, system: 'Genetec', age: '3-7', network: 'shared', monitoring: 'parttime', gap_exterior: true });
+  addBuildingRow({ name: 'Southwest High School', ip_cameras: 12, analog_cameras: 2, system: 'Genetec', age: '7-12', network: 'shared', monitoring: 'recorded', gap_bus: true, gap_parking: true });
+
+  // Incidents
+  document.getElementById('hasIncidents').value = 'yes';
+  toggleIncidentFields();
+  document.querySelector('input[name="incident"][value="unauthorized_entry"]').checked = true;
+  document.getElementById('incidentCount').value = '1-2';
+
+  // Gaps
+  document.querySelector('input[name="gap"][value="bus"]').checked = true;
+  document.querySelector('input[name="gap"][value="after_hours"]').checked = true;
+
+  // Training
+  document.querySelector('input[name="training"][value="coordinator"]').checked = true;
+
+  // Compliance
+  document.querySelectorAll('input[name="req0"]')[1].checked = true; // uncertain
+  document.querySelectorAll('input[name="req1"]')[1].checked = true; // no facial rec
+  document.querySelectorAll('input[name="req2"]')[0].checked = true; // compliant
+  document.querySelectorAll('input[name="req3"]')[1].checked = true; // will adopt
+  document.querySelectorAll('input[name="req4"]')[0].checked = true; // compliant
+
+  updateCompliance();
+  updateStep3Summary();
+  recalcScore();
+
+  goToStep(1);
+}
+</script>
+</body>
+</html>

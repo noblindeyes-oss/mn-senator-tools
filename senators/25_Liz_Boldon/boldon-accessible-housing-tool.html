@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Accessible Housing Unit Gap Calculator — SD-25</title>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Vertical wizard with full-width alternating terracotta bands, narrow content (max 680px) left-aligned within each band
+   2. Navigation: Floating vertical dot indicator on left margin with step numbers
+   3. Typography: Trebuchet MS (headers), Tahoma (body), Consolas (data/numbers)
+   4. Hero moment: Oversized gap number (~72px+) in white on darkest terracotta band
+   5. Color strategy: #1 Monochromatic — warm terracotta in 5+ shades from #3a1a0e to #faf0eb
+   6. Entry experience: Single powerful statistic fades in center-screen, then page content slides up
+   Additional: No cards, no bordered callouts, no emoji. Dense data tables. Typographic hierarchy only.
+*/
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --terra-darkest: #3a1a0e;
+  --terra-dark: #5e2c1a;
+  --terra-mid: #c75b39;
+  --terra-light: #e8a68e;
+  --terra-lightest: #faf0eb;
+  --terra-pale: #fdf7f4;
+  --white: #ffffff;
+  --success: #5a8a3c;
+  --warning: #c7922a;
+  --alert: #a63020;
+  --font-head: 'Trebuchet MS', sans-serif;
+  --font-body: Tahoma, Geneva, sans-serif;
+  --font-data: Consolas, 'Liberation Mono', monospace;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--terra-darkest);
+  background: var(--terra-lightest);
+  overflow-x: hidden;
+}
+
+/* ═══════════════ ENTRY OVERLAY ═══════════════ */
+#entry-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--terra-darkest);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+#entry-overlay.fade-out {
+  opacity: 0;
+  transform: translateY(-40px);
+  pointer-events: none;
+}
+#entry-overlay .stat-number {
+  font-family: var(--font-data);
+  font-size: 80px;
+  font-weight: 700;
+  color: var(--terra-mid);
+  opacity: 0;
+  transform: scale(0.85);
+  animation: statFadeIn 1.2s 0.3s forwards;
+  letter-spacing: -2px;
+}
+#entry-overlay .stat-label {
+  font-family: var(--font-head);
+  font-size: 20px;
+  color: var(--terra-light);
+  margin-top: 12px;
+  opacity: 0;
+  animation: statFadeIn 0.8s 1.0s forwards;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+#entry-overlay .stat-sub {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: rgba(250,240,235,0.55);
+  margin-top: 8px;
+  opacity: 0;
+  animation: statFadeIn 0.6s 1.5s forwards;
+}
+@keyframes statFadeIn {
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* ═══════════════ MAIN CONTENT (hidden until entry done) ═══════════════ */
+#main-content {
+  opacity: 0;
+  transform: translateY(60px);
+  transition: opacity 0.8s ease 0.2s, transform 0.8s ease 0.2s;
+}
+#main-content.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ═══════════════ FLOATING NAV ═══════════════ */
+#step-nav {
+  position: fixed;
+  left: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+#step-nav .dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--terra-light);
+  color: var(--terra-darkest);
+  font-family: var(--font-data);
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  border: 2px solid transparent;
+  text-decoration: none;
+}
+#step-nav .dot:hover {
+  background: var(--terra-mid);
+  color: var(--white);
+}
+#step-nav .dot.active {
+  background: var(--terra-darkest);
+  color: var(--white);
+  border-color: var(--terra-mid);
+  transform: scale(1.15);
+}
+
+/* ═══════════════ BAND LAYOUT ═══════════════ */
+.band {
+  width: 100%;
+  padding: 56px 80px 56px 90px;
+}
+.band-inner {
+  max-width: 680px;
+}
+.band-dark {
+  background: var(--terra-darkest);
+  color: var(--terra-lightest);
+}
+.band-mid {
+  background: var(--terra-mid);
+  color: var(--white);
+}
+.band-light {
+  background: var(--terra-lightest);
+  color: var(--terra-darkest);
+}
+.band-pale {
+  background: var(--terra-pale);
+  color: var(--terra-darkest);
+}
+.band-dark2 {
+  background: var(--terra-dark);
+  color: var(--terra-lightest);
+}
+
+/* ═══════════════ STEP HEADERS ═══════════════ */
+.step-num {
+  font-family: var(--font-data);
+  font-size: 64px;
+  font-weight: 700;
+  line-height: 1;
+  opacity: 0.25;
+  margin-bottom: 4px;
+}
+.band-dark .step-num,
+.band-dark2 .step-num,
+.band-mid .step-num { color: var(--terra-light); }
+.band-light .step-num,
+.band-pale .step-num { color: var(--terra-mid); }
+
+.step-title {
+  font-family: var(--font-head);
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+}
+.step-subtitle {
+  font-size: 14px;
+  opacity: 0.7;
+  margin-bottom: 28px;
+  line-height: 1.4;
+}
+
+/* ═══════════════ FORM ELEMENTS ═══════════════ */
+.field-group {
+  margin-bottom: 18px;
+}
+.field-label {
+  font-family: var(--font-head);
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.field-label .tip-trigger {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  font-family: var(--font-data);
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: help;
+  position: relative;
+  flex-shrink: 0;
+}
+.band-dark .tip-trigger,
+.band-dark2 .tip-trigger {
+  background: var(--terra-mid);
+  color: var(--white);
+}
+.band-light .tip-trigger,
+.band-pale .tip-trigger {
+  background: var(--terra-dark);
+  color: var(--white);
+}
+.band-mid .tip-trigger {
+  background: var(--terra-darkest);
+  color: var(--terra-light);
+}
+.tip-trigger .tip-text {
+  display: none;
+  position: absolute;
+  left: 24px;
+  top: -4px;
+  width: 260px;
+  padding: 10px 12px;
+  background: var(--terra-darkest);
+  color: var(--terra-lightest);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  line-height: 1.45;
+  border-radius: 4px;
+  z-index: 50;
+  box-shadow: 0 4px 16px rgba(58,26,14,0.35);
+}
+.tip-trigger:hover .tip-text,
+.tip-trigger:focus .tip-text { display: block; }
+
+input[type="text"],
+input[type="number"],
+select {
+  width: 100%;
+  padding: 10px 12px;
+  font-family: var(--font-data);
+  font-size: 14px;
+  border: 2px solid;
+  border-radius: 3px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.band-dark input,
+.band-dark select,
+.band-dark2 input,
+.band-dark2 select {
+  background: rgba(250,240,235,0.1);
+  border-color: var(--terra-mid);
+  color: var(--terra-lightest);
+}
+.band-dark input:focus,
+.band-dark select:focus,
+.band-dark2 input:focus,
+.band-dark2 select:focus {
+  border-color: var(--terra-light);
+}
+.band-light input,
+.band-light select,
+.band-pale input,
+.band-pale select {
+  background: var(--white);
+  border-color: var(--terra-light);
+  color: var(--terra-darkest);
+}
+.band-light input:focus,
+.band-light select:focus,
+.band-pale input:focus,
+.band-pale select:focus {
+  border-color: var(--terra-mid);
+}
+.band-mid input,
+.band-mid select {
+  background: rgba(255,255,255,0.15);
+  border-color: var(--terra-darkest);
+  color: var(--white);
+}
+.band-mid input:focus,
+.band-mid select:focus {
+  border-color: var(--terra-lightest);
+}
+.band-dark select option,
+.band-dark2 select option,
+.band-mid select option {
+  background: var(--terra-darkest);
+  color: var(--terra-lightest);
+}
+
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* ═══════════════ BUTTONS ═══════════════ */
+.btn {
+  font-family: var(--font-head);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 12px 28px;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-primary {
+  background: var(--terra-mid);
+  color: var(--white);
+}
+.btn-primary:hover {
+  background: var(--terra-dark);
+}
+.btn-on-dark {
+  background: var(--terra-light);
+  color: var(--terra-darkest);
+}
+.btn-on-dark:hover {
+  background: var(--terra-lightest);
+}
+.btn-on-mid {
+  background: var(--terra-darkest);
+  color: var(--terra-lightest);
+}
+.btn-on-mid:hover {
+  background: #2a120a;
+}
+
+/* ═══════════════ HERO GAP NUMBER ═══════════════ */
+.hero-gap-section {
+  text-align: left;
+  padding: 48px 0 32px;
+}
+.hero-gap-number {
+  font-family: var(--font-data);
+  font-size: 72px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--white);
+  letter-spacing: -2px;
+}
+.hero-gap-label {
+  font-family: var(--font-head);
+  font-size: 18px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-top: 8px;
+  color: var(--terra-light);
+}
+
+/* ═══════════════ GAP BAR ═══════════════ */
+.gap-bar-container {
+  margin: 24px 0;
+}
+.gap-bar {
+  height: 36px;
+  display: flex;
+  border-radius: 3px;
+  overflow: hidden;
+  background: rgba(250,240,235,0.15);
+}
+.gap-bar-supply {
+  background: var(--terra-light);
+  height: 100%;
+  transition: width 0.5s ease;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  font-family: var(--font-data);
+  font-size: 12px;
+  color: var(--terra-darkest);
+  font-weight: 700;
+  white-space: nowrap;
+  min-width: 0;
+}
+.gap-bar-gap {
+  background: var(--terra-mid);
+  height: 100%;
+  transition: width 0.5s ease;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  font-family: var(--font-data);
+  font-size: 12px;
+  color: var(--white);
+  font-weight: 700;
+  white-space: nowrap;
+  min-width: 0;
+}
+.gap-bar-legend {
+  display: flex;
+  gap: 20px;
+  margin-top: 8px;
+  font-size: 12px;
+  font-family: var(--font-data);
+}
+.gap-bar-legend span::before {
+  content: '';
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  margin-right: 6px;
+  vertical-align: -1px;
+}
+.legend-supply::before { background: var(--terra-light); }
+.legend-gap::before { background: var(--terra-mid); }
+
+/* ═══════════════ RESULTS / DATA DISPLAY ═══════════════ */
+.result-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(199,91,57,0.2);
+  font-size: 14px;
+}
+.band-dark .result-line,
+.band-dark2 .result-line {
+  border-bottom-color: rgba(250,240,235,0.15);
+}
+.result-line:last-child { border-bottom: none; }
+.result-line .r-label {
+  font-family: var(--font-body);
+}
+.result-line .r-value {
+  font-family: var(--font-data);
+  font-weight: 700;
+  font-size: 16px;
+}
+.result-big {
+  font-family: var(--font-data);
+  font-size: 32px;
+  font-weight: 700;
+  margin: 8px 0 4px;
+}
+.result-context {
+  font-size: 12px;
+  opacity: 0.65;
+  font-family: var(--font-body);
+}
+
+/* ═══════════════ COST INDICATOR ═══════════════ */
+.cost-indicator {
+  background: var(--terra-dark);
+  padding: 24px;
+  border-radius: 4px;
+  margin-top: 24px;
+}
+.cost-indicator .cost-label {
+  font-family: var(--font-head);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--terra-light);
+  margin-bottom: 6px;
+}
+.cost-indicator .cost-value {
+  font-family: var(--font-data);
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--terra-mid);
+}
+.cost-indicator .cost-note {
+  font-size: 11px;
+  color: rgba(250,240,235,0.55);
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+/* ═══════════════ FUNDING TABLE ═══════════════ */
+.funding-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin: 16px 0;
+}
+.funding-table th {
+  font-family: var(--font-head);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-align: left;
+  padding: 8px 8px 8px 0;
+  border-bottom: 2px solid var(--terra-mid);
+}
+.funding-table td {
+  padding: 10px 8px 10px 0;
+  border-bottom: 1px solid rgba(199,91,57,0.15);
+  vertical-align: top;
+}
+.funding-table tr.not-applicable {
+  opacity: 0.4;
+}
+.funding-table tr.not-applicable td {
+  text-decoration: line-through;
+  text-decoration-color: var(--terra-mid);
+}
+.funding-table .source-name {
+  font-weight: 700;
+  font-family: var(--font-body);
+}
+.funding-table .source-note {
+  font-size: 11px;
+  opacity: 0.7;
+  margin-top: 2px;
+}
+.funding-table input[type="number"] {
+  width: 110px;
+  padding: 5px 6px;
+  font-size: 13px;
+}
+.funding-table .check-col {
+  width: 30px;
+  text-align: center;
+}
+.funding-table input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--terra-mid);
+  cursor: pointer;
+}
+
+.funding-readiness {
+  display: inline-block;
+  padding: 6px 16px;
+  border-radius: 3px;
+  font-family: var(--font-data);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-top: 8px;
+}
+.readiness-green { background: var(--success); color: var(--white); }
+.readiness-yellow { background: var(--warning); color: var(--terra-darkest); }
+.readiness-red { background: var(--alert); color: var(--white); }
+
+/* ═══════════════ NARRATIVE (MODULE 3) ═══════════════ */
+.narrative-section {
+  margin-bottom: 24px;
+}
+.narrative-section h3 {
+  font-family: var(--font-head);
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 8px;
+  color: var(--terra-mid);
+}
+.band-dark .narrative-section h3,
+.band-dark2 .narrative-section h3 {
+  color: var(--terra-light);
+}
+.narrative-editable {
+  padding: 12px 14px;
+  border: 1px dashed var(--terra-light);
+  border-radius: 3px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 60px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.narrative-editable:focus {
+  border-color: var(--terra-mid);
+  border-style: solid;
+}
+.band-light .narrative-editable,
+.band-pale .narrative-editable {
+  background: var(--white);
+  color: var(--terra-darkest);
+}
+.band-dark .narrative-editable,
+.band-dark2 .narrative-editable {
+  background: rgba(250,240,235,0.07);
+  color: var(--terra-lightest);
+}
+
+.narrative-finance-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin: 12px 0;
+}
+.narrative-finance-table th,
+.narrative-finance-table td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--terra-light);
+}
+.narrative-finance-table th {
+  font-family: var(--font-head);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  background: var(--terra-mid);
+  color: var(--white);
+}
+.narrative-finance-table td {
+  font-family: var(--font-data);
+}
+
+/* ═══════════════ CONTEXT QUOTE ═══════════════ */
+.context-quote {
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  padding: 20px 0 20px 20px;
+  border-left: 0;
+  position: relative;
+  margin: 20px 0;
+}
+.context-quote::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--terra-mid);
+  border-radius: 2px;
+}
+.band-dark .context-quote::before { background: var(--terra-light); }
+
+/* ═══════════════ FOOTER ═══════════════ */
+.footer-band {
+  padding: 32px 80px 32px 90px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--terra-light);
+  background: var(--terra-darkest);
+}
+.footer-band .footer-inner {
+  max-width: 680px;
+}
+
+/* ═══════════════ DIVIDER ═══════════════ */
+.mini-rule {
+  width: 48px;
+  height: 3px;
+  background: var(--terra-mid);
+  border: none;
+  margin: 20px 0;
+  border-radius: 2px;
+}
+.band-dark .mini-rule { background: var(--terra-light); }
+
+/* ═══════════════ PRINT ═══════════════ */
+@media print {
+  #step-nav, #entry-overlay, .btn, .no-print,
+  .tip-trigger, .field-group, select, .gap-bar-container { display: none !important; }
+  .band { padding: 24px 40px !important; }
+  body { font-size: 12px; }
+  .hero-gap-number { font-size: 36px; }
+  .step-num { font-size: 28px; }
+  .narrative-editable { border: none; padding: 0; }
+  .narrative-finance-table th { background: #ddd; color: #000; }
+}
+
+/* ═══════════════ RESPONSIVE ═══════════════ */
+@media (max-width: 800px) {
+  .band { padding: 36px 24px 36px 24px; }
+  #step-nav { display: none; }
+  .two-col { grid-template-columns: 1fr; }
+  .hero-gap-number { font-size: 48px; }
+  .step-num { font-size: 40px; }
+  .tip-trigger .tip-text { left: auto; right: 0; width: 200px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- ENTRY OVERLAY                               -->
+<!-- ════════════════════════════════════════════ -->
+<div id="entry-overlay">
+  <div class="stat-number" id="entry-stat">3,200+</div>
+  <div class="stat-label">accessible units short statewide</div>
+  <div class="stat-sub">Minnesota's gap between accessible housing need and supply</div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- FLOATING STEP NAV                           -->
+<!-- ════════════════════════════════════════════ -->
+<nav id="step-nav" aria-label="Step navigation">
+  <a class="dot active" href="#step0" title="Introduction">0</a>
+  <a class="dot" href="#step1" title="Community Needs Assessment">1</a>
+  <a class="dot" href="#step2" title="Results">2</a>
+  <a class="dot" href="#step3" title="Funding Stack">3</a>
+  <a class="dot" href="#step4" title="Funding Summary">4</a>
+  <a class="dot" href="#step5" title="Narrative Generator">5</a>
+</nav>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- MAIN CONTENT                                -->
+<!-- ════════════════════════════════════════════ -->
+<div id="main-content">
+
+  <!-- STEP 0: INTRO BAND (dark) -->
+  <section id="step0" class="band band-dark">
+    <div class="band-inner">
+      <div class="step-num">00</div>
+      <div class="step-title">Accessible Housing Gap Calculator &amp; Capital Funding Navigator</div>
+      <hr class="mini-rule">
+      <p style="margin-bottom:14px;">
+        Senator Boldon's SF1838 secured $600,000 for Accessible Space, Inc. to rehabilitate low-income accessible housing units at two Rochester addresses &mdash; but documenting that kind of need precisely enough to support a capital request is hard for most organizations.
+      </p>
+      <p style="margin-bottom:14px;">
+        This tool helps housing advocates, nonprofit developers, and local government staff calculate their community's accessible housing gap, build a realistic funding stack, and generate a capital request narrative for state bonding requests, MHFA applications, and local housing plans.
+      </p>
+      <!-- VERIFY: SF1838 appropriation amount and addresses from software brief -->
+      <p style="font-size:12px;opacity:0.55;margin-top:20px;">
+        Accessible Space, Inc. is a Minnesota-based 501(c)(3) that develops and manages supportive housing for people with physical disabilities, brain injuries, and age-related limitations. Their Rochester sites (1680 Eastwood Road SE and 3461 Kenosha Drive NW) serve low-income residents requiring accessible unit features to live independently.
+      </p>
+    </div>
+  </section>
+
+  <!-- STEP 1: NEEDS ASSESSMENT INPUTS (light) -->
+  <section id="step1" class="band band-light">
+    <div class="band-inner">
+      <div class="step-num">01</div>
+      <div class="step-title">Community Needs Assessment</div>
+      <div class="step-subtitle">Enter your community's data. Defaults reflect Minnesota state averages.</div>
+
+      <div class="field-group">
+        <label class="field-label" for="communityName">
+          Community Name
+          <span class="tip-trigger" tabindex="0">?<span class="tip-text">City, county, or service area name for your assessment.</span></span>
+        </label>
+        <input type="text" id="communityName" value="Rochester, MN" placeholder="e.g., Rochester, MN">
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="countyName">
+          County
+          <span class="tip-trigger" tabindex="0">?<span class="tip-text">The county where the community is located.</span></span>
+        </label>
+        <input type="text" id="countyName" value="Olmsted County" placeholder="e.g., Olmsted County">
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="population">
+          Total Population
+          <span class="tip-trigger" tabindex="0">?<span class="tip-text">Total population for your city, county, or service area. Use Census or state demographer estimates.</span></span>
+        </label>
+        <!-- VERIFY: Rochester population 123,624 from software brief (2024 estimate) -->
+        <input type="number" id="population" value="123624" min="0">
+      </div>
+
+      <div class="two-col">
+        <div class="field-group">
+          <label class="field-label" for="pctElderly">
+            Population 65+ (%)
+            <span class="tip-trigger" tabindex="0">?<span class="tip-text">Percentage of total population aged 65 and older. Olmsted County: 12.8%. MN average: 15.2%.</span></span>
+          </label>
+          <!-- VERIFY: Olmsted County 65+ rate 12.8% from software brief -->
+          <input type="number" id="pctElderly" value="12.8" min="0" max="100" step="0.1">
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="pctMobility">
+            Mobility/Physical Disability (%)
+            <span class="tip-trigger" tabindex="0">?<span class="tip-text">Estimated percentage with mobility or physical disability. Olmsted County: 8.1%. MN average (CDC): 8.4%.</span></span>
+          </label>
+          <!-- VERIFY: Olmsted County mobility disability rate 8.1% from software brief -->
+          <input type="number" id="pctMobility" value="8.1" min="0" max="100" step="0.1">
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="pctTBI">
+          TBI / Cognitive Disability (%)
+          <span class="tip-trigger" tabindex="0">?<span class="tip-text">Estimated percentage with traumatic brain injury or cognitive disability requiring accessible housing. Default 2.1% based on CDC data for MN.</span></span>
+        </label>
+        <input type="number" id="pctTBI" value="2.1" min="0" max="100" step="0.1">
+      </div>
+
+      <div class="two-col">
+        <div class="field-group">
+          <label class="field-label" for="accessibleRental">
+            Accessible Rental Units
+            <span class="tip-trigger" tabindex="0">?<span class="tip-text">Current number of accessible or adaptable rental units in your community. Check with your local HRA or housing authority.</span></span>
+          </label>
+          <input type="number" id="accessibleRental" value="" min="0" placeholder="Enter estimate">
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="accessibleOwner">
+            Accessible Owner-Occupied Units
+            <span class="tip-trigger" tabindex="0">?<span class="tip-text">Current number of accessible owner-occupied housing units. Most communities lack this data — estimate conservatively.</span></span>
+          </label>
+          <input type="number" id="accessibleOwner" value="" min="0" placeholder="Enter estimate">
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="field-group">
+          <label class="field-label" for="avgHousehold">
+            Avg. Household Size
+            <span class="tip-trigger" tabindex="0">?<span class="tip-text">Average household size for disability-served households. Default 1.4 reflects predominantly single-person and small households.</span></span>
+          </label>
+          <input type="number" id="avgHousehold" value="1.4" min="0.5" max="8" step="0.1">
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="pctLowIncome">
+            Low-Income (&le;80% AMI) (%)
+            <span class="tip-trigger" tabindex="0">?<span class="tip-text">Percentage of disability-population households that are low-income (at or below 80% of Area Median Income). Default 72%.</span></span>
+          </label>
+          <input type="number" id="pctLowIncome" value="72" min="0" max="100" step="1">
+        </div>
+      </div>
+
+      <div style="margin-top:24px;">
+        <button class="btn btn-primary" onclick="calculateNeeds()">Calculate Housing Gap</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 2: RESULTS BAND (darkest — hero moment) -->
+  <section id="step2" class="band band-dark">
+    <div class="band-inner">
+      <div class="step-num">02</div>
+      <div class="step-title">Assessment Results</div>
+      <div id="results-placeholder" style="opacity:0.45;font-size:14px;">Complete Step 1 to see results.</div>
+
+      <div id="results-content" style="display:none;">
+        <div class="result-line">
+          <span class="r-label">Community</span>
+          <span class="r-value" id="rCommunity"></span>
+        </div>
+        <div class="result-line">
+          <span class="r-label">Estimated households needing accessible housing</span>
+          <span class="r-value" id="rTotalNeed"></span>
+        </div>
+        <div class="result-line">
+          <span class="r-label">Low-income accessible housing need</span>
+          <span class="r-value" id="rLowIncomeNeed"></span>
+        </div>
+        <div class="result-line">
+          <span class="r-label">Current accessible unit supply</span>
+          <span class="r-value" id="rSupply"></span>
+        </div>
+
+        <hr class="mini-rule">
+
+        <!-- HERO GAP NUMBER -->
+        <div class="hero-gap-section">
+          <div class="hero-gap-label">Accessible Unit Gap</div>
+          <div class="hero-gap-number" id="rGapHero">--</div>
+          <div class="result-context">units short — households without suitable accessible housing</div>
+        </div>
+
+        <!-- GAP BAR -->
+        <div class="gap-bar-container">
+          <div class="gap-bar">
+            <div class="gap-bar-supply" id="gapBarSupply" style="width:0%"></div>
+            <div class="gap-bar-gap" id="gapBarGap" style="width:0%"></div>
+          </div>
+          <div class="gap-bar-legend">
+            <span class="legend-supply">Supply: <span id="gapBarSupplyLabel">0</span></span>
+            <span class="legend-gap">Gap: <span id="gapBarGapLabel">0</span></span>
+          </div>
+        </div>
+
+        <!-- COST INDICATOR -->
+        <div class="cost-indicator">
+          <div class="cost-label">Estimated annual public cost of unmet gap</div>
+          <div class="cost-value" id="rInstCost">--</div>
+          <div class="cost-note">
+            Calculated at approximately $52,000/year per person (MN Medicaid nursing facility rate, MN DHS data). This is the estimated public cost if residents in the gap end up in institutional care rather than community-based accessible housing. Illustrative estimate only.
+          </div>
+        </div>
+
+        <p style="font-size:12px;opacity:0.5;margin-top:20px;line-height:1.4;">
+          <strong>Important:</strong> This estimate uses population-level rates. Actual need in your community may differ. Document your local data sources when using this in a funding application.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 3: FUNDING STACK INPUTS (mid terracotta) -->
+  <section id="step3" class="band band-mid">
+    <div class="band-inner">
+      <div class="step-num">03</div>
+      <div class="step-title">Capital Funding Stack Builder</div>
+      <div class="step-subtitle">Define your project. The tool will show applicable funding sources.</div>
+
+      <div class="field-group">
+        <label class="field-label" for="fundUnits">
+          Units to Create / Rehabilitate
+          <span class="tip-trigger" tabindex="0">?<span class="tip-text">Number of accessible units you plan to create or substantially rehabilitate. Can be pulled from your gap calculation or entered directly.</span></span>
+        </label>
+        <input type="number" id="fundUnits" value="" min="0" placeholder="e.g., 20">
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="projectType">
+          Project Type
+          <span class="tip-trigger" tabindex="0">?<span class="tip-text">Select the type of project. Cost-per-unit defaults will populate based on your selection.</span></span>
+        </label>
+        <select id="projectType" onchange="updateCostDefault()">
+          <option value="new">New construction — accessible rental units</option>
+          <option value="rehab" selected>Substantial rehabilitation of existing units</option>
+          <option value="conversion">Unit conversion (market-rate to accessible/adaptable)</option>
+          <option value="capital">Single-site capital improvements (elevator, ramp, etc.)</option>
+        </select>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="costPerUnit">
+          Estimated Cost Per Unit ($)
+          <span class="tip-trigger" tabindex="0">?<span class="tip-text">New construction: ~$280,000. Substantial rehab: ~$95,000. Conversion: ~$45,000. For single-site improvements, enter total project cost in total cost field below.</span></span>
+        </label>
+        <!-- VERIFY: Cost-per-unit defaults from software brief -->
+        <input type="number" id="costPerUnit" value="95000" min="0" step="1000">
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="totalProjectCost">
+          Total Project Cost ($)
+          <span class="tip-trigger" tabindex="0">?<span class="tip-text">Auto-calculated from units x cost-per-unit, or enter directly for single-site projects.</span></span>
+        </label>
+        <input type="number" id="totalProjectCost" value="" min="0" step="1000" placeholder="Auto-calculated">
+      </div>
+
+      <div class="two-col">
+        <div class="field-group">
+          <label class="field-label" for="nonprofitOwned">
+            Nonprofit-Owned Building?
+            <span class="tip-trigger" tabindex="0">?<span class="tip-text">Whether the building is owned by a nonprofit organization. Affects eligibility for certain funding programs.</span></span>
+          </label>
+          <select id="nonprofitOwned">
+            <option value="yes" selected>Yes</option>
+            <option value="no">No</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="communityType">
+            Community Type
+            <span class="tip-trigger" tabindex="0">?<span class="tip-text">Metro, Greater MN, or Rural. Affects eligibility for USDA rural programs. Rochester is Metro/Greater MN (pop. 123,000+).</span></span>
+          </label>
+          <select id="communityType" onchange="updateFundingApplicability()">
+            <option value="metro">Metro</option>
+            <option value="greatermn" selected>Greater Minnesota</option>
+            <option value="rural">Rural (under 35,000 pop.)</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="margin-top:24px;">
+        <button class="btn btn-on-mid" onclick="buildFundingStack()">Build Funding Stack</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 4: FUNDING RESULTS (light) -->
+  <section id="step4" class="band band-pale">
+    <div class="band-inner">
+      <div class="step-num">04</div>
+      <div class="step-title">Funding Stack Summary</div>
+      <div id="funding-placeholder" style="opacity:0.45;font-size:14px;">Complete Step 3 to see your funding stack.</div>
+
+      <div id="funding-content" style="display:none;">
+        <p style="font-size:13px;margin-bottom:4px;font-weight:700;">
+          Project: <span id="fProjectDesc"></span>
+        </p>
+        <p style="font-size:13px;margin-bottom:16px;">
+          Total project cost: <span id="fTotalCost" style="font-family:var(--font-data);font-weight:700;"></span>
+        </p>
+
+        <table class="funding-table" id="fundingTable">
+          <thead>
+            <tr>
+              <th class="check-col"></th>
+              <th>Source</th>
+              <th>Est. Contribution</th>
+              <th>Cycle / Notes</th>
+            </tr>
+          </thead>
+          <tbody id="fundingBody">
+            <!-- Populated by JS -->
+          </tbody>
+        </table>
+
+        <hr class="mini-rule">
+
+        <div class="result-line">
+          <span class="r-label">Total estimated available funding</span>
+          <span class="r-value" id="fStackTotal">$0</span>
+        </div>
+        <div class="result-line">
+          <span class="r-label">Funding gap remaining</span>
+          <span class="r-value" id="fGapRemaining">$0</span>
+        </div>
+        <div style="margin-top:8px;">
+          <span class="funding-readiness" id="fReadiness"></span>
+        </div>
+
+        <p style="font-size:11px;opacity:0.55;margin-top:20px;line-height:1.4;">
+          These are illustrative estimates. Actual award amounts depend on competitive scoring. Consult MHFA Consolidated RFP guidelines for current program rules.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 5: NARRATIVE GENERATOR (dark) -->
+  <section id="step5" class="band band-dark2">
+    <div class="band-inner">
+      <div class="step-num">05</div>
+      <div class="step-title">Capital Request Narrative Generator</div>
+      <div class="step-subtitle">Generated from your inputs above. Edit any section before printing.</div>
+
+      <div style="margin-bottom:24px;" class="no-print">
+        <button class="btn btn-on-dark" onclick="generateNarrative()">Generate Narrative</button>
+        <button class="btn btn-on-dark" onclick="window.print()" style="margin-left:8px;">Print Document</button>
+      </div>
+
+      <div id="narrative-placeholder" style="opacity:0.45;font-size:14px;">Complete Steps 1-4, then generate your narrative.</div>
+
+      <div id="narrative-content" style="display:none;">
+
+        <div class="narrative-section">
+          <h3>Project Title</h3>
+          <div class="narrative-editable" contenteditable="true" id="narTitle"></div>
+        </div>
+
+        <div class="narrative-section">
+          <h3>Community Need Statement</h3>
+          <div class="narrative-editable" contenteditable="true" id="narNeed"></div>
+        </div>
+
+        <div class="narrative-section">
+          <h3>Project Description</h3>
+          <div class="narrative-editable" contenteditable="true" id="narProject"></div>
+        </div>
+
+        <div class="narrative-section">
+          <h3>Financing Summary</h3>
+          <table class="narrative-finance-table" id="narFinanceTable">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Amount</th>
+              </tr>
+            </thead>
+            <tbody id="narFinanceBody"></tbody>
+          </table>
+        </div>
+
+        <div class="narrative-section">
+          <h3>Local Contribution Statement</h3>
+          <div class="narrative-editable" contenteditable="true" id="narLocal"></div>
+        </div>
+
+        <div class="narrative-section">
+          <h3>Health and Care System Impact</h3>
+          <div class="narrative-editable" contenteditable="true" id="narHealth"></div>
+        </div>
+
+        <div class="narrative-section">
+          <h3>Legislator Coordination</h3>
+          <div class="narrative-editable" contenteditable="true" id="narLegislator"></div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer-band">
+    <div class="footer-inner">
+      A resource for SD-25 communities and accessible housing advocates across Minnesota. Built with AI. Program data reflects Minnesota housing funding as of 2025&ndash;2026. All calculations are illustrative estimates. Verify program details with MHFA, HUD, and local housing authorities before submitting applications.
+    </div>
+  </footer>
+
+</div><!-- /main-content -->
+
+<script>
+(function(){
+  // ═══════════════ ENTRY ANIMATION ═══════════════
+  const overlay = document.getElementById('entry-overlay');
+  const mainContent = document.getElementById('main-content');
+  setTimeout(function(){
+    overlay.classList.add('fade-out');
+    mainContent.classList.add('visible');
+    setTimeout(function(){ overlay.style.display = 'none'; }, 800);
+  }, 3200);
+
+  // ═══════════════ SCROLL-BASED NAV HIGHLIGHTING ═══════════════
+  const dots = document.querySelectorAll('#step-nav .dot');
+  const sections = document.querySelectorAll('section[id^="step"]');
+
+  function updateNav(){
+    let current = 0;
+    var scrollY = window.scrollY || window.pageYOffset;
+    sections.forEach(function(sec, i){
+      if(scrollY >= sec.offsetTop - 200) current = i;
+    });
+    dots.forEach(function(d, i){
+      d.classList.toggle('active', i === current);
+    });
+  }
+  window.addEventListener('scroll', updateNav);
+  updateNav();
+
+  // ═══════════════ LOCAL STORAGE ═══════════════
+  var storageKey = 'boldon_housing_tool';
+  var inputIds = [
+    'communityName','countyName','population','pctElderly','pctMobility',
+    'pctTBI','accessibleRental','accessibleOwner','avgHousehold','pctLowIncome',
+    'fundUnits','projectType','costPerUnit','totalProjectCost','nonprofitOwned','communityType'
+  ];
+
+  function saveInputs(){
+    var data = {};
+    inputIds.forEach(function(id){
+      var el = document.getElementById(id);
+      if(el) data[id] = el.value;
+    });
+    try { localStorage.setItem(storageKey, JSON.stringify(data)); } catch(e){}
+  }
+
+  function loadInputs(){
+    try {
+      var raw = localStorage.getItem(storageKey);
+      if(!raw) return;
+      var data = JSON.parse(raw);
+      inputIds.forEach(function(id){
+        var el = document.getElementById(id);
+        if(el && data[id] !== undefined) el.value = data[id];
+      });
+    } catch(e){}
+  }
+
+  loadInputs();
+
+  // Save on every input change
+  inputIds.forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.addEventListener('change', saveInputs);
+  });
+
+  // ═══════════════ COST DEFAULT ═══════════════
+  window.updateCostDefault = function(){
+    var type = document.getElementById('projectType').value;
+    var costField = document.getElementById('costPerUnit');
+    var defaults = { 'new': 280000, 'rehab': 95000, 'conversion': 45000, 'capital': 0 };
+    costField.value = defaults[type] || 0;
+    if(type === 'capital'){
+      costField.disabled = true;
+      costField.value = 0;
+    } else {
+      costField.disabled = false;
+    }
+    saveInputs();
+  };
+
+  // ═══════════════ MODULE 1: CALCULATE NEEDS ═══════════════
+  var calcResults = {};
+
+  window.calculateNeeds = function(){
+    var pop = parseFloat(document.getElementById('population').value) || 0;
+    var pctMob = (parseFloat(document.getElementById('pctMobility').value) || 0) / 100;
+    var pctTBI = (parseFloat(document.getElementById('pctTBI').value) || 0) / 100;
+    var avgHH = parseFloat(document.getElementById('avgHousehold').value) || 1.4;
+    var pctLI = (parseFloat(document.getElementById('pctLowIncome').value) || 0) / 100;
+    var rental = parseFloat(document.getElementById('accessibleRental').value) || 0;
+    var owner = parseFloat(document.getElementById('accessibleOwner').value) || 0;
+    var community = document.getElementById('communityName').value || 'Your community';
+    var county = document.getElementById('countyName').value || '';
+
+    var disabilityRate = pctMob + pctTBI;
+    var totalNeed = Math.round((pop * disabilityRate) / avgHH);
+    var lowIncomeNeed = Math.round(totalNeed * pctLI);
+    var supply = rental + owner;
+    var gap = Math.max(0, lowIncomeNeed - supply);
+    var instCost = gap * 52000;
+
+    calcResults = {
+      community: community,
+      county: county,
+      population: pop,
+      totalNeed: totalNeed,
+      lowIncomeNeed: lowIncomeNeed,
+      supply: supply,
+      gap: gap,
+      instCost: instCost,
+      disabilityRate: disabilityRate,
+      pctLI: pctLI,
+      avgHH: avgHH
+    };
+
+    // Display
+    document.getElementById('rCommunity').textContent = community + (county ? ' (' + county + ')' : '');
+    document.getElementById('rTotalNeed').textContent = totalNeed.toLocaleString();
+    document.getElementById('rLowIncomeNeed').textContent = lowIncomeNeed.toLocaleString();
+    document.getElementById('rSupply').textContent = supply.toLocaleString();
+    document.getElementById('rGapHero').textContent = gap.toLocaleString() + ' units';
+    document.getElementById('rInstCost').textContent = 'up to $' + instCost.toLocaleString() + '/year';
+
+    // Gap bar
+    var total = supply + gap;
+    if(total > 0){
+      var supplyPct = Math.max(2, (supply / total) * 100);
+      var gapPct = Math.max(2, (gap / total) * 100);
+      document.getElementById('gapBarSupply').style.width = supplyPct + '%';
+      document.getElementById('gapBarGap').style.width = gapPct + '%';
+      document.getElementById('gapBarSupply').textContent = supply > 0 ? supply.toLocaleString() : '';
+      document.getElementById('gapBarGap').textContent = gap > 0 ? gap.toLocaleString() : '';
+    }
+    document.getElementById('gapBarSupplyLabel').textContent = supply.toLocaleString();
+    document.getElementById('gapBarGapLabel').textContent = gap.toLocaleString();
+
+    document.getElementById('results-placeholder').style.display = 'none';
+    document.getElementById('results-content').style.display = 'block';
+
+    // Auto-populate funding units from gap
+    if(!document.getElementById('fundUnits').value){
+      document.getElementById('fundUnits').value = Math.min(gap, 50); // cap at 50 for realism
+    }
+
+    saveInputs();
+    // Scroll to results
+    document.getElementById('step2').scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // ═══════════════ MODULE 2: FUNDING STACK ═══════════════
+  var fundingSources = [
+    {
+      id: 'lihtc',
+      name: 'MN Housing Finance Agency — LIHTC',
+      fullName: 'Rental Housing Tax Credits (Low-Income Housing Tax Credit)',
+      pctLow: 0.30, pctHigh: 0.60,
+      note: 'Competitive application; Consolidated RFP (Jan\u2013Mar). Accessible/disability units receive scoring preference.',
+      types: ['new'], // only new construction gets full LIHTC
+      community: ['metro','greatermn','rural'],
+      nonprofit: null
+    },
+    {
+      id: 'edhc',
+      name: 'MHFA — EDHC / Deferred Loan',
+      fullName: 'Economic Development and Housing Challenge Program',
+      maxAmount: 3000000,
+      note: 'Up to $3M per project for rental housing. Nonprofit or govt sponsor required for disability housing. Consolidated RFP.',
+      types: ['new','rehab','conversion'],
+      community: ['metro','greatermn','rural'],
+      nonprofit: null
+    },
+    {
+      id: 'bonding',
+      name: 'MN Capital Investment (State Bonding)',
+      fullName: 'Capital appropriation via state bonding bill',
+      note: 'Project-specific. SF1838 example: $600,000 for two Rochester sites. Requires legislator chief author. Submit to MMB by June 15 (odd year); requires city/county resolution.',
+      types: ['new','rehab','conversion','capital'],
+      community: ['metro','greatermn','rural'],
+      nonprofit: null
+    },
+    {
+      id: 'localhra',
+      name: 'Local HRA / County Contribution',
+      fullName: 'Olmsted County or local Housing & Redevelopment Authority match',
+      pctLow: 0.05, pctHigh: 0.15,
+      note: 'Typically 5\u201315% local match. Most state and federal programs require documented local match.',
+      types: ['new','rehab','conversion','capital'],
+      community: ['metro','greatermn','rural'],
+      nonprofit: null
+    },
+    {
+      id: 'sec811',
+      name: 'HUD Section 811',
+      fullName: 'Supportive Housing for Persons with Disabilities',
+      perUnitLow: 15000, perUnitHigh: 50000,
+      note: 'Nonprofit developers only. Extremely competitive nationally. Requires MHFA partnership.',
+      types: ['new','rehab'],
+      community: ['metro','greatermn','rural'],
+      nonprofit: 'yes'
+    },
+    {
+      id: 'home',
+      name: 'HUD HOME Program',
+      fullName: 'HOME Investment Partnerships Program',
+      perUnitMax: 40000,
+      note: 'Up to $40,000/unit for rental. Administered through MHFA or local HOME consortia. Accessible units eligible for higher limits.',
+      types: ['new','rehab','conversion'],
+      community: ['metro','greatermn','rural'],
+      nonprofit: null
+    },
+    {
+      id: 'usda515',
+      name: 'USDA Section 515/538',
+      fullName: 'Rural Rental Housing / Guaranteed Rural Rental Housing',
+      pctLow: 0.40, pctHigh: 0.90,
+      note: 'Rural communities only (under 35,000 pop). Rochester does NOT qualify.',
+      types: ['new','rehab'],
+      community: ['rural'],
+      nonprofit: null
+    },
+    {
+      id: 'cdbg',
+      name: 'CDBG',
+      fullName: 'Community Development Block Grant',
+      perUnitLow: 10000, perUnitHigh: 50000,
+      note: '$10,000\u2013$50,000/unit for accessibility rehab. Administered through MN DEED for smaller cities; metro counties direct.',
+      types: ['rehab','conversion','capital'],
+      community: ['metro','greatermn','rural'],
+      nonprofit: null
+    },
+    {
+      id: 'fhlb',
+      name: 'Federal Home Loan Bank — AHP',
+      fullName: 'Affordable Housing Program',
+      maxAmount: 1000000,
+      note: 'Up to $1M per project. Competitive; through FHLB member banks; two cycles per year.',
+      types: ['new','rehab','conversion'],
+      community: ['metro','greatermn','rural'],
+      nonprofit: null
+    }
+  ];
+
+  window.updateFundingApplicability = function(){
+    // Just save — actual applicability updated on build
+    saveInputs();
+  };
+
+  var fundingEstimates = {};
+
+  window.buildFundingStack = function(){
+    var units = parseFloat(document.getElementById('fundUnits').value) || 0;
+    var type = document.getElementById('projectType').value;
+    var costPerUnit = parseFloat(document.getElementById('costPerUnit').value) || 0;
+    var totalCostField = document.getElementById('totalProjectCost');
+    var totalCost;
+
+    if(type === 'capital'){
+      totalCost = parseFloat(totalCostField.value) || 0;
+    } else {
+      totalCost = units * costPerUnit;
+      totalCostField.value = totalCost;
+    }
+
+    var nonprofitOwned = document.getElementById('nonprofitOwned').value;
+    var communityType = document.getElementById('communityType').value;
+
+    var tbody = document.getElementById('fundingBody');
+    tbody.innerHTML = '';
+    fundingEstimates = {};
+
+    var typeLabels = {
+      'new': 'New construction — accessible rental',
+      'rehab': 'Substantial rehabilitation',
+      'conversion': 'Unit conversion (market-rate to accessible)',
+      'capital': 'Single-site capital improvements'
+    };
+
+    document.getElementById('fProjectDesc').textContent =
+      typeLabels[type] + ' — ' + units + ' unit' + (units !== 1 ? 's' : '');
+    document.getElementById('fTotalCost').textContent = '$' + totalCost.toLocaleString();
+
+    fundingSources.forEach(function(src){
+      var applicable = true;
+      if(src.types.indexOf(type) === -1) applicable = false;
+      if(src.community.indexOf(communityType) === -1) applicable = false;
+      if(src.nonprofit === 'yes' && nonprofitOwned !== 'yes') applicable = false;
+
+      var estAmount = 0;
+      if(applicable){
+        if(src.pctLow !== undefined && src.pctHigh !== undefined){
+          // Use midpoint of percentage range
+          estAmount = Math.round(totalCost * ((src.pctLow + src.pctHigh) / 2));
+        } else if(src.perUnitLow !== undefined && src.perUnitHigh !== undefined){
+          estAmount = Math.round(units * ((src.perUnitLow + src.perUnitHigh) / 2));
+        } else if(src.perUnitMax !== undefined){
+          estAmount = Math.round(units * src.perUnitMax * 0.7); // conservative estimate
+        } else if(src.maxAmount !== undefined){
+          estAmount = Math.min(src.maxAmount, Math.round(totalCost * 0.25));
+        } else {
+          // Bonding or similar — default to 20% of project cost
+          estAmount = Math.round(totalCost * 0.20);
+        }
+      }
+
+      fundingEstimates[src.id] = estAmount;
+
+      var tr = document.createElement('tr');
+      if(!applicable) tr.className = 'not-applicable';
+
+      tr.innerHTML =
+        '<td class="check-col"><input type="checkbox" id="chk_' + src.id + '"' +
+        (applicable ? ' checked' : '') +
+        ' onchange="recalcFunding()"></td>' +
+        '<td><span class="source-name">' + src.name + '</span>' +
+        '<div class="source-note">' + src.note +
+        (!applicable ? ' <strong>Not applicable for this project/community type.</strong>' : '') +
+        '</div></td>' +
+        '<td><input type="number" id="amt_' + src.id + '" value="' + estAmount +
+        '" min="0" step="1000" onchange="recalcFunding()" style="' +
+        (!applicable ? 'opacity:0.4;' : '') + '"></td>' +
+        '<td style="font-size:12px;">' + (src.fullName || '') + '</td>';
+
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById('funding-placeholder').style.display = 'none';
+    document.getElementById('funding-content').style.display = 'block';
+
+    recalcFunding();
+    saveInputs();
+    document.getElementById('step4').scrollIntoView({ behavior: 'smooth' });
+  };
+
+  window.recalcFunding = function(){
+    var totalCost = parseFloat(document.getElementById('totalProjectCost').value) || 0;
+    var stackTotal = 0;
+
+    fundingSources.forEach(function(src){
+      var chk = document.getElementById('chk_' + src.id);
+      var amt = document.getElementById('amt_' + src.id);
+      if(chk && chk.checked && amt){
+        stackTotal += parseFloat(amt.value) || 0;
+      }
+    });
+
+    var gapRemaining = Math.max(0, totalCost - stackTotal);
+    document.getElementById('fStackTotal').textContent = '$' + stackTotal.toLocaleString();
+    document.getElementById('fGapRemaining').textContent = '$' + gapRemaining.toLocaleString();
+
+    var readinessEl = document.getElementById('fReadiness');
+    var gapPct = totalCost > 0 ? (gapRemaining / totalCost) : 0;
+
+    if(gapPct < 0.10){
+      readinessEl.textContent = 'WELL-COVERED — gap under 10%';
+      readinessEl.className = 'funding-readiness readiness-green';
+    } else if(gapPct < 0.30){
+      readinessEl.textContent = 'FEASIBLE — gap ' + Math.round(gapPct * 100) + '% (seek additional local match)';
+      readinessEl.className = 'funding-readiness readiness-yellow';
+    } else {
+      readinessEl.textContent = 'SIGNIFICANT SHORTFALL — gap ' + Math.round(gapPct * 100) + '% (consider phasing project)';
+      readinessEl.className = 'funding-readiness readiness-red';
+    }
+  };
+
+  // ═══════════════ MODULE 3: NARRATIVE GENERATOR ═══════════════
+  window.generateNarrative = function(){
+    var c = calcResults;
+    var community = c.community || document.getElementById('communityName').value || '[Community]';
+    var county = c.county || document.getElementById('countyName').value || '[County]';
+    var totalNeed = c.totalNeed || 0;
+    var lowIncomeNeed = c.lowIncomeNeed || 0;
+    var supply = c.supply || 0;
+    var gap = c.gap || 0;
+    var instCost = c.instCost || 0;
+
+    var units = parseFloat(document.getElementById('fundUnits').value) || 0;
+    var type = document.getElementById('projectType').value;
+    var totalCost = parseFloat(document.getElementById('totalProjectCost').value) || 0;
+
+    var typeLabels = {
+      'new': 'New Construction of Accessible Rental Units',
+      'rehab': 'Rehabilitation of Accessible Housing Units',
+      'conversion': 'Conversion to Accessible/Adaptable Units',
+      'capital': 'Accessible Capital Improvements'
+    };
+
+    var typeDesc = {
+      'new': 'construct ' + units + ' new accessible rental unit' + (units !== 1 ? 's' : ''),
+      'rehab': 'substantially rehabilitate ' + units + ' existing accessible housing unit' + (units !== 1 ? 's' : '') + ' to current accessibility standards',
+      'conversion': 'convert ' + units + ' existing market-rate unit' + (units !== 1 ? 's' : '') + ' to accessible/adaptable housing',
+      'capital': 'complete accessibility capital improvements including elevator, ramp, and common area upgrades'
+    };
+
+    // Title
+    document.getElementById('narTitle').textContent =
+      community + ' Accessible Housing ' + (typeLabels[type] || 'Capital Improvements');
+
+    // Need statement
+    var needText =
+      'In ' + community + ' (' + county + '), an estimated ' + totalNeed.toLocaleString() +
+      ' households require accessible housing due to mobility disabilities, physical limitations, traumatic brain injuries, or age-related conditions. ' +
+      'Of these, approximately ' + lowIncomeNeed.toLocaleString() +
+      ' households are low-income (at or below 80% of Area Median Income) and depend on affordable accessible housing options.\n\n' +
+      'Current accessible unit supply in the community is approximately ' + supply.toLocaleString() +
+      ' units, leaving a gap of ' + gap.toLocaleString() +
+      ' households without suitable accessible housing. ' +
+      'At current Minnesota Medicaid nursing facility rates of approximately $52,000 per year, this unmet need represents up to $' +
+      instCost.toLocaleString() +
+      ' in avoidable annual public costs if residents are unable to remain in community-based settings and instead require institutional placement.\n\n' +
+      'Olmsted County has a notably high share of disability-related housing need due to the presence of Mayo Clinic and its extended patient and caregiver population, many of whom relocate to Rochester for long-term care and require accessible community housing.';
+    document.getElementById('narNeed').textContent = needText;
+
+    // Project description
+    var projText =
+      'This project proposes to ' + (typeDesc[type] || 'improve accessible housing') +
+      ' in ' + community + '. The total project cost is estimated at $' + totalCost.toLocaleString() +
+      (units > 0 ? ' ($' + Math.round(totalCost / units).toLocaleString() + ' per unit)' : '') + '.\n\n' +
+      'The project will serve low-income residents with physical disabilities, brain injuries, and age-related mobility limitations who require accessible unit features — including roll-in showers, widened doorways, lowered counters, and elevator access — to live independently in the community.';
+    document.getElementById('narProject').textContent = projText;
+
+    // Finance table
+    var finBody = document.getElementById('narFinanceBody');
+    finBody.innerHTML = '';
+
+    var rows = [
+      ['Total Project Cost', '$' + totalCost.toLocaleString()],
+      ['Units Created/Rehabilitated', units.toString()],
+      ['Cost Per Unit', units > 0 ? '$' + Math.round(totalCost / units).toLocaleString() : 'N/A']
+    ];
+
+    // Add funding sources that are checked
+    var stackTotal = 0;
+    fundingSources.forEach(function(src){
+      var chk = document.getElementById('chk_' + src.id);
+      var amt = document.getElementById('amt_' + src.id);
+      if(chk && chk.checked && amt){
+        var val = parseFloat(amt.value) || 0;
+        if(val > 0){
+          rows.push([src.name, '$' + val.toLocaleString()]);
+          stackTotal += val;
+        }
+      }
+    });
+
+    rows.push(['Total Estimated Funding', '$' + stackTotal.toLocaleString()]);
+    rows.push(['Remaining Gap', '$' + Math.max(0, totalCost - stackTotal).toLocaleString()]);
+
+    rows.forEach(function(r){
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td>' + r[0] + '</td><td style="font-weight:700;">' + r[1] + '</td>';
+      finBody.appendChild(tr);
+    });
+
+    // Local contribution
+    var localText =
+      'The project anticipates local contribution from ' + county +
+      ' Housing and Redevelopment Authority and/or municipal sources. ' +
+      'Local match demonstrates community commitment and strengthens competitiveness for state and federal funding. ' +
+      'A city or county resolution of support will be secured prior to submission to Minnesota Management and Budget.';
+    document.getElementById('narLocal').textContent = localText;
+
+    // Health impact
+    var healthText =
+      'Accessible housing is a health-system intervention. When residents with physical disabilities or age-related mobility limitations cannot find accessible community housing, the consequences are measurable: avoidable institutionalization in nursing facilities at approximately $52,000 per year per resident in Minnesota Medicaid costs; preventable falls and emergency hospitalizations; longer acute-care stays due to unsafe discharge environments; and caregiver burnout that destabilizes entire households.\n\n' +
+      'This project directly addresses these outcomes by ensuring that ' + units +
+      ' households can remain in community-based, accessible settings rather than entering institutional care. ' +
+      'The estimated annual public cost avoidance is up to $' + (units * 52000).toLocaleString() +
+      ' in Medicaid nursing facility expenditures alone — a conservative estimate that does not account for reduced emergency department utilization or caregiver productivity gains.\n\n' +
+      'Senator Boldon, an ICU nurse and Vice Chair of the Senate Housing and Homelessness Prevention Committee, has consistently framed accessible housing as a health-system priority. This project extends the model established by SF1838, which appropriated $600,000 for Accessible Space, Inc. to rehabilitate accessible units at two Rochester sites.';
+    document.getElementById('narHealth').textContent = healthText;
+
+    // Legislator coordination
+    var legText =
+      'This project is consistent with Senate District 25 priorities for accessible and affordable housing for Rochester-area residents with disabilities and mobility limitations. ' +
+      'It builds on the framework established by SF1838 (2025), which demonstrated the viability of targeted state capital investment in accessible housing rehabilitation. ' +
+      'The project sponsor respectfully requests legislative support for inclusion in a future state bonding bill.';
+    document.getElementById('narLegislator').textContent = legText;
+
+    document.getElementById('narrative-placeholder').style.display = 'none';
+    document.getElementById('narrative-content').style.display = 'block';
+
+    document.getElementById('step5').scrollIntoView({ behavior: 'smooth' });
+  };
+
+})();
+</script>
+
+</body>
+</html>

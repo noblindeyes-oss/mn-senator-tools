@@ -1,0 +1,1680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Municipal Water System Diagnostic — Sen. Jim Carlson, SD-52</title>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Diagnostic flowchart — top-to-bottom decision tree with connected nodes; full-width, no sidebar, no centered max-width shell
+   2. Navigation: Flowchart nodes ARE the navigation; "Reset Diagnostic" button at top; no tabs
+   3. Typography: Impact (headers/hero), Verdana (body/labels), Consolas (data/monospace)
+   4. Hero moment: Large pressure gauge SVG (~280px) with needle in danger zone, dominates initial viewport after entry animation
+   5. Color strategy: #7 Inverted — dark pipe-interior (#2c2c2c) dominant background; rust orange (#bf5b04) and pressure-blue (#1565c0) as structural accents; concrete gray (#9e9e9e) for secondary; light text default
+   6. Entry experience: CSS water droplets fall from top, pool at bottom, then diagnostic interface rises from the waterline — NO explanatory paragraph first
+   Additional: No bordered callout boxes, no parchment backgrounds, no emoji icons, no rounded-top tabs. Industrial utility aesthetic throughout.
+*/
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --rust: #bf5b04;
+  --concrete: #9e9e9e;
+  --pipe-dark: #2c2c2c;
+  --pipe-darker: #1a1a1a;
+  --pressure-blue: #1565c0;
+  --success: #2D6E4E;
+  --warning: #D4A017;
+  --alert: #B91C1C;
+  --text-light: #e8e8e8;
+  --text-dim: #a0a0a0;
+  --node-bg: #363636;
+  --node-border: #555;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: Verdana, Geneva, sans-serif;
+  background: var(--pipe-dark);
+  color: var(--text-light);
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+/* ═══════════════════════════════════════════
+   ENTRY ANIMATION — Water droplets & rise
+   ═══════════════════════════════════════════ */
+
+#entry-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: var(--pipe-darker);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  transition: opacity 0.8s ease;
+}
+#entry-overlay.fade-out { opacity: 0; pointer-events: none; }
+
+.droplet {
+  position: absolute;
+  width: 8px;
+  height: 12px;
+  background: var(--pressure-blue);
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  opacity: 0.7;
+  animation: fall linear forwards;
+}
+
+@keyframes fall {
+  0% { transform: translateY(0) scale(1); opacity: 0.8; }
+  85% { opacity: 0.6; }
+  100% { transform: translateY(calc(100vh - 60px)) scale(0.6); opacity: 0; }
+}
+
+#water-pool {
+  width: 100%;
+  height: 0;
+  background: linear-gradient(to bottom, rgba(21,101,192,0.5), rgba(21,101,192,0.25));
+  transition: height 1.2s ease-in-out;
+  position: relative;
+}
+#water-pool.filled { height: 80px; }
+
+#water-pool::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background: rgba(21,101,192,0.6);
+  filter: blur(2px);
+}
+
+#entry-text {
+  position: absolute;
+  bottom: 120px;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.6s ease 0.3s;
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 28px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--rust);
+}
+#entry-text.show { opacity: 1; }
+#entry-text span { display: block; font-size: 13px; font-family: Verdana, Geneva, sans-serif; color: var(--concrete); letter-spacing: 1px; margin-top: 6px; text-transform: none; }
+
+/* ═══════════════════════════════════════════
+   MAIN APP — rises from waterline
+   ═══════════════════════════════════════════ */
+
+#app {
+  opacity: 0;
+  transform: translateY(60px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+  min-height: 100vh;
+}
+#app.visible { opacity: 1; transform: translateY(0); }
+
+/* ═══════════════════════════════════════════
+   TOP BAR
+   ═══════════════════════════════════════════ */
+
+#top-bar {
+  background: var(--pipe-darker);
+  border-bottom: 3px solid var(--rust);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+#top-bar h1 {
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 18px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--rust);
+  font-weight: normal;
+}
+
+#top-bar .subtitle {
+  font-size: 11px;
+  color: var(--concrete);
+  font-family: Consolas, 'Liberation Mono', monospace;
+}
+
+#reset-btn {
+  background: var(--rust);
+  color: #fff;
+  border: none;
+  padding: 8px 18px;
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+#reset-btn:hover { background: #d46a10; }
+
+/* ═══════════════════════════════════════════
+   HERO GAUGE
+   ═══════════════════════════════════════════ */
+
+#hero-section {
+  text-align: center;
+  padding: 40px 20px 20px;
+  background: linear-gradient(180deg, var(--pipe-darker) 0%, var(--pipe-dark) 100%);
+}
+
+#hero-section .hero-label {
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 14px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--concrete);
+  margin-bottom: 8px;
+}
+
+#gauge-container { display: inline-block; position: relative; }
+
+#hero-section .psi-readout {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 42px;
+  color: var(--alert);
+  margin-top: 8px;
+  font-weight: bold;
+}
+
+#hero-section .psi-label {
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+#hero-section .hero-quote {
+  max-width: 680px;
+  margin: 20px auto 0;
+  font-size: 15px;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+
+#hero-section .hero-quote strong { color: var(--rust); }
+
+/* ═══════════════════════════════════════════
+   FLOWCHART LAYOUT
+   ═══════════════════════════════════════════ */
+
+#flowchart {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 30px 20px 60px;
+  position: relative;
+}
+
+.flow-connector {
+  width: 3px;
+  height: 36px;
+  background: var(--concrete);
+  margin: 0 auto;
+  position: relative;
+}
+.flow-connector::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0; height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 8px solid var(--concrete);
+}
+
+.flow-node {
+  background: var(--node-bg);
+  border: 2px solid var(--node-border);
+  padding: 16px 24px;
+  cursor: pointer;
+  transition: border-color 0.25s, background 0.25s, box-shadow 0.25s;
+  position: relative;
+}
+.flow-node:hover {
+  border-color: var(--rust);
+  box-shadow: 0 0 16px rgba(191,91,4,0.2);
+}
+.flow-node.active {
+  border-color: var(--pressure-blue);
+  background: #2a3040;
+  box-shadow: 0 0 20px rgba(21,101,192,0.25);
+}
+.flow-node.completed {
+  border-color: var(--success);
+}
+.flow-node.completed::before {
+  content: '';
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 10px;
+  height: 6px;
+  border-left: 2px solid var(--success);
+  border-bottom: 2px solid var(--success);
+  transform: rotate(-45deg);
+}
+
+.flow-node .node-number {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 11px;
+  color: var(--concrete);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.flow-node .node-title {
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 20px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-light);
+}
+
+.flow-node .node-hint {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+
+/* ═══════════════════════════════════════════
+   DETAIL PANELS (expand inline below node)
+   ═══════════════════════════════════════════ */
+
+.detail-panel {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s ease;
+  background: var(--pipe-darker);
+  border-left: 3px solid var(--pressure-blue);
+  margin: 0 12px;
+}
+.detail-panel.open {
+  max-height: 4000px;
+  padding: 24px;
+}
+
+.detail-panel h3 {
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--rust);
+  margin-bottom: 14px;
+}
+
+.detail-panel h4 {
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--pressure-blue);
+  margin: 18px 0 8px;
+}
+
+/* ═══════════════════════════════════════════
+   MODULE 1 — DIAGNOSTIC QUESTIONS
+   ═══════════════════════════════════════════ */
+
+.question-group { margin-bottom: 20px; }
+
+.question-group legend {
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--rust);
+  margin-bottom: 10px;
+}
+
+.question-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #3a3a3a;
+}
+
+.question-row .q-text {
+  flex: 1;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.answer-btns {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.answer-btns button {
+  background: #444;
+  color: var(--text-dim);
+  border: 1px solid #555;
+  padding: 4px 10px;
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.answer-btns button:hover { border-color: var(--rust); color: var(--text-light); }
+.answer-btns button.selected-yes { background: var(--alert); color: #fff; border-color: var(--alert); }
+.answer-btns button.selected-no { background: var(--success); color: #fff; border-color: var(--success); }
+.answer-btns button.selected-dk { background: var(--warning); color: #1a1a1a; border-color: var(--warning); }
+
+/* Score display */
+#score-display { display: none; margin-top: 20px; }
+#score-display.visible { display: block; }
+
+.score-band {
+  padding: 20px;
+  text-align: center;
+  margin-bottom: 16px;
+}
+.score-band.tier1 { background: var(--success); color: #fff; }
+.score-band.tier2 { background: var(--warning); color: #1a1a1a; }
+.score-band.tier3 { background: var(--alert); color: #fff; }
+
+.score-band .score-number {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 52px;
+  font-weight: bold;
+  line-height: 1;
+}
+.score-band .score-max {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 16px;
+  opacity: 0.7;
+}
+.score-band .tier-label {
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 18px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-top: 6px;
+}
+
+.sub-scores {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.sub-score-item {
+  flex: 1;
+  text-align: center;
+  padding: 12px;
+  background: #333;
+}
+.sub-score-item .ss-label {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--concrete);
+}
+.sub-score-item .ss-val {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 28px;
+  font-weight: bold;
+  margin-top: 4px;
+}
+
+.tier-text {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-dim);
+}
+.tier-text p { margin-bottom: 10px; }
+
+#calculate-btn, #load-demo-btn {
+  background: var(--pressure-blue);
+  color: #fff;
+  border: none;
+  padding: 10px 24px;
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 14px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  margin-right: 10px;
+  transition: background 0.2s;
+}
+#calculate-btn:hover { background: #1976d2; }
+#load-demo-btn {
+  background: transparent;
+  border: 1px solid var(--concrete);
+  color: var(--concrete);
+}
+#load-demo-btn:hover { border-color: var(--rust); color: var(--rust); }
+
+/* ═══════════════════════════════════════════
+   MODULE 2 — EXPLAINER
+   ═══════════════════════════════════════════ */
+
+.svg-diagram-wrap {
+  margin: 16px 0;
+  background: #222;
+  padding: 16px;
+  overflow-x: auto;
+}
+
+.explainer-text {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-dim);
+  margin: 12px 0;
+}
+.explainer-text strong { color: var(--text-light); }
+
+.mendota-callout {
+  background: var(--rust);
+  color: #fff;
+  padding: 16px 20px;
+  margin: 16px 0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.mendota-callout strong { color: #ffe0b2; }
+
+/* ═══════════════════════════════════════════
+   MODULE 3 — FUNDING PATHS
+   ═══════════════════════════════════════════ */
+
+.funding-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.funding-inputs label {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--concrete);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.funding-inputs select {
+  width: 100%;
+  background: #444;
+  color: var(--text-light);
+  border: 1px solid #666;
+  padding: 8px 10px;
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+}
+.funding-inputs select:focus { border-color: var(--pressure-blue); outline: none; }
+
+.funding-card {
+  background: #333;
+  border-left: 4px solid var(--pressure-blue);
+  padding: 0;
+  margin-bottom: 12px;
+  transition: opacity 0.3s;
+}
+.funding-card.top-match { border-left-color: var(--rust); }
+
+.funding-card-header {
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  background: #3a3a3a;
+}
+.funding-card-header:hover { background: #404040; }
+
+.funding-card-header .fc-name {
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.funding-card-header .fc-score {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 11px;
+  color: var(--rust);
+  background: rgba(191,91,4,0.15);
+  padding: 2px 8px;
+}
+
+.funding-card-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease, padding 0.3s ease;
+}
+.funding-card-body.open {
+  max-height: 600px;
+  padding: 14px 16px;
+}
+
+.fc-row {
+  display: flex;
+  gap: 8px;
+  padding: 5px 0;
+  border-bottom: 1px solid #444;
+  font-size: 12px;
+}
+.fc-row:last-child { border-bottom: none; }
+.fc-key {
+  width: 140px;
+  flex-shrink: 0;
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--concrete);
+}
+.fc-val { flex: 1; color: var(--text-dim); }
+
+/* Readiness checklist */
+.checklist { margin-top: 20px; }
+.checklist-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid #3a3a3a;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+.check-box {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--concrete);
+  flex-shrink: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  margin-top: 1px;
+}
+.check-box.checked {
+  background: var(--success);
+  border-color: var(--success);
+}
+.check-box.checked::after {
+  content: '';
+  width: 8px;
+  height: 5px;
+  border-left: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  transform: rotate(-45deg);
+  margin-top: -2px;
+}
+
+/* ═══════════════════════════════════════════
+   BRANCH NODES (smaller, for sub-paths)
+   ═══════════════════════════════════════════ */
+
+.branch-row {
+  display: flex;
+  gap: 12px;
+  margin: 0 12px;
+}
+.branch-row .flow-node { flex: 1; }
+
+.branch-connector-row {
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  position: relative;
+  height: 36px;
+}
+.branch-connector-row::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 25%;
+  right: 25%;
+  height: 3px;
+  background: var(--concrete);
+}
+.branch-arm {
+  width: 3px;
+  height: 36px;
+  background: var(--concrete);
+  position: relative;
+}
+.branch-arm::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0; height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 7px solid var(--concrete);
+}
+
+/* ═══════════════════════════════════════════
+   FOOTER
+   ═══════════════════════════════════════════ */
+
+#app-footer {
+  background: var(--pipe-darker);
+  border-top: 2px solid #444;
+  padding: 20px 24px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.7;
+  font-family: Consolas, 'Liberation Mono', monospace;
+}
+
+/* ═══════════════════════════════════════════
+   PRINT CSS
+   ═══════════════════════════════════════════ */
+
+@media print {
+  #entry-overlay, #top-bar, #reset-btn { display: none !important; }
+  body { background: #fff; color: #000; font-size: 12px; }
+  .flow-node { border-color: #999; background: #f5f5f5; color: #000; page-break-inside: avoid; }
+  .flow-node .node-title { color: #000; }
+  .detail-panel { max-height: none !important; padding: 12px !important; background: #fff; border-left-color: #666; }
+  .detail-panel.open { overflow: visible; }
+  .score-band { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  #app { opacity: 1 !important; transform: none !important; }
+  #hero-section { padding: 20px; }
+  .flow-connector, .branch-connector-row { height: 20px; }
+  .funding-card-body { max-height: none !important; padding: 10px 16px !important; overflow: visible; }
+  #app-footer { border-top-color: #999; color: #666; }
+}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════ */
+
+@media (max-width: 700px) {
+  .branch-row { flex-direction: column; }
+  .branch-connector-row { display: none; }
+  .branch-row .flow-node + .flow-node { margin-top: 8px; }
+  .funding-inputs { grid-template-columns: 1fr; }
+  .sub-scores { flex-direction: column; }
+  #hero-section .psi-readout { font-size: 32px; }
+  #top-bar h1 { font-size: 14px; }
+  .flow-node .node-title { font-size: 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     ENTRY ANIMATION OVERLAY
+     ═══════════════════════════════════════════ -->
+<div id="entry-overlay">
+  <div id="entry-text">
+    System Pressure Diagnostic
+    <span>Sen. Jim Carlson — SD-52 — Municipal Water Infrastructure</span>
+  </div>
+  <div id="water-pool"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     MAIN APPLICATION
+     ═══════════════════════════════════════════ -->
+<div id="app">
+
+  <!-- TOP BAR -->
+  <header id="top-bar">
+    <div>
+      <h1>Water System Diagnostic</h1>
+      <div class="subtitle">SF3183 // SD-52 // Municipal Pressure &amp; Looping Readiness</div>
+    </div>
+    <button id="reset-btn" onclick="resetDiagnostic()">Reset Diagnostic</button>
+  </header>
+
+  <!-- HERO GAUGE -->
+  <section id="hero-section">
+    <div class="hero-label">System Pressure Indicator</div>
+    <div id="gauge-container">
+      <svg width="280" height="180" viewBox="0 0 280 180" role="img" aria-label="Pressure gauge showing 105 PSI in the danger zone. Normal range is 40-80 PSI.">
+        <!-- Gauge body -->
+        <defs>
+          <linearGradient id="gaugeRim" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#666"/>
+            <stop offset="100%" stop-color="#333"/>
+          </linearGradient>
+        </defs>
+        <!-- Outer ring -->
+        <circle cx="140" cy="150" r="130" fill="none" stroke="url(#gaugeRim)" stroke-width="8"/>
+        <!-- Face -->
+        <circle cx="140" cy="150" r="122" fill="#1a1a1a"/>
+        <!-- Scale arc background -->
+        <path d="M 38 150 A 102 102 0 0 1 242 150" fill="none" stroke="#333" stroke-width="14" stroke-linecap="butt"/>
+        <!-- Green zone: 0-40 psi (left portion) -->
+        <path d="M 38 150 A 102 102 0 0 1 72.5 72" fill="none" stroke="#2D6E4E" stroke-width="14" stroke-linecap="butt"/>
+        <!-- Green-good zone: 40-80 psi -->
+        <path d="M 72.5 72 A 102 102 0 0 1 178 55" fill="none" stroke="#1565c0" stroke-width="14" stroke-linecap="butt"/>
+        <!-- Yellow zone: 80-100 psi -->
+        <path d="M 178 55 A 102 102 0 0 1 222 85" fill="none" stroke="#D4A017" stroke-width="14" stroke-linecap="butt"/>
+        <!-- Red zone: 100-120 psi -->
+        <path d="M 222 85 A 102 102 0 0 1 242 150" fill="none" stroke="#B91C1C" stroke-width="14" stroke-linecap="butt"/>
+
+        <!-- Tick marks and labels -->
+        <g font-family="Consolas, monospace" font-size="11" fill="#9e9e9e" text-anchor="middle">
+          <!-- 0 PSI -->
+          <line x1="50" y1="150" x2="62" y2="150" stroke="#9e9e9e" stroke-width="1.5"/>
+          <text x="40" y="154">0</text>
+          <!-- 20 PSI -->
+          <line x1="56" y1="112" x2="67" y2="118" stroke="#9e9e9e" stroke-width="1.5"/>
+          <text x="46" y="112">20</text>
+          <!-- 40 PSI -->
+          <line x1="76" y1="79" x2="86" y2="87" stroke="#9e9e9e" stroke-width="1.5"/>
+          <text x="68" y="72">40</text>
+          <!-- 60 PSI -->
+          <line x1="108" y1="57" x2="114" y2="68" stroke="#9e9e9e" stroke-width="1.5"/>
+          <text x="104" y="50">60</text>
+          <!-- 80 PSI -->
+          <line x1="148" y1="49" x2="148" y2="61" stroke="#9e9e9e" stroke-width="1.5"/>
+          <text x="148" y="42">80</text>
+          <!-- 100 PSI -->
+          <line x1="192" y1="57" x2="186" y2="68" stroke="#9e9e9e" stroke-width="1.5"/>
+          <text x="196" y="50">100</text>
+          <!-- 120 PSI -->
+          <line x1="228" y1="90" x2="218" y2="97" stroke="#9e9e9e" stroke-width="1.5"/>
+          <text x="240" y="86">120</text>
+        </g>
+
+        <!-- PSI label -->
+        <text x="140" y="120" font-family="Consolas, monospace" font-size="12" fill="#666" text-anchor="middle">PSI</text>
+
+        <!-- Needle — pointing to ~105 PSI (in the red zone) -->
+        <g id="gauge-needle" transform="rotate(52.5, 140, 150)">
+          <polygon points="140,45 136,148 140,155 144,148" fill="#B91C1C"/>
+        </g>
+        <!-- Center cap -->
+        <circle cx="140" cy="150" r="10" fill="#555"/>
+        <circle cx="140" cy="150" r="6" fill="#B91C1C"/>
+      </svg>
+    </div>
+    <div class="psi-readout">105 PSI</div>
+    <div class="psi-label">Danger Zone — Exceeds 80 PSI Design Limit</div>
+    <p class="hero-quote">
+      Most water infrastructure bills say "replace aging pipes." <strong>SF3183 said "water main looping and pressure reduction"</strong> — the specific engineering answers to the specific hydraulic problems Mendota faced.
+    </p>
+  </section>
+
+  <!-- ═══════════════════════════════════════════
+       FLOWCHART
+       ═══════════════════════════════════════════ -->
+  <main id="flowchart">
+
+    <!-- NODE 1: START — DIAGNOSTIC -->
+    <div class="flow-node active" id="node-diagnostic" onclick="toggleNode('diagnostic')" role="button" tabindex="0" aria-expanded="false" aria-controls="panel-diagnostic">
+      <div class="node-number">Module 1</div>
+      <div class="node-title">System Vulnerability Diagnostic</div>
+      <div class="node-hint">12 indicators across dead-end / looping and pressure zone categories</div>
+    </div>
+
+    <div class="detail-panel open" id="panel-diagnostic">
+      <h3>Vulnerability Self-Assessment</h3>
+      <p class="explainer-text" style="margin-bottom:14px;">Answer each indicator for your water distribution system. Each "Yes" = 2 points, "Don't Know" = 1, "No" = 0.</p>
+
+      <div style="margin-bottom:16px;">
+        <button id="load-demo-btn" onclick="loadMendotaDemo()">Load Example: Mendota, MN</button>
+      </div>
+
+      <!-- CATEGORY A -->
+      <fieldset class="question-group">
+        <legend>Category A — Dead-End / Looping Deficiencies</legend>
+        <div class="question-row" data-cat="A">
+          <div class="q-text">Does your system have any dead-end mains (pipes with flow from only one direction)?</div>
+          <div class="answer-btns">
+            <button onclick="setAnswer(this, 2)" data-q="a1">Yes</button>
+            <button onclick="setAnswer(this, 1)" data-q="a1">DK</button>
+            <button onclick="setAnswer(this, 0)" data-q="a1">No</button>
+          </div>
+        </div>
+        <div class="question-row" data-cat="A">
+          <div class="q-text">Have you experienced recurring water quality complaints (discoloration, taste) in the same neighborhoods?</div>
+          <div class="answer-btns">
+            <button onclick="setAnswer(this, 2)" data-q="a2">Yes</button>
+            <button onclick="setAnswer(this, 1)" data-q="a2">DK</button>
+            <button onclick="setAnswer(this, 0)" data-q="a2">No</button>
+          </div>
+        </div>
+        <div class="question-row" data-cat="A">
+          <div class="q-text">Do any hydrants or service areas have documented low-pressure readings (below 35 psi at peak demand)?</div>
+          <div class="answer-btns">
+            <button onclick="setAnswer(this, 2)" data-q="a3">Yes</button>
+            <button onclick="setAnswer(this, 1)" data-q="a3">DK</button>
+            <button onclick="setAnswer(this, 0)" data-q="a3">No</button>
+          </div>
+        </div>
+        <div class="question-row" data-cat="A">
+          <div class="q-text">Does your system have zones where flushing requires more than 15 minutes to clear discolored water?</div>
+          <div class="answer-btns">
+            <button onclick="setAnswer(this, 2)" data-q="a4">Yes</button>
+            <button onclick="setAnswer(this, 1)" data-q="a4">DK</button>
+            <button onclick="setAnswer(this, 0)" data-q="a4">No</button>
+          </div>
+        </div>
+        <div class="question-row" data-cat="A">
+          <div class="q-text">Are there neighborhoods where fire flow capacity falls below 500 gpm for the required 2-hour duration?</div>
+          <div class="answer-btns">
+            <button onclick="setAnswer(this, 2)" data-q="a5">Yes</button>
+            <button onclick="setAnswer(this, 1)" data-q="a5">DK</button>
+            <button onclick="setAnswer(this, 0)" data-q="a5">No</button>
+          </div>
+        </div>
+        <div class="question-row" data-cat="A">
+          <div class="q-text">Are any distribution mains more than 50 years old and have not been relined or replaced?</div>
+          <div class="answer-btns">
+            <button onclick="setAnswer(this, 2)" data-q="a6">Yes</button>
+            <button onclick="setAnswer(this, 1)" data-q="a6">DK</button>
+            <button onclick="setAnswer(this, 0)" data-q="a6">No</button>
+          </div>
+        </div>
+        <div class="question-row" data-cat="A">
+          <div class="q-text">Have you had more than two unplanned main breaks in the same pipe segment within 10 years?</div>
+          <div class="answer-btns">
+            <button onclick="setAnswer(this, 2)" data-q="a7">Yes</button>
+            <button onclick="setAnswer(this, 1)" data-q="a7">DK</button>
+            <button onclick="setAnswer(this, 0)" data-q="a7">No</button>
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- CATEGORY B -->
+      <fieldset class="question-group">
+        <legend>Category B — Pressure Zone Problems</legend>
+        <div class="question-row" data-cat="B">
+          <div class="q-text">Does your system span an elevation change of more than 80 feet without a pressure reducing valve (PRV) zone separation?</div>
+          <div class="answer-btns">
+            <button onclick="setAnswer(this, 2)" data-q="b1">Yes</button>
+            <button onclick="setAnswer(this, 1)" data-q="b1">DK</button>
+            <button onclick="setAnswer(this, 0)" data-q="b1">No</button>
+          </div>
+        </div>
+        <div class="question-row" data-cat="B">
+          <div class="q-text">Do you experience static pressures above 80 psi in any part of the system?</div>
+          <div class="answer-btns">
+            <button onclick="setAnswer(this, 2)" data-q="b2">Yes</button>
+            <button onclick="setAnswer(this, 1)" data-q="b2">DK</button>
+            <button onclick="setAnswer(this, 0)" data-q="b2">No</button>
+          </div>
+        </div>
+        <div class="question-row" data-cat="B">
+          <div class="q-text">Have you seen recurring pinhole leaks, joint failures, or meter setbacks in your higher-elevation service areas?</div>
+          <div class="answer-btns">
+            <button onclick="setAnswer(this, 2)" data-q="b3">Yes</button>
+            <button onclick="setAnswer(this, 1)" data-q="b3">DK</button>
+            <button onclick="setAnswer(this, 0)" data-q="b3">No</button>
+          </div>
+        </div>
+        <div class="question-row" data-cat="B">
+          <div class="q-text">Is your system served by a single pressure zone with no zone isolation capability?</div>
+          <div class="answer-btns">
+            <button onclick="setAnswer(this, 2)" data-q="b4">Yes</button>
+            <button onclick="setAnswer(this, 1)" data-q="b4">DK</button>
+            <button onclick="setAnswer(this, 0)" data-q="b4">No</button>
+          </div>
+        </div>
+        <div class="question-row" data-cat="B">
+          <div class="q-text">Have you had main breaks preceded by water hammer events or pressure surge complaints?</div>
+          <div class="answer-btns">
+            <button onclick="setAnswer(this, 2)" data-q="b5">Yes</button>
+            <button onclick="setAnswer(this, 1)" data-q="b5">DK</button>
+            <button onclick="setAnswer(this, 0)" data-q="b5">No</button>
+          </div>
+        </div>
+      </fieldset>
+
+      <button id="calculate-btn" onclick="calculateScore()">Calculate Vulnerability Score</button>
+
+      <!-- Score Output -->
+      <div id="score-display">
+        <div id="score-band" class="score-band">
+          <div class="score-number" id="score-number">0</div>
+          <div class="score-max">/ 24</div>
+          <div class="tier-label" id="tier-label">—</div>
+        </div>
+        <div class="sub-scores">
+          <div class="sub-score-item">
+            <div class="ss-label">Cat A: Looping</div>
+            <div class="ss-val" id="score-a">0</div>
+          </div>
+          <div class="sub-score-item">
+            <div class="ss-label">Cat B: Pressure</div>
+            <div class="ss-val" id="score-b">0</div>
+          </div>
+        </div>
+        <div id="tier-detail" class="tier-text"></div>
+      </div>
+    </div>
+
+    <!-- CONNECTOR -->
+    <div class="flow-connector"></div>
+
+    <!-- BRANCH: Two paths from diagnostic -->
+    <div class="branch-connector-row">
+      <div class="branch-arm" style="margin-left: calc(25% - 1.5px);"></div>
+      <div style="flex:1;"></div>
+      <div class="branch-arm" style="margin-right: calc(25% - 1.5px);"></div>
+    </div>
+
+    <div class="branch-row">
+      <!-- NODE 2A: LOOPING EXPLAINER -->
+      <div class="flow-node" id="node-looping" onclick="toggleNode('looping')" role="button" tabindex="0" aria-expanded="false" aria-controls="panel-looping">
+        <div class="node-number">Module 2A</div>
+        <div class="node-title">Water Main Looping</div>
+        <div class="node-hint">Dead-end vs. looped distribution</div>
+      </div>
+
+      <!-- NODE 2B: PRESSURE EXPLAINER -->
+      <div class="flow-node" id="node-pressure" onclick="toggleNode('pressure')" role="button" tabindex="0" aria-expanded="false" aria-controls="panel-pressure">
+        <div class="node-number">Module 2B</div>
+        <div class="node-title">Pressure Reduction</div>
+        <div class="node-hint">PRV installation and zone management</div>
+      </div>
+    </div>
+
+    <!-- LOOPING DETAIL PANEL -->
+    <div class="detail-panel" id="panel-looping">
+      <h3>What Is Water Main Looping?</h3>
+
+      <div class="svg-diagram-wrap">
+        <svg width="680" height="260" viewBox="0 0 680 260" role="img" aria-label="Diagram comparing a dead-end water main system on the left with a looped distribution system on the right. The dead-end system shows single-direction flow with stagnation risk. The looped system shows bi-directional flow with redundancy.">
+          <!-- Dead-end system (left) -->
+          <text x="170" y="22" font-family="Consolas, monospace" font-size="13" fill="#bf5b04" text-anchor="middle" font-weight="bold">DEAD-END SYSTEM</text>
+
+          <!-- Main trunk -->
+          <rect x="30" y="60" width="280" height="12" rx="2" fill="#7A8591" stroke="#555" stroke-width="1"/>
+          <text x="170" y="55" font-family="Consolas, monospace" font-size="10" fill="#9e9e9e" text-anchor="middle">DISTRIBUTION MAIN</text>
+
+          <!-- Branch off main -->
+          <rect x="200" y="72" width="12" height="80" rx="2" fill="#7A8591" stroke="#555" stroke-width="1"/>
+
+          <!-- Branch horizontal -->
+          <rect x="200" y="145" width="100" height="12" rx="2" fill="#7A8591" stroke="#555" stroke-width="1"/>
+
+          <!-- Dead end cap -->
+          <rect x="296" y="142" width="6" height="18" rx="1" fill="#B91C1C"/>
+          <text x="315" y="155" font-family="Consolas, monospace" font-size="9" fill="#B91C1C">DEAD END</text>
+
+          <!-- Service connections -->
+          <circle cx="220" cy="108" r="5" fill="none" stroke="#1565c0" stroke-width="1.5"/>
+          <circle cx="250" cy="155" r="5" fill="none" stroke="#1565c0" stroke-width="1.5"/>
+          <circle cx="280" cy="155" r="5" fill="none" stroke="#1565c0" stroke-width="1.5"/>
+
+          <!-- Flow arrow -->
+          <line x1="160" y1="66" x2="240" y2="66" stroke="#1565c0" stroke-width="1.5" stroke-dasharray="4,3"/>
+          <polygon points="242,62 242,70 252,66" fill="#1565c0"/>
+          <text x="195" y="43" font-family="Consolas, monospace" font-size="9" fill="#1565c0" text-anchor="middle">FLOW ></text>
+
+          <!-- Status label -->
+          <text x="170" y="195" font-family="Consolas, monospace" font-size="9" fill="#B91C1C" text-anchor="middle">Single-direction flow</text>
+          <text x="170" y="208" font-family="Consolas, monospace" font-size="9" fill="#9e9e9e" text-anchor="middle">Stagnation risk / low fire flow</text>
+          <text x="170" y="221" font-family="Consolas, monospace" font-size="9" fill="#9e9e9e" text-anchor="middle">Pressure drop at dead end</text>
+
+          <!-- Divider -->
+          <line x1="340" y1="20" x2="340" y2="240" stroke="#555" stroke-width="1" stroke-dasharray="6,4"/>
+
+          <!-- Looped system (right) -->
+          <text x="510" y="22" font-family="Consolas, monospace" font-size="13" fill="#2D6E4E" text-anchor="middle" font-weight="bold">LOOPED SYSTEM</text>
+
+          <!-- Main trunk top -->
+          <rect x="370" y="60" width="280" height="12" rx="2" fill="#7A8591" stroke="#555" stroke-width="1"/>
+          <text x="510" y="55" font-family="Consolas, monospace" font-size="10" fill="#9e9e9e" text-anchor="middle">DISTRIBUTION MAIN</text>
+
+          <!-- Left branch down -->
+          <rect x="440" y="72" width="12" height="80" rx="2" fill="#7A8591" stroke="#555" stroke-width="1"/>
+
+          <!-- Branch horizontal (both ends connected) -->
+          <rect x="440" y="145" width="120" height="12" rx="2" fill="#7A8591" stroke="#555" stroke-width="1"/>
+
+          <!-- Right branch up (completing loop) -->
+          <rect x="548" y="72" width="12" height="80" rx="2" fill="#7A8591" stroke="#555" stroke-width="1"/>
+
+          <!-- Service connections -->
+          <circle cx="460" cy="108" r="5" fill="none" stroke="#1565c0" stroke-width="1.5"/>
+          <circle cx="480" cy="155" r="5" fill="none" stroke="#1565c0" stroke-width="1.5"/>
+          <circle cx="520" cy="155" r="5" fill="none" stroke="#1565c0" stroke-width="1.5"/>
+
+          <!-- Flow arrows (bidirectional) -->
+          <line x1="410" y1="66" x2="480" y2="66" stroke="#1565c0" stroke-width="1.5" stroke-dasharray="4,3"/>
+          <polygon points="482,62 482,70 492,66" fill="#1565c0"/>
+          <line x1="610" y1="66" x2="540" y2="66" stroke="#1565c0" stroke-width="1.5" stroke-dasharray="4,3"/>
+          <polygon points="538,62 538,70 528,66" fill="#1565c0"/>
+          <text x="450" y="43" font-family="Consolas, monospace" font-size="9" fill="#1565c0">FLOW ></text>
+          <text x="570" y="43" font-family="Consolas, monospace" font-size="9" fill="#1565c0">< FLOW</text>
+
+          <!-- Loop indicator -->
+          <rect x="555" y="142" width="6" height="18" rx="1" fill="#2D6E4E"/>
+          <text x="570" y="155" font-family="Consolas, monospace" font-size="9" fill="#2D6E4E">LOOP</text>
+
+          <!-- Status label -->
+          <text x="510" y="195" font-family="Consolas, monospace" font-size="9" fill="#2D6E4E" text-anchor="middle">Bi-directional flow</text>
+          <text x="510" y="208" font-family="Consolas, monospace" font-size="9" fill="#9e9e9e" text-anchor="middle">Redundancy / better pressure</text>
+          <text x="510" y="221" font-family="Consolas, monospace" font-size="9" fill="#9e9e9e" text-anchor="middle">Improved flushing capacity</text>
+        </svg>
+      </div>
+
+      <p class="explainer-text">
+        A dead-end main is like a hallway with only one exit. Water flows in from one direction, reaches the end of the branch, and sits there. Sediment settles. Chlorine residual decays. The farthest customers get the worst water quality and the lowest pressure.
+      </p>
+      <p class="explainer-text">
+        In a <strong>looped system</strong>, water can reach any point from two directions. A break or valve closure on one side does not cut off service. Flushing is faster and more effective because flow velocity stays higher throughout the network. This is why old dead-end neighborhoods are the first to experience discolored water after a system disturbance.
+      </p>
+    </div>
+
+    <!-- PRESSURE DETAIL PANEL -->
+    <div class="detail-panel" id="panel-pressure">
+      <h3>What Is Pressure Reduction?</h3>
+
+      <div class="svg-diagram-wrap">
+        <svg width="680" height="220" viewBox="0 0 680 220" role="img" aria-label="Cross-section schematic showing a pressure reducing valve installation. High pressure zone on the left at approximately 90 PSI feeds through a PRV to a reduced pressure zone on the right at approximately 55 PSI.">
+          <!-- High pressure zone -->
+          <text x="160" y="28" font-family="Consolas, monospace" font-size="12" fill="#B91C1C" text-anchor="middle" font-weight="bold">HIGH PRESSURE ZONE</text>
+
+          <!-- Main pipe left (thick) -->
+          <rect x="30" y="85" width="240" height="24" rx="3" fill="#7A8591" stroke="#555" stroke-width="1.5"/>
+
+          <!-- Flow arrows left -->
+          <line x1="60" y1="97" x2="130" y2="97" stroke="#1565c0" stroke-width="1.5" stroke-dasharray="4,3"/>
+          <polygon points="132,93 132,101 142,97" fill="#1565c0"/>
+
+          <!-- PRV Body -->
+          <rect x="270" y="72" width="80" height="50" rx="4" fill="#bf5b04" stroke="#8a4003" stroke-width="2"/>
+          <text x="310" y="100" font-family="Consolas, monospace" font-size="10" fill="#fff" text-anchor="middle" font-weight="bold">PRV</text>
+          <!-- Valve symbol (butterfly approximation) -->
+          <line x1="295" y1="80" x2="325" y2="114" stroke="#fff" stroke-width="2"/>
+          <line x1="325" y1="80" x2="295" y2="114" stroke="#fff" stroke-width="2"/>
+          <text x="310" y="140" font-family="Consolas, monospace" font-size="9" fill="#bf5b04" text-anchor="middle">PRESSURE REDUCING</text>
+          <text x="310" y="152" font-family="Consolas, monospace" font-size="9" fill="#bf5b04" text-anchor="middle">VALVE</text>
+
+          <!-- Low pressure zone -->
+          <text x="500" y="28" font-family="Consolas, monospace" font-size="12" fill="#2D6E4E" text-anchor="middle" font-weight="bold">REDUCED PRESSURE ZONE</text>
+
+          <!-- Main pipe right (thinner) -->
+          <rect x="350" y="89" width="260" height="16" rx="2" fill="#7A8591" stroke="#555" stroke-width="1.5"/>
+
+          <!-- Flow arrows right -->
+          <line x1="390" y1="97" x2="460" y2="97" stroke="#1565c0" stroke-width="1.5" stroke-dasharray="4,3"/>
+          <polygon points="462,93 462,101 472,97" fill="#1565c0"/>
+
+          <!-- Service connections on right side -->
+          <rect x="430" y="105" width="8" height="30" rx="1" fill="#7A8591" stroke="#555" stroke-width="1"/>
+          <circle cx="434" cy="140" r="4" fill="none" stroke="#1565c0" stroke-width="1"/>
+          <rect x="500" y="105" width="8" height="30" rx="1" fill="#7A8591" stroke="#555" stroke-width="1"/>
+          <circle cx="504" cy="140" r="4" fill="none" stroke="#1565c0" stroke-width="1"/>
+          <rect x="560" y="105" width="8" height="30" rx="1" fill="#7A8591" stroke="#555" stroke-width="1"/>
+          <circle cx="564" cy="140" r="4" fill="none" stroke="#1565c0" stroke-width="1"/>
+
+          <!-- Pressure gauge LEFT -->
+          <circle cx="160" cy="55" r="22" fill="#1a1a1a" stroke="#666" stroke-width="2"/>
+          <text x="160" y="50" font-family="Consolas, monospace" font-size="8" fill="#9e9e9e" text-anchor="middle">PSI</text>
+          <!-- Needle pointing high -->
+          <line x1="160" y1="55" x2="172" y2="40" stroke="#B91C1C" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="160" cy="55" r="3" fill="#B91C1C"/>
+          <text x="160" y="72" font-family="Consolas, monospace" font-size="10" fill="#B91C1C" text-anchor="middle">~90 psi</text>
+
+          <!-- Arrow between gauges -->
+          <line x1="200" y1="55" x2="400" y2="55" stroke="#9e9e9e" stroke-width="1" stroke-dasharray="8,4"/>
+          <polygon points="402,51 402,59 412,55" fill="#9e9e9e"/>
+
+          <!-- Pressure gauge RIGHT -->
+          <circle cx="460" cy="55" r="22" fill="#1a1a1a" stroke="#666" stroke-width="2"/>
+          <text x="460" y="50" font-family="Consolas, monospace" font-size="8" fill="#9e9e9e" text-anchor="middle">PSI</text>
+          <!-- Needle pointing lower (safe) -->
+          <line x1="460" y1="55" x2="448" y2="42" stroke="#2D6E4E" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="460" cy="55" r="3" fill="#2D6E4E"/>
+          <text x="460" y="72" font-family="Consolas, monospace" font-size="10" fill="#2D6E4E" text-anchor="middle">~55 psi</text>
+
+          <!-- Ground / elevation hint -->
+          <line x1="30" y1="180" x2="270" y2="180" stroke="#444" stroke-width="1"/>
+          <line x1="350" y1="190" x2="620" y2="190" stroke="#444" stroke-width="1"/>
+          <text x="150" y="198" font-family="Consolas, monospace" font-size="9" fill="#555" text-anchor="middle">Higher elevation</text>
+          <text x="490" y="208" font-family="Consolas, monospace" font-size="9" fill="#555" text-anchor="middle">Lower elevation / service area</text>
+        </svg>
+      </div>
+
+      <p class="explainer-text">
+        Water pressure above <strong>80 psi</strong> accelerates wear on pipes, joints, and customer-side fixtures. In hilly areas or systems with high-elevation storage tanks, pressure at the lowest points can far exceed design limits. A pressure reducing valve acts like a throttle — it accepts high inlet pressure and delivers a constant, set outlet pressure regardless of demand fluctuations.
+      </p>
+      <!-- VERIFY: SF3183 bond amount and scope from software brief — consistent with legislative text -->
+      <p class="explainer-text">
+        Mendota's SF3183 funded exactly this: a PRV station to protect the distribution system from the pressure differential created by its topography.
+      </p>
+    </div>
+
+    <!-- CONNECTOR to combined -->
+    <div class="flow-connector"></div>
+
+    <!-- NODE 3: COMBINED EXPLANATION -->
+    <div class="flow-node" id="node-combined" onclick="toggleNode('combined')" role="button" tabindex="0" aria-expanded="false" aria-controls="panel-combined">
+      <div class="node-number">Module 2C</div>
+      <div class="node-title">Why These Solutions Go Together</div>
+      <div class="node-hint">The Mendota project as a worked example</div>
+    </div>
+
+    <div class="detail-panel" id="panel-combined">
+      <h3>Combined Looping + Pressure Rehab</h3>
+      <p class="explainer-text">
+        Dead-end zones are typically the farthest points from the pressure regulation source. That distance means they suffer both problems simultaneously: stagnant water from lack of flow circulation, and unregulated pressure that swings with demand. A main break in a dead-end, high-pressure zone is the worst-case scenario — high force pushing water through a single path with no alternative route.
+      </p>
+      <p class="explainer-text">
+        That is why looping and pressure reduction appear in the same capital project. Closing the loop provides hydraulic redundancy. Adding a PRV station controls the force moving through the newly connected network. One without the other solves only half the problem.
+      </p>
+      <!-- VERIFY: Bond amount $5,207,000 and companion bill HF2924 from software brief -->
+      <div class="mendota-callout">
+        <strong>Mendota, MN — 2025 Project:</strong> $5,207,000 in state bonds through SF3183 (94th Legislature; companion HF2924). Funds property acquisition, easements, engineering design, and construction of a new water main loop to eliminate dead-end branches and a pressure reduction station to manage differentials across the service area. Funding vehicle: state bond proceeds granted through the Public Facilities Authority. Chief author: Senator Jim Carlson, SD-52.
+      </div>
+    </div>
+
+    <!-- CONNECTOR -->
+    <div class="flow-connector"></div>
+
+    <!-- NODE 4: FUNDING PATHWAY FINDER -->
+    <div class="flow-node" id="node-funding" onclick="toggleNode('funding')" role="button" tabindex="0" aria-expanded="false" aria-controls="panel-funding">
+      <div class="node-number">Module 3</div>
+      <div class="node-title">Funding Pathway Finder</div>
+      <div class="node-hint">Match your project to the right state and federal programs</div>
+    </div>
+
+    <div class="detail-panel" id="panel-funding">
+      <h3>Find Your Funding Path</h3>
+
+      <div class="funding-inputs">
+        <div>
+          <label for="f-project">Project Type</label>
+          <select id="f-project" onchange="updateFunding()">
+            <option value="">-- Select --</option>
+            <option value="looping">Water main looping</option>
+            <option value="pressure">Pressure reduction installation</option>
+            <option value="replacement">Main replacement</option>
+            <option value="storage">Storage tank rehabilitation</option>
+            <option value="combined">Combined distribution rehab</option>
+          </select>
+        </div>
+        <div>
+          <label for="f-population">City Population</label>
+          <select id="f-population" onchange="updateFunding()">
+            <option value="">-- Select --</option>
+            <option value="500">Under 500</option>
+            <option value="2000">500 - 2,000</option>
+            <option value="5000">2,000 - 5,000</option>
+            <option value="15000">5,000 - 15,000</option>
+          </select>
+        </div>
+        <div>
+          <label for="f-engineered">Project Engineered/Designed?</label>
+          <select id="f-engineered" onchange="updateFunding()">
+            <option value="">-- Select --</option>
+            <option value="yes">Yes</option>
+            <option value="partial">Partially</option>
+            <option value="no">No</option>
+          </select>
+        </div>
+        <div>
+          <label for="f-disadvantaged">Disadvantaged Community (MHI &lt; 80% state median)?</label>
+          <select id="f-disadvantaged" onchange="updateFunding()">
+            <option value="">-- Select --</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </div>
+        <div>
+          <label for="f-match">State Match Expected?</label>
+          <select id="f-match" onchange="updateFunding()">
+            <option value="">-- Select --</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+            <option value="unknown">Unknown</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="funding-results"></div>
+
+      <h4 style="font-family:Impact,'Arial Black',sans-serif; font-size:14px; text-transform:uppercase; letter-spacing:2px; color:var(--rust); margin-top:28px;">Project Readiness Checklist</h4>
+      <div class="checklist" id="readiness-checklist">
+        <div class="checklist-item"><div class="check-box" onclick="toggleCheck(this)"></div><span>Preliminary Engineering Report (PER) completed by licensed PE</span></div>
+        <div class="checklist-item"><div class="check-box" onclick="toggleCheck(this)"></div><span>City council resolution authorizing project pursuit</span></div>
+        <div class="checklist-item"><div class="check-box" onclick="toggleCheck(this)"></div><span>Environmental review initiated (Phase I at minimum for land acquisition)</span></div>
+        <div class="checklist-item"><div class="check-box" onclick="toggleCheck(this)"></div><span>Utility billing records current (needed for PFA/USDA income analysis)</span></div>
+        <div class="checklist-item"><div class="check-box" onclick="toggleCheck(this)"></div><span>Service area map and pipe inventory current</span></div>
+        <div class="checklist-item"><div class="check-box" onclick="toggleCheck(this)"></div><span>Existing debt service schedule documented</span></div>
+        <div class="checklist-item"><div class="check-box" onclick="toggleCheck(this)"></div><span>Community income data (Census ACS 5-year) pulled for MHI calculation</span></div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer id="app-footer">
+    A resource for SD-52 communities and Minnesota municipal utilities. Built with AI.<br>
+    Data reflects MN PFA, USDA Rural Development, and EPA DWSRF programs as of 2025.<br>
+    Verify current program terms with administering agencies before application.
+  </footer>
+
+</div>
+
+<script>
+/* ═══════════════════════════════════════════
+   ENTRY ANIMATION
+   ═══════════════════════════════════════════ */
+(function entryAnimation() {
+  const overlay = document.getElementById('entry-overlay');
+  const pool = document.getElementById('water-pool');
+  const entryText = document.getElementById('entry-text');
+  const app = document.getElementById('app');
+
+  // Create droplets
+  const dropCount = 30;
+  for (let i = 0; i < dropCount; i++) {
+    const d = document.createElement('div');
+    d.className = 'droplet';
+    d.style.left = (Math.random() * 90 + 5) + '%';
+    d.style.top = (-20 - Math.random() * 40) + 'px';
+    d.style.animationDuration = (1.2 + Math.random() * 1.0) + 's';
+    d.style.animationDelay = (Math.random() * 1.8) + 's';
+    d.style.width = (6 + Math.random() * 6) + 'px';
+    d.style.height = (9 + Math.random() * 8) + 'px';
+    d.style.opacity = 0.4 + Math.random() * 0.4;
+    overlay.insertBefore(d, pool);
+  }
+
+  // Fill pool
+  setTimeout(function() { pool.classList.add('filled'); }, 800);
+
+  // Show text
+  setTimeout(function() { entryText.classList.add('show'); }, 1600);
+
+  // Fade out overlay, show app
+  setTimeout(function() {
+    overlay.classList.add('fade-out');
+    app.classList.add('visible');
+  }, 3200);
+
+  // Remove overlay from DOM
+  setTimeout(function() { overlay.remove(); }, 4200);
+})();
+
+/* ═══════════════════════════════════════════
+   NODE TOGGLE LOGIC
+   ═══════════════════════════════════════════ */
+var activeNodes = { diagnostic: true }; // diagnostic starts open
+
+function toggleNode(id) {
+  var node = document.getElementById('node-' + id);
+  var panel = document.getElementById('panel-' + id);
+  if (!node || !panel) return;
+
+  var isOpen = panel.classList.contains('open');
+  if (isOpen) {
+    panel.classList.remove('open');
+    panel.style.padding = '0 24px';
+    setTimeout(function() { panel.style.padding = ''; }, 50);
+    node.classList.remove('active');
+    node.setAttribute('aria-expanded', 'false');
+    delete activeNodes[id];
+  } else {
+    panel.classList.add('open');
+    node.classList.add('active');
+    node.setAttribute('aria-expanded', 'true');
+    activeNodes[id] = true;
+    // Scroll into view
+    setTimeout(function() {
+      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 100);
+  }
+}
+
+/* ═══════════════════════════════════════════
+   DIAGNOSTIC SCORING
+   ═══════════════════════════════════════════ */
+var answers = {};
+
+function setAnswer(btn, value) {
+  var qId = btn.getAttribute('data-q');
+  answers[qId] = value;
+
+  // Update button states
+  var siblings = btn.parentElement.querySelectorAll('button');
+  siblings.forEach(function(b) {
+    b.className = '';
+  });
+  if (value === 2) btn.className = 'selected-yes';
+  else if (value === 0) btn.className = 'selected-no';
+  else btn.className = 'selected-dk';
+
+  // Persist
+  try { localStorage.setItem('carlson_diag_answers', JSON.stringify(answers)); } catch(e) {}
+}
+
+function calculateScore() {
+  var catA = 0, catB = 0;
+  var aKeys = ['a1','a2','a3','a4','a5','a6','a7'];
+  var bKeys = ['b1','b2','b3','b4','b5'];
+
+  aKeys.forEach(function(k) { catA += (answers[k] || 0); });
+  bKeys.forEach(function(k) { catB += (answers[k] || 0); });
+
+  var total = catA + catB;
+  var tier = total <= 6 ? 1 : total <= 14 ? 2 : 3;
+
+  document.getElementById('score-number').textContent = total;
+  document.getElementById('score-a').textContent = catA + '/14';
+  document.getElementById('score-b').textContent = catB + '/10';
+
+  var band = document.getElementById('score-band');
+  band.className = 'score-band tier' + tier;
+
+  var tierLabel = document.getElementById('tier-label');
+  var tierNames = { 1: 'Tier 1 — Low Vulnerability', 2: 'Tier 2 — Moderate Vulnerability', 3: 'Tier 3 — High Vulnerability' };
+  tierLabel.textContent = tierNames[tier];
+
+  // Color sub-scores
+  var scoreAEl = document.getElementById('score-a');
+  var scoreBEl = document.getElementById('score-b');
+  scoreAEl.style.color = catA <= 4 ? 'var(--success)' : catA <= 8 ? 'var(--warning)' : 'var(--alert)';
+  scoreBEl.style.color = catB <= 3 ? 'var(--success)' : catB <= 6 ? 'var(--warning)' : 'var(--alert)';
+
+  // Tier detail text
+  var detail = document.getElementById('tier-detail');
+  if (tier === 1) {
+    detail.innerHTML = '<p>Your system shows few active risk indicators. Continue routine monitoring, maintain your flushing schedule, and keep pipe inventory records current. No immediate engineering assessment is warranted, but revisit this diagnostic after any significant service disruption or capital planning cycle.</p>';
+  } else if (tier === 2) {
+    detail.innerHTML = '<p>Your system has enough risk indicators to warrant a formal engineering assessment. ' +
+      (catA > catB ? 'Your looping/dead-end indicators are higher than your pressure indicators — a distribution system study focused on dead-end elimination and fire flow analysis would be the priority.' :
+       catB > catA ? 'Your pressure zone indicators are elevated — a pressure zone study with PRV siting analysis should be the first engineering step.' :
+       'Both looping and pressure indicators are elevated. A comprehensive distribution system study covering hydraulic modeling, dead-end identification, and pressure zone mapping is appropriate.') +
+      '</p><p>This is the stage where you engage a licensed PE firm for a Preliminary Engineering Report (PER). The PER is also a prerequisite for most state and federal funding programs — you cannot apply without one.</p>';
+  } else {
+    detail.innerHTML = '<p>Your system is showing active, compounding risk. Multiple indicators suggest both distribution deficiency and pressure management problems — the same combination that Mendota\'s SF3183 project was designed to solve.</p>' +
+      '<p>At this vulnerability level, the engineering problems are likely known to your operations staff even if they haven\'t been formally documented. The priority is getting a PER completed and identifying the capital project scope so you can enter the funding pipeline.</p>' +
+      '<p>Scroll down to the <strong>Funding Pathway Finder</strong> to identify which state and federal programs match your project profile. For combined looping and pressure reduction projects, the Minnesota Capital Investment (bonding bill) pathway — the same mechanism used for Mendota — is often the most direct route for projects above $1M.</p>';
+  }
+
+  // Mark diagnostic node as completed
+  document.getElementById('node-diagnostic').classList.add('completed');
+
+  document.getElementById('score-display').classList.add('visible');
+  document.getElementById('score-display').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function loadMendotaDemo() {
+  var demoAnswers = {
+    a1: 2, a2: 2, a3: 1, a4: 2, a5: 1, a6: 2, a7: 1,
+    b1: 2, b2: 2, b3: 1, b4: 2, b5: 1
+  };
+  answers = demoAnswers;
+
+  // Update UI buttons
+  Object.keys(demoAnswers).forEach(function(qId) {
+    var val = demoAnswers[qId];
+    var btns = document.querySelectorAll('[data-q="' + qId + '"]');
+    btns.forEach(function(b) {
+      b.className = '';
+      if (val === 2 && b.textContent === 'Yes') b.className = 'selected-yes';
+      else if (val === 1 && b.textContent === 'DK') b.className = 'selected-dk';
+      else if (val === 0 && b.textContent === 'No') b.className = 'selected-no';
+    });
+  });
+
+  calculateScore();
+}
+
+/* ═══════════════════════════════════════════
+   FUNDING PATHWAY LOGIC
+   ═══════════════════════════════════════════ */
+var fundingPrograms = [
+  {
+    id: 'pfa',
+    name: 'MN Public Facilities Authority — Water Infrastructure Fund',
+    type: 'Low-interest loan + possible grant portion for disadvantaged communities',
+    admin: 'Minnesota Public Facilities Authority (PFA)',
+    eligible: 'Water main, distribution system, storage, treatment',
+    match: 'No fixed match required for loans; grants available for communities meeting low-income thresholds',
+    timing: 'Annual cycle; contact PFA for current solicitation dates',
+    note: 'The PFA administers state bond proceeds — it is the vehicle through which SF3183 funds flow to Mendota. For projects requiring a state legislative appropriation (bonding bill), the PFA grant is the endpoint.',
+    score: function(p) {
+      var s = 5; // baseline — always relevant
+      if (p.project === 'combined' || p.project === 'looping' || p.project === 'pressure') s += 3;
+      if (p.disadvantaged === 'yes') s += 3;
+      return s;
+    }
+  },
+  {
+    id: 'usda',
+    name: 'USDA Water & Waste Disposal Program (Rural Development)',
+    type: 'Combination loan and grant',
+    admin: 'USDA Rural Development, MN State Office',
+    eligible: 'Water and waste disposal systems for rural communities',
+    match: 'No fixed match; local contribution strengthens application',
+    timing: 'Open application; contact USDA RD MN State Office for current availability',
+    popLimit: 'Generally communities of 10,000 or fewer',
+    note: 'USDA RD requires an environmental review and a preliminary engineering report before application. Do not apply without PE-stamped documentation. Community must be unable to finance project from own resources; lower MHI yields higher grant percentage (up to 75%).',
+    score: function(p) {
+      var s = 3;
+      var pop = parseInt(p.population) || 99999;
+      if (pop <= 2000) s += 5;
+      else if (pop <= 5000) s += 3;
+      else if (pop <= 15000) s += 1;
+      if (p.disadvantaged === 'yes') s += 3;
+      if (p.engineered === 'no') s -= 1; // needs PER
+      return s;
+    }
+  },
+  {
+    id: 'dwsrf',
+    name: 'EPA Drinking Water State Revolving Fund (DWSRF) — via MN PFA',
+    type: 'Low-interest revolving loan; principal forgiveness for disadvantaged communities',
+    admin: 'MN PFA on behalf of EPA',
+    eligible: 'Public water supply systems; distribution system improvements qualify',
+    match: 'No match required for loan; principal forgiveness up to 100% for qualifying disadvantaged communities (as defined under IIJA expanded criteria)',
+    timing: 'Annual Intended Use Plan (IUP); deadlines typically spring',
+    note: 'DWSRF principal forgiveness has expanded significantly under IIJA (2021). A small city that previously qualified only for a loan may now qualify for substantial forgiveness.',
+    score: function(p) {
+      var s = 4;
+      if (p.disadvantaged === 'yes') s += 5;
+      if (p.project === 'looping' || p.project === 'pressure' || p.project === 'combined') s += 2;
+      return s;
+    }
+  },
+  {
+    id: 'bonding',
+    name: 'Minnesota Capital Investment (Bonding Bill) — Legislative Appropriation',
+    type: 'State grant (bond proceeds), administered through PFA or directly',
+    admin: 'Minnesota Legislature / Capital Investment Committee / PFA',
+    eligible: 'Any public infrastructure serving a demonstrated public need; water main looping and PRV installation qualify (see SF3183)',
+    match: 'No fixed match required, but demonstrating federal leverage strengthens competitiveness',
+    timing: 'Bonding bills pass in even years (typically); city submissions to MMB due by mid-June of odd years preceding the bonding session',
+    note: 'This is the mechanism used for Mendota\'s $5,207,000 project. Path: City council resolution, then legislator sponsor, then bill introduction, then Capital Investment Committee, then bonding bill floor vote (requires 3/5 supermajority). Requires a legislator willing to carry the bill and a city with documented need and project readiness.',
+    score: function(p) {
+      var s = 3;
+      if (p.match === 'yes') s += 4;
+      if (p.project === 'combined') s += 3;
+      else if (p.project === 'looping' || p.project === 'pressure') s += 2;
+      if (p.engineered === 'yes') s += 2;
+      else if (p.engineered === 'partial') s += 1;
+      return s;
+    }
+  },
+  {
+    id: 'cdbg',
+    name: 'Community Development Block Grant (CDBG) — MN DEED',
+    type: 'Federal grant administered by MN DEED (non-entitlement communities)',
+    admin: 'MN DEED, Small Cities Development Program',
+    eligible: 'Infrastructure serving low-to-moderate income residents; water system improvements qualify if LMI benefit documented. 51%+ of service area residents must be LMI.',
+    match: 'Varies by program year; check current NOFA',
+    timing: 'Annual NOFA cycle; check MN DEED for current deadlines',
+    note: 'CDBG is often the gap-filler or local match source that enables USDA or PFA loans to close. It is underutilized for water projects because cities think of it as a housing program.',
+    score: function(p) {
+      var s = 2;
+      if (p.disadvantaged === 'yes') s += 4;
+      var pop = parseInt(p.population) || 99999;
+      if (pop <= 5000) s += 2;
+      return s;
+    }
+  }
+];
+
+function updateFunding() {
+  var params = {
+    project: document.getElementById('f-project').value,
+    population: document.getElementById('f-population').value,
+    engineered: document.getElementById('f-engineered').value,
+    disadvantaged: document.getElementById('f-disadvantaged').value,
+    match: document.getElementById('f-match').value
+  };
+
+  // Don't render if nothing selected
+  if (!params.project && !params.population) {
+    document.getElementById('funding-results').innerHTML = '<p style="color:var(--text-dim); font-size:13px;">Select project parameters above to see matching funding programs.</p>';
+    return;
+  }
+
+  // Score and sort
+  var scored = fundingPrograms.map(function(prog) {
+    return { prog: prog, score: prog.score(params) };
+  });
+  scored.sort(function(a, b) { return b.score - a.score; });
+
+  // Check if PER warning needed
+  var perWarning = '';
+  if (params.engineered === 'no') {
+    perWarning = '<div style="background:var(--warning); color:#1a1a1a; padding:10px 14px; margin-bottom:14px; font-size:12px; font-family:Consolas,monospace;"><strong>IMPORTANT:</strong> Most funding programs require a Preliminary Engineering Report (PER) before application. Engage a licensed PE firm as your first step.</div>';
+  }
+
+  var html = perWarning;
+
+  scored.forEach(function(item, i) {
+    var p = item.prog;
+    var isTop = i < 3;
+    var cardClass = isTop ? 'funding-card top-match' : 'funding-card';
+    var openClass = isTop ? 'open' : '';
+
+    html += '<div class="' + cardClass + '">';
+    html += '<div class="funding-card-header" onclick="toggleFundingCard(this)">';
+    html += '<span class="fc-name">' + p.name + '</span>';
+    html += '<span class="fc-score">RELEVANCE ' + item.score + '</span>';
+    html += '</div>';
+    html += '<div class="funding-card-body ' + openClass + '">';
+    html += '<div class="fc-row"><div class="fc-key">Type</div><div class="fc-val">' + p.type + '</div></div>';
+    html += '<div class="fc-row"><div class="fc-key">Administered by</div><div class="fc-val">' + p.admin + '</div></div>';
+    html += '<div class="fc-row"><div class="fc-key">Eligible</div><div class="fc-val">' + p.eligible + '</div></div>';
+    html += '<div class="fc-row"><div class="fc-key">Match</div><div class="fc-val">' + p.match + '</div></div>';
+    html += '<div class="fc-row"><div class="fc-key">Timing</div><div class="fc-val">' + p.timing + '</div></div>';
+    if (p.popLimit) {
+      html += '<div class="fc-row"><div class="fc-key">Pop. limit</div><div class="fc-val">' + p.popLimit + '</div></div>';
+    }
+    html += '<div class="fc-row"><div class="fc-key">Note</div><div class="fc-val">' + p.note + '</div></div>';
+    html += '</div></div>';
+  });
+
+  document.getElementById('funding-results').innerHTML = html;
+}
+
+function toggleFundingCard(header) {
+  var body = header.nextElementSibling;
+  body.classList.toggle('open');
+}
+
+/* ═══════════════════════════════════════════
+   CHECKLIST TOGGLE
+   ═══════════════════════════════════════════ */
+function toggleCheck(el) {
+  el.classList.toggle('checked');
+}
+
+/* ═══════════════════════════════════════════
+   RESET
+   ═══════════════════════════════════════════ */
+function resetDiagnostic() {
+  answers = {};
+  try { localStorage.removeItem('carlson_diag_answers'); } catch(e) {}
+
+  // Clear all answer buttons
+  document.querySelectorAll('.answer-btns button').forEach(function(b) { b.className = ''; });
+
+  // Hide score
+  document.getElementById('score-display').classList.remove('visible');
+
+  // Reset nodes
+  document.querySelectorAll('.flow-node').forEach(function(n) {
+    n.classList.remove('active', 'completed');
+    n.setAttribute('aria-expanded', 'false');
+  });
+  document.querySelectorAll('.detail-panel').forEach(function(p) {
+    p.classList.remove('open');
+  });
+
+  // Open diagnostic again
+  document.getElementById('node-diagnostic').classList.add('active');
+  document.getElementById('panel-diagnostic').classList.add('open');
+  document.getElementById('node-diagnostic').setAttribute('aria-expanded', 'true');
+
+  // Reset funding
+  document.getElementById('f-project').value = '';
+  document.getElementById('f-population').value = '';
+  document.getElementById('f-engineered').value = '';
+  document.getElementById('f-disadvantaged').value = '';
+  document.getElementById('f-match').value = '';
+  document.getElementById('funding-results').innerHTML = '';
+
+  // Reset checklist
+  document.querySelectorAll('.check-box').forEach(function(c) { c.classList.remove('checked'); });
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ═══════════════════════════════════════════
+   LOCALSTORAGE RESTORE
+   ═══════════════════════════════════════════ */
+(function restoreState() {
+  try {
+    var saved = localStorage.getItem('carlson_diag_answers');
+    if (saved) {
+      answers = JSON.parse(saved);
+      Object.keys(answers).forEach(function(qId) {
+        var val = answers[qId];
+        var btns = document.querySelectorAll('[data-q="' + qId + '"]');
+        btns.forEach(function(b) {
+          if (val === 2 && b.textContent === 'Yes') b.className = 'selected-yes';
+          else if (val === 1 && b.textContent === 'DK') b.className = 'selected-dk';
+          else if (val === 0 && b.textContent === 'No') b.className = 'selected-no';
+        });
+      });
+    }
+  } catch(e) {}
+})();
+
+// Initialize funding results placeholder
+updateFunding();
+</script>
+</body>
+</html>

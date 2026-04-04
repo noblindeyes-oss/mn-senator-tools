@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minnesota HOA & Condo Owner Rights Navigator</title>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Asymmetric two-panel — narrow left navigator (240px) with dark brick-red background, wide right content area; breaks to single column on mobile. Not a centered shell.
+   2. Navigation: Underline tab strip at top of content area — text labels with active underline indicator, no rounded-top tab boxes.
+   3. Typography: Georgia serif for headings (legal authority feel), system-ui sans for body. Monospace for statute chips. Three distinct sizes: 32px hero, 14px body, 11px footnotes.
+   4. Hero moment: Opening hero block with 32px Georgia heading over full-width lake-steel blue (#2E5F8B) background with white text — dominates the viewport on load.
+   5. Color commitment: Left panel uses brick red (#8B2E2E) as full background with light text; hero uses lake-steel blue full background; escalation ladder rungs use tinted palette backgrounds; letter preview uses warm cream distinct from page white.
+   Additional: Statute citations styled as monospace inline chips on concrete gray. No emoji icons anywhere. Form inputs fully styled to match dark/serif aesthetic. Density contrast between tight accordion list and spacious letter preview.
+*/
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --brick: #8B2E2E;
+  --brick-light: #A84444;
+  --brick-dark: #6B1E1E;
+  --lake: #2E5F8B;
+  --lake-light: #3A7AB0;
+  --lake-tint: #E8EFF6;
+  --gray: #6B7280;
+  --bg: #FFFFFF;
+  --text: #1C1C1E;
+  --success: #2D6A4F;
+  --warning: #C4922A;
+  --alert: #C1121F;
+  --border: #D1D5DB;
+  --cream: #FAF8F5;
+}
+
+html { font-size: 14px; }
+body {
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  line-height: 1.55;
+  display: flex;
+  min-height: 100vh;
+}
+
+/* LEFT SIDEBAR — narrow, dark brick */
+.sidebar {
+  width: 240px;
+  min-width: 240px;
+  background: var(--brick-dark);
+  color: #F0E8E4;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  overflow-y: auto;
+  z-index: 10;
+}
+
+.sidebar-header {
+  padding: 24px 18px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.12);
+}
+
+.sidebar-header h1 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #fff;
+  margin-bottom: 6px;
+}
+
+.sidebar-header .subtitle {
+  font-size: 11px;
+  color: rgba(255,255,255,0.65);
+  line-height: 1.4;
+}
+
+.sf1063-badge {
+  margin: 14px 18px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.08);
+  border-top: 3px solid var(--warning);
+  font-size: 11px;
+  line-height: 1.45;
+  color: rgba(255,255,255,0.8);
+}
+
+.sf1063-badge strong { color: #fff; }
+
+.sf1063-badge a {
+  color: #F0C674;
+  text-decoration: underline;
+}
+
+.issue-nav { flex: 1; padding: 8px 0; }
+
+.issue-nav .cat-header {
+  padding: 8px 18px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.45);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+}
+
+.issue-nav .cat-header:hover { color: rgba(255,255,255,0.7); }
+
+.cat-header .arrow {
+  display: inline-block;
+  transition: transform 0.2s;
+  font-size: 9px;
+}
+
+.cat-header.open .arrow { transform: rotate(90deg); }
+
+.cat-issues { display: none; padding-bottom: 4px; }
+.cat-header.open + .cat-issues { display: block; }
+
+.issue-link {
+  display: block;
+  padding: 5px 18px 5px 28px;
+  font-size: 12.5px;
+  color: rgba(255,255,255,0.72);
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: all 0.15s;
+  line-height: 1.35;
+}
+
+.issue-link:hover {
+  background: rgba(255,255,255,0.06);
+  color: #fff;
+}
+
+.issue-link.selected {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  border-left-color: var(--warning);
+  font-weight: 600;
+}
+
+.issue-link .check-mark {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid rgba(255,255,255,0.35);
+  border-radius: 2px;
+  vertical-align: middle;
+  margin-right: 6px;
+  position: relative;
+  top: -1px;
+}
+
+.issue-link.selected .check-mark {
+  background: var(--warning);
+  border-color: var(--warning);
+}
+
+.issue-link.selected .check-mark::after {
+  content: '';
+  position: absolute;
+  left: 3px; top: 1px;
+  width: 5px; height: 8px;
+  border: solid var(--brick-dark);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.sidebar-footer {
+  padding: 12px 18px;
+  border-top: 1px solid rgba(255,255,255,0.12);
+  font-size: 10.5px;
+  color: rgba(255,255,255,0.4);
+  line-height: 1.4;
+}
+
+/* MAIN CONTENT AREA */
+.main {
+  margin-left: 240px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* HERO BLOCK */
+.hero {
+  background: var(--lake);
+  color: #fff;
+  padding: 40px 48px 36px;
+}
+
+.hero h2 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 14px;
+}
+
+.hero p {
+  font-size: 15px;
+  line-height: 1.6;
+  max-width: 720px;
+  color: rgba(255,255,255,0.88);
+}
+
+/* TAB STRIP — underline style */
+.tab-strip {
+  display: flex;
+  border-bottom: 2px solid var(--border);
+  padding: 0 48px;
+  background: var(--bg);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.tab-btn {
+  padding: 14px 20px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gray);
+  background: none;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  letter-spacing: 0.3px;
+  transition: color 0.15s;
+  font-family: inherit;
+}
+
+.tab-btn:hover { color: var(--text); }
+
+.tab-btn.active {
+  color: var(--brick);
+}
+
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--brick);
+}
+
+.tab-btn .badge {
+  display: inline-block;
+  background: var(--brick);
+  color: #fff;
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 8px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+/* PANELS */
+.panel { display: none; padding: 32px 48px 48px; }
+.panel.active { display: block; }
+
+/* MODULE 1: RIGHTS DIAGNOSTIC */
+.detail-area {
+  background: var(--cream);
+  border: 1px solid var(--border);
+  padding: 28px 32px;
+  margin-top: 8px;
+  min-height: 200px;
+}
+
+.detail-area.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gray);
+  font-size: 13px;
+  font-style: italic;
+  min-height: 280px;
+}
+
+.detail-area h3 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--brick);
+  margin-bottom: 4px;
+}
+
+.detail-area .statute-chip {
+  display: inline-block;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 12px;
+  background: #E5E7EB;
+  color: var(--gray);
+  padding: 2px 8px;
+  border-radius: 3px;
+  margin-bottom: 16px;
+  letter-spacing: 0.3px;
+}
+
+.detail-area .statute-chip a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.detail-area .statute-chip a:hover {
+  text-decoration: underline;
+  color: var(--lake);
+}
+
+.detail-section {
+  margin-bottom: 18px;
+}
+
+.detail-section h4 {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--gray);
+  margin-bottom: 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.detail-section p {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.ask-for-box {
+  background: var(--brick);
+  color: #fff;
+  padding: 16px 20px;
+  margin-top: 20px;
+}
+
+.ask-for-box h4 {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.7);
+  margin-bottom: 6px;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+  padding-bottom: 4px;
+}
+
+.ask-for-box p {
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.selected-count {
+  font-size: 12px;
+  color: var(--gray);
+  margin-bottom: 12px;
+}
+
+.selected-count strong { color: var(--brick); }
+
+.btn-generate {
+  display: inline-block;
+  padding: 10px 22px;
+  background: var(--lake);
+  color: #fff;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  margin-top: 12px;
+  transition: background 0.15s;
+}
+
+.btn-generate:hover { background: var(--lake-light); }
+
+/* MODULE 2: LETTER BUILDER */
+.letter-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 20px;
+  margin-bottom: 24px;
+}
+
+.letter-form .full-width { grid-column: 1 / -1; }
+
+.form-group label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--gray);
+  margin-bottom: 4px;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 9px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  border: 1.5px solid var(--border);
+  background: var(--cream);
+  color: var(--text);
+  transition: border-color 0.15s;
+  outline: none;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  border-color: var(--lake);
+  background: #fff;
+}
+
+.form-group textarea { resize: vertical; min-height: 70px; }
+
+.form-group select { cursor: pointer; }
+
+.form-group .radio-group {
+  display: flex;
+  gap: 16px;
+  padding-top: 4px;
+}
+
+.form-group .radio-group label {
+  font-size: 13px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.form-group .radio-group input[type="radio"] {
+  width: auto;
+  accent-color: var(--brick);
+}
+
+.legal-disclaimer {
+  background: #FEF3C7;
+  border-top: 3px solid var(--warning);
+  padding: 14px 18px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #78560A;
+  margin-bottom: 24px;
+}
+
+.legal-disclaimer strong { color: #5C4005; }
+
+.letter-preview {
+  background: #FFFFF8;
+  border: 1px solid #C8C4B8;
+  padding: 48px 56px;
+  font-family: system-ui, sans-serif;
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: #222;
+  min-height: 400px;
+  box-shadow: 2px 2px 12px rgba(0,0,0,0.06);
+}
+
+.letter-preview .letter-date { margin-bottom: 24px; }
+.letter-preview .letter-address { margin-bottom: 24px; line-height: 1.5; }
+.letter-preview .letter-re { margin-bottom: 20px; font-weight: 600; }
+.letter-preview .letter-body p { margin-bottom: 12px; }
+.letter-preview .letter-closing { margin-top: 28px; }
+.letter-preview .letter-sig { margin-top: 36px; }
+
+.letter-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.btn-action {
+  padding: 10px 22px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-print {
+  background: var(--brick);
+  color: #fff;
+}
+
+.btn-print:hover { background: var(--brick-light); }
+
+.btn-copy {
+  background: none;
+  border: 1.5px solid var(--border);
+  color: var(--text);
+}
+
+.btn-copy:hover { border-color: var(--lake); color: var(--lake); }
+
+.copy-confirm {
+  font-size: 12px;
+  color: var(--success);
+  padding-top: 12px;
+  display: none;
+}
+
+/* MODULE 3: ESCALATION LADDER */
+.ladder-stage-selector {
+  margin-bottom: 28px;
+}
+
+.ladder-stage-selector label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--gray);
+  margin-bottom: 6px;
+  display: block;
+}
+
+.ladder-stage-selector select {
+  padding: 8px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  border: 1.5px solid var(--border);
+  background: var(--cream);
+  color: var(--text);
+  outline: none;
+  cursor: pointer;
+  min-width: 280px;
+}
+
+.ladder-stage-selector select:focus {
+  border-color: var(--lake);
+}
+
+.ladder-container {
+  display: flex;
+  gap: 36px;
+}
+
+.ladder {
+  flex: 1;
+  position: relative;
+  padding-left: 40px;
+}
+
+.ladder::before {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 20px;
+  bottom: 20px;
+  width: 3px;
+  background: var(--border);
+}
+
+.ladder-rung {
+  position: relative;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  background: var(--cream);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ladder-rung:hover { border-color: var(--lake); }
+
+.ladder-rung.active-rung {
+  background: #FDF2F2;
+  border-color: var(--brick);
+  border-width: 2px;
+}
+
+.ladder-rung .rung-number {
+  position: absolute;
+  left: -40px;
+  top: 18px;
+  width: 30px;
+  height: 30px;
+  background: var(--border);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  z-index: 1;
+}
+
+.ladder-rung.active-rung .rung-number {
+  background: var(--brick);
+}
+
+.ladder-rung h3 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.ladder-rung.active-rung h3 { color: var(--brick); }
+
+.ladder-rung .rung-summary {
+  font-size: 13px;
+  color: var(--gray);
+}
+
+.rung-detail {
+  display: none;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+.ladder-rung.expanded .rung-detail { display: block; }
+
+.rung-detail .rung-row {
+  margin-bottom: 10px;
+}
+
+.rung-detail .rung-row strong {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--gray);
+  margin-bottom: 2px;
+}
+
+.rung-link {
+  display: inline-block;
+  margin-top: 8px;
+  color: var(--lake);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.key-facts {
+  width: 260px;
+  min-width: 260px;
+  background: var(--lake);
+  color: #fff;
+  padding: 24px 22px;
+  align-self: flex-start;
+  position: sticky;
+  top: 60px;
+}
+
+.key-facts h3 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+.key-facts ul {
+  list-style: none;
+  padding: 0;
+}
+
+.key-facts li {
+  font-size: 12.5px;
+  line-height: 1.5;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.88);
+}
+
+.key-facts li:last-child { border-bottom: none; }
+
+.key-facts li::before {
+  content: '\25A0';
+  color: rgba(255,255,255,0.4);
+  margin-right: 8px;
+  font-size: 8px;
+  vertical-align: middle;
+}
+
+/* FOOTER */
+.main-footer {
+  padding: 20px 48px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--gray);
+  line-height: 1.5;
+  margin-top: auto;
+}
+
+/* PRINT STYLES */
+@media print {
+  body { display: block; }
+  .sidebar, .hero, .tab-strip, .main-footer, .letter-actions,
+  .legal-disclaimer, .letter-form, .btn-generate, .selected-count,
+  .copy-confirm { display: none !important; }
+  .main { margin-left: 0; }
+  .panel { display: none !important; }
+  .panel.print-active { display: block !important; padding: 0; }
+  .letter-preview {
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    font-size: 12pt;
+    line-height: 1.6;
+  }
+}
+
+/* RESPONSIVE */
+@media (max-width: 860px) {
+  .sidebar {
+    position: static;
+    width: 100%;
+    min-width: 100%;
+    max-height: none;
+  }
+  .main { margin-left: 0; }
+  .hero { padding: 28px 24px; }
+  .hero h2 { font-size: 24px; }
+  .tab-strip { padding: 0 20px; }
+  .panel { padding: 24px 20px 36px; }
+  .letter-form { grid-template-columns: 1fr; }
+  .letter-preview { padding: 28px 24px; }
+  .ladder-container { flex-direction: column; }
+  .key-facts { width: 100%; min-width: 100%; position: static; }
+}
+
+@media (max-width: 600px) {
+  .tab-btn { padding: 12px 10px; font-size: 12px; }
+  .letter-preview { padding: 20px 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <h1>MN HOA & Condo Rights Navigator</h1>
+    <div class="subtitle">Chapter 515B dispute readiness tool for common interest community residents</div>
+  </div>
+
+  <div class="sf1063-badge">
+    <strong>Senator Latz's SF1063</strong> would create a Common Interest Community Ombudsperson at the MN Department of Commerce. That office will help unit owners navigate disputes. This tool helps you prepare.<br>
+    <a href="https://mn.gov/commerce" target="_blank" rel="noopener">Check current status</a>
+  </div>
+
+  <nav class="issue-nav" id="issueNav"></nav>
+
+  <div class="sidebar-footer">
+    Select issues to explore your rights under Minnesota law. Selected issues carry into the Letter Builder.
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="hero">
+    <h2>What Does Your Association Actually Owe You?</h2>
+    <p>Thousands of Minnesotans live under homeowners association or condo rules that affect their home, their money, and their daily life. When something goes wrong -- a disputed assessment, a board that won't respond, a rule change that wasn't voted on properly -- it can be hard to know what the law actually requires. This tool walks you through Chapter 515B of Minnesota law, helps you identify what your association owes you, and gives you the written documentation to ask for it. Senator Latz's SF1063 would create a state ombudsperson to help with exactly these disputes. This tool helps you prepare.</p>
+  </div>
+
+  <!-- TAB STRIP -->
+  <div class="tab-strip">
+    <button class="tab-btn active" data-tab="diagnostic" id="tabDiag">Rights Diagnostic</button>
+    <button class="tab-btn" data-tab="letter" id="tabLetter">Letter Builder <span class="badge" id="letterBadge" style="display:none">0</span></button>
+    <button class="tab-btn" data-tab="ladder" id="tabLadder">Escalation Ladder</button>
+  </div>
+
+  <!-- MODULE 1: RIGHTS DIAGNOSTIC -->
+  <div class="panel active" id="panelDiagnostic">
+    <div class="selected-count" id="selectedCount">No issues selected. Choose from the left panel to explore your rights.</div>
+    <div class="detail-area empty" id="detailArea">
+      Select an issue from the categories on the left to see your rights under Minnesota law.
+    </div>
+    <button class="btn-generate" id="btnGoLetter" style="display:none">Build a Formal Request Letter with Selected Issues</button>
+  </div>
+
+  <!-- MODULE 2: LETTER BUILDER -->
+  <div class="panel" id="panelLetter">
+    <div class="legal-disclaimer">
+      <strong>Important:</strong> This letter template is based on Minnesota Chapter 515B as of 2025. It is educational, not legal advice. For a dispute involving significant money, board election challenges, or a matter already heading to arbitration or court, consult a licensed Minnesota attorney. The template gives you a starting point for written documentation -- not a substitute for professional legal counsel.
+    </div>
+
+    <div class="letter-form" id="letterForm">
+      <div class="form-group">
+        <label for="fName">Your Full Name</label>
+        <input type="text" id="fName" placeholder="Jane Doe">
+      </div>
+      <div class="form-group">
+        <label for="fUnit">Unit Address / Number</label>
+        <input type="text" id="fUnit" placeholder="Unit 304, 3200 Lake St, St. Louis Park, MN 55416">
+      </div>
+      <div class="form-group">
+        <label for="fAssocName">Association Name</label>
+        <input type="text" id="fAssocName" placeholder="Lakewood Towers Homeowners Association">
+      </div>
+      <div class="form-group">
+        <label for="fAssocAddr">Association / Manager Address</label>
+        <input type="text" id="fAssocAddr" placeholder="c/o ABC Property Management, 100 Main St, Minneapolis, MN 55402">
+      </div>
+      <div class="form-group full-width">
+        <label for="fRequestType">Type of Request</label>
+        <input type="text" id="fRequestType" placeholder="Auto-populated from selected issues, or type your own">
+      </div>
+      <div class="form-group full-width">
+        <label for="fRelief">Specific Relief or Documents Requested</label>
+        <textarea id="fRelief" placeholder="Describe what you are asking the association to provide or do"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="fDeadline">Response Deadline (days)</label>
+        <input type="number" id="fDeadline" value="14" min="1" max="90">
+      </div>
+      <div class="form-group">
+        <label>Prior Informal Request?</label>
+        <div class="radio-group">
+          <label><input type="radio" name="priorReq" value="no" checked> No</label>
+          <label><input type="radio" name="priorReq" value="yes"> Yes</label>
+        </div>
+      </div>
+      <div class="form-group full-width" id="priorDescGroup" style="display:none">
+        <label for="fPriorDesc">Brief Description of Prior Request</label>
+        <textarea id="fPriorDesc" placeholder="E.g., I emailed the property manager on March 1 requesting meeting minutes and received no response."></textarea>
+      </div>
+      <div class="full-width">
+        <button class="btn-action btn-print" style="background:var(--lake)" id="btnBuildLetter">Generate Letter</button>
+      </div>
+    </div>
+
+    <div id="letterOutput" style="display:none">
+      <div class="letter-preview" id="letterPreview" contenteditable="true"></div>
+      <div class="letter-actions">
+        <button class="btn-action btn-print" id="btnPrint">Print Letter</button>
+        <button class="btn-action btn-copy" id="btnCopy">Copy to Clipboard</button>
+      </div>
+      <div class="copy-confirm" id="copyConfirm">Letter text copied to clipboard.</div>
+    </div>
+  </div>
+
+  <!-- MODULE 3: ESCALATION LADDER -->
+  <div class="panel" id="panelLadder">
+    <div class="ladder-stage-selector">
+      <label for="stageSelect">Where are you in your dispute?</label>
+      <select id="stageSelect">
+        <option value="0">I haven't contacted anyone yet</option>
+        <option value="1">I made an informal request</option>
+        <option value="2">I sent a formal written demand</option>
+        <option value="3">I'm considering the Ombudsperson</option>
+        <option value="4">I'm considering mediation or court</option>
+      </select>
+    </div>
+
+    <div class="ladder-container">
+      <div class="ladder" id="ladderEl"></div>
+      <div class="key-facts">
+        <h3>Key Facts: MN CIC Law</h3>
+        <ul>
+          <li>Minnesota CIC law is Chapter 515B of Minnesota Statutes (1993, as amended)</li>
+          <li>The statute covers condominiums, cooperatives, and planned communities</li>
+          <li>All common interest communities created after June 1, 1994 are covered</li>
+          <li>Communities created before 1994 may have elected coverage; check your declaration</li>
+          <li>Governing documents can grant MORE rights than the statute but cannot take away statutory rights</li>
+          <li>The association board is a fiduciary -- it must act in the interest of all owners, not just current board members</li>
+          <li>Attorney fees may be awarded to a prevailing unit owner under Section 515B.4-116</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <footer class="main-footer">
+    A resource for District 46 and Minnesota common interest community residents. Based on Minnesota Statutes Chapter 515B as of 2025. Not legal advice. Built with AI.
+  </footer>
+</div>
+
+<script>
+(function() {
+'use strict';
+
+/* ═══════════════════════════════════════════
+   ISSUE DATA — Chapter 515B references
+   ═══════════════════════════════════════════ */
+const ISSUES = [
+  // ASSESSMENTS & FINANCES
+  { id:'a1', category:'Assessments & Finances', title:'Regular Assessments -- Notice & Calculation',
+    statuteSection:'515B.3-115', residentRight:'You have the right to receive notice of regular assessments, including how the amount was calculated and what expenses it covers. The association must adopt a budget before levying assessments.',
+    associationDuty:'The association must calculate assessments in accordance with the allocation method set forth in the declaration and provide adequate notice before assessments are due.',
+    associationLimit:'The association cannot impose assessments that deviate from the allocation method in the declaration without amending the declaration through the required vote.',
+    whatToAskFor:'Request a copy of the current budget and a written explanation of how your assessment amount was calculated, citing the allocation schedule in the declaration.' },
+  { id:'a2', category:'Assessments & Finances', title:'Special Assessments -- Board Authority & Notice',
+    statuteSection:'515B.3-115', residentRight:'Special assessments exceeding a threshold set in your governing documents may require a vote of unit owners. You have the right to adequate notice before a special assessment is levied.',
+    associationDuty:'The board must follow the procedures in the declaration and bylaws for special assessments, including any required unit owner vote and notice periods.',
+    associationLimit:'The board cannot levy a special assessment that exceeds its authority under the governing documents without obtaining the required unit owner approval.',
+    whatToAskFor:'Request the board resolution authorizing the special assessment, the notice that was sent to owners, and confirmation of whether a unit owner vote was required and held.' },
+  { id:'a3', category:'Assessments & Finances', title:'Reserve Fund Requirements',
+    statuteSection:'515B.3-115', residentRight:'You have the right to know whether the association maintains adequate reserves for major repairs and replacements, and to inspect the reserve study if one exists.',
+    associationDuty:'The association should maintain reserves sufficient to cover anticipated major expenses. Many governing documents require a reserve study or reserve fund.',
+    associationLimit:'The association cannot use reserve funds for purposes other than those for which they were collected without proper authorization.',
+    whatToAskFor:'Request a copy of the most recent reserve study (if any), the current reserve fund balance, and the board\'s plan for funding anticipated major repairs.' },
+  { id:'a4', category:'Assessments & Finances', title:'Budget Adoption -- Presentation & Timing',
+    statuteSection:'515B.3-115', residentRight:'You have the right to receive the proposed annual budget before it is adopted and to attend the meeting at which it is discussed.',
+    associationDuty:'The association must prepare an annual budget and make it available to unit owners. Budget meetings must comply with the meeting notice requirements of the statute and governing documents.',
+    associationLimit:'The board cannot adopt a budget without following the procedures in the governing documents, which may require presentation to owners or a ratification vote.',
+    whatToAskFor:'Request a copy of the proposed budget for the upcoming fiscal year and the date and time of the meeting at which it will be discussed.' },
+  { id:'a5', category:'Assessments & Finances', title:'Financial Records -- Inspection Rights',
+    statuteSection:'515B.3-118', residentRight:'You have the right to inspect and copy the financial records of the association, including bank statements, invoices, contracts, and the annual financial statement.',
+    associationDuty:'The association must make its financial records available to unit owners upon written request. Records must be provided within a reasonable time.',
+    associationLimit:'The association cannot refuse a proper written request to inspect financial records. It may charge a reasonable fee for copying costs but cannot use fees to deter access.',
+    whatToAskFor:'Submit a written request to inspect specific financial records (e.g., bank statements for the past 12 months, all vendor invoices over $500, the annual financial statement). Cite Section 515B.3-118.' },
+
+  // DOCUMENT ACCESS RIGHTS
+  { id:'d1', category:'Document Access Rights', title:'Meeting Minutes -- Availability',
+    statuteSection:'515B.3-118', residentRight:'You have the right to obtain copies of board meeting minutes. Minutes must be available within a reasonable time after the meeting.',
+    associationDuty:'The association must maintain minutes of all board and membership meetings and make them available to unit owners on request.',
+    associationLimit:'The association cannot refuse to provide meeting minutes to a unit owner who requests them in writing.',
+    whatToAskFor:'Submit a written request for minutes of all board meetings held in the past 12 months. Cite Section 515B.3-118.' },
+  { id:'d2', category:'Document Access Rights', title:'Financial Statements -- Annual Access',
+    statuteSection:'515B.3-118', residentRight:'You have the right to receive the annual financial statement of the association.',
+    associationDuty:'The association must prepare or have prepared an annual financial statement and make it available to unit owners.',
+    associationLimit:'The association cannot withhold the annual financial statement from a requesting unit owner.',
+    whatToAskFor:'Request the most recent annual financial statement in writing, citing Section 515B.3-118.' },
+  { id:'d3', category:'Document Access Rights', title:'Governing Documents -- Declaration, Bylaws, Rules',
+    statuteSection:'515B.3-118', residentRight:'You have the right to obtain copies of the declaration, bylaws, and rules of the association.',
+    associationDuty:'The association must provide copies of governing documents to unit owners upon request. New purchasers must receive these at closing.',
+    associationLimit:'The association cannot refuse to provide governing documents. It may charge reasonable copying costs.',
+    whatToAskFor:'Request complete, current copies of the declaration, bylaws, and all rules and regulations currently in effect.' },
+  { id:'d4', category:'Document Access Rights', title:'Insurance Policies',
+    statuteSection:'515B.3-118', residentRight:'You have the right to know what insurance the association carries and to obtain copies of the insurance policies.',
+    associationDuty:'The association must maintain insurance as required by the statute and governing documents and must make policy information available to owners.',
+    associationLimit:'The association cannot refuse a written request for insurance policy information.',
+    whatToAskFor:'Request a certificate of insurance or copies of all current insurance policies maintained by the association.' },
+  { id:'d5', category:'Document Access Rights', title:'Association Contracts',
+    statuteSection:'515B.3-118', residentRight:'You have the right to inspect contracts the association has entered into, including property management agreements and vendor contracts.',
+    associationDuty:'The association must make its contracts available for inspection by unit owners upon written request.',
+    associationLimit:'The association cannot hide contracts from owners. Transparency in vendor relationships is required.',
+    whatToAskFor:'Request copies of all current contracts between the association and any vendor, property manager, or service provider, citing Section 515B.3-118.' },
+
+  // GOVERNANCE & VOTING
+  { id:'g1', category:'Governance & Voting', title:'Board Election Procedures',
+    statuteSection:'515B.3-103', residentRight:'You have the right to participate in board elections, to run for the board, and to have elections conducted according to the bylaws and statute, including proper proxy procedures.',
+    associationDuty:'The board must hold elections in accordance with the bylaws, provide adequate notice, and follow proxy rules set out in the governing documents.',
+    associationLimit:'The board cannot bar eligible unit owners from running for the board or manipulate the election process. Proxy rules must be followed as written.',
+    whatToAskFor:'Request a copy of the election notice, candidate eligibility requirements, proxy form, and the vote count from the most recent election.' },
+  { id:'g2', category:'Governance & Voting', title:'Rule Amendments -- Vote Thresholds',
+    statuteSection:'515B.3-102', residentRight:'You have the right to have rules changed only through the proper process. Changes to the declaration typically require a supermajority vote of unit owners. Board rules may be changed by board vote, but must be consistent with the declaration and bylaws.',
+    associationDuty:'The board must follow the amendment procedures specified in the declaration and bylaws. Declaration amendments generally require a supermajority (often 2/3) of unit owners.',
+    associationLimit:'The board cannot unilaterally amend the declaration. Board-adopted rules cannot contradict the declaration or bylaws.',
+    whatToAskFor:'Request documentation of the vote or board action that authorized the rule change, including the date, the vote count, and whether the required threshold was met.' },
+  { id:'g3', category:'Governance & Voting', title:'Meeting Notice Requirements',
+    statuteSection:'515B.3-108', residentRight:'You have the right to receive advance notice of all board and membership meetings. The statute and bylaws specify minimum notice periods.',
+    associationDuty:'The association must provide written notice of meetings within the time periods specified in the bylaws and statute. Special meetings have separate notice requirements.',
+    associationLimit:'The board cannot hold a meeting without proper notice. Actions taken at an improperly noticed meeting may be voidable.',
+    whatToAskFor:'Request copies of all meeting notices sent in the past 12 months and confirm whether each met the required notice period in your bylaws.' },
+  { id:'g4', category:'Governance & Voting', title:'Quorum Requirements',
+    statuteSection:'515B.3-108', residentRight:'You have the right to have official business conducted only when a quorum is present. The quorum requirement is specified in the bylaws.',
+    associationDuty:'The association must verify that a quorum exists before conducting business at any meeting.',
+    associationLimit:'Actions taken without a quorum are generally not valid unless the bylaws provide otherwise.',
+    whatToAskFor:'Request confirmation of the quorum present at any meeting whose actions you are disputing, and a copy of the relevant bylaw provision.' },
+  { id:'g5', category:'Governance & Voting', title:'Owner Right to Speak at Meetings',
+    statuteSection:'515B.3-108', residentRight:'You have the right to attend and speak at membership meetings. Many bylaws also allow owner comment periods at board meetings.',
+    associationDuty:'The association must allow unit owners to attend membership meetings. Board meetings may have an open comment period as specified in the bylaws.',
+    associationLimit:'The board cannot exclude unit owners from membership meetings. Restrictions on speaking must be reasonable and applied uniformly.',
+    whatToAskFor:'Request clarification of the association\'s policy on owner participation at board meetings and confirmation that membership meetings include an opportunity for owners to speak.' },
+
+  // MAINTENANCE & REPAIRS
+  { id:'m1', category:'Maintenance & Repairs', title:'Common Element Maintenance',
+    statuteSection:'515B.3-107', residentRight:'You have the right to have common elements (roof, hallways, exterior walls, shared systems) maintained by the association in good condition.',
+    associationDuty:'The association is responsible for maintaining, repairing, and replacing common elements unless the declaration assigns that duty to individual unit owners.',
+    associationLimit:'The association cannot defer maintenance indefinitely. The board has a fiduciary duty to preserve the common elements.',
+    whatToAskFor:'Submit a written request describing the maintenance issue, the specific common element affected, and a request for a timeline for inspection and repair.' },
+  { id:'m2', category:'Maintenance & Repairs', title:'Limited Common Element Responsibility',
+    statuteSection:'515B.3-107', residentRight:'You have the right to clarity on whether a particular element (balcony, parking space, storage unit) is a common element, a limited common element, or part of your unit -- which determines who is responsible for maintenance costs.',
+    associationDuty:'The association must maintain limited common elements unless the declaration specifically assigns that responsibility to the unit owner.',
+    associationLimit:'The association cannot shift maintenance responsibility for limited common elements to unit owners unless the declaration expressly provides for it.',
+    whatToAskFor:'Request a written determination from the board identifying whether the element in question is a common element, limited common element, or unit component, and cite the relevant section of the declaration.' },
+  { id:'m3', category:'Maintenance & Repairs', title:'Unit Owner Alteration Requests',
+    statuteSection:'515B.3-102', residentRight:'You have the right to a fair process when requesting approval for alterations to your unit that may affect common elements.',
+    associationDuty:'The association must follow the alteration approval process described in the governing documents and act on requests within a reasonable time.',
+    associationLimit:'The association cannot unreasonably withhold approval for alterations that comply with the governing documents. Denial must be based on stated criteria.',
+    whatToAskFor:'Submit your alteration request in writing with plans/specifications, and request a written response within 30 days citing the specific governing document provisions that apply.' },
+  { id:'m4', category:'Maintenance & Repairs', title:'Emergency Repairs',
+    statuteSection:'515B.3-107', residentRight:'In an emergency threatening health, safety, or property, the association has authority and a duty to act promptly -- even without a full board vote.',
+    associationDuty:'The association must take immediate action to address emergencies affecting common elements, including authorizing emergency repairs.',
+    associationLimit:'Emergency authority is limited to the emergency. The board must still report the action and costs to unit owners promptly afterward.',
+    whatToAskFor:'If an emergency exists, notify the board and property manager in writing immediately. Document the condition with photos. Request written confirmation of what action the association will take and when.' },
+
+  // ENFORCEMENT & FINES
+  { id:'e1', category:'Enforcement & Fines', title:'Covenant Enforcement -- Notice & Cure Period',
+    statuteSection:'515B.4-101', residentRight:'You have the right to receive written notice of any alleged violation and a reasonable opportunity to cure (fix) the violation before the association takes further action.',
+    associationDuty:'The association must provide written notice specifying the violation and a reasonable cure period before imposing fines or pursuing legal action.',
+    associationLimit:'The association cannot impose sanctions without proper notice and an opportunity to cure. Summary punishment is not permitted.',
+    whatToAskFor:'Request a copy of the written violation notice, the specific rule or covenant allegedly violated, and confirmation of the cure period provided.' },
+  { id:'e2', category:'Enforcement & Fines', title:'Fine Schedule -- Advance Adoption Required',
+    statuteSection:'515B.4-101', residentRight:'Fines must be authorized by a fine schedule adopted in advance. The association cannot impose arbitrary or retroactive fines.',
+    associationDuty:'The association must adopt a fine schedule before it can impose fines. The schedule should specify the amount and escalation for violations.',
+    associationLimit:'The association cannot impose fines that are not authorized by a previously adopted fine schedule. Fines must be proportionate and consistent.',
+    whatToAskFor:'Request a copy of the current fine schedule adopted by the board, including the date it was adopted and any amendments.' },
+  { id:'e3', category:'Enforcement & Fines', title:'Hearing Rights Before Fines',
+    statuteSection:'515B.4-101', residentRight:'You have the right to a hearing before the board before a fine is imposed, where you can present your side of the dispute.',
+    associationDuty:'The association must offer the unit owner a hearing (or reasonable opportunity to be heard) before imposing a fine.',
+    associationLimit:'The association cannot impose a fine without giving the owner notice and an opportunity to respond. Due process within the association is required.',
+    whatToAskFor:'Request a formal hearing before the board regarding the alleged violation. State that you intend to present evidence and ask for the hearing date, time, and procedures in writing.' },
+  { id:'e4', category:'Enforcement & Fines', title:'Selective Enforcement Claims',
+    statuteSection:'515B.4-101', residentRight:'You have the right to have covenants enforced consistently. If the association enforces a rule against you but not against others in similar situations, you may have a selective enforcement defense.',
+    associationDuty:'The board has a fiduciary duty to enforce covenants consistently across all unit owners.',
+    associationLimit:'The association cannot single out individual owners for enforcement while ignoring identical violations by others.',
+    whatToAskFor:'Request written documentation of all enforcement actions taken under the same covenant or rule in the past 24 months. Note any instances of similar violations by other owners that were not enforced.' },
+
+  // DISPUTE ESCALATION
+  { id:'s1', category:'Dispute Escalation', title:'Informal Resolution -- Requesting It',
+    statuteSection:'515B.4-101', residentRight:'You have the right to attempt informal resolution with the board or property manager before escalating a dispute.',
+    associationDuty:'The association should engage in good faith when a unit owner raises a concern informally.',
+    associationLimit:'There is no statutory obligation to resolve informally, but failure to engage may reflect poorly in later proceedings.',
+    whatToAskFor:'Send a brief written summary of your concern to the board or property manager and request a meeting or written response. Always follow verbal conversations with a confirming email.' },
+  { id:'s2', category:'Dispute Escalation', title:'MN CIC Ombudsperson (SF1063)',
+    statuteSection:'SF1063 (pending)', residentRight:'When operational, the CIC Ombudsperson at the Department of Commerce will help unit owners understand their rights and facilitate dispute resolution.',
+    associationDuty:'The ombudsperson can facilitate communication and mediation between the association and unit owners.',
+    associationLimit:'The ombudsperson CANNOT render legal opinions, make binding orders, or force the association to act. This is an advisory and facilitative office.',
+    whatToAskFor:'Prepare your complaint file: your written demand letter, any response from the association, a timeline of events, and copies of relevant governing document provisions. Check mn.gov/commerce for current status of the ombudsperson office.' },
+  { id:'s3', category:'Dispute Escalation', title:'Mediation',
+    statuteSection:'515B.4-101', residentRight:'You have the right to propose mediation. Some governing documents require mediation before arbitration or litigation.',
+    associationDuty:'If the governing documents require mediation, the association must participate in good faith.',
+    associationLimit:'Mediation is voluntary unless required by the governing documents. The mediator cannot force a resolution.',
+    whatToAskFor:'Check your governing documents for any mediation requirement. If present, send a written request to mediate, citing the specific provision. Contact Minnesota Association of Mediators or Hennepin County Community Mediation for mediator referrals.' },
+  { id:'s4', category:'Dispute Escalation', title:'Arbitration',
+    statuteSection:'515B.4-101', residentRight:'Some governing documents require binding arbitration. Others allow non-binding arbitration. You have the right to know which applies to your dispute.',
+    associationDuty:'If the governing documents mandate arbitration, both parties must comply.',
+    associationLimit:'Arbitration clauses must be clearly stated in the governing documents. An association cannot compel arbitration that is not provided for in those documents.',
+    whatToAskFor:'Review your declaration and bylaws for any arbitration clause. If one exists, determine whether it requires binding or non-binding arbitration, and for which types of disputes.' },
+  { id:'s5', category:'Dispute Escalation', title:'District Court -- Small Claims & Civil',
+    statuteSection:'515B.4-116', residentRight:'You have the right to bring an action in court to enforce your rights under Chapter 515B. Small claims court handles monetary disputes up to $15,000. District court handles larger claims and injunctive relief. A prevailing unit owner may be awarded attorney fees under Section 515B.4-116.',
+    associationDuty:'The association is subject to suit for violations of the statute and governing documents.',
+    associationLimit:'The association cannot prevent you from filing suit to enforce your statutory rights.',
+    whatToAskFor:'Consult a licensed Minnesota attorney before filing in district court. For small claims (up to $15,000), you can file without an attorney at your local court. Gather: your demand letter, association response (or lack thereof), governing documents, and a damages calculation.' }
+];
+
+/* ═══════════════════════════════════════════
+   ESCALATION LADDER DATA
+   ═══════════════════════════════════════════ */
+const RUNGS = [
+  { num:1, title:'Informal Request', summary:'Where most disputes should start.',
+    detail:[
+      {label:'What it is', text:'A written or verbal request to the board or property manager.'},
+      {label:'When to use', text:'First contact on any issue. Creates no record unless in writing.'},
+      {label:'Advantage', text:'Free, fast, no formality required.'},
+      {label:'Risk', text:'No guaranteed response deadline; no binding outcome.'},
+      {label:'Key tip', text:'Always follow up a verbal conversation with a brief email confirming what was said. This creates a timestamped record.'}
+    ], link:'Use Module 2 to generate a formal written request.', linkTab:'letter' },
+  { num:2, title:'Formal Written Demand', summary:'Before escalating, send this.',
+    detail:[
+      {label:'What it is', text:'A written letter citing the statute and demanding a specific response.'},
+      {label:'When to use', text:'After an informal request is ignored or denied.'},
+      {label:'Advantage', text:'Creates a formal record; puts the association on notice; may be required before you can invoke dispute resolution under some governing documents.'},
+      {label:'Risk', text:'Association may still refuse; you may need to escalate.'},
+      {label:'Note', text:'Some governing documents have "cure periods" -- the association has X days to fix the problem after receiving written notice. Check your bylaws.'}
+    ], link:'Module 2 generates this letter.', linkTab:'letter' },
+  { num:3, title:'MN CIC Ombudsperson', summary:'New option under SF1063 when operational.',
+    detail:[
+      {label:'What it is', text:'A state office within the Department of Commerce that facilitates dispute resolution between unit owners and associations.'},
+      {label:'When to use', text:'After a formal written demand has not resolved the issue.'},
+      {label:'Advantage', text:'Free to the resident; neutral third party; can facilitate mediation; compiles complaint data that may inform future legislation.'},
+      {label:'Important limitation', text:'The ombudsperson CANNOT render legal opinions, make binding orders, or force the association to do anything. This is advisory and facilitative.'},
+      {label:'What to bring', text:'Your written demand letter (from the Letter Builder), any written response from the association, and a timeline of events.'},
+      {label:'Status', text:'The ombudsperson office will be established at the MN Department of Commerce after SF1063 is enacted and takes effect. Check mn.gov/commerce for current status.'}
+    ] },
+  { num:4, title:'Mediation', summary:'Structured negotiation with a neutral third party.',
+    detail:[
+      {label:'What it is', text:'A structured negotiation facilitated by a neutral third party.'},
+      {label:'When to use', text:'When the ombudsperson\'s facilitation hasn\'t resolved the dispute, or when the association refuses the ombudsperson process.'},
+      {label:'Advantage', text:'Can produce a binding settlement agreement if both parties agree; faster and cheaper than court; many disputes settle here.'},
+      {label:'Cost', text:'Typically $150-$400 per hour split between parties; some community mediators offer lower-cost options.'},
+      {label:'Resources', text:'Minnesota Association of Mediators; Community Mediation Minnesota; Hennepin County Community Mediation program (free for eligible disputes).'},
+      {label:'Note', text:'Check your governing documents -- some require mediation before arbitration or litigation.'}
+    ] },
+  { num:5, title:'Arbitration or District Court', summary:'Binding resolution when nothing else has worked.',
+    detail:[
+      {label:'What it is', text:'Binding resolution by an arbitrator (private) or a judge (court).'},
+      {label:'When to use', text:'When no other option has worked, or for significant financial claims.'},
+      {label:'Small claims court', text:'For monetary disputes up to $15,000; no attorney required; filing fee is modest. Good for: disputed fines, security deposit disputes, small assessment overcharges.'},
+      {label:'District court (civil)', text:'For larger amounts, injunctive relief (forcing the association to act), or declaration of rights under your governing documents. Attorney recommended.'},
+      {label:'Attorney fees', text:'Minn. Stat. Section 515B.4-116 provides that a court may award attorney fees to a prevailing unit owner in an action to enforce rights under Chapter 515B -- this matters when deciding whether to litigate.'}
+    ] }
+];
+
+/* ═══════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════ */
+let selectedIssues = new Set();
+let currentIssue = null;
+let activeTab = 'diagnostic';
+
+// Restore from localStorage
+try {
+  const saved = localStorage.getItem('latz_hoa_state');
+  if (saved) {
+    const s = JSON.parse(saved);
+    if (s.selectedIssues) selectedIssues = new Set(s.selectedIssues);
+    if (s.formData) {
+      setTimeout(() => {
+        Object.keys(s.formData).forEach(k => {
+          const el = document.getElementById(k);
+          if (el) el.value = s.formData[k];
+        });
+        if (s.formData.priorReq) {
+          const r = document.querySelector('input[name="priorReq"][value="'+s.formData.priorReq+'"]');
+          if (r) { r.checked = true; togglePriorDesc(); }
+        }
+      }, 50);
+    }
+  }
+} catch(e) {}
+
+function saveState() {
+  try {
+    const formData = {};
+    ['fName','fUnit','fAssocName','fAssocAddr','fRequestType','fRelief','fDeadline','fPriorDesc'].forEach(k => {
+      const el = document.getElementById(k);
+      if (el) formData[k] = el.value;
+    });
+    const pr = document.querySelector('input[name="priorReq"]:checked');
+    if (pr) formData.priorReq = pr.value;
+    localStorage.setItem('latz_hoa_state', JSON.stringify({
+      selectedIssues: Array.from(selectedIssues),
+      formData
+    }));
+  } catch(e) {}
+}
+
+/* ═══════════════════════════════════════════
+   BUILD SIDEBAR NAVIGATION
+   ═══════════════════════════════════════════ */
+function buildSidebarNav() {
+  const nav = document.getElementById('issueNav');
+  const categories = [];
+  const catMap = {};
+  ISSUES.forEach(iss => {
+    if (!catMap[iss.category]) {
+      catMap[iss.category] = [];
+      categories.push(iss.category);
+    }
+    catMap[iss.category].push(iss);
+  });
+
+  let html = '';
+  categories.forEach((cat, ci) => {
+    html += '<div class="cat-header' + (ci === 0 ? ' open' : '') + '" data-cat="'+ci+'"><span class="arrow">&#9654;</span> '+cat+'</div>';
+    html += '<div class="cat-issues"' + (ci === 0 ? ' style="display:block"' : '') + '>';
+    catMap[cat].forEach(iss => {
+      const sel = selectedIssues.has(iss.id) ? ' selected' : '';
+      html += '<div class="issue-link'+sel+'" data-id="'+iss.id+'"><span class="check-mark"></span>'+iss.title+'</div>';
+    });
+    html += '</div>';
+  });
+  nav.innerHTML = html;
+
+  // Category toggle
+  nav.querySelectorAll('.cat-header').forEach(h => {
+    h.addEventListener('click', () => {
+      h.classList.toggle('open');
+      const issues = h.nextElementSibling;
+      issues.style.display = h.classList.contains('open') ? 'block' : 'none';
+    });
+  });
+
+  // Issue click
+  nav.querySelectorAll('.issue-link').forEach(link => {
+    link.addEventListener('click', () => {
+      const id = link.dataset.id;
+      // Toggle selection
+      if (selectedIssues.has(id)) {
+        selectedIssues.delete(id);
+        link.classList.remove('selected');
+      } else {
+        selectedIssues.add(id);
+        link.classList.add('selected');
+      }
+      // Show detail for this issue
+      currentIssue = ISSUES.find(i => i.id === id);
+      renderDetail();
+      updateBadge();
+      autoPopulateForm();
+      saveState();
+    });
+  });
+}
+
+function renderDetail() {
+  const area = document.getElementById('detailArea');
+  if (!currentIssue) {
+    area.className = 'detail-area empty';
+    area.innerHTML = 'Select an issue from the categories on the left to see your rights under Minnesota law.';
+    return;
+  }
+  const iss = currentIssue;
+  const statuteLink = iss.statuteSection.startsWith('SF') ?
+    'https://mn.gov/commerce' :
+    'https://www.revisor.mn.gov/statutes/cite/515B';
+  area.className = 'detail-area';
+  area.innerHTML = `
+    <h3>${iss.title}</h3>
+    <span class="statute-chip"><a href="${statuteLink}" target="_blank" rel="noopener">Minn. Stat. &sect; ${iss.statuteSection}</a></span>
+    <div class="detail-section"><h4>Your Right</h4><p>${iss.residentRight}</p></div>
+    <div class="detail-section"><h4>Association Must</h4><p>${iss.associationDuty}</p></div>
+    <div class="detail-section"><h4>Association Cannot</h4><p>${iss.associationLimit}</p></div>
+    <div class="ask-for-box"><h4>What to Ask For</h4><p>${iss.whatToAskFor}</p></div>
+  `;
+}
+
+function updateBadge() {
+  const badge = document.getElementById('letterBadge');
+  const count = selectedIssues.size;
+  const btn = document.getElementById('btnGoLetter');
+  const sc = document.getElementById('selectedCount');
+  if (count > 0) {
+    badge.style.display = 'inline-block';
+    badge.textContent = count;
+    btn.style.display = 'inline-block';
+    sc.innerHTML = '<strong>' + count + ' issue' + (count > 1 ? 's' : '') + ' selected.</strong> Click an issue to view details. Selected issues will be included in your letter.';
+  } else {
+    badge.style.display = 'none';
+    btn.style.display = 'none';
+    sc.textContent = 'No issues selected. Choose from the left panel to explore your rights.';
+  }
+}
+
+function autoPopulateForm() {
+  const selArr = ISSUES.filter(i => selectedIssues.has(i.id));
+  if (selArr.length > 0) {
+    document.getElementById('fRequestType').value = selArr.map(i => i.title).join('; ');
+    document.getElementById('fRelief').value = selArr.map(i => i.whatToAskFor).join('\n\n');
+  }
+}
+
+/* ═══════════════════════════════════════════
+   TAB SWITCHING
+   ═══════════════════════════════════════════ */
+function switchTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+
+  if (tab === 'diagnostic') {
+    document.getElementById('tabDiag').classList.add('active');
+    document.getElementById('panelDiagnostic').classList.add('active');
+  } else if (tab === 'letter') {
+    document.getElementById('tabLetter').classList.add('active');
+    document.getElementById('panelLetter').classList.add('active');
+  } else if (tab === 'ladder') {
+    document.getElementById('tabLadder').classList.add('active');
+    document.getElementById('panelLadder').classList.add('active');
+  }
+}
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+});
+
+document.getElementById('btnGoLetter').addEventListener('click', () => switchTab('letter'));
+
+/* ═══════════════════════════════════════════
+   MODULE 2: LETTER GENERATOR
+   ═══════════════════════════════════════════ */
+function togglePriorDesc() {
+  const v = document.querySelector('input[name="priorReq"]:checked').value;
+  document.getElementById('priorDescGroup').style.display = v === 'yes' ? 'block' : 'none';
+}
+
+document.querySelectorAll('input[name="priorReq"]').forEach(r => {
+  r.addEventListener('change', () => { togglePriorDesc(); saveState(); });
+});
+
+// Save form on input
+document.querySelectorAll('#letterForm input, #letterForm textarea, #letterForm select').forEach(el => {
+  el.addEventListener('input', saveState);
+});
+
+document.getElementById('btnBuildLetter').addEventListener('click', buildLetter);
+
+function buildLetter() {
+  const name = document.getElementById('fName').value.trim() || '[Your Name]';
+  const unit = document.getElementById('fUnit').value.trim() || '[Your Unit Address]';
+  const assocName = document.getElementById('fAssocName').value.trim() || '[Association Name]';
+  const assocAddr = document.getElementById('fAssocAddr').value.trim() || '[Association Address]';
+  const requestType = document.getElementById('fRequestType').value.trim() || '[Request Type]';
+  const relief = document.getElementById('fRelief').value.trim() || '[Specific Relief Requested]';
+  const deadline = document.getElementById('fDeadline').value || '14';
+  const hasPrior = document.querySelector('input[name="priorReq"]:checked').value === 'yes';
+  const priorDesc = document.getElementById('fPriorDesc').value.trim();
+
+  const today = new Date();
+  const dateStr = today.toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+
+  const selArr = ISSUES.filter(i => selectedIssues.has(i.id));
+
+  let issuesParagraphs = '';
+  if (selArr.length > 0) {
+    issuesParagraphs = selArr.map((iss, idx) => {
+      const num = selArr.length > 1 ? (idx + 1) + '. ' : '';
+      const cite = iss.statuteSection.startsWith('SF') ?
+        iss.statuteSection + ' (pending legislation)' :
+        'Minn. Stat. &sect; ' + iss.statuteSection;
+      return '<p>' + num + '<strong>' + iss.title + '</strong> (' + cite + '): ' + iss.whatToAskFor + '</p>';
+    }).join('');
+  } else {
+    issuesParagraphs = '<p>' + relief + '</p>';
+  }
+
+  let priorParagraph = '';
+  if (hasPrior && priorDesc) {
+    priorParagraph = '<p>I have previously raised this matter informally: ' + priorDesc + ' To date, I have not received an adequate response.</p>';
+  }
+
+  const deadlineDate = new Date(today);
+  deadlineDate.setDate(deadlineDate.getDate() + parseInt(deadline));
+  const deadlineDateStr = deadlineDate.toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+
+  const letterHTML = `
+    <div class="letter-date">${dateStr}</div>
+    <div class="letter-address">
+      ${name}<br>
+      ${unit}<br><br>
+      ${assocName}<br>
+      ${assocAddr}
+    </div>
+    <div class="letter-re">Re: ${requestType}</div>
+    <div class="letter-body">
+      <p>Dear Board of Directors and/or Property Manager:</p>
+      <p>I am a unit owner at the above address within ${assocName}, a common interest community governed by Minnesota Statutes Chapter 515B. I am writing to formally request the following:</p>
+      ${issuesParagraphs}
+      ${priorParagraph}
+      <p>Under Minnesota Statutes Chapter 515B, the association is required to respond to unit owner requests for records, information, and action. I respectfully request a written response to this letter no later than <strong>${deadlineDateStr}</strong> (${deadline} days from the date of this letter).</p>
+      <p>Please be advised that if I do not receive an adequate response by the above date, I may escalate this matter to the Minnesota Common Interest Community Ombudsperson at the Department of Commerce (once that office is operational under SF1063), to mediation, or to other available dispute resolution or legal remedies.</p>
+      <p>I reserve all rights available to me under Chapter 515B, including the right to recover attorney fees under Minn. Stat. &sect; 515B.4-116 in any enforcement action.</p>
+      <p>Thank you for your prompt attention to this matter.</p>
+    </div>
+    <div class="letter-closing">Sincerely,</div>
+    <div class="letter-sig">${name}<br>${unit}</div>
+  `;
+
+  document.getElementById('letterPreview').innerHTML = letterHTML;
+  document.getElementById('letterOutput').style.display = 'block';
+  saveState();
+}
+
+document.getElementById('btnPrint').addEventListener('click', () => {
+  document.getElementById('panelLetter').classList.add('print-active');
+  window.print();
+  document.getElementById('panelLetter').classList.remove('print-active');
+});
+
+document.getElementById('btnCopy').addEventListener('click', () => {
+  const preview = document.getElementById('letterPreview');
+  const text = preview.innerText || preview.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const conf = document.getElementById('copyConfirm');
+    conf.style.display = 'block';
+    setTimeout(() => { conf.style.display = 'none'; }, 3000);
+  }).catch(() => {
+    // Fallback
+    const range = document.createRange();
+    range.selectNodeContents(preview);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    document.execCommand('copy');
+    sel.removeAllRanges();
+    const conf = document.getElementById('copyConfirm');
+    conf.style.display = 'block';
+    setTimeout(() => { conf.style.display = 'none'; }, 3000);
+  });
+});
+
+/* ═══════════════════════════════════════════
+   MODULE 3: ESCALATION LADDER
+   ═══════════════════════════════════════════ */
+function buildLadder() {
+  const el = document.getElementById('ladderEl');
+  const stage = parseInt(document.getElementById('stageSelect').value);
+
+  let html = '';
+  RUNGS.forEach((rung, i) => {
+    const isActive = i <= stage;
+    const isCurrent = i === stage;
+    html += '<div class="ladder-rung' + (isCurrent ? ' active-rung' : '') + (isCurrent ? ' expanded' : '') + '" data-rung="'+i+'">';
+    html += '<div class="rung-number" style="' + (isActive ? 'background:' + (isCurrent ? 'var(--brick)' : 'var(--lake)') : '') + '">' + rung.num + '</div>';
+    html += '<h3>' + rung.title + '</h3>';
+    html += '<div class="rung-summary">' + rung.summary + '</div>';
+    html += '<div class="rung-detail">';
+    rung.detail.forEach(d => {
+      html += '<div class="rung-row"><strong>' + d.label + '</strong>' + d.text + '</div>';
+    });
+    if (rung.link) {
+      html += '<span class="rung-link" data-linktab="'+rung.linkTab+'">' + rung.link + '</span>';
+    }
+    html += '</div></div>';
+  });
+  el.innerHTML = html;
+
+  // Toggle expand
+  el.querySelectorAll('.ladder-rung').forEach(r => {
+    r.addEventListener('click', (e) => {
+      if (e.target.classList.contains('rung-link')) {
+        switchTab(e.target.dataset.linktab);
+        return;
+      }
+      r.classList.toggle('expanded');
+    });
+  });
+}
+
+document.getElementById('stageSelect').addEventListener('change', buildLadder);
+
+/* ═══════════════════════════════════════════
+   INIT
+   ═══════════════════════════════════════════ */
+buildSidebarNav();
+updateBadge();
+buildLadder();
+
+})();
+</script>
+</body>
+</html>

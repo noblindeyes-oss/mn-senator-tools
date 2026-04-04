@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MN Guard & Veterans Benefits Navigator — Sen. Jeff R. Howe, SD-13</title>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Step-wizard — one question per screen, large buttons, forward/back navigation
+   2. Navigation: Progress bar with numbered steps (1 of 5, 2 of 5, etc.)
+   3. Typography: Verdana (body), Tahoma (headers/labels), Consolas (data/numbers)
+   4. Hero moment: 72px "YOU'VE EARNED IT" headline after flag unfold animation
+   5. Color strategy: #5 cool dominant — navy/steel-blue/silver backgrounds, warm khaki accents
+   6. Entry experience: Folded American flag SVG unfolds to reveal tool title
+   Additional: No cards, no bordered callouts; status via full-width color bands; dense data tables
+*/
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --navy:#1b2a4a;
+  --steel:#4682b4;
+  --silver:#c0c0c0;
+  --khaki:#c2b280;
+  --deep-red:#8B1A1A;
+  --go-green:#1E6B3C;
+  --amber:#C47A1B;
+  --dark-slate:#2c3e50;
+  --light-steel:#d6e4f0;
+  --bg:#e8edf2;
+  --text:#1C1C1C;
+}
+
+html{font-size:16px;scroll-behavior:smooth}
+body{
+  font-family:Verdana,Geneva,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.5;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ── ENTRY / SPLASH SCREEN ── */
+#splash{
+  position:fixed;inset:0;z-index:9999;
+  background:var(--navy);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  cursor:pointer;
+  transition:opacity .8s ease;
+}
+#splash.fade-out{opacity:0;pointer-events:none}
+#splash svg.flag-svg{
+  width:220px;height:140px;
+  transition:transform 1.2s cubic-bezier(.25,.8,.25,1);
+}
+#splash.unfolded svg.flag-svg{
+  transform:scaleX(1.6) scaleY(1.2);
+}
+#splash .splash-title{
+  font-family:Tahoma,Geneva,sans-serif;
+  font-size:72px;font-weight:900;
+  color:#fff;letter-spacing:-1px;
+  line-height:1;text-align:center;
+  margin-top:32px;
+  opacity:0;transform:translateY(30px);
+  transition:opacity .8s ease .6s, transform .8s ease .6s;
+}
+#splash.unfolded .splash-title{opacity:1;transform:translateY(0)}
+#splash .splash-sub{
+  font-family:Verdana,Geneva,sans-serif;
+  font-size:15px;color:var(--khaki);
+  margin-top:14px;letter-spacing:1px;
+  text-transform:uppercase;
+  opacity:0;transition:opacity .6s ease 1.2s;
+}
+#splash.unfolded .splash-sub{opacity:1}
+#splash .splash-cta{
+  font-family:Tahoma,Geneva,sans-serif;
+  font-size:13px;color:var(--silver);
+  margin-top:40px;
+  opacity:0;transition:opacity .6s ease 1.8s;
+  letter-spacing:2px;text-transform:uppercase;
+}
+#splash.unfolded .splash-cta{opacity:1}
+
+/* ── PROGRESS BAR ── */
+.progress-bar{
+  position:sticky;top:0;z-index:100;
+  background:var(--navy);
+  display:flex;align-items:center;justify-content:center;
+  padding:12px 16px;gap:0;
+  box-shadow:0 2px 8px rgba(0,0,0,.3);
+}
+.step-indicator{
+  display:flex;align-items:center;
+}
+.step-dot{
+  width:36px;height:36px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:Consolas,'Liberation Mono',monospace;
+  font-size:14px;font-weight:700;
+  border:2px solid var(--silver);
+  color:var(--silver);background:transparent;
+  cursor:pointer;transition:all .3s;
+  position:relative;
+}
+.step-dot.active{
+  background:var(--steel);color:#fff;border-color:var(--steel);
+}
+.step-dot.completed{
+  background:var(--go-green);color:#fff;border-color:var(--go-green);
+}
+.step-dot.completed::after{
+  content:'';position:absolute;
+  width:10px;height:5px;
+  border-left:2px solid #fff;border-bottom:2px solid #fff;
+  transform:rotate(-45deg);top:11px;
+}
+.step-dot.completed span{visibility:hidden}
+.step-connector{
+  width:40px;height:2px;background:var(--silver);
+  margin:0 4px;transition:background .3s;
+}
+.step-connector.filled{background:var(--go-green)}
+.step-label{
+  font-family:Tahoma,Geneva,sans-serif;
+  font-size:11px;color:var(--silver);
+  text-align:center;
+  position:absolute;top:42px;white-space:nowrap;
+  letter-spacing:.5px;text-transform:uppercase;
+}
+.step-dot.active .step-label{color:var(--khaki)}
+
+.progress-text{
+  font-family:Consolas,'Liberation Mono',monospace;
+  font-size:13px;color:var(--khaki);
+  margin-left:20px;white-space:nowrap;
+}
+
+/* ── MAIN CONTAINER ── */
+.main-wrap{
+  max-width:720px;margin:0 auto;
+  padding:80px 20px 40px;
+  min-height:calc(100vh - 60px);
+}
+
+/* ── WIZARD STEP ── */
+.wizard-step{
+  display:none;
+  animation:stepIn .4s ease;
+}
+.wizard-step.active{display:block}
+@keyframes stepIn{
+  from{opacity:0;transform:translateX(40px)}
+  to{opacity:1;transform:translateX(0)}
+}
+
+/* ── TYPOGRAPHY ── */
+h1{font-family:Tahoma,Geneva,sans-serif;font-size:28px;font-weight:700;color:var(--navy);margin-bottom:10px}
+h2{font-family:Tahoma,Geneva,sans-serif;font-size:22px;font-weight:700;color:var(--navy);margin-bottom:8px}
+h3{font-family:Tahoma,Geneva,sans-serif;font-size:17px;font-weight:700;color:var(--steel);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px}
+
+.domain-heading{
+  font-family:Tahoma,Geneva,sans-serif;
+  font-size:15px;font-weight:700;
+  color:var(--khaki);text-transform:uppercase;
+  letter-spacing:2px;margin-bottom:4px;
+}
+
+/* ── QUESTION STYLES ── */
+.question-block{margin-bottom:28px}
+.question-block label.q-label{
+  display:block;
+  font-family:Tahoma,Geneva,sans-serif;
+  font-size:16px;font-weight:700;color:var(--navy);
+  margin-bottom:12px;line-height:1.4;
+}
+.radio-group{display:flex;flex-direction:column;gap:8px}
+.radio-option{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 16px;
+  background:var(--light-steel);
+  border:2px solid transparent;
+  border-radius:6px;cursor:pointer;
+  transition:border-color .2s, background .2s;
+  font-size:15px;line-height:1.4;
+}
+.radio-option:hover{border-color:var(--steel);background:#cdd9e8}
+.radio-option input[type="radio"]{
+  appearance:none;-webkit-appearance:none;
+  width:20px;height:20px;min-width:20px;
+  border:2px solid var(--steel);border-radius:50%;
+  background:#fff;cursor:pointer;
+  position:relative;
+}
+.radio-option input[type="radio"]:checked{
+  border-color:var(--navy);background:var(--navy);
+}
+.radio-option input[type="radio"]:checked::after{
+  content:'';position:absolute;
+  width:8px;height:8px;background:#fff;border-radius:50%;
+  top:50%;left:50%;transform:translate(-50%,-50%);
+}
+.radio-option input[type="radio"]:focus-visible{
+  outline:2px solid var(--khaki);outline-offset:2px;
+}
+
+select.styled-select{
+  font-family:Verdana,Geneva,sans-serif;
+  font-size:15px;padding:12px 16px;
+  border:2px solid var(--steel);border-radius:6px;
+  background:#fff;color:var(--text);
+  width:100%;max-width:400px;cursor:pointer;
+}
+select.styled-select:focus{outline:2px solid var(--khaki);border-color:var(--navy)}
+
+input[type="number"].styled-input{
+  font-family:Consolas,'Liberation Mono',monospace;
+  font-size:18px;padding:12px 16px;
+  border:2px solid var(--steel);border-radius:6px;
+  background:#fff;color:var(--text);
+  width:120px;text-align:center;
+}
+input[type="number"].styled-input:focus{outline:2px solid var(--khaki);border-color:var(--navy)}
+
+/* ── BUTTONS ── */
+.btn{
+  font-family:Tahoma,Geneva,sans-serif;
+  font-size:16px;font-weight:700;
+  padding:14px 32px;border:none;border-radius:6px;
+  cursor:pointer;transition:all .2s;
+  letter-spacing:.5px;
+}
+.btn:focus-visible{outline:3px solid var(--khaki);outline-offset:2px}
+.btn-primary{background:var(--steel);color:#fff}
+.btn-primary:hover{background:var(--navy)}
+.btn-secondary{background:var(--silver);color:var(--navy)}
+.btn-secondary:hover{background:#a8a8a8}
+.btn-start{
+  background:var(--khaki);color:var(--navy);
+  font-size:18px;padding:16px 44px;
+}
+.btn-start:hover{background:#b0a06e}
+.btn-danger{background:var(--deep-red);color:#fff}
+.btn-danger:hover{background:#6d1414}
+
+.nav-buttons{
+  display:flex;gap:12px;margin-top:32px;
+  justify-content:space-between;align-items:center;
+}
+.nav-buttons .spacer{flex:1}
+
+/* ── RESULT OUTPUT BANDS ── */
+.result-band{
+  padding:16px 20px;margin:12px 0;
+  border-radius:6px;
+}
+.result-band.eligible{background:var(--go-green);color:#fff}
+.result-band.check{background:var(--amber);color:#fff}
+.result-band.not-eligible{background:var(--deep-red);color:#fff}
+.result-band .band-title{
+  font-family:Tahoma,Geneva,sans-serif;
+  font-size:14px;font-weight:700;
+  text-transform:uppercase;letter-spacing:1px;
+  margin-bottom:4px;
+}
+.result-band .band-body{font-size:14px;line-height:1.5}
+
+.benefit-block{
+  margin:18px 0;padding:16px 0;
+  border-bottom:1px solid var(--silver);
+}
+.benefit-block:last-child{border-bottom:none}
+.benefit-name{
+  font-family:Tahoma,Geneva,sans-serif;
+  font-size:16px;font-weight:700;color:var(--navy);
+  margin-bottom:4px;
+}
+.benefit-detail{font-size:14px;line-height:1.6;color:var(--dark-slate)}
+.benefit-detail dt{
+  font-family:Tahoma,Geneva,sans-serif;
+  font-weight:700;color:var(--navy);
+  margin-top:8px;
+}
+.benefit-detail dd{margin-left:0;margin-bottom:4px}
+.benefit-note{
+  font-size:13px;color:var(--dark-slate);
+  font-style:italic;margin-top:6px;
+}
+
+/* Gap callout — full-width dark band, NOT a bordered box */
+.gap-callout{
+  background:var(--deep-red);color:#fff;
+  padding:20px 24px;margin:20px -20px;
+  font-size:14px;line-height:1.6;
+}
+.gap-callout strong{color:var(--khaki)}
+
+.howe-note{
+  background:var(--navy);color:var(--silver);
+  padding:20px 24px;margin:20px -20px;
+  font-size:14px;line-height:1.6;
+}
+.howe-note strong{color:var(--khaki)}
+
+/* Eligibility table for burial */
+.elig-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px}
+.elig-table th{
+  font-family:Tahoma,Geneva,sans-serif;
+  background:var(--navy);color:#fff;
+  padding:10px 12px;text-align:left;
+  font-size:12px;text-transform:uppercase;letter-spacing:1px;
+}
+.elig-table td{padding:10px 12px;border-bottom:1px solid var(--silver)}
+.elig-table tr:nth-child(even) td{background:var(--light-steel)}
+.elig-mark{font-family:Consolas,monospace;font-weight:700;font-size:16px}
+.elig-mark.yes{color:var(--go-green)}
+.elig-mark.no{color:var(--deep-red)}
+
+/* ── SUMMARY PAGE ── */
+.summary-section{margin:20px 0}
+.summary-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:12px 16px;font-size:14px;
+  border-bottom:1px solid var(--silver);
+}
+.summary-row:nth-child(even){background:var(--light-steel)}
+.summary-domain{font-family:Tahoma,Geneva,sans-serif;font-weight:700;color:var(--navy)}
+.status-badge{
+  font-family:Consolas,'Liberation Mono',monospace;
+  font-size:12px;font-weight:700;
+  padding:4px 10px;border-radius:3px;
+  text-transform:uppercase;letter-spacing:.5px;
+}
+.status-badge.eligible{background:var(--go-green);color:#fff}
+.status-badge.check{background:var(--amber);color:#fff}
+.status-badge.not-eligible{background:var(--deep-red);color:#fff}
+.status-badge.incomplete{background:var(--silver);color:var(--navy)}
+
+/* ── FOOTER ── */
+.site-footer{
+  background:var(--navy);color:var(--silver);
+  padding:24px 20px;margin-top:40px;
+  font-size:12px;line-height:1.6;
+  text-align:center;
+}
+.site-footer a{color:var(--khaki)}
+
+/* ── LINKS ── */
+a{color:var(--steel)}
+a:hover{color:var(--navy)}
+a:focus-visible{outline:2px solid var(--khaki);outline-offset:2px}
+
+/* ── DOMAIN 5 SPECIAL ── */
+.domain5-header{
+  background:var(--navy);color:#fff;
+  padding:16px 24px;margin:0 -20px 20px;
+}
+.domain5-header h2{color:#fff;margin:0}
+.domain5-header .d5-sub{color:var(--khaki);font-size:13px;margin-top:4px;text-transform:uppercase;letter-spacing:1px}
+
+/* ── RESPONSIVE ── */
+@media(max-width:600px){
+  .main-wrap{padding:70px 12px 30px}
+  .splash-title{font-size:48px !important}
+  .progress-bar{padding:10px 8px;flex-wrap:wrap}
+  .step-connector{width:20px}
+  .step-dot{width:30px;height:30px;font-size:12px}
+  .step-label{font-size:9px;top:36px}
+  .progress-text{font-size:11px;margin-left:8px}
+  .gap-callout,.howe-note,.domain5-header{margin-left:-12px;margin-right:-12px;padding:16px}
+  .nav-buttons{flex-wrap:wrap}
+  h1{font-size:22px}
+  .radio-option{padding:10px 12px;font-size:14px}
+}
+
+/* ── PRINT ── */
+@media print{
+  #splash,.progress-bar,.nav-buttons,.btn,.site-footer{display:none !important}
+  .wizard-step{display:none !important}
+  .wizard-step.print-show{display:block !important}
+  .main-wrap{padding:0;max-width:100%}
+  body{background:#fff;color:#000;font-size:12px}
+  .result-band{border:2px solid #000;color:#000;background:#eee !important}
+  .result-band.eligible{border-color:var(--go-green)}
+  .result-band.not-eligible{border-color:var(--deep-red)}
+  .gap-callout{background:#eee !important;color:#000;border:2px solid var(--deep-red)}
+  .howe-note{background:#eee !important;color:#000;border:2px solid var(--navy)}
+  .domain5-header{background:#eee !important;color:#000}
+  .status-badge{border:1px solid #000}
+  a{color:#000;text-decoration:underline}
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════ -->
+<!-- SPLASH / ENTRY EXPERIENCE               -->
+<!-- ════════════════════════════════════════ -->
+<div id="splash" onclick="unfoldFlag()" role="button" tabindex="0" aria-label="Click to begin the benefits navigator">
+  <svg class="flag-svg" viewBox="0 0 220 140" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <!-- Folded American flag: triangular fold shape -->
+    <defs>
+      <linearGradient id="flagBlue" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#1b2a4a"/>
+        <stop offset="100%" stop-color="#2a4070"/>
+      </linearGradient>
+    </defs>
+    <!-- Triangular folded flag shape -->
+    <polygon points="110,15 200,70 110,125" fill="url(#flagBlue)" stroke="#c0c0c0" stroke-width="1.5"/>
+    <polygon points="110,15 20,70 110,125" fill="#1b2a4a" stroke="#c0c0c0" stroke-width="1.5"/>
+    <!-- Stars on the blue field -->
+    <g fill="#fff" opacity="0.9">
+      <circle cx="75" cy="52" r="2.5"/><circle cx="90" cy="45" r="2.5"/>
+      <circle cx="65" cy="65" r="2.5"/><circle cx="80" cy="70" r="2.5"/>
+      <circle cx="95" cy="60" r="2.5"/><circle cx="85" cy="80" r="2.5"/>
+      <circle cx="100" cy="75" r="2"/><circle cx="70" cy="80" r="2"/>
+      <circle cx="90" cy="55" r="2"/><circle cx="75" cy="90" r="2"/>
+      <circle cx="105" cy="68" r="1.8"/><circle cx="60" cy="75" r="1.8"/>
+      <circle cx="95" cy="88" r="1.5"/>
+    </g>
+    <!-- Folded edge lines -->
+    <line x1="110" y1="15" x2="110" y2="125" stroke="#c0c0c0" stroke-width="1" opacity="0.5"/>
+    <!-- White edge trim -->
+    <line x1="110" y1="125" x2="200" y2="70" stroke="#fff" stroke-width="0.8" opacity="0.4"/>
+  </svg>
+  <div class="splash-title">YOU'VE EARNED IT</div>
+  <div class="splash-sub">Minnesota Guard &amp; Veterans Benefits Navigator</div>
+  <div class="splash-cta">Click anywhere to begin</div>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- PROGRESS BAR                            -->
+<!-- ════════════════════════════════════════ -->
+<nav class="progress-bar" aria-label="Wizard progress">
+  <div class="step-indicator">
+    <div class="step-dot active" data-step="0" onclick="goToStep(0)" role="button" tabindex="0" aria-label="Step 1: Your Profile">
+      <span>1</span>
+      <div class="step-label">Profile</div>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step-dot" data-step="1" onclick="goToStep(1)" role="button" tabindex="0" aria-label="Step 2: Property Tax">
+      <span>2</span>
+      <div class="step-label">Property</div>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step-dot" data-step="2" onclick="goToStep(2)" role="button" tabindex="0" aria-label="Step 3: Education">
+      <span>3</span>
+      <div class="step-label">Education</div>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step-dot" data-step="3" onclick="goToStep(3)" role="button" tabindex="0" aria-label="Step 4: Employment">
+      <span>4</span>
+      <div class="step-label">Employment</div>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step-dot" data-step="4" onclick="goToStep(4)" role="button" tabindex="0" aria-label="Step 5: Insurance">
+      <span>5</span>
+      <div class="step-label">Insurance</div>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step-dot" data-step="5" onclick="goToStep(5)" role="button" tabindex="0" aria-label="Step 6: Burial Rights">
+      <span>6</span>
+      <div class="step-label">Burial</div>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step-dot" data-step="6" onclick="goToStep(6)" role="button" tabindex="0" aria-label="Step 7: Summary">
+      <span>7</span>
+      <div class="step-label">Summary</div>
+    </div>
+  </div>
+  <div class="progress-text" id="progressText">Step 1 of 7</div>
+</nav>
+
+<!-- ════════════════════════════════════════ -->
+<!-- WIZARD STEPS                            -->
+<!-- ════════════════════════════════════════ -->
+<div class="main-wrap">
+
+<!-- ── STEP 0: PROFILE ── -->
+<div class="wizard-step active" id="step0">
+  <div class="domain-heading">Step 1 &mdash; Your Service Profile</div>
+  <h1>Tell us about your service</h1>
+  <p style="color:var(--dark-slate);margin-bottom:24px;font-size:15px;">
+    These two questions filter every benefit domain. You will not need to answer them again.
+  </p>
+
+  <div class="question-block">
+    <label class="q-label">What is your current or former military status?</label>
+    <div class="radio-group">
+      <label class="radio-option">
+        <input type="radio" name="milStatus" value="guard_current">
+        Currently serving in the Minnesota National Guard
+      </label>
+      <label class="radio-option">
+        <input type="radio" name="milStatus" value="reserve_current">
+        Currently serving in a U.S. Reserve component (Army, Air Force, Navy, Marines, Coast Guard)
+      </label>
+      <label class="radio-option">
+        <input type="radio" name="milStatus" value="guard_former">
+        Former Guard/Reserve &mdash; separated with honorable discharge
+      </label>
+      <label class="radio-option">
+        <input type="radio" name="milStatus" value="active_duty">
+        Active-duty veteran (served 181+ consecutive days, not for training)
+      </label>
+      <label class="radio-option">
+        <input type="radio" name="milStatus" value="family">
+        I am a family member or surviving spouse of a Guard or Reserve member
+      </label>
+    </div>
+  </div>
+
+  <div class="question-block">
+    <label class="q-label">Did any of your service occur on or after September 11, 2001?</label>
+    <div class="radio-group">
+      <label class="radio-option">
+        <input type="radio" name="post911" value="yes"> Yes
+      </label>
+      <label class="radio-option">
+        <input type="radio" name="post911" value="no"> No
+      </label>
+      <label class="radio-option">
+        <input type="radio" name="post911" value="partial"> Part of it
+      </label>
+    </div>
+  </div>
+
+  <div class="nav-buttons">
+    <div class="spacer"></div>
+    <button class="btn btn-start" onclick="saveProfile();nextStep()">Start Navigator &rarr;</button>
+  </div>
+</div>
+
+<!-- ── STEP 1: PROPERTY TAX ── -->
+<div class="wizard-step" id="step1">
+  <div class="domain-heading">Step 2 &mdash; Property Tax Exclusion</div>
+  <h2>Disabled Veterans Homestead Market Value Exclusion</h2>
+
+  <div class="question-block">
+    <label class="q-label">Do you own and occupy your primary residence (homestead) in Minnesota?</label>
+    <div class="radio-group">
+      <label class="radio-option"><input type="radio" name="propOwn" value="yes"> Yes</label>
+      <label class="radio-option"><input type="radio" name="propOwn" value="no"> No</label>
+    </div>
+  </div>
+  <div class="question-block">
+    <label class="q-label">Has the VA rated you with a service-connected disability?</label>
+    <div class="radio-group">
+      <label class="radio-option"><input type="radio" name="propDisability" value="yes"> Yes</label>
+      <label class="radio-option"><input type="radio" name="propDisability" value="no"> No</label>
+    </div>
+  </div>
+  <div class="question-block" id="propRatingQ" style="display:none">
+    <label class="q-label">What is your disability rating?</label>
+    <select class="styled-select" id="propRating">
+      <option value="">Select&hellip;</option>
+      <option value="under70">Less than 70%</option>
+      <option value="70to99">70% &ndash; 99%</option>
+      <option value="100pt">100% Permanent &amp; Total (P&amp;T)</option>
+    </select>
+  </div>
+  <div class="question-block">
+    <label class="q-label">Are you a surviving spouse of a veteran with a 100% P&amp;T rating who received DIC?</label>
+    <div class="radio-group">
+      <label class="radio-option"><input type="radio" name="propSpouse" value="yes"> Yes</label>
+      <label class="radio-option"><input type="radio" name="propSpouse" value="no"> No</label>
+    </div>
+  </div>
+  <div class="question-block">
+    <label class="q-label">Are you an approved VA primary family caregiver for a veteran with 70%+ disability?</label>
+    <div class="radio-group">
+      <label class="radio-option"><input type="radio" name="propCaregiver" value="yes"> Yes</label>
+      <label class="radio-option"><input type="radio" name="propCaregiver" value="no"> No</label>
+    </div>
+  </div>
+
+  <div id="propResults" style="display:none"></div>
+
+  <div class="nav-buttons">
+    <button class="btn btn-secondary" onclick="prevStep()">&larr; Back</button>
+    <button class="btn btn-primary" onclick="calcProperty();nextStep()">Next: Education &rarr;</button>
+  </div>
+</div>
+
+<!-- ── STEP 2: EDUCATION ── -->
+<div class="wizard-step" id="step2">
+  <div class="domain-heading">Step 3 &mdash; Education Benefits</div>
+  <h2>State Tuition Reimbursement, MN GI Bill &amp; More</h2>
+
+  <div class="question-block">
+    <label class="q-label">Are you currently serving, or did you separate within the last few years?</label>
+    <div class="radio-group">
+      <label class="radio-option"><input type="radio" name="eduServing" value="current"> Currently serving</label>
+      <label class="radio-option"><input type="radio" name="eduServing" value="recent"> Separated recently</label>
+      <label class="radio-option"><input type="radio" name="eduServing" value="long_ago"> Separated more than a few years ago</label>
+    </div>
+  </div>
+  <div class="question-block">
+    <label class="q-label">What is your rank category?</label>
+    <div class="radio-group">
+      <label class="radio-option"><input type="radio" name="eduRank" value="enlisted_junior"> Enlisted or Officer (E1&ndash;O5)</label>
+      <label class="radio-option"><input type="radio" name="eduRank" value="senior"> Senior Officer (O6+)</label>
+      <label class="radio-option"><input type="radio" name="eduRank" value="warrant"> Warrant Officer</label>
+    </div>
+  </div>
+  <div class="question-block">
+    <label class="q-label">Did you serve in federal active service or federally funded state active service after September 11, 2001?</label>
+    <div class="radio-group">
+      <label class="radio-option"><input type="radio" name="eduFedActive" value="yes"> Yes</label>
+      <label class="radio-option"><input type="radio" name="eduFedActive" value="no"> No</label>
+    </div>
+  </div>
+  <div class="question-block">
+    <label class="q-label">Are you currently enrolled or planning to enroll in higher education, vocational training, or a licensing/certification program?</label>
+    <div class="radio-group">
+      <label class="radio-option"><input type="radio" name="eduEnroll" value="yes"> Yes</label>
+      <label class="radio-option"><input type="radio" name="eduEnroll" value="no"> No, not at this time</label>
+    </div>
+  </div>
+  <div class="question-block">
+    <label class="q-label">Are you a surviving spouse or dependent child of a qualifying Guard/Reserve member?</label>
+    <div class="radio-group">
+      <label class="radio-option"><input type="radio" name="eduSurvivor" value="yes"> Yes</label>
+      <label class="radio-option"><input type="radio" name="eduSurvivor" value="no"> No</label>
+    </div>
+  </div>
+
+  <div id="eduResults" style="display:none"></div>
+
+  <div class="nav-buttons">
+    <button class="btn btn-secondary" onclick="prevStep()">&larr; Back</button>
+    <button class="btn btn-primary" onclick="calcEducation();nextStep()">Next: Employment &rarr;</button>
+  </div>
+</div>
+
+<!-- ── STEP 3: EMPLOYMENT ── -->
+<div class="wizard-step" id="step3">
+  <div class="domain-heading">Step 4 &mdash; Employment Protections</div>
+  <h2>USERRA &amp; Minnesota State Protections</h2>
+
+  <div class="question-block">
+    <label class="q-label">Have you left or been asked to leave a civilian job for military training or active-duty service?</label>
+    <div class="radio-group">
+      <label class="radio-option"><input type="radio" name="empLeft" value="yes"> Yes</label>
+      <label class="radio-option"><input type="radio" name="empLeft" value="no"> No</label>
+    </div>
+  </div>
+  <div class="question-block">
+    <label class="q-label">Were you away for training (less than 5 years cumulative) or active duty?</label>
+    <div class="radio-group">
+      <label class="radio-option"><input type="radio" name="empType" value="training"> Training (under 5 years cumulative)</label>
+      <label class="radio-option"><input type="radio" name="empType" value="active"> Active duty</label>
+      <label class="radio-option"><input type="radio" name="empType" value="na"> Not applicable</label>
+    </div>
+  </div>
+  <div class="question-block">
+    <label class="q-label">Did your employer refuse to rehire you after your service ended?</label>
+    <div class="radio-group">
+      <label class="radio-option"><input type="radio" name="empRefused" value="yes"> Yes</label>
+      <label class="radio-option"><input type="radio" name="empRefused" value="no"> No</label>
+      <label class="radio-option"><input type="radio" name="empRefused" value="na"> Not applicable</label>
+    </div>
+  </div>
+  <div class="question-block">
+    <label class="q-label">Did your employer reduce your pay, seniority, or benefits while you were serving?</label>
+    <div class="radio-group">
+      <label class="radio-option"><input type="radio" name="empReduced" value="yes"> Yes</label>
+      <label class="radio-option"><input type="radio" name="empReduced" value="no"> No</label>
+      <label class="radio-option"><input type="radio" name="empReduced" value="na"> Not applicable</label>
+    </div>
+  </div>
+  <div class="question-block">
+    <label class="q-label">Are you a state employee or local government employee in Minnesota?</label>
+    <div class="radio-group">
+      <label class="radio-option"><input type="radio" name="empState" value="yes"> Yes</label>
+      <label class="radio-option"><input type="radio" name="empState" value="no"> No</label>
+    </div>
+  </div>
+
+  <div id="empResults" style="display:none"></div>
+
+  <div class="nav-buttons">
+    <button class="btn btn-secondary" onclick="prevStep()">&larr; Back</button>
+    <button class="btn btn-primary" onclick="calcEmployment();nextStep()">Next: Insurance &rarr;</button>
+  </div>
+</div>
+
+<!-- ── STEP 4: LIFE INSURANCE ── -->
+<div class="wizard-step" id="step4">
+  <div class="domain-heading">Step 5 &mdash; Life Insurance &amp; Financial Benefits</div>
+  <h2>SGLI, State-Sponsored Insurance &amp; Disability Benefits</h2>
+
+  <div class="question-block">
+    <label class="q-label">Are you currently an active Minnesota National Guard member?</label>
+    <div class="radio-group">
+      <label class="radio-option"><input type="radio" name="insGuard" value="yes"> Yes</label>
+      <label class="radio-option"><input type="radio" name="insGuard" value="no"> No</label>
+    </div>
+  </div>
+  <div class="question-block">
+    <label class="q-label">Are you aware of the state-sponsored life insurance program available to Guard members?</label>
+    <div class="radio-group">
+      <label class="radio-option"><input type="radio" name="insAware" value="yes"> Yes</label>
+      <label class="radio-option"><input type="radio" name="insAware" value="no"> No</label>
+    </div>
+  </div>
+  <div class="question-block">
+    <label class="q-label">Do you currently have Servicemembers' Group Life Insurance (SGLI)?</label>
+    <div class="radio-group">
+      <label class="radio-option"><input type="radio" name="insSGLI" value="yes"> Yes</label>
+      <label class="radio-option"><input type="radio" name="insSGLI" value="no"> No</label>
+      <label class="radio-option"><input type="radio" name="insSGLI" value="unsure"> Not sure</label>
+    </div>
+  </div>
+  <div class="question-block">
+    <label class="q-label">Are you a veteran with a service-connected disability?</label>
+    <div class="radio-group">
+      <label class="radio-option"><input type="radio" name="insDisabled" value="yes"> Yes</label>
+      <label class="radio-option"><input type="radio" name="insDisabled" value="no"> No</label>
+    </div>
+  </div>
+  <div class="question-block">
+    <label class="q-label">Do you currently work for a Minnesota employer?</label>
+    <div class="radio-group">
+      <label class="radio-option"><input type="radio" name="insMNEmployer" value="yes"> Yes</label>
+      <label class="radio-option"><input type="radio" name="insMNEmployer" value="no"> No</label>
+    </div>
+  </div>
+
+  <div id="insResults" style="display:none"></div>
+
+  <div class="nav-buttons">
+    <button class="btn btn-secondary" onclick="prevStep()">&larr; Back</button>
+    <button class="btn btn-primary" onclick="calcInsurance();nextStep()">Next: Burial Rights &rarr;</button>
+  </div>
+</div>
+
+<!-- ── STEP 5: BURIAL RIGHTS ── -->
+<div class="wizard-step" id="step5">
+  <div class="domain5-header">
+    <h2>Burial Rights &amp; Honors</h2>
+    <div class="d5-sub">The domain Senator Howe is working to fix</div>
+  </div>
+
+  <div class="question-block">
+    <label class="q-label">What is your service status?</label>
+    <div class="radio-group">
+      <label class="radio-option"><input type="radio" name="burStatus" value="guard_serving"> Currently serving MN National Guard</label>
+      <label class="radio-option"><input type="radio" name="burStatus" value="guard_separated"> Separated from MN National Guard &mdash; honorable discharge</label>
+      <label class="radio-option"><input type="radio" name="burStatus" value="active_vet"> Active-duty veteran (served 181+ consecutive days)</label>
+      <label class="radio-option"><input type="radio" name="burStatus" value="20yr"> Guard/Reserve member: 20+ years creditable for retired pay</label>
+      <label class="radio-option"><input type="radio" name="burStatus" value="died_duty"> Guard/Reserve member: died on active duty or training</label>
+      <label class="radio-option"><input type="radio" name="burStatus" value="family_asking"> I am a family member asking about a Guard/Reserve member</label>
+    </div>
+  </div>
+  <div class="question-block">
+    <label class="q-label">Total years of service in the MN National Guard or Reserve component:</label>
+    <input type="number" class="styled-input" id="burYears" min="0" max="50" placeholder="0" aria-label="Years of service">
+  </div>
+  <div class="question-block">
+    <label class="q-label">Were you (or was your service member) ever called to federal active duty (other than training)?</label>
+    <div class="radio-group">
+      <label class="radio-option"><input type="radio" name="burActiveDuty" value="yes"> Yes</label>
+      <label class="radio-option"><input type="radio" name="burActiveDuty" value="no"> No</label>
+    </div>
+  </div>
+  <div class="question-block">
+    <label class="q-label">Did you (or did the service member) complete at least one full obligation period?</label>
+    <div class="radio-group">
+      <label class="radio-option"><input type="radio" name="burObligation" value="yes"> Yes</label>
+      <label class="radio-option"><input type="radio" name="burObligation" value="no"> No</label>
+      <label class="radio-option"><input type="radio" name="burObligation" value="unsure"> Not sure</label>
+    </div>
+  </div>
+
+  <div id="burResults" style="display:none"></div>
+
+  <div class="nav-buttons">
+    <button class="btn btn-secondary" onclick="prevStep()">&larr; Back</button>
+    <button class="btn btn-primary" onclick="calcBurial();nextStep()">See My Summary &rarr;</button>
+  </div>
+</div>
+
+<!-- ── STEP 6: SUMMARY ── -->
+<div class="wizard-step" id="step6">
+  <div class="domain-heading">Your Benefits Summary</div>
+  <h1>Results Overview</h1>
+  <p style="color:var(--dark-slate);margin-bottom:8px;font-size:14px">
+    Bring this printout to your County Veterans Service Officer to verify eligibility and apply.
+  </p>
+
+  <div style="background:var(--navy);color:#fff;padding:14px 20px;margin:16px 0;border-radius:6px">
+    <div style="font-family:Tahoma,sans-serif;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--khaki);margin-bottom:6px">Your Service Profile</div>
+    <div id="summaryProfile" style="font-family:Consolas,monospace;font-size:14px;line-height:1.6"></div>
+  </div>
+
+  <div class="summary-section" id="summaryRows"></div>
+
+  <!-- VERIFY: CVSO contact info from software brief -->
+  <div style="margin:24px 0">
+    <h3>Find Your County Veterans Service Office</h3>
+    <p style="font-size:14px;line-height:1.6;margin-top:8px">
+      CVSOs are free, local, and can verify eligibility for all listed benefits. Contact information:
+    </p>
+    <dl style="font-size:14px;margin-top:8px;line-height:1.8">
+      <dt style="font-weight:700;color:var(--navy)">Stearns County Veterans Services</dt>
+      <dd>Offices in St. Cloud and Melrose</dd>
+      <dt style="font-weight:700;color:var(--navy);margin-top:6px">Benton County Veterans Service Office</dt>
+      <dd>Foley, MN</dd>
+      <dt style="font-weight:700;color:var(--navy);margin-top:6px">Minnesota CVSO Directory</dt>
+      <dd><a href="https://mn.gov/mdva" target="_blank" rel="noopener">mn.gov/mdva</a></dd>
+    </dl>
+  </div>
+
+  <div class="nav-buttons" style="justify-content:center;gap:16px">
+    <button class="btn btn-secondary" onclick="prevStep()">&larr; Back</button>
+    <button class="btn btn-primary" onclick="printSummary()">Print This Summary</button>
+    <button class="btn btn-secondary" onclick="resetAll()">Start Over</button>
+  </div>
+</div>
+
+</div><!-- /.main-wrap -->
+
+<!-- ════════════════════════════════════════ -->
+<!-- FOOTER                                  -->
+<!-- ════════════════════════════════════════ -->
+<footer class="site-footer">
+  Built as a resource for SD-13 communities and Minnesota Guard and Reserve members.
+  Senator Jeff Howe (R-Rockville) served 38 years in the Minnesota Army National Guard.
+  This tool reflects his legislative priorities on veterans' benefits.<br>
+  Data reflects Minnesota law and benefit amounts as of 2025&ndash;2026. Verify current
+  eligibility with your County Veterans Service Office before applying.<br>
+  <!-- VERIFY: HF1290 reference from software brief -->
+  Senator Howe also authored HF1290/SF companion for AED roadside signage via MnDOT, reflecting his broader public-safety work.<br>
+  Built with AI.
+</footer>
+
+<!-- ════════════════════════════════════════ -->
+<!-- JAVASCRIPT                              -->
+<!-- ════════════════════════════════════════ -->
+<script>
+(function(){
+"use strict";
+
+/* ── STATE ── */
+var currentStep = 0;
+var totalSteps = 7;
+var profile = {milStatus:'',post911:'',isFamily:false};
+var results = {prop:null,edu:null,emp:null,ins:null,bur:null};
+
+/* Try to restore from localStorage */
+try {
+  var saved = localStorage.getItem('howe_nav_profile');
+  if(saved){
+    var p = JSON.parse(saved);
+    if(p && p.milStatus){
+      profile = p;
+      restoreProfileRadios();
+    }
+  }
+} catch(e){}
+
+function restoreProfileRadios(){
+  var ms = document.querySelector('input[name="milStatus"][value="'+profile.milStatus+'"]');
+  if(ms) ms.checked = true;
+  var p9 = document.querySelector('input[name="post911"][value="'+profile.post911+'"]');
+  if(p9) p9.checked = true;
+}
+
+/* ── SPLASH ── */
+var splashClicked = false;
+window.unfoldFlag = function(){
+  if(splashClicked) return;
+  splashClicked = true;
+  var sp = document.getElementById('splash');
+  sp.classList.add('unfolded');
+  setTimeout(function(){
+    sp.classList.add('fade-out');
+    setTimeout(function(){ sp.style.display='none'; },800);
+  },2600);
+};
+
+/* Also handle Enter/Space on splash */
+document.getElementById('splash').addEventListener('keydown',function(e){
+  if(e.key==='Enter'||e.key===' '){e.preventDefault();unfoldFlag();}
+});
+
+/* ── CONDITIONAL SHOW for disability rating ── */
+document.querySelectorAll('input[name="propDisability"]').forEach(function(r){
+  r.addEventListener('change',function(){
+    document.getElementById('propRatingQ').style.display = this.value==='yes'?'block':'none';
+  });
+});
+
+/* ── NAVIGATION ── */
+window.nextStep = function(){
+  if(currentStep < totalSteps-1){
+    showStep(currentStep+1);
+  }
+};
+window.prevStep = function(){
+  if(currentStep > 0){
+    showStep(currentStep-1);
+  }
+};
+window.goToStep = function(s){
+  if(s >= 0 && s < totalSteps){
+    showStep(s);
+  }
+};
+
+function showStep(s){
+  document.querySelectorAll('.wizard-step').forEach(function(el){el.classList.remove('active')});
+  var stepEl = document.getElementById('step'+s);
+  if(stepEl) stepEl.classList.add('active');
+  currentStep = s;
+  updateProgress();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function updateProgress(){
+  var dots = document.querySelectorAll('.step-dot');
+  var conns = document.querySelectorAll('.step-connector');
+  dots.forEach(function(d,i){
+    d.classList.remove('active');
+    if(i < currentStep && isStepCompleted(i)){
+      d.classList.add('completed');
+    } else {
+      d.classList.remove('completed');
+    }
+    if(i === currentStep) d.classList.add('active');
+  });
+  conns.forEach(function(c,i){
+    c.classList.toggle('filled', i < currentStep);
+  });
+  document.getElementById('progressText').textContent = 'Step '+(currentStep+1)+' of '+totalSteps;
+}
+
+function isStepCompleted(i){
+  if(i===0) return profile.milStatus!=='';
+  if(i===1) return results.prop!==null;
+  if(i===2) return results.edu!==null;
+  if(i===3) return results.emp!==null;
+  if(i===4) return results.ins!==null;
+  if(i===5) return results.bur!==null;
+  return false;
+}
+
+/* ── SAVE PROFILE ── */
+window.saveProfile = function(){
+  var ms = document.querySelector('input[name="milStatus"]:checked');
+  var p9 = document.querySelector('input[name="post911"]:checked');
+  profile.milStatus = ms ? ms.value : '';
+  profile.post911 = p9 ? p9.value : '';
+  profile.isFamily = profile.milStatus === 'family';
+  try{ localStorage.setItem('howe_nav_profile', JSON.stringify(profile)); }catch(e){}
+};
+
+/* ── HELPER: get radio value ── */
+function rv(name){
+  var el = document.querySelector('input[name="'+name+'"]:checked');
+  return el ? el.value : '';
+}
+
+/* ── DOMAIN 1: PROPERTY TAX ── */
+window.calcProperty = function(){
+  var own = rv('propOwn');
+  var dis = rv('propDisability');
+  var rating = document.getElementById('propRating').value;
+  var spouse = rv('propSpouse');
+  var caregiver = rv('propCaregiver');
+
+  var html = '';
+  var status = 'check';
+
+  if(own==='no' && spouse!=='yes' && caregiver!=='yes'){
+    status = 'not-eligible';
+    html += band('not-eligible','Not Currently Eligible','You must own and occupy a homestead in Minnesota to qualify for this exclusion.');
+  } else if(spouse==='yes'){
+    status = 'eligible';
+    html += band('eligible','Likely Eligible &mdash; Surviving Spouse','As a surviving spouse of a veteran with 100% P&T who received DIC, you may continue the $300,000 market value exclusion.');
+    html += howeNote('Senator Howe authored legislation to close a gap in this benefit &mdash; surviving spouses who remarry were previously losing this exclusion. His fix ensures the exclusion follows the spouse, not the marital status.');
+  } else if(caregiver==='yes'){
+    status = 'eligible';
+    html += band('eligible','Likely Eligible &mdash; Family Caregiver','As an approved VA primary family caregiver for a veteran with 70%+ disability, you may qualify for the $150,000 market value exclusion. VA approval documentation required.');
+  } else if(dis==='yes'){
+    if(rating==='100pt'){
+      status = 'eligible';
+      html += band('eligible','Likely Eligible &mdash; 100% P&amp;T','$300,000 market value excluded from property tax assessment (as of 2025).');
+    } else if(rating==='70to99'){
+      status = 'eligible';
+      html += band('eligible','Likely Eligible &mdash; 70&ndash;99% Disability','$150,000 market value excluded from property tax assessment (as of 2025).');
+    } else if(rating==='under70'){
+      status = 'not-eligible';
+      html += band('not-eligible','Not Eligible at Current Rating','A disability rating of 70% or higher is required for this exclusion.');
+    } else {
+      status = 'check';
+      html += band('check','Select Your Rating','Please select your disability rating above to see your benefit determination.');
+    }
+  } else {
+    status = 'check';
+    html += band('check','Check With Your CVSO','Based on your answers, we cannot determine eligibility. Contact your County Veterans Service Office for a personalized review.');
+  }
+
+  if(status==='eligible' || (dis==='yes' && rating)){
+    html += '<div class="benefit-block">';
+    html += '<div class="benefit-name">Application Deadline</div>';
+    html += '<div class="benefit-detail">December 31 of the current year to qualify for the following year\'s taxes payable.</div>';
+    html += '</div>';
+    html += '<div class="benefit-block">';
+    html += '<div class="benefit-name">Guard-Specific Note</div>';
+    html += '<div class="benefit-detail">For this benefit, what matters is the VA disability rating &mdash; which IS available to Guard members with service-connected disabilities &mdash; not active-duty status alone.</div>';
+    html += '</div>';
+    html += '<div class="benefit-block">';
+    html += '<div class="benefit-name">Resources</div>';
+    html += '<div class="benefit-detail">';
+    html += '<a href="https://www.revenue.state.mn.us" target="_blank" rel="noopener">Minnesota Department of Revenue</a><br>';
+    html += '<a href="https://mn.gov/mdva" target="_blank" rel="noopener">Find your County Veterans Service Office</a>';
+    html += '</div></div>';
+  }
+
+  results.prop = status;
+  show('propResults', html);
+};
+
+/* ── DOMAIN 2: EDUCATION ── */
+window.calcEducation = function(){
+  var serving = rv('eduServing');
+  var rank = rv('eduRank');
+  var fedActive = rv('eduFedActive');
+  var enroll = rv('eduEnroll');
+  var survivor = rv('eduSurvivor');
+  var p911 = profile.post911;
+
+  var html = '';
+  var dominated = false;
+  var status = 'check';
+
+  /* State Tuition Reimbursement */
+  var strEligible = false;
+  if((serving==='current') && (rank==='enlisted_junior' || rank==='warrant')){
+    strEligible = true;
+  } else if(serving==='recent' && fedActive==='yes'){
+    strEligible = true;
+  }
+  if(strEligible){
+    status = 'eligible';
+    html += '<div class="benefit-block">';
+    html += '<div class="benefit-name">State Tuition Reimbursement (STR)</div>';
+    html += band('eligible','Likely Eligible','');
+    html += '<dl class="benefit-detail">';
+    html += '<dt>Undergraduate</dt><dd>Up to 100% of U of MN undergrad rate; max $18,000/year (as of 2025)</dd>';
+    html += '<dt>Graduate</dt><dd>Up to 75% of U of MN graduate rate; max $28,000/year (as of 2025)</dd>';
+    html += '<dt>Lifetime limit</dt><dd>208 quarter credits / 144 semester credits</dd>';
+    html += '<dt>Requirement</dt><dd>Must apply for Federal Tuition Assistance (FTA) first</dd>';
+    if(serving==='recent'){
+      html += '<dt>Separation extension</dt><dd>Eligible for 2 years + active-service time after honorable separation (post-9/11 federal or federally funded state active service)</dd>';
+    }
+    html += '</dl></div>';
+    dominated = true;
+  } else if(rank==='senior'){
+    html += '<div class="benefit-block">';
+    html += '<div class="benefit-name">State Tuition Reimbursement (STR)</div>';
+    html += band('not-eligible','Not Eligible','STR is available to ranks E1 through O5. Senior officers (O6+) are not eligible.');
+    html += '</div>';
+  }
+
+  /* MN GI Bill */
+  var giEligible = false;
+  if((p911==='yes' || p911==='partial') && (profile.milStatus!=='family')){
+    giEligible = true;
+  }
+  if(profile.milStatus==='active_duty') giEligible = true;
+  if(survivor==='yes') giEligible = true;
+
+  if(giEligible){
+    if(status!=='eligible') status = 'eligible';
+    html += '<div class="benefit-block">';
+    html += '<div class="benefit-name">Minnesota GI Bill</div>';
+    html += band('eligible','Likely Eligible','');
+    html += '<dl class="benefit-detail">';
+    html += '<dt>Eligibility</dt><dd>5+ cumulative creditable years in MN Guard or any reserve component (any part of service after 9/11); OR active-duty veteran; OR surviving spouse/dependent</dd>';
+    html += '<dt>Maximum benefit</dt><dd>$15,000 total (lifetime, as of 2025)</dd>';
+    html += '<dt>Use</dt><dd>Higher education, OJT/apprenticeship, or licensure/certification</dd>';
+    html += '</dl></div>';
+    dominated = true;
+  } else if(!dominated){
+    html += '<div class="benefit-block">';
+    html += '<div class="benefit-name">Minnesota GI Bill</div>';
+    html += band('check','Check With CVSO','Eligibility depends on cumulative creditable years and post-9/11 service. Contact your CVSO for a detailed review.');
+    html += '</div>';
+  }
+
+  /* Surviving spouse education */
+  if(survivor==='yes' || profile.isFamily){
+    html += '<div class="benefit-block">';
+    html += '<div class="benefit-name">Surviving Spouse Education Benefit</div>';
+    html += band('eligible','Protection Applies','');
+    html += howeNote('Senator Howe authored language ensuring surviving spouses retain education benefits regardless of remarriage. If you are a surviving spouse, this protection now applies.');
+    html += '</div>';
+  }
+
+  /* FAFSA independence */
+  if(fedActive==='yes'){
+    html += '<div class="benefit-block">';
+    html += '<div class="benefit-name">FAFSA Independence Status</div>';
+    html += '<div class="benefit-detail">If you returned from a tour of 181+ consecutive days (not for training), you may file FAFSA as an independent student. This can significantly increase financial aid eligibility.</div>';
+    html += '</div>';
+  }
+
+  if(!dominated && status==='check'){
+    html = band('check','Check With Your CVSO','Based on your profile, eligibility for education benefits should be verified with your County Veterans Service Office or the MN Office of Higher Education.') + html;
+  }
+
+  html += '<div class="benefit-block"><div class="benefit-note">Verify all education benefit details with your CVSO or the Minnesota Office of Higher Education before enrolling.</div></div>';
+
+  results.edu = status;
+  show('eduResults', html);
+};
+
+/* ── DOMAIN 3: EMPLOYMENT ── */
+window.calcEmployment = function(){
+  var left = rv('empLeft');
+  var type = rv('empType');
+  var refused = rv('empRefused');
+  var reduced = rv('empReduced');
+  var stateEmp = rv('empState');
+
+  var html = '';
+  var status = 'eligible'; /* USERRA applies broadly */
+
+  html += '<div class="benefit-block">';
+  html += '<div class="benefit-name">USERRA (Federal &mdash; applies to all Guard and Reserve)</div>';
+  html += band('eligible','Protections Apply','');
+  html += '<dl class="benefit-detail">';
+  html += '<dt>Reemployment</dt><dd>Right to return to the same or comparable position after service</dd>';
+  html += '<dt>Discharge protection</dt><dd>Protected from discharge without cause for 1 year (service 180+ days) or 6 months (31&ndash;180 days) after reemployment</dd>';
+  html += '<dt>Health insurance</dt><dd>Continued coverage for up to 24 months while on active duty</dd>';
+  html += '<dt>Pension</dt><dd>Pension plan contribution rights preserved during service</dd>';
+  html += '</dl>';
+  html += '<div class="benefit-note">USERRA applies to all military service, not just active-duty veterans.</div>';
+  html += '</div>';
+
+  if(refused==='yes' || reduced==='yes'){
+    html += band('check','Possible USERRA Violation','Your answers suggest your employer may have violated USERRA. Contact the U.S. Department of Labor VETS program to file a complaint, or speak with your CVSO for free assistance.');
+  }
+
+  if(stateEmp==='yes'){
+    html += '<div class="benefit-block">';
+    html += '<div class="benefit-name">Minnesota State Employee Protections</div>';
+    html += band('eligible','Additional Protections Apply','');
+    html += '<dl class="benefit-detail">';
+    html += '<dt>Pay parity</dt><dd>State employees called to state active duty receive the same pay and benefits as comparable federal active-duty members</dd>';
+    html += '<dt>Beneficiary rights</dt><dd>Beneficiary compensation rights if death or disability occurs on state active duty</dd>';
+    html += '</dl></div>';
+  }
+
+  /* SF683 note */
+  html += '<div class="benefit-block">';
+  html += '<div class="benefit-name">Employer Tax Credit</div>';
+  html += howeNote('Senator Howe authored SF683, a tax credit for Minnesota employers who hire disabled or unemployed veterans. If you are a veteran seeking employment, ask potential employers about this credit &mdash; it makes hiring you financially advantageous for them.');
+  html += '</div>';
+
+  /* Resources */
+  html += '<div class="benefit-block">';
+  html += '<div class="benefit-name">Resources</div>';
+  html += '<div class="benefit-detail">';
+  html += '<a href="https://www.dol.gov/agencies/vets" target="_blank" rel="noopener">U.S. Department of Labor VETS program (USERRA complaints)</a><br>';
+  html += '<a href="https://www.dli.mn.gov" target="_blank" rel="noopener">Minnesota Department of Labor and Industry</a><br>';
+  html += 'Your County Veterans Service Officer can assist with USERRA disputes at no charge.';
+  html += '</div></div>';
+
+  results.emp = status;
+  show('empResults', html);
+};
+
+/* ── DOMAIN 4: INSURANCE ── */
+window.calcInsurance = function(){
+  var guard = rv('insGuard');
+  var aware = rv('insAware');
+  var sgli = rv('insSGLI');
+  var disabled = rv('insDisabled');
+  var mnEmp = rv('insMNEmployer');
+
+  var html = '';
+  var status = 'check';
+
+  /* State-sponsored life insurance */
+  if(guard==='yes'){
+    status = 'eligible';
+    html += '<div class="benefit-block">';
+    html += '<div class="benefit-name">State-Sponsored Life Insurance (MN Guard)</div>';
+    html += band('eligible','Available to You','');
+    html += howeNote('Senator Howe championed legislation requiring the Minnesota National Guard adjutant general to make the state-sponsored life insurance program available to ALL Guard members and to actively educate members about it. If you have not been told about this program, ask your unit\'s administrative officer.');
+    /* VERIFY: Link to MN National Guard benefits page from software brief */
+    html += '<div class="benefit-detail" style="margin-top:8px"><a href="https://mn.gov/mdva" target="_blank" rel="noopener">MN Department of Veterans Affairs &mdash; Benefits Information</a></div>';
+    html += '</div>';
+
+    if(aware==='no'){
+      html += band('check','Action Needed','You indicated you were not aware of the state-sponsored life insurance program. Contact your unit\'s administrative officer to learn about enrollment.');
+    }
+  }
+
+  /* SGLI */
+  html += '<div class="benefit-block">';
+  html += '<div class="benefit-name">Servicemembers\' Group Life Insurance (SGLI)</div>';
+  if(sgli==='yes'){
+    html += band('eligible','Currently Enrolled','');
+  } else if(sgli==='no' || sgli==='unsure'){
+    html += band('check','Review Your Coverage','');
+  }
+  html += '<dl class="benefit-detail">';
+  html += '<dt>Eligibility</dt><dd>Available to all Guard members on active duty orders for 30+ days</dd>';
+  html += '<dt>Coverage</dt><dd>Up to $500,000; premiums deducted from pay</dd>';
+  html += '<dt>After separation</dt><dd>VGLI (Veterans\' Group Life Insurance) conversion available after separation</dd>';
+  html += '</dl></div>';
+
+  /* Disabled veterans additional */
+  if(disabled==='yes'){
+    status = 'eligible';
+    html += '<div class="benefit-block">';
+    html += '<div class="benefit-name">Disabled Veterans\' Additional Benefits</div>';
+    html += band('eligible','May Apply','');
+    html += '<dl class="benefit-detail">';
+    html += '<dt>Veteran Readiness &amp; Employment (VR&amp;E / Chapter 31)</dt><dd>Vocational rehabilitation for veterans with service-connected disabilities rated at 10%+ that create an employment barrier</dd>';
+    html += '<dt>Individual Unemployability</dt><dd>100% compensation rate for veterans who cannot maintain substantially gainful employment due to service-connected disabilities, even if rating is below 100%</dd>';
+    html += '</dl></div>';
+  }
+
+  if(status==='check' && guard!=='yes' && disabled!=='yes'){
+    html = band('check','Review With Your CVSO','Contact your County Veterans Service Office to discuss insurance and financial benefit options available to you.') + html;
+  }
+
+  results.ins = status;
+  show('insResults', html);
+};
+
+/* ── DOMAIN 5: BURIAL RIGHTS ── */
+window.calcBurial = function(){
+  var bStatus = rv('burStatus');
+  var years = parseInt(document.getElementById('burYears').value) || 0;
+  var activeDuty = rv('burActiveDuty');
+  var obligation = rv('burObligation');
+
+  var html = '';
+  var status = 'check';
+
+  /* Current law table */
+  html += '<h3 style="margin-top:12px">Current Law (2025&ndash;2026)</h3>';
+  html += '<p style="font-size:14px;margin:8px 0 12px;color:var(--dark-slate)">Minnesota state veterans cemeteries: Little Falls (Morrison County &mdash; closest to SD-13), Duluth (St. Louis County), Preston (Fillmore County), Redwood Falls (Redwood County).</p>';
+
+  html += '<table class="elig-table" aria-label="Burial eligibility by service status">';
+  html += '<thead><tr><th>Service Status</th><th>State Cemetery</th></tr></thead><tbody>';
+  html += '<tr><td>Honorable discharge from active duty service (federal definition)</td><td><span class="elig-mark yes" aria-label="Eligible">&#10003;</span> Eligible</td></tr>';
+  html += '<tr><td>Guard/Reserve &mdash; died on active duty or training</td><td><span class="elig-mark yes" aria-label="Eligible">&#10003;</span> Eligible</td></tr>';
+  html += '<tr><td>Guard/Reserve &mdash; 20+ years creditable for retired pay</td><td><span class="elig-mark yes" aria-label="Eligible">&#10003;</span> Eligible</td></tr>';
+  html += '<tr><td>Guard/Reserve &mdash; served honorably but never called to active duty AND under 20 qualifying years</td><td><span class="elig-mark no" aria-label="Not eligible">&#10007;</span> Not currently eligible</td></tr>';
+  html += '</tbody></table>';
+
+  /* Determine user's status */
+  if(bStatus==='active_vet' || (activeDuty==='yes')){
+    status = 'eligible';
+    html += band('eligible','Eligible Under Current Law','As a veteran with active-duty service (181+ consecutive days), you are eligible for burial in Minnesota state veterans cemeteries and VA national cemeteries.');
+  } else if(bStatus==='20yr' || years >= 20){
+    status = 'eligible';
+    html += band('eligible','Eligible Under Current Law','With 20+ years creditable for retired pay, you are eligible for burial in Minnesota state veterans cemeteries.');
+  } else if(bStatus==='died_duty'){
+    status = 'eligible';
+    html += band('eligible','Eligible Under Current Law','Guard/Reserve members who died on active duty or training are eligible for state veterans cemetery burial.');
+  } else if(bStatus==='guard_separated' && activeDuty==='no' && obligation==='yes'){
+    status = 'not-eligible';
+    /* THE GAP */
+    html += '<div class="gap-callout">';
+    html += '<strong>THE BURIAL RIGHTS GAP</strong><br>';
+    html += 'Under current law, you are <strong>not eligible</strong> for burial in a Minnesota state veterans cemetery. You completed your service obligation with honor, but because you were never called to federal active duty and have fewer than 20 qualifying years, the current definition excludes you.';
+    html += '</div>';
+    html += '<div class="howe-note">';
+    html += '<strong>Senator Howe\'s Legislation</strong><br>';
+    html += 'Senator Howe has authored legislation in his final session to expand eligibility to include Guard members who completed their first obligation period with an honorable discharge &mdash; regardless of whether they were deployed to active duty. This would recognize that service is service. The bill has not yet been signed into law. Check with your County Veterans Service Office for current status.';
+    html += '</div>';
+  } else if((bStatus==='guard_serving' || bStatus==='guard_separated') && activeDuty==='no'){
+    if(obligation==='no' || obligation==='unsure'){
+      status = 'check';
+      html += band('check','Check With Your CVSO','Your eligibility depends on factors that should be reviewed by a County Veterans Service Officer. Bring your service records to your appointment.');
+    } else {
+      status = 'not-eligible';
+      html += '<div class="gap-callout">';
+      html += '<strong>THE BURIAL RIGHTS GAP</strong><br>';
+      html += 'Under current law, Guard members who served honorably but were never called to federal active duty and have fewer than 20 qualifying years are not eligible for Minnesota state veterans cemetery burial.';
+      html += '</div>';
+      html += '<div class="howe-note">';
+      html += '<strong>Senator Howe\'s Legislation</strong><br>';
+      html += 'Senator Howe has authored legislation in his final session to expand this eligibility. The bill has not yet been signed into law. Check with your County Veterans Service Office for current status.';
+      html += '</div>';
+    }
+  } else if(bStatus==='family_asking'){
+    status = 'check';
+    html += band('check','Contact Your CVSO','Burial eligibility for a family member depends on the service member\'s specific service record. A County Veterans Service Officer can review the record and determine eligibility at no charge.');
+  } else {
+    status = 'check';
+    html += band('check','Check With Your CVSO','Please answer the questions above to get a determination, or contact your CVSO for a detailed review.');
+  }
+
+  /* Federal cemeteries */
+  html += '<div class="benefit-block">';
+  html += '<div class="benefit-name">Federal (VA National) Cemetery Eligibility</div>';
+  html += '<div class="benefit-detail">';
+  html += 'Veterans with any period of active duty (other than training) under conditions other than dishonorable are eligible for VA national cemeteries. ';
+  html += 'Fort Snelling National Cemetery (Minneapolis&ndash;St. Paul) is the closest major VA national cemetery for most District 13 residents. ';
+  html += 'The same 20-year Guard/Reserve rule applies for VA national cemeteries for those without active-duty service.';
+  html += '</div></div>';
+
+  /* Military funeral honors */
+  html += '<div class="benefit-block">';
+  html += '<div class="benefit-name">Military Funeral Honors</div>';
+  html += '<div class="benefit-detail">';
+  html += 'All veterans and Guard/Reserve members who served at least one day are entitled to military funeral honors (flag folding and presentation, playing of Taps). ';
+  html += 'This applies even to Guard members who never deployed. Contact: Minnesota National Guard Funeral Honors program.';
+  html += '</div></div>';
+
+  /* Survivor benefits */
+  html += '<div class="benefit-block">';
+  html += '<div class="benefit-name">Survivor Benefits</div>';
+  html += '<div class="benefit-detail">';
+  html += 'Surviving spouses of veterans buried in state/VA cemeteries may be eligible for burial alongside the veteran. ';
+  html += 'DIC (Dependency and Indemnity Compensation) may be available for surviving spouses where a service-connected cause of death applies.';
+  html += '</div></div>';
+
+  /* Attribution paragraph */
+  html += '<div class="howe-note" style="margin-top:24px">';
+  html += 'Senator Jeff Howe of Rockville served 38 years in the Minnesota Army National Guard &mdash; ';
+  html += 'retiring as a Lieutenant Colonel &mdash; before being elected to the Legislature. He has ';
+  html += 'spent his final session in the Senate working to ensure that Guard members who completed ';
+  html += 'their service obligation with honor can be buried alongside the soldiers they trained ';
+  html += 'with. This navigator reflects that work.';
+  html += '</div>';
+
+  results.bur = status;
+  show('burResults', html);
+  buildSummary();
+};
+
+/* ── SUMMARY BUILDER ── */
+function buildSummary(){
+  /* Profile display */
+  var statusLabels = {
+    guard_current:'Currently serving &mdash; MN National Guard',
+    reserve_current:'Currently serving &mdash; U.S. Reserve component',
+    guard_former:'Former Guard/Reserve &mdash; honorable discharge',
+    active_duty:'Active-duty veteran (181+ days)',
+    family:'Family member / surviving spouse'
+  };
+  var p911Labels = {yes:'Yes',no:'No',partial:'Partial'};
+
+  var profHtml = '';
+  profHtml += 'Status: '+(statusLabels[profile.milStatus]||'Not provided')+'<br>';
+  profHtml += 'Post-9/11 service: '+(p911Labels[profile.post911]||'Not provided');
+  document.getElementById('summaryProfile').innerHTML = profHtml;
+
+  /* Domain rows */
+  var domains = [
+    {key:'prop', name:'Property Tax Exclusion'},
+    {key:'edu', name:'Education Benefits'},
+    {key:'emp', name:'Employment Protections'},
+    {key:'ins', name:'Life Insurance & Financial'},
+    {key:'bur', name:'Burial Rights & Honors'}
+  ];
+
+  var rowsHtml = '';
+  domains.forEach(function(d){
+    var s = results[d.key];
+    var badgeClass = 'incomplete';
+    var badgeText = 'Not completed';
+    if(s==='eligible'){badgeClass='eligible';badgeText='Eligible';}
+    else if(s==='check'){badgeClass='check';badgeText='Check with CVSO';}
+    else if(s==='not-eligible'){badgeClass='not-eligible';badgeText='Not currently eligible';}
+    rowsHtml += '<div class="summary-row">';
+    rowsHtml += '<span class="summary-domain">'+d.name+'</span>';
+    rowsHtml += '<span class="status-badge '+badgeClass+'">'+badgeText+'</span>';
+    rowsHtml += '</div>';
+  });
+
+  document.getElementById('summaryRows').innerHTML = rowsHtml;
+}
+
+/* ── PRINT ── */
+window.printSummary = function(){
+  buildSummary();
+  /* Mark summary step as print-visible */
+  document.querySelectorAll('.wizard-step').forEach(function(el){el.classList.remove('print-show')});
+  document.getElementById('step6').classList.add('print-show');
+  window.print();
+};
+
+/* ── RESET ── */
+window.resetAll = function(){
+  profile = {milStatus:'',post911:'',isFamily:false};
+  results = {prop:null,edu:null,emp:null,ins:null,bur:null};
+  try{ localStorage.removeItem('howe_nav_profile'); }catch(e){}
+  document.querySelectorAll('input[type="radio"]').forEach(function(r){r.checked=false});
+  document.querySelectorAll('select').forEach(function(s){s.selectedIndex=0});
+  document.getElementById('burYears').value='';
+  ['propResults','eduResults','empResults','insResults','burResults'].forEach(function(id){
+    document.getElementById(id).style.display='none';
+    document.getElementById(id).innerHTML='';
+  });
+  showStep(0);
+};
+
+/* ── HELPERS ── */
+function band(type,title,body){
+  return '<div class="result-band '+type+'"><div class="band-title">'+title+'</div>'+(body?'<div class="band-body">'+body+'</div>':'')+'</div>';
+}
+function howeNote(text){
+  return '<div class="howe-note">'+text+'</div>';
+}
+function show(id,html){
+  var el = document.getElementById(id);
+  el.innerHTML = html;
+  el.style.display = 'block';
+}
+
+/* ── INIT: run buildSummary in case they jump to it ── */
+buildSummary();
+
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Root River Corridor Trail Business Opportunity Estimator — SD-26</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Magazine editorial — asymmetric 2-col (65/35) with pull-quotes breaking into margins, full-bleed color bands between sections
+   2. Navigation: Horizontal chapter markers styled like book section tabs at top — "Chapter 1 · Chapter 2 · Chapter 3"
+   3. Typography: Palatino (headers/serif), Century Gothic (body/sans), Consolas (data/mono) — NOT Georgia/Arial Narrow/Courier New
+   4. Hero moment: Full-viewport CSS gradient panorama simulating limestone bluffs with oversized serif trail mileage & visitor count
+   5. Color strategy: #6 — Color-blocked sections. Forest green, limestone, trail-brown alternate as full section backgrounds
+   6. Entry experience: Hand-drawn SVG trail map of Root River corridor with hover hotspots, click to enter tool
+   Additional: National park signage aesthetic; no bordered callout boxes; no cards; dense data tables break the grid
+*/
+
+:root {
+  --forest: #1b3a2a;
+  --forest-light: #2a5a3e;
+  --limestone: #e8dcc8;
+  --limestone-dark: #d4c8a8;
+  --trail-brown: #6b4226;
+  --trail-brown-light: #8b6240;
+  --cream: #f5f0e6;
+  --near-black: #1a1a18;
+  --white: #fafaf6;
+  --success: #2d6a4f;
+  --warning: #d4822a;
+  --alert: #b81c2e;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Century Gothic', 'Apple Gothic', 'Trebuchet MS', sans-serif;
+  color: var(--near-black);
+  background: var(--cream);
+  line-height: 1.55;
+  font-size: 15px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ═══ ENTRY SCREEN — SVG TRAIL MAP ═══ */
+#entry-screen {
+  min-height: 100vh;
+  background: var(--forest);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 20px;
+  cursor: default;
+}
+#entry-screen h1 {
+  font-family: 'Palatino Linotype', Palatino, 'Book Antiqua', serif;
+  color: var(--limestone);
+  font-size: 28px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  text-align: center;
+}
+#entry-screen .subtitle {
+  color: var(--limestone-dark);
+  font-size: 13px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  margin-bottom: 30px;
+  text-align: center;
+}
+#trail-map-container {
+  width: 100%;
+  max-width: 820px;
+  position: relative;
+}
+#trail-map-container svg { width: 100%; height: auto; }
+.hotspot-label {
+  font-family: 'Century Gothic', sans-serif;
+  font-size: 11px;
+  fill: var(--limestone);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.hotspot-dot {
+  cursor: pointer;
+  transition: r 0.2s, fill 0.2s;
+}
+.hotspot-dot:hover { fill: var(--warning); }
+.hotspot-dot:hover ~ .hotspot-label,
+.hotspot-group:hover .hotspot-label { opacity: 1; }
+.hotspot-group { cursor: pointer; }
+.hotspot-group:hover .hotspot-dot { fill: var(--warning); r: 8; }
+.hotspot-group:hover .hotspot-label { opacity: 1; }
+
+#enter-btn {
+  margin-top: 28px;
+  background: var(--trail-brown);
+  color: var(--limestone);
+  border: 2px solid var(--limestone-dark);
+  padding: 14px 42px;
+  font-family: 'Palatino Linotype', Palatino, serif;
+  font-size: 16px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.25s, color 0.25s;
+}
+#enter-btn:hover {
+  background: var(--limestone);
+  color: var(--forest);
+}
+#entry-instruction {
+  color: var(--limestone-dark);
+  font-size: 12px;
+  margin-top: 12px;
+  font-style: italic;
+  font-family: 'Palatino Linotype', Palatino, serif;
+}
+
+/* ═══ MAIN TOOL (hidden until entry) ═══ */
+#main-tool { display: none; }
+#main-tool.active { display: block; }
+
+/* ═══ HERO PANORAMA BAND ═══ */
+.hero-panorama {
+  width: 100%;
+  min-height: 220px;
+  background: linear-gradient(
+    170deg,
+    #3d6b4a 0%,
+    var(--forest) 18%,
+    #2a4f38 35%,
+    var(--trail-brown) 55%,
+    #9a7e5a 70%,
+    var(--limestone-dark) 82%,
+    var(--limestone) 100%
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 30px;
+  position: relative;
+  overflow: hidden;
+}
+.hero-panorama::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background:
+    repeating-linear-gradient(90deg, transparent, transparent 80px, rgba(255,255,255,0.02) 80px, rgba(255,255,255,0.02) 81px),
+    repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(0,0,0,0.03) 40px, rgba(0,0,0,0.03) 41px);
+  pointer-events: none;
+}
+.hero-inner {
+  display: flex;
+  gap: 60px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+}
+.hero-stat {
+  text-align: center;
+}
+.hero-stat .number {
+  font-family: 'Palatino Linotype', Palatino, serif;
+  font-size: 64px;
+  font-weight: bold;
+  color: var(--white);
+  line-height: 1;
+  text-shadow: 2px 3px 8px rgba(0,0,0,0.4);
+}
+.hero-stat .unit {
+  font-family: 'Century Gothic', sans-serif;
+  font-size: 13px;
+  color: var(--limestone);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+/* ═══ CHAPTER NAVIGATION ═══ */
+.chapter-nav {
+  background: var(--forest);
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  border-bottom: 3px solid var(--trail-brown);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.chapter-btn {
+  background: none;
+  border: none;
+  color: var(--limestone-dark);
+  font-family: 'Palatino Linotype', Palatino, serif;
+  font-size: 14px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 16px 32px;
+  cursor: pointer;
+  transition: color 0.2s, background 0.2s;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -3px;
+  position: relative;
+}
+.chapter-btn:hover { color: var(--white); background: rgba(255,255,255,0.06); }
+.chapter-btn.active {
+  color: var(--white);
+  border-bottom-color: var(--limestone);
+  background: rgba(255,255,255,0.08);
+}
+.chapter-btn .ch-num {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 11px;
+  opacity: 0.6;
+  display: block;
+  margin-bottom: 2px;
+}
+.chapter-btn .ch-status {
+  font-family: Consolas, monospace;
+  font-size: 10px;
+  color: var(--limestone-dark);
+  display: block;
+  margin-top: 2px;
+}
+
+/* ═══ CHAPTER PANELS ═══ */
+.chapter-panel { display: none; }
+.chapter-panel.active { display: block; }
+
+/* ═══ MAGAZINE EDITORIAL LAYOUT ═══ */
+.editorial-section {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 50px 40px;
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 40px;
+}
+.editorial-section.reversed {
+  grid-template-columns: 320px 1fr;
+}
+.editorial-main { min-width: 0; }
+.editorial-margin {
+  padding-top: 10px;
+}
+
+/* Pull quotes in margins */
+.pull-quote {
+  font-family: 'Palatino Linotype', Palatino, serif;
+  font-size: 20px;
+  line-height: 1.4;
+  color: var(--forest);
+  font-style: italic;
+  padding: 20px 0;
+  border-top: 2px solid var(--trail-brown);
+  border-bottom: 2px solid var(--trail-brown);
+  margin: 20px 0;
+}
+.pull-quote .attribution {
+  font-style: normal;
+  font-size: 11px;
+  color: var(--trail-brown);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-top: 10px;
+  font-family: 'Century Gothic', sans-serif;
+}
+
+/* Full-bleed color bands */
+.band-forest {
+  background: var(--forest);
+  color: var(--limestone);
+  padding: 44px 40px;
+}
+.band-forest h2, .band-forest h3 { color: var(--white); }
+.band-limestone {
+  background: var(--limestone);
+  color: var(--near-black);
+  padding: 44px 40px;
+}
+.band-brown {
+  background: var(--trail-brown);
+  color: var(--limestone);
+  padding: 44px 40px;
+}
+.band-brown h2, .band-brown h3 { color: var(--white); }
+.band-cream {
+  background: var(--cream);
+  padding: 44px 40px;
+}
+
+.band-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* ═══ TYPOGRAPHY ═══ */
+h2 {
+  font-family: 'Palatino Linotype', Palatino, 'Book Antiqua', serif;
+  font-size: 26px;
+  color: var(--forest);
+  margin-bottom: 18px;
+  line-height: 1.2;
+  letter-spacing: -0.3px;
+}
+h3 {
+  font-family: 'Palatino Linotype', Palatino, serif;
+  font-size: 18px;
+  color: var(--trail-brown);
+  margin-bottom: 10px;
+}
+.data-label {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--trail-brown-light);
+}
+.data-value {
+  font-family: 'Palatino Linotype', Palatino, serif;
+  font-size: 32px;
+  font-weight: bold;
+  color: var(--forest);
+  line-height: 1.1;
+}
+.data-value.dollars::before { content: '$'; font-size: 22px; vertical-align: top; }
+
+/* ═══ FORM STYLING ═══ */
+.form-group { margin-bottom: 18px; }
+.form-group label {
+  display: block;
+  font-family: Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--trail-brown);
+  margin-bottom: 5px;
+}
+.form-group select,
+.form-group input[type="number"],
+.form-group input[type="text"] {
+  width: 100%;
+  padding: 10px 12px;
+  font-family: 'Century Gothic', sans-serif;
+  font-size: 14px;
+  border: 2px solid var(--limestone-dark);
+  background: var(--white);
+  color: var(--near-black);
+  transition: border-color 0.2s;
+}
+.form-group select:focus,
+.form-group input:focus {
+  outline: none;
+  border-color: var(--forest);
+}
+.form-group .hint {
+  font-size: 12px;
+  color: var(--trail-brown-light);
+  margin-top: 3px;
+  font-style: italic;
+  font-family: 'Palatino Linotype', Palatino, serif;
+}
+
+.radio-group { display: flex; gap: 16px; flex-wrap: wrap; }
+.radio-group label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Century Gothic', sans-serif;
+  font-size: 13px;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--near-black);
+  cursor: pointer;
+}
+.radio-group input[type="radio"] {
+  accent-color: var(--forest);
+  width: 16px;
+  height: 16px;
+}
+
+/* ═══ DATA TABLES (break the grid) ═══ */
+.data-table {
+  width: calc(100% + 80px);
+  margin-left: -40px;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+.data-table th {
+  background: var(--forest);
+  color: var(--limestone);
+  font-family: Consolas, monospace;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 10px 16px;
+  text-align: left;
+}
+.data-table td {
+  padding: 9px 16px;
+  border-bottom: 1px solid var(--limestone-dark);
+  font-family: 'Century Gothic', sans-serif;
+}
+.data-table tr:nth-child(even) td { background: var(--limestone); }
+.data-table tr:nth-child(odd) td { background: var(--white); }
+.data-table .num {
+  font-family: Consolas, monospace;
+  text-align: right;
+  font-size: 14px;
+}
+.data-table .highlight td {
+  background: var(--forest) !important;
+  color: var(--white);
+  font-weight: bold;
+}
+
+/* ═══ RESULTS DISPLAY ═══ */
+.result-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--limestone-dark);
+}
+.result-row:last-child { border-bottom: none; }
+.result-label {
+  font-family: 'Century Gothic', sans-serif;
+  font-size: 14px;
+}
+.result-value {
+  font-family: Consolas, monospace;
+  font-size: 18px;
+  font-weight: bold;
+  color: var(--forest);
+}
+.result-big {
+  padding: 20px 0;
+}
+.result-big .result-value {
+  font-size: 36px;
+  color: var(--forest);
+}
+
+/* ═══ REVENUE GAP ALERT ═══ */
+.revenue-gap-alert {
+  background: var(--trail-brown);
+  color: var(--limestone);
+  padding: 16px 20px;
+  margin: 20px 0;
+  font-family: 'Century Gothic', sans-serif;
+  font-size: 14px;
+}
+.revenue-gap-alert strong {
+  font-family: Consolas, monospace;
+  color: var(--white);
+}
+
+/* ═══ CHARTS ═══ */
+.chart-container {
+  position: relative;
+  margin: 20px 0;
+  max-height: 320px;
+}
+
+/* ═══ MODULE 2: CHECKLIST ═══ */
+.checklist-category {
+  margin-bottom: 30px;
+}
+.checklist-category-header {
+  font-family: 'Palatino Linotype', Palatino, serif;
+  font-size: 16px;
+  color: var(--white);
+  background: var(--forest);
+  padding: 10px 18px;
+  letter-spacing: 0.5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.checklist-category-header .cat-score {
+  font-family: Consolas, monospace;
+  font-size: 12px;
+  color: var(--limestone);
+}
+.checklist-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--limestone-dark);
+  transition: opacity 0.3s, background 0.2s;
+  cursor: pointer;
+}
+.checklist-item:hover { background: rgba(27,58,42,0.04); }
+.checklist-item.checked {
+  opacity: 0.5;
+}
+.checklist-item.checked .item-text { text-decoration: line-through; }
+.checklist-item input[type="checkbox"] {
+  accent-color: var(--forest);
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.item-text {
+  font-family: 'Century Gothic', sans-serif;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.readiness-score-display {
+  text-align: center;
+  padding: 30px;
+}
+.readiness-score-number {
+  font-family: 'Palatino Linotype', Palatino, serif;
+  font-size: 72px;
+  font-weight: bold;
+  line-height: 1;
+}
+.readiness-score-label {
+  font-family: Consolas, monospace;
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-top: 6px;
+}
+.readiness-interpretation {
+  font-family: 'Palatino Linotype', Palatino, serif;
+  font-size: 16px;
+  font-style: italic;
+  margin-top: 10px;
+}
+
+.priority-action-list { margin-top: 24px; }
+.priority-action-item {
+  display: flex;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--limestone-dark);
+  font-size: 14px;
+}
+.priority-action-item .priority-marker {
+  font-family: Consolas, monospace;
+  font-size: 11px;
+  background: var(--warning);
+  color: white;
+  padding: 2px 8px;
+  white-space: nowrap;
+  align-self: flex-start;
+}
+.priority-action-item.low-priority .priority-marker {
+  background: var(--limestone-dark);
+  color: var(--near-black);
+}
+
+/* ═══ MODULE 3: PROFILE BUILDER ═══ */
+.profile-card {
+  background: var(--white);
+  border: 3px solid var(--forest);
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 0;
+}
+.profile-card-header {
+  background: var(--forest);
+  color: var(--white);
+  padding: 24px 28px;
+}
+.profile-card-header h3 {
+  font-family: 'Palatino Linotype', Palatino, serif;
+  font-size: 22px;
+  color: var(--white);
+  margin-bottom: 4px;
+}
+.profile-card-header .profile-type {
+  font-family: Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--limestone);
+}
+.profile-section {
+  padding: 18px 28px;
+  border-bottom: 1px solid var(--limestone-dark);
+}
+.profile-section:last-child { border-bottom: none; }
+.profile-section h4 {
+  font-family: Consolas, monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--trail-brown);
+  margin-bottom: 8px;
+}
+.profile-section p, .profile-section li {
+  font-size: 14px;
+  line-height: 1.5;
+}
+.profile-editable {
+  border: 1px dashed var(--limestone-dark);
+  padding: 6px 8px;
+  min-height: 40px;
+  outline: none;
+  font-family: 'Century Gothic', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.profile-editable:focus { border-color: var(--forest); }
+.profile-footer {
+  background: var(--limestone);
+  padding: 12px 28px;
+  font-family: 'Palatino Linotype', Palatino, serif;
+  font-size: 11px;
+  font-style: italic;
+  color: var(--trail-brown);
+}
+
+.profile-dl {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 4px 12px;
+  font-size: 14px;
+}
+.profile-dl dt {
+  font-family: Consolas, monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--trail-brown);
+  padding-top: 2px;
+}
+.profile-dl dd { margin: 0; }
+
+.print-btn {
+  background: var(--forest);
+  color: var(--white);
+  border: none;
+  padding: 12px 36px;
+  font-family: 'Palatino Linotype', Palatino, serif;
+  font-size: 14px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: block;
+  margin: 24px auto;
+}
+.print-btn:hover { background: var(--trail-brown); }
+
+/* ═══ DEMO LOAD BUTTON ═══ */
+.demo-btn {
+  background: none;
+  border: 1px solid var(--trail-brown);
+  color: var(--trail-brown);
+  padding: 6px 16px;
+  font-family: Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.demo-btn:hover { background: var(--trail-brown); color: var(--white); }
+
+/* ═══ CONTEXT PANEL ═══ */
+.context-toggle {
+  background: none;
+  border: none;
+  font-family: Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--limestone);
+  cursor: pointer;
+  padding: 4px 0;
+  opacity: 0.8;
+}
+.context-toggle:hover { opacity: 1; text-decoration: underline; }
+.context-panel {
+  display: none;
+  margin-top: 14px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.context-panel.open { display: block; }
+.context-panel dt {
+  font-family: Consolas, monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--limestone);
+  margin-top: 10px;
+}
+.context-panel dd {
+  margin: 0 0 0 16px;
+  color: var(--limestone-dark);
+}
+
+/* ═══ FOOTER ═══ */
+.site-footer {
+  background: var(--forest);
+  color: var(--limestone-dark);
+  padding: 28px 40px;
+  font-size: 12px;
+  line-height: 1.6;
+  text-align: center;
+  font-family: 'Palatino Linotype', Palatino, serif;
+  font-style: italic;
+}
+
+/* ═══ RESPONSIVE ═══ */
+@media (max-width: 800px) {
+  .editorial-section {
+    grid-template-columns: 1fr;
+    padding: 30px 20px;
+  }
+  .editorial-section.reversed { grid-template-columns: 1fr; }
+  .hero-stat .number { font-size: 44px; }
+  .hero-inner { gap: 30px; }
+  .data-table { width: 100%; margin-left: 0; font-size: 12px; }
+  .chapter-btn { padding: 12px 16px; font-size: 12px; }
+  .band-forest, .band-limestone, .band-brown, .band-cream { padding: 30px 20px; }
+  .profile-dl { grid-template-columns: 1fr; }
+}
+
+/* ═══ PRINT CSS ═══ */
+@media print {
+  #entry-screen, .chapter-nav, .hero-panorama, .site-footer,
+  .demo-btn, .print-btn, .context-toggle, .context-panel,
+  #chapter-estimator, #chapter-checklist { display: none !important; }
+  #main-tool { display: block !important; }
+  #chapter-profile { display: block !important; }
+  .profile-card { border: 2px solid #333; break-inside: avoid; }
+  .band-forest, .band-limestone, .band-brown, .band-cream {
+    background: white !important;
+    color: black !important;
+    padding: 20px 0;
+  }
+  body { background: white; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- ENTRY SCREEN: SVG TRAIL MAP            -->
+<!-- ═══════════════════════════════════════ -->
+<div id="entry-screen">
+  <h1>Root River Corridor</h1>
+  <div class="subtitle">Trail Business Opportunity Estimator</div>
+
+  <div id="trail-map-container">
+    <svg viewBox="0 0 820 340" xmlns="http://www.w3.org/2000/svg">
+      <!-- Bluff terrain background — hand-drawn style -->
+      <path d="M0 280 Q40 240 80 260 Q140 210 200 230 Q260 190 340 210 Q400 170 460 200 Q520 160 580 190 Q650 150 720 180 Q770 160 820 170 L820 340 L0 340 Z"
+            fill="#2a4f38" opacity="0.4" stroke="none"/>
+      <path d="M0 300 Q60 270 120 285 Q200 250 280 265 Q360 230 440 250 Q520 220 600 240 Q680 210 760 230 Q800 220 820 225 L820 340 L0 340 Z"
+            fill="#1b3a2a" opacity="0.3" stroke="none"/>
+
+      <!-- Root River — hand-drawn wavy path -->
+      <path d="M10 200 C40 195 70 210 110 205 C150 198 180 215 220 208 C260 200 300 220 350 210 C400 198 430 218 480 208 C530 196 560 215 610 205 C650 196 690 210 730 202 C760 196 790 205 810 200"
+            fill="none" stroke="#4a8fa8" stroke-width="4" stroke-linecap="round" opacity="0.6"
+            stroke-dasharray="none"/>
+      <path d="M10 200 C40 195 70 210 110 205 C150 198 180 215 220 208 C260 200 300 220 350 210 C400 198 430 218 480 208 C530 196 560 215 610 205 C650 196 690 210 730 202 C760 196 790 205 810 200"
+            fill="none" stroke="#6bb5d0" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+
+      <!-- Trail path — dashed, hand-drawn feel -->
+      <!-- Existing trail: Fountain to Houston -->
+      <path d="M780 165 C740 172 700 160 660 168 C620 175 580 162 540 170 C500 178 460 165 420 172 C380 180 340 168 310 175"
+            fill="none" stroke="#e8dcc8" stroke-width="3" stroke-dasharray="8 5" stroke-linecap="round"/>
+      <!-- New extension: Houston to La Crescent -->
+      <path d="M310 175 C270 182 230 170 190 178 C150 185 110 175 70 182 C50 186 30 180 15 183"
+            fill="none" stroke="#d4822a" stroke-width="3" stroke-dasharray="8 5" stroke-linecap="round"/>
+
+      <!-- Trail legend -->
+      <line x1="520" y1="30" x2="555" y2="30" stroke="#e8dcc8" stroke-width="3" stroke-dasharray="8 5"/>
+      <text x="562" y="34" fill="#8a8070" font-family="Consolas, monospace" font-size="10">EXISTING TRAIL (42 MI)</text>
+      <line x1="520" y1="48" x2="555" y2="48" stroke="#d4822a" stroke-width="3" stroke-dasharray="8 5"/>
+      <text x="562" y="52" fill="#8a8070" font-family="Consolas, monospace" font-size="10">SF4489 EXTENSION (18 MI)</text>
+
+      <!-- Community hotspots -->
+      <!-- Fountain (eastern end of existing) -->
+      <g class="hotspot-group" data-town="fountain">
+        <circle cx="780" cy="165" r="6" fill="#e8dcc8" class="hotspot-dot"/>
+        <text x="780" y="150" text-anchor="middle" class="hotspot-label" font-size="11">Fountain</text>
+      </g>
+      <!-- Lanesboro -->
+      <g class="hotspot-group" data-town="lanesboro">
+        <circle cx="660" cy="168" r="6" fill="#e8dcc8" class="hotspot-dot"/>
+        <text x="660" y="153" text-anchor="middle" class="hotspot-label">Lanesboro</text>
+        <text x="660" y="142" text-anchor="middle" class="hotspot-label" font-size="9" fill="#d4822a">Trail anchor town</text>
+      </g>
+      <!-- Whalan -->
+      <g class="hotspot-group" data-town="whalan">
+        <circle cx="580" cy="164" r="5" fill="#e8dcc8" class="hotspot-dot"/>
+        <text x="580" y="149" text-anchor="middle" class="hotspot-label">Whalan</text>
+      </g>
+      <!-- Peterson -->
+      <g class="hotspot-group" data-town="peterson">
+        <circle cx="500" cy="170" r="5" fill="#e8dcc8" class="hotspot-dot"/>
+        <text x="500" y="155" text-anchor="middle" class="hotspot-label">Peterson</text>
+      </g>
+      <!-- Rushford -->
+      <g class="hotspot-group" data-town="rushford">
+        <circle cx="420" cy="172" r="5" fill="#e8dcc8" class="hotspot-dot"/>
+        <text x="420" y="157" text-anchor="middle" class="hotspot-label">Rushford</text>
+      </g>
+      <!-- Houston (junction) -->
+      <g class="hotspot-group" data-town="houston">
+        <circle cx="310" cy="175" r="7" fill="#d4822a" class="hotspot-dot"/>
+        <text x="310" y="158" text-anchor="middle" class="hotspot-label" fill="#d4822a" font-size="12">Houston</text>
+        <text x="310" y="147" text-anchor="middle" class="hotspot-label" font-size="9" fill="#d4822a">Trail junction</text>
+      </g>
+      <!-- Hokah -->
+      <g class="hotspot-group" data-town="hokah">
+        <circle cx="190" cy="178" r="5" fill="#d4822a" class="hotspot-dot"/>
+        <text x="190" y="163" text-anchor="middle" class="hotspot-label" fill="#d4822a">Hokah</text>
+      </g>
+      <!-- La Crescent (western terminus) -->
+      <g class="hotspot-group" data-town="lacrescent">
+        <circle cx="30" cy="183" r="7" fill="#d4822a" class="hotspot-dot"/>
+        <text x="50" y="168" text-anchor="start" class="hotspot-label" fill="#d4822a" font-size="12">La Crescent</text>
+        <text x="50" y="157" text-anchor="start" class="hotspot-label" font-size="9" fill="#d4822a">Apple Capital of MN</text>
+      </g>
+
+      <!-- Mississippi River indicator (west edge) -->
+      <text x="10" y="220" fill="#4a8fa8" font-family="Palatino, serif" font-size="10" font-style="italic" opacity="0.5">Mississippi R.</text>
+
+      <!-- Root River label -->
+      <text x="400" y="228" fill="#6bb5d0" font-family="Palatino, serif" font-size="11" font-style="italic" opacity="0.5" text-anchor="middle">Root River</text>
+
+      <!-- Compass rose -->
+      <g transform="translate(60,60)">
+        <line x1="0" y1="-18" x2="0" y2="18" stroke="#8a8070" stroke-width="1"/>
+        <line x1="-18" y1="0" x2="18" y2="0" stroke="#8a8070" stroke-width="1"/>
+        <polygon points="0,-20 -4,-10 4,-10" fill="#8a8070"/>
+        <text x="0" y="-24" text-anchor="middle" fill="#8a8070" font-family="Consolas" font-size="9">N</text>
+      </g>
+    </svg>
+  </div>
+
+  <div id="entry-instruction">Hover over communities to see business hotspots. Click to enter the tool.</div>
+  <button id="enter-btn" onclick="enterTool()">Enter the Estimator</button>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- MAIN TOOL                              -->
+<!-- ═══════════════════════════════════════ -->
+<div id="main-tool">
+
+  <!-- HERO PANORAMA -->
+  <div class="hero-panorama">
+    <div class="hero-inner">
+      <div class="hero-stat">
+        <div class="number">60</div>
+        <div class="unit">miles of trail</div>
+      </div>
+      <div class="hero-stat">
+        <div class="number">200k</div>
+        <div class="unit">annual user-trips</div>
+      </div>
+      <div class="hero-stat">
+        <div class="number">8</div>
+        <div class="unit">connected communities</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHAPTER NAVIGATION -->
+  <nav class="chapter-nav">
+    <button class="chapter-btn active" onclick="showChapter('estimator')" id="btn-estimator">
+      <span class="ch-num">Chapter 1</span>
+      Revenue Estimator
+      <span class="ch-status" id="status-estimator"></span>
+    </button>
+    <button class="chapter-btn" onclick="showChapter('checklist')" id="btn-checklist">
+      <span class="ch-num">Chapter 2</span>
+      Readiness Checklist
+      <span class="ch-status" id="status-checklist">0/25</span>
+    </button>
+    <button class="chapter-btn" onclick="showChapter('profile')" id="btn-profile">
+      <span class="ch-num">Chapter 3</span>
+      Business Profile
+      <span class="ch-status" id="status-profile"></span>
+    </button>
+  </nav>
+
+  <!-- ═══ CHAPTER 1: REVENUE ESTIMATOR ═══ -->
+  <div class="chapter-panel active" id="chapter-estimator">
+
+    <div class="band-limestone">
+      <div class="band-inner" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+        <div>
+          <h2 style="margin-bottom:4px;">What is the trail worth to your business?</h2>
+          <span style="font-size:13px;color:var(--trail-brown);">Enter your business details. Results update live.</span>
+        </div>
+        <button class="demo-btn" onclick="loadDemo()">Load Example: Houston Trailhead Cafe</button>
+      </div>
+    </div>
+
+    <div class="editorial-section">
+      <div class="editorial-main">
+        <h3>Business Profile</h3>
+        <div class="form-group">
+          <label for="biz-type">Business Type</label>
+          <select id="biz-type" onchange="calculate()">
+            <option value="">-- Select --</option>
+            <option value="cafe">Cafe / Restaurant</option>
+            <option value="bnb">Bed & Breakfast / Short-term rental</option>
+            <option value="outfitter">Bike rental / Outfitter</option>
+            <option value="retail">Retail (trail gear, local goods, gifts)</option>
+            <option value="campground">Campground / RV site</option>
+            <option value="bar">Bar / Taproom</option>
+            <option value="other">Other (custom)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="location">Location on Trail Corridor</label>
+          <select id="location" onchange="calculate()">
+            <option value="">-- Select --</option>
+            <option value="lacrescent">La Crescent (western terminus — new extension)</option>
+            <option value="hokah">Hokah (midpoint — new extension)</option>
+            <option value="houston">Houston (junction — existing + new extension)</option>
+            <option value="rushford">Rushford (existing trail)</option>
+            <option value="peterson">Peterson (existing trail)</option>
+            <option value="whalan">Whalan (existing trail)</option>
+            <option value="lanesboro">Lanesboro (existing trail — anchor community)</option>
+            <option value="other">Other along corridor</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="current-revenue">Current Annual Revenue (non-trail) — optional</label>
+          <input type="number" id="current-revenue" placeholder="e.g. 180000" onchange="calculate()">
+        </div>
+        <div class="form-group">
+          <label for="capacity">Units (seats, rooms, rental units, campsites)</label>
+          <input type="number" id="capacity" placeholder="e.g. 24" onchange="calculate()">
+        </div>
+        <div class="form-group">
+          <label for="season">Operating Season</label>
+          <select id="season" onchange="calculate()">
+            <option value="year-round">Year-round</option>
+            <option value="apr-oct">April &ndash; October</option>
+            <option value="may-sep">May &ndash; September</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Currently marketing to trail users?</label>
+          <div class="radio-group">
+            <label><input type="radio" name="marketing" value="yes" onchange="calculate()"> Yes</label>
+            <label><input type="radio" name="marketing" value="somewhat" onchange="calculate()"> Somewhat</label>
+            <label><input type="radio" name="marketing" value="no" onchange="calculate()"> No</label>
+          </div>
+        </div>
+
+        <h3 style="margin-top:28px;">Trail Segment</h3>
+        <div class="form-group">
+          <div class="radio-group" style="flex-direction:column;">
+            <label><input type="radio" name="segment" value="existing" onchange="calculate()"> Existing Root River Trail (42 mi, Fountain&ndash;Houston)</label>
+            <label><input type="radio" name="segment" value="extension" onchange="calculate()"> New La Crescent Extension (18 mi, Houston&ndash;La Crescent, SF4489)</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="open-year">Expected opening year for new segment</label>
+          <input type="number" id="open-year" value="2027" min="2026" max="2035" onchange="calculate()">
+          <span class="hint">Default: 2027. Editable if timeline shifts.</span>
+        </div>
+        <div class="form-group">
+          <label for="avg-spend">Average spend per customer ($) — editable</label>
+          <input type="number" id="avg-spend" placeholder="auto-filled by business type" onchange="calculate()">
+          <span class="hint">Pre-filled from regional benchmarks. Adjust to your pricing.</span>
+        </div>
+      </div>
+
+      <!-- Margin: pull-quote and context -->
+      <div class="editorial-margin">
+        <div class="pull-quote">
+          Lanesboro is widely recognized as a trail-tourism success case&mdash;a town of 750 that built its economy around the Root River Trail.
+          <div class="attribution">Rails-to-Trails benchmark</div>
+        </div>
+
+        <button class="context-toggle" onclick="toggleContext()" style="margin-top:20px;">
+          &#9654; Trail corridor data
+        </button>
+        <div class="context-panel" id="context-panel">
+          <dl>
+            <dt>Existing trail</dt>
+            <dd>42 miles, Fountain to Houston, operational since 1988. Paved asphalt, generally level.</dd>
+            <dt>Communities served</dt>
+            <dd>Fountain, Lanesboro, Whalan, Peterson, Rushford, Houston</dd>
+            <dt>SF4489 Extension</dt>
+            <!-- VERIFY: SF4489 details from software brief -->
+            <dd>18 miles, Houston to La Crescent via Hokah. $4,750,000 appropriation. Follows Root River corridor and Historic Bluff Country National Scenic Byway.</dd>
+            <dt>La Crescent</dt>
+            <dd>"Apple Capital of Minnesota" — orchard tourism established; trail connection links to broader Root River economy.</dd>
+            <dt>Houston County</dt>
+            <dd>Population approx. 18,843 (2020 Census); 71% rural.</dd>
+            <dt>Winona</dt>
+            <dd>Population approx. 25,948; micropolitan anchor for the region.</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESULTS — full-bleed forest band -->
+    <div class="band-forest" id="results-section" style="display:none;">
+      <div class="band-inner">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;" class="results-grid">
+          <div>
+            <div class="data-label" style="color:var(--limestone-dark);">Estimated Annual Trail Users Past Your Location</div>
+            <div class="data-value" style="color:var(--white);" id="r-users">—</div>
+          </div>
+          <div>
+            <div class="data-label" style="color:var(--limestone-dark);">Estimated Customers Who Stop</div>
+            <div class="data-value" style="color:var(--white);" id="r-customers">—</div>
+          </div>
+        </div>
+        <div style="margin-top:30px;text-align:center;">
+          <div class="data-label" style="color:var(--limestone-dark);">Annual Revenue Opportunity from Trail Traffic</div>
+          <div class="data-value dollars" style="color:#8fdfb0;font-size:48px;" id="r-revenue">—</div>
+        </div>
+        <div id="r-pct-row" style="text-align:center;margin-top:8px;display:none;">
+          <span style="font-family:Consolas,monospace;font-size:14px;color:var(--limestone);">Trail traffic = <strong id="r-pct" style="color:#8fdfb0;">—</strong> of projected total revenue</span>
+        </div>
+
+        <!-- Revenue gap alert -->
+        <div id="revenue-gap" class="revenue-gap-alert" style="display:none;margin-top:24px;">
+        </div>
+
+        <div style="font-size:11px;color:var(--limestone-dark);margin-top:16px;font-family:Consolas,monospace;">
+          Source: MN DNR trail count estimates (~200,000 annual user-trips on existing Root River Trail) and Rails-to-Trails Conservancy economic research benchmarks. Estimates are planning tools, not guarantees.
+        </div>
+      </div>
+    </div>
+
+    <!-- Calculation breakdown table — breaks the grid -->
+    <div class="band-cream" id="breakdown-section" style="display:none;">
+      <div class="band-inner">
+        <h3>How this was calculated</h3>
+        <table class="data-table" id="calc-table">
+          <thead>
+            <tr>
+              <th>Input</th>
+              <th style="text-align:right;">Value</th>
+              <th>Source</th>
+            </tr>
+          </thead>
+          <tbody id="calc-tbody">
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="editorial-section" id="charts-section" style="display:none;">
+      <div class="editorial-main">
+        <h3>Monthly Trail Visitor Distribution</h3>
+        <div class="chart-container">
+          <canvas id="seasonal-chart"></canvas>
+        </div>
+        <span class="hint">Shaded area shows your operating season. Gaps represent missed revenue opportunity.</span>
+      </div>
+      <div class="editorial-margin">
+        <h3 style="margin-top:0;">5-Year Revenue Trajectory</h3>
+        <div class="chart-container">
+          <canvas id="trajectory-chart"></canvas>
+        </div>
+        <span class="hint">Comparison: with and without trail-focused marketing optimization.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ CHAPTER 2: READINESS CHECKLIST ═══ -->
+  <div class="chapter-panel" id="chapter-checklist">
+
+    <div class="band-brown">
+      <div class="band-inner" style="display:grid;grid-template-columns:1fr 280px;gap:40px;align-items:center;">
+        <div>
+          <h2 style="color:var(--white);margin-bottom:6px;">Trail-Business Readiness Audit</h2>
+          <p style="font-size:14px;">A practical gap-finder. Check what you already have. Focus on what remains.</p>
+        </div>
+        <div class="readiness-score-display">
+          <div class="readiness-score-number" id="score-number" style="color:var(--white);">0%</div>
+          <div class="readiness-score-label" style="color:var(--limestone);" id="score-fraction">0 / 25</div>
+          <div class="readiness-interpretation" style="color:var(--limestone-dark);" id="score-interp">Getting Started</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="band-cream">
+      <div class="band-inner" id="checklist-container">
+        <!-- Checklist categories built by JS -->
+      </div>
+    </div>
+
+    <div class="band-forest">
+      <div class="band-inner">
+        <h3 style="color:var(--white);">Priority Action Items</h3>
+        <p style="font-size:12px;color:var(--limestone-dark);margin-bottom:16px;">Infrastructure and product alignment items surface first — they have the highest impact on revenue capture.</p>
+        <div id="priority-actions">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ CHAPTER 3: BUSINESS PROFILE ═══ -->
+  <div class="chapter-panel" id="chapter-profile">
+
+    <div class="band-limestone">
+      <div class="band-inner">
+        <h2>Trail-Corridor Business Profile</h2>
+        <p style="font-size:14px;margin-bottom:12px;">A formatted, print-ready profile card you can submit to a Chamber of Commerce, tourism directory, or trail-user app. Edit any field before printing.</p>
+        <div class="form-group" style="max-width:400px;">
+          <label for="biz-name">Business Name</label>
+          <input type="text" id="biz-name" placeholder="e.g. Houston Trailhead Cafe" onchange="buildProfile()">
+        </div>
+        <div class="form-group" style="max-width:200px;">
+          <label for="trail-distance">Distance from Trail</label>
+          <input type="text" id="trail-distance" placeholder='e.g. "200 feet" or "0.3 miles"' onchange="buildProfile()">
+        </div>
+      </div>
+    </div>
+
+    <div class="band-cream">
+      <div class="band-inner">
+        <div class="profile-card" id="profile-card">
+          <div class="profile-card-header">
+            <h3 id="profile-name">Your Business Name</h3>
+            <div class="profile-type" id="profile-type">Business Type</div>
+          </div>
+          <div class="profile-section">
+            <h4>Location & Access</h4>
+            <dl class="profile-dl" id="profile-access">
+              <dt>Trail town</dt><dd id="p-location">—</dd>
+              <dt>Trail distance</dt><dd id="p-distance">—</dd>
+              <dt>Season & Hours</dt><dd id="p-season">—</dd>
+              <dt>Bike parking</dt><dd id="p-bike">—</dd>
+              <dt>Water / Restroom</dt><dd id="p-water">—</dd>
+              <dt>WiFi</dt><dd id="p-wifi">—</dd>
+            </dl>
+          </div>
+          <div class="profile-section">
+            <h4>What We Offer</h4>
+            <div class="profile-editable" contenteditable="true" id="p-narrative">
+              Fill in your business details above and this narrative will auto-generate.
+            </div>
+          </div>
+          <div class="profile-section">
+            <h4>Trail Revenue Opportunity Summary</h4>
+            <dl class="profile-dl">
+              <dt>Est. annual trail customers</dt><dd id="p-customers">—</dd>
+              <dt>Est. annual trail revenue</dt><dd id="p-revenue">—</dd>
+            </dl>
+            <p style="font-size:11px;color:var(--trail-brown);margin-top:8px;font-style:italic;">Internal planning estimate — not for publication</p>
+          </div>
+          <div class="profile-section">
+            <h4>Top 3 Action Items</h4>
+            <ol id="p-actions" style="padding-left:20px;font-size:14px;line-height:1.7;">
+              <li>Complete the readiness checklist (Chapter 2) to populate this section.</li>
+            </ol>
+          </div>
+          <div class="profile-footer">
+            District 26 — Root River Corridor Trail. Built with AI to support small businesses along Senator Miller's SF4489 trail corridor.
+          </div>
+        </div>
+
+        <button class="print-btn" onclick="window.print()">Print Profile</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    A resource for District 26 small businesses along the Root River corridor.
+    Built with AI. Trail data reflects Minnesota DNR records and Rails-to-Trails research
+    benchmarks as of 2026. Revenue estimates are planning tools, not guarantees.
+  </footer>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   ROOT RIVER CORRIDOR TRAIL BUSINESS TOOL
+   Senator Jeremy R. Miller — SD-26
+   ═══════════════════════════════════════════════ */
+
+// ─── DATA CONSTANTS ───
+const TRAIL_BASELINE = 200000; // annual user-trips, existing Root River Trail (MN DNR)
+const RAMP_FACTORS = [0.30, 0.42, 0.52, 0.58, 0.60]; // Year 1-5 for new extension
+
+const LOCATION_MODIFIER = {
+  lacrescent: 1.4,   // terminus
+  hokah: 0.7,        // midpoint
+  houston: 1.4,      // junction/terminus
+  rushford: 0.7,     // midpoint
+  peterson: 0.7,     // midpoint
+  whalan: 0.7,       // midpoint
+  lanesboro: 1.4,    // anchor/terminus
+  other: 0.7
+};
+
+const CAPTURE_RATES = {
+  cafe: 0.38,
+  bnb: 0.12 * 0.22,  // 12% of multi-day users; multi-day = 22% of total
+  outfitter: 0.08,
+  retail: 0.25,
+  campground: 0.18 * 0.22, // 18% of multi-day users
+  bar: 0.28,
+  other: 0.15
+};
+
+const AVG_SPEND = {
+  cafe: 14,
+  bnb: 95 * 1.4,  // $95/night x 1.4 nights average stay
+  outfitter: 38,
+  retail: 22,
+  campground: 28,
+  bar: 18,
+  other: 20
+};
+
+const SEASONAL_DIST = [0.00, 0.00, 0.01, 0.05, 0.10, 0.18, 0.22, 0.20, 0.12, 0.07, 0.03, 0.02];
+const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+const SEASON_MONTHS = {
+  'year-round': [0,1,2,3,4,5,6,7,8,9,10,11],
+  'apr-oct': [3,4,5,6,7,8,9],
+  'may-sep': [4,5,6,7,8]
+};
+
+const BUSINESS_TYPE_LABELS = {
+  cafe: 'Cafe / Restaurant',
+  bnb: 'Bed & Breakfast / Short-term rental',
+  outfitter: 'Bike rental / Outfitter',
+  retail: 'Retail',
+  campground: 'Campground / RV site',
+  bar: 'Bar / Taproom',
+  other: 'Other'
+};
+
+const LOCATION_LABELS = {
+  lacrescent: 'La Crescent',
+  hokah: 'Hokah',
+  houston: 'Houston',
+  rushford: 'Rushford',
+  peterson: 'Peterson',
+  whalan: 'Whalan',
+  lanesboro: 'Lanesboro',
+  other: 'Other'
+};
+
+// ─── CHECKLIST DATA ───
+const CHECKLIST = [
+  {
+    name: 'Visibility — Can trail users find you?',
+    items: [
+      'Business listed on TrailLink.com or AllTrails trail amenities section',
+      'Google Maps listing has "bike-friendly" or relevant category tag',
+      'Signage visible from the trail (within 0.25 miles)',
+      'Website or Facebook page mentions trail proximity',
+      'Listed in a local tourism guide or Chamber of Commerce directory',
+      'Responds to Google Reviews within 48 hours'
+    ]
+  },
+  {
+    name: 'Trail-Ready Infrastructure',
+    items: [
+      'Secure bike parking (rack or corral) at or near entrance',
+      'Outdoor water spigot or water bottle fill station',
+      'Clean, accessible restroom — no key required for trail users',
+      'Shaded or covered outdoor seating',
+      'Cell signal or free WiFi posted clearly',
+      'Small first aid / tire patch kit available'
+    ]
+  },
+  {
+    name: 'Product & Service Alignment',
+    items: [
+      'Carry-out or grab-and-go food options available',
+      'High-calorie snacks stocked (energy bars, bananas, trail mix)',
+      'Cold beverages accessible quickly without waiting for table service',
+      'Can accept credit cards (trail users rarely carry cash)',
+      'Hours cover at least 8am–6pm during May–September',
+      'Staff can answer basic "how far to the next town?" trail questions'
+    ]
+  },
+  {
+    name: 'Marketing & Booking',
+    items: [
+      'Trail-focused package or discount exists (e.g., "Cyclist Special")',
+      'Online booking or reservation option available',
+      'Collecting and using email list from trail-user customers',
+      'Posted on Explore Minnesota, Discover SE Minnesota, or Visit Winona',
+      'Social media post cadence during trail season (at least weekly)'
+    ]
+  },
+  {
+    name: 'Seasonal Planning',
+    items: [
+      'Staffing plan covers peak trail season (June–August) without gaps',
+      'Supplier/inventory increase planned for peak season',
+      'Off-season closure communicated clearly on all platforms',
+      'Collaboration with neighboring trail-corridor businesses (cross-referral)'
+    ]
+  }
+];
+
+// ─── STATE ───
+let checklistState = {};
+let seasonalChart = null;
+let trajectoryChart = null;
+let lastCalcResult = null;
+
+// ─── ENTRY ───
+function enterTool() {
+  document.getElementById('entry-screen').style.display = 'none';
+  const main = document.getElementById('main-tool');
+  main.style.display = 'block';
+  main.classList.add('active');
+  loadState();
+  loadDemo();
+}
+
+// Also allow clicking hotspots to enter
+document.querySelectorAll('.hotspot-group').forEach(g => {
+  g.addEventListener('click', () => {
+    enterTool();
+    const town = g.dataset.town;
+    const locSelect = document.getElementById('location');
+    if (town && locSelect.querySelector(`option[value="${town}"]`)) {
+      locSelect.value = town;
+    }
+    setTimeout(calculate, 100);
+  });
+});
+
+// ─── NAVIGATION ───
+function showChapter(name) {
+  document.querySelectorAll('.chapter-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.chapter-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('chapter-' + name).classList.add('active');
+  document.getElementById('btn-' + name).classList.add('active');
+  if (name === 'profile') buildProfile();
+}
+
+// ─── DEMO DATA ───
+function loadDemo() {
+  document.getElementById('biz-type').value = 'cafe';
+  document.getElementById('location').value = 'houston';
+  document.getElementById('current-revenue').value = 180000;
+  document.getElementById('capacity').value = 24;
+  document.getElementById('season').value = 'apr-oct';
+  document.querySelector('input[name="marketing"][value="somewhat"]').checked = true;
+  document.querySelector('input[name="segment"][value="existing"]').checked = true;
+  document.getElementById('open-year').value = 2027;
+  document.getElementById('avg-spend').value = '';
+  document.getElementById('biz-name').value = 'Houston Trailhead Cafe';
+  document.getElementById('trail-distance').value = '200 feet';
+  calculate();
+}
+
+// ─── CONTEXT PANEL ───
+function toggleContext() {
+  const panel = document.getElementById('context-panel');
+  const btn = panel.previousElementSibling;
+  panel.classList.toggle('open');
+  btn.innerHTML = panel.classList.contains('open') ? '&#9660; Trail corridor data' : '&#9654; Trail corridor data';
+}
+
+// ─── MAIN CALCULATION ───
+function calculate() {
+  const bizType = document.getElementById('biz-type').value;
+  const location = document.getElementById('location').value;
+  const currentRev = parseFloat(document.getElementById('current-revenue').value) || 0;
+  const season = document.getElementById('season').value;
+  const segmentEl = document.querySelector('input[name="segment"]:checked');
+  const segment = segmentEl ? segmentEl.value : 'existing';
+  const openYear = parseInt(document.getElementById('open-year').value) || 2027;
+  const customSpend = parseFloat(document.getElementById('avg-spend').value);
+
+  if (!bizType || !location) {
+    document.getElementById('results-section').style.display = 'none';
+    document.getElementById('breakdown-section').style.display = 'none';
+    document.getElementById('charts-section').style.display = 'none';
+    return;
+  }
+
+  // Auto-fill avg spend if not custom
+  const avgSpend = customSpend > 0 ? customSpend : AVG_SPEND[bizType];
+  if (!customSpend) {
+    document.getElementById('avg-spend').placeholder = '$' + AVG_SPEND[bizType] + ' (regional benchmark)';
+  }
+
+  const locMod = LOCATION_MODIFIER[location] || 0.7;
+  const captureRate = CAPTURE_RATES[bizType];
+
+  // Base volume
+  let baseVolume;
+  if (segment === 'extension') {
+    // New extension Year 1
+    baseVolume = TRAIL_BASELINE * RAMP_FACTORS[0];
+  } else {
+    baseVolume = TRAIL_BASELINE;
+  }
+
+  // Houston junction: gets both existing + extension Year 1
+  let effectiveVolume = baseVolume * locMod;
+  if (location === 'houston' && segment === 'existing') {
+    // Houston is junction — also gets some extension traffic once open
+    // but user selected existing segment, so just use existing baseline
+    effectiveVolume = TRAIL_BASELINE * locMod;
+  }
+
+  const trailCustomers = Math.round(effectiveVolume * captureRate);
+  const annualRevenue = Math.round(trailCustomers * avgSpend);
+
+  // Show results
+  document.getElementById('results-section').style.display = 'block';
+  document.getElementById('breakdown-section').style.display = 'block';
+  document.getElementById('charts-section').style.display = 'block';
+
+  document.getElementById('r-users').textContent = effectiveVolume.toLocaleString();
+  document.getElementById('r-customers').textContent = trailCustomers.toLocaleString();
+  document.getElementById('r-revenue').textContent = annualRevenue.toLocaleString();
+
+  // Percentage of total
+  if (currentRev > 0) {
+    const pct = ((annualRevenue / (currentRev + annualRevenue)) * 100).toFixed(1);
+    document.getElementById('r-pct').textContent = pct + '%';
+    document.getElementById('r-pct-row').style.display = 'block';
+  } else {
+    document.getElementById('r-pct-row').style.display = 'none';
+  }
+
+  // Revenue gap
+  const seasonMonths = SEASON_MONTHS[season];
+  let gapWeightSum = 0;
+  SEASONAL_DIST.forEach((w, i) => {
+    if (w > 0 && !seasonMonths.includes(i)) gapWeightSum += w;
+  });
+  const gapDiv = document.getElementById('revenue-gap');
+  if (gapWeightSum > 0.01) {
+    const missedRev = Math.round(annualRevenue * gapWeightSum);
+    gapDiv.style.display = 'block';
+    gapDiv.innerHTML = '<strong>Revenue Gap:</strong> Your operating season misses trail traffic in months that account for ' +
+      (gapWeightSum * 100).toFixed(0) + '% of annual trail volume. Estimated missed revenue: <strong>$' +
+      missedRev.toLocaleString() + '/year</strong>. Consider extending hours into shoulder months.';
+  } else {
+    gapDiv.style.display = 'none';
+  }
+
+  // Breakdown table
+  const tbody = document.getElementById('calc-tbody');
+  tbody.innerHTML = `
+    <tr><td>Trail baseline volume</td><td class="num">${baseVolume.toLocaleString()} users/yr</td><td>MN DNR estimate</td></tr>
+    <tr><td>Location modifier (${LOCATION_LABELS[location]})</td><td class="num">&times; ${locMod}</td><td>Terminus=1.4, midpoint=0.7</td></tr>
+    <tr><td>Effective passing volume</td><td class="num">${effectiveVolume.toLocaleString()}</td><td>Baseline &times; modifier</td></tr>
+    <tr><td>Capture rate (${BUSINESS_TYPE_LABELS[bizType]})</td><td class="num">${(captureRate * 100).toFixed(1)}%</td><td>Rails-to-Trails research</td></tr>
+    <tr><td>Est. customers who stop</td><td class="num">${trailCustomers.toLocaleString()}</td><td>Volume &times; capture rate</td></tr>
+    <tr><td>Average spend per customer</td><td class="num">$${avgSpend.toFixed(0)}</td><td>${customSpend > 0 ? 'User-entered' : 'Regional benchmark'}</td></tr>
+    <tr class="highlight"><td>Annual revenue opportunity</td><td class="num">$${annualRevenue.toLocaleString()}</td><td></td></tr>
+  `;
+
+  // Update chapter status
+  document.getElementById('status-estimator').textContent = '$' + annualRevenue.toLocaleString();
+
+  // Store for profile
+  lastCalcResult = { effectiveVolume, trailCustomers, annualRevenue, bizType, location, season, avgSpend };
+
+  // Charts
+  renderSeasonalChart(effectiveVolume, captureRate, avgSpend, seasonMonths);
+  renderTrajectoryChart(currentRev, annualRevenue, segment);
+
+  saveState();
+}
+
+// ─── SEASONAL CHART ───
+function renderSeasonalChart(volume, captureRate, avgSpend, seasonMonths) {
+  const ctx = document.getElementById('seasonal-chart').getContext('2d');
+  if (seasonalChart) seasonalChart.destroy();
+
+  const monthlyRevenue = SEASONAL_DIST.map(w => Math.round(volume * captureRate * avgSpend * w));
+  const bgColors = SEASONAL_DIST.map((_, i) =>
+    seasonMonths.includes(i) ? 'rgba(27,58,42,0.8)' : 'rgba(107,66,38,0.35)'
+  );
+
+  seasonalChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: MONTH_NAMES,
+      datasets: [{
+        label: 'Monthly trail revenue ($)',
+        data: monthlyRevenue,
+        backgroundColor: bgColors,
+        borderColor: 'rgba(27,58,42,1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => '$' + ctx.raw.toLocaleString()
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: v => '$' + (v / 1000).toFixed(0) + 'k',
+            font: { family: 'Consolas, monospace', size: 11 }
+          },
+          grid: { color: 'rgba(0,0,0,0.06)' }
+        },
+        x: {
+          ticks: { font: { family: 'Consolas, monospace', size: 11 } },
+          grid: { display: false }
+        }
+      }
+    }
+  });
+}
+
+// ─── 5-YEAR TRAJECTORY CHART ───
+function renderTrajectoryChart(currentRev, annualRevenue, segment) {
+  const ctx = document.getElementById('trajectory-chart').getContext('2d');
+  if (trajectoryChart) trajectoryChart.destroy();
+
+  const years = ['Year 1','Year 2','Year 3','Year 4','Year 5'];
+  const withoutTrail = years.map(() => currentRev);
+  const withTrail = RAMP_FACTORS.map(r => {
+    if (segment === 'existing') {
+      return currentRev + annualRevenue; // already at steady state
+    }
+    return currentRev + Math.round(annualRevenue * (r / 0.60)); // scale to Year 5 = full annualRevenue
+  });
+
+  trajectoryChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: years,
+      datasets: [
+        {
+          label: 'Without trail marketing',
+          data: withoutTrail,
+          borderColor: '#8a8070',
+          borderDash: [6, 4],
+          pointRadius: 3,
+          fill: false,
+          tension: 0.2
+        },
+        {
+          label: 'With trail optimization',
+          data: withTrail,
+          borderColor: '#1b3a2a',
+          backgroundColor: 'rgba(27,58,42,0.1)',
+          pointRadius: 4,
+          fill: true,
+          tension: 0.2
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: {
+          labels: { font: { family: 'Century Gothic, sans-serif', size: 11 } }
+        },
+        tooltip: {
+          callbacks: {
+            label: ctx => ctx.dataset.label + ': $' + ctx.raw.toLocaleString()
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: false,
+          ticks: {
+            callback: v => '$' + (v / 1000).toFixed(0) + 'k',
+            font: { family: 'Consolas, monospace', size: 11 }
+          },
+          grid: { color: 'rgba(0,0,0,0.06)' }
+        },
+        x: {
+          ticks: { font: { family: 'Consolas, monospace', size: 11 } },
+          grid: { display: false }
+        }
+      }
+    }
+  });
+}
+
+// ─── CHECKLIST ───
+function buildChecklist() {
+  const container = document.getElementById('checklist-container');
+  container.innerHTML = '';
+  let itemIdx = 0;
+
+  CHECKLIST.forEach((cat, catIdx) => {
+    const catDiv = document.createElement('div');
+    catDiv.className = 'checklist-category';
+
+    const header = document.createElement('div');
+    header.className = 'checklist-category-header';
+    header.innerHTML = `<span>${cat.name}</span><span class="cat-score" id="cat-score-${catIdx}">0/${cat.items.length}</span>`;
+    catDiv.appendChild(header);
+
+    cat.items.forEach((item, i) => {
+      const key = `cl-${catIdx}-${i}`;
+      const itemDiv = document.createElement('div');
+      itemDiv.className = 'checklist-item' + (checklistState[key] ? ' checked' : '');
+
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.id = key;
+      cb.checked = !!checklistState[key];
+      cb.setAttribute('aria-label', item);
+      cb.addEventListener('change', () => {
+        checklistState[key] = cb.checked;
+        itemDiv.classList.toggle('checked', cb.checked);
+        updateChecklistScore();
+        saveState();
+      });
+
+      const span = document.createElement('span');
+      span.className = 'item-text';
+      span.textContent = item;
+
+      itemDiv.appendChild(cb);
+      itemDiv.appendChild(span);
+      itemDiv.addEventListener('click', (e) => {
+        if (e.target !== cb) { cb.checked = !cb.checked; cb.dispatchEvent(new Event('change')); }
+      });
+      catDiv.appendChild(itemDiv);
+      itemIdx++;
+    });
+
+    container.appendChild(catDiv);
+  });
+
+  updateChecklistScore();
+}
+
+function updateChecklistScore() {
+  let total = 0, checked = 0;
+  CHECKLIST.forEach((cat, catIdx) => {
+    let catChecked = 0;
+    cat.items.forEach((_, i) => {
+      total++;
+      if (checklistState[`cl-${catIdx}-${i}`]) { checked++; catChecked++; }
+    });
+    const el = document.getElementById(`cat-score-${catIdx}`);
+    if (el) el.textContent = `${catChecked}/${cat.items.length}`;
+  });
+
+  const pct = total > 0 ? Math.round((checked / total) * 100) : 0;
+  document.getElementById('score-number').textContent = pct + '%';
+  document.getElementById('score-fraction').textContent = `${checked} / ${total}`;
+  document.getElementById('status-checklist').textContent = `${checked}/${total}`;
+
+  let interp;
+  if (pct <= 40) interp = 'Getting Started — significant opportunity to increase trail revenue capture';
+  else if (pct <= 65) interp = 'Developing — you\'re on the path, several high-impact items remain';
+  else if (pct <= 85) interp = 'Trail-Ready — strong foundation, fine-tune the remaining items';
+  else interp = 'Optimized — you are positioned to maximize the trail opportunity';
+  document.getElementById('score-interp').textContent = interp;
+
+  // Score color
+  const scoreEl = document.getElementById('score-number');
+  if (pct <= 40) scoreEl.style.color = '#f0c8a0';
+  else if (pct <= 65) scoreEl.style.color = '#e8dcc8';
+  else if (pct <= 85) scoreEl.style.color = '#b0e0c0';
+  else scoreEl.style.color = '#8fdfb0';
+
+  buildPriorityActions();
+}
+
+function buildPriorityActions() {
+  const container = document.getElementById('priority-actions');
+  container.innerHTML = '';
+
+  // Priority order: categories 1 (infrastructure) and 2 (product) first, then rest
+  const priorityOrder = [1, 2, 0, 3, 4];
+
+  priorityOrder.forEach(catIdx => {
+    const cat = CHECKLIST[catIdx];
+    cat.items.forEach((item, i) => {
+      const key = `cl-${catIdx}-${i}`;
+      if (!checklistState[key]) {
+        const div = document.createElement('div');
+        div.className = 'priority-action-item' + (catIdx > 2 ? ' low-priority' : '');
+        const isHighPriority = catIdx === 1 || catIdx === 2;
+        div.innerHTML = `
+          <span class="priority-marker">${isHighPriority ? 'HIGH' : 'STD'}</span>
+          <span>${item}</span>
+        `;
+        container.appendChild(div);
+      }
+    });
+  });
+
+  if (container.children.length === 0) {
+    container.innerHTML = '<p style="color:var(--limestone);font-style:italic;font-family:Palatino,serif;">All items complete. Your business is trail-optimized.</p>';
+  }
+}
+
+// ─── PROFILE BUILDER ───
+function buildProfile() {
+  const bizName = document.getElementById('biz-name').value || 'Your Business Name';
+  const bizType = document.getElementById('biz-type').value;
+  const location = document.getElementById('location').value;
+  const season = document.getElementById('season').value;
+  const distance = document.getElementById('trail-distance').value || '—';
+
+  document.getElementById('profile-name').textContent = bizName;
+  document.getElementById('profile-type').textContent = BUSINESS_TYPE_LABELS[bizType] || 'Business Type';
+  document.getElementById('p-location').textContent = LOCATION_LABELS[location] || '—';
+  document.getElementById('p-distance').textContent = distance;
+
+  const seasonLabels = { 'year-round': 'Year-round', 'apr-oct': 'April – October', 'may-sep': 'May – September' };
+  document.getElementById('p-season').textContent = seasonLabels[season] || '—';
+
+  // Pull from checklist
+  document.getElementById('p-bike').textContent = checklistState['cl-1-0'] ? 'Yes' : 'No';
+  const hasWater = checklistState['cl-1-1'];
+  const hasRestroom = checklistState['cl-1-2'];
+  document.getElementById('p-water').textContent =
+    (hasWater && hasRestroom) ? 'Yes (water + restroom)' :
+    hasWater ? 'Water only' :
+    hasRestroom ? 'Restroom only' : 'No';
+  document.getElementById('p-wifi').textContent = checklistState['cl-1-4'] ? 'Yes' : 'No';
+
+  // Narrative
+  if (bizType && location) {
+    const loc = LOCATION_LABELS[location];
+    const type = BUSINESS_TYPE_LABELS[bizType];
+    let narrative = '';
+
+    if (bizType === 'cafe') {
+      narrative = `A ${type.toLowerCase()} located ${distance !== '—' ? distance : 'near'} from the Root River State Trail in ${loc}.`;
+      if (checklistState['cl-2-0']) narrative += ' We offer carry-out sandwiches, cold drinks, and grab-and-go snacks for trail users.';
+      if (checklistState['cl-1-0']) narrative += ' Bike parking available outside.';
+      if (hasWater) narrative += ' Water fill station on-site.';
+    } else if (bizType === 'bnb') {
+      narrative = `A ${type.toLowerCase()} located ${distance !== '—' ? distance : 'near'} the Root River State Trail in ${loc}.`;
+      narrative += ' We welcome trail users for overnight stays.';
+      if (checklistState['cl-3-0']) narrative += ' Online booking available.';
+    } else if (bizType === 'outfitter') {
+      narrative = `A bike rental and outfitter shop located ${distance !== '—' ? distance : 'near'} the Root River State Trail in ${loc}.`;
+      narrative += ' We provide gear and rentals for trail users.';
+    } else if (bizType === 'bar') {
+      narrative = `A bar and taproom located ${distance !== '—' ? distance : 'near'} the Root River State Trail in ${loc}.`;
+      if (checklistState['cl-2-2']) narrative += ' Quick-serve cold beverages available for trail users.';
+      if (checklistState['cl-1-3']) narrative += ' Outdoor seating with shade.';
+    } else {
+      narrative = `A ${type.toLowerCase()} located ${distance !== '—' ? distance : 'near'} the Root River State Trail in ${loc}. We serve trail users and the local community.`;
+    }
+
+    document.getElementById('p-narrative').textContent = narrative;
+  }
+
+  // Revenue data from Module 1
+  if (lastCalcResult) {
+    document.getElementById('p-customers').textContent = lastCalcResult.trailCustomers.toLocaleString();
+    document.getElementById('p-revenue').textContent = '$' + lastCalcResult.annualRevenue.toLocaleString();
+  }
+
+  // Top 3 actions from unchecked high-priority items
+  const actions = [];
+  [1, 2, 0].forEach(catIdx => {
+    CHECKLIST[catIdx].items.forEach((item, i) => {
+      if (!checklistState[`cl-${catIdx}-${i}`] && actions.length < 3) {
+        actions.push(item);
+      }
+    });
+  });
+  const ol = document.getElementById('p-actions');
+  if (actions.length > 0) {
+    ol.innerHTML = actions.map(a => `<li>${a}</li>`).join('');
+  } else {
+    ol.innerHTML = '<li>All priority items complete!</li>';
+  }
+
+  document.getElementById('status-profile').textContent = bizName !== 'Your Business Name' ? 'Ready' : '';
+}
+
+// ─── LOCAL STORAGE ───
+function saveState() {
+  const state = {
+    checklist: checklistState,
+    inputs: {
+      bizType: document.getElementById('biz-type').value,
+      location: document.getElementById('location').value,
+      currentRevenue: document.getElementById('current-revenue').value,
+      capacity: document.getElementById('capacity').value,
+      season: document.getElementById('season').value,
+      marketing: document.querySelector('input[name="marketing"]:checked')?.value || '',
+      segment: document.querySelector('input[name="segment"]:checked')?.value || '',
+      openYear: document.getElementById('open-year').value,
+      avgSpend: document.getElementById('avg-spend').value,
+      bizName: document.getElementById('biz-name').value,
+      trailDistance: document.getElementById('trail-distance').value
+    }
+  };
+  try { localStorage.setItem('miller-trail-tool', JSON.stringify(state)); } catch(e) {}
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem('miller-trail-tool');
+    if (!raw) return;
+    const state = JSON.parse(raw);
+    if (state.checklist) checklistState = state.checklist;
+    if (state.inputs) {
+      const inp = state.inputs;
+      if (inp.bizType) document.getElementById('biz-type').value = inp.bizType;
+      if (inp.location) document.getElementById('location').value = inp.location;
+      if (inp.currentRevenue) document.getElementById('current-revenue').value = inp.currentRevenue;
+      if (inp.capacity) document.getElementById('capacity').value = inp.capacity;
+      if (inp.season) document.getElementById('season').value = inp.season;
+      if (inp.marketing) {
+        const r = document.querySelector(`input[name="marketing"][value="${inp.marketing}"]`);
+        if (r) r.checked = true;
+      }
+      if (inp.segment) {
+        const r = document.querySelector(`input[name="segment"][value="${inp.segment}"]`);
+        if (r) r.checked = true;
+      }
+      if (inp.openYear) document.getElementById('open-year').value = inp.openYear;
+      if (inp.avgSpend) document.getElementById('avg-spend').value = inp.avgSpend;
+      if (inp.bizName) document.getElementById('biz-name').value = inp.bizName;
+      if (inp.trailDistance) document.getElementById('trail-distance').value = inp.trailDistance;
+    }
+  } catch(e) {}
+
+  buildChecklist();
+}
+
+// ─── INIT ───
+buildChecklist();
+</script>
+
+</body>
+</html>

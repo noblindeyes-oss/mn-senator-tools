@@ -1,0 +1,1771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minnesota Teacher Career Pathway Navigator — Sen. Heather Gustafson</title>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Horizontal timeline as primary navigation; detail panels expand below timeline nodes. Full-width, no sidebar, no centered max-width shell.
+   2. Navigation: Timeline nodes ARE the nav — click any career stage. "Where am I?" reset button returns to overview.
+   3. Typography: Palatino (serif headers), Tahoma (body/UI), Lucida Console (data/monospace) — per mandatory assignment.
+   4. Hero moment: Large "TEACHER SHORTAGE: 4,000+ VACANCIES" in chalk-white on slate, 56px+ type.
+   5. Color strategy: #7 Inverted — dark slate backgrounds dominate; chalk-white text; schoolhouse red and aged-gold accents. Light areas only for input fields.
+   6. Entry experience: Animated chalkboard SVG where the career pathway draws itself in chalk strokes, then transitions to interactive tool.
+   Additional: No bordered callout boxes. No emoji icons. No parchment backgrounds. Dense financial data contrasts with spacious pathway cards.
+*/
+
+:root {
+  --red: #8b1a1a;
+  --red-light: #a82222;
+  --slate: #4a4a4a;
+  --slate-dark: #2e2e2e;
+  --slate-deeper: #1e1e1e;
+  --chalk: #fafafa;
+  --chalk-dim: #c8c8c8;
+  --gold: #c9a227;
+  --gold-light: #d4b545;
+  --success: #2D6A4F;
+  --warning: #C98A1A;
+  --alert: #C1121F;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: Tahoma, Geneva, sans-serif;
+  background: var(--slate-dark);
+  color: var(--chalk);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4 {
+  font-family: 'Palatino Linotype', Palatino, 'Book Antiqua', serif;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.mono {
+  font-family: 'Lucida Console', Monaco, monospace;
+}
+
+/* ═══ ENTRY ANIMATION ═══ */
+#entry-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: var(--slate);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.8s ease;
+}
+
+#entry-screen.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#chalkboard-svg {
+  width: min(90vw, 800px);
+  height: 200px;
+}
+
+#chalkboard-svg .chalk-path {
+  stroke: var(--chalk);
+  stroke-width: 2.5;
+  fill: none;
+  stroke-linecap: round;
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+}
+
+#chalkboard-svg .chalk-path.animate {
+  animation: draw-chalk 2.5s ease-out forwards;
+  animation-delay: var(--delay, 0s);
+}
+
+#chalkboard-svg .node-circle {
+  fill: none;
+  stroke: var(--gold);
+  stroke-width: 2;
+  opacity: 0;
+}
+
+#chalkboard-svg .node-circle.pop {
+  animation: pop-in 0.3s ease-out forwards;
+}
+
+#chalkboard-svg .node-label {
+  fill: var(--chalk);
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 11px;
+  text-anchor: middle;
+  opacity: 0;
+}
+
+#chalkboard-svg .node-label.pop {
+  animation: pop-in 0.3s ease-out forwards;
+}
+
+@keyframes draw-chalk {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes pop-in {
+  from { opacity: 0; transform: scale(0.5); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+#entry-tagline {
+  font-family: 'Palatino Linotype', Palatino, serif;
+  font-size: clamp(16px, 3vw, 22px);
+  color: var(--chalk-dim);
+  margin-top: 30px;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  text-align: center;
+  padding: 0 20px;
+}
+
+#entry-tagline.visible { opacity: 1; }
+
+#skip-entry {
+  position: absolute;
+  bottom: 30px;
+  right: 30px;
+  background: none;
+  border: 1px solid var(--chalk-dim);
+  color: var(--chalk-dim);
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 12px;
+  padding: 6px 14px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+#skip-entry:hover { color: var(--chalk); border-color: var(--chalk); }
+
+/* ═══ HERO SECTION ═══ */
+#hero {
+  background: var(--slate);
+  padding: 50px 20px 30px;
+  text-align: center;
+}
+
+#hero .shortage-number {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: clamp(36px, 7vw, 64px);
+  font-weight: 700;
+  color: var(--chalk);
+  letter-spacing: 3px;
+  line-height: 1.1;
+}
+
+#hero .shortage-label {
+  font-family: 'Palatino Linotype', Palatino, serif;
+  font-size: clamp(14px, 2.5vw, 20px);
+  color: var(--gold);
+  margin-top: 8px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+#hero .shortage-context {
+  font-size: 13px;
+  color: var(--chalk-dim);
+  margin-top: 14px;
+  max-width: 640px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+/* ═══ HORIZONTAL TIMELINE NAV ═══ */
+#timeline-nav {
+  background: var(--slate-deeper);
+  padding: 24px 20px 18px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-top: 3px solid var(--red);
+  border-bottom: 1px solid #3a3a3a;
+}
+
+.timeline-track {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 900px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.timeline-line {
+  position: absolute;
+  top: 18px;
+  left: 10%;
+  right: 10%;
+  height: 2px;
+  background: #555;
+  z-index: 0;
+}
+
+.timeline-node {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  flex: 1;
+  padding: 0 4px;
+  transition: transform 0.2s;
+}
+
+.timeline-node:hover { transform: translateY(-2px); }
+
+.timeline-node .node-dot {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--slate);
+  border: 2px solid #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 13px;
+  color: #888;
+}
+
+.timeline-node.active .node-dot {
+  background: var(--red);
+  border-color: var(--gold);
+  color: var(--chalk);
+  box-shadow: 0 0 12px rgba(139,26,26,0.5);
+}
+
+.timeline-node.visited .node-dot {
+  background: var(--slate-dark);
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.timeline-node .node-title {
+  font-size: 11px;
+  margin-top: 8px;
+  text-align: center;
+  color: #888;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  line-height: 1.3;
+}
+
+.timeline-node.active .node-title { color: var(--chalk); }
+.timeline-node.visited .node-title { color: var(--chalk-dim); }
+
+#where-am-i {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 11px;
+  padding: 5px 10px;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+#where-am-i:hover {
+  background: var(--gold);
+  color: var(--slate-deeper);
+}
+
+/* ═══ MAIN CONTENT AREA ═══ */
+#main-content {
+  min-height: 60vh;
+  padding: 0 20px 40px;
+}
+
+.module-panel {
+  display: none;
+  max-width: 960px;
+  margin: 0 auto;
+  padding-top: 30px;
+}
+
+.module-panel.active { display: block; }
+
+/* ═══ MODULE 1: PATHWAY MAPPER ═══ */
+#pathway-mapper .question-stage {
+  text-align: center;
+  padding: 30px 0;
+}
+
+#pathway-mapper .question-text {
+  font-family: 'Palatino Linotype', Palatino, serif;
+  font-size: clamp(20px, 3.5vw, 28px);
+  color: var(--chalk);
+  margin-bottom: 30px;
+  line-height: 1.4;
+}
+
+#pathway-mapper .answer-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.answer-btn {
+  background: var(--slate);
+  border: 1px solid #666;
+  color: var(--chalk);
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 15px;
+  padding: 16px 24px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s;
+  line-height: 1.4;
+}
+
+.answer-btn:hover {
+  background: var(--red);
+  border-color: var(--red-light);
+}
+
+.answer-btn .answer-letter {
+  font-family: 'Lucida Console', Monaco, monospace;
+  color: var(--gold);
+  margin-right: 10px;
+  font-size: 14px;
+}
+
+#pathway-mapper select {
+  background: var(--slate);
+  border: 1px solid #666;
+  color: var(--chalk);
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 15px;
+  padding: 12px 16px;
+  width: 100%;
+  max-width: 400px;
+  cursor: pointer;
+  appearance: auto;
+}
+
+#pathway-mapper .yes-no-row {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+#pathway-mapper .yes-no-row .answer-btn {
+  flex: 0 0 160px;
+  text-align: center;
+}
+
+/* ═══ PATHWAY CARD ═══ */
+.pathway-card {
+  background: var(--slate);
+  padding: 36px 32px;
+  margin-top: 20px;
+}
+
+.pathway-card h3 {
+  font-size: 22px;
+  color: var(--gold);
+  margin-bottom: 6px;
+}
+
+.pathway-card .pathway-subtitle {
+  font-size: 13px;
+  color: var(--chalk-dim);
+  margin-bottom: 24px;
+}
+
+.pathway-card .pathway-detail {
+  margin-bottom: 14px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.pathway-card .pathway-detail strong {
+  color: var(--gold);
+}
+
+.pathway-card .career-note {
+  font-style: italic;
+  color: var(--chalk-dim);
+  font-size: 13px;
+  margin-top: 16px;
+}
+
+/* milestone timeline bar */
+.milestone-bar {
+  display: flex;
+  align-items: center;
+  margin: 28px 0 10px;
+  position: relative;
+}
+
+.milestone-bar .ms-line {
+  position: absolute;
+  top: 14px;
+  left: 24px;
+  right: 24px;
+  height: 2px;
+  background: #666;
+}
+
+.milestone-bar .ms-node {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.milestone-bar .ms-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--slate-dark);
+  border: 2px solid var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.milestone-bar .ms-dot svg {
+  width: 14px;
+  height: 14px;
+}
+
+.milestone-bar .ms-label {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 10px;
+  color: var(--chalk-dim);
+  margin-top: 8px;
+  text-align: center;
+  line-height: 1.3;
+  max-width: 90px;
+}
+
+.pathway-card .restart-btn {
+  display: inline-block;
+  margin-top: 24px;
+  background: var(--red);
+  border: none;
+  color: var(--chalk);
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 13px;
+  padding: 10px 20px;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+}
+
+.pathway-card .restart-btn:hover { background: var(--red-light); }
+
+/* ═══ MODULE 2: FINANCIAL CALCULATOR ═══ */
+#financial-calc .calc-intro {
+  font-size: 14px;
+  color: var(--chalk-dim);
+  margin-bottom: 24px;
+  max-width: 700px;
+}
+
+.input-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 24px;
+  margin-bottom: 30px;
+}
+
+@media (max-width: 600px) {
+  .input-grid { grid-template-columns: 1fr; }
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.input-group label {
+  font-size: 12px;
+  color: var(--gold);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  font-family: 'Lucida Console', Monaco, monospace;
+  margin-bottom: 6px;
+}
+
+.input-group input, .input-group select {
+  background: #1a1a1a;
+  border: 1px solid #555;
+  color: var(--chalk);
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 16px;
+  padding: 10px 12px;
+  width: 100%;
+}
+
+.input-group input:focus, .input-group select:focus {
+  outline: none;
+  border-color: var(--gold);
+}
+
+.input-group .input-hint {
+  font-size: 11px;
+  color: #888;
+  margin-top: 4px;
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  grid-column: 1 / -1;
+}
+
+.toggle-switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-switch .slider {
+  position: absolute;
+  inset: 0;
+  background: #555;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.toggle-switch .slider::before {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  left: 3px;
+  top: 3px;
+  background: var(--chalk);
+  border-radius: 50%;
+  transition: transform 0.3s;
+}
+
+.toggle-switch input:checked + .slider {
+  background: var(--gold);
+}
+
+.toggle-switch input:checked + .slider::before {
+  transform: translateX(20px);
+}
+
+.toggle-label {
+  font-size: 13px;
+  color: var(--chalk-dim);
+}
+
+.housing-reduction {
+  display: none;
+  margin-left: 54px;
+}
+
+.housing-reduction.show { display: flex; align-items: center; gap: 8px; grid-column: 1 / -1; }
+
+.housing-reduction input {
+  width: 60px;
+  background: #1a1a1a;
+  border: 1px solid #555;
+  color: var(--chalk);
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 14px;
+  padding: 6px 8px;
+  text-align: center;
+}
+
+.housing-reduction span {
+  font-size: 13px;
+  color: var(--chalk-dim);
+}
+
+.calc-actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.btn-primary {
+  background: var(--red);
+  border: none;
+  color: var(--chalk);
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 14px;
+  padding: 12px 28px;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.btn-primary:hover { background: var(--red-light); }
+
+.btn-secondary {
+  background: none;
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 13px;
+  padding: 10px 20px;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+}
+
+.btn-secondary:hover { background: var(--gold); color: var(--slate-deeper); }
+
+/* ═══ FINANCIAL SNAPSHOT ═══ */
+#financial-snapshot {
+  display: none;
+}
+
+#financial-snapshot.visible { display: block; }
+
+.snapshot-section {
+  margin-bottom: 32px;
+}
+
+.snapshot-section h3 {
+  font-size: 14px;
+  color: var(--gold);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 14px;
+  font-family: 'Lucida Console', Monaco, monospace;
+}
+
+/* income gap table */
+.gap-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.gap-table tr { border-bottom: 1px solid #3a3a3a; }
+
+.gap-table td {
+  padding: 8px 12px;
+}
+
+.gap-table td:first-child {
+  color: var(--chalk-dim);
+}
+
+.gap-table td:last-child {
+  font-family: 'Lucida Console', Monaco, monospace;
+  text-align: right;
+  font-size: 15px;
+}
+
+.gap-table .deficit-row td {
+  font-weight: 700;
+  font-size: 16px;
+  padding-top: 12px;
+}
+
+.negative { color: var(--alert); }
+.positive { color: var(--success); }
+
+/* runway bar */
+.runway-container {
+  margin-top: 10px;
+}
+
+.runway-bar-bg {
+  width: 100%;
+  height: 28px;
+  background: #1a1a1a;
+  position: relative;
+  overflow: hidden;
+}
+
+.runway-bar-fill {
+  height: 100%;
+  transition: width 0.6s ease;
+}
+
+.runway-bar-fill.green { background: var(--success); }
+.runway-bar-fill.yellow { background: var(--warning); }
+.runway-bar-fill.red { background: var(--alert); }
+
+.runway-label {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 13px;
+  margin-top: 6px;
+  color: var(--chalk-dim);
+}
+
+/* stipend scenarios */
+.scenarios-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 700px) {
+  .scenarios-row { grid-template-columns: 1fr; }
+}
+
+.scenario-block {
+  background: var(--slate-deeper);
+  padding: 20px 16px;
+  text-align: center;
+}
+
+.scenario-block h4 {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 11px;
+  color: var(--gold);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.scenario-block .scenario-amount {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.scenario-block .scenario-detail {
+  font-size: 12px;
+  color: var(--chalk-dim);
+  line-height: 1.5;
+}
+
+.scenario-block .scenario-runway {
+  margin-top: 10px;
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 12px;
+}
+
+/* salary projection */
+.salary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 600px) {
+  .salary-grid { grid-template-columns: 1fr; }
+}
+
+.salary-item {
+  padding: 14px;
+  background: var(--slate-deeper);
+}
+
+.salary-item .sal-label {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 10px;
+  color: var(--gold);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+
+.salary-item .sal-value {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.salary-item .sal-note {
+  font-size: 11px;
+  color: #888;
+  margin-top: 4px;
+}
+
+.breakeven-input-row {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--chalk-dim);
+}
+
+.breakeven-input-row input {
+  width: 80px;
+  background: #1a1a1a;
+  border: 1px solid #555;
+  color: var(--chalk);
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 14px;
+  padding: 6px 8px;
+  text-align: center;
+}
+
+/* program directory */
+.program-dir {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #3a3a3a;
+}
+
+.program-dir h3 {
+  font-size: 13px;
+  color: var(--gold);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-family: 'Lucida Console', Monaco, monospace;
+  margin-bottom: 14px;
+}
+
+.program-dir dl {
+  font-size: 13px;
+}
+
+.program-dir dt {
+  color: var(--chalk);
+  font-weight: 600;
+  margin-top: 10px;
+}
+
+.program-dir dd {
+  color: var(--chalk-dim);
+  margin-left: 0;
+  margin-top: 2px;
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 11px;
+  word-break: break-all;
+}
+
+/* ═══ MODULE 3: PATH SUMMARY ═══ */
+#path-summary .summary-doc {
+  background: var(--chalk);
+  color: #1c1c1c;
+  padding: 40px 36px;
+  max-width: 760px;
+  margin: 0 auto;
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.summary-doc h2 {
+  font-size: 22px;
+  color: var(--red);
+  margin-bottom: 4px;
+}
+
+.summary-doc .summary-date {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 11px;
+  color: #888;
+  margin-bottom: 24px;
+}
+
+.summary-doc h3 {
+  font-size: 16px;
+  color: var(--slate-dark);
+  margin-top: 24px;
+  margin-bottom: 10px;
+}
+
+.summary-doc .summary-paragraph {
+  margin-bottom: 14px;
+}
+
+.summary-doc table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin: 14px 0;
+}
+
+.summary-doc table th {
+  text-align: left;
+  background: var(--slate);
+  color: var(--chalk);
+  padding: 8px 10px;
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.summary-doc table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.summary-doc table td:last-child {
+  font-family: 'Lucida Console', Monaco, monospace;
+  text-align: right;
+}
+
+.summary-doc .checklist {
+  list-style: none;
+  padding: 0;
+}
+
+.summary-doc .checklist li {
+  padding: 6px 0;
+  padding-left: 28px;
+  position: relative;
+}
+
+.summary-doc .checklist li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--slate);
+}
+
+.summary-doc .notes-area {
+  width: 100%;
+  min-height: 80px;
+  border: 1px solid #ccc;
+  padding: 10px;
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 13px;
+  color: #333;
+  resize: vertical;
+  margin-top: 8px;
+}
+
+.summary-doc .summary-footer {
+  margin-top: 28px;
+  padding-top: 14px;
+  border-top: 1px solid #ccc;
+  font-size: 11px;
+  color: #888;
+  line-height: 1.5;
+}
+
+.print-actions {
+  text-align: center;
+  margin-top: 24px;
+}
+
+/* ═══ FOOTER ═══ */
+#site-footer {
+  background: var(--slate-deeper);
+  padding: 24px 20px;
+  text-align: center;
+  font-size: 11px;
+  color: #666;
+  line-height: 1.6;
+  border-top: 1px solid #333;
+}
+
+/* ═══ PRINT CSS ═══ */
+@media print {
+  #entry-screen, #hero, #timeline-nav, #pathway-mapper, #financial-calc,
+  .print-actions, #site-footer, .calc-actions, #where-am-i { display: none !important; }
+
+  body { background: #fff; color: #000; }
+
+  #main-content { padding: 0; }
+
+  #path-summary { display: block !important; }
+
+  .summary-doc {
+    background: #fff;
+    padding: 20px 0;
+    box-shadow: none;
+    max-width: 100%;
+  }
+
+  .summary-doc h2 { color: #000; }
+  .summary-doc h3 { color: #333; }
+  .summary-doc table th { background: #333; color: #fff; }
+  .summary-doc .notes-area { border: 1px solid #999; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ ENTRY ANIMATION ═══ -->
+<div id="entry-screen">
+  <svg id="chalkboard-svg" viewBox="0 0 800 200" xmlns="http://www.w3.org/2000/svg">
+    <!-- main pathway line -->
+    <path class="chalk-path" d="M 60,100 C 160,100 180,60 260,60 S 360,100 420,100 S 520,140 580,140 S 660,100 740,100" />
+    <!-- branch lines -->
+    <path class="chalk-path" d="M 260,60 L 260,30" style="--delay:1.5s" />
+    <path class="chalk-path" d="M 420,100 L 420,70" style="--delay:1.8s" />
+    <path class="chalk-path" d="M 580,140 L 580,170" style="--delay:2.0s" />
+    <!-- node circles -->
+    <circle class="node-circle" cx="60" cy="100" r="12" />
+    <circle class="node-circle" cx="260" cy="60" r="12" />
+    <circle class="node-circle" cx="420" cy="100" r="12" />
+    <circle class="node-circle" cx="580" cy="140" r="12" />
+    <circle class="node-circle" cx="740" cy="100" r="12" />
+    <!-- labels -->
+    <text class="node-label" x="60" y="130">Start</text>
+    <text class="node-label" x="260" y="22">Degree</text>
+    <text class="node-label" x="420" y="62">Prep</text>
+    <text class="node-label" x="580" y="192">Student Teach</text>
+    <text class="node-label" x="740" y="130">Classroom</text>
+  </svg>
+  <div id="entry-tagline">What will it take to become a Minnesota teacher?</div>
+  <button id="skip-entry" onclick="skipEntry()">Skip</button>
+</div>
+
+<!-- ═══ HERO ═══ -->
+<section id="hero" style="display:none;">
+  <div class="shortage-number">TEACHER SHORTAGE: 4,000+ VACANCIES</div>
+  <div class="shortage-label">across Minnesota school districts</div>
+  <!-- VERIFY: 84% figure comes from software brief, sourced from MN reporting -->
+  <p class="shortage-context">
+    84% of Minnesota school districts report being significantly affected by the teacher shortage.
+    Just 6% of teachers are people of color or Indigenous, compared to 40% of students.
+    The pipeline problem is a financial viability problem. This tool helps you map a path through it.
+  </p>
+</section>
+
+<!-- ═══ TIMELINE NAV ═══ -->
+<nav id="timeline-nav" style="display:none;">
+  <div class="timeline-track">
+    <div class="timeline-line"></div>
+    <div class="timeline-node active" data-module="pathway-mapper" onclick="switchModule('pathway-mapper')">
+      <div class="node-dot">1</div>
+      <div class="node-title">Pathway<br>Mapper</div>
+    </div>
+    <div class="timeline-node" data-module="financial-calc" onclick="switchModule('financial-calc')">
+      <div class="node-dot">2</div>
+      <div class="node-title">Financial<br>Calculator</div>
+    </div>
+    <div class="timeline-node" data-module="path-summary" onclick="switchModule('path-summary')">
+      <div class="node-dot">3</div>
+      <div class="node-title">My Path<br>Summary</div>
+    </div>
+    <button id="where-am-i" onclick="resetOverview()">Where am I?</button>
+  </div>
+</nav>
+
+<!-- ═══ MAIN CONTENT ═══ -->
+<main id="main-content" style="display:none;">
+
+  <!-- MODULE 1 -->
+  <section id="pathway-mapper" class="module-panel active">
+    <div id="pm-question-area"></div>
+    <div id="pm-result-area"></div>
+  </section>
+
+  <!-- MODULE 2 -->
+  <section id="financial-calc" class="module-panel">
+    <p class="calc-intro">
+      Model the financial pinch point: the student teaching semester.
+      Full-time, no outside employment, tuition still owed. Enter your numbers below.
+    </p>
+    <div class="input-grid">
+      <div class="input-group">
+        <label for="inp-income">Current monthly take-home ($)</label>
+        <input type="number" id="inp-income" placeholder="3800" min="0" step="100">
+        <span class="input-hint">What you earn now, after taxes</span>
+      </div>
+      <div class="input-group">
+        <label for="inp-expenses">Monthly fixed expenses ($)</label>
+        <input type="number" id="inp-expenses" placeholder="2600" min="0" step="100">
+        <span class="input-hint">Rent, utilities, car, loans</span>
+      </div>
+      <div class="input-group">
+        <label for="inp-savings">Current savings ($)</label>
+        <input type="number" id="inp-savings" placeholder="12000" min="0" step="500">
+      </div>
+      <div class="input-group">
+        <label for="inp-tuition">Tuition per semester ($)</label>
+        <input type="number" id="inp-tuition" placeholder="5500" min="0" step="100">
+        <span class="input-hint">Post-bacc programs: ~$3,000-$8,000/semester</span>
+      </div>
+      <div class="input-group">
+        <label for="inp-weeks">Student teaching weeks</label>
+        <input type="number" id="inp-weeks" value="12" min="10" max="16">
+      </div>
+      <div class="input-group">
+        <label for="inp-hours">Hours per week</label>
+        <input type="number" id="inp-hours" value="40" min="20" max="60">
+      </div>
+      <div class="toggle-row">
+        <label class="toggle-switch">
+          <input type="checkbox" id="inp-housing" onchange="toggleHousing()">
+          <span class="slider"></span>
+        </label>
+        <span class="toggle-label">Will you reduce housing costs during student teaching?</span>
+      </div>
+      <div class="housing-reduction" id="housing-reduction-row">
+        <span>Reduce expenses by</span>
+        <input type="number" id="inp-housing-pct" value="25" min="5" max="80">
+        <span>%</span>
+      </div>
+    </div>
+    <div class="calc-actions">
+      <button class="btn-primary" onclick="runCalculator()">Calculate Financial Snapshot</button>
+      <button class="btn-secondary" onclick="loadExample()">Load Example (SD-36 Career Changer)</button>
+    </div>
+    <div id="financial-snapshot">
+      <div class="snapshot-section" id="snap-gap"></div>
+      <div class="snapshot-section" id="snap-runway"></div>
+      <div class="snapshot-section" id="snap-stipend"></div>
+      <div class="snapshot-section" id="snap-salary"></div>
+      <div class="program-dir">
+        <h3>Program Directory</h3>
+        <dl>
+          <!-- VERIFY: URLs from software brief -->
+          <dt>MN Student Teacher Grant (up to $7,500)</dt>
+          <dd>ohe.mn.gov/minnesota-student-teacher-grant</dd>
+          <dt>MN Teacher Shortage Loan Repayment (up to $1,000/yr, $5,000 max)</dt>
+          <dd>ohe.mn.gov/program/minnesota-teacher-shortage-loan-repayment-program</dd>
+          <dt>PELSB Aspiring Educators FAQ</dt>
+          <dd>mn.gov/pelsb/aspiring-educators/licensure-faq/</dd>
+          <dt>SF3333 (2025 proposed appropriation)</dt>
+          <dd>Check mn.gov/pelsb for current stipend program availability. Status: proposed legislation.</dd>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODULE 3 -->
+  <section id="path-summary" class="module-panel">
+    <div class="summary-doc" id="summary-doc-content">
+      <h2>My Road to the Classroom</h2>
+      <div class="summary-date" id="summary-date"></div>
+      <h3>Pathway Summary</h3>
+      <p class="summary-paragraph" id="summary-pathway-text">Complete the Pathway Mapper (Step 1) to generate your pathway summary.</p>
+      <h3>Financial Summary</h3>
+      <div id="summary-financial-table">
+        <p class="summary-paragraph">Complete the Financial Calculator (Step 2) to generate your financial summary.</p>
+      </div>
+      <h3>Next Steps</h3>
+      <ul class="checklist" id="summary-checklist">
+        <li>Contact a PELSB-approved teacher preparation program in your area</li>
+        <li>Apply for the MN Student Teacher Grant through OHE</li>
+        <li>Download the PELSB Aspiring Educators Licensure FAQ</li>
+        <li>Track SF3333 / current stipend legislation at mn.gov/pelsb</li>
+      </ul>
+      <h3>Personal Notes</h3>
+      <textarea class="notes-area" id="summary-notes" placeholder="School districts, prep programs, questions to ask..."></textarea>
+      <div class="summary-footer">
+        This tool was built to help people navigate the Minnesota teacher pipeline.
+        It reflects program details as of 2025. Always verify current availability
+        at mn.gov/pelsb and ohe.mn.gov.
+      </div>
+    </div>
+    <div class="print-actions">
+      <button class="btn-primary" onclick="window.print()">Print My Plan</button>
+    </div>
+  </section>
+</main>
+
+<footer id="site-footer" style="display:none;">
+  A resource for people considering teaching in Minnesota. Built with AI.
+  Program details reflect 2025 information &mdash; verify current availability at mn.gov/pelsb and ohe.mn.gov.
+</footer>
+
+<script>
+/* ═══════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════ */
+const state = {
+  pathway: null,       // 'A','B','C','D'
+  answers: {},
+  calcResults: null,
+  visitedModules: new Set(['pathway-mapper']),
+  currentModule: 'pathway-mapper'
+};
+
+/* ═══════════════════════════════════════════
+   ENTRY ANIMATION
+   ═══════════════════════════════════════════ */
+(function initEntry() {
+  const paths = document.querySelectorAll('#chalkboard-svg .chalk-path');
+  const circles = document.querySelectorAll('#chalkboard-svg .node-circle');
+  const labels = document.querySelectorAll('#chalkboard-svg .node-label');
+
+  setTimeout(() => {
+    paths.forEach(p => p.classList.add('animate'));
+  }, 300);
+
+  circles.forEach((c, i) => {
+    setTimeout(() => c.classList.add('pop'), 1800 + i * 250);
+  });
+
+  labels.forEach((l, i) => {
+    setTimeout(() => l.classList.add('pop'), 2000 + i * 250);
+  });
+
+  setTimeout(() => {
+    document.getElementById('entry-tagline').classList.add('visible');
+  }, 2800);
+
+  setTimeout(() => {
+    finishEntry();
+  }, 5000);
+})();
+
+function skipEntry() { finishEntry(); }
+
+function finishEntry() {
+  const screen = document.getElementById('entry-screen');
+  if (screen.classList.contains('fade-out')) return;
+  screen.classList.add('fade-out');
+  setTimeout(() => {
+    screen.style.display = 'none';
+    document.getElementById('hero').style.display = '';
+    document.getElementById('timeline-nav').style.display = '';
+    document.getElementById('main-content').style.display = '';
+    document.getElementById('site-footer').style.display = '';
+    startPathwayMapper();
+  }, 800);
+}
+
+/* ═══════════════════════════════════════════
+   NAVIGATION
+   ═══════════════════════════════════════════ */
+function switchModule(id) {
+  state.currentModule = id;
+  state.visitedModules.add(id);
+
+  document.querySelectorAll('.module-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+
+  document.querySelectorAll('.timeline-node').forEach(n => {
+    const mod = n.dataset.module;
+    n.classList.remove('active');
+    if (mod === id) n.classList.add('active');
+    else if (state.visitedModules.has(mod)) n.classList.add('visited');
+  });
+
+  if (id === 'path-summary') buildSummary();
+
+  saveState();
+}
+
+function resetOverview() {
+  switchModule('pathway-mapper');
+}
+
+/* ═══════════════════════════════════════════
+   MODULE 1: PATHWAY MAPPER
+   ═══════════════════════════════════════════ */
+const questions = [
+  {
+    id: 'start',
+    text: 'Where are you right now?',
+    type: 'choice',
+    options: [
+      { letter: 'A', label: "I'm in high school or just starting college", next: 'subject', pathway: 'A' },
+      { letter: 'B', label: "I'm partway through a college degree (not education)", next: 'subject', pathway: 'A' },
+      { letter: 'C', label: 'I have a bachelor\'s degree in education or a related field', next: 'subject', pathway: 'B' },
+      { letter: 'D', label: 'I have a bachelor\'s degree in a different field and want to change careers', next: 'subject', pathway: 'B' },
+      { letter: 'E', label: 'I already hold a teaching license in another state', next: 'resident', pathway: 'C' },
+      { letter: 'F', label: "I'm a paraprofessional or education support professional in a school", next: 'poc', pathway: 'D' }
+    ]
+  },
+  {
+    id: 'subject',
+    text: 'What subject area interests you most?',
+    type: 'select',
+    options: ['Special Education', 'STEM', 'Social Studies', 'Language Arts', 'World Language', 'CTE (Career & Technical Education)', 'Other'],
+    next: 'poc'
+  },
+  {
+    id: 'poc',
+    text: 'Are you a person of color or Indigenous?',
+    type: 'yesno',
+    hint: 'This affects grant eligibility — some programs specifically support diversifying the teaching workforce.',
+    next: 'highneed'
+  },
+  {
+    id: 'highneed',
+    text: 'Do you intend to teach in a high-need school district?',
+    type: 'yesno',
+    next: 'resident'
+  },
+  {
+    id: 'resident',
+    text: 'Are you a Minnesota resident?',
+    type: 'yesno',
+    next: 'result'
+  }
+];
+
+let currentQ = 0;
+let questionOrder = [];
+
+function startPathwayMapper() {
+  state.pathway = null;
+  state.answers = {};
+  currentQ = 0;
+  questionOrder = ['start'];
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const area = document.getElementById('pm-question-area');
+  const resultArea = document.getElementById('pm-result-area');
+  resultArea.innerHTML = '';
+
+  if (questionOrder[currentQ] === 'result') {
+    area.innerHTML = '';
+    showPathwayResult();
+    return;
+  }
+
+  const qDef = questions.find(q => q.id === questionOrder[currentQ]);
+  if (!qDef) return;
+
+  let html = '<div class="question-stage">';
+  html += `<div class="question-text">${qDef.text}</div>`;
+
+  if (qDef.type === 'choice') {
+    html += '<div class="answer-grid">';
+    qDef.options.forEach(opt => {
+      html += `<button class="answer-btn" onclick="answerChoice('${qDef.id}','${opt.letter}','${opt.next}','${opt.pathway || ''}')">
+        <span class="answer-letter">${opt.letter}.</span>${opt.label}</button>`;
+    });
+    html += '</div>';
+  } else if (qDef.type === 'select') {
+    html += '<div class="answer-grid" style="align-items:center">';
+    html += '<select onchange="answerSelect(this,\'' + qDef.id + '\',\'' + qDef.next + '\')">';
+    html += '<option value="">Select one...</option>';
+    qDef.options.forEach(o => {
+      html += `<option value="${o}">${o}</option>`;
+    });
+    html += '</select></div>';
+  } else if (qDef.type === 'yesno') {
+    if (qDef.hint) {
+      html += `<p style="font-size:13px;color:var(--chalk-dim);margin-bottom:20px;max-width:500px;margin-left:auto;margin-right:auto">${qDef.hint}</p>`;
+    }
+    html += '<div class="yes-no-row">';
+    html += `<button class="answer-btn" onclick="answerYesNo('${qDef.id}',true,'${qDef.next}')">Yes</button>`;
+    html += `<button class="answer-btn" onclick="answerYesNo('${qDef.id}',false,'${qDef.next}')">No</button>`;
+    html += '</div>';
+  }
+
+  html += '</div>';
+  area.innerHTML = html;
+}
+
+function answerChoice(qId, letter, next, pathway) {
+  state.answers[qId] = letter;
+  if (pathway) state.pathway = pathway;
+  questionOrder.push(next);
+  currentQ++;
+  renderQuestion();
+}
+
+function answerSelect(sel, qId, next) {
+  if (!sel.value) return;
+  state.answers[qId] = sel.value;
+  questionOrder.push(next);
+  currentQ++;
+  renderQuestion();
+}
+
+function answerYesNo(qId, val, next) {
+  state.answers[qId] = val;
+  questionOrder.push(next);
+  currentQ++;
+  renderQuestion();
+}
+
+const pathwayData = {
+  A: {
+    title: 'Traditional Undergraduate Route',
+    subtitle: 'Complete education degree + student teaching + PELSB Tier 3 application',
+    time: '2-4 years from current point',
+    details: [
+      'Complete a PELSB-approved teacher preparation program at a Minnesota college or university.',
+      '<strong>Key milestone:</strong> 12-week student teaching placement (no pay).',
+      '<strong>Relevant support:</strong> MN Student Teacher Grant (up to $7,500); SF3333 stipend funding if enacted.'
+    ],
+    milestones: ['Enrollment', 'Coursework', 'Student Teaching', 'PELSB App', 'First Contract']
+  },
+  B: {
+    title: 'Post-Baccalaureate / Career Changer Route',
+    subtitle: 'Complete a PELSB-approved teacher prep program (many are 12-18 months with a degree)',
+    time: '12-18 months beyond current point',
+    details: [
+      'With a bachelor\'s degree already completed, many preparation programs can be finished in 12-18 months.',
+      '<strong>Key milestone:</strong> Same 12-week student teaching requirement.',
+      '<strong>Relevant support:</strong> MN Student Teacher Grant (up to $7,500); SF3333 stipend funding if enacted; Teacher Shortage Loan Repayment Program (up to $5,000 total).'
+    ],
+    note: 'This is the path Senator Gustafson took after 14 years in broadcasting.',
+    milestones: ['Enrollment', 'Coursework', 'Student Teaching', 'PELSB App', 'First Contract']
+  },
+  C: {
+    title: 'Reciprocity / Out-of-State License Route',
+    subtitle: 'Apply for MN reciprocal license through PELSB',
+    time: '6 weeks to 6 months for PELSB processing',
+    details: [
+      'Apply for a Minnesota reciprocal teaching license through PELSB.',
+      'May require additional coursework or testing depending on original state.',
+      'No student teaching typically required if fully licensed elsewhere.'
+    ],
+    milestones: ['Application', 'Transcript Review', 'Gap Coursework', 'PELSB License', 'First Contract']
+  },
+  D: {
+    title: 'Paraprofessional to Teacher Route',
+    subtitle: 'Grow Your Own / Educator of Color pipeline programs',
+    time: 'Varies — some programs allow para salary to continue during preparation',
+    details: [
+      'Several Minnesota programs allow paraprofessional experience to count toward teacher preparation.',
+      'Para salary can continue during some preparation models.',
+      '<strong>Relevant support:</strong> Educator of Color Initiative, Grow Your Own grants.'
+    ],
+    milestones: ['Para Experience', 'Grow Your Own', 'Coursework', 'PELSB App', 'First Contract']
+  }
+};
+
+function showPathwayResult() {
+  const pw = pathwayData[state.pathway];
+  if (!pw) return;
+
+  const checkSvg = '<svg viewBox="0 0 14 14" fill="none" stroke="' + 'var(--gold)' + '" stroke-width="2"><circle cx="7" cy="7" r="5"/></svg>';
+
+  let msHtml = '<div class="milestone-bar"><div class="ms-line"></div>';
+  pw.milestones.forEach(m => {
+    msHtml += `<div class="ms-node"><div class="ms-dot">${checkSvg}</div><div class="ms-label">${m}</div></div>`;
+  });
+  msHtml += '</div>';
+
+  let detailHtml = pw.details.map(d => `<p class="pathway-detail">${d}</p>`).join('');
+
+  let noteHtml = pw.note ? `<p class="career-note">${pw.note}</p>` : '';
+
+  const subjectInfo = state.answers.subject ? `<p class="pathway-detail"><strong>Subject interest:</strong> ${state.answers.subject}</p>` : '';
+
+  const pocInfo = state.answers.poc === true
+    ? '<p class="pathway-detail"><strong>Grant note:</strong> You may be eligible for Educator of Color Initiative funding and programs specifically designed to diversify the teaching workforce.</p>'
+    : '';
+
+  document.getElementById('pm-result-area').innerHTML = `
+    <div class="pathway-card">
+      <h3>${pw.title}</h3>
+      <p class="pathway-subtitle">${pw.subtitle}</p>
+      <p class="pathway-detail"><strong>Estimated time to first classroom:</strong> ${pw.time}</p>
+      ${subjectInfo}
+      ${detailHtml}
+      ${pocInfo}
+      ${noteHtml}
+      ${msHtml}
+      <button class="restart-btn" onclick="startPathwayMapper()">Start Over</button>
+      <button class="btn-primary" style="margin-left:12px;margin-top:24px" onclick="switchModule('financial-calc')">Next: Financial Calculator</button>
+    </div>
+  `;
+
+  saveState();
+}
+
+/* ═══════════════════════════════════════════
+   MODULE 2: FINANCIAL CALCULATOR
+   ═══════════════════════════════════════════ */
+function toggleHousing() {
+  const row = document.getElementById('housing-reduction-row');
+  row.classList.toggle('show', document.getElementById('inp-housing').checked);
+}
+
+function loadExample() {
+  document.getElementById('inp-income').value = 3800;
+  document.getElementById('inp-expenses').value = 2600;
+  document.getElementById('inp-savings').value = 12000;
+  document.getElementById('inp-tuition').value = 5500;
+  document.getElementById('inp-weeks').value = 12;
+  document.getElementById('inp-hours').value = 40;
+  document.getElementById('inp-housing').checked = false;
+  toggleHousing();
+  runCalculator();
+}
+
+function getVal(id) { return parseFloat(document.getElementById(id).value) || 0; }
+
+function fmt(n) {
+  return n < 0
+    ? '-$' + Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
+    : '$' + n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+
+function runCalculator() {
+  const income = getVal('inp-income');
+  const expenses = getVal('inp-expenses');
+  const savings = getVal('inp-savings');
+  const tuition = getVal('inp-tuition');
+  const weeks = getVal('inp-weeks');
+  const hours = getVal('inp-hours');
+  const housingReduce = document.getElementById('inp-housing').checked;
+  const housingPct = housingReduce ? getVal('inp-housing-pct') / 100 : 0;
+
+  const adjExpenses = expenses * (1 - housingPct);
+  const tuitionMonthly = tuition / (weeks / 4);
+  const monthlyDeficit = adjExpenses + tuitionMonthly; // income is 0 during student teaching
+  const stMonths = weeks / 4;
+
+  // Stipend calcs
+  const grantAmount = 7500;
+  const grantMonthly = grantAmount / stMonths;
+  const sf3333Gross = 15 * hours * weeks;
+  const sf3333Net = sf3333Gross * 0.85;
+  const sf3333Monthly = sf3333Net / stMonths;
+
+  // Scenarios: deficit per month = expenses + tuition - stipend
+  const scenarioA = { deficit: monthlyDeficit, stipend: 0, label: 'No Stipend' };
+  const scenarioB = { deficit: monthlyDeficit - grantMonthly, stipend: grantAmount, label: 'MN Student Teacher Grant' };
+  const scenarioC = { deficit: monthlyDeficit - sf3333Monthly, stipend: sf3333Net, label: 'SF3333 Stipend' };
+
+  const scenarios = [scenarioA, scenarioB, scenarioC];
+
+  // Savings runway for each
+  scenarios.forEach(s => {
+    s.totalDraw = s.deficit * stMonths;
+    s.runway = s.deficit > 0 ? savings / s.deficit : 999;
+    s.covers = s.runway >= stMonths;
+  });
+
+  // Salary projection
+  const startingSalary = 42000;
+  const monthlyNet = startingSalary * 0.72 / 12;
+  const monthlySavingsAfter = monthlyNet - adjExpenses;
+
+  state.calcResults = {
+    income, expenses: adjExpenses, savings, tuition, tuitionMonthly,
+    weeks, hours, monthlyDeficit, stMonths,
+    scenarios, startingSalary, monthlyNet, monthlySavingsAfter, sf3333Gross, sf3333Net
+  };
+
+  renderSnapshot();
+  saveState();
+}
+
+function renderSnapshot() {
+  const r = state.calcResults;
+  if (!r) return;
+  const snap = document.getElementById('financial-snapshot');
+  snap.classList.add('visible');
+
+  // 1. Income gap
+  document.getElementById('snap-gap').innerHTML = `
+    <h3>1. Income Gap During Student Teaching</h3>
+    <table class="gap-table">
+      <tr><td>Monthly income lost (you cannot work)</td><td class="negative">${fmt(r.income)}</td></tr>
+      <tr><td>Monthly tuition burden (${fmt(r.tuition)} over ${(r.stMonths).toFixed(1)} months)</td><td>${fmt(Math.round(r.tuitionMonthly))}</td></tr>
+      <tr><td>Monthly fixed expenses${r.expenses !== getVal('inp-expenses') ? ' (housing-reduced)' : ''}</td><td>${fmt(Math.round(r.expenses))}</td></tr>
+      <tr class="deficit-row"><td>Monthly cash needed from savings</td><td class="negative">${fmt(Math.round(r.monthlyDeficit))}/mo</td></tr>
+    </table>
+    <p style="font-size:12px;color:#888;margin-top:8px">Formula: fixed expenses + (tuition / ${r.stMonths.toFixed(1)} months) = monthly draw from savings. Income drops to $0 during student teaching.</p>
+  `;
+
+  // 2. Savings runway (no-stipend)
+  const s0 = r.scenarios[0];
+  const pct = Math.min(100, (s0.runway / r.stMonths) * 100);
+  const barClass = s0.runway >= r.stMonths ? 'green' : (s0.runway >= 1.5 ? 'yellow' : 'red');
+  document.getElementById('snap-runway').innerHTML = `
+    <h3>2. Savings Runway (No Stipend)</h3>
+    <div class="runway-container">
+      <div class="runway-bar-bg">
+        <div class="runway-bar-fill ${barClass}" style="width:${pct}%"></div>
+      </div>
+      <div class="runway-label">${s0.runway.toFixed(1)} months of runway — student teaching requires ${r.stMonths.toFixed(1)} months.
+      ${s0.covers ? ' Savings cover the full period.' : ' Savings fall short.'}</div>
+    </div>
+  `;
+
+  // 3. Stipend scenarios
+  let scenHtml = '<h3>3. Stipend Offset Comparison</h3><div class="scenarios-row">';
+  r.scenarios.forEach(s => {
+    const cls = s.deficit <= 0 ? 'positive' : 'negative';
+    const rwCls = s.runway >= r.stMonths ? 'positive' : (s.runway >= 1.5 ? '' : 'negative');
+    scenHtml += `<div class="scenario-block">
+      <h4>${s.label}</h4>
+      <div class="scenario-amount ${cls}">${fmt(Math.round(-s.deficit))}/mo</div>
+      <div class="scenario-detail">
+        ${s.stipend > 0 ? 'Stipend: ' + fmt(Math.round(s.stipend)) + ' total' : 'No stipend applied'}
+      </div>
+      <div class="scenario-detail">
+        Total drawn from savings: ${fmt(Math.round(Math.max(0, s.totalDraw)))}
+      </div>
+      <div class="scenario-runway ${rwCls}">Runway: ${s.runway > 99 ? 'Covered' : s.runway.toFixed(1) + ' mo'}</div>
+    </div>`;
+  });
+  scenHtml += '</div>';
+  document.getElementById('snap-stipend').innerHTML = scenHtml;
+
+  // 4. Salary projection
+  const drawdown = Math.max(0, r.scenarios[0].totalDraw);
+  const breakevenMonths = r.monthlySavingsAfter > 0 ? drawdown / r.monthlySavingsAfter : Infinity;
+  document.getElementById('snap-salary').innerHTML = `
+    <h3>4. First-Year Teacher Salary Projection</h3>
+    <div class="salary-grid">
+      <div class="salary-item">
+        <div class="sal-label">Starting Salary</div>
+        <div class="sal-value">${fmt(r.startingSalary)}</div>
+        <div class="sal-note">MN statewide average (approximate; check target district's salary schedule)</div>
+      </div>
+      <div class="salary-item">
+        <div class="sal-label">Monthly Net Take-Home</div>
+        <div class="sal-value">${fmt(Math.round(r.monthlyNet))}</div>
+        <div class="sal-note">Estimated at ~72% of gross (taxes + benefits estimate)</div>
+      </div>
+      <div class="salary-item">
+        <div class="sal-label">Monthly Surplus</div>
+        <div class="sal-value ${r.monthlySavingsAfter >= 0 ? 'positive' : 'negative'}">${fmt(Math.round(r.monthlySavingsAfter))}</div>
+        <div class="sal-note">Take-home minus fixed expenses</div>
+      </div>
+      <div class="salary-item">
+        <div class="sal-label">Breakeven Point</div>
+        <div class="sal-value">${breakevenMonths === Infinity ? 'N/A' : Math.ceil(breakevenMonths) + ' months'}</div>
+        <div class="sal-note">Months from first paycheck to rebuild savings used during transition</div>
+      </div>
+    </div>
+    <div class="breakeven-input-row">
+      Adjust monthly savings rate: $<input type="number" id="inp-monthly-save" value="${Math.round(Math.max(200, Math.min(500, r.monthlySavingsAfter)))}" min="0" max="5000" onchange="updateBreakeven()"> /month
+    </div>
+  `;
+}
+
+function updateBreakeven() {
+  const r = state.calcResults;
+  if (!r) return;
+  const monthSave = parseFloat(document.getElementById('inp-monthly-save').value) || 200;
+  const drawdown = Math.max(0, r.scenarios[0].totalDraw);
+  const months = monthSave > 0 ? Math.ceil(drawdown / monthSave) : Infinity;
+
+  const items = document.querySelectorAll('#snap-salary .salary-item');
+  if (items[3]) {
+    items[3].querySelector('.sal-value').textContent = months === Infinity ? 'N/A' : months + ' months';
+  }
+}
+
+/* ═══════════════════════════════════════════
+   MODULE 3: PATH SUMMARY
+   ═══════════════════════════════════════════ */
+function buildSummary() {
+  const now = new Date();
+  document.getElementById('summary-date').textContent = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+  // Pathway text
+  const pw = state.pathway ? pathwayData[state.pathway] : null;
+  if (pw) {
+    document.getElementById('summary-pathway-text').innerHTML =
+      `Based on your responses, you are on the <strong>${pw.title}</strong>. ${pw.subtitle}. Estimated time to first classroom: ${pw.time}.`;
+  }
+
+  // Financial table
+  const r = state.calcResults;
+  if (r) {
+    let tbl = '<table>';
+    tbl += '<tr><th>Metric</th><th>Value</th></tr>';
+    tbl += `<tr><td>Current Monthly Income</td><td>${fmt(r.income)}</td></tr>`;
+    tbl += `<tr><td>Monthly Deficit During Student Teaching</td><td>${fmt(Math.round(r.monthlyDeficit))}</td></tr>`;
+    tbl += `<tr><td>Student Teaching Duration</td><td>${r.weeks} weeks (~${r.stMonths.toFixed(1)} months)</td></tr>`;
+    tbl += `<tr><td>Total Savings Draw (No Stipend)</td><td>${fmt(Math.round(r.scenarios[0].totalDraw))}</td></tr>`;
+    tbl += `<tr><td>With MN Student Teacher Grant ($7,500)</td><td>${fmt(Math.round(r.scenarios[1].totalDraw))}</td></tr>`;
+    tbl += `<tr><td>With SF3333 Stipend (${fmt(Math.round(r.sf3333Net))} net est.)</td><td>${fmt(Math.round(r.scenarios[2].totalDraw))}</td></tr>`;
+    const drawdown = Math.max(0, r.scenarios[0].totalDraw);
+    const beMonths = r.monthlySavingsAfter > 0 ? Math.ceil(drawdown / r.monthlySavingsAfter) : 'N/A';
+    tbl += `<tr><td>Breakeven After First Paycheck</td><td>${beMonths === 'N/A' ? beMonths : beMonths + ' months'}</td></tr>`;
+    tbl += '</table>';
+    document.getElementById('summary-financial-table').innerHTML = tbl;
+  }
+
+  // Checklist
+  const checklist = document.getElementById('summary-checklist');
+  let items = [
+    'Contact a PELSB-approved teacher preparation program in your area',
+    'Apply for the MN Student Teacher Grant through OHE',
+    'Download the PELSB Aspiring Educators Licensure FAQ',
+    'Track SF3333 / current stipend legislation at mn.gov/pelsb'
+  ];
+
+  if (state.pathway === 'D') {
+    items.splice(2, 0, "Speak with your target school district's HR office about Grow Your Own options");
+  }
+  if (state.answers.poc === true) {
+    items.push('Explore Educator of Color Initiative programs');
+  }
+
+  checklist.innerHTML = items.map(i => `<li>${i}</li>`).join('');
+}
+
+/* ═══════════════════════════════════════════
+   LOCALSTORAGE PERSISTENCE
+   ═══════════════════════════════════════════ */
+function saveState() {
+  try {
+    const toSave = {
+      pathway: state.pathway,
+      answers: state.answers,
+      visitedModules: [...state.visitedModules],
+      currentModule: state.currentModule,
+      inputs: {
+        income: document.getElementById('inp-income').value,
+        expenses: document.getElementById('inp-expenses').value,
+        savings: document.getElementById('inp-savings').value,
+        tuition: document.getElementById('inp-tuition').value,
+        weeks: document.getElementById('inp-weeks').value,
+        hours: document.getElementById('inp-hours').value,
+        notes: document.getElementById('summary-notes').value
+      }
+    };
+    localStorage.setItem('gustafson-teacher-pathway', JSON.stringify(toSave));
+  } catch (e) { /* silent fail */ }
+}
+
+function loadState() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('gustafson-teacher-pathway'));
+    if (!saved) return false;
+
+    state.pathway = saved.pathway;
+    state.answers = saved.answers || {};
+    state.visitedModules = new Set(saved.visitedModules || ['pathway-mapper']);
+    state.currentModule = saved.currentModule || 'pathway-mapper';
+
+    if (saved.inputs) {
+      if (saved.inputs.income) document.getElementById('inp-income').value = saved.inputs.income;
+      if (saved.inputs.expenses) document.getElementById('inp-expenses').value = saved.inputs.expenses;
+      if (saved.inputs.savings) document.getElementById('inp-savings').value = saved.inputs.savings;
+      if (saved.inputs.tuition) document.getElementById('inp-tuition').value = saved.inputs.tuition;
+      if (saved.inputs.weeks) document.getElementById('inp-weeks').value = saved.inputs.weeks;
+      if (saved.inputs.hours) document.getElementById('inp-hours').value = saved.inputs.hours;
+      if (saved.inputs.notes) document.getElementById('summary-notes').value = saved.inputs.notes;
+    }
+
+    return true;
+  } catch (e) { return false; }
+}
+
+/* ═══════════════════════════════════════════
+   INIT
+   ═══════════════════════════════════════════ */
+// Attempt to restore state after entry animation completes
+// (actual restoration happens in finishEntry->startPathwayMapper flow)
+</script>
+</body>
+</html>

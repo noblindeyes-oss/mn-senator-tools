@@ -1,0 +1,1640 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Michael W. Holmstrom â€” Senate District 29</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,600;8..60,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    /* â”€â”€â”€ RESET â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; overflow-x: hidden; }
+    body { overflow-x: hidden; min-width: 320px; }
+
+    /* â”€â”€â”€ MODE SWITCHING â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    .pro-content  { display: block; }
+    .oppo-content { display: none; }
+    body.mode-oppo .pro-content  { display: none; }
+    body.mode-oppo .oppo-content { display: block; }
+
+    /* â”€â”€â”€ FLIP BUTTON â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    #flip-btn {
+      position: fixed;
+      top: 22px; right: 22px;
+      z-index: 9999;
+      border: 2px solid currentColor;
+      cursor: pointer;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      padding: 11px 18px;
+      transition: opacity 0.22s, transform 0.18s, box-shadow 0.18s;
+      line-height: 1;
+    }
+    body:not(.mode-oppo) #flip-btn {
+      background: #1C2B3A;
+      color: #E8DFC8;
+      border-color: #E8DFC8;
+    }
+    body.mode-oppo #flip-btn {
+      background: #E8DFC8;
+      color: #1C1C1C;
+      border-color: #1C1C1C;
+    }
+    #flip-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+    }
+    body:not(.mode-oppo) .btn-oppo-label { display: none; }
+    body.mode-oppo .btn-pro-label { display: none; }
+
+    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+       PALETTE
+       Water-tower blue:  #2B5F8E
+       Deep navy:         #1C2B3A
+       Asphalt gray:      #4A4E54
+       Concrete mid:      #8D9096
+       Wheat tan:         #C9A96A
+       Parchment:         #F2EBD9
+       Off-white:         #E8DFC8
+       Rust accent:       #A63A2F
+    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+
+
+    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+       PRO SITE â€” "District 29 Public Works Bulletin"
+       Municipal infrastructure announcement format
+    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+
+    .pro-content {
+      font-family: 'Source Serif 4', Georgia, serif;
+      background: #F2EBD9;
+      color: #1C1C1C;
+    }
+
+    /* HEADER BAND â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    .pro-header {
+      background: #1C2B3A;
+      padding: 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .pro-header-inner {
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      min-height: 100vh;
+    }
+    .pro-header-left {
+      padding: 70px 64px 64px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+    }
+    /* Blueprint grid overlay */
+    .pro-header-left::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        repeating-linear-gradient(0deg,
+          transparent, transparent 47px,
+          rgba(43,95,142,0.18) 47px, rgba(43,95,142,0.18) 48px),
+        repeating-linear-gradient(90deg,
+          transparent, transparent 47px,
+          rgba(43,95,142,0.18) 47px, rgba(43,95,142,0.18) 48px);
+      pointer-events: none;
+    }
+    .pro-dept-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #2B5F8E;
+      border: 1px solid rgba(43,95,142,0.45);
+      display: inline-block;
+      padding: 6px 14px;
+      margin-bottom: 40px;
+    }
+    .pro-title-block {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .pro-project-number {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: #C9A96A;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 18px;
+    }
+    .pro-h1 {
+      font-family: 'Oswald', sans-serif;
+      font-size: clamp(52px, 6.5vw, 92px);
+      font-weight: 700;
+      line-height: 0.92;
+      color: #E8DFC8;
+      text-transform: uppercase;
+      letter-spacing: -0.01em;
+      margin-bottom: 28px;
+    }
+    .pro-h1 span {
+      display: block;
+      color: #2B5F8E;
+    }
+    .pro-tagline {
+      font-size: 18px;
+      font-weight: 300;
+      color: rgba(232,223,200,0.75);
+      line-height: 1.5;
+      max-width: 480px;
+    }
+    .pro-header-meta {
+      display: flex;
+      gap: 40px;
+      padding-top: 48px;
+      border-top: 1px solid rgba(43,95,142,0.4);
+      margin-top: 48px;
+    }
+    .pro-meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .pro-meta-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #8D9096;
+    }
+    .pro-meta-value {
+      font-family: 'Oswald', sans-serif;
+      font-size: 16px;
+      font-weight: 500;
+      color: #C9A96A;
+    }
+
+    /* RIGHT PHOTO PANEL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    .pro-header-right {
+      position: relative;
+      overflow: hidden;
+      background: #0F1922;
+    }
+    .pro-senator-photo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 15%;
+      filter: sepia(0.15) contrast(1.05) brightness(0.92);
+      display: block;
+    }
+    .pro-photo-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to right,
+        rgba(28,43,58,0.7) 0%,
+        rgba(28,43,58,0.1) 40%,
+        transparent 100%
+      );
+    }
+    .pro-photo-caption {
+      position: absolute;
+      bottom: 24px;
+      right: 20px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      color: rgba(232,223,200,0.5);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+    .pro-photo-placeholder {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(160deg, #1C2B3A 0%, #2B5F8E 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .pro-photo-placeholder-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: rgba(201,169,106,0.2);
+      border: 2px solid rgba(201,169,106,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .pro-photo-placeholder-text {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: rgba(201,169,106,0.6);
+      letter-spacing: 0.14em;
+    }
+
+    /* STAT RAIL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    .pro-stat-rail {
+      background: #2B5F8E;
+      padding: 32px 64px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+    }
+    .pro-stat {
+      padding: 0 40px 0 0;
+      border-right: 1px solid rgba(232,223,200,0.2);
+    }
+    .pro-stat:last-child { border-right: none; padding-right: 0; }
+    .pro-stat:not(:first-child) { padding-left: 40px; }
+    .pro-stat-num {
+      font-family: 'Oswald', sans-serif;
+      font-size: 54px;
+      font-weight: 700;
+      color: #E8DFC8;
+      line-height: 1;
+    }
+    .pro-stat-unit {
+      font-family: 'Oswald', sans-serif;
+      font-size: 28px;
+      font-weight: 300;
+      color: #C9A96A;
+    }
+    .pro-stat-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(232,223,200,0.6);
+      margin-top: 6px;
+    }
+
+    /* SECTION WRAPPER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    .pro-section {
+      padding: 80px 64px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .pro-section-rule {
+      border: none;
+      border-top: 3px solid #1C2B3A;
+      margin-bottom: 48px;
+    }
+    .pro-section-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #2B5F8E;
+      margin-bottom: 8px;
+    }
+    .pro-section-title {
+      font-family: 'Oswald', sans-serif;
+      font-size: 38px;
+      font-weight: 600;
+      color: #1C2B3A;
+      text-transform: uppercase;
+      line-height: 1.1;
+      margin-bottom: 32px;
+    }
+
+    /* PROJECT BLOCK â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    .pro-project-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px;
+      background: #4A4E54;
+      border: 2px solid #1C2B3A;
+      margin-bottom: 48px;
+    }
+    .pro-project-cell {
+      background: #F2EBD9;
+      padding: 36px 40px;
+    }
+    .pro-project-cell.accent {
+      background: #1C2B3A;
+      color: #E8DFC8;
+    }
+    .pro-project-cell-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #8D9096;
+      margin-bottom: 10px;
+    }
+    .pro-project-cell.accent .pro-project-cell-label {
+      color: rgba(201,169,106,0.7);
+    }
+    .pro-project-cell-value {
+      font-family: 'Oswald', sans-serif;
+      font-size: 28px;
+      font-weight: 600;
+      color: #1C2B3A;
+      margin-bottom: 6px;
+    }
+    .pro-project-cell.accent .pro-project-cell-value {
+      color: #C9A96A;
+      font-size: 32px;
+    }
+    .pro-project-cell-sub {
+      font-size: 15px;
+      color: #4A4E54;
+      line-height: 1.5;
+    }
+    .pro-project-cell.accent .pro-project-cell-sub {
+      color: rgba(232,223,200,0.7);
+    }
+
+    /* BODY TEXT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    .pro-body-text {
+      font-size: 18px;
+      line-height: 1.65;
+      color: #2A2A2A;
+      max-width: 760px;
+    }
+    .pro-body-text p { margin-bottom: 18px; }
+    .pro-body-text p:last-child { margin-bottom: 0; }
+
+    /* PULL QUOTE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    .pro-pull-quote {
+      border-left: 5px solid #2B5F8E;
+      padding: 28px 36px;
+      margin: 48px 0;
+      background: rgba(43,95,142,0.06);
+    }
+    .pro-pull-quote-text {
+      font-family: 'Oswald', sans-serif;
+      font-size: 28px;
+      font-weight: 400;
+      color: #1C2B3A;
+      line-height: 1.3;
+      margin-bottom: 14px;
+    }
+    .pro-pull-quote-attr {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #8D9096;
+    }
+
+    /* BONDING TABLE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    .pro-bonding-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: 'Source Serif 4', Georgia, serif;
+      margin-bottom: 48px;
+    }
+    .pro-bonding-table th {
+      background: #1C2B3A;
+      color: #C9A96A;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      padding: 12px 20px;
+      text-align: left;
+      font-weight: 600;
+    }
+    .pro-bonding-table td {
+      padding: 16px 20px;
+      font-size: 15px;
+      border-bottom: 1px solid rgba(74,78,84,0.2);
+      color: #2A2A2A;
+    }
+    .pro-bonding-table tr:nth-child(even) td {
+      background: rgba(43,95,142,0.04);
+    }
+    .pro-bonding-table tr.highlight td {
+      background: rgba(43,95,142,0.1);
+      font-weight: 600;
+      color: #1C2B3A;
+    }
+    .pro-bonding-table td.amount {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 14px;
+      color: #2B5F8E;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .pro-bonding-table td.amount.primary {
+      color: #1C2B3A;
+      font-size: 16px;
+    }
+    .pro-bonding-total td {
+      background: #2B5F8E !important;
+      color: #E8DFC8;
+      font-weight: 700;
+      font-family: 'Oswald', sans-serif;
+      font-size: 16px;
+      letter-spacing: 0.04em;
+      border-bottom: none;
+    }
+    .pro-bonding-total td.amount {
+      color: #C9A96A;
+      font-size: 18px;
+    }
+
+    /* DISTRICT IMAGE BAND â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    .pro-image-band {
+      position: relative;
+      height: 320px;
+      overflow: hidden;
+      background: #1C2B3A;
+    }
+    .pro-image-band img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: sepia(0.25) contrast(1.1) brightness(0.8);
+    }
+    .pro-image-band-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to right,
+        rgba(28,43,58,0.85) 0%,
+        rgba(28,43,58,0.3) 50%,
+        rgba(43,95,142,0.5) 100%
+      );
+      display: flex;
+      align-items: center;
+      padding: 64px;
+    }
+    .pro-image-caption-block {
+      max-width: 500px;
+    }
+    .pro-image-caption-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      color: #C9A96A;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+    .pro-image-caption-text {
+      font-family: 'Oswald', sans-serif;
+      font-size: 28px;
+      font-weight: 500;
+      color: #E8DFC8;
+      line-height: 1.3;
+    }
+
+    /* FOOTER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    .pro-footer {
+      background: #1C2B3A;
+      padding: 48px 64px;
+    }
+    .pro-footnotes-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.22em;
+      color: #C9A96A;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .pro-footnotes {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .pro-footnotes li {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: rgba(232,223,200,0.55);
+      line-height: 1.55;
+    }
+    .pro-footnotes li span.fn-num {
+      color: #C9A96A;
+      margin-right: 8px;
+    }
+    .pro-footnotes a {
+      color: rgba(43,95,142,0.85);
+      text-decoration: none;
+    }
+
+    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+       OPPO SITE â€” "DHS Compliance File / Provider Alert"
+       Enforcement-record format; bureaucratic grey + danger
+    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+
+    .oppo-content {
+      font-family: 'Source Serif 4', Georgia, serif;
+      background: #EDEAE3;
+      color: #1A1A1A;
+    }
+
+    /* FILE HEADER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    .oppo-header {
+      background: #1A1A1A;
+      padding: 0;
+      position: relative;
+    }
+    .oppo-header-tape {
+      background: #A63A2F;
+      height: 8px;
+    }
+    .oppo-header-inner {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      min-height: 100vh;
+    }
+    .oppo-header-left {
+      padding: 64px 64px 64px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border-right: 1px solid rgba(166,58,47,0.3);
+    }
+    .oppo-file-stamp {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 0;
+    }
+    .oppo-case-badge {
+      background: #A63A2F;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #EDEAE3;
+      padding: 6px 14px;
+    }
+    .oppo-case-num {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: rgba(237,234,227,0.45);
+      letter-spacing: 0.14em;
+    }
+    .oppo-title-block {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 60px 0 40px;
+    }
+    .oppo-accuse-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #A63A2F;
+      margin-bottom: 20px;
+    }
+    .oppo-h1 {
+      font-family: 'Oswald', sans-serif;
+      font-size: clamp(42px, 5.5vw, 78px);
+      font-weight: 700;
+      line-height: 1.0;
+      color: #EDEAE3;
+      text-transform: uppercase;
+      letter-spacing: -0.01em;
+      margin-bottom: 28px;
+    }
+    .oppo-subhead {
+      font-size: 18px;
+      font-weight: 300;
+      color: rgba(237,234,227,0.65);
+      line-height: 1.55;
+      max-width: 540px;
+    }
+    .oppo-subhead strong {
+      color: rgba(237,234,227,0.9);
+      font-weight: 600;
+    }
+    .oppo-header-meta {
+      display: grid;
+      grid-template-columns: repeat(3, auto);
+      gap: 0;
+      border-top: 1px solid rgba(166,58,47,0.4);
+      padding-top: 36px;
+    }
+    .oppo-meta-item {
+      padding-right: 32px;
+      border-right: 1px solid rgba(166,58,47,0.25);
+    }
+    .oppo-meta-item:last-child { border-right: none; padding-right: 0; }
+    .oppo-meta-item:not(:first-child) { padding-left: 32px; }
+    .oppo-meta-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #8D9096;
+      margin-bottom: 4px;
+    }
+    .oppo-meta-value {
+      font-family: 'Oswald', sans-serif;
+      font-size: 15px;
+      color: rgba(237,234,227,0.8);
+    }
+
+    /* RIGHT PHOTO PANEL oppo â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    .oppo-header-right {
+      background: #111;
+      position: relative;
+      overflow: hidden;
+    }
+    .oppo-senator-photo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 15%;
+      filter: grayscale(1) contrast(1.25) brightness(0.7);
+      display: block;
+    }
+    .oppo-photo-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to left,
+        transparent 30%,
+        rgba(26,26,26,0.6) 100%
+      );
+    }
+    .oppo-photo-overlay-bottom {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 60%;
+      background: linear-gradient(to top, rgba(26,26,26,0.85) 0%, transparent 100%);
+    }
+    .oppo-photo-caption {
+      position: absolute;
+      bottom: 20px;
+      left: 16px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      color: rgba(237,234,227,0.4);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .oppo-photo-placeholder {
+      width: 100%;
+      height: 100%;
+      background: #111;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .oppo-photo-placeholder-text {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: rgba(237,234,227,0.3);
+      letter-spacing: 0.14em;
+    }
+
+    /* OPPO SECTION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    .oppo-section {
+      padding: 72px 64px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .oppo-section-rule {
+      border: none;
+      border-top: 2px solid #1A1A1A;
+      margin-bottom: 40px;
+    }
+    .oppo-section-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #A63A2F;
+      margin-bottom: 8px;
+    }
+    .oppo-section-title {
+      font-family: 'Oswald', sans-serif;
+      font-size: 34px;
+      font-weight: 600;
+      color: #1A1A1A;
+      text-transform: uppercase;
+      line-height: 1.1;
+      margin-bottom: 28px;
+    }
+
+    /* TIMELINE / SEQUENCE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    .oppo-sequence {
+      position: relative;
+      padding-left: 32px;
+      margin-bottom: 56px;
+    }
+    .oppo-sequence::before {
+      content: '';
+      position: absolute;
+      left: 6px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: linear-gradient(to bottom, #A63A2F, rgba(166,58,47,0.15));
+    }
+    .oppo-seq-item {
+      position: relative;
+      margin-bottom: 40px;
+    }
+    .oppo-seq-item::before {
+      content: '';
+      position: absolute;
+      left: -28px;
+      top: 6px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #A63A2F;
+      border: 2px solid #EDEAE3;
+      box-shadow: 0 0 0 2px #A63A2F;
+    }
+    .oppo-seq-date {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      color: #8D9096;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .oppo-seq-title {
+      font-family: 'Oswald', sans-serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: #1A1A1A;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+    .oppo-seq-body {
+      font-size: 15px;
+      line-height: 1.6;
+      color: #3A3A3A;
+      max-width: 680px;
+    }
+
+    /* EVIDENCE CARDS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    .oppo-evidence-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 3px;
+      background: #1A1A1A;
+      border: 2px solid #1A1A1A;
+      margin-bottom: 56px;
+    }
+    .oppo-card {
+      background: #EDEAE3;
+      padding: 32px 28px;
+      position: relative;
+      overflow: hidden;
+      cursor: default;
+      transition: background 0.22s;
+    }
+    .oppo-card::after {
+      content: 'SUSPENDED';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-12deg);
+      font-family: 'Oswald', sans-serif;
+      font-size: 38px;
+      font-weight: 700;
+      color: #A63A2F;
+      letter-spacing: 0.06em;
+      opacity: 0;
+      transition: opacity 0.22s;
+      pointer-events: none;
+      white-space: nowrap;
+      border: 3px solid #A63A2F;
+      padding: 4px 16px;
+    }
+    .oppo-card:hover {
+      background: #E0DDD4;
+    }
+    .oppo-card:hover::after {
+      opacity: 0.18;
+    }
+    .oppo-card-tag {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #A63A2F;
+      margin-bottom: 14px;
+      display: block;
+    }
+    .oppo-card-title {
+      font-family: 'Oswald', sans-serif;
+      font-size: 19px;
+      font-weight: 600;
+      color: #1A1A1A;
+      text-transform: uppercase;
+      line-height: 1.2;
+      margin-bottom: 12px;
+    }
+    .oppo-card-body {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #3A3A3A;
+    }
+    .oppo-card-num {
+      display: block;
+      font-family: 'Oswald', sans-serif;
+      font-size: 40px;
+      font-weight: 700;
+      color: #1A1A1A;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .oppo-card-num-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: #8D9096;
+      letter-spacing: 0.14em;
+      margin-bottom: 12px;
+    }
+
+    /* PROOF BLOCK â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    .oppo-proof-block {
+      background: #1A1A1A;
+      color: #EDEAE3;
+      padding: 44px 48px;
+      margin-bottom: 56px;
+      position: relative;
+    }
+    .oppo-proof-block::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 5px;
+      background: #A63A2F;
+    }
+    .oppo-proof-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: #A63A2F;
+      margin-bottom: 20px;
+    }
+    .oppo-proof-quote {
+      font-family: 'Oswald', sans-serif;
+      font-size: 22px;
+      font-weight: 400;
+      line-height: 1.45;
+      color: #EDEAE3;
+      margin-bottom: 24px;
+      font-style: italic;
+    }
+    .oppo-proof-quote strong {
+      font-style: normal;
+      font-weight: 700;
+      color: #E8DFC8;
+    }
+    .oppo-proof-source {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(237,234,227,0.12);
+    }
+    .oppo-proof-source-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .oppo-proof-source-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #8D9096;
+    }
+    .oppo-proof-source-value {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      color: rgba(237,234,227,0.7);
+    }
+
+    /* OPPO BODY â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    .oppo-body-text {
+      font-size: 17px;
+      line-height: 1.65;
+      color: #2A2A2A;
+      max-width: 760px;
+      margin-bottom: 28px;
+    }
+    .oppo-body-text p { margin-bottom: 16px; }
+    .oppo-body-text p:last-child { margin-bottom: 0; }
+
+    /* OPPO FOOTER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    .oppo-footer {
+      background: #1A1A1A;
+      padding: 44px 64px;
+    }
+    .oppo-footnotes-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.22em;
+      color: #A63A2F;
+      text-transform: uppercase;
+      margin-bottom: 18px;
+    }
+    .oppo-footnotes {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .oppo-footnotes li {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: rgba(237,234,227,0.45);
+      line-height: 1.55;
+    }
+    .oppo-footnotes li span.fn-num {
+      color: #A63A2F;
+      margin-right: 8px;
+    }
+    .oppo-footnotes a {
+      color: rgba(166,58,47,0.75);
+      text-decoration: none;
+    }
+
+    /* TYPEWRITER EFFECT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    .typewriter {
+      overflow: hidden;
+      white-space: nowrap;
+      border-right: 3px solid #A63A2F;
+      animation: typing 1.4s steps(40, end) 0.3s both, blink 0.75s step-end 1.7s 6;
+      display: block;
+    }
+    @keyframes typing {
+      from { max-width: 0; }
+      to   { max-width: 100%; }
+    }
+    @keyframes blink {
+      50% { border-color: transparent; }
+    }
+
+    /* RESPONSIVE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    @media (max-width: 900px) {
+      .pro-header-inner,
+      .oppo-header-inner {
+        grid-template-columns: 1fr;
+      }
+      .pro-header-right,
+      .oppo-header-right {
+        height: 380px;
+      }
+      .pro-header-left,
+      .oppo-header-left {
+        padding: 48px 32px;
+      }
+      .pro-stat-rail {
+        grid-template-columns: 1fr;
+        gap: 28px;
+        padding: 40px 32px;
+      }
+      .pro-stat {
+        border-right: none;
+        border-bottom: 1px solid rgba(232,223,200,0.2);
+        padding: 0 0 28px 0;
+      }
+      .pro-stat:last-child { border-bottom: none; padding-bottom: 0; }
+      .pro-stat:not(:first-child) { padding-left: 0; }
+      .pro-section,
+      .oppo-section {
+        padding: 52px 32px;
+      }
+      .pro-project-grid,
+      .oppo-evidence-grid {
+        grid-template-columns: 1fr;
+      }
+      .pro-image-band-overlay {
+        padding: 32px;
+      }
+      .pro-header-meta {
+        flex-direction: column;
+        gap: 20px;
+      }
+      .oppo-header-meta {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      .oppo-meta-item {
+        border-right: none;
+        padding: 0;
+      }
+      .oppo-meta-item:not(:first-child) { padding-left: 0; }
+      .oppo-proof-source {
+        grid-template-columns: 1fr;
+      }
+      .pro-footer,
+      .oppo-footer {
+        padding: 40px 32px;
+      }
+      #flip-btn {
+        top: 14px; right: 14px;
+        font-size: 9px;
+        padding: 9px 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- â”€â”€â”€ FLIP BUTTON â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+  <button id="flip-btn" aria-label="Switch view">
+    <span class="btn-oppo-label">View Pro Case</span>
+    <span class="btn-pro-label">View Opposition File</span>
+  </button>
+
+
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+       PRO SITE
+  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+  <div class="pro-content" aria-label="Supporter site">
+
+    <!-- HEADER -->
+    <header class="pro-header">
+      <div class="pro-header-inner">
+        <div class="pro-header-left">
+          <div>
+            <div class="pro-dept-label">Minnesota Senate &nbsp;Â·&nbsp; District 29</div>
+          </div>
+          <div class="pro-title-block">
+            <div class="pro-project-number">Project Record &nbsp;//&nbsp; SF 2582 &nbsp;Â·&nbsp; SF 2223</div>
+            <h1 class="pro-h1">
+              Michael<br>
+              <span>W.</span><br>
+              Holmstrom
+            </h1>
+            <p class="pro-tagline">Wright County sent a builder to St. Paul. He came back with a water-infrastructure ask.</p>
+          </div>
+          <div class="pro-header-meta">
+            <div class="pro-meta-item">
+              <span class="pro-meta-label">Party</span>
+              <span class="pro-meta-value">Republican</span>
+            </div>
+            <div class="pro-meta-item">
+              <span class="pro-meta-label">Sworn In</span>
+              <span class="pro-meta-value">November 2025</span>
+            </div>
+            <div class="pro-meta-item">
+              <span class="pro-meta-label">District</span>
+              <span class="pro-meta-value">Wright County</span>
+            </div>
+            <div class="pro-meta-item">
+              <span class="pro-meta-label">Background</span>
+              <span class="pro-meta-value">Small Business</span>
+            </div>
+          </div>
+        </div>
+        <div class="pro-header-right">
+          <img
+            class="pro-senator-photo"
+            src="https://www.senate.mn/graphics/29Holmstrom.jpg"
+            alt="Senator Michael W. Holmstrom"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='none'; this.parentElement.querySelector('.pro-photo-placeholder').style.display='flex';"
+          />
+          <div class="pro-photo-overlay"></div>
+          <div class="pro-photo-caption">Sen. Holmstrom &nbsp;Â·&nbsp; District 29</div>
+          <div class="pro-photo-placeholder" style="display:none;">
+            <div class="pro-photo-placeholder-icon">
+              <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+                <circle cx="18" cy="13" r="6" stroke="#C9A96A" stroke-width="1.5"/>
+                <path d="M4 32c0-7.732 6.268-14 14-14s14 6.268 14 14" stroke="#C9A96A" stroke-width="1.5"/>
+              </svg>
+            </div>
+            <span class="pro-photo-placeholder-text">Holmstrom &nbsp;Â·&nbsp; D-29</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- STAT RAIL -->
+    <div class="pro-stat-rail">
+      <div class="pro-stat">
+        <div class="pro-stat-num">
+          <span class="js-counter" data-target="15" data-prefix="$" data-suffix="M">$0M</span>
+        </div>
+        <div class="pro-stat-label">Howard Lake water treatment â€” SF 2582<sup>1</sup></div>
+      </div>
+      <div class="pro-stat">
+        <div class="pro-stat-num">
+          <span class="js-counter" data-target="37.5" data-prefix="$" data-suffix="M" data-decimals="1">$0M</span>
+        </div>
+        <div class="pro-stat-label">Total bonding priorities for District 29<sup>2</sup></div>
+      </div>
+      <div class="pro-stat">
+        <div class="pro-stat-num">
+          <span class="js-counter" data-target="4" data-suffix="">0</span>
+        </div>
+        <div class="pro-stat-label">Communities addressed in bonding package<sup>2</sup></div>
+      </div>
+    </div>
+
+    <!-- MAIN PROJECT SECTION -->
+    <section class="pro-section">
+      <hr class="pro-section-rule" />
+      <div class="pro-section-label">Priority Project &nbsp;Â·&nbsp; SF 2582</div>
+      <h2 class="pro-section-title">Howard Lake makes the case for clean water</h2>
+
+      <div class="pro-project-grid">
+        <div class="pro-project-cell accent">
+          <div class="pro-project-cell-label">Bond Request</div>
+          <div class="pro-project-cell-value">$15,000,000</div>
+          <div class="pro-project-cell-sub">Capital investment bonding request. Chief author: Holmstrom. Bill referred to Capital Investment Committee.</div>
+        </div>
+        <div class="pro-project-cell">
+          <div class="pro-project-cell-label">The Problem</div>
+          <div class="pro-project-cell-value">Manganese</div>
+          <div class="pro-project-cell-sub">Manganese in groundwater poses neurological risks, especially for infants and children. Howard Lake's aging well infrastructure has not been upgraded to address it.</div>
+        </div>
+        <div class="pro-project-cell">
+          <div class="pro-project-cell-label">What SF 2582 Funds</div>
+          <div class="pro-project-cell-value">New well &amp; plant</div>
+          <div class="pro-project-cell-sub">A new water treatment facility, a new municipal well, trunk water-main upgrades, and water tower improvements near the site.<sup>1</sup></div>
+        </div>
+        <div class="pro-project-cell">
+          <div class="pro-project-cell-label">Who Benefits</div>
+          <div class="pro-project-cell-value">Howard Lake</div>
+          <div class="pro-project-cell-sub">Residents, businesses, and school-age children who drink tap water in this fast-growing Wright County city.</div>
+        </div>
+      </div>
+
+      <div class="pro-body-text">
+        <p>Howard Lake sits in the middle of Wright County's growth corridor. New families are moving in. Old pipes are staying put. A first-term senator from Buffalo filed a bill to close that gap in his first legislative session.</p>
+        <p>SF 2582 requests $15 million in state bonding to build a new water treatment plant capable of removing manganese from municipal drinking water. The bill also funds trunk water-main upgrades and improvements to the well and tower near the facility site.</p>
+        <p>This is basic-service infrastructure. It does not require complex policy arguments. It requires a legislator willing to put a local number in front of the Capital Investment Committee and make the case for it.</p>
+      </div>
+
+      <div class="pro-pull-quote">
+        <div class="pro-pull-quote-text">SF 2582 asks the state to fund a new Howard Lake water treatment facility and related system upgrades.</div>
+        <div class="pro-pull-quote-attr">Sen. Michael W. Holmstrom &nbsp;Â·&nbsp; Senate District 29 &nbsp;Â·&nbsp; Republican Caucus</div>
+      </div>
+    </section>
+
+    <!-- DISTRICT IMAGE BAND -->
+    <div class="pro-image-band">
+      <img
+        src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1400&q=80&auto=format&fit=crop"
+        alt="Municipal water infrastructure"
+        onerror="this.style.display='none';"
+      />
+      <div class="pro-image-band-overlay">
+        <div class="pro-image-caption-block">
+          <div class="pro-image-caption-label">District 29 &nbsp;Â·&nbsp; Wright County</div>
+          <div class="pro-image-caption-text">Exurban growth country â€” where water systems, roads, and schools all move together.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FULL BONDING PACKAGE SECTION -->
+    <section class="pro-section">
+      <hr class="pro-section-rule" />
+      <div class="pro-section-label">Full Record &nbsp;Â·&nbsp; 2026 Bonding Package</div>
+      <h2 class="pro-section-title">$37.5 Million in District 29 Priorities</h2>
+
+      <div class="pro-body-text">
+        <p>Holmstrom announced his bonding priorities in early 2026, before the legislative session opened. The package covers four communities and three infrastructure categories: water treatment, wastewater, and vocational education.</p>
+      </div>
+
+      <table class="pro-bonding-table">
+        <thead>
+          <tr>
+            <th>Bill / Project</th>
+            <th>Community</th>
+            <th>Purpose</th>
+            <th>Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="highlight">
+            <td>SF 2582</td>
+            <td>Howard Lake</td>
+            <td>New water treatment facility, well, and trunk main upgrades â€” manganese-free drinking water</td>
+            <td class="amount primary">$15,000,000</td>
+          </tr>
+          <tr>
+            <td>SF 2223</td>
+            <td>Monticello</td>
+            <td>New water treatment facility â€” water quality and reliability for residents and businesses</td>
+            <td class="amount">$10,000,000</td>
+          </tr>
+          <tr>
+            <td>Bonding request</td>
+            <td>Wright Technical Center</td>
+            <td>Facility updates at the Wright County cooperative career and technical education high school (est. 1972)</td>
+            <td class="amount">$10,500,000</td>
+          </tr>
+          <tr>
+            <td>Bonding request</td>
+            <td>Rockford</td>
+            <td>Design and construction improvements to the existing wastewater treatment facility</td>
+            <td class="amount">$2,000,000</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr class="pro-bonding-total">
+            <td colspan="3">Total District 29 Bonding Package â€” Session 2026</td>
+            <td class="amount">$37,500,000</td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <div class="pro-body-text">
+        <p>All four projects address long-standing infrastructure deficits in communities that are growing faster than their public systems were built to handle. Holmstrom hosted the Senate Capital Investment Committee in South Haven to hear local testimony on the need for these projects.<sup>3</sup></p>
+        <p>None of the items are speculative. All are tied to existing municipal systems with documented deficiencies. This is what a first-term, growth-corridor Republican does: identifies the concrete gap and puts a number in front of the committee.</p>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="pro-footer">
+      <div class="pro-footnotes-label">Sources &amp; Record</div>
+      <ul class="pro-footnotes">
+        <li><span class="fn-num">1</span> SF 2582, 94th Legislature (2025â€“2026), chief author Holmstrom; Howard Lake water treatment facility, new well, trunk water-main upgrades, water tower improvements. <a href="https://www.revisor.mn.gov/bills/94/2025/0/SF/2582/" target="_blank">revisor.mn.gov</a></li>
+        <li><span class="fn-num">2</span> "Holmstrom announces $37.5 million in bonding priorities for District 29," Minnesota Senate Republicans, 2026. <a href="https://www.mnsenaterepublicans.com/holmstrom-announces-37-5-million-in-bonding-priorities-for-district-29/" target="_blank">mnsenaterepublicans.com</a>; also reported by KRWC 1360 AM.</li>
+        <li><span class="fn-num">3</span> "Sen. Holmstrom Visits City of South Haven to Host MN Senate Capital Investment Committee," KRWC 1360 AM. <a href="https://krwc1360.com/sen-holmstrom-visits-city-of-south-haven-to-host-mn-senate-capital-investment-committee/" target="_blank">krwc1360.com</a></li>
+        <li><span class="fn-num">4</span> SF 2223, 94th Legislature (2025â€“2026); Monticello water treatment facility, $10 million. Reported in mnsenaterepublicans.com bonding release.</li>
+        <li><span class="fn-num">5</span> Minnesota Department of Health, "Manganese in Drinking Water," <a href="https://www.health.state.mn.us/communities/environment/water/contaminants/manganese.html" target="_blank">health.state.mn.us</a>. Children who drink high-manganese water over time may develop problems with memory, attention, and motor skills; infants face elevated risk.</li>
+      </ul>
+    </footer>
+
+  </div><!-- /pro-content -->
+
+
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+       OPPO SITE
+  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+  <div class="oppo-content" aria-label="Opposition accountability site">
+
+    <!-- HEADER -->
+    <div class="oppo-header-tape"></div>
+    <header class="oppo-header">
+      <div class="oppo-header-inner">
+        <div class="oppo-header-left">
+          <div class="oppo-file-stamp">
+            <span class="oppo-case-badge">Accountability File</span>
+            <span class="oppo-case-num">MN-S29 &nbsp;Â·&nbsp; SF 4311 &nbsp;Â·&nbsp; 94th Legislature</span>
+          </div>
+          <div class="oppo-title-block">
+            <div class="oppo-accuse-label">Direct accusation &nbsp;Â·&nbsp; No hedge</div>
+            <h1 class="oppo-h1">
+              <span class="typewriter">Holmstrom</span>
+              Wrote the
+              Power to
+              Cut You Off
+            </h1>
+            <p class="oppo-subhead">
+              He filed a bill expanding the state commissioner's authority over Medicaid provider site visits, enrollment fees, and billing suspension when identified deficiencies are not corrected after notice and cure. More than 500 Minnesota providers had already been living through the broader enforcement crackdown.
+            </p>
+          </div>
+          <div class="oppo-header-meta">
+            <div class="oppo-meta-item">
+              <span class="oppo-meta-label">Bill</span>
+              <span class="oppo-meta-value">SF 4311</span>
+            </div>
+            <div class="oppo-meta-item">
+              <span class="oppo-meta-label">Mechanism</span>
+              <span class="oppo-meta-value">Billing Suspension Authority</span>
+            </div>
+            <div class="oppo-meta-item">
+              <span class="oppo-meta-label">Filed</span>
+              <span class="oppo-meta-value">March 2026</span>
+            </div>
+          </div>
+        </div>
+        <div class="oppo-header-right">
+          <img
+            class="oppo-senator-photo"
+            src="https://www.senate.mn/graphics/29Holmstrom.jpg"
+            alt="Senator Michael W. Holmstrom"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='none'; this.parentElement.querySelector('.oppo-photo-placeholder').style.display='flex';"
+          />
+          <div class="oppo-photo-overlay"></div>
+          <div class="oppo-photo-overlay-bottom"></div>
+          <div class="oppo-photo-caption">Holmstrom &nbsp;Â·&nbsp; D-29 &nbsp;Â·&nbsp; R</div>
+          <div class="oppo-photo-placeholder" style="display:none;">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+              <circle cx="20" cy="14" r="7" stroke="rgba(237,234,227,0.3)" stroke-width="1.5"/>
+              <path d="M4 36c0-8.837 7.163-16 16-16s16 7.163 16 16" stroke="rgba(237,234,227,0.3)" stroke-width="1.5"/>
+            </svg>
+            <span class="oppo-photo-placeholder-text">Holmstrom &nbsp;Â·&nbsp; D-29</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- SEQUENCE OF EVENTS -->
+    <section class="oppo-section">
+      <hr class="oppo-section-rule" />
+      <div class="oppo-section-label">Record of Events &nbsp;Â·&nbsp; Vote â€” Mechanism â€” Consequence</div>
+      <h2 class="oppo-section-title">The Bill, The Power, The Fallout Already in Motion</h2>
+
+      <div class="oppo-sequence">
+        <div class="oppo-seq-item">
+          <div class="oppo-seq-date">October 2025</div>
+          <div class="oppo-seq-title">DHS begins pre-payment suspension regime</div>
+          <div class="oppo-seq-body">Governor Walz announces a new process allowing DHS to freeze submitted Medicaid claims before payment for certain benefit categories. More than 500 providers see payments halted. At least half a dozen file suit, saying the suspensions shut down their businesses. Clients lose services they are legally entitled to receive.<sup>1</sup></div>
+        </div>
+        <div class="oppo-seq-item">
+          <div class="oppo-seq-date">November 2025</div>
+          <div class="oppo-seq-title">Holmstrom sworn in â€” joins Judiciary, Agriculture, Education Finance committees</div>
+          <div class="oppo-seq-body">Holmstrom wins the District 29 special election and takes his seat. He is assigned to the Judiciary and Education Finance committees. The chaos at DHS is already public record when he arrives in St. Paul.<sup>2</sup></div>
+        </div>
+        <div class="oppo-seq-item">
+          <div class="oppo-seq-date">December 2025</div>
+          <div class="oppo-seq-title">Providers sue; disabled residents lose in-home care</div>
+          <div class="oppo-seq-body">Minnesota Reformer reports that DHS's crackdown is cutting off disabled Medicaid recipients from Integrated Community Support services â€” legal entitlements the state is now failing to provide. Courts are split on whether providers have any right to appeal suspensions.<sup>3</sup></div>
+        </div>
+        <div class="oppo-seq-item">
+          <div class="oppo-seq-date">March 2026</div>
+          <div class="oppo-seq-title">Holmstrom files SF 4311 â€” expands the enforcement toolset</div>
+          <div class="oppo-seq-body">With the provider crisis fully documented, Holmstrom chief-authors SF 4311. The bill requires mandatory site visits for all enrolled Medicaid providers, adds enrollment fees for some provider types, and authorizes billing suspension when deficiencies are not corrected after the bill's notice-and-cure process. The cleaner critique is timing and scope, not the old overclaim that the bill created a pure no-appeal mechanism from scratch.<sup>4</sup></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROOF BLOCK -->
+    <section class="oppo-section" style="padding-top: 0;">
+      <div class="oppo-proof-block">
+        <div class="oppo-proof-label">Core Document &nbsp;Â·&nbsp; SF 4311 â€” Bill Mechanism</div>
+        <div class="oppo-proof-quote">
+          SF 4311 allows the commissioner to <strong>suspend a provider's ability to bill</strong> for medical assistance if identified deficiencies are not corrected after the bill's notice-and-cure process. The bill also imposes enrollment fees on provider categories not previously subject to mandatory enrollment costs.
+        </div>
+        <div class="oppo-proof-source">
+          <div class="oppo-proof-source-item">
+            <span class="oppo-proof-source-label">Bill Number</span>
+            <span class="oppo-proof-source-value">SF 4311 / HF 4258 â€” 94th Legislature (2025â€“2026)</span>
+          </div>
+          <div class="oppo-proof-source-item">
+            <span class="oppo-proof-source-label">Chief Author</span>
+            <span class="oppo-proof-source-value">Sen. Michael W. Holmstrom, District 29</span>
+          </div>
+          <div class="oppo-proof-source-item">
+            <span class="oppo-proof-source-label">Committee</span>
+            <span class="oppo-proof-source-value">Health and Human Services â€” referred March 2026</span>
+          </div>
+          <div class="oppo-proof-source-item">
+            <span class="oppo-proof-source-label">The Gap</span>
+            <span class="oppo-proof-source-value">Billing suspension authority after notice-and-cure process</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- EVIDENCE CARDS -->
+    <section class="oppo-section" style="padding-top: 0;">
+      <hr class="oppo-section-rule" />
+      <div class="oppo-section-label">Evidence Cards &nbsp;Â·&nbsp; Three Failure Vectors</div>
+      <h2 class="oppo-section-title">The Mechanism, The Damage, The Gap</h2>
+
+      <div class="oppo-evidence-grid">
+        <div class="oppo-card">
+          <span class="oppo-card-tag">Evidence 01 &nbsp;Â·&nbsp; The Mechanism</span>
+          <div class="oppo-card-title">Billing can be suspended after deficiencies are not cured</div>
+          <div class="oppo-card-body">SF 4311 ties mandatory site visits, cure requirements, and billing-suspension authority together in statute. The supportable attack is that Holmstrom sided with a stronger enforcement model after the provider crisis was already public, not that he wrote a one-line "no appeal" rule from nowhere.<sup>4</sup></div>
+        </div>
+        <div class="oppo-card">
+          <span class="oppo-card-tag">Evidence 02 &nbsp;Â·&nbsp; The Scale</span>
+          <span class="oppo-card-num">60</span>
+          <div class="oppo-card-num-label">days notice of termination after an uncured deficiency</div>
+          <div class="oppo-card-body">Before SF 4311 was even filed, DHS had already suspended payments to more than 500 providers. Holmstrom's bill responded by writing broader inspection, fee, and suspension authority into statute after that crisis was already underway.<sup>1</sup></div>
+        </div>
+        <div class="oppo-card">
+          <span class="oppo-card-tag">Evidence 03 &nbsp;Â·&nbsp; The Consequence</span>
+          <div class="oppo-card-title">Disabled residents lost legally required services</div>
+          <div class="oppo-card-body">The Minnesota Reformer documented that DHS's payment freezes caused disabled Medicaid recipients to lose Integrated Community Support services. Holmstrom saw that context and responded with a bill that strengthens the state's enforcement machinery rather than retreating from it.<sup>3</sup></div>
+        </div>
+      </div>
+
+      <div class="oppo-body-text">
+        <p>Holmstrom ran as a small business owner. He campaigned on local responsiveness and practical governance. SF 4311 does the opposite for small Medicaid providers in his own district. It gives a state commissioner the power to shut down billing â€” the financial lifeline of every provider practice â€” without an administrative appeal after the bill's notice-and-cure process, and in a separate compliance clause.</p>
+        <p>The bill does include notice and cure periods before one type of suspension, but it still pairs a 60-day termination notice with immediate suspension of billing once the cure window expires. It also adds enrollment fees on covered provider types through the existing application-fee framework.</p>
+        <p>Holmstrom was not naive about the context. He entered the Senate while the provider crisis was front-page news. He sat on the Judiciary Committee. He chose to file this bill in March 2026 with the existing damage fully documented.</p>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="oppo-footer">
+      <div class="oppo-footnotes-label">Sources &amp; Documentation</div>
+      <ul class="oppo-footnotes">
+        <li><span class="fn-num">1</span> SF 4311 as introduced, 94th Legislature (2025???2026). Notice, cure, suspension, and appeal language in section 256B.04, subdivision 21. <a href="https://www.revisor.mn.gov/bills/text.php?number=SF4311&version=0&session=ls94&session_year=2026&session_number=0" target="_blank">revisor.mn.gov</a></li>`r`n        <li><span class="fn-num">2</span> SF 4311 Senate status page. Introduced March 11, 2026 and referred to Health and Human Services. <a href="https://www.revisor.mn.gov/bills/94/2026/0/SF/4311/" target="_blank">revisor.mn.gov</a></li>`r`n        <li><span class="fn-num">3</span> Minnesota Senate 2026 committee assignments PDF, as of Feb. 25, 2026. <a href="https://www.senate.mn/committees/2025-2026/info/comlegal.pdf" target="_blank">senate.mn</a></li>
+      </ul>
+    </footer>
+
+
+  <!-- Auto-transition sentinel — observed by IntersectionObserver -->
+  <div id="brief-sentinel" style="height:1px;width:100%;"></div>
+
+  <!-- Subtle stamp — visible as user nears the bottom -->
+  <div class="machine-stamp">
+    <span class="machine-stamp-text">AI-GENERATED &nbsp;·&nbsp; 67 SENATORS &nbsp;·&nbsp; 63 PARALLEL AGENTS &nbsp;·&nbsp; ~4 HRS &nbsp;·&nbsp; ~$47</span>
+  </div>
+
+  </div><!-- /oppo-content -->
+
+
+  <!-- â”€â”€â”€ JS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+  <script>
+    /* â”€â”€ FLIP TOGGLE â”€â”€ */
+    const btn = document.getElementById('flip-btn');
+    btn.addEventListener('click', () => {
+      document.body.classList.toggle('mode-oppo');
+      document.body.style.opacity = '0.7';
+      setTimeout(() => { document.body.style.opacity = '1'; }, 220);
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    });
+    document.body.style.transition = 'opacity 0.22s';
+
+    /* â”€â”€ SCROLL COUNTERS â”€â”€ */
+    function animateCounter(el) {
+      const target = parseFloat(el.dataset.target);
+      const prefix = el.dataset.prefix || '';
+      const suffix = el.dataset.suffix || '';
+      const decimals = parseInt(el.dataset.decimals || '0');
+      const duration = 1400;
+      const start = performance.now();
+      function step(now) {
+        const elapsed = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - elapsed, 3);
+        const val = target * eased;
+        el.textContent = prefix + val.toFixed(decimals) + suffix;
+        if (elapsed < 1) requestAnimationFrame(step);
+        else el.textContent = prefix + target.toFixed(decimals) + suffix;
+      }
+      requestAnimationFrame(step);
+    }
+
+    const counters = document.querySelectorAll('.js-counter');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !entry.target.dataset.animated) {
+          entry.target.dataset.animated = 'true';
+          animateCounter(entry.target);
+        }
+      });
+    }, { threshold: 0.5 });
+    counters.forEach(c => observer.observe(c));
+  </script>
+
+<!-- ═══════════════════════════════════════════════════════
+     THE BRIEF — AI capabilities briefing
+═══════════════════════════════════════════════════════ -->
+<div class="brief-content">
+
+  <div class="brief-opening">
+    <p class="brief-made-by">Sixty-seven of these pages were made using one AI account in about thirty minutes. Six months ago an automated project like this would have been impossible.</p>
+  </div>
+
+  <div class="brief-chart-section">
+    <h2 class="brief-chart-title">This is the trend that made it possible.</h2>
+    <div class="brief-chart-frame">
+      <img src="https://metr.org/assets/images/measuring-ai-ability-to-complete-long-tasks/length-of-tasks-log.png" alt="METR chart" class="brief-metr-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+      <div class="brief-chart-fallback" style="display:none;"><p>Chart unavailable. See the original at <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">metr.org</a>.</p></div>
+    </div>
+    <p class="brief-chart-source">Source: <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR</a>, an independent AI evaluation lab.</p>
+    <p class="brief-chart-read">This chart tracks how long a task an AI agent can finish on its own. In 2019, the answer was about three seconds. By early 2023, it was six minutes. by mid 2025, over two hours. As of early 2026, Claude Opus 4.6 completes tasks that take a skilled human roughly twelve hours.</p>
+    <p class="brief-chart-read">The overall doubling time has been about seven months. But it is getting faster. <a href="https://metr.org/time-horizons/" target="_blank">When researchers fit only the most recent data</a>, the doubling time drops to four months. At that rate, AI agents capable of completing month-long autonomous projects arrive not in the early 2030s but around 2028.</p>
+  </div>
+
+  <div class="brief-so-what">
+    <h2 class="brief-so-what-title">What that means for lawmakers.</h2>
+    <p>Urgency. There was a narrative last year that AI had hit a wall in capabilities. It was a plausible perspective at the time. It isn't anymore. After breakthroughs late last year, AI systems' ability to automate cyberattacks, pathogen design, misinformation, mass surveillance, and vast swaths of white-collar work is advancing faster than ever.</p>
+    <p>The world will soon change faster than the typical pace of policymaking. The only solution is to act with atypical speed: AI regulations, data center moratoriums, calling for a federal pause on AI development, worker displacement funds. Some of these ideas already have bills introduced this session. Others should be explored soon. Time is limited, so if you feel behind on AI, the sources below are a good place to start.</p>
+    
+  </div>
+
+  <div class="brief-next">
+    <h2 class="brief-next-title">Start here.</h2>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">USE</span>
+      <a href="https://claude.ai/cowork" target="_blank">Claude Cowork</a> · <a href="https://claude.ai/code" target="_blank">Claude Code</a>
+      <span class="brief-link-detail">The tools that built this page. Cowork handles research and writing. Code is the agent that runs tasks, spawns sub-agents, and makes decisions on its own. Spend thirty minutes with one of these on a real problem from your week. That will teach you more than any briefing.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR: Measuring AI Ability to Complete Long Tasks</a>
+      <span class="brief-link-detail">The source for the chart above. The METR trend is based on software tasks, but <a href="https://futuretech.mit.edu/publication/crashing-waves-vs-rising-tides-preliminary-findings-on-ai-automation-from-thousands-of-worker-evaluations-of-labor-market-tasks" target="_blank">MIT research on worker evaluations of labor market tasks</a> finds similar patterns across white-collar work broadly.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://aiindex.stanford.edu/report/" target="_blank">Stanford HAI AI Index 2025</a>
+      <span class="brief-link-detail">The most comprehensive annual report on AI capabilities, economics, and policy across all 50 states.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.imdb.com/title/tt39150120/" target="_blank">The AI Doc: Or How I Became an Apocaloptimist</a>
+      <span class="brief-link-detail">Daniel Roher's 2026 documentary, in theaters now. Roher interviews Amodei, Altman, Hassabis, and dozens more. If you see one thing on this list, see this.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.youtube.com/watch?v=xoVJKj8lcNQ" target="_blank">The A.I. Dilemma</a>
+      <span class="brief-link-detail">Center for Humane Technology. 60 min, free on YouTube. Made for people with institutional power who need to understand AI quickly.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">TRACK</span>
+      <a href="https://www.ncsl.org/technology-and-communication/artificial-intelligence" target="_blank">NCSL AI Legislation Tracker</a> · <a href="https://mn.gov/mnit/about-mnit/oit-programs/ai/" target="_blank">MN.IT AI Office</a>
+      <span class="brief-link-detail">Every AI bill in every state. Plus Minnesota's own AI program office. See where you stand relative to the field.</span>
+    </div>
+  </div>
+
+  <div class="brief-close">
+    <p class="brief-close-small">This project is not affiliated with any campaign, party, or organization.</p>
+    <button id="exit-brief-btn">← Back</button>
+  </div>
+
+</div><!-- /brief-content -->
+
+<style>
+.brief-content { display: none; }
+body.mode-brief .brief-content { display: block; }
+body.mode-brief .pro-content { display: none; }
+body.mode-brief .oppo-content { display: none; }
+body.mode-brief #flip-btn { display: none; }
+.brief-content { background: #0C0A08; color: #D4CCBE; font-family: 'Source Serif 4', Georgia, serif; font-size: 17px; line-height: 1.75; min-height: 100vh; }
+.brief-content a { color: #C0B49A; }
+.brief-content a:hover { color: #fff; }
+@keyframes glitch-seq { 0% { filter: saturate(0) brightness(0.5); } 10% { filter: hue-rotate(90deg) contrast(4) brightness(3); transform: skewX(4deg); } 12% { filter: brightness(0.1); transform: none; } 25% { filter: hue-rotate(200deg) invert(0.8); transform: translateX(6px); } 27% { filter: brightness(0.05); transform: none; } 40% { filter: blur(6px) brightness(0.02); } 44% { filter: brightness(6); } 46% { filter: none; transform: none; } 60% { filter: hue-rotate(300deg) contrast(3) saturate(8); transform: skewX(-3deg); } 62% { filter: none; transform: none; } 78% { filter: blur(16px) brightness(0.01); } 82% { filter: brightness(2); } 84% { filter: none; } 100% { filter: none; transform: none; } }
+body.glitching { animation: glitch-seq 1.2s ease-in-out forwards; pointer-events: none; }
+.machine-stamp { background: #050505; border-top: 1px solid #111; padding: 16px 40px; text-align: center; }
+.machine-stamp-text { font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 0.22em; color: #222; text-transform: uppercase; animation: stamp-pulse 3s ease-in-out infinite; }
+@keyframes stamp-pulse { 0%, 100% { color: #222; } 50% { color: #4A3A2A; } }
+.brief-opening { max-width: 640px; margin: 0 auto; padding: 100px 40px 64px; }
+.brief-made-by { font-size: 20px; line-height: 1.65; color: #B8AE9C; margin-bottom: 20px; }
+.brief-chart-section { max-width: 740px; margin: 0 auto; padding: 48px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-chart-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 32px; font-style: italic; }
+.brief-chart-frame { background: #fff; border-radius: 4px; padding: 12px; margin-bottom: 12px; }
+.brief-metr-img { width: 100%; height: auto; display: block; }
+.brief-chart-fallback { padding: 40px; text-align: center; color: #666; font-size: 14px; }
+.brief-chart-source { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #5A5040; line-height: 1.6; margin-bottom: 28px; }
+.brief-chart-source a { color: #7A6A54; text-decoration: none; }
+.brief-chart-read { font-size: 17px; color: #B8AE9C; margin-bottom: 16px; }
+.brief-so-what { max-width: 640px; margin: 0 auto; padding: 56px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-so-what-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 28px; font-style: italic; }
+.brief-so-what p { font-size: 17px; color: #B8AE9C; margin-bottom: 20px; }
+.brief-next { max-width: 640px; margin: 0 auto; padding: 56px 40px 48px; border-top: 1px solid #1E1A14; }
+.brief-next-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 14px; font-style: italic; }
+.brief-link-block { margin-bottom: 28px; line-height: 1.7; }
+.brief-link-tag { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.2em; color: #6A5A44; text-transform: uppercase; display: block; margin-bottom: 4px; }
+.brief-link-block a { font-weight: 600; color: #E0D6C4; text-decoration: underline; text-underline-offset: 3px; font-size: 16px; }
+.brief-link-block a:hover { color: #fff; }
+.brief-link-detail { display: block; font-size: 14px; color: #6A5E4C; margin-top: 2px; }
+.brief-close { max-width: 640px; margin: 0 auto; padding: 48px 40px 100px; border-top: 1px solid #1E1A14; }
+.brief-close p { font-family: 'Source Serif 4', Georgia, serif; font-size: 16px; color: #9A9080; margin-bottom: 32px; line-height: 1.7; }
+.brief-close-small { font-family: 'IBM Plex Mono', monospace !important; font-size: 11px !important; color: #3A3428 !important; letter-spacing: 0.04em; }
+#exit-brief-btn { background: none; border: 1px solid #2A2418; color: #5A5040; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; padding: 10px 20px; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
+#exit-brief-btn:hover { border-color: #8A7A64; color: #C0B49A; }
+@media (max-width: 900px) { .brief-opening, .brief-so-what, .brief-next, .brief-close { padding-left: 24px; padding-right: 24px; } .brief-chart-section { padding-left: 24px; padding-right: 24px; } .brief-made-by { font-size: 18px; } .brief-opening { padding-top: 64px; } .machine-stamp { padding: 14px 20px; } }
+</style>
+
+<script>
+(function() {
+  let briefTriggered = false;
+  function startBriefTransition() {
+    if (briefTriggered) return;
+    if (!document.body.classList.contains('mode-oppo')) return;
+    briefTriggered = true;
+    const body = document.body;
+    body.style.transition = 'filter 2.5s ease-in';
+    body.style.filter = 'saturate(0) brightness(0.3)';
+    setTimeout(() => {
+      const hed = document.querySelector('.oppo-content h1') || document.querySelector('.oppo-content h2');
+      if (hed) { const orig = hed.textContent; const chars = '█▓▒░■□0123456789'; let n = 0; const si = setInterval(() => { n++; hed.textContent = Array.from(orig).map(c => c === ' ' ? ' ' : chars[Math.floor(Math.random() * chars.length)]).join(''); if (n > 40) { clearInterval(si); hed.textContent = orig; } }, 40); }
+    }, 1200);
+    setTimeout(() => {
+      body.style.transition = ''; body.style.filter = ''; body.classList.add('glitching');
+      setTimeout(() => { body.classList.remove('glitching'); body.classList.add('mode-brief'); window.scrollTo({ top: 0, behavior: 'instant' }); }, 1500);
+    }, 2500);
+  }
+  const sentinel = document.getElementById('brief-sentinel');
+  if (sentinel && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => { entries.forEach(e => { if (e.isIntersecting) { io.disconnect(); setTimeout(startBriefTransition, 1200); } }); }, { threshold: 0.5 });
+    io.observe(sentinel);
+  }
+  const flipBtn = document.getElementById('flip-btn');
+  if (flipBtn) { flipBtn.addEventListener('click', () => { if (document.body.classList.contains('mode-oppo')) briefTriggered = false; }); }
+})();
+document.addEventListener('click', (e) => {
+  if (e.target && e.target.id === 'exit-brief-btn') {
+    const body = document.body; body.style.opacity = '0'; body.style.transition = 'opacity 0.3s';
+    setTimeout(() => { body.classList.remove('mode-brief'); body.classList.add('mode-oppo'); window.scrollTo({ top: 0, behavior: 'instant' }); body.style.opacity = '1'; }, 300);
+  }
+});
+</script>
+
+</body>
+</html>
+

@@ -1,0 +1,2159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>District 62 Tenant Rights Navigator — Know What You're Owed</title>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Two-column asymmetric split — narrow dark sidebar (220px) with district
+      stats fixed on desktop + full main content area; sidebar/main feel like two
+      distinct design environments (dark/light inversion). NOT centered max-width shell.
+   2. Navigation: Vertical numbered step markers in the dark sidebar — active state
+      uses brick red background block. No rounded-top tab bar anywhere.
+   3. Typography: Georgia serif for body text, pull quotes, and rights language;
+      'Arial Narrow', condensed for all stat labels and section headers — inverts
+      Claude default of system-ui everywhere.
+   4. Hero moment: Full-bleed brick red opening band with the Cedar-Riverside
+      renter rate displayed at 80px in white — visible before any scrolling or
+      interaction. Forces the eye there first.
+   5. Color commitment: Sidebar background uses near-black #1C1C1E with white text;
+      calculator results band uses transit green #2D6A4F as full background with
+      white text; eviction alert panels use #C1121F tint; rights-affirming panels
+      use saturated #2D6A4F with white text; not just header accents.
+   Additional: Inputs styled with dark borders and serif labels matching the
+   civic-document feel; stat bars fill with palette color, no card borders.
+*/
+
+/* === RESET & BASE === */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --brick:    #9B2335;
+  --green:    #2D6A4F;
+  --gray:     #5A6472;
+  --bg:       #F7F5F0;
+  --white:    #FFFFFF;
+  --near-black: #1C1C1E;
+  --text:     #1C1C1E;
+  --yellow:   #C9952A;
+  --alert:    #C1121F;
+  --muted-green: #EAF4EE;
+  --sidebar-w: 220px;
+}
+
+html { font-size: 16px; }
+
+body {
+  font-family: Georgia, 'Times New Roman', serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.65;
+  min-height: 100vh;
+}
+
+/* === SPANISH LANGUAGE BANNER === */
+.lang-banner {
+  background: var(--green);
+  color: var(--white);
+  text-align: center;
+  padding: 8px 16px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+}
+.lang-banner strong { font-weight: 700; }
+
+/* === HERO BAND === */
+.hero {
+  background: var(--brick);
+  color: var(--white);
+  padding: 36px 24px 28px;
+  position: relative;
+}
+.hero-inner {
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  align-items: flex-start;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+.hero-stat-block {
+  flex: 0 0 auto;
+  text-align: center;
+  background: rgba(255,255,255,0.12);
+  padding: 16px 24px;
+  border-top: 4px solid rgba(255,255,255,0.6);
+}
+.hero-stat-num {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 80px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  letter-spacing: -2px;
+}
+.hero-stat-label {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  opacity: 0.85;
+  margin-top: 4px;
+}
+.hero-text {
+  flex: 1;
+  min-width: 260px;
+}
+.hero-text h1 {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.25;
+  margin-bottom: 10px;
+}
+.hero-text .subtitle {
+  font-size: 14px;
+  font-style: italic;
+  opacity: 0.88;
+  margin-bottom: 12px;
+}
+.hero-text p {
+  font-size: 15px;
+  opacity: 0.92;
+  line-height: 1.6;
+}
+.hero-text .framing-note {
+  margin-top: 12px;
+  font-size: 13px;
+  opacity: 0.78;
+  font-style: italic;
+  border-top: 1px solid rgba(255,255,255,0.3);
+  padding-top: 10px;
+}
+
+/* === APP SHELL — SIDEBAR + MAIN === */
+.app-shell {
+  display: flex;
+  align-items: stretch;
+  min-height: calc(100vh - 200px);
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: var(--sidebar-w);
+  flex: 0 0 var(--sidebar-w);
+  background: var(--near-black);
+  color: var(--white);
+  padding: 24px 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+.sidebar-label {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: rgba(255,255,255,0.45);
+  padding: 0 18px 8px;
+}
+
+/* Sidebar Navigation */
+.nav-list {
+  list-style: none;
+  margin-bottom: 28px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  cursor: pointer;
+  transition: background 0.15s;
+  border-left: 3px solid transparent;
+  font-family: Georgia, serif;
+  font-size: 14px;
+  color: rgba(255,255,255,0.7);
+  line-height: 1.3;
+}
+.nav-item:hover {
+  background: rgba(255,255,255,0.07);
+  color: #fff;
+}
+.nav-item.active {
+  background: var(--brick);
+  border-left-color: #fff;
+  color: #fff;
+}
+.nav-num {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  opacity: 0.5;
+  flex: 0 0 22px;
+  text-align: center;
+  line-height: 1;
+}
+.nav-item.active .nav-num { opacity: 1; }
+.nav-text { flex: 1; }
+.nav-text strong { display: block; font-size: 13px; font-weight: 700; }
+.nav-text span { font-size: 11px; opacity: 0.7; font-style: italic; }
+
+/* Sidebar District Stats */
+.sidebar-stats {
+  padding: 0 18px;
+  margin-top: auto;
+}
+.sidebar-stats .sidebar-label { padding: 0 0 8px; }
+.stat-row {
+  border-top: 1px solid rgba(255,255,255,0.1);
+  padding: 8px 0;
+}
+.stat-row:last-child { border-bottom: 1px solid rgba(255,255,255,0.1); }
+.stat-name {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 2px;
+}
+.stat-val {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--white);
+  line-height: 1.1;
+}
+.stat-ctx {
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+  font-style: italic;
+}
+
+/* === MAIN CONTENT AREA === */
+.main-content {
+  flex: 1;
+  min-width: 0;
+  padding: 32px 28px 48px;
+  max-width: 760px;
+}
+
+/* === MODULE PANELS === */
+.module { display: none; }
+.module.active { display: block; }
+
+/* === SECTION HEADINGS === */
+.module-title {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--near-black);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+.module-subtitle {
+  font-size: 16px;
+  color: var(--gray);
+  margin-bottom: 24px;
+  font-style: italic;
+}
+.section-rule {
+  border: none;
+  border-top: 3px solid var(--brick);
+  margin: 0 0 24px;
+  width: 48px;
+}
+
+/* === MODULE 1: RENT BURDEN CALCULATOR === */
+.calc-form {
+  margin-bottom: 28px;
+}
+.form-row {
+  margin-bottom: 18px;
+}
+.form-row label {
+  display: block;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gray);
+  margin-bottom: 5px;
+}
+.form-row .help-text {
+  font-size: 13px;
+  color: var(--gray);
+  font-style: italic;
+  margin-top: 4px;
+}
+.form-row input[type="number"],
+.form-row select {
+  width: 100%;
+  padding: 10px 12px;
+  font-family: Georgia, serif;
+  font-size: 16px;
+  border: 2px solid var(--near-black);
+  background: var(--white);
+  color: var(--text);
+  border-radius: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: border-color 0.15s;
+}
+.form-row input[type="number"]:focus,
+.form-row select:focus {
+  outline: none;
+  border-color: var(--brick);
+  box-shadow: 0 0 0 3px rgba(155, 35, 53, 0.12);
+}
+.form-row select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%231C1C1E' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+}
+.form-row-inline {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.form-row-inline .form-row {
+  flex: 1;
+  min-width: 140px;
+}
+
+.calc-btn {
+  display: inline-block;
+  padding: 13px 32px;
+  background: var(--brick);
+  color: #fff;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
+  margin-top: 8px;
+}
+.calc-btn:hover { background: #7a1b27; }
+.calc-btn:focus { outline: 3px solid var(--yellow); outline-offset: 2px; }
+
+/* RESULTS BAND */
+.results-band {
+  display: none;
+  background: var(--near-black);
+  color: var(--white);
+  padding: 28px 24px;
+  margin: 24px 0;
+}
+.results-band.visible { display: block; }
+
+.burden-pct-display {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.burden-pct-num {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 72px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -2px;
+}
+.burden-pct-label {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 18px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.7;
+}
+.burden-tier {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+  padding: 3px 10px;
+  display: inline-block;
+  margin-bottom: 16px;
+}
+.burden-tier.affordable { background: var(--green); color: #fff; }
+.burden-tier.burdened { background: var(--yellow); color: var(--near-black); }
+.burden-tier.severely { background: var(--alert); color: #fff; }
+
+/* Burden Bar */
+.burden-bar-wrap {
+  margin: 16px 0;
+}
+.burden-bar-track {
+  background: rgba(255,255,255,0.15);
+  height: 20px;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+.burden-bar-fill {
+  height: 100%;
+  width: 0%;
+  transition: width 0.8s ease;
+}
+.burden-bar-fill.affordable { background: var(--green); }
+.burden-bar-fill.burdened { background: var(--yellow); }
+.burden-bar-fill.severely { background: var(--alert); }
+.burden-bar-markers {
+  display: flex;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 11px;
+  opacity: 0.6;
+  margin-top: 4px;
+  position: relative;
+}
+.marker-30 { position: absolute; left: 30%; transform: translateX(-50%); }
+.marker-50 { position: absolute; left: 50%; transform: translateX(-50%); }
+
+.results-narrative {
+  font-size: 16px;
+  line-height: 1.65;
+  margin: 16px 0;
+  color: rgba(255,255,255,0.9);
+}
+.results-narrative strong { color: #fff; }
+
+.excess-callout {
+  background: rgba(255,255,255,0.08);
+  padding: 14px 16px;
+  border-top: 3px solid var(--yellow);
+  margin: 16px 0;
+}
+.excess-callout .excess-amt {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--yellow);
+  line-height: 1;
+}
+.excess-callout .excess-label {
+  font-size: 13px;
+  opacity: 0.7;
+  margin-top: 2px;
+}
+.equiv-list {
+  margin: 8px 0 0 16px;
+  font-size: 14px;
+  color: rgba(255,255,255,0.75);
+}
+.equiv-list li { margin-bottom: 4px; }
+
+.context-strip {
+  background: var(--green);
+  color: #fff;
+  padding: 14px 16px;
+  margin-top: 16px;
+  font-size: 14px;
+  font-style: italic;
+  line-height: 1.6;
+}
+
+.rideshare-note {
+  background: rgba(255,255,255,0.05);
+  border-top: 2px solid rgba(255,255,255,0.2);
+  padding: 12px 16px;
+  margin-top: 16px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.7);
+  font-style: italic;
+}
+
+.module-cta-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+.cta-btn {
+  padding: 11px 22px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 2px solid var(--white);
+  background: transparent;
+  color: var(--white);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.cta-btn:hover { background: var(--white); color: var(--near-black); }
+.cta-btn.primary { background: var(--brick); border-color: var(--brick); color: #fff; }
+.cta-btn.primary:hover { background: #7a1b27; border-color: #7a1b27; }
+
+/* === MODULE 2: RIGHTS NAVIGATOR === */
+.situation-intro {
+  font-size: 17px;
+  margin-bottom: 22px;
+  line-height: 1.65;
+}
+.situation-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  margin-bottom: 28px;
+}
+.sit-card {
+  padding: 16px 16px 16px 20px;
+  border-left: 5px solid var(--gray);
+  background: var(--white);
+  cursor: pointer;
+  transition: box-shadow 0.15s, border-left-color 0.15s;
+  font-family: Georgia, serif;
+}
+.sit-card:hover { box-shadow: 0 3px 12px rgba(0,0,0,0.12); }
+.sit-card.active { box-shadow: 0 3px 14px rgba(0,0,0,0.18); }
+.sit-card.eviction { border-left-color: var(--alert); }
+.sit-card.fees { border-left-color: var(--yellow); }
+.sit-card.entry { border-left-color: var(--brick); }
+.sit-card.rejection { border-left-color: var(--green); }
+.sit-card.retaliation { border-left-color: var(--near-black); }
+.sit-card.repairs { border-left-color: var(--green); }
+
+.sit-card-letter {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  opacity: 0.55;
+}
+.sit-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.3;
+  margin-bottom: 5px;
+}
+.sit-card-desc {
+  font-size: 13px;
+  color: var(--gray);
+  font-style: italic;
+  line-height: 1.4;
+}
+
+/* Situation Detail Panels */
+.sit-panel { display: none; }
+.sit-panel.visible { display: block; }
+.sit-panel-header {
+  background: var(--near-black);
+  color: var(--white);
+  padding: 20px 24px;
+  margin-bottom: 20px;
+}
+.sit-panel-header h3 {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.sit-panel-header .back-link {
+  font-size: 13px;
+  color: rgba(255,255,255,0.6);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 11px;
+  border: none;
+  background: none;
+  padding: 0;
+  color: rgba(255,255,255,0.6);
+  cursor: pointer;
+}
+.sit-panel-header .back-link:hover { color: #fff; }
+
+.q-block {
+  margin-bottom: 22px;
+}
+.q-label {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--gray);
+  margin-bottom: 6px;
+}
+.q-text {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+.q-options {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.q-btn {
+  padding: 9px 18px;
+  font-family: Georgia, serif;
+  font-size: 15px;
+  border: 2px solid var(--near-black);
+  background: var(--white);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.q-btn:hover { background: var(--near-black); color: #fff; }
+.q-btn.selected { background: var(--brick); border-color: var(--brick); color: #fff; }
+
+.answer-block { display: none; }
+.answer-block.visible { display: block; }
+
+.rights-affirm {
+  background: var(--green);
+  color: #fff;
+  padding: 18px 20px;
+  margin: 14px 0;
+}
+.rights-affirm .ra-head {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.8;
+  margin-bottom: 6px;
+}
+.rights-affirm p { font-size: 15px; line-height: 1.65; }
+.rights-affirm .statute-cite {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 12px;
+  opacity: 0.7;
+  margin-top: 8px;
+  font-style: italic;
+}
+
+.rights-alert {
+  background: var(--alert);
+  color: #fff;
+  padding: 18px 20px;
+  margin: 14px 0;
+}
+.rights-alert .ra-head {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.85;
+  margin-bottom: 6px;
+}
+.rights-alert p { font-size: 15px; line-height: 1.65; }
+.rights-alert .statute-cite {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 12px;
+  opacity: 0.8;
+  margin-top: 8px;
+  font-style: italic;
+}
+
+.rights-info {
+  background: var(--muted-green);
+  border-top: 3px solid var(--green);
+  padding: 16px 18px;
+  margin: 14px 0;
+}
+.rights-info p { font-size: 15px; line-height: 1.65; }
+.rights-info .statute-cite {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 12px;
+  color: var(--gray);
+  margin-top: 8px;
+  font-style: italic;
+}
+
+.what-to-do {
+  background: var(--bg);
+  border-top: 3px solid var(--near-black);
+  padding: 18px 20px;
+  margin: 22px 0;
+}
+.what-to-do h4 {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 12px;
+}
+.what-to-do ol {
+  margin-left: 20px;
+  font-size: 15px;
+  line-height: 1.65;
+}
+.what-to-do ol li { margin-bottom: 6px; }
+.phone-prominent {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--brick);
+  display: block;
+  margin-top: 8px;
+}
+
+.countdown-display {
+  background: var(--yellow);
+  color: var(--near-black);
+  padding: 14px 18px;
+  margin: 14px 0;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+}
+.countdown-display .days-left {
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 1;
+}
+.countdown-display .days-label { font-size: 14px; text-transform: uppercase; letter-spacing: 0.08em; }
+.countdown-display p { font-size: 14px; margin-top: 8px; }
+
+.court-checklist {
+  background: var(--white);
+  border: 2px solid var(--near-black);
+  padding: 16px 20px;
+  margin: 14px 0;
+}
+.court-checklist h5 {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 10px;
+}
+.checklist-items { list-style: none; }
+.checklist-items li {
+  padding: 7px 0;
+  border-bottom: 1px solid #e5e0d8;
+  font-size: 15px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.checklist-items li:last-child { border-bottom: none; }
+.check-box {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--near-black);
+  flex: 0 0 18px;
+  margin-top: 2px;
+  cursor: pointer;
+  background: #fff;
+  display: inline-block;
+  position: relative;
+}
+.check-box.checked::after {
+  content: '';
+  position: absolute;
+  top: 2px; left: 4px;
+  width: 6px; height: 10px;
+  border: 2px solid var(--green);
+  border-top: none; border-left: none;
+  transform: rotate(45deg);
+}
+
+.fee-type-select-wrap { margin: 10px 0 16px; }
+.fee-type-select-wrap select {
+  width: 100%;
+  padding: 10px 12px;
+  font-family: Georgia, serif;
+  font-size: 16px;
+  border: 2px solid var(--near-black);
+  background: var(--white);
+  color: var(--text);
+  border-radius: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%231C1C1E' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+}
+.fee-type-select-wrap select:focus {
+  outline: none;
+  border-color: var(--brick);
+}
+
+.notice-gen-btn {
+  display: inline-block;
+  padding: 12px 24px;
+  background: var(--green);
+  color: #fff;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  margin-top: 16px;
+  transition: background 0.15s;
+}
+.notice-gen-btn:hover { background: #1d4d38; }
+
+/* Date input for eviction timeline */
+.q-date-input {
+  padding: 9px 12px;
+  font-family: Georgia, serif;
+  font-size: 16px;
+  border: 2px solid var(--near-black);
+  background: var(--white);
+  color: var(--text);
+  width: 100%;
+  max-width: 240px;
+  margin-bottom: 10px;
+}
+.q-date-input:focus {
+  outline: none;
+  border-color: var(--brick);
+}
+
+/* === MODULE 3: NOTICE GENERATOR === */
+.notice-form { margin-bottom: 24px; }
+.notice-form .form-row input[type="text"],
+.notice-form .form-row input[type="date"],
+.notice-form .form-row input[type="number"] {
+  width: 100%;
+  padding: 10px 12px;
+  font-family: Georgia, serif;
+  font-size: 16px;
+  border: 2px solid var(--near-black);
+  background: var(--white);
+  color: var(--text);
+  border-radius: 0;
+  transition: border-color 0.15s;
+}
+.notice-form .form-row input:focus {
+  outline: none;
+  border-color: var(--brick);
+  box-shadow: 0 0 0 3px rgba(155, 35, 53, 0.12);
+}
+.notice-form .form-row select {
+  width: 100%;
+  padding: 10px 12px;
+  font-family: Georgia, serif;
+  font-size: 16px;
+  border: 2px solid var(--near-black);
+  background: var(--white);
+  color: var(--text);
+  border-radius: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%231C1C1E' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+}
+.notice-form .form-row select:focus {
+  outline: none;
+  border-color: var(--brick);
+}
+
+.generate-btn {
+  padding: 13px 32px;
+  background: var(--brick);
+  color: #fff;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
+  margin-top: 8px;
+}
+.generate-btn:hover { background: #7a1b27; }
+
+/* Letter Preview */
+.letter-wrap { display: none; margin-top: 28px; }
+.letter-wrap.visible { display: block; }
+.letter-preview {
+  background: var(--white);
+  border: 1px solid #ccc;
+  padding: 48px 56px;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 15px;
+  line-height: 1.75;
+  color: #111;
+  margin-bottom: 16px;
+  min-height: 400px;
+}
+.letter-preview [contenteditable="true"] {
+  outline: 2px dashed transparent;
+  transition: outline 0.15s;
+}
+.letter-preview [contenteditable="true"]:focus {
+  outline: 2px dashed var(--brick);
+}
+.letter-preview .letter-date { margin-bottom: 24px; }
+.letter-preview .letter-address { margin-bottom: 24px; }
+.letter-preview .letter-subject {
+  font-weight: 700;
+  text-decoration: underline;
+  margin-bottom: 20px;
+}
+.letter-preview .letter-body { margin-bottom: 28px; }
+.letter-preview .letter-body p { margin-bottom: 14px; }
+.letter-preview .letter-closing { margin-bottom: 40px; }
+.letter-preview .letter-sig-line {
+  border-top: 1px solid #333;
+  width: 260px;
+  margin-top: 4px;
+  padding-top: 4px;
+  font-size: 13px;
+  color: #555;
+}
+.print-btn {
+  padding: 12px 28px;
+  background: var(--near-black);
+  color: #fff;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.print-btn:hover { background: #444; }
+
+.edit-note {
+  font-size: 13px;
+  color: var(--gray);
+  font-style: italic;
+  margin-bottom: 12px;
+}
+
+/* Resources Panel */
+.resources-panel {
+  margin-top: 36px;
+  border-top: 3px solid var(--near-black);
+  padding-top: 20px;
+}
+.resources-panel h4 {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 14px;
+}
+.resource-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #d5d0c8;
+  flex-wrap: wrap;
+}
+.resource-row:last-child { border-bottom: none; }
+.resource-name {
+  font-weight: 700;
+  font-size: 15px;
+  flex: 0 0 auto;
+}
+.resource-contact {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--brick);
+}
+.resource-url {
+  font-size: 13px;
+  color: var(--green);
+  font-style: italic;
+}
+.resource-url a { color: var(--green); }
+
+/* === FOOTER === */
+footer {
+  background: var(--near-black);
+  color: rgba(255,255,255,0.65);
+  padding: 20px 28px;
+  font-size: 13px;
+  font-style: italic;
+  line-height: 1.6;
+}
+footer strong { color: rgba(255,255,255,0.9); }
+
+/* === PRINT CSS === */
+@media print {
+  .lang-banner, .hero, .app-shell .sidebar, .module-title, .module-subtitle,
+  .section-rule, .calc-form, .results-band, .situation-grid, .sit-panel-header .back-link,
+  .what-to-do .notice-gen-btn, .notice-form, .generate-btn, .print-btn,
+  .resources-panel, footer, .notice-gen-btn, .cta-btn, .calc-btn, .module-cta-row,
+  #module-calc, #module-rights, #module-rights .sit-panel,
+  .edit-note { display: none !important; }
+
+  body { background: #fff; font-size: 12pt; }
+  .app-shell { display: block; }
+  .main-content { padding: 0; max-width: none; }
+  #module-notice { display: block !important; }
+  .letter-wrap { display: block !important; }
+  .letter-preview {
+    border: none;
+    padding: 0;
+    font-size: 12pt;
+    box-shadow: none;
+  }
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 680px) {
+  .app-shell { flex-direction: column; }
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: static;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0;
+    gap: 0;
+  }
+  .sidebar-stats { display: none; }
+  .sidebar-label:first-child { display: none; }
+  .nav-list {
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 0;
+    width: 100%;
+  }
+  .nav-item {
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 8px;
+    gap: 4px;
+    border-left: none;
+    border-bottom: 3px solid transparent;
+    font-size: 12px;
+  }
+  .nav-item.active {
+    background: var(--brick);
+    border-bottom-color: #fff;
+  }
+  .nav-text span { display: none; }
+  .main-content { padding: 20px 16px 40px; }
+  .hero-stat-num { font-size: 56px; }
+  .situation-grid { grid-template-columns: 1fr; }
+  .letter-preview { padding: 24px 20px; }
+  .hero-inner { flex-direction: column; gap: 20px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Spanish Language Access Banner -->
+<div class="lang-banner" role="banner" aria-label="Language access notice">
+  <strong>En Espa&ntilde;ol:</strong> Llame a HOME Line al <strong>612-255-8870</strong> para asistencia en espa&ntilde;ol sobre sus derechos como inquilino.
+</div>
+
+<!-- Hero Band -->
+<div class="hero" role="banner">
+  <div class="hero-inner">
+    <div class="hero-stat-block" aria-label="Cedar-Riverside renter rate: 86 percent">
+      <div class="hero-stat-num" aria-hidden="true">86%</div>
+      <div class="hero-stat-label">Cedar-Riverside<br>Households That Rent</div>
+    </div>
+    <div class="hero-text">
+      <h1>District 62 Tenant Rights Navigator</h1>
+      <p class="subtitle">"Know What You&rsquo;re Owed"</p>
+      <p>District 62 is one of the most renter-dense areas in Minnesota. In Cedar-Riverside, nearly 9 in 10 households rent. In 2023 and 2024, the Minnesota Legislature passed the most significant new tenant protections in state history &mdash; including new rules on eviction notices, late fees, landlord entry, and the right to organize.</p>
+      <p class="framing-note">Senator Fateh&rsquo;s work in the Legislature helped pass these protections. This tool was built to make them legible to the people they were written for &mdash; the renters of District 62. In 2024, nearly 20,000 Minnesota renter households had to call a hotline just to learn what they were already owed by law. This tool is built so you can find those answers without waiting on hold.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Main App Shell -->
+<div class="app-shell">
+  <!-- Sidebar Navigation -->
+  <nav class="sidebar" role="navigation" aria-label="Tool sections">
+    <div class="sidebar-label">Tool Sections</div>
+    <ul class="nav-list" role="list">
+      <li class="nav-item active" role="listitem" tabindex="0" onclick="showModule('calc')" onkeydown="if(event.key==='Enter')showModule('calc')" aria-current="true" aria-label="Module 1: Rent Calculator">
+        <span class="nav-num" aria-hidden="true">1</span>
+        <span class="nav-text"><strong>Rent Calculator</strong><span>Is my rent affordable?</span></span>
+      </li>
+      <li class="nav-item" role="listitem" tabindex="0" onclick="showModule('rights')" onkeydown="if(event.key==='Enter')showModule('rights')" aria-label="Module 2: Know Your Rights">
+        <span class="nav-num" aria-hidden="true">2</span>
+        <span class="nav-text"><strong>Know Your Rights</strong><span>Navigate your situation</span></span>
+      </li>
+      <li class="nav-item" role="listitem" tabindex="0" onclick="showModule('notice')" onkeydown="if(event.key==='Enter')showModule('notice')" aria-label="Module 3: Write a Notice">
+        <span class="nav-num" aria-hidden="true">3</span>
+        <span class="nav-text"><strong>Write a Notice</strong><span>Generate a letter</span></span>
+      </li>
+    </ul>
+
+    <div class="sidebar-stats" aria-label="District 62 statistics">
+      <div class="sidebar-label">District 62 Data</div>
+      <div class="stat-row">
+        <div class="stat-name">Cedar-Riverside Renters</div>
+        <div class="stat-val">85.9%</div>
+        <div class="stat-ctx">of all households</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-name">Median HH Income</div>
+        <div class="stat-val">$26,464</div>
+        <div class="stat-ctx">Cedar-Riverside</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-name">Cost-Burdened</div>
+        <div class="stat-val">57.6%</div>
+        <div class="stat-ctx">Cedar-Riverside renters</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-name">Below Poverty Line</div>
+        <div class="stat-val">51.4%</div>
+        <div class="stat-ctx">Cedar-Riverside residents</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-name">MN Evictions (2023)</div>
+        <div class="stat-val">25,847</div>
+        <div class="stat-ctx">statewide filings</div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content" role="main">
+
+    <!-- ======== MODULE 1: RENT BURDEN CALCULATOR ======== -->
+    <section id="module-calc" class="module active" aria-label="Rent Burden Calculator">
+      <div class="module-title">Rent Calculator</div>
+      <div class="module-subtitle">Find out if your housing costs are squeezing you &mdash; and by how much.</div>
+      <hr class="section-rule" aria-hidden="true">
+
+      <form class="calc-form" onsubmit="event.preventDefault(); calculateBurden();" novalidate>
+        <div class="form-row-inline">
+          <div class="form-row">
+            <label for="gross-income">Monthly Gross Household Income ($)</label>
+            <input type="number" id="gross-income" name="gross-income" min="0" step="1" placeholder="e.g. 2,200" aria-describedby="income-help" autocomplete="off">
+            <div class="help-text" id="income-help">Include all wages, benefits, and assistance you receive each month.</div>
+          </div>
+          <div class="form-row">
+            <label for="monthly-rent">Monthly Rent ($)</label>
+            <input type="number" id="monthly-rent" name="monthly-rent" min="0" step="1" placeholder="e.g. 950" autocomplete="off">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label for="utilities-included">Are utilities included in your rent?</label>
+          <select id="utilities-included" name="utilities-included" onchange="toggleUtilities()" aria-controls="utility-cost-row">
+            <option value="yes">Yes &mdash; utilities included</option>
+            <option value="partial">Partially included</option>
+            <option value="no">No &mdash; I pay utilities separately</option>
+          </select>
+        </div>
+
+        <div class="form-row" id="utility-cost-row" style="display:none;">
+          <label for="utility-cost">Monthly Utility Costs ($)</label>
+          <input type="number" id="utility-cost" name="utility-cost" min="0" step="1" placeholder="e.g. 120" autocomplete="off">
+          <div class="help-text">Estimate electricity, gas, water, and internet combined.</div>
+        </div>
+
+        <div class="form-row">
+          <label for="household-size">Household Size</label>
+          <select id="household-size" name="household-size">
+            <option value="1">1 person</option>
+            <option value="2">2 people</option>
+            <option value="3">3 people</option>
+            <option value="4">4 people</option>
+            <option value="5">5 people</option>
+            <option value="6">6 people</option>
+            <option value="7">7 people</option>
+            <option value="8">8+ people</option>
+          </select>
+        </div>
+
+        <button type="submit" class="calc-btn" aria-label="Calculate rent burden">Calculate My Rent Burden</button>
+      </form>
+
+      <!-- Results Band -->
+      <div class="results-band" id="calc-results" role="region" aria-live="polite" aria-label="Calculation results">
+        <div class="burden-pct-display">
+          <div class="burden-pct-num" id="result-pct" aria-label="Housing cost percentage">--</div>
+          <div class="burden-pct-label">% of income<br>on housing</div>
+        </div>
+        <div class="burden-tier" id="result-tier">Calculating&hellip;</div>
+
+        <div class="burden-bar-wrap" aria-hidden="true">
+          <div class="burden-bar-track" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+            <div class="burden-bar-fill" id="burden-bar"></div>
+          </div>
+          <div class="burden-bar-markers" style="position:relative;height:18px;">
+            <span class="marker-30" style="font-size:11px;opacity:0.6;position:absolute;left:30%;transform:translateX(-50%);">30%</span>
+            <span class="marker-50" style="font-size:11px;opacity:0.6;position:absolute;left:50%;transform:translateX(-50%);">50%</span>
+          </div>
+        </div>
+
+        <p class="results-narrative" id="result-narrative"></p>
+
+        <div class="excess-callout" id="excess-block">
+          <div class="excess-amt" id="excess-annual"></div>
+          <div class="excess-label">more per year than the affordability threshold</div>
+          <ul class="equiv-list" id="equiv-list"></ul>
+        </div>
+
+        <div class="context-strip">
+          In Cedar-Riverside, 57.6% of renter households face a similar calculation. Across Minneapolis, more than 80% of renters earning under $50,000 are cost-burdened &mdash; a rate that rose 7.5 percentage points from 2018 to 2023.
+        </div>
+
+        <div class="rideshare-note">
+          <strong>Rideshare drivers:</strong> Minnesota law as of late 2024 sets a minimum pay floor for Uber/Lyft drivers at $1.28 per mile + $0.31 per minute while transporting a passenger, with a $5 minimum per trip. If you drove rideshare before this law, your effective hourly rate may have increased.
+        </div>
+
+        <div class="module-cta-row">
+          <button class="cta-btn primary" onclick="showModule('rights')" aria-label="Go to Know Your Rights section">Know Your Rights</button>
+          <button class="cta-btn" onclick="showModule('notice')" aria-label="Go to Write a Notice section">Write a Notice</button>
+        </div>
+      </div>
+
+      <div id="calc-benchmarks" style="margin-top:24px;padding:18px 0;border-top:2px solid #e0dbd2;">
+        <div style="font-family:'Arial Narrow',Arial,sans-serif;font-size:12px;text-transform:uppercase;letter-spacing:0.1em;color:var(--gray);margin-bottom:12px;">Minneapolis Rent Benchmarks (2024)</div>
+        <div style="display:flex;gap:24px;flex-wrap:wrap;">
+          <div>
+            <div style="font-family:'Arial Narrow',Arial,sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray);">1-Bedroom Median</div>
+            <div style="font-family:'Arial Narrow',Arial,sans-serif;font-size:28px;font-weight:700;">$1,200<span style="font-size:14px;opacity:0.6;">/mo</span></div>
+          </div>
+          <div>
+            <div style="font-family:'Arial Narrow',Arial,sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray);">2-Bedroom Median</div>
+            <div style="font-family:'Arial Narrow',Arial,sans-serif;font-size:28px;font-weight:700;">$1,500<span style="font-size:14px;opacity:0.6;">/mo</span></div>
+          </div>
+          <div>
+            <div style="font-family:'Arial Narrow',Arial,sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray);">Federal Affordability Standard</div>
+            <div style="font-family:'Arial Narrow',Arial,sans-serif;font-size:28px;font-weight:700;">30%<span style="font-size:14px;opacity:0.6;"> of income</span></div>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--gray);font-style:italic;margin-top:10px;">Sources: U.S. Census Bureau; MN Compass; Eviction Lab. Minneapolis citywide cost-burden rate: 46.7% overall (2023). Renters under $50K: 80%+ cost-burdened.</div>
+      </div>
+    </section>
+
+    <!-- ======== MODULE 2: RIGHTS NAVIGATOR ======== -->
+    <section id="module-rights" class="module" aria-label="Tenant Rights Navigator">
+      <div class="module-title">Know Your Rights</div>
+      <div class="module-subtitle">Minnesota&rsquo;s 2023&ndash;2024 tenant protection laws in plain language.</div>
+      <hr class="section-rule" aria-hidden="true">
+
+      <!-- Situation Selection Grid -->
+      <div id="situation-menu">
+        <p class="situation-intro">What situation are you dealing with? Select the one that fits best.</p>
+        <div class="situation-grid" role="list" aria-label="Situation options">
+          <div class="sit-card eviction" role="listitem" tabindex="0" onclick="showSituation('eviction')" onkeydown="if(event.key==='Enter')showSituation('eviction')" aria-label="Situation A: My landlord is trying to evict me">
+            <div class="sit-card-letter">A</div>
+            <div class="sit-card-title">My landlord is trying to evict me</div>
+            <div class="sit-card-desc">Notice received, eviction filing, court date</div>
+          </div>
+          <div class="sit-card fees" role="listitem" tabindex="0" onclick="showSituation('fees')" onkeydown="if(event.key==='Enter')showSituation('fees')" aria-label="Situation B: Unexpected fee charged">
+            <div class="sit-card-letter">B</div>
+            <div class="sit-card-title">My landlord charged me an unexpected fee</div>
+            <div class="sit-card-desc">Late fees, pet fees, move-in costs, hidden charges</div>
+          </div>
+          <div class="sit-card entry" role="listitem" tabindex="0" onclick="showSituation('entry')" onkeydown="if(event.key==='Enter')showSituation('entry')" aria-label="Situation C: Landlord entered without notice">
+            <div class="sit-card-letter">C</div>
+            <div class="sit-card-title">My landlord entered my unit without notice</div>
+            <div class="sit-card-desc">Unannounced entry, privacy violation</div>
+          </div>
+          <div class="sit-card rejection" role="listitem" tabindex="0" onclick="showSituation('rejection')" onkeydown="if(event.key==='Enter')showSituation('rejection')" aria-label="Situation D: Rejected from rental application">
+            <div class="sit-card-letter">D</div>
+            <div class="sit-card-title">I was rejected from a rental application</div>
+            <div class="sit-card-desc">Screening, credit history, criminal record, immigration status</div>
+          </div>
+          <div class="sit-card retaliation" role="listitem" tabindex="0" onclick="showSituation('retaliation')" onkeydown="if(event.key==='Enter')showSituation('retaliation')" aria-label="Situation E: Landlord retaliation for organizing">
+            <div class="sit-card-letter">E</div>
+            <div class="sit-card-title">My landlord is retaliating against me for organizing</div>
+            <div class="sit-card-desc">Tenant union, repair requests, complaints</div>
+          </div>
+          <div class="sit-card repairs" role="listitem" tabindex="0" onclick="showSituation('repairs')" onkeydown="if(event.key==='Enter')showSituation('repairs')" aria-label="Situation F: Repair problem landlord won't fix">
+            <div class="sit-card-letter">F</div>
+            <div class="sit-card-title">My unit has a repair problem my landlord won&rsquo;t fix</div>
+            <div class="sit-card-desc">Habitability, rent escrow, required response timeline</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---- SITUATION A: EVICTION ---- -->
+      <div id="sit-eviction" class="sit-panel" aria-label="Eviction rights">
+        <div class="sit-panel-header">
+          <button class="back-link" onclick="backToMenu()" aria-label="Back to situation menu">&#9666; Back to all situations</button>
+          <h3>Situation A: Eviction</h3>
+        </div>
+
+        <div class="q-block" id="eviction-q1">
+          <div class="q-label">Question 1 of 2</div>
+          <p class="q-text">Did you receive written notice from your landlord before they filed for eviction?</p>
+          <div class="q-options">
+            <button class="q-btn" onclick="evictionQ1('no')" aria-label="No, I did not receive written notice">No, I did not</button>
+            <button class="q-btn" onclick="evictionQ1('yes')" aria-label="Yes, I received written notice">Yes, I did</button>
+          </div>
+        </div>
+
+        <div class="answer-block" id="eviction-no-notice">
+          <div class="rights-alert">
+            <div class="ra-head">Your Rights Have Been Violated</div>
+            <p>As of January 1, 2024, Minnesota law requires your landlord to give you a written 14-day notice before filing an eviction for nonpayment of rent. If no written notice was given, the eviction filing may be improper and you may be able to have it dismissed.</p>
+            <div class="statute-cite">Minn. Stat. &sect;504B.321, effective January 1, 2024</div>
+          </div>
+          <div class="what-to-do">
+            <h4>What To Do Next</h4>
+            <ol>
+              <li>Write down the date you received any communication from your landlord and how it was delivered (text, verbal, posted on door, etc.).</li>
+              <li>If you have a court date, attend it and tell the judge you did not receive the required 14-day written notice.</li>
+              <li>Bring any text messages, emails, or notes showing the landlord did not give written notice.</li>
+              <li>Call HOME Line for free advice before your court date.</li>
+            </ol>
+            <span class="phone-prominent">HOME Line: 612-728-5767</span>
+            <span class="phone-prominent" style="font-size:16px;color:var(--green);">En Espa&ntilde;ol: 612-255-8870</span>
+            <button class="notice-gen-btn" onclick="goToNotice('eviction', 'No eviction notice provided before filing')" aria-label="Generate a written notice for no eviction notice provided">Generate a Written Notice</button>
+          </div>
+        </div>
+
+        <div class="answer-block" id="eviction-yes-notice">
+          <div class="q-block" id="eviction-q1b">
+            <div class="q-label">Follow-up Question</div>
+            <p class="q-text">When did you receive the written notice?</p>
+            <label for="eviction-date" style="font-size:14px;color:var(--gray);font-style:italic;display:block;margin-bottom:6px;">Enter the date shown on the notice (or when you received it):</label>
+            <input type="date" id="eviction-date" class="q-date-input" onchange="checkEvictionDate()" aria-label="Date of eviction notice">
+          </div>
+          <div class="answer-block" id="eviction-within14">
+            <div id="eviction-countdown" class="countdown-display" aria-live="polite">
+              <div class="days-left" id="eviction-days-left">--</div>
+              <div class="days-label">Days remaining in your 14-day notice period</div>
+              <p>Your landlord <strong>cannot file for eviction</strong> until the 14-day notice period expires. If they file before this date, the filing may be improper.</p>
+            </div>
+            <div class="rights-info">
+              <p>You are still within your 14-day notice period. Use this time to: gather any documents showing you owe rent or disputes about the amount, explore emergency rental assistance, and contact HOME Line for advice on your options.</p>
+              <div class="statute-cite">Minn. Stat. &sect;504B.321 &mdash; 14-day pre-eviction notice requirement</div>
+            </div>
+            <div class="what-to-do">
+              <h4>What To Do Now</h4>
+              <ol>
+                <li>Contact your landlord in writing (text or email) to document your response.</li>
+                <li>Apply for emergency rental assistance if you owe back rent: Hennepin County Emergency Assistance 612-696-0804.</li>
+                <li>Call HOME Line for free advice: 612-728-5767.</li>
+              </ol>
+              <button class="notice-gen-btn" onclick="goToNotice('eviction', 'Disputing eviction notice / seeking resolution within notice period')" aria-label="Generate response letter during notice period">Generate a Response Letter</button>
+            </div>
+          </div>
+          <div class="answer-block" id="eviction-past14">
+            <div class="rights-info">
+              <p>Your 14-day notice period has passed. If an eviction has been filed, you will receive a court summons. Prepare for your hearing using the checklist below.</p>
+            </div>
+            <div class="court-checklist">
+              <h5>Court Date Preparation Checklist</h5>
+              <ul class="checklist-items" aria-label="Court preparation checklist">
+                <li><span class="check-box" role="checkbox" tabindex="0" aria-checked="false" onclick="toggleCheck(this)" onkeydown="if(event.key===' ')toggleCheck(this)"></span><span>Bring your lease agreement</span></li>
+                <li><span class="check-box" role="checkbox" tabindex="0" aria-checked="false" onclick="toggleCheck(this)" onkeydown="if(event.key===' ')toggleCheck(this)"></span><span>Bring all rent receipts or bank records showing payments made</span></li>
+                <li><span class="check-box" role="checkbox" tabindex="0" aria-checked="false" onclick="toggleCheck(this)" onkeydown="if(event.key===' ')toggleCheck(this)"></span><span>Bring the original written notice from your landlord</span></li>
+                <li><span class="check-box" role="checkbox" tabindex="0" aria-checked="false" onclick="toggleCheck(this)" onkeydown="if(event.key===' ')toggleCheck(this)"></span><span>Bring any written communication with your landlord (texts, emails)</span></li>
+                <li><span class="check-box" role="checkbox" tabindex="0" aria-checked="false" onclick="toggleCheck(this)" onkeydown="if(event.key===' ')toggleCheck(this)"></span><span>Arrive at least 30 minutes before your hearing time</span></li>
+                <li><span class="check-box" role="checkbox" tabindex="0" aria-checked="false" onclick="toggleCheck(this)" onkeydown="if(event.key===' ')toggleCheck(this)"></span><span>Ask about available interpreters if you need one (request in advance if possible)</span></li>
+                <li><span class="check-box" role="checkbox" tabindex="0" aria-checked="false" onclick="toggleCheck(this)" onkeydown="if(event.key===' ')toggleCheck(this)"></span><span>Contact Legal Aid Society of Minneapolis if you need free legal help: 612-334-5970</span></li>
+              </ul>
+            </div>
+            <div class="what-to-do">
+              <h4>Free Help Available</h4>
+              <ol>
+                <li>Call HOME Line for pre-hearing advice: <strong>612-728-5767</strong></li>
+                <li>Call Legal Aid Society: <strong>612-334-5970</strong></li>
+              </ol>
+            </div>
+          </div>
+        </div>
+
+        <div class="q-block" id="eviction-q2" style="margin-top:20px;">
+          <div class="q-label">Question 2 of 2</div>
+          <p class="q-text">What is the reason given for the eviction?</p>
+          <div class="q-options">
+            <button class="q-btn" onclick="evictionQ2('nonpayment')" aria-label="Nonpayment of rent">Nonpayment of rent</button>
+            <button class="q-btn" onclick="evictionQ2('lease')" aria-label="Lease violation">Lease violation</button>
+            <button class="q-btn" onclick="evictionQ2('endofterm')" aria-label="End of lease or tenancy">End of lease / tenancy</button>
+          </div>
+        </div>
+        <div class="answer-block" id="eviction-nonpayment">
+          <div class="rights-info">
+            <p><strong>Nonpayment evictions:</strong> Your landlord must have given you the 14-day written notice (see above). You have the right to pay the full amount owed at any time before a court judgment is entered to stop the eviction. Keep records of any payment you make.</p>
+            <div class="statute-cite">Minn. Stat. &sect;504B.321 &mdash; right to cure nonpayment before judgment</div>
+          </div>
+        </div>
+        <div class="answer-block" id="eviction-lease">
+          <div class="rights-info">
+            <p><strong>Lease violation evictions:</strong> Your landlord must specify the exact lease provision you violated. You have the right to know what the violation is. In some cases you may be able to cure the violation (fix the problem) before a judgment is entered.</p>
+          </div>
+        </div>
+        <div class="answer-block" id="eviction-endofterm">
+          <div class="rights-info">
+            <p><strong>End of tenancy:</strong> If your lease has expired or your landlord is not renewing, they must still follow proper notice requirements. Month-to-month tenants are typically entitled to advance notice before being required to leave. Check your lease for the required notice period.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---- SITUATION B: FEES ---- -->
+      <div id="sit-fees" class="sit-panel" aria-label="Fee dispute rights">
+        <div class="sit-panel-header">
+          <button class="back-link" onclick="backToMenu()" aria-label="Back to situation menu">&#9666; Back to all situations</button>
+          <h3>Situation B: Unexpected Fee</h3>
+        </div>
+
+        <p style="font-size:16px;margin-bottom:16px;line-height:1.65;">Minnesota law restricts what fees your landlord can charge you and requires disclosure of all non-optional fees before you sign your lease.</p>
+
+        <div class="q-block">
+          <div class="q-label">What type of fee was charged?</div>
+          <div class="fee-type-select-wrap">
+            <select id="fee-type-select" onchange="showFeeInfo()" aria-label="Select fee type">
+              <option value="">-- Select the type of fee --</option>
+              <option value="late">Late fee</option>
+              <option value="pet">Pet fee (non-service animal)</option>
+              <option value="service-animal">Service or emotional support animal fee</option>
+              <option value="movein">Move-in / application fee</option>
+              <option value="month-month">Month-to-month fee</option>
+              <option value="other">Other / undisclosed fee</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="fee-late" class="answer-block">
+          <div class="rights-info">
+            <p><strong>Late fees are capped by law.</strong> Your landlord can only charge a late fee if: (1) it is agreed to in writing in your lease, and (2) the fee is no more than 8% of the overdue rent amount. They cannot charge a flat late fee that exceeds this cap.</p>
+            <p style="margin-top:10px;">Example: If you owe $1,000 in rent, the maximum late fee is $80.</p>
+            <div class="statute-cite">Minn. Stat. &sect;504B.177 &mdash; late fee cap at 8% of overdue rent</div>
+          </div>
+          <div class="what-to-do">
+            <h4>What To Do Next</h4>
+            <ol>
+              <li>Check your lease to see if a late fee is included in writing.</li>
+              <li>Calculate 8% of your overdue rent amount.</li>
+              <li>If the fee exceeds 8%, you can dispute it in writing to your landlord.</li>
+              <li>Document everything in writing (email or text).</li>
+            </ol>
+            <button class="notice-gen-btn" onclick="goToNotice('fees', 'Unlawful late fee charge exceeding 8% cap')" aria-label="Generate a late fee dispute notice">Generate a Late Fee Dispute Notice</button>
+          </div>
+        </div>
+
+        <div id="fee-pet" class="answer-block">
+          <div class="rights-info">
+            <p><strong>Pet fees:</strong> Landlords may charge a pet deposit or pet fee for non-service, non-emotional-support animals if it is agreed to in writing in your lease. However, this fee must be disclosed before you sign your lease. An undisclosed pet fee added after signing may be challenged.</p>
+          </div>
+          <div class="what-to-do">
+            <h4>What To Do Next</h4>
+            <ol>
+              <li>Check if the pet fee was disclosed in your lease before you signed.</li>
+              <li>If it was not disclosed before signing, dispute it in writing.</li>
+            </ol>
+            <button class="notice-gen-btn" onclick="goToNotice('fees', 'Undisclosed pet fee added after lease signing')" aria-label="Generate a pet fee dispute notice">Generate a Fee Dispute Notice</button>
+          </div>
+        </div>
+
+        <div id="fee-service-animal" class="answer-block">
+          <div class="rights-alert">
+            <div class="ra-head">This Fee is Illegal</div>
+            <p>A landlord cannot charge any fee for a service animal or emotional support animal. This is prohibited under Minnesota law. It does not matter what your lease says &mdash; a lease provision requiring a fee for a service or support animal is unenforceable.</p>
+            <div class="statute-cite">Minn. Stat. &sect;504B.113 (as amended) &mdash; no fees for service/support animals</div>
+          </div>
+          <div class="what-to-do">
+            <h4>What To Do Next</h4>
+            <ol>
+              <li>Demand a refund of the fee in writing immediately.</li>
+              <li>If your landlord refuses, contact HOME Line: 612-728-5767.</li>
+              <li>You may also file a complaint with the Minnesota Department of Human Rights.</li>
+            </ol>
+            <button class="notice-gen-btn" onclick="goToNotice('fees', 'Illegal service/support animal fee charged')" aria-label="Generate a service animal fee dispute notice">Generate a Refund Demand Notice</button>
+          </div>
+        </div>
+
+        <div id="fee-movein" class="answer-block">
+          <div class="rights-info">
+            <p><strong>Move-in and application fees</strong> must be disclosed before you agree to rent. If a fee was not disclosed before you signed your lease or paid your deposit, you may be able to challenge it. Keep records of all fees paid and when they were disclosed to you.</p>
+          </div>
+        </div>
+
+        <div id="fee-month-month" class="answer-block">
+          <div class="rights-info">
+            <p><strong>Month-to-month fees:</strong> Some leases include a premium for month-to-month tenancy. This must be disclosed in writing before you sign your lease. If this fee appeared after you signed, or was not disclosed, dispute it in writing.</p>
+          </div>
+        </div>
+
+        <div id="fee-other" class="answer-block">
+          <div class="rights-alert">
+            <div class="ra-head">Undisclosed Fees May Be Unenforceable</div>
+            <p>Your landlord must disclose all non-optional fees before you sign your lease. If a mandatory fee was added after you signed &mdash; or was never disclosed &mdash; you have grounds to dispute it. This includes administrative fees, utility management fees, or any fee not in your original lease.</p>
+          </div>
+          <div class="what-to-do">
+            <h4>What To Do Next</h4>
+            <ol>
+              <li>Review your original lease carefully for every fee listed.</li>
+              <li>Write down the fee charged, the date, and how it was communicated to you.</li>
+              <li>Send a written dispute to your landlord asking for the legal basis for the fee.</li>
+              <li>If unresolved: HOME Line 612-728-5767.</li>
+            </ol>
+            <button class="notice-gen-btn" onclick="goToNotice('fees', 'Undisclosed or unlawful fee charged')" aria-label="Generate a fee dispute notice">Generate a Fee Dispute Notice</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---- SITUATION C: ENTRY ---- -->
+      <div id="sit-entry" class="sit-panel" aria-label="Unlawful entry rights">
+        <div class="sit-panel-header">
+          <button class="back-link" onclick="backToMenu()" aria-label="Back to situation menu">&#9666; Back to all situations</button>
+          <h3>Situation C: Landlord Entered Without Notice</h3>
+        </div>
+        <div class="rights-alert">
+          <div class="ra-head">Minnesota Law Requires Advance Notice</div>
+          <p>Your landlord must give you at least 24 hours advance notice before entering your unit. The only exception is a genuine emergency (such as a fire, flood, or burst pipe). Routine inspections, repairs, or showings to prospective tenants all require 24-hour notice.</p>
+          <div class="statute-cite">Minn. Stat. &sect;504B.211 &mdash; 24-hour advance notice before landlord entry</div>
+        </div>
+        <div class="rights-info">
+          <p>If your landlord enters without notice: you have the right to demand this not happen again, in writing. Repeated unauthorized entry may constitute harassment or an interference with your right to quiet enjoyment &mdash; which can support a legal complaint.</p>
+        </div>
+        <div class="what-to-do">
+          <h4>What To Do Next</h4>
+          <ol>
+            <li>Write down the date and time of the unauthorized entry, and what your landlord did while in your unit.</li>
+            <li>Send a written notice to your landlord reminding them of the 24-hour notice requirement.</li>
+            <li>If unauthorized entry continues, contact HOME Line: 612-728-5767.</li>
+            <li>You may also file a complaint with the city of Minneapolis.</li>
+          </ol>
+          <span class="phone-prominent">HOME Line: 612-728-5767</span>
+          <button class="notice-gen-btn" onclick="goToNotice('entry', 'Unlawful entry without required 24-hour advance notice')" aria-label="Generate an unlawful entry notice">Generate a Written Objection Notice</button>
+        </div>
+      </div>
+
+      <!-- ---- SITUATION D: REJECTION ---- -->
+      <div id="sit-rejection" class="sit-panel" aria-label="Application rejection rights">
+        <div class="sit-panel-header">
+          <button class="back-link" onclick="backToMenu()" aria-label="Back to situation menu">&#9666; Back to all situations</button>
+          <h3>Situation D: Rental Application Rejected</h3>
+        </div>
+        <div class="q-block">
+          <div class="q-label">Question 1 of 2</div>
+          <p class="q-text">Is the rental unit located within the City of Minneapolis?</p>
+          <div class="q-options">
+            <button class="q-btn" onclick="rejectionQ1('yes')" aria-label="Yes, in Minneapolis">Yes, in Minneapolis</button>
+            <button class="q-btn" onclick="rejectionQ1('no')" aria-label="No, outside Minneapolis">No, elsewhere in MN</button>
+          </div>
+        </div>
+        <div class="answer-block" id="rejection-mpls">
+          <div class="rights-affirm">
+            <div class="ra-head">Minneapolis Has Stronger Protections</div>
+            <p>In the City of Minneapolis, a landlord cannot reject you based on any one of the following alone: your credit score, your criminal history, lack of credit history, or prior eviction history. If you have a consistent record of paying rent on time, you can provide that as evidence of your ability to pay &mdash; even if you don&rsquo;t meet the stated income threshold or don&rsquo;t have a traditional credit history.</p>
+          </div>
+        </div>
+        <div class="answer-block" id="rejection-state">
+          <div class="rights-info">
+            <p><strong>Statewide:</strong> Your landlord must provide you a written adverse action notice explaining why you were denied and what screening criteria were used. They must also disclose their screening criteria upfront. If you were charged a screening fee, they must return it if they do not run a screen.</p>
+          </div>
+        </div>
+        <div class="q-block" id="rejection-q2-block" style="display:none;margin-top:16px;">
+          <div class="q-label">Question 2 of 2</div>
+          <p class="q-text">Were you denied because of your immigration status or because you don&rsquo;t have a Social Security number?</p>
+          <div class="q-options">
+            <button class="q-btn" onclick="rejectionQ2('yes')" aria-label="Yes, immigration status or no SSN">Yes</button>
+            <button class="q-btn" onclick="rejectionQ2('no')" aria-label="No, other reason">No, other reason</button>
+          </div>
+        </div>
+        <div class="answer-block" id="rejection-immigration">
+          <div class="rights-alert">
+            <div class="ra-head">This May Be an Illegal Rejection</div>
+            <p>Minnesota&rsquo;s 2024 tenant protection law prohibits denying a rental application based on immigration status. Landlords also cannot require a Social Security number as the sole form of ID &mdash; other valid government identification must be accepted. If you were rejected for either of these reasons, you may have a legal claim.</p>
+          </div>
+          <div class="what-to-do">
+            <h4>What To Do Next</h4>
+            <ol>
+              <li>Get the denial in writing if you don&rsquo;t have it already.</li>
+              <li>Contact HOME Line: 612-728-5767.</li>
+              <li>Contact the Minnesota Department of Human Rights to file a complaint.</li>
+              <li>Contact Legal Aid Society: 612-334-5970.</li>
+            </ol>
+            <span class="phone-prominent">HOME Line: 612-728-5767</span>
+          </div>
+        </div>
+        <div class="answer-block" id="rejection-other">
+          <div class="what-to-do">
+            <h4>What To Do Next</h4>
+            <ol>
+              <li>Request the written adverse action notice from the landlord if you haven&rsquo;t received one.</li>
+              <li>Review what screening criteria they used and whether those criteria were disclosed upfront.</li>
+              <li>Call HOME Line for advice on challenging the denial: 612-728-5767.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---- SITUATION E: RETALIATION ---- -->
+      <div id="sit-retaliation" class="sit-panel" aria-label="Retaliation rights">
+        <div class="sit-panel-header">
+          <button class="back-link" onclick="backToMenu()" aria-label="Back to situation menu">&#9666; Back to all situations</button>
+          <h3>Situation E: Landlord Retaliation</h3>
+        </div>
+        <div class="rights-affirm">
+          <div class="ra-head">You Have the Right to Organize</div>
+          <p>Minnesota law protects tenants who organize with their neighbors, join a tenant union, report housing code violations, contact the media, or file complaints about their building. Your landlord cannot evict you, raise your rent, reduce your services, or threaten you because of these protected activities. This protection applies even if you are in a dispute with your landlord about other issues.</p>
+          <div class="statute-cite">Minn. Stat. &sect;504B.285 (as amended) &mdash; prohibition on landlord retaliation</div>
+        </div>
+        <div class="rights-info">
+          <p><strong>Protected actions include:</strong> organizing meetings with other tenants, joining or forming a tenant union, contacting local media, filing complaints with the city or county, reporting code violations to housing inspectors, and requesting repairs in writing.</p>
+          <p style="margin-top:10px;"><strong>Signs of retaliation:</strong> eviction notice shortly after you exercised a protected right, sudden rent increase, reduction in building services, harassment, or refusal to make repairs that were previously requested.</p>
+        </div>
+        <div class="what-to-do">
+          <h4>What To Do Next</h4>
+          <ol>
+            <li>Document the timeline: write down the date you exercised your protected right, and the date your landlord took the adverse action.</li>
+            <li>Keep copies of all written communication with your landlord.</li>
+            <li>Contact Inquilinxs Unidxs por Justicia (tenant union organizing): <strong>inquilinxsunidxs.org</strong></li>
+            <li>Contact HOME Line: 612-728-5767.</li>
+            <li>Contact Legal Aid Society if you are facing eviction as retaliation: 612-334-5970.</li>
+          </ol>
+          <span class="phone-prominent">HOME Line: 612-728-5767</span>
+          <button class="notice-gen-btn" onclick="goToNotice('retaliation', 'Landlord retaliation for tenant organizing or protected activity')" aria-label="Generate a retaliation dispute notice">Generate a Written Notice</button>
+        </div>
+      </div>
+
+      <!-- ---- SITUATION F: REPAIRS ---- -->
+      <div id="sit-repairs" class="sit-panel" aria-label="Repair rights">
+        <div class="sit-panel-header">
+          <button class="back-link" onclick="backToMenu()" aria-label="Back to situation menu">&#9666; Back to all situations</button>
+          <h3>Situation F: Repair Problem</h3>
+        </div>
+        <div class="rights-affirm">
+          <div class="ra-head">Your Landlord Must Maintain Habitability</div>
+          <p>Your landlord is required by law to maintain your unit in a habitable condition. This includes working heat, plumbing, structural integrity, and freedom from pest infestations. A landlord who fails to make necessary repairs after written notice may be subject to a rent escrow proceeding &mdash; where you pay rent to the court instead of the landlord until repairs are made.</p>
+        </div>
+        <div class="rights-info">
+          <p><strong>The legal repair process:</strong></p>
+          <ol style="margin-left:20px;margin-top:8px;font-size:15px;line-height:1.65;">
+            <li style="margin-bottom:8px;"><strong>Step 1 &mdash; Written notice:</strong> Send a written request to your landlord describing the repair needed, the date it started, and the impact on your use of the unit. Keep a copy.</li>
+            <li style="margin-bottom:8px;"><strong>Step 2 &mdash; Wait for response:</strong> For urgent repairs (no heat in winter, sewage backup), your landlord must respond promptly &mdash; often within 24 hours. For non-urgent repairs, a reasonable time is 14 days.</li>
+            <li style="margin-bottom:8px;"><strong>Step 3 &mdash; If no response:</strong> You can file a rent escrow petition with Housing Court. You deposit your rent with the court, and the judge can order the landlord to make repairs or reduce your rent.</li>
+          </ol>
+        </div>
+        <div class="what-to-do">
+          <h4>What To Do Next</h4>
+          <ol>
+            <li>Send a written repair request today &mdash; by email, text, or certified mail. Date and describe the problem clearly.</li>
+            <li>Take photos and video of the problem and save them dated.</li>
+            <li>Do NOT withhold rent without going through the formal rent escrow process &mdash; contact HOME Line first.</li>
+            <li>If the landlord does not respond: HOME Line 612-728-5767 or Legal Aid 612-334-5970.</li>
+          </ol>
+          <span class="phone-prominent">HOME Line: 612-728-5767</span>
+          <button class="notice-gen-btn" onclick="goToNotice('repairs', 'Written notice of repair needed — landlord failure to maintain habitability')" aria-label="Generate a repair request notice">Generate a Repair Request Notice</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======== MODULE 3: NOTICE GENERATOR ======== -->
+    <section id="module-notice" class="module" aria-label="Written Notice Generator">
+      <div class="module-title">Write a Notice</div>
+      <div class="module-subtitle">Generate a firm, factual letter to your landlord citing the relevant Minnesota law.</div>
+      <hr class="section-rule" aria-hidden="true">
+
+      <p style="font-size:15px;margin-bottom:20px;line-height:1.65;">Fill in the information below. The tool will generate a formatted letter you can print and send. You can edit any text in the letter before printing.</p>
+
+      <form class="notice-form" onsubmit="event.preventDefault(); generateNotice();" novalidate>
+        <div class="form-row-inline">
+          <div class="form-row">
+            <label for="n-renter-name">Your Name (Renter)</label>
+            <input type="text" id="n-renter-name" name="n-renter-name" placeholder="Full name" autocomplete="name">
+          </div>
+          <div class="form-row">
+            <label for="n-landlord-name">Landlord / Property Manager Name</label>
+            <input type="text" id="n-landlord-name" name="n-landlord-name" placeholder="Name or 'Property Management'">
+          </div>
+        </div>
+        <div class="form-row">
+          <label for="n-address">Rental Property Address</label>
+          <input type="text" id="n-address" name="n-address" placeholder="Street address, unit, city, state, ZIP" autocomplete="street-address">
+        </div>
+        <div class="form-row-inline">
+          <div class="form-row">
+            <label for="n-incident-date">Date of Incident or Charge</label>
+            <input type="date" id="n-incident-date" name="n-incident-date">
+          </div>
+          <div class="form-row">
+            <label for="n-amount">Dollar Amount Disputed (if any)</label>
+            <input type="number" id="n-amount" name="n-amount" placeholder="0.00" min="0" step="0.01">
+          </div>
+        </div>
+        <div class="form-row">
+          <label for="n-issue-type">Type of Issue</label>
+          <select id="n-issue-type" name="n-issue-type">
+            <option value="eviction-no-notice">Eviction: No 14-day written notice provided</option>
+            <option value="eviction-dispute">Eviction: Disputing / responding within notice period</option>
+            <option value="fee-late">Fee: Late fee exceeds 8% cap or not in lease</option>
+            <option value="fee-service-animal">Fee: Illegal service/support animal fee</option>
+            <option value="fee-undisclosed">Fee: Undisclosed or unlawful charge</option>
+            <option value="entry">Landlord entry without required 24-hour notice</option>
+            <option value="retaliation">Retaliation for organizing or protected activity</option>
+            <option value="repairs">Repair request — habitability failure</option>
+            <option value="rejection-immigration">Application rejection: immigration status or SSN</option>
+          </select>
+        </div>
+        <button type="submit" class="generate-btn" aria-label="Generate notice letter">Generate Notice Letter</button>
+      </form>
+
+      <div class="letter-wrap" id="letter-wrap" role="region" aria-label="Generated letter">
+        <p class="edit-note">You can click and edit any text in the letter below before printing.</p>
+        <div class="letter-preview" id="letter-preview" aria-label="Letter preview — click to edit">
+          <!-- Letter content injected by JS -->
+        </div>
+        <button class="print-btn" onclick="window.print()" aria-label="Print this notice">Print This Notice</button>
+      </div>
+
+      <!-- Resources Panel -->
+      <div class="resources-panel" aria-label="Tenant resources">
+        <h4>Tenant Resources</h4>
+        <div class="resource-row">
+          <span class="resource-name">HOME Line (Tenant Hotline)</span>
+          <span class="resource-contact">612-728-5767</span>
+          <span class="resource-url"><a href="https://homelinemn.org" target="_blank" rel="noopener">homelinemn.org</a></span>
+        </div>
+        <div class="resource-row">
+          <span class="resource-name">HOME Line (En Espa&ntilde;ol)</span>
+          <span class="resource-contact">612-255-8870</span>
+          <span class="resource-url"></span>
+        </div>
+        <div class="resource-row">
+          <span class="resource-name">MN Attorney General Tenant Hotline</span>
+          <span class="resource-contact">800-657-3787</span>
+          <span class="resource-url"></span>
+        </div>
+        <div class="resource-row">
+          <span class="resource-name">Legal Aid Society of Minneapolis</span>
+          <span class="resource-contact">612-334-5970</span>
+          <span class="resource-url"></span>
+        </div>
+        <div class="resource-row">
+          <span class="resource-name">Inquilinxs Unidxs por Justicia</span>
+          <span class="resource-contact"></span>
+          <span class="resource-url"><a href="https://inquilinxsunidxs.org" target="_blank" rel="noopener">inquilinxsunidxs.org</a></span>
+        </div>
+        <div class="resource-row">
+          <span class="resource-name">Senator Omar Fateh&rsquo;s Office (SD-62)</span>
+          <span class="resource-contact"></span>
+          <span class="resource-url"><a href="https://senate.mn/members/1247" target="_blank" rel="noopener">senate.mn/members/1247</a></span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Footer -->
+<footer role="contentinfo">
+  <p>A resource for renters in <strong>Senate District 62</strong> and across Minneapolis. Built with AI. Reflects Minnesota tenant/landlord law as amended through the <strong>2024 legislative session</strong>. This tool provides general information only &mdash; not legal advice. For your specific situation, contact <strong>HOME Line at 612-728-5767</strong>.</p>
+</footer>
+
+<script>
+// === MODULE STATE ===
+const state = {
+  currentModule: 'calc',
+  currentSituation: null,
+  situationIssue: ''
+};
+
+// === MODULE NAVIGATION ===
+function showModule(mod) {
+  document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => {
+    n.classList.remove('active');
+    n.removeAttribute('aria-current');
+  });
+  document.getElementById('module-' + mod).classList.add('active');
+  const navItems = document.querySelectorAll('.nav-item');
+  const moduleMap = { calc: 0, rights: 1, notice: 2 };
+  if (moduleMap[mod] !== undefined) {
+    navItems[moduleMap[mod]].classList.add('active');
+    navItems[moduleMap[mod]].setAttribute('aria-current', 'true');
+  }
+  state.currentModule = mod;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// === UTILITY TOGGLE ===
+function toggleUtilities() {
+  const sel = document.getElementById('utilities-included').value;
+  const row = document.getElementById('utility-cost-row');
+  row.style.display = (sel === 'no' || sel === 'partial') ? 'block' : 'none';
+}
+
+// === MODULE 1: RENT BURDEN CALCULATOR ===
+function calculateBurden() {
+  const income = parseFloat(document.getElementById('gross-income').value) || 0;
+  const rent = parseFloat(document.getElementById('monthly-rent').value) || 0;
+  const utilities = parseFloat(document.getElementById('utility-cost').value) || 0;
+  const utilsIncluded = document.getElementById('utilities-included').value;
+
+  if (income <= 0 || rent <= 0) {
+    alert('Please enter your monthly income and rent to calculate.');
+    return;
+  }
+
+  const utilCost = (utilsIncluded === 'yes') ? 0 : utilities;
+  const totalHousing = rent + utilCost;
+  const burdenPct = (totalHousing / income) * 100;
+  const affordableRent = income * 0.30;
+  const monthlyExcess = Math.max(0, totalHousing - affordableRent);
+  const annualExcess = monthlyExcess * 12;
+
+  // Save to localStorage
+  try {
+    localStorage.setItem('fateh_calc', JSON.stringify({ income, rent, utilities, utilsIncluded }));
+  } catch(e) {}
+
+  // Determine tier
+  let tierClass, tierLabel;
+  if (burdenPct < 30) {
+    tierClass = 'affordable';
+    tierLabel = 'Affordable (Under 30%)';
+  } else if (burdenPct <= 50) {
+    tierClass = 'burdened';
+    tierLabel = 'Cost-Burdened (30–50%)';
+  } else {
+    tierClass = 'severely';
+    tierLabel = 'Severely Cost-Burdened (Over 50%)';
+  }
+
+  // Render results
+  const pctEl = document.getElementById('result-pct');
+  pctEl.textContent = Math.round(burdenPct) + '%';
+  pctEl.style.color = tierClass === 'affordable' ? '#4ade80' : tierClass === 'burdened' ? '#fbbf24' : '#f87171';
+
+  const tierEl = document.getElementById('result-tier');
+  tierEl.className = 'burden-tier ' + tierClass;
+  tierEl.textContent = tierLabel;
+
+  // Bar
+  const bar = document.getElementById('burden-bar');
+  bar.className = 'burden-bar-fill ' + tierClass;
+  const barWidth = Math.min(100, burdenPct);
+  setTimeout(() => { bar.style.width = barWidth + '%'; }, 50);
+  const track = bar.parentElement;
+  track.setAttribute('aria-valuenow', Math.round(burdenPct));
+
+  // Narrative
+  const narrativeEl = document.getElementById('result-narrative');
+  const affordableStr = '$' + Math.round(affordableRent).toLocaleString();
+  let narrativeText = '';
+  if (burdenPct < 30) {
+    narrativeText = `Your household spends <strong>${Math.round(burdenPct)}%</strong> of its income on housing. At your income, an affordable monthly rent ceiling would be <strong>${affordableStr}</strong>. You are currently within that threshold.`;
+  } else if (burdenPct <= 50) {
+    narrativeText = `Your household spends <strong>${Math.round(burdenPct)}%</strong> of its income on housing — above the federal 30% standard. At your income level, an affordable monthly rent would be <strong>${affordableStr}</strong>.`;
+  } else {
+    narrativeText = `Your household spends <strong>${Math.round(burdenPct)}%</strong> of its income on housing. This is <em>severely cost-burdened</em> territory. At your income level, an affordable monthly rent would be <strong>${affordableStr}</strong>.`;
+  }
+  narrativeEl.innerHTML = narrativeText;
+
+  // Excess block
+  const excessBlock = document.getElementById('excess-block');
+  if (annualExcess > 0) {
+    excessBlock.style.display = 'block';
+    document.getElementById('excess-annual').textContent = '$' + Math.round(annualExcess).toLocaleString();
+    const equiv = document.getElementById('equiv-list');
+    const groceries = Math.round(annualExcess / 150);
+    const busMonths = Math.round(annualExcess / 105);
+    const coPayVisits = Math.round(annualExcess / 30);
+    equiv.innerHTML = `<li>That could cover <strong>${groceries} weeks of groceries</strong> for your household</li>
+      <li>Or <strong>${busMonths} months of Metro Transit bus passes</strong></li>
+      <li>Or <strong>${coPayVisits} clinic co-pay visits</strong></li>`;
+  } else {
+    excessBlock.style.display = 'none';
+  }
+
+  // Show results
+  const resultsEl = document.getElementById('calc-results');
+  resultsEl.classList.add('visible');
+  resultsEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// Load saved values
+(function loadSaved() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('fateh_calc') || 'null');
+    if (saved) {
+      if (saved.income) document.getElementById('gross-income').value = saved.income;
+      if (saved.rent) document.getElementById('monthly-rent').value = saved.rent;
+      if (saved.utilsIncluded) document.getElementById('utilities-included').value = saved.utilsIncluded;
+      if (saved.utilities) document.getElementById('utility-cost').value = saved.utilities;
+      toggleUtilities();
+    }
+  } catch(e) {}
+})();
+
+// === MODULE 2: RIGHTS NAVIGATOR ===
+function showSituation(sit) {
+  document.getElementById('situation-menu').style.display = 'none';
+  document.querySelectorAll('.sit-panel').forEach(p => p.classList.remove('visible'));
+  document.getElementById('sit-' + sit).classList.add('visible');
+  state.currentSituation = sit;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function backToMenu() {
+  document.getElementById('situation-menu').style.display = 'block';
+  document.querySelectorAll('.sit-panel').forEach(p => p.classList.remove('visible'));
+  state.currentSituation = null;
+}
+
+// Eviction Q1: did you get notice?
+function evictionQ1(answer) {
+  const btns = document.querySelectorAll('#eviction-q1 .q-btn');
+  btns.forEach(b => b.classList.remove('selected'));
+  event.target.classList.add('selected');
+
+  hideBlock('eviction-no-notice');
+  hideBlock('eviction-yes-notice');
+
+  if (answer === 'no') {
+    showBlock('eviction-no-notice');
+  } else {
+    showBlock('eviction-yes-notice');
+  }
+}
+
+// Eviction: check if notice date is within 14 days
+function checkEvictionDate() {
+  const dateVal = document.getElementById('eviction-date').value;
+  if (!dateVal) return;
+
+  hideBlock('eviction-within14');
+  hideBlock('eviction-past14');
+
+  const noticeDate = new Date(dateVal + 'T00:00:00');
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const deadline = new Date(noticeDate);
+  deadline.setDate(deadline.getDate() + 14);
+  const daysLeft = Math.ceil((deadline - today) / (1000 * 60 * 60 * 24));
+
+  if (daysLeft > 0) {
+    showBlock('eviction-within14');
+    document.getElementById('eviction-days-left').textContent = daysLeft;
+    document.getElementById('eviction-countdown').setAttribute('aria-label', daysLeft + ' days remaining in 14-day notice period');
+  } else {
+    showBlock('eviction-past14');
+  }
+}
+
+// Eviction Q2: reason for eviction
+function evictionQ2(reason) {
+  const btns = document.querySelectorAll('#eviction-q2 .q-btn');
+  btns.forEach(b => b.classList.remove('selected'));
+  event.target.classList.add('selected');
+
+  hideBlock('eviction-nonpayment');
+  hideBlock('eviction-lease');
+  hideBlock('eviction-endofterm');
+  showBlock('eviction-' + reason);
+}
+
+// Fees: show fee type info
+function showFeeInfo() {
+  const val = document.getElementById('fee-type-select').value;
+  const feeIds = ['fee-late', 'fee-pet', 'fee-service-animal', 'fee-movein', 'fee-month-month', 'fee-other'];
+  feeIds.forEach(id => hideBlock(id));
+  const map = {
+    'late': 'fee-late',
+    'pet': 'fee-pet',
+    'service-animal': 'fee-service-animal',
+    'movein': 'fee-movein',
+    'month-month': 'fee-month-month',
+    'other': 'fee-other'
+  };
+  if (val && map[val]) showBlock(map[val]);
+}
+
+// Rejection Q1: Minneapolis or not
+function rejectionQ1(answer) {
+  const btns = document.querySelectorAll('#sit-rejection .q-block:first-of-type .q-btn');
+  btns.forEach(b => b.classList.remove('selected'));
+  event.target.classList.add('selected');
+  hideBlock('rejection-mpls');
+  hideBlock('rejection-state');
+  hideBlock('rejection-immigration');
+  hideBlock('rejection-other');
+
+  if (answer === 'yes') {
+    showBlock('rejection-mpls');
+  } else {
+    showBlock('rejection-state');
+  }
+  document.getElementById('rejection-q2-block').style.display = 'block';
+}
+
+// Rejection Q2: immigration
+function rejectionQ2(answer) {
+  const btns = document.querySelectorAll('#rejection-q2-block .q-btn');
+  btns.forEach(b => b.classList.remove('selected'));
+  event.target.classList.add('selected');
+  hideBlock('rejection-immigration');
+  hideBlock('rejection-other');
+  if (answer === 'yes') {
+    showBlock('rejection-immigration');
+  } else {
+    showBlock('rejection-other');
+  }
+}
+
+// Checklist toggle
+function toggleCheck(el) {
+  const isChecked = el.classList.contains('checked');
+  el.classList.toggle('checked');
+  el.setAttribute('aria-checked', !isChecked);
+}
+
+// Helper: show/hide blocks
+function showBlock(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.add('visible');
+}
+function hideBlock(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.remove('visible');
+}
+
+// === MODULE 3: NOTICE GENERATOR ===
+function goToNotice(situation, issue) {
+  state.currentSituation = situation;
+  state.situationIssue = issue;
+  // Pre-fill issue type
+  const issueTypeMap = {
+    'eviction': 'eviction-no-notice',
+    'fees': 'fee-undisclosed',
+    'entry': 'entry',
+    'retaliation': 'retaliation',
+    'repairs': 'repairs',
+    'rejection': 'rejection-immigration'
+  };
+  const sel = document.getElementById('n-issue-type');
+  if (issueTypeMap[situation]) sel.value = issueTypeMap[situation];
+  // Refine issue type from the passed issue string
+  if (issue.includes('late fee') || issue.includes('Late fee')) sel.value = 'fee-late';
+  if (issue.includes('service') || issue.includes('support animal')) sel.value = 'fee-service-animal';
+  if (issue.includes('No eviction notice') || issue.includes('no eviction notice')) sel.value = 'eviction-no-notice';
+  if (issue.includes('within notice period')) sel.value = 'eviction-dispute';
+  if (issue.includes('entry') || issue.includes('24-hour')) sel.value = 'entry';
+  if (issue.includes('retaliation') || issue.includes('organizing')) sel.value = 'retaliation';
+  if (issue.includes('repair') || issue.includes('Repair')) sel.value = 'repairs';
+  if (issue.includes('immigration') || issue.includes('SSN')) sel.value = 'rejection-immigration';
+
+  showModule('notice');
+}
+
+function generateNotice() {
+  const renterName = document.getElementById('n-renter-name').value.trim() || 'Renter';
+  const landlordName = document.getElementById('n-landlord-name').value.trim() || 'Property Management / Landlord';
+  const address = document.getElementById('n-address').value.trim() || '[Property Address]';
+  const incidentDate = document.getElementById('n-incident-date').value;
+  const amount = parseFloat(document.getElementById('n-amount').value) || 0;
+  const issueType = document.getElementById('n-issue-type').value;
+
+  const today = new Date();
+  const todayStr = today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  const deadlineDate = new Date(today);
+  deadlineDate.setDate(deadlineDate.getDate() + 10);
+  const deadlineStr = deadlineDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  const incidentStr = incidentDate
+    ? new Date(incidentDate + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+    : '[date of incident]';
+  const amountStr = amount > 0 ? '$' + amount.toFixed(2) : '[amount]';
+
+  const issueTemplates = {
+    'eviction-no-notice': {
+      subject: 'Notice: Eviction Filing Without Required 14-Day Written Notice — Minn. Stat. \u00a7504B.321',
+      para1: `On or about ${incidentStr}, I received notice of an eviction proceeding filed against me at the above-referenced property. I did not receive a written 14-day notice prior to this filing as required by Minnesota law.`,
+      para2: `Minnesota Statute \u00a7504B.321, effective January 1, 2024, requires that a landlord must provide a tenant with written notice at least 14 days before filing an eviction action for nonpayment of rent. This requirement was not met. I am requesting that the eviction filing be withdrawn and that proper procedure be followed. Failure to do so may result in a motion to dismiss the eviction filing on procedural grounds.`
+    },
+    'eviction-dispute': {
+      subject: 'Response to Eviction Notice — Within 14-Day Notice Period — Minn. Stat. \u00a7504B.321',
+      para1: `I am writing in response to the written notice of eviction I received on or about ${incidentStr} for the property at the above address.`,
+      para2: `I am currently within the 14-day notice period provided under Minn. Stat. \u00a7504B.321. I am making every effort to resolve this matter before the notice period expires and request that we discuss a resolution. I am retaining this notice as documentation of my response.`
+    },
+    'fee-late': {
+      subject: `Notice: Unlawful Late Fee Charge — Minn. Stat. \u00a7504B.177`,
+      para1: `On or about ${incidentStr}, I was charged a late fee of ${amountStr} in connection with my tenancy at the above-referenced property. This fee either was not included in my written lease agreement or exceeds the legal limit.`,
+      para2: `Minnesota Statute \u00a7504B.177 limits late fees to 8% of the overdue rent amount and requires that any late fee be agreed to in writing in the lease. A late fee that exceeds this cap or was not disclosed in the lease is unenforceable. I am requesting that this fee be removed from my account and, if it has been paid, that it be returned to me within 10 days.`
+    },
+    'fee-service-animal': {
+      subject: `Notice: Illegal Fee Charged for Service/Emotional Support Animal — Minn. Stat. \u00a7504B.113`,
+      para1: `On or about ${incidentStr}, I was charged a fee of ${amountStr} related to my service animal or emotional support animal at the above-referenced property.`,
+      para2: `Minnesota Statute \u00a7504B.113, as amended, expressly prohibits landlords from charging any fee for a service animal or emotional support animal. This fee is therefore unlawful and unenforceable regardless of any lease provision to the contrary. I am demanding an immediate refund of ${amountStr} and removal of this charge from my account.`
+    },
+    'fee-undisclosed': {
+      subject: `Notice: Undisclosed or Unlawful Fee Charged — Required Disclosure Not Provided`,
+      para1: `On or about ${incidentStr}, I was charged a fee of ${amountStr} that was not disclosed to me before I signed my lease for the above-referenced property.`,
+      para2: `Minnesota law requires landlords to disclose all non-optional fees to tenants before they sign a lease. A mandatory fee that was not disclosed before lease signing may be unenforceable. I am requesting written documentation of the legal basis for this charge. If no such basis exists, I am requesting that the charge be removed and, if paid, refunded within 10 days.`
+    },
+    'entry': {
+      subject: `Notice: Landlord Entry Without Required 24-Hour Advance Notice — Minn. Stat. \u00a7504B.211`,
+      para1: `On or about ${incidentStr}, you or your agent entered my unit at the above-referenced address without providing the advance notice required by Minnesota law.`,
+      para2: `Minnesota Statute \u00a7504B.211 requires that a landlord provide at least 24 hours advance notice before entering a tenant's dwelling unit, except in cases of genuine emergency. No such notice was provided in this instance. I am writing to formally request that this violation not recur. Repeated unauthorized entry may constitute interference with my right to quiet enjoyment and may support a formal legal complaint.`
+    },
+    'retaliation': {
+      subject: `Notice: Landlord Retaliation for Protected Tenant Activity — Minn. Stat. \u00a7504B.285`,
+      para1: `On or about ${incidentStr}, you took adverse action against me as a tenant at the above-referenced property. I believe this action is in retaliation for my exercise of legally protected tenant rights.`,
+      para2: `Minnesota Statute \u00a7504B.285, as amended, prohibits landlords from retaliating against tenants who organize with neighbors, join or form tenant unions, contact media, file housing complaints, or request repairs. The adverse action you took occurred in close proximity to my exercise of one or more of these protected activities. I am formally notifying you that retaliatory action is unlawful and requesting that this action be immediately reversed.`
+    },
+    'repairs': {
+      subject: `Written Notice of Required Repairs — Habitability Obligation Under Minnesota Law`,
+      para1: `I am writing to formally notify you of a repair issue at the above-referenced property that has existed since on or about ${incidentStr} and that you have not yet remedied. The issue affects the habitability of my unit.`,
+      para2: `As my landlord, you are legally obligated to maintain the property in a habitable condition. I am requesting that this repair be completed promptly. If the repair is not made within a reasonable time, I may pursue rent escrow remedies available under Minnesota housing law. I am retaining a copy of this notice and documenting the condition of the property.`
+    },
+    'rejection-immigration': {
+      subject: `Notice: Rental Application Rejection Based on Immigration Status or Identification — Minnesota Law Violation`,
+      para1: `On or about ${incidentStr}, my rental application for the above-referenced property was rejected. I believe this rejection was based, in whole or in part, on my immigration status or my lack of a Social Security number.`,
+      para2: `Minnesota's 2024 tenant protection law prohibits landlords from denying rental applications based on immigration status. Additionally, landlords may not require a Social Security number as the sole accepted form of identification; other valid government-issued identification must be accepted. I am requesting a written explanation of the basis for my denial and reserve the right to pursue further action if this rejection was unlawful.`
+    }
+  };
+
+  const template = issueTemplates[issueType] || issueTemplates['fee-undisclosed'];
+
+  const letterHTML = `
+    <div contenteditable="false">
+      <div class="letter-date" contenteditable="true">${todayStr}</div>
+      <div class="letter-address" contenteditable="true">
+        <strong>${landlordName}</strong><br>
+        Re: ${address}
+      </div>
+      <div class="letter-subject" contenteditable="true">Re: ${template.subject}</div>
+      <div class="letter-body">
+        <p contenteditable="true">Dear ${landlordName},</p>
+        <p contenteditable="true">${template.para1}</p>
+        <p contenteditable="true">${template.para2}</p>
+        <p contenteditable="true">I am retaining a copy of this notice. If this matter is not resolved by ${deadlineStr}, I will contact HOME Line (612-728-5767) and the Minnesota Attorney General's Office (800-657-3787) for further assistance.</p>
+      </div>
+      <div class="letter-closing" contenteditable="true">Sincerely,</div>
+      <div contenteditable="true"><strong>${renterName}</strong></div>
+      <div class="letter-sig-line">Signature</div>
+      <div style="margin-top:20px;font-size:12px;color:#666;" contenteditable="true">Sent by: ______________________________ &nbsp;&nbsp; Date: ______________________________</div>
+    </div>
+  `;
+
+  document.getElementById('letter-preview').innerHTML = letterHTML;
+  document.getElementById('letter-wrap').classList.add('visible');
+  document.getElementById('letter-wrap').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+</script>
+</body>
+</html>

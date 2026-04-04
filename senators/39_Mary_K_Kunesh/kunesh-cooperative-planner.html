@@ -1,0 +1,2623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cooperative Purchase Planner — SD-39 Housing Tool</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Sticky left sidebar (dark, 280px) + scrolling right content area — hard
+      split-screen, NOT centered single-column. Sidebar stays fixed as user scrolls
+      through steps. On mobile (<768px), sidebar collapses to horizontal step bar at top.
+   2. Navigation: Vertical numbered step tracker in dark sidebar — filled circles
+      connected by a vertical line, with done (lake-steel)/active (brick-red)/pending
+      (hollow gray) states. NOT rounded-top tabs.
+   3. Typography: Georgia serif for all body text, paragraph content, and labels
+      (community document / cooperative handbook feel); 'Arial Narrow', condensed
+      sans-serif for step titles, section headers, and data labels (creates efficiency
+      contrast). NOT system-ui sans throughout.
+   4. Hero moment: The opening intro section uses a full-bleed deep-slate background
+      with brick-red title at 36px — high contrast color block that grabs the eye first
+      before any form appears. Step headers use full brick-red top-band backgrounds.
+   5. Color commitment: Dark sidebar (#1E2A35) is structural palette color as full
+      background with light text. Step section headers use brick red (#8B2E2E) as full
+      band background. Key Numbers panel in sidebar uses lake-steel (#3D6B8C) tint.
+      Indicator bars use all three palette colors (red/blue/gray). No gray-on-white default.
+   Additional: Stats displayed as horizontal inline bar indicators, not result-card grids.
+      No left-border accent cards anywhere. Inputs styled in dark-border concrete-gray
+      language matching the tool's cooperative-resource aesthetic.
+*/
+
+:root {
+  --brick:    #8B2E2E;
+  --brick-dk: #6B2222;
+  --steel:    #3D6B8C;
+  --steel-lt: #5185A8;
+  --concrete: #6B7280;
+  --slate:    #1E2A35;
+  --slate-lt: #2A3848;
+  --warm-wh:  #F9F7F4;
+  --nearblk:  #1A1A1A;
+  --success:  #2D6A4F;
+  --warn:     #B45309;
+  --alert:    #991B1B;
+  --border:   #D0C8BE;
+  --muted:    #6B7280;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 16px; scroll-behavior: smooth; }
+
+body {
+  font-family: Georgia, 'Times New Roman', serif;
+  background: var(--warm-wh);
+  color: var(--nearblk);
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ── SIDEBAR ── */
+#sidebar {
+  width: 280px;
+  min-width: 280px;
+  background: var(--slate);
+  color: #E8E4DF;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+#sidebar-inner {
+  padding: 28px 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  flex: 1;
+}
+
+.sidebar-tool-title {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--brick);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.25;
+  margin-bottom: 4px;
+}
+
+.sidebar-subtitle {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 11px;
+  color: var(--steel-lt);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 28px;
+}
+
+/* Step tracker */
+.step-list {
+  list-style: none;
+  position: relative;
+  margin-bottom: 32px;
+}
+
+.step-list::before {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 16px;
+  bottom: 16px;
+  width: 2px;
+  background: var(--slate-lt);
+}
+
+.step-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 0;
+  position: relative;
+  cursor: pointer;
+  padding: 8px 0;
+}
+
+.step-item:last-child { margin-bottom: 0; }
+
+.step-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--slate-lt);
+  background: var(--slate);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Arial Narrow', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #8A9AAA;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+  transition: all 0.2s;
+}
+
+.step-item.is-done .step-circle {
+  background: var(--steel);
+  border-color: var(--steel);
+  color: #fff;
+}
+
+.step-item.is-active .step-circle {
+  background: var(--brick);
+  border-color: var(--brick);
+  color: #fff;
+  box-shadow: 0 0 0 4px rgba(139,46,46,0.25);
+}
+
+.step-label {
+  padding-top: 6px;
+}
+
+.step-label-num {
+  font-family: 'Arial Narrow', sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #5A6E7F;
+}
+
+.step-label-name {
+  font-family: 'Arial Narrow', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #CBD5DF;
+  line-height: 1.3;
+  transition: color 0.2s;
+}
+
+.step-item.is-active .step-label-name { color: #fff; }
+.step-item.is-done .step-label-name { color: #92B8D0; }
+
+.step-item:hover .step-label-name { color: #fff; }
+
+/* Key Numbers panel */
+.key-numbers {
+  background: rgba(61,107,140,0.18);
+  border: 1px solid rgba(61,107,140,0.35);
+  border-radius: 4px;
+  padding: 14px 16px;
+  margin-top: auto;
+}
+
+.key-numbers-title {
+  font-family: 'Arial Narrow', sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--steel-lt);
+  margin-bottom: 10px;
+}
+
+.kn-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 7px;
+  gap: 8px;
+}
+
+.kn-row:last-child { margin-bottom: 0; }
+
+.kn-label {
+  font-family: 'Arial Narrow', sans-serif;
+  font-size: 11px;
+  color: #7A9BB5;
+  flex: 1;
+}
+
+.kn-value {
+  font-family: 'Arial Narrow', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #E8E4DF;
+  text-align: right;
+}
+
+.kn-value.is-red { color: #F08080; }
+.kn-value.is-yellow { color: #F5C842; }
+.kn-value.is-green { color: #6FCF97; }
+
+/* ── MAIN CONTENT ── */
+#main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── INTRO SECTION ── */
+#intro {
+  background: var(--slate);
+  padding: 48px 48px 40px;
+  position: relative;
+}
+
+.intro-tag {
+  font-family: 'Arial Narrow', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--steel-lt);
+  margin-bottom: 14px;
+}
+
+.intro-title {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--brick);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+  margin-bottom: 8px;
+}
+
+.intro-subtitle {
+  font-family: Georgia, serif;
+  font-size: 15px;
+  color: #B0BEC9;
+  margin-bottom: 22px;
+  font-style: italic;
+}
+
+.intro-body {
+  font-family: Georgia, serif;
+  font-size: 15px;
+  line-height: 1.7;
+  color: #C8D5DE;
+  max-width: 640px;
+  margin-bottom: 20px;
+}
+
+.intro-sf {
+  font-family: Georgia, serif;
+  font-size: 13px;
+  color: #8A9AAA;
+  border-top: 1px solid #2E3E4E;
+  padding-top: 14px;
+  line-height: 1.6;
+  max-width: 620px;
+}
+
+.intro-sf strong { color: #C8D5DE; }
+
+.demo-btn-wrap {
+  margin-top: 28px;
+}
+
+.btn-demo {
+  font-family: 'Arial Narrow', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: var(--steel);
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: background 0.15s;
+}
+
+.btn-demo:hover { background: var(--steel-lt); }
+
+.btn-clear {
+  font-family: 'Arial Narrow', sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  background: transparent;
+  color: #5A6E7F;
+  border: 1px solid #2E3E4E;
+  padding: 11px 18px;
+  cursor: pointer;
+  border-radius: 3px;
+  margin-left: 10px;
+  transition: all 0.15s;
+}
+
+.btn-clear:hover { color: #92B8D0; border-color: #4A5E6F; }
+
+/* ── STEP SECTIONS ── */
+.step-section {
+  border-bottom: 1px solid var(--border);
+}
+
+.step-header {
+  background: var(--brick);
+  padding: 16px 48px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.step-header-num {
+  font-family: 'Arial Narrow', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.65);
+}
+
+.step-header-title {
+  font-family: 'Arial Narrow', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #fff;
+}
+
+.step-header-sep {
+  width: 1px;
+  height: 18px;
+  background: rgba(255,255,255,0.3);
+}
+
+.step-body {
+  padding: 36px 48px 40px;
+}
+
+/* ── FORM ELEMENTS ── */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 32px;
+  margin-bottom: 28px;
+}
+
+.form-grid.single { grid-template-columns: 1fr; }
+.form-grid.three { grid-template-columns: 1fr 1fr 1fr; }
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.field label {
+  font-family: 'Arial Narrow', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--concrete);
+}
+
+.field input,
+.field select,
+.field textarea {
+  font-family: Georgia, serif;
+  font-size: 15px;
+  color: var(--nearblk);
+  background: #fff;
+  border: 2px solid #C8C0B6;
+  padding: 9px 12px;
+  border-radius: 2px;
+  transition: border-color 0.15s;
+  width: 100%;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: var(--steel);
+}
+
+.field .help-text {
+  font-family: Georgia, serif;
+  font-size: 12px;
+  color: #8A8A7E;
+  line-height: 1.5;
+  font-style: italic;
+}
+
+/* ── OUTPUT INDICATORS ── */
+.output-section {
+  background: #F2EFE9;
+  border-top: 3px solid var(--border);
+  padding: 24px 32px;
+  margin-top: 8px;
+}
+
+.output-title {
+  font-family: 'Arial Narrow', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--concrete);
+  margin-bottom: 16px;
+}
+
+.indicator-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.indicator-label {
+  font-family: 'Arial Narrow', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--concrete);
+  width: 180px;
+  flex-shrink: 0;
+}
+
+.indicator-bar-wrap {
+  flex: 1;
+  height: 8px;
+  background: #DDD8D1;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.indicator-bar {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+
+.bar-green { background: var(--success); }
+.bar-yellow { background: var(--warn); }
+.bar-red { background: var(--alert); }
+.bar-blue { background: var(--steel); }
+.bar-brick { background: var(--brick); }
+
+.indicator-value {
+  font-family: 'Arial Narrow', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--nearblk);
+  width: 100px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.indicator-badge {
+  font-family: 'Arial Narrow', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.badge-green { background: var(--success); color: #fff; }
+.badge-yellow { background: var(--warn); color: #fff; }
+.badge-red { background: var(--alert); color: #fff; }
+
+.readiness-text {
+  font-family: Georgia, serif;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--nearblk);
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+/* ── STEP 2 REFERENCE PANEL ── */
+.reference-panel {
+  margin-top: 24px;
+}
+
+.ref-toggle {
+  font-family: 'Arial Narrow', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--steel);
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+}
+
+.ref-toggle:hover { color: var(--brick); }
+
+.ref-toggle-arrow {
+  display: inline-block;
+  font-style: normal;
+  transition: transform 0.2s;
+}
+
+.ref-toggle.is-open .ref-toggle-arrow { transform: rotate(90deg); }
+
+.ref-panel-body {
+  display: none;
+  margin-top: 14px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 20px 24px;
+}
+
+.ref-panel-body.is-open { display: block; }
+
+.ref-source {
+  margin-bottom: 18px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #EAE5DE;
+}
+
+.ref-source:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+.ref-source-name {
+  font-family: 'Arial Narrow', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--steel);
+  margin-bottom: 4px;
+}
+
+.ref-source-body {
+  font-family: Georgia, serif;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #4A4A42;
+}
+
+.ref-source-link {
+  font-family: 'Arial Narrow', sans-serif;
+  font-size: 12px;
+  color: var(--steel);
+  text-decoration: none;
+  letter-spacing: 0.04em;
+}
+
+.ref-source-link:hover { text-decoration: underline; }
+
+/* ── STEP 3 CHART ── */
+.chart-wrap {
+  margin-top: 20px;
+  background: #fff;
+  border: 1px solid var(--border);
+  padding: 20px 24px 16px;
+  border-radius: 2px;
+}
+
+.chart-title {
+  font-family: 'Arial Narrow', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--concrete);
+  margin-bottom: 14px;
+}
+
+#budgetChart { max-height: 180px; }
+
+.chart-fallback {
+  font-family: Georgia, serif;
+  font-size: 13px;
+  color: var(--muted);
+  font-style: italic;
+  text-align: center;
+  padding: 20px;
+}
+
+.estimate-note {
+  font-family: Georgia, serif;
+  font-size: 13px;
+  font-style: italic;
+  color: var(--muted);
+  margin-top: 14px;
+  padding: 10px 14px;
+  background: #F5F2EC;
+  border-top: 2px solid var(--border);
+}
+
+/* ── STEP 4 ROADMAP ── */
+.roadmap-intro {
+  font-family: Georgia, serif;
+  font-size: 15px;
+  line-height: 1.7;
+  color: #3A3A36;
+  margin-bottom: 28px;
+}
+
+.timeline {
+  position: relative;
+  padding-left: 44px;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 12px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: var(--border);
+}
+
+.timeline-stage {
+  position: relative;
+  margin-bottom: 0;
+  padding-bottom: 28px;
+}
+
+.timeline-stage:last-child { padding-bottom: 0; }
+
+.stage-dot {
+  position: absolute;
+  left: -38px;
+  top: 4px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--steel);
+  border: 3px solid var(--warm-wh);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Arial Narrow', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  box-shadow: 0 0 0 2px var(--steel);
+  z-index: 1;
+}
+
+.stage-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  margin-bottom: 6px;
+}
+
+.stage-title {
+  font-family: 'Arial Narrow', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--nearblk);
+  text-transform: uppercase;
+}
+
+.stage-timeline-badge {
+  font-family: 'Arial Narrow', sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: #fff;
+  background: var(--concrete);
+  padding: 2px 8px;
+  border-radius: 2px;
+}
+
+.stage-toggle-btn {
+  background: none;
+  border: none;
+  font-family: 'Arial Narrow', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--steel);
+  cursor: pointer;
+  margin-left: auto;
+  padding: 0;
+}
+
+.stage-toggle-btn:hover { color: var(--brick); }
+
+.stage-detail {
+  display: none;
+  margin-top: 10px;
+  padding: 14px 16px;
+  background: #F5F2EC;
+  border-radius: 2px;
+}
+
+.stage-detail.is-open { display: block; }
+
+.stage-detail-grid {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 8px 16px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.stage-detail-key {
+  font-family: 'Arial Narrow', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--concrete);
+  font-size: 11px;
+  padding-top: 2px;
+}
+
+.stage-detail-val {
+  font-family: Georgia, serif;
+  font-size: 13px;
+  color: #3A3A36;
+}
+
+/* Statute highlight */
+.statute-highlight {
+  background: var(--brick);
+  color: #fff;
+  padding: 16px 20px;
+  border-radius: 2px;
+  margin-top: 12px;
+}
+
+.statute-title {
+  font-family: 'Arial Narrow', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.7);
+  margin-bottom: 6px;
+}
+
+.statute-body {
+  font-family: Georgia, serif;
+  font-size: 13px;
+  line-height: 1.65;
+  color: rgba(255,255,255,0.92);
+}
+
+/* ── STEP 5 SUMMARY ── */
+.summary-section {
+  margin-bottom: 28px;
+}
+
+.summary-section-title {
+  font-family: 'Arial Narrow', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--brick);
+  border-bottom: 2px solid var(--brick);
+  padding-bottom: 6px;
+  margin-bottom: 14px;
+}
+
+.summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: Georgia, serif;
+  font-size: 14px;
+}
+
+.summary-table td {
+  padding: 7px 12px;
+  border-bottom: 1px solid #EAE5DE;
+}
+
+.summary-table td:first-child {
+  font-family: 'Arial Narrow', sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--concrete);
+  width: 220px;
+  font-weight: 700;
+}
+
+.summary-table tr:last-child td { border-bottom: none; }
+
+.summary-table .total-row td {
+  font-weight: 700;
+  background: #F2EFE9;
+}
+
+.next-steps-box {
+  background: var(--slate);
+  color: #E8E4DF;
+  padding: 20px 24px;
+  border-radius: 2px;
+  margin-top: 8px;
+}
+
+.next-steps-title {
+  font-family: 'Arial Narrow', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--steel-lt);
+  margin-bottom: 8px;
+}
+
+.next-steps-body {
+  font-family: Georgia, serif;
+  font-size: 14px;
+  line-height: 1.7;
+  color: #CBD5DF;
+}
+
+.resources-list {
+  list-style: none;
+  margin-top: 4px;
+}
+
+.resources-list li {
+  font-family: Georgia, serif;
+  font-size: 14px;
+  color: #3A3A36;
+  padding: 7px 0;
+  border-bottom: 1px solid #EAE5DE;
+  display: flex;
+  gap: 14px;
+  align-items: baseline;
+}
+
+.resources-list li:last-child { border-bottom: none; }
+
+.res-name {
+  font-family: 'Arial Narrow', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: var(--nearblk);
+  min-width: 240px;
+}
+
+.res-url {
+  color: var(--steel);
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.res-url:hover { text-decoration: underline; }
+
+.print-btn-wrap {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.btn-print {
+  font-family: 'Arial Narrow', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: var(--brick);
+  color: #fff;
+  border: none;
+  padding: 13px 28px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 0.15s;
+}
+
+.btn-print:hover { background: var(--brick-dk); }
+
+.print-note {
+  font-family: Georgia, serif;
+  font-size: 13px;
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* ── FOOTER ── */
+#footer {
+  background: var(--slate);
+  color: #4A6070;
+  padding: 18px 48px;
+  font-family: Georgia, serif;
+  font-size: 12px;
+  line-height: 1.6;
+  border-top: 2px solid var(--brick);
+}
+
+/* ── SECTION SEPARATOR LABELS ── */
+.section-divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 28px 0 20px;
+}
+
+.section-divider-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.section-divider-label {
+  font-family: 'Arial Narrow', sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--concrete);
+}
+
+/* ── MOBILE SIDEBAR ── */
+#mobile-steps {
+  display: none;
+  background: var(--slate);
+  padding: 10px 16px;
+  overflow-x: auto;
+  white-space: nowrap;
+  border-bottom: 2px solid var(--brick);
+}
+
+.mobile-step-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 8px;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--slate-lt);
+}
+
+.mobile-step-pill.is-active { background: var(--brick); border-color: var(--brick); }
+.mobile-step-pill.is-done { border-color: var(--steel); }
+
+.mobile-step-num {
+  font-family: 'Arial Narrow', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: #6A8090;
+}
+
+.mobile-step-pill.is-active .mobile-step-num,
+.mobile-step-pill.is-done .mobile-step-num { color: #fff; }
+
+.mobile-step-name {
+  font-family: 'Arial Narrow', sans-serif;
+  font-size: 11px;
+  color: #4A6070;
+}
+
+.mobile-step-pill.is-active .mobile-step-name { color: #fff; }
+.mobile-step-pill.is-done .mobile-step-name { color: #92B8D0; }
+
+/* ── PRINT ── */
+@media print {
+  #sidebar, #mobile-steps, #intro, #step1, #step2, #step3, #step4,
+  .print-btn-wrap, .demo-btn-wrap, #footer, .step-header, .ref-toggle,
+  .ref-panel-body { display: none !important; }
+
+  body { display: block; font-family: Georgia, serif; color: #000; background: #fff; }
+
+  #main { display: block; }
+
+  #step5 { display: block !important; }
+
+  .step-header { display: none !important; }
+
+  #step5 .step-body { padding: 0; }
+
+  @page {
+    margin: 2cm 2.5cm;
+  }
+
+  .print-header {
+    display: block !important;
+    text-align: left;
+    border-bottom: 2px solid #000;
+    padding-bottom: 8px;
+    margin-bottom: 20px;
+  }
+
+  .print-header h1 {
+    font-family: 'Arial Narrow', Arial, sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .print-header p {
+    font-family: Georgia, serif;
+    font-size: 12px;
+    color: #555;
+  }
+
+  .print-cols {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px 32px;
+    page-break-inside: avoid;
+  }
+
+  .summary-table td, .summary-table th {
+    font-size: 12px;
+    padding: 4px 8px;
+  }
+
+  .next-steps-box {
+    background: #f5f5f5 !important;
+    color: #000 !important;
+    border: 1px solid #ccc;
+  }
+
+  .next-steps-title { color: #555 !important; }
+  .next-steps-body { color: #000 !important; }
+
+  .summary-section-title {
+    color: #000;
+    border-bottom-color: #000;
+  }
+
+  .print-footer {
+    display: block !important;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    font-family: Georgia, serif;
+    font-size: 10px;
+    color: #555;
+    border-top: 1px solid #ccc;
+    padding-top: 4px;
+    text-align: center;
+  }
+}
+
+/* Hide print-only elements on screen */
+.print-header, .print-footer, .print-cols { display: none; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  body { flex-direction: column; }
+  #sidebar { display: none; }
+  #mobile-steps { display: block; }
+  #intro { padding: 28px 20px 24px; }
+  .intro-title { font-size: 24px; }
+  .step-header { padding: 14px 20px; }
+  .step-body { padding: 24px 20px 28px; }
+  .form-grid { grid-template-columns: 1fr; }
+  .form-grid.three { grid-template-columns: 1fr; }
+  .indicator-row { flex-wrap: wrap; }
+  .indicator-label { width: 100%; }
+  .indicator-value { width: auto; text-align: left; }
+  .output-section { padding: 18px 20px; }
+  #footer { padding: 14px 20px; }
+  .kn-row { display: none; }
+}
+
+/* Calc row highlight */
+.calc-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #EAE5DE;
+  gap: 12px;
+}
+
+.calc-row:last-child { border-bottom: none; }
+
+.calc-label {
+  font-family: 'Arial Narrow', sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--concrete);
+  font-weight: 700;
+}
+
+.calc-value {
+  font-family: 'Arial Narrow', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--nearblk);
+}
+
+.calc-value.big {
+  font-size: 32px;
+  color: var(--brick);
+}
+
+.calc-desc {
+  font-family: Georgia, serif;
+  font-size: 12px;
+  color: var(--muted);
+  font-style: italic;
+  margin-left: 8px;
+  font-size: 11px;
+}
+
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside id="sidebar">
+  <div id="sidebar-inner">
+    <div class="sidebar-tool-title">Cooperative Purchase Planner</div>
+    <div class="sidebar-subtitle">SD-39 Housing Tool</div>
+
+    <ul class="step-list" id="stepList">
+      <li class="step-item is-active" data-step="1" onclick="scrollToStep(1)">
+        <div class="step-circle">1</div>
+        <div class="step-label">
+          <div class="step-label-num">Step 1</div>
+          <div class="step-label-name">Community Profile</div>
+        </div>
+      </li>
+      <li class="step-item" data-step="2" onclick="scrollToStep(2)">
+        <div class="step-circle">2</div>
+        <div class="step-label">
+          <div class="step-label-num">Step 2</div>
+          <div class="step-label-name">Acquisition Cost</div>
+        </div>
+      </li>
+      <li class="step-item" data-step="3" onclick="scrollToStep(3)">
+        <div class="step-circle">3</div>
+        <div class="step-label">
+          <div class="step-label-num">Step 3</div>
+          <div class="step-label-name">Lot-Rent Calculator</div>
+        </div>
+      </li>
+      <li class="step-item" data-step="4" onclick="scrollToStep(4)">
+        <div class="step-circle">4</div>
+        <div class="step-label">
+          <div class="step-label-num">Step 4</div>
+          <div class="step-label-name">Formation Roadmap</div>
+        </div>
+      </li>
+      <li class="step-item" data-step="5" onclick="scrollToStep(5)">
+        <div class="step-circle">5</div>
+        <div class="step-label">
+          <div class="step-label-num">Step 5</div>
+          <div class="step-label-name">Feasibility Summary</div>
+        </div>
+      </li>
+    </ul>
+
+    <div class="key-numbers">
+      <div class="key-numbers-title">Key Numbers</div>
+      <div class="kn-row">
+        <span class="kn-label">Total Homes</span>
+        <span class="kn-value" id="kn-homes">--</span>
+      </div>
+      <div class="kn-row">
+        <span class="kn-label">Participation</span>
+        <span class="kn-value" id="kn-participation">--</span>
+      </div>
+      <div class="kn-row">
+        <span class="kn-label">Acquisition Cost</span>
+        <span class="kn-value" id="kn-acquisition">--</span>
+      </div>
+      <div class="kn-row">
+        <span class="kn-label">Est. New Lot Rent</span>
+        <span class="kn-value" id="kn-lotrent">--</span>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- MOBILE STEP BAR -->
+<div id="mobile-steps">
+  <span class="mobile-step-pill is-active" onclick="scrollToStep(1)">
+    <span class="mobile-step-num">1</span>
+    <span class="mobile-step-name">Profile</span>
+  </span>
+  <span class="mobile-step-pill" onclick="scrollToStep(2)">
+    <span class="mobile-step-num">2</span>
+    <span class="mobile-step-name">Acquisition</span>
+  </span>
+  <span class="mobile-step-pill" onclick="scrollToStep(3)">
+    <span class="mobile-step-num">3</span>
+    <span class="mobile-step-name">Lot Rent</span>
+  </span>
+  <span class="mobile-step-pill" onclick="scrollToStep(4)">
+    <span class="mobile-step-num">4</span>
+    <span class="mobile-step-name">Roadmap</span>
+  </span>
+  <span class="mobile-step-pill" onclick="scrollToStep(5)">
+    <span class="mobile-step-num">5</span>
+    <span class="mobile-step-name">Summary</span>
+  </span>
+</div>
+
+<!-- MAIN CONTENT -->
+<main id="main">
+
+  <!-- INTRO -->
+  <section id="intro">
+    <div class="intro-tag">Minnesota Senate District 39 &nbsp;&#9632;&nbsp; Housing Resource</div>
+    <h1 class="intro-title">Can Your Community<br>Own Its Land?</h1>
+    <p class="intro-subtitle">A Feasibility and Financing Guide for Manufactured Home Park Resident Groups</p>
+    <p class="intro-body">
+      Manufactured home park residents across Minnesota's north metro own their homes
+      but rent the land beneath them. When a park sells to a developer, residents can
+      lose everything — homes that can't easily be moved, communities that took years
+      to build. A resident cooperative can change that. This tool helps residents of
+      any park understand whether a cooperative purchase is financially feasible,
+      what the process looks like, and who can help. It was built to support the
+      work of Senate District 39.
+    </p>
+    <p class="intro-sf">
+      <strong>About SF2681:</strong> Senator Kunesh's SF2681 appropriated $5 million to the Minnesota
+      Housing Development Fund specifically for resident cooperative purchases, administered through
+      Northcountry Cooperative Foundation. This tool was built to help the resident groups who might
+      use that funding understand whether their community is ready — and what to do next.
+      Minnesota had approximately 61,000 manufactured homes as of recent estimates, housing some of
+      the state's most cost-burdened households.
+    </p>
+    <div class="demo-btn-wrap">
+      <button class="btn-demo" onclick="loadDemo()">Load Example: Riverside Estates</button>
+      <button class="btn-clear" onclick="clearAll()">Clear All Fields</button>
+    </div>
+  </section>
+
+  <!-- STEP 1 -->
+  <section class="step-section" id="step1">
+    <div class="step-header">
+      <span class="step-header-num">Step 1</span>
+      <div class="step-header-sep"></div>
+      <span class="step-header-title">Your Community Profile</span>
+    </div>
+    <div class="step-body">
+      <div class="form-grid">
+        <div class="field">
+          <label for="communityName">Community Name <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:#AAA">(optional)</span></label>
+          <input type="text" id="communityName" placeholder="e.g. Riverside Estates" oninput="saveAndRecalc()">
+          <span class="help-text">Used for labeling your printed summary only.</span>
+        </div>
+        <div class="field">
+          <label for="cityCounty">City / County</label>
+          <input type="text" id="cityCounty" placeholder="e.g. Fridley, Anoka County" oninput="saveAndRecalc()">
+        </div>
+        <div class="field">
+          <label for="totalHomes">Total Homes / Lots in Park</label>
+          <input type="number" id="totalHomes" min="1" placeholder="e.g. 84" oninput="saveAndRecalc()">
+        </div>
+        <div class="field">
+          <label for="marketValue">Estimated Market Value of Park ($)</label>
+          <input type="number" id="marketValue" min="0" placeholder="e.g. 3200000" oninput="saveAndRecalc()">
+          <span class="help-text">If unknown, check county assessor records at your county's website or call the assessor's office. This value is used as a default purchase price in Step 2.</span>
+        </div>
+        <div class="field">
+          <label for="currentLotRent">Current Monthly Lot Rent per Home ($)</label>
+          <input type="number" id="currentLotRent" min="0" placeholder="e.g. 580" oninput="saveAndRecalc()">
+        </div>
+        <div class="field">
+          <label for="interestedHomes">Households Interested in Joining Cooperative</label>
+          <input type="number" id="interestedHomes" min="0" placeholder="e.g. 72" oninput="saveAndRecalc()">
+          <span class="help-text">Cooperatives typically need 51%+ resident participation to proceed. Note: this is an estimate — you will refine it through community organizing.</span>
+        </div>
+        <div class="field">
+          <label for="parkStatus">Park Ownership Status</label>
+          <select id="parkStatus" onchange="saveAndRecalc()">
+            <option value="">Select status...</option>
+            <option value="not-for-sale">Still privately owned and not for sale</option>
+            <option value="willing">Owner has indicated willingness to sell</option>
+            <option value="listed">Park is actively listed for sale</option>
+            <option value="notice">Resident group has received notice of sale to outside buyer</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="timeline">Timeline Urgency</label>
+          <select id="timeline" onchange="saveAndRecalc()">
+            <option value="">Select urgency...</option>
+            <option value="exploring">Exploring — no immediate pressure</option>
+            <option value="6-12">6–12 months</option>
+            <option value="3-6">3–6 months</option>
+            <option value="immediate">Immediate — sale notice received</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="output-section" id="step1-output">
+        <div class="output-title">Readiness Assessment</div>
+
+        <div class="indicator-row">
+          <div class="indicator-label">Participation Rate</div>
+          <div class="indicator-bar-wrap">
+            <div class="indicator-bar" id="participation-bar" style="width:0%"></div>
+          </div>
+          <div class="indicator-value" id="participation-pct">--%</div>
+          <div class="indicator-badge" id="participation-badge" style="visibility:hidden">--</div>
+        </div>
+
+        <div class="readiness-text" id="readiness-text">
+          Enter your community profile above to see your readiness assessment.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 2 -->
+  <section class="step-section" id="step2">
+    <div class="step-header">
+      <span class="step-header-num">Step 2</span>
+      <div class="step-header-sep"></div>
+      <span class="step-header-title">Acquisition Cost Estimator</span>
+    </div>
+    <div class="step-body">
+      <p style="font-family:Georgia,serif;font-size:15px;line-height:1.7;color:#3A3A36;margin-bottom:24px;">
+        This step helps you estimate whether the purchase price is in the range that can be financed
+        at sustainable lot-rent levels. Most values carry forward from Step 1.
+      </p>
+
+      <div class="form-grid">
+        <div class="field">
+          <label for="purchasePrice">Asking / Estimated Purchase Price ($)</label>
+          <input type="number" id="purchasePrice" min="0" placeholder="Auto-fills from Step 1 market value" oninput="saveAndRecalc()">
+          <span class="help-text">If the park is not yet for sale, use the estimated market value from Step 1 as a proxy.</span>
+        </div>
+        <div class="field">
+          <label for="deferredMaint">Deferred Maintenance / Capital Improvements ($)</label>
+          <input type="number" id="deferredMaint" min="0" value="0" placeholder="0" oninput="saveAndRecalc()">
+          <span class="help-text">Examples: water/sewer line repair, road resurfacing, common area upgrades. Include only items needing near-term attention.</span>
+        </div>
+        <div class="field">
+          <label for="legalCosts">Legal / Organizational Costs ($)</label>
+          <input type="number" id="legalCosts" min="0" value="15000" placeholder="15000" oninput="saveAndRecalc()">
+          <span class="help-text">Pre-filled at $15,000 as a working estimate. Actual costs vary; editable.</span>
+        </div>
+        <div class="field">
+          <label for="closingCosts">Closing Costs ($)</label>
+          <input type="number" id="closingCosts" min="0" placeholder="Auto-calculated at 2% of purchase price" oninput="saveAndRecalc()">
+          <span class="help-text">Pre-filled at 2% of purchase price. Adjust based on your situation.</span>
+        </div>
+      </div>
+
+      <div class="output-section" id="step2-output">
+        <div class="output-title">Acquisition Cost Summary</div>
+
+        <div class="calc-row">
+          <span class="calc-label">Total Acquisition Cost</span>
+          <span><span class="calc-value big" id="total-acquisition">$--</span></span>
+        </div>
+        <div class="calc-row">
+          <span class="calc-label">Cost Per Home</span>
+          <span>
+            <span class="calc-value" id="cost-per-home">$--</span>
+            <span class="calc-desc" id="cost-per-home-desc"></span>
+          </span>
+          <span class="indicator-badge" id="cph-badge" style="visibility:hidden">--</span>
+        </div>
+
+        <div class="readiness-text" id="cph-text">
+          Enter acquisition cost details above to see your cost summary.
+        </div>
+      </div>
+
+      <!-- Reference panel -->
+      <div class="reference-panel">
+        <button class="ref-toggle" id="refToggle" onclick="toggleRef()">
+          <span class="ref-toggle-arrow">&#9658;</span>
+          Acquisition Financing Sources (Reference)
+        </button>
+        <div class="ref-panel-body" id="refPanelBody">
+          <div class="ref-source">
+            <div class="ref-source-name">ROC USA Capital</div>
+            <p class="ref-source-body">Provides acquisition financing specifically for resident cooperatives purchasing manufactured home communities. Works through a network of nonprofit affiliates. As of 2025, has helped finance over 350 resident-owned communities nationally.</p>
+            <a href="https://rocusa.org" class="ref-source-link" target="_blank">rocusa.org &#8599;</a>
+          </div>
+          <div class="ref-source">
+            <div class="ref-source-name">USDA Section 515 Rural Rental Housing</div>
+            <p class="ref-source-body">Loans for housing in rural areas; cooperatives in eligible communities may qualify. Income restrictions apply. Contact your USDA Rural Development state office for current eligibility.</p>
+          </div>
+          <div class="ref-source">
+            <div class="ref-source-name">Minnesota Housing Development Fund</div>
+            <p class="ref-source-body">State appropriations — including Senator Kunesh's SF2681 — administered through Northcountry Cooperative Foundation for cooperative park purchases in Minnesota. Contact Northcountry for current program availability.</p>
+          </div>
+          <div class="ref-source">
+            <div class="ref-source-name">Northcountry Cooperative Foundation</div>
+            <p class="ref-source-body">Minnesota-based nonprofit providing financing, technical assistance, and ongoing support for manufactured home park cooperatives. The primary state-level resource for cooperative purchase in MN.</p>
+            <a href="https://northcountry.coop" class="ref-source-link" target="_blank">northcountry.coop &#8599;</a>
+          </div>
+          <p style="font-family:Georgia,serif;font-size:12px;color:#8A8A7E;font-style:italic;margin-top:14px;">
+            Note: Contact program websites and technical assistance providers directly for current interest rates, loan limits, and eligibility terms. Do not rely on any figures here for formal planning.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- STEP 3 -->
+  <section class="step-section" id="step3">
+    <div class="step-header">
+      <span class="step-header-num">Step 3</span>
+      <div class="step-header-sep"></div>
+      <span class="step-header-title">Lot-Rent Sustainability Calculator</span>
+    </div>
+    <div class="step-body">
+      <p style="font-family:Georgia,serif;font-size:15px;line-height:1.7;color:#3A3A36;margin-bottom:24px;">
+        This is the core question: <strong>if your community buys the park, what happens to monthly lot rent?</strong>
+        Most values carry forward from earlier steps.
+      </p>
+
+      <div class="form-grid three">
+        <div class="field">
+          <label for="financingNeeded">Total Financing Needed ($)</label>
+          <input type="number" id="financingNeeded" min="0" placeholder="Auto-filled from Step 2" oninput="saveAndRecalc()">
+          <span class="help-text">Auto-populated from Step 2. Override if a grant covers part of the cost.</span>
+        </div>
+        <div class="field">
+          <label for="loanRate">Loan Interest Rate (%)</label>
+          <input type="number" id="loanRate" min="0" max="20" step="0.1" value="5.5" oninput="saveAndRecalc()">
+          <span class="help-text">Rough estimate only — actual rates vary by program. Default: 5.5%.</span>
+        </div>
+        <div class="field">
+          <label for="loanTerm">Loan Term (Years)</label>
+          <select id="loanTerm" onchange="saveAndRecalc()">
+            <option value="20">20 years</option>
+            <option value="25">25 years</option>
+            <option value="30" selected>30 years</option>
+            <option value="40">40 years</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="annualOperating">Current Annual Operating Costs ($)</label>
+          <input type="number" id="annualOperating" min="0" placeholder="e.g. 72000" oninput="saveAndRecalc()">
+          <span class="help-text">Covers water/sewer, road maintenance, landscaping, management, insurance, property taxes. If unknown, estimate at $800–$1,200 per home per year.</span>
+        </div>
+        <div class="field">
+          <label for="reservePerHome">Annual Reserve per Home ($/year)</label>
+          <input type="number" id="reservePerHome" min="0" value="300" oninput="saveAndRecalc()">
+          <span class="help-text">Cooperatives must build reserves for future capital needs. Default: $300/home/year.</span>
+        </div>
+        <div class="field">
+          <label for="grantIncome">Annual Grant / Subsidy Income ($)</label>
+          <input type="number" id="grantIncome" min="0" value="0" placeholder="0" oninput="saveAndRecalc()">
+          <span class="help-text">If your cooperative expects any annual grant income, enter it here. Default: $0.</span>
+        </div>
+      </div>
+
+      <div class="output-section" id="step3-output">
+        <div class="output-title">Lot-Rent Projection</div>
+
+        <div class="calc-row">
+          <span class="calc-label">Current Monthly Lot Rent</span>
+          <span class="calc-value" id="display-current-rent">$--</span>
+        </div>
+        <div class="calc-row">
+          <span class="calc-label">Required Lot Rent (Cooperative)</span>
+          <span class="calc-value big" id="display-new-rent">$--</span>
+        </div>
+        <div class="calc-row">
+          <span class="calc-label">Monthly Change</span>
+          <span>
+            <span class="calc-value" id="display-rent-change">--</span>
+            <span class="calc-desc" id="display-change-pct"></span>
+          </span>
+          <span class="indicator-badge" id="lotrent-badge" style="visibility:hidden">--</span>
+        </div>
+
+        <div class="readiness-text" id="lotrent-text">
+          Enter financing details above to see your lot-rent projection.
+        </div>
+
+        <div class="chart-wrap" id="chartWrap" style="display:none;">
+          <div class="chart-title">Annual Budget Breakdown</div>
+          <canvas id="budgetChart"></canvas>
+        </div>
+
+        <p class="estimate-note">
+          These are estimates only. A cooperative formation requires a full feasibility study by a
+          qualified technical assistance provider such as Northcountry Cooperative Foundation.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 4 -->
+  <section class="step-section" id="step4">
+    <div class="step-header">
+      <span class="step-header-num">Step 4</span>
+      <div class="step-header-sep"></div>
+      <span class="step-header-title">Cooperative Formation Roadmap</span>
+    </div>
+    <div class="step-body">
+      <p class="roadmap-intro">
+        This roadmap shows what actually happens between "residents decide to explore this" and
+        "cooperative closes on the park purchase." Expand each stage for details on who does what,
+        typical timelines, and key documents. The process is complex — but many communities have
+        done it successfully with good technical assistance.
+      </p>
+
+      <div class="timeline">
+
+        <!-- Stage 1 -->
+        <div class="timeline-stage">
+          <div class="stage-dot">1</div>
+          <div class="stage-header" onclick="toggleStage(1)">
+            <span class="stage-title">Organize the Resident Group</span>
+            <span class="stage-timeline-badge">1–6 months</span>
+            <button class="stage-toggle-btn" id="stage-btn-1">Expand</button>
+          </div>
+          <div class="stage-detail" id="stage-detail-1">
+            <div class="stage-detail-grid">
+              <div class="stage-detail-key">What</div>
+              <div class="stage-detail-val">Hold community meetings; identify interested households; form a steering committee; document participation (sign-in sheets, informal pledge cards).</div>
+              <div class="stage-detail-key">Who</div>
+              <div class="stage-detail-val">Residents — no professional required yet. Any motivated neighbor can start this process.</div>
+              <div class="stage-detail-key">Timeline</div>
+              <div class="stage-detail-val">1–6 months</div>
+              <div class="stage-detail-key">Key Docs</div>
+              <div class="stage-detail-val">Meeting minutes; list of participating households</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stage 2 -->
+        <div class="timeline-stage">
+          <div class="stage-dot">2</div>
+          <div class="stage-header" onclick="toggleStage(2)">
+            <span class="stage-title">Contact a Technical Assistance Provider</span>
+            <span class="stage-timeline-badge">Start immediately</span>
+            <button class="stage-toggle-btn" id="stage-btn-2">Expand</button>
+          </div>
+          <div class="stage-detail" id="stage-detail-2">
+            <div class="stage-detail-grid">
+              <div class="stage-detail-key">What</div>
+              <div class="stage-detail-val">Reach out to Northcountry Cooperative Foundation or a ROC USA affiliate for Minnesota. They provide free or low-cost pre-development assistance, help assess feasibility, and can initiate contact with potential financing partners.</div>
+              <div class="stage-detail-key">Who</div>
+              <div class="stage-detail-val">Steering committee contacts the provider; provider leads feasibility work from there.</div>
+              <div class="stage-detail-key">Timeline</div>
+              <div class="stage-detail-val">Can begin immediately; formal TA engagement typically initiates within 2–4 weeks.</div>
+              <div class="stage-detail-key">Key Docs</div>
+              <div class="stage-detail-val">TA engagement letter; preliminary feasibility assessment</div>
+              <div class="stage-detail-key">Contact</div>
+              <div class="stage-detail-val">Northcountry Cooperative Foundation: northcountry.coop &nbsp;|&nbsp; ROC USA: rocusa.org</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stage 3 -->
+        <div class="timeline-stage">
+          <div class="stage-dot">3</div>
+          <div class="stage-header" onclick="toggleStage(3)">
+            <span class="stage-title">Get the Park Appraised and Inspected</span>
+            <span class="stage-timeline-badge">4–8 weeks</span>
+            <button class="stage-toggle-btn" id="stage-btn-3">Expand</button>
+          </div>
+          <div class="stage-detail" id="stage-detail-3">
+            <div class="stage-detail-grid">
+              <div class="stage-detail-key">What</div>
+              <div class="stage-detail-val">Obtain an independent appraisal of the park's market value; commission a physical inspection (site, water/sewer, roads, structures) to identify deferred maintenance. These inform the purchase price negotiation.</div>
+              <div class="stage-detail-key">Who</div>
+              <div class="stage-detail-val">TA provider coordinates; licensed appraiser and inspector conduct the work.</div>
+              <div class="stage-detail-key">Timeline</div>
+              <div class="stage-detail-val">4–8 weeks; costs typically $2,000–$6,000 (sometimes covered by the TA provider).</div>
+              <div class="stage-detail-key">Key Docs</div>
+              <div class="stage-detail-val">Appraisal report; physical needs assessment</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stage 4 -->
+        <div class="timeline-stage">
+          <div class="stage-dot">4</div>
+          <div class="stage-header" onclick="toggleStage(4)">
+            <span class="stage-title">Incorporate the Cooperative</span>
+            <span class="stage-timeline-badge">4–8 weeks</span>
+            <button class="stage-toggle-btn" id="stage-btn-4">Expand</button>
+          </div>
+          <div class="stage-detail" id="stage-detail-4">
+            <div class="stage-detail-grid">
+              <div class="stage-detail-key">What</div>
+              <div class="stage-detail-val">File articles of incorporation with the Minnesota Secretary of State as a cooperative corporation (MN Statute Chapter 308A or 308B). Draft bylaws. Open a cooperative bank account. Collect membership fees.</div>
+              <div class="stage-detail-key">Who</div>
+              <div class="stage-detail-val">Attorney (cooperative or community development attorney) + steering committee.</div>
+              <div class="stage-detail-key">Timeline</div>
+              <div class="stage-detail-val">4–8 weeks; filing fee approximately $70 with MN Secretary of State.</div>
+              <div class="stage-detail-key">Key Docs</div>
+              <div class="stage-detail-val">Articles of incorporation; bylaws; membership agreements</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stage 5 -->
+        <div class="timeline-stage">
+          <div class="stage-dot">5</div>
+          <div class="stage-header" onclick="toggleStage(5)">
+            <span class="stage-title">Negotiate with the Park Owner</span>
+            <span class="stage-timeline-badge">30–120 days</span>
+            <button class="stage-toggle-btn" id="stage-btn-5">Expand</button>
+          </div>
+          <div class="stage-detail" id="stage-detail-5">
+            <div class="stage-detail-grid">
+              <div class="stage-detail-key">What</div>
+              <div class="stage-detail-val">Submit a letter of intent to purchase. Negotiate purchase price and terms. Park owners are NOT required to sell to residents — but Minnesota law gives you an important right of first refusal (see below).</div>
+              <div class="stage-detail-key">Who</div>
+              <div class="stage-detail-val">TA provider and attorney support negotiations; cooperative officers sign the letter of intent.</div>
+              <div class="stage-detail-key">Timeline</div>
+              <div class="stage-detail-val">30–120 days depending on owner responsiveness.</div>
+              <div class="stage-detail-key">Key Docs</div>
+              <div class="stage-detail-val">Letter of intent; purchase agreement</div>
+            </div>
+            <div class="statute-highlight">
+              <div class="statute-title">Minnesota Statute 327C.095 — Right of First Refusal</div>
+              <p class="statute-body">
+                Minnesota law gives manufactured home park residents the right of first refusal
+                when their park is offered for sale. The park owner must provide at least
+                <strong>45 days written notice</strong> before closing a sale to a third party,
+                during which resident cooperatives may submit a competing offer. This is your
+                legal window — organizing before a sale notice arrives gives you the best
+                chance of success.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stage 6 -->
+        <div class="timeline-stage">
+          <div class="stage-dot">6</div>
+          <div class="stage-header" onclick="toggleStage(6)">
+            <span class="stage-title">Secure Financing</span>
+            <span class="stage-timeline-badge">60–120 days</span>
+            <button class="stage-toggle-btn" id="stage-btn-6">Expand</button>
+          </div>
+          <div class="stage-detail" id="stage-detail-6">
+            <div class="stage-detail-grid">
+              <div class="stage-detail-key">What</div>
+              <div class="stage-detail-val">Apply for acquisition financing through ROC USA Capital, Northcountry Cooperative Foundation, USDA, or a combination. Prepare financial projections, business plan, and membership list for the lender.</div>
+              <div class="stage-detail-key">Who</div>
+              <div class="stage-detail-val">TA provider leads the financing application; cooperative officers sign documents.</div>
+              <div class="stage-detail-key">Timeline</div>
+              <div class="stage-detail-val">60–120 days for financing commitment.</div>
+              <div class="stage-detail-key">Key Docs</div>
+              <div class="stage-detail-val">Loan application; business plan; projected operating budget; membership agreements showing committed lot-rent payers</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stage 7 -->
+        <div class="timeline-stage">
+          <div class="stage-dot">7</div>
+          <div class="stage-header" onclick="toggleStage(7)">
+            <span class="stage-title">Due Diligence and Close</span>
+            <span class="stage-timeline-badge">30–60 days post-financing</span>
+            <button class="stage-toggle-btn" id="stage-btn-7">Expand</button>
+          </div>
+          <div class="stage-detail" id="stage-detail-7">
+            <div class="stage-detail-grid">
+              <div class="stage-detail-key">What</div>
+              <div class="stage-detail-val">Final title search, environmental review, confirmation of financing terms, cooperative membership vote to approve purchase. Then close.</div>
+              <div class="stage-detail-key">Who</div>
+              <div class="stage-detail-val">Attorney handles closing; cooperative board signs; lender funds.</div>
+              <div class="stage-detail-key">Timeline</div>
+              <div class="stage-detail-val">30–60 days after financing commitment.</div>
+              <div class="stage-detail-key">Key Docs</div>
+              <div class="stage-detail-val">Closing documents; deed; recorded articles of incorporation</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stage 8 -->
+        <div class="timeline-stage">
+          <div class="stage-dot" style="background:var(--success);box-shadow:0 0 0 2px var(--success);">8</div>
+          <div class="stage-header" onclick="toggleStage(8)">
+            <span class="stage-title">Operate as a Resident-Owned Community</span>
+            <span class="stage-timeline-badge">Ongoing</span>
+            <button class="stage-toggle-btn" id="stage-btn-8">Expand</button>
+          </div>
+          <div class="stage-detail" id="stage-detail-8">
+            <div class="stage-detail-grid">
+              <div class="stage-detail-key">What</div>
+              <div class="stage-detail-val">Cooperative board assumes management. Hire or contract property management if needed. Collect lot rents. Maintain reserves. Hold annual member meetings.</div>
+              <div class="stage-detail-key">Who</div>
+              <div class="stage-detail-val">Elected cooperative board; members vote on major decisions.</div>
+              <div class="stage-detail-key">Ongoing</div>
+              <div class="stage-detail-val">Annual financial audit; board elections; capital reserve planning; annual member meetings</div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /timeline -->
+    </div>
+  </section>
+
+  <!-- STEP 5 -->
+  <section class="step-section" id="step5">
+    <div class="step-header">
+      <span class="step-header-num">Step 5</span>
+      <div class="step-header-sep"></div>
+      <span class="step-header-title">Printable Feasibility Summary</span>
+    </div>
+    <div class="step-body">
+
+      <!-- Print-only header -->
+      <div class="print-header">
+        <h1>Manufactured Home Cooperative Feasibility Summary</h1>
+        <p id="print-header-community"></p>
+      </div>
+
+      <div class="print-cols" id="summaryContent">
+
+        <div class="summary-section">
+          <div class="summary-section-title">Community Profile</div>
+          <table class="summary-table" id="profileTable">
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div class="summary-section">
+          <div class="summary-section-title">Acquisition Cost Summary</div>
+          <table class="summary-table" id="acquisitionTable">
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div class="summary-section">
+          <div class="summary-section-title">Financing and Lot-Rent Projection</div>
+          <table class="summary-table" id="financingTable">
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div class="summary-section">
+          <div class="summary-section-title">Sustainability Assessment</div>
+          <div id="sustainabilityText" style="font-family:Georgia,serif;font-size:14px;line-height:1.7;color:#3A3A36;"></div>
+        </div>
+
+      </div><!-- /print-cols -->
+
+      <div class="summary-section" style="margin-top:28px;">
+        <div class="summary-section-title">Next Steps Recommendation</div>
+        <div class="next-steps-box">
+          <div class="next-steps-title">Based on your indicators</div>
+          <div class="next-steps-body" id="nextStepsText">
+            Complete Steps 1–3 to generate your next steps recommendation.
+          </div>
+        </div>
+      </div>
+
+      <div class="summary-section" style="margin-top:28px;">
+        <div class="summary-section-title">Key Resources</div>
+        <ul class="resources-list">
+          <li>
+            <span class="res-name">Northcountry Cooperative Foundation</span>
+            <a href="https://northcountry.coop" class="res-url" target="_blank">northcountry.coop</a>
+          </li>
+          <li>
+            <span class="res-name">ROC USA</span>
+            <a href="https://rocusa.org" class="res-url" target="_blank">rocusa.org</a>
+          </li>
+          <li>
+            <span class="res-name">Minnesota Housing Finance Agency</span>
+            <a href="https://mnhousing.gov" class="res-url" target="_blank">mnhousing.gov</a>
+          </li>
+          <li>
+            <span class="res-name">MN Statute 327C — Manufactured Home Park Resident Rights</span>
+            <a href="https://www.revisor.mn.gov/statutes/cite/327C" class="res-url" target="_blank">revisor.mn.gov &#8599;</a>
+          </li>
+          <li>
+            <span class="res-name">SD-39 Legislative Office — Sen. Mary K. Kunesh</span>
+            <a href="https://marykkunesh.com" class="res-url" target="_blank">marykkunesh.com</a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="print-btn-wrap">
+        <button class="btn-print" onclick="printSummary()">Print / Save as PDF</button>
+        <span class="print-note">Opens print dialog. Save as PDF for a shareable document.</span>
+      </div>
+
+      <!-- Print footer (screen-hidden) -->
+      <div class="print-footer">
+        Prepared using the SD-39 Cooperative Purchase Planner. This is an estimate only.
+        Consult a qualified technical assistance provider before proceeding with a cooperative purchase.
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer id="footer">
+    A resource for SD-39 communities and manufactured home park residents across Minnesota.
+    Built with AI to support the work of Sen. Mary K. Kunesh and SF2681.
+    Estimates only — consult a qualified technical assistance provider before proceeding.
+    Data reflects Minnesota law as of 2025.
+  </footer>
+
+</main>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────────────────
+const STORAGE_KEY = 'kunesh_planner_v1';
+let budgetChart = null;
+
+// Cached calculations
+let state = {
+  totalHomes: null,
+  interestedHomes: null,
+  participationPct: null,
+  currentLotRent: null,
+  totalAcquisition: null,
+  costPerHome: null,
+  newLotRent: null,
+  lotRentChange: null,
+  lotRentChangePct: null,
+  annualDebtService: null,
+  annualOperating: null,
+  annualReserves: null,
+  annualGrant: null,
+  // indicator levels
+  participationLevel: null, // 'green','yellow','red'
+  cphLevel: null,
+  lotRentLevel: null
+};
+
+// ── DEMO DATA ──────────────────────────────────────────────────────────────
+const DEMO = {
+  communityName: 'Riverside Estates',
+  cityCounty: 'Fridley, MN',
+  totalHomes: '84',
+  marketValue: '3200000',
+  currentLotRent: '580',
+  interestedHomes: '72',
+  parkStatus: 'willing',
+  timeline: '6-12',
+  purchasePrice: '3200000',
+  deferredMaint: '180000',
+  legalCosts: '15000',
+  closingCosts: '64000',
+  financingNeeded: '3459000',
+  loanRate: '5.5',
+  loanTerm: '30',
+  annualOperating: '72000',
+  reservePerHome: '300',
+  grantIncome: '0'
+};
+
+function loadDemo() {
+  Object.entries(DEMO).forEach(([k, v]) => {
+    const el = document.getElementById(k);
+    if (el) el.value = v;
+  });
+  saveAndRecalc();
+}
+
+function clearAll() {
+  ['communityName','cityCounty','totalHomes','marketValue','currentLotRent',
+   'interestedHomes','parkStatus','timeline','purchasePrice','deferredMaint',
+   'financingNeeded','grantIncome'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('legalCosts').value = '15000';
+  document.getElementById('closingCosts').value = '';
+  document.getElementById('loanRate').value = '5.5';
+  document.getElementById('loanTerm').value = '30';
+  document.getElementById('annualOperating').value = '';
+  document.getElementById('reservePerHome').value = '300';
+  document.getElementById('grantIncome').value = '0';
+  localStorage.removeItem(STORAGE_KEY);
+  saveAndRecalc();
+}
+
+// ── PERSISTENCE ────────────────────────────────────────────────────────────
+const FIELDS = [
+  'communityName','cityCounty','totalHomes','marketValue','currentLotRent',
+  'interestedHomes','parkStatus','timeline','purchasePrice','deferredMaint',
+  'legalCosts','closingCosts','financingNeeded','loanRate','loanTerm',
+  'annualOperating','reservePerHome','grantIncome'
+];
+
+function saveInputs() {
+  const data = {};
+  FIELDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) data[id] = el.value;
+  });
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e) {}
+}
+
+function loadInputs() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    FIELDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && data[id] !== undefined) el.value = data[id];
+    });
+  } catch(e) {}
+}
+
+function saveAndRecalc() {
+  saveInputs();
+  recalcAll();
+}
+
+// ── FORMATTING HELPERS ─────────────────────────────────────────────────────
+function fmt$(n) {
+  if (n == null || isNaN(n)) return '$--';
+  return '$' + Math.round(n).toLocaleString();
+}
+
+function fmtPct(n) {
+  if (n == null || isNaN(n)) return '--%';
+  return n.toFixed(1) + '%';
+}
+
+// ── CORE RECALC ────────────────────────────────────────────────────────────
+function recalcAll() {
+  recalcStep1();
+  recalcStep2();
+  recalcStep3();
+  updateKeyNumbers();
+  updateSummary();
+  updateStepIndicators();
+}
+
+// STEP 1
+function recalcStep1() {
+  const total = parseFloat(document.getElementById('totalHomes').value);
+  const interested = parseFloat(document.getElementById('interestedHomes').value);
+  const parkStatus = document.getElementById('parkStatus').value;
+  const timeline = document.getElementById('timeline').value;
+  const currentRent = parseFloat(document.getElementById('currentLotRent').value);
+
+  state.totalHomes = isNaN(total) ? null : total;
+  state.interestedHomes = isNaN(interested) ? null : interested;
+  state.currentLotRent = isNaN(currentRent) ? null : currentRent;
+
+  const pctEl = document.getElementById('participation-pct');
+  const barEl = document.getElementById('participation-bar');
+  const badgeEl = document.getElementById('participation-badge');
+  const textEl = document.getElementById('readiness-text');
+
+  if (!total || !interested) {
+    pctEl.textContent = '--%';
+    barEl.style.width = '0%';
+    barEl.className = 'indicator-bar';
+    badgeEl.style.visibility = 'hidden';
+    textEl.textContent = 'Enter your community profile above to see your readiness assessment.';
+    state.participationPct = null;
+    state.participationLevel = null;
+    return;
+  }
+
+  const pct = (interested / total) * 100;
+  state.participationPct = pct;
+  pctEl.textContent = fmtPct(pct);
+  barEl.style.width = Math.min(100, pct) + '%';
+  badgeEl.style.visibility = 'visible';
+
+  const isUrgent = (parkStatus === 'listed' || parkStatus === 'notice' || timeline === 'immediate' || timeline === '3-6');
+
+  let level, barClass, badgeClass, badgeText, text;
+
+  if (pct >= 75 && !isUrgent) {
+    level = 'green'; barClass = 'bar-green'; badgeClass = 'badge-green'; badgeText = 'Strong';
+    text = `Your community shows strong participation at ${fmtPct(pct)} — well above the 51% minimum needed to proceed. With the park not under immediate sale pressure, you have time to organize carefully and build an even stronger foundation. This is a favorable starting position.`;
+  } else if (pct >= 51) {
+    level = 'yellow'; barClass = 'bar-yellow'; badgeClass = 'badge-yellow'; badgeText = 'Caution';
+    let urgencyNote = isUrgent ? ' Given the urgency of your timeline or park status, acting quickly is important.' : '';
+    text = `Your participation rate of ${fmtPct(pct)} meets the 51% minimum threshold needed to proceed, but there is room to grow. Stronger participation improves your financing prospects and the cooperative's long-term sustainability.${urgencyNote} Continue organizing while beginning the technical assistance process.`;
+  } else {
+    level = 'red'; barClass = 'bar-red'; badgeClass = 'badge-red'; badgeText = 'Not Ready';
+    text = `Cooperative purchase requires majority participation — at ${fmtPct(pct)}, your community has not yet reached the 51% threshold. Focus on resident organizing first: hold more community meetings, address concerns one-on-one, and identify why some households are hesitant. Contact Northcountry Cooperative Foundation for organizing support.`;
+  }
+
+  state.participationLevel = level;
+  barEl.className = 'indicator-bar ' + barClass;
+  badgeEl.className = 'indicator-badge ' + badgeClass;
+  badgeEl.textContent = badgeText;
+  textEl.textContent = text;
+
+  // Auto-sync closing costs if purchase price is set
+  syncClosingCosts();
+}
+
+function syncClosingCosts() {
+  const price = parseFloat(document.getElementById('purchasePrice').value);
+  const closingEl = document.getElementById('closingCosts');
+  if (!isNaN(price) && price > 0 && !closingEl.dataset.manuallySet) {
+    // Only auto-set if field appears to be at default (matches 2%)
+    const current = parseFloat(closingEl.value);
+    const auto = Math.round(price * 0.02);
+    if (!closingEl.value || Math.abs(current - auto) < 100) {
+      closingEl.value = auto;
+    }
+  }
+}
+
+// STEP 2
+function recalcStep2() {
+  // Auto-fill purchase price from market value if empty
+  const marketVal = parseFloat(document.getElementById('marketValue').value);
+  const ppEl = document.getElementById('purchasePrice');
+  if (!ppEl.value && !isNaN(marketVal) && marketVal > 0) {
+    ppEl.value = marketVal;
+  }
+
+  const purchase = parseFloat(document.getElementById('purchasePrice').value);
+  const deferred = parseFloat(document.getElementById('deferredMaint').value) || 0;
+  const legal = parseFloat(document.getElementById('legalCosts').value) || 0;
+  const closing = parseFloat(document.getElementById('closingCosts').value) || 0;
+
+  const totalEl = document.getElementById('total-acquisition');
+  const cphEl = document.getElementById('cost-per-home');
+  const cphDesc = document.getElementById('cost-per-home-desc');
+  const cphBadge = document.getElementById('cph-badge');
+  const cphText = document.getElementById('cph-text');
+
+  if (isNaN(purchase)) {
+    totalEl.textContent = '$--';
+    cphEl.textContent = '$--';
+    cphDesc.textContent = '';
+    cphBadge.style.visibility = 'hidden';
+    cphText.textContent = 'Enter acquisition cost details above to see your cost summary.';
+    state.totalAcquisition = null;
+    state.costPerHome = null;
+    state.cphLevel = null;
+    // auto-sync financing
+    document.getElementById('financingNeeded').value = '';
+    return;
+  }
+
+  const total = purchase + deferred + legal + closing;
+  state.totalAcquisition = total;
+  totalEl.textContent = fmt$(total);
+
+  // auto-sync closing costs
+  if (!document.getElementById('closingCosts').value) {
+    document.getElementById('closingCosts').value = Math.round(purchase * 0.02);
+  }
+
+  // auto-sync financing needed
+  const fnEl = document.getElementById('financingNeeded');
+  if (!fnEl.dataset.overridden) {
+    fnEl.value = Math.round(total);
+  }
+
+  if (state.totalHomes && state.totalHomes > 0) {
+    const cph = total / state.totalHomes;
+    state.costPerHome = cph;
+    cphEl.textContent = fmt$(cph);
+
+    let level, badgeClass, badgeText, text;
+    if (cph < 30000) {
+      level = 'green'; badgeClass = 'badge-green'; badgeText = 'Favorable';
+      text = `At ${fmt$(cph)} per home, your per-home cost is in the favorable range (below $30,000). This is generally financeable at modest lot-rent increases. Note: actual financing depends on income levels, park condition, and program availability — these benchmarks are rough guides only.`;
+    } else if (cph <= 60000) {
+      level = 'yellow'; badgeClass = 'badge-yellow'; badgeText = 'Manageable';
+      text = `At ${fmt$(cph)} per home, your per-home cost is in the manageable range ($30,000–$60,000). A cooperative purchase is feasible but will require disciplined financing and may involve a moderate lot-rent increase. A technical assistance provider can help structure the financing to keep lot rents sustainable.`;
+    } else {
+      level = 'red'; badgeClass = 'badge-red'; badgeText = 'Challenging';
+      text = `At ${fmt$(cph)} per home, your per-home cost exceeds $60,000 — a challenging threshold. This does not mean purchase is impossible, but it requires careful financing, possible grant support, and a thorough feasibility review by a qualified technical assistance provider. Do not be discouraged without first consulting Northcountry Cooperative Foundation.`;
+    }
+
+    state.cphLevel = level;
+    cphBadge.style.visibility = 'visible';
+    cphBadge.className = 'indicator-badge ' + badgeClass;
+    cphBadge.textContent = badgeText;
+    cphText.textContent = text;
+    cphDesc.textContent = `($${Math.round(total).toLocaleString()} ÷ ${Math.round(state.totalHomes)} homes)`;
+  } else {
+    cphEl.textContent = fmt$(null);
+    cphDesc.textContent = '(enter total homes in Step 1)';
+    cphBadge.style.visibility = 'hidden';
+    cphText.textContent = 'Enter total homes in Step 1 to calculate cost per home.';
+    state.costPerHome = null;
+    state.cphLevel = null;
+  }
+}
+
+// STEP 3
+function recalcStep3() {
+  const P = parseFloat(document.getElementById('financingNeeded').value);
+  const rate = parseFloat(document.getElementById('loanRate').value);
+  const termYrs = parseFloat(document.getElementById('loanTerm').value);
+  const opCosts = parseFloat(document.getElementById('annualOperating').value) || 0;
+  const reservePH = parseFloat(document.getElementById('reservePerHome').value) || 0;
+  const grantInc = parseFloat(document.getElementById('grantIncome').value) || 0;
+  const homes = state.totalHomes;
+  const currentRent = state.currentLotRent;
+
+  const newRentEl = document.getElementById('display-new-rent');
+  const curRentEl = document.getElementById('display-current-rent');
+  const changeEl = document.getElementById('display-rent-change');
+  const changePctEl = document.getElementById('display-change-pct');
+  const badgeEl = document.getElementById('lotrent-badge');
+  const textEl = document.getElementById('lotrent-text');
+  const chartWrap = document.getElementById('chartWrap');
+
+  curRentEl.textContent = currentRent ? fmt$(currentRent) : '$--';
+
+  if (!P || isNaN(P) || !homes) {
+    newRentEl.textContent = '$--';
+    changeEl.textContent = '--';
+    changePctEl.textContent = '';
+    badgeEl.style.visibility = 'hidden';
+    textEl.textContent = 'Complete Steps 1 and 2, then enter financing details above.';
+    chartWrap.style.display = 'none';
+    state.newLotRent = null;
+    state.lotRentChange = null;
+    state.lotRentChangePct = null;
+    state.lotRentLevel = null;
+    return;
+  }
+
+  // Amortization
+  const monthlyRate = rate / 100 / 12;
+  const months = termYrs * 12;
+  let monthlyPayment;
+  if (monthlyRate === 0) {
+    monthlyPayment = P / months;
+  } else {
+    const factor = Math.pow(1 + monthlyRate, months);
+    monthlyPayment = P * (monthlyRate * factor) / (factor - 1);
+  }
+  const annualDS = monthlyPayment * 12;
+  const annualReserves = reservePH * homes;
+  const annualRev = annualDS + opCosts + annualReserves - grantInc;
+  const newMonthlyRent = annualRev / homes / 12;
+
+  state.annualDebtService = annualDS;
+  state.annualOperating = opCosts;
+  state.annualReserves = annualReserves;
+  state.annualGrant = grantInc;
+  state.newLotRent = newMonthlyRent;
+
+  newRentEl.textContent = fmt$(newMonthlyRent);
+
+  if (currentRent) {
+    const change = newMonthlyRent - currentRent;
+    const changePct = (change / currentRent) * 100;
+    state.lotRentChange = change;
+    state.lotRentChangePct = changePct;
+
+    const sign = change >= 0 ? '+' : '';
+    changeEl.textContent = sign + fmt$(change).replace('$', '') + (change >= 0 ? ' increase' : ' decrease');
+    changePctEl.textContent = `(${sign}${changePct.toFixed(1)}%)`;
+
+    let level, barClass, badgeClass, badgeText, text;
+    if (changePct <= 15) {
+      level = 'green'; badgeClass = 'badge-green'; badgeText = 'Sustainable';
+      text = `A ${changePct.toFixed(1)}% lot-rent increase (${sign}${fmt$(change).replace('$', '$')}/month) is in the sustainable range (0–15%). Many residents will benefit from long-term stability even with a modest increase. This scenario shows strong financial feasibility.`;
+    } else if (changePct <= 30) {
+      level = 'yellow'; badgeClass = 'badge-yellow'; badgeText = 'Manageable';
+      text = `A ${changePct.toFixed(1)}% lot-rent increase is manageable (16–30%) but requires resident buy-in and clear communication about the trade-off between a higher monthly payment and permanent ownership stability. Consider whether grant funding could reduce the financing amount and lower this increase.`;
+    } else {
+      level = 'red'; badgeClass = 'badge-red'; badgeText = 'Challenging';
+      text = `A ${changePct.toFixed(1)}% lot-rent increase is above the sustainable threshold (over 30%). Consider requesting increased grant funding, extending the loan term, or reducing the financing amount. Contact Northcountry Cooperative Foundation — they have experience structuring financing to improve affordability.`;
+    }
+
+    state.lotRentLevel = level;
+    badgeEl.style.visibility = 'visible';
+    badgeEl.className = 'indicator-badge ' + badgeClass;
+    badgeEl.textContent = badgeText;
+    textEl.textContent = text;
+  } else {
+    changeEl.textContent = '--';
+    changePctEl.textContent = '(enter current lot rent in Step 1)';
+    badgeEl.style.visibility = 'hidden';
+    textEl.textContent = 'Enter your current monthly lot rent in Step 1 to see the change calculation.';
+    state.lotRentLevel = null;
+  }
+
+  // Chart
+  updateBudgetChart(annualDS, opCosts, annualReserves, grantInc);
+}
+
+function updateBudgetChart(ds, op, res, grant) {
+  const wrap = document.getElementById('chartWrap');
+  if (ds === 0 && op === 0 && res === 0) {
+    wrap.style.display = 'none';
+    return;
+  }
+  wrap.style.display = 'block';
+
+  const ctx = document.getElementById('budgetChart').getContext('2d');
+
+  if (typeof Chart === 'undefined') {
+    document.getElementById('budgetChart').style.display = 'none';
+    const fb = wrap.querySelector('.chart-fallback') || document.createElement('p');
+    fb.className = 'chart-fallback';
+    fb.textContent = 'Chart unavailable offline. Annual budget: Debt Service ' + fmt$(ds) + ' / Operating ' + fmt$(op) + ' / Reserves ' + fmt$(res);
+    wrap.appendChild(fb);
+    return;
+  }
+
+  const labels = ['Annual Budget'];
+  const datasets = [
+    {
+      label: 'Debt Service',
+      data: [Math.round(ds)],
+      backgroundColor: '#8B2E2E',
+    },
+    {
+      label: 'Operating Costs',
+      data: [Math.round(op)],
+      backgroundColor: '#6B7280',
+    },
+    {
+      label: 'Reserves',
+      data: [Math.round(res)],
+      backgroundColor: '#3D6B8C',
+    }
+  ];
+
+  if (grant > 0) {
+    datasets.push({
+      label: 'Grant Offset (reduces cost)',
+      data: [Math.round(-grant)],
+      backgroundColor: '#2D6A4F',
+    });
+  }
+
+  if (budgetChart) {
+    budgetChart.destroy();
+    budgetChart = null;
+  }
+
+  budgetChart = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            font: { family: "'Arial Narrow', sans-serif", size: 11 },
+            boxWidth: 12,
+            padding: 14
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              const v = ctx.parsed.x;
+              const abs = Math.abs(v);
+              return ` ${ctx.dataset.label}: $${abs.toLocaleString()}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          stacked: true,
+          ticks: {
+            callback: v => '$' + Math.abs(v).toLocaleString(),
+            font: { family: "'Arial Narrow', sans-serif", size: 11 }
+          },
+          grid: { color: '#EAE5DE' }
+        },
+        y: {
+          stacked: true,
+          ticks: { display: false }
+        }
+      }
+    }
+  });
+}
+
+// ── KEY NUMBERS SIDEBAR ────────────────────────────────────────────────────
+function updateKeyNumbers() {
+  const knHomes = document.getElementById('kn-homes');
+  const knPart = document.getElementById('kn-participation');
+  const knAcq = document.getElementById('kn-acquisition');
+  const knRent = document.getElementById('kn-lotrent');
+
+  knHomes.textContent = state.totalHomes ? Math.round(state.totalHomes).toLocaleString() : '--';
+
+  if (state.participationPct != null) {
+    knPart.textContent = fmtPct(state.participationPct);
+    knPart.className = 'kn-value ' + (
+      state.participationLevel === 'green' ? 'is-green' :
+      state.participationLevel === 'yellow' ? 'is-yellow' : 'is-red'
+    );
+  } else {
+    knPart.textContent = '--';
+    knPart.className = 'kn-value';
+  }
+
+  if (state.totalAcquisition != null) {
+    knAcq.textContent = '$' + (state.totalAcquisition / 1000000).toFixed(1) + 'M';
+    knAcq.className = 'kn-value ' + (
+      state.cphLevel === 'green' ? 'is-green' :
+      state.cphLevel === 'yellow' ? 'is-yellow' :
+      state.cphLevel === 'red' ? 'is-red' : ''
+    );
+  } else {
+    knAcq.textContent = '--';
+    knAcq.className = 'kn-value';
+  }
+
+  if (state.newLotRent != null) {
+    knRent.textContent = fmt$(state.newLotRent) + '/mo';
+    knRent.className = 'kn-value ' + (
+      state.lotRentLevel === 'green' ? 'is-green' :
+      state.lotRentLevel === 'yellow' ? 'is-yellow' :
+      state.lotRentLevel === 'red' ? 'is-red' : ''
+    );
+  } else {
+    knRent.textContent = '--';
+    knRent.className = 'kn-value';
+  }
+}
+
+// ── STEP INDICATOR UPDATES ────────────────────────────────────────────────
+function updateStepIndicators() {
+  const step1Done = !!(state.totalHomes && state.currentLotRent &&
+    document.getElementById('parkStatus').value &&
+    document.getElementById('cityCounty').value);
+  const step2Done = !!(state.totalAcquisition);
+  const step3Done = !!(state.newLotRent);
+
+  [
+    { n: 1, done: step1Done },
+    { n: 2, done: step2Done },
+    { n: 3, done: step3Done },
+    { n: 4, done: false },
+    { n: 5, done: false }
+  ].forEach(({ n, done }) => {
+    const el = document.querySelector(`#stepList .step-item[data-step="${n}"]`);
+    if (!el) return;
+    el.classList.remove('is-done');
+    if (done) el.classList.add('is-done');
+  });
+
+  // Mobile pils
+  const mobilePills = document.querySelectorAll('#mobile-steps .mobile-step-pill');
+  [step1Done, step2Done, step3Done, false, false].forEach((done, i) => {
+    if (mobilePills[i] && done) mobilePills[i].classList.add('is-done');
+    else if (mobilePills[i]) mobilePills[i].classList.remove('is-done');
+  });
+}
+
+// ── SUMMARY GENERATION ────────────────────────────────────────────────────
+function updateSummary() {
+  const community = document.getElementById('communityName').value || 'Your Community';
+  const city = document.getElementById('cityCounty').value || '--';
+  const parkStatus = document.getElementById('parkStatus').value;
+  const timeline = document.getElementById('timeline').value;
+
+  // Print header community name
+  const phc = document.getElementById('print-header-community');
+  if (phc) phc.textContent = community + ' — ' + city + ' — Prepared ' + new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+
+  // Profile table
+  const profileTbody = document.querySelector('#profileTable tbody');
+  if (profileTbody) {
+    profileTbody.innerHTML = `
+      <tr><td>Community Name</td><td>${community}</td></tr>
+      <tr><td>Location</td><td>${city}</td></tr>
+      <tr><td>Total Homes</td><td>${state.totalHomes ? Math.round(state.totalHomes) : '--'}</td></tr>
+      <tr><td>Interested Households</td><td>${state.interestedHomes ? Math.round(state.interestedHomes) : '--'}</td></tr>
+      <tr><td>Participation Rate</td><td>${state.participationPct != null ? fmtPct(state.participationPct) : '--'}</td></tr>
+      <tr><td>Current Monthly Lot Rent</td><td>${state.currentLotRent ? fmt$(state.currentLotRent) : '--'}</td></tr>
+      <tr><td>Park Status</td><td>${parkStatusLabel(parkStatus)}</td></tr>
+      <tr><td>Timeline</td><td>${timelineLabel(timeline)}</td></tr>
+    `;
+  }
+
+  // Acquisition table
+  const acqTbody = document.querySelector('#acquisitionTable tbody');
+  if (acqTbody) {
+    const purchase = parseFloat(document.getElementById('purchasePrice').value);
+    const deferred = parseFloat(document.getElementById('deferredMaint').value) || 0;
+    const legal = parseFloat(document.getElementById('legalCosts').value) || 0;
+    const closing = parseFloat(document.getElementById('closingCosts').value) || 0;
+    acqTbody.innerHTML = `
+      <tr><td>Purchase Price</td><td>${isNaN(purchase) ? '--' : fmt$(purchase)}</td></tr>
+      <tr><td>Deferred Maintenance</td><td>${fmt$(deferred)}</td></tr>
+      <tr><td>Legal / Organizational</td><td>${fmt$(legal)}</td></tr>
+      <tr><td>Closing Costs</td><td>${fmt$(closing)}</td></tr>
+      <tr class="total-row"><td>Total Acquisition</td><td>${state.totalAcquisition != null ? fmt$(state.totalAcquisition) : '--'}</td></tr>
+      <tr><td>Cost Per Home</td><td>${state.costPerHome != null ? fmt$(state.costPerHome) : '--'}</td></tr>
+    `;
+  }
+
+  // Financing table
+  const finTbody = document.querySelector('#financingTable tbody');
+  if (finTbody) {
+    const rate = document.getElementById('loanRate').value;
+    const term = document.getElementById('loanTerm').value;
+    finTbody.innerHTML = `
+      <tr><td>Financing Amount</td><td>${state.totalAcquisition != null ? fmt$(parseFloat(document.getElementById('financingNeeded').value)||state.totalAcquisition) : '--'}</td></tr>
+      <tr><td>Interest Rate</td><td>${rate ? rate + '%' : '--'}</td></tr>
+      <tr><td>Loan Term</td><td>${term ? term + ' years' : '--'}</td></tr>
+      <tr><td>Annual Debt Service</td><td>${state.annualDebtService != null ? fmt$(state.annualDebtService) : '--'}</td></tr>
+      <tr><td>Annual Operating Costs</td><td>${state.annualOperating != null ? fmt$(state.annualOperating) : '--'}</td></tr>
+      <tr><td>Annual Reserves</td><td>${state.annualReserves != null ? fmt$(state.annualReserves) : '--'}</td></tr>
+      <tr><td>Annual Grant Income</td><td>${state.annualGrant != null ? fmt$(state.annualGrant) : '--'}</td></tr>
+      <tr><td>Current Lot Rent</td><td>${state.currentLotRent != null ? fmt$(state.currentLotRent) + '/mo' : '--'}</td></tr>
+      <tr class="total-row"><td>Required Lot Rent</td><td>${state.newLotRent != null ? fmt$(state.newLotRent) + '/mo' : '--'}</td></tr>
+      <tr><td>Monthly Change</td><td>${state.lotRentChange != null ? (state.lotRentChange >= 0 ? '+' : '') + fmt$(state.lotRentChange) + ' (' + (state.lotRentChangePct >= 0 ? '+' : '') + state.lotRentChangePct.toFixed(1) + '%)' : '--'}</td></tr>
+    `;
+  }
+
+  // Sustainability text
+  const susEl = document.getElementById('sustainabilityText');
+  if (susEl) {
+    if (!state.totalAcquisition || !state.newLotRent) {
+      susEl.textContent = 'Complete Steps 1–3 to generate your sustainability assessment.';
+    } else {
+      let parts = [];
+      if (state.participationLevel === 'green') parts.push('Resident participation is strong at ' + fmtPct(state.participationPct) + '.');
+      else if (state.participationLevel === 'yellow') parts.push('Resident participation at ' + fmtPct(state.participationPct) + ' meets the minimum but could be stronger.');
+      else if (state.participationLevel === 'red') parts.push('Resident participation at ' + fmtPct(state.participationPct) + ' does not yet meet the 51% minimum needed to proceed.');
+
+      if (state.cphLevel === 'green') parts.push('The per-home acquisition cost of ' + fmt$(state.costPerHome) + ' is in the favorable range.');
+      else if (state.cphLevel === 'yellow') parts.push('The per-home acquisition cost of ' + fmt$(state.costPerHome) + ' is manageable but will require disciplined financing.');
+      else if (state.cphLevel === 'red') parts.push('The per-home acquisition cost of ' + fmt$(state.costPerHome) + ' is challenging and will require careful structuring.');
+
+      if (state.lotRentLevel === 'green') parts.push('The projected lot-rent increase of ' + (state.lotRentChangePct >= 0 ? '+' : '') + state.lotRentChangePct.toFixed(1) + '% is sustainable.');
+      else if (state.lotRentLevel === 'yellow') parts.push('The projected lot-rent increase of +' + state.lotRentChangePct.toFixed(1) + '% is manageable but requires clear communication with residents.');
+      else if (state.lotRentLevel === 'red') parts.push('The projected lot-rent increase of +' + state.lotRentChangePct.toFixed(1) + '% is above the sustainable threshold — consider additional grant funding or a longer loan term.');
+
+      susEl.textContent = parts.join(' ');
+    }
+  }
+
+  // Next steps
+  const nsEl = document.getElementById('nextStepsText');
+  if (nsEl) {
+    if (!state.participationLevel || !state.cphLevel || !state.lotRentLevel) {
+      nsEl.textContent = 'Complete Steps 1–3 to generate your next steps recommendation.';
+      return;
+    }
+
+    const levels = [state.participationLevel, state.cphLevel, state.lotRentLevel];
+    const hasRed = levels.includes('red');
+    const hasYellow = levels.includes('yellow');
+
+    if (!hasRed && !hasYellow) {
+      nsEl.innerHTML = 'Your community appears to have <strong>strong feasibility indicators</strong> across participation, acquisition cost, and lot-rent sustainability. Contact Northcountry Cooperative Foundation to initiate a formal feasibility study and explore financing options. Your scenario is a good candidate for cooperative purchase.';
+    } else if (hasRed) {
+      let issues = [];
+      if (state.participationLevel === 'red') issues.push('resident participation must reach 51% before proceeding');
+      if (state.cphLevel === 'red') issues.push('the per-home acquisition cost of ' + fmt$(state.costPerHome) + ' will require significant grant support');
+      if (state.lotRentLevel === 'red') issues.push('the projected lot-rent increase of +' + (state.lotRentChangePct||0).toFixed(1) + '% exceeds sustainable levels without additional subsidies');
+      nsEl.innerHTML = 'This scenario as currently modeled faces significant challenges: ' + issues.join('; ') + '. Do not be discouraged — many cooperatives succeeded after reorganizing their approach. Contact <strong>Northcountry Cooperative Foundation</strong> for a full assessment. They have helped communities navigate similar situations.';
+    } else {
+      let issues = [];
+      if (state.participationLevel === 'yellow') issues.push('continue resident organizing to build participation above 75%');
+      if (state.cphLevel === 'yellow') issues.push('explore grant funding to reduce the financing amount');
+      if (state.lotRentLevel === 'yellow') issues.push('consider a longer loan term or additional grant income to reduce the lot-rent increase');
+      nsEl.innerHTML = 'Your community has <strong>some areas that need attention</strong> before proceeding: ' + issues.join('; ') + '. A technical assistance provider can help you address these. Contact Northcountry Cooperative Foundation to begin the conversation — they can assess your specific situation in detail.';
+    }
+  }
+}
+
+function parkStatusLabel(v) {
+  const map = {
+    'not-for-sale': 'Not currently for sale',
+    'willing': 'Owner has indicated willingness to sell',
+    'listed': 'Actively listed for sale',
+    'notice': 'Received notice of sale to outside buyer'
+  };
+  return map[v] || '--';
+}
+
+function timelineLabel(v) {
+  const map = {
+    'exploring': 'Exploring — no immediate pressure',
+    '6-12': '6–12 months',
+    '3-6': '3–6 months',
+    'immediate': 'Immediate — sale notice received'
+  };
+  return map[v] || '--';
+}
+
+// ── NAVIGATION ─────────────────────────────────────────────────────────────
+function scrollToStep(n) {
+  const el = document.getElementById('step' + n);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  // Update active state
+  document.querySelectorAll('#stepList .step-item').forEach(item => {
+    item.classList.remove('is-active');
+  });
+  const active = document.querySelector(`#stepList .step-item[data-step="${n}"]`);
+  if (active) active.classList.add('is-active');
+
+  // Mobile
+  document.querySelectorAll('#mobile-steps .mobile-step-pill').forEach((pill, i) => {
+    pill.classList.remove('is-active');
+    if (i === n - 1) pill.classList.add('is-active');
+  });
+}
+
+// Scroll spy — update active step in sidebar as user scrolls
+function initScrollSpy() {
+  const sections = [1,2,3,4,5].map(n => document.getElementById('step' + n)).filter(Boolean);
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        const n = parseInt(id.replace('step',''));
+        document.querySelectorAll('#stepList .step-item').forEach(item => item.classList.remove('is-active'));
+        const active = document.querySelector(`#stepList .step-item[data-step="${n}"]`);
+        if (active) active.classList.add('is-active');
+        document.querySelectorAll('#mobile-steps .mobile-step-pill').forEach((pill, i) => {
+          pill.classList.remove('is-active');
+          if (i === n - 1) pill.classList.add('is-active');
+        });
+      }
+    });
+  }, { threshold: 0.25 });
+  sections.forEach(s => obs.observe(s));
+}
+
+// ── REFERENCE PANEL TOGGLE ─────────────────────────────────────────────────
+function toggleRef() {
+  const btn = document.getElementById('refToggle');
+  const body = document.getElementById('refPanelBody');
+  btn.classList.toggle('is-open');
+  body.classList.toggle('is-open');
+}
+
+// ── TIMELINE STAGE TOGGLE ─────────────────────────────────────────────────
+function toggleStage(n) {
+  const detail = document.getElementById('stage-detail-' + n);
+  const btn = document.getElementById('stage-btn-' + n);
+  if (!detail) return;
+  const isOpen = detail.classList.toggle('is-open');
+  if (btn) btn.textContent = isOpen ? 'Collapse' : 'Expand';
+}
+
+// ── PRINT ──────────────────────────────────────────────────────────────────
+function printSummary() {
+  updateSummary();
+  // Show print-cols
+  const cols = document.getElementById('summaryContent');
+  if (cols) cols.style.display = 'grid';
+  window.print();
+  if (cols) cols.style.display = 'none';
+}
+
+// ── CLOSING COSTS MANUAL OVERRIDE ─────────────────────────────────────────
+document.getElementById('closingCosts').addEventListener('input', function() {
+  this.dataset.overridden = true;
+});
+
+document.getElementById('financingNeeded').addEventListener('input', function() {
+  this.dataset.overridden = true;
+});
+
+// Purchase price change should recalc closing costs if not overridden
+document.getElementById('purchasePrice').addEventListener('input', function() {
+  const price = parseFloat(this.value);
+  const ccEl = document.getElementById('closingCosts');
+  if (!ccEl.dataset.overridden && !isNaN(price) && price > 0) {
+    ccEl.value = Math.round(price * 0.02);
+  }
+  saveAndRecalc();
+});
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+loadInputs();
+recalcAll();
+initScrollSpy();
+</script>
+</body>
+</html>

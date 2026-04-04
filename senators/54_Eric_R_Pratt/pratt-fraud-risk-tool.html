@@ -1,0 +1,1615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SD-54 Small Business Fraud Risk Assessment — Sen. Eric R. Pratt</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Four-quadrant CSS Grid — risk matrix pinned top-right, active module fills left column,
+      score breakdowns bottom-right. Asymmetric: left 62%, right 38%.
+   2. Navigation: Quadrant-based — four quadrants visible simultaneously on desktop; category stepping
+      within the questionnaire quadrant via Previous/Next buttons.
+   3. Typography: Franklin Gothic Medium (headers), Tahoma (body/labels), Lucida Console (data/scores).
+   4. Hero moment: The risk heat-map matrix with oversized "RISK SCORE: XX" in gold on vault gray,
+      dominating the top-right quadrant.
+   5. Color strategy: #3 Dark dominant — vault gray (#37474f) and near-black (#121212) cover 70%+
+      of the page; safety-deposit gold (#c9a227) for accents; warning red (#d32f2f) for high-risk.
+   6. Entry experience: Vault door SVG swings open (rotate transform 1.5s) to reveal the assessment.
+   Additional: No bordered callout boxes, no parchment backgrounds, no emoji icons, no rounded-top
+   tabs. Dense data in score panels, spacious hero score. Semicircular gauge for overall score.
+*/
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --vault-gray: #37474f;
+  --vault-gray-light: #4a5f6b;
+  --vault-gray-dark: #263238;
+  --gold: #c9a227;
+  --gold-dim: #9a7b1e;
+  --gold-bright: #e0b830;
+  --near-black: #121212;
+  --near-black-soft: #1a1a1a;
+  --warning-red: #d32f2f;
+  --low-green: #2e7d32;
+  --moderate-yellow: #f9a825;
+  --elevated-orange: #e65100;
+  --white-warm: #f0ece4;
+  --white-pure: #ffffff;
+  --text-light: #d8d4cc;
+  --text-mid: #9e9a92;
+}
+
+html { font-size: 15px; background: var(--near-black); }
+body {
+  font-family: Tahoma, Geneva, sans-serif;
+  color: var(--text-light);
+  background: var(--near-black);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ═══════════════════════════════════
+   VAULT DOOR ENTRY OVERLAY
+   ═══════════════════════════════════ */
+#vault-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  background: var(--near-black);
+  transition: opacity 0.6s ease 1.6s;
+}
+#vault-overlay.open { opacity: 0; pointer-events: none; }
+
+#vault-overlay svg { width: 300px; height: 300px; }
+
+.vault-door {
+  transform-origin: left center;
+  transition: transform 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+#vault-overlay.open .vault-door {
+  transform: perspective(800px) rotateY(-110deg);
+}
+
+.vault-tagline {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 0.65rem; letter-spacing: 3px; text-transform: uppercase;
+  color: var(--text-mid); margin-top: 20px;
+}
+
+#vault-enter {
+  margin-top: 24px;
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 1rem; letter-spacing: 3px; text-transform: uppercase;
+  color: var(--gold); background: transparent;
+  border: 2px solid var(--gold);
+  padding: 12px 40px; cursor: pointer;
+  transition: background 0.3s, color 0.3s;
+}
+#vault-enter:hover { background: var(--gold); color: var(--near-black); }
+#vault-enter:focus { outline: 2px solid var(--gold-bright); outline-offset: 3px; }
+
+/* ═══════════════════════════════════
+   MAIN APPLICATION GRID
+   ═══════════════════════════════════ */
+#app { display: none; min-height: 100vh; }
+#app.visible {
+  display: grid;
+  grid-template-columns: 62fr 38fr;
+  grid-template-rows: auto 1fr auto;
+  min-height: 100vh;
+}
+
+/* ── TOP BAR ── */
+.top-bar {
+  grid-column: 1 / -1;
+  background: var(--vault-gray-dark);
+  padding: 10px 24px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 2px solid var(--gold-dim);
+  flex-wrap: wrap; gap: 6px;
+}
+.top-bar h1 {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 1rem; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--gold); font-weight: 400;
+}
+.top-bar .senator-tag {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 0.7rem; color: var(--text-mid);
+  letter-spacing: 1px; text-transform: uppercase;
+}
+
+/* ── LEFT PANEL ── */
+.left-panel {
+  background: var(--near-black-soft);
+  padding: 28px 32px;
+  overflow-y: auto;
+  max-height: calc(100vh - 86px);
+}
+
+/* ── RIGHT COLUMN ── */
+.right-col {
+  display: flex; flex-direction: column;
+  background: var(--vault-gray-dark);
+  border-left: 2px solid var(--gold-dim);
+  max-height: calc(100vh - 86px);
+  overflow-y: auto;
+}
+
+/* ═══════════════════════════════════
+   RISK MATRIX PANEL (top-right)
+   ═══════════════════════════════════ */
+.risk-matrix-panel {
+  padding: 20px 18px 16px;
+  text-align: center;
+  border-bottom: 1px solid var(--vault-gray);
+  flex: 0 0 auto;
+}
+.matrix-label {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 0.65rem; letter-spacing: 4px; text-transform: uppercase;
+  color: var(--text-mid); margin-bottom: 6px;
+}
+
+/* Semicircular gauge */
+.gauge-wrap {
+  width: 200px; height: 110px;
+  margin: 0 auto 4px; position: relative;
+  overflow: hidden;
+}
+.gauge-wrap svg { width: 200px; height: 110px; }
+.gauge-score-text {
+  position: absolute; bottom: 2px; left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 2.4rem; line-height: 1; color: var(--gold);
+  text-shadow: 0 0 24px rgba(201, 162, 39, 0.35);
+}
+.gauge-score-pct {
+  font-size: 1rem; color: var(--gold-dim);
+}
+
+.hero-tier {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 0.85rem; letter-spacing: 2px; text-transform: uppercase;
+  padding: 3px 14px; display: inline-block; margin: 4px 0 12px;
+}
+.tier-low { color: var(--low-green); border: 1px solid var(--low-green); }
+.tier-moderate { color: var(--moderate-yellow); border: 1px solid var(--moderate-yellow); }
+.tier-elevated { color: var(--elevated-orange); border: 1px solid var(--elevated-orange); }
+.tier-high { color: var(--warning-red); border: 1px solid var(--warning-red); }
+
+/* 5x5 heat map */
+.heatmap-section-label {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 0.55rem; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--text-mid); margin-bottom: 6px;
+}
+.heat-map {
+  display: grid;
+  grid-template-columns: 22px repeat(5, 1fr);
+  grid-template-rows: repeat(5, 1fr) 22px;
+  gap: 3px;
+  width: 100%; max-width: 240px;
+  margin: 0 auto; aspect-ratio: 1;
+}
+.heat-cell {
+  border-radius: 2px;
+  background: var(--vault-gray);
+  transition: background 0.5s, box-shadow 0.5s;
+  position: relative;
+}
+.heat-cell.filled-green { background: var(--low-green); box-shadow: 0 0 6px rgba(46, 125, 50, 0.4); }
+.heat-cell.filled-yellow { background: var(--moderate-yellow); box-shadow: 0 0 6px rgba(249, 168, 37, 0.4); }
+.heat-cell.filled-orange { background: var(--elevated-orange); box-shadow: 0 0 6px rgba(230, 81, 0, 0.4); }
+.heat-cell.filled-red { background: var(--warning-red); box-shadow: 0 0 8px rgba(211, 47, 47, 0.5); }
+.heat-cell.has-dot::after {
+  content: ''; position: absolute;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--white-pure); opacity: 0.85;
+  top: 50%; left: 50%; transform: translate(-50%, -50%);
+}
+.heat-label {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 8px; color: var(--text-mid);
+  display: flex; align-items: center; justify-content: center;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.heat-label-y {
+  writing-mode: vertical-lr;
+  transform: rotate(180deg);
+}
+
+/* Category legend below heat map */
+.heat-legend {
+  display: flex; flex-wrap: wrap; gap: 4px 10px;
+  justify-content: center; margin-top: 8px;
+  font-size: 0.58rem; color: var(--text-mid);
+  font-family: 'Lucida Console', Monaco, monospace;
+}
+.heat-legend-dot {
+  display: inline-block; width: 8px; height: 8px;
+  border-radius: 50%; margin-right: 3px; vertical-align: middle;
+}
+
+/* ═══════════════════════════════════
+   SCORE BREAKDOWN PANEL (bottom-right)
+   ═══════════════════════════════════ */
+.score-breakdown-panel {
+  padding: 16px 18px; flex: 1 1 auto;
+}
+.breakdown-title {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 0.65rem; letter-spacing: 4px; text-transform: uppercase;
+  color: var(--text-mid); margin-bottom: 12px;
+}
+.cat-row {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 8px;
+}
+.cat-label {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 0.68rem; color: var(--text-light);
+  width: 105px; flex-shrink: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.cat-bar-track {
+  flex: 1; height: 14px; background: var(--vault-gray);
+  border-radius: 2px; overflow: hidden; position: relative;
+}
+.cat-bar-fill {
+  height: 100%; border-radius: 2px;
+  transition: width 0.6s ease;
+}
+.threshold-line {
+  position: absolute; top: 0; bottom: 0; left: 80%;
+  border-left: 1px dashed var(--gold-dim); z-index: 1;
+}
+.cat-pct {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 0.68rem; color: var(--gold);
+  width: 36px; text-align: right; flex-shrink: 0;
+}
+
+/* Answered count beneath bars */
+.answered-summary {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 0.6rem; color: var(--text-mid);
+  margin-top: 14px; text-align: center;
+  letter-spacing: 1px;
+}
+
+/* ═══════════════════════════════════
+   INTAKE FORM
+   ═══════════════════════════════════ */
+.intake-section { max-width: 540px; }
+.intake-section h2 {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 1.6rem; color: var(--gold);
+  letter-spacing: 1px; margin-bottom: 6px;
+}
+.intake-lead {
+  font-size: 0.84rem; color: var(--text-mid);
+  line-height: 1.55; margin-bottom: 22px;
+}
+.form-field { margin-bottom: 14px; }
+.form-field label {
+  display: block; font-size: 0.7rem;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--text-mid); margin-bottom: 4px;
+}
+.form-field input,
+.form-field select {
+  width: 100%; padding: 9px 12px;
+  background: var(--vault-gray-dark);
+  border: 1px solid var(--vault-gray);
+  color: var(--text-light);
+  font-family: Tahoma, Geneva, sans-serif; font-size: 0.88rem;
+  border-radius: 2px;
+  transition: border-color 0.2s;
+}
+.form-field input:focus,
+.form-field select:focus {
+  outline: none; border-color: var(--gold);
+}
+.form-field select option {
+  background: var(--vault-gray-dark); color: var(--text-light);
+}
+
+/* Buttons */
+.btn {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 0.82rem; letter-spacing: 2px; text-transform: uppercase;
+  padding: 10px 28px; cursor: pointer; border: none;
+  transition: background 0.25s, color 0.25s;
+  border-radius: 2px;
+}
+.btn-gold { background: var(--gold); color: var(--near-black); }
+.btn-gold:hover { background: var(--gold-bright); }
+.btn-gold:focus { outline: 2px solid var(--gold-bright); outline-offset: 2px; }
+.btn-outline { background: transparent; color: var(--gold); border: 1px solid var(--gold); }
+.btn-outline:hover { background: var(--gold); color: var(--near-black); }
+.btn-sm { padding: 7px 18px; font-size: 0.72rem; letter-spacing: 1.5px; }
+
+.load-example {
+  font-size: 0.7rem; color: var(--gold-dim);
+  cursor: pointer; text-decoration: underline;
+  font-family: Tahoma, Geneva, sans-serif;
+  background: none; border: none;
+}
+.load-example:hover { color: var(--gold); }
+
+/* ═══════════════════════════════════
+   HELP TEXT (toggled, inline)
+   ═══════════════════════════════════ */
+.help-toggle {
+  font-size: 0.68rem; color: var(--gold-dim); cursor: pointer;
+  text-decoration: underline; background: none; border: none;
+  font-family: Tahoma, Geneva, sans-serif;
+}
+.help-toggle:hover { color: var(--gold); }
+.help-content {
+  display: none; margin-top: 12px;
+  font-size: 0.78rem; line-height: 1.6; color: var(--text-mid);
+  max-width: 540px;
+}
+.help-content.visible { display: block; }
+.help-content strong { color: var(--text-light); }
+
+/* ═══════════════════════════════════
+   QUESTIONNAIRE
+   ═══════════════════════════════════ */
+.q-header {
+  display: flex; align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 14px; flex-wrap: wrap; gap: 8px;
+}
+.q-header h2 {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 1.1rem; color: var(--gold); letter-spacing: 1px;
+}
+.q-progress {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 0.68rem; color: var(--text-mid);
+}
+.q-progress-bar {
+  width: 100%; height: 4px; background: var(--vault-gray);
+  margin-bottom: 20px; border-radius: 2px; overflow: hidden;
+}
+.q-progress-fill {
+  height: 100%; background: var(--gold);
+  transition: width 0.4s;
+}
+
+.q-cat-desc {
+  font-size: 0.76rem; color: var(--text-mid);
+  line-height: 1.5; margin-bottom: 18px;
+  font-style: italic;
+}
+
+.question-block { margin-bottom: 18px; }
+.question-num {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 0.62rem; color: var(--gold-dim);
+  margin-bottom: 3px;
+}
+.question-text {
+  font-size: 0.86rem; color: var(--text-light);
+  line-height: 1.5; margin-bottom: 8px;
+}
+.q-options { display: flex; gap: 6px; flex-wrap: wrap; }
+.q-opt {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 0.7rem; letter-spacing: 1px; text-transform: uppercase;
+  padding: 5px 14px; cursor: pointer;
+  background: var(--vault-gray-dark); color: var(--text-mid);
+  border: 1px solid var(--vault-gray); border-radius: 2px;
+  transition: all 0.2s;
+}
+.q-opt:hover { border-color: var(--gold-dim); color: var(--text-light); }
+.q-opt:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
+.q-opt.sel-yes { background: var(--low-green); color: #fff; border-color: var(--low-green); }
+.q-opt.sel-partial { background: var(--moderate-yellow); color: var(--near-black); border-color: var(--moderate-yellow); }
+.q-opt.sel-no { background: var(--warning-red); color: #fff; border-color: var(--warning-red); }
+.q-opt.sel-na { background: var(--vault-gray); color: var(--text-light); border-color: var(--text-mid); }
+
+.q-nav {
+  display: flex; gap: 10px; margin-top: 24px;
+  justify-content: space-between;
+}
+
+/* ═══════════════════════════════════
+   REPORT VIEW
+   ═══════════════════════════════════ */
+.report-section { max-width: 700px; }
+.report-section h2 {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 1.3rem; color: var(--gold);
+  letter-spacing: 1px; margin-bottom: 16px;
+}
+.report-section h3 {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 0.9rem; color: var(--gold-dim);
+  letter-spacing: 2px; margin: 24px 0 10px;
+  text-transform: uppercase;
+}
+.report-header-block {
+  font-size: 0.8rem; color: var(--text-mid);
+  margin-bottom: 16px; line-height: 1.6;
+}
+.report-header-block strong { color: var(--text-light); }
+
+/* Gauge in report (larger) */
+.report-gauge-wrap {
+  width: 260px; height: 140px;
+  margin: 0 auto 10px; position: relative;
+  overflow: hidden;
+}
+.report-gauge-wrap svg { width: 260px; height: 140px; }
+.report-gauge-score {
+  position: absolute; bottom: 4px; left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 3rem; line-height: 1; color: var(--gold);
+  text-shadow: 0 0 28px rgba(201, 162, 39, 0.3);
+}
+
+/* Vulnerability items */
+.vuln-item { margin-bottom: 14px; }
+.vuln-cat {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 0.72rem; color: var(--warning-red);
+}
+.vuln-text {
+  font-size: 0.8rem; line-height: 1.55;
+  color: var(--text-light); margin-top: 4px;
+}
+
+/* Action groups */
+.action-group { margin-bottom: 18px; }
+.action-group-title {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 0.72rem; letter-spacing: 2px; text-transform: uppercase;
+  padding: 4px 12px; display: inline-block; margin-bottom: 8px;
+  border-radius: 2px;
+}
+.ag-week { background: var(--warning-red); color: #fff; }
+.ag-month { background: var(--elevated-orange); color: #fff; }
+.ag-quarter { background: var(--gold-dim); color: #fff; }
+.action-item {
+  font-size: 0.78rem; color: var(--text-light);
+  line-height: 1.55; padding: 4px 0 4px 18px;
+  position: relative;
+}
+.action-item::before {
+  content: ''; position: absolute; left: 2px; top: 10px;
+  width: 6px; height: 6px; background: var(--gold);
+  transform: rotate(45deg);
+}
+
+/* Bank products */
+.bank-products { margin-top: 8px; }
+.bp-item {
+  display: inline-block;
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 0.65rem; letter-spacing: 1px;
+  padding: 4px 10px; margin: 3px 4px 3px 0;
+  background: var(--vault-gray); color: var(--gold);
+  border-radius: 2px;
+}
+
+/* Next steps */
+.next-steps { margin-top: 8px; }
+.next-step {
+  font-size: 0.8rem; line-height: 1.55; color: var(--text-light);
+  padding: 5px 0 5px 22px; position: relative;
+}
+.step-num {
+  position: absolute; left: 0;
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 0.7rem; color: var(--gold);
+}
+
+.report-actions {
+  margin-top: 28px; display: flex; gap: 10px; flex-wrap: wrap;
+}
+
+.report-footer-note {
+  font-size: 0.62rem; color: var(--text-mid);
+  margin-top: 20px; letter-spacing: 0.5px;
+}
+
+/* Chart container */
+.chart-wrap {
+  background: var(--vault-gray-dark);
+  padding: 14px; margin: 16px 0;
+  max-width: 620px; border-radius: 2px;
+}
+.chart-wrap canvas { width: 100% !important; max-height: 220px; }
+
+/* ═══════════════════════════════════
+   FOOTER
+   ═══════════════════════════════════ */
+.site-footer {
+  grid-column: 1 / -1;
+  background: var(--vault-gray-dark);
+  padding: 10px 24px;
+  font-size: 0.62rem; color: var(--text-mid);
+  border-top: 1px solid var(--vault-gray);
+  text-align: center; letter-spacing: 0.5px;
+}
+
+/* ═══════════════════════════════════
+   PRINT STYLES
+   ═══════════════════════════════════ */
+@media print {
+  #vault-overlay, .top-bar, .site-footer, .q-nav, .btn, .load-example,
+  .help-toggle, .help-content, .right-col, .report-actions { display: none !important; }
+  #app.visible { display: block !important; }
+  .left-panel {
+    max-height: none !important; overflow: visible !important;
+    background: #fff !important; color: #111 !important;
+    padding: 24px !important;
+  }
+  .report-section h2, .report-section h3 { color: #222 !important; }
+  .report-header-block, .report-header-block strong { color: #333 !important; }
+  .vuln-cat { color: #b00 !important; }
+  .vuln-text, .action-item, .next-step { color: #222 !important; }
+  .report-gauge-score { color: #333 !important; text-shadow: none !important; }
+  .cat-label, .cat-pct { color: #333 !important; }
+  .bp-item { background: #eee !important; color: #333 !important; }
+  .chart-wrap { background: #fff !important; border: 1px solid #ccc; }
+  .action-item::before { background: #333 !important; }
+  .step-num { color: #333 !important; }
+  .report-footer-note { color: #666 !important; }
+  @page { margin: 1.5cm; }
+}
+
+/* ═══════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════ */
+@media (max-width: 920px) {
+  #app.visible {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto auto;
+  }
+  .right-col {
+    border-left: none; border-top: 2px solid var(--gold-dim);
+    max-height: none;
+  }
+  .left-panel { max-height: none; }
+  .heat-map { max-width: 200px; }
+  .gauge-wrap { width: 180px; height: 100px; }
+  .gauge-wrap svg { width: 180px; height: 100px; }
+  .gauge-score-text { font-size: 2rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     VAULT DOOR OVERLAY
+     ═══════════════════════════════════════════ -->
+<div id="vault-overlay">
+  <svg viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <!-- Vault frame -->
+    <rect x="8" y="8" width="284" height="284" rx="8" fill="#263238" stroke="#c9a227" stroke-width="3"/>
+    <!-- Outer ring -->
+    <circle cx="150" cy="145" r="105" fill="none" stroke="#4a5f6b" stroke-width="5"/>
+    <circle cx="150" cy="145" r="88" fill="none" stroke="#37474f" stroke-width="2"/>
+    <!-- Door (swings open) -->
+    <g class="vault-door">
+      <rect x="45" y="40" width="210" height="210" rx="3" fill="#37474f" stroke="#4a5f6b" stroke-width="2"/>
+      <!-- Handle wheel -->
+      <circle cx="150" cy="145" r="46" fill="none" stroke="#c9a227" stroke-width="3.5"/>
+      <circle cx="150" cy="145" r="7" fill="#c9a227"/>
+      <!-- Spokes -->
+      <line x1="150" y1="99" x2="150" y2="121" stroke="#c9a227" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="150" y1="169" x2="150" y2="191" stroke="#c9a227" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="104" y1="145" x2="126" y2="145" stroke="#c9a227" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="174" y1="145" x2="196" y2="145" stroke="#c9a227" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- Diagonal spokes -->
+      <line x1="117" y1="112" x2="132" y2="127" stroke="#c9a227" stroke-width="2" stroke-linecap="round"/>
+      <line x1="168" y1="163" x2="183" y2="178" stroke="#c9a227" stroke-width="2" stroke-linecap="round"/>
+      <line x1="183" y1="112" x2="168" y2="127" stroke="#c9a227" stroke-width="2" stroke-linecap="round"/>
+      <line x1="132" y1="163" x2="117" y2="178" stroke="#c9a227" stroke-width="2" stroke-linecap="round"/>
+      <!-- Corner bolts -->
+      <circle cx="72" cy="67" r="5" fill="#4a5f6b"/><circle cx="228" cy="67" r="5" fill="#4a5f6b"/>
+      <circle cx="72" cy="223" r="5" fill="#4a5f6b"/><circle cx="228" cy="223" r="5" fill="#4a5f6b"/>
+      <!-- Door text -->
+      <text x="150" y="265" text-anchor="middle" fill="#9e9a92"
+            font-family="'Lucida Console',Monaco,monospace" font-size="8" letter-spacing="2">SD-54 FRAUD RISK VAULT</text>
+    </g>
+  </svg>
+  <div class="vault-tagline">Small Business Fraud Risk Assessment</div>
+  <button id="vault-enter">Open Assessment</button>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     MAIN APPLICATION
+     ═══════════════════════════════════════════ -->
+<div id="app">
+  <!-- Top bar -->
+  <header class="top-bar">
+    <h1>Fraud Risk Assessment</h1>
+    <span class="senator-tag">Sen. Eric R. Pratt &middot; SD-54 &middot; Scott County</span>
+  </header>
+
+  <!-- LEFT PANEL -->
+  <main class="left-panel" id="leftPanel">
+
+    <!-- ── INTAKE VIEW ── -->
+    <div id="view-intake" class="intake-section">
+      <h2>Know Your Exposure</h2>
+      <p class="intake-lead">Senator Pratt spent 30 years identifying fraud vulnerabilities in banking &mdash; at U.S. Bank and Target &mdash; before bringing that focus to the Minnesota Senate. This tool puts that methodology in the hands of every small business in Scott County. Complete the assessment in 15 minutes. Act on the results immediately.</p>
+      <!-- VERIFY: Pratt career detail from software brief — confirmed in report.txt -->
+      <div class="form-field">
+        <label for="bizName">Business Name</label>
+        <input type="text" id="bizName" placeholder="e.g. Scott County Landscaping Co." autocomplete="organization">
+      </div>
+      <div class="form-field">
+        <label for="bizType">Business Type</label>
+        <select id="bizType">
+          <option value="">Select&hellip;</option>
+          <option value="Landscaping / Exterior Services">Landscaping / Exterior Services</option>
+          <option value="Construction / Trades">Construction / Trades</option>
+          <option value="Retail">Retail</option>
+          <option value="Restaurant / Food Service">Restaurant / Food Service</option>
+          <option value="Professional Services">Professional Services</option>
+          <option value="Logistics / Transportation">Logistics / Transportation</option>
+          <option value="Healthcare / Dental">Healthcare / Dental</option>
+          <option value="Automotive / Repair">Automotive / Repair</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label for="bizEmployees">Approximate Number of Employees</label>
+        <select id="bizEmployees">
+          <option value="">Select&hellip;</option>
+          <option value="1-5">1 &ndash; 5</option>
+          <option value="6-15">6 &ndash; 15</option>
+          <option value="16-50">16 &ndash; 50</option>
+          <option value="51-100">51 &ndash; 100</option>
+          <option value="100+">100+</option>
+        </select>
+      </div>
+      <div style="margin-top:20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+        <button class="btn btn-gold" onclick="startAssessment()">Begin Assessment</button>
+        <button class="load-example" onclick="loadExample()">Load Example: Scott County Landscaping Company</button>
+      </div>
+      <div style="margin-top:20px">
+        <button class="help-toggle" onclick="toggleHelp()">What is occupational fraud?</button>
+        <div id="helpContent" class="help-content">
+          <strong>Occupational fraud</strong> is fraud committed by employees against their own employer &mdash; not cybercrime from outsiders. It includes billing schemes, check tampering, payroll fraud, expense reimbursement abuse, and skimming. ACFE research consistently finds that small organizations with fewer than 100 employees suffer median losses of $141,000 per case because they have fewer segregation-of-duty controls than large companies.
+          <!-- VERIFY: ACFE 2024 median loss figure from software brief -->
+          <br><br>
+          <strong>Scott County's growth corridor.</strong> The Hwy 169 and I-35 corridors are attracting new employers and entrepreneurs every year. Fast growth means new employees, new systems, and new fraud exposure. This tool was built for that moment.
+        </div>
+      </div>
+    </div>
+
+    <!-- ── QUESTIONNAIRE VIEW ── -->
+    <div id="view-questionnaire" style="display:none">
+      <div class="q-header">
+        <h2 id="catTitle"></h2>
+        <span class="q-progress" id="qProgress"></span>
+      </div>
+      <div class="q-progress-bar"><div class="q-progress-fill" id="qProgressFill"></div></div>
+      <div class="q-cat-desc" id="catDesc"></div>
+      <div id="questionsContainer"></div>
+      <div class="q-nav">
+        <button class="btn btn-outline btn-sm" id="btnPrev" onclick="prevCategory()">Previous</button>
+        <button class="btn btn-gold btn-sm" id="btnNext" onclick="nextCategory()">Next Category</button>
+      </div>
+    </div>
+
+    <!-- ── REPORT VIEW ── -->
+    <div id="view-report" style="display:none" class="report-section">
+      <h2>Fraud Risk Report</h2>
+      <div id="reportHeader" class="report-header-block"></div>
+
+      <!-- Report gauge -->
+      <div class="report-gauge-wrap" id="reportGaugeWrap"></div>
+      <div id="reportTierLabel" style="text-align:center;margin-bottom:16px"></div>
+
+      <div class="chart-wrap"><canvas id="catChart"></canvas></div>
+
+      <h3>Top Vulnerabilities</h3>
+      <div id="vulnList"></div>
+
+      <h3>Priority Actions</h3>
+      <div id="actionList"></div>
+
+      <h3>Recommended Banking Products</h3>
+      <div id="bankProducts" class="bank-products"></div>
+
+      <h3>Next Steps</h3>
+      <div id="nextSteps" class="next-steps"></div>
+
+      <div class="report-actions">
+        <button class="btn btn-gold btn-sm" onclick="window.print()">Print / Save PDF</button>
+        <button class="btn btn-outline btn-sm" onclick="resetTool()">Start Over</button>
+      </div>
+      <p class="report-footer-note">Prepared using the SD-54 Small Business Fraud Risk Tool. Built with AI for Scott County businesses.</p>
+    </div>
+  </main>
+
+  <!-- RIGHT COLUMN -->
+  <aside class="right-col" id="rightCol">
+    <!-- Risk matrix panel -->
+    <div class="risk-matrix-panel">
+      <div class="matrix-label">Risk Score</div>
+      <!-- Semicircular gauge -->
+      <div class="gauge-wrap" id="gaugeWrap">
+        <svg viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg">
+          <!-- Background arc -->
+          <path d="M 15 100 A 85 85 0 0 1 185 100" fill="none" stroke="#4a5f6b" stroke-width="14" stroke-linecap="round"/>
+          <!-- Score arc -->
+          <path id="gaugeArc" d="M 15 100 A 85 85 0 0 1 185 100" fill="none" stroke="#37474f" stroke-width="14" stroke-linecap="round"
+                stroke-dasharray="0 267" style="transition: stroke-dasharray 0.8s ease, stroke 0.5s;"/>
+        </svg>
+        <div class="gauge-score-text" id="gaugeScoreText">--</div>
+      </div>
+      <div id="heroTier" class="hero-tier tier-moderate" style="visibility:hidden">AWAITING DATA</div>
+
+      <!-- Heat map -->
+      <div class="heatmap-section-label">Likelihood vs Impact</div>
+      <div class="heat-map" id="heatMap">
+        <!-- Y-axis labels -->
+        <div class="heat-label heat-label-y" style="grid-row:1;grid-column:1">HIGH</div>
+        <div class="heat-label heat-label-y" style="grid-row:3;grid-column:1;font-size:6px">LIKELY</div>
+        <div class="heat-label heat-label-y" style="grid-row:5;grid-column:1">LOW</div>
+        <!-- X-axis labels -->
+        <div class="heat-label" style="grid-row:6;grid-column:2">LOW</div>
+        <div class="heat-label" style="grid-row:6;grid-column:4;font-size:6px">IMPACT</div>
+        <div class="heat-label" style="grid-row:6;grid-column:6">HIGH</div>
+      </div>
+      <div class="heat-legend" id="heatLegend"></div>
+    </div>
+
+    <!-- Score breakdowns -->
+    <div class="score-breakdown-panel">
+      <div class="breakdown-title">Category Scores</div>
+      <div id="catBars"></div>
+      <div class="answered-summary" id="answeredSummary">0 of 24 questions answered</div>
+    </div>
+  </aside>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    A resource for SD-54 businesses and Scott County entrepreneurs. Built with AI. Fraud risk categories reflect standard small-business internal controls frameworks.
+  </footer>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════
+   DATA MODEL — questions, categories, weights, actions
+   ══════════════════════════════════════════════════════════ */
+
+var CATEGORIES = [
+  {
+    id: 'cash',
+    name: 'Cash Handling & Payments',
+    shortName: 'Cash & Pay',
+    weight: 1.5,
+    desc: 'Controls around incoming payments, check stock, bank reconciliation, and cash drawers.',
+    vuln: 'Your cash handling controls score ({pct}%) suggests that a fraudster could intercept incoming payments, forge checks, or manipulate bank reconciliations \u2014 the most common small-business fraud vector.',
+    /* Heat map position: high likelihood, high impact */
+    hmRow: 1, hmCol: 6,
+    questions: [
+      {
+        id: 'cash_1',
+        text: 'Does the same person who opens mail also post payments to accounts?',
+        invert: true,
+        action: 'Separate mail-opening from payment posting. Assign a second person to open mail and stamp checks "For Deposit Only" before passing them to accounting.',
+        timeframe: 'week'
+      },
+      {
+        id: 'cash_2',
+        text: 'Is there a formal bank reconciliation process, and does someone other than the bookkeeper review the reconciled statement each month?',
+        action: 'Establish a monthly reconciliation review. The owner or a trusted manager should review the reconciled bank statement \u2014 not just the summary, but cleared checks and debits.',
+        timeframe: 'week'
+      },
+      {
+        id: 'cash_3',
+        text: 'Do you use Positive Pay or ACH Debit Filters with your bank?',
+        action: 'Call your bank this week and ask about Positive Pay enrollment \u2014 most commercial checking accounts include it at no additional charge. Also ask about ACH Debit Filters to block unauthorized electronic debits.',
+        timeframe: 'week',
+        bankProduct: 'Positive Pay, ACH Debit Filter'
+      },
+      {
+        id: 'cash_4',
+        text: 'Are check stock and signature stamps locked and access-controlled?',
+        action: 'Lock check stock in a secure cabinet. Eliminate signature stamps entirely \u2014 require manual signatures or move to electronic payments with dual approval.',
+        timeframe: 'week'
+      },
+      {
+        id: 'cash_5',
+        text: 'Are cash drawers balanced daily by a second person?',
+        action: 'Implement a daily cash-drawer balancing process with a second person counting independently. Both sign the daily reconciliation slip.',
+        timeframe: 'month'
+      }
+    ]
+  },
+  {
+    id: 'payroll',
+    name: 'Payroll & Expense Reimbursement',
+    shortName: 'Payroll',
+    weight: 1.5,
+    desc: 'Who processes payroll, approves new hires, and reviews expense claims.',
+    vuln: 'Your payroll and expense controls score ({pct}%) leaves the door open for ghost employees, inflated hours, or fabricated expense claims \u2014 schemes that can run undetected for months in small businesses.',
+    hmRow: 2, hmCol: 5,
+    questions: [
+      {
+        id: 'payroll_1',
+        text: 'Does someone other than the payroll processor review payroll registers each period?',
+        action: 'Assign the owner or a manager to review every payroll register before funds are released. Look for unfamiliar names, round-number hours, and address changes.',
+        timeframe: 'week'
+      },
+      {
+        id: 'payroll_2',
+        text: 'Are new employees added to payroll only after HR/owner approval?',
+        action: 'Require written owner approval before any new employee is added to payroll. Compare new payroll entries against signed offer letters or I-9 forms monthly.',
+        timeframe: 'month'
+      },
+      {
+        id: 'payroll_3',
+        text: 'Are expense reports reviewed and approved by someone other than the submitter?',
+        action: 'Implement a policy that all expense reports require a supervisor or owner signature before reimbursement. No self-approved expenses.',
+        timeframe: 'month'
+      },
+      {
+        id: 'payroll_4',
+        text: 'Are reimbursed receipts matched to a per diem or travel policy?',
+        action: 'Create a written travel and expense policy with per-diem limits. Require original receipts for all reimbursements above $25.',
+        timeframe: 'month'
+      }
+    ]
+  },
+  {
+    id: 'vendor',
+    name: 'Vendor & Purchasing Controls',
+    shortName: 'Vendors',
+    weight: 1.25,
+    desc: 'How vendors are added, invoices verified, and bank-account changes handled.',
+    vuln: 'Your vendor controls score ({pct}%) suggests that a fraudster could add a fake vendor and route payments to a controlled account \u2014 one of the most common small-business fraud schemes.',
+    hmRow: 1, hmCol: 4,
+    questions: [
+      {
+        id: 'vendor_1',
+        text: 'Is there a formal vendor approval process (someone must approve adding vendors to your system)?',
+        action: 'Require owner sign-off before any new vendor is added to your accounting system. Periodically review the full vendor list for duplicates, inactive vendors, or unfamiliar names.',
+        timeframe: 'month'
+      },
+      {
+        id: 'vendor_2',
+        text: 'Are purchase orders or approval thresholds required before invoices are paid?',
+        action: 'Set dollar thresholds (e.g., $500+) that require a purchase order or owner approval before payment. This prevents unauthorized purchases from being rubber-stamped.',
+        timeframe: 'month'
+      },
+      {
+        id: 'vendor_3',
+        text: 'Does someone compare invoices to POs before payment is authorized?',
+        action: 'Implement three-way matching: compare the purchase order, the receiving document, and the invoice before authorizing payment.',
+        timeframe: 'quarter'
+      },
+      {
+        id: 'vendor_4',
+        text: 'Are vendor bank account changes verified by a phone call to a known number (not one on the change request itself)?',
+        action: 'Any request to change a vendor\'s bank routing information must be verified by calling the vendor at a number already on file \u2014 never use the number on the change request. This blocks business email compromise (BEC) attacks.',
+        timeframe: 'week'
+      }
+    ]
+  },
+  {
+    id: 'tech',
+    name: 'Technology & Digital Access',
+    shortName: 'Tech Access',
+    weight: 1.25,
+    desc: 'Credential management, multi-factor authentication, and employee offboarding.',
+    vuln: 'Your technology controls score ({pct}%) indicates that compromised credentials or ex-employee access could expose financial accounts. Shared logins make it impossible to trace who authorized a transaction.',
+    hmRow: 3, hmCol: 5,
+    questions: [
+      {
+        id: 'tech_1',
+        text: 'Are business banking credentials shared among employees, or are individual logins used?',
+        invert: true,
+        action: 'Contact your bank to set up individual user logins for online banking. Each employee should have unique credentials with role-based access limits.',
+        timeframe: 'month',
+        bankProduct: 'Dual Control / Dual Approval for Online Banking'
+      },
+      {
+        id: 'tech_2',
+        text: 'Is multi-factor authentication (MFA) enabled on all financial accounts and email?',
+        action: 'Enable MFA on every account that touches money or sensitive data: banking, payroll, accounting software, and business email. Most banks and software providers offer this at no cost.',
+        timeframe: 'week'
+      },
+      {
+        id: 'tech_3',
+        text: 'Are employee system access rights reviewed when roles change or employees leave?',
+        action: 'Add a quarterly access review to your calendar. Compare each employee\'s system access to their current role. Revoke anything they no longer need.',
+        timeframe: 'quarter'
+      },
+      {
+        id: 'tech_4',
+        text: 'Is there a formal offboarding checklist that includes revoking system access?',
+        action: 'Create a written offboarding checklist: revoke banking access, change shared passwords, disable email, collect company devices. Execute within 24 hours of the employee\'s last day.',
+        timeframe: 'month'
+      }
+    ]
+  },
+  {
+    id: 'inventory',
+    name: 'Inventory & Asset Controls',
+    shortName: 'Inventory',
+    weight: 1.0,
+    desc: 'Physical counts, access control to stockrooms, and fixed-asset documentation.',
+    vuln: 'Your inventory and asset controls score ({pct}%) means theft or misuse of physical assets could go undetected. Businesses with vehicles, tools, or stock are especially vulnerable without periodic counts.',
+    hmRow: 4, hmCol: 3,
+    questions: [
+      {
+        id: 'inv_1',
+        text: 'Are physical counts of inventory or high-value assets conducted periodically?',
+        action: 'Schedule a quarterly physical inventory count. Compare results to your records and investigate discrepancies immediately.',
+        timeframe: 'quarter'
+      },
+      {
+        id: 'inv_2',
+        text: 'Is access to stockrooms, storage, or equipment limited and logged?',
+        action: 'Limit stockroom and storage access to authorized personnel. Install a sign-out log for high-value equipment and tools.',
+        timeframe: 'month'
+      },
+      {
+        id: 'inv_3',
+        text: 'Are purchases of fixed assets approved by ownership and documented?',
+        action: 'Require owner approval for any fixed-asset purchase. Maintain an asset register with serial numbers, purchase dates, and assigned users.',
+        timeframe: 'quarter'
+      }
+    ]
+  },
+  {
+    id: 'culture',
+    name: 'Culture & Oversight',
+    shortName: 'Culture',
+    weight: 1.0,
+    desc: 'Reporting channels, fraud awareness, and independence of financial review.',
+    vuln: 'Your culture and oversight score ({pct}%) suggests employees may not have a safe way to report concerns, and financial oversight may be too concentrated in one person \u2014 the conditions under which fraud thrives.',
+    hmRow: 3, hmCol: 3,
+    questions: [
+      {
+        id: 'culture_1',
+        text: 'Is there a confidential way for employees to report suspected fraud or misconduct?',
+        action: 'Establish a confidential reporting channel \u2014 even an anonymous email address or phone line monitored by the owner. Communicate it to all employees.',
+        timeframe: 'month'
+      },
+      {
+        id: 'culture_2',
+        text: 'Has the business discussed fraud risks or warning signs with employees in the past year?',
+        action: 'Hold a brief (15-minute) all-hands meeting to discuss common fraud warning signs: living beyond means, reluctance to take vacation, refusal to share duties. Make it routine, not accusatory.',
+        timeframe: 'quarter'
+      },
+      {
+        id: 'culture_3',
+        text: 'Does an owner or trusted manager review bank statements directly at least monthly?',
+        action: 'Review your bank statements personally every month. Do not delegate this. Look at every cleared check and every electronic debit. This single habit catches more fraud than any technology.',
+        timeframe: 'week'
+      },
+      {
+        id: 'culture_4',
+        text: 'Are financial reports reviewed by someone outside of day-to-day accounting?',
+        action: 'Have your CPA or an advisory-board member review quarterly financial statements. An outside eye catches anomalies that insiders normalize.',
+        timeframe: 'quarter'
+      }
+    ]
+  }
+];
+
+/* Build flat lookup */
+var Q_MAP = {};
+var ALL_QUESTIONS = [];
+var TOTAL_Q = 0;
+CATEGORIES.forEach(function(cat) {
+  cat.questions.forEach(function(q) {
+    q.catId = cat.id;
+    q.catName = cat.name;
+    Q_MAP[q.id] = q;
+    ALL_QUESTIONS.push(q);
+    TOTAL_Q++;
+  });
+});
+
+/* ══════════════════════════════
+   STATE
+   ══════════════════════════════ */
+var answers = {};
+var currentCatIdx = 0;
+var bizInfo = { name: '', type: '', employees: '' };
+var chartInstance = null;
+
+/* ══════════════════════════════
+   VAULT DOOR
+   ══════════════════════════════ */
+document.getElementById('vault-enter').addEventListener('click', function() {
+  document.getElementById('vault-overlay').classList.add('open');
+  setTimeout(function() {
+    document.getElementById('app').classList.add('visible');
+    buildHeatMapCells();
+    buildCatBars();
+    buildHeatLegend();
+    loadState();
+    updateScoreboard();
+  }, 800);
+});
+
+/* ══════════════════════════════
+   HELP TOGGLE
+   ══════════════════════════════ */
+function toggleHelp() {
+  document.getElementById('helpContent').classList.toggle('visible');
+}
+
+/* ══════════════════════════════
+   HEAT MAP
+   ══════════════════════════════ */
+function buildHeatMapCells() {
+  var map = document.getElementById('heatMap');
+  var existing = map.querySelectorAll('.heat-cell');
+  existing.forEach(function(c) { c.remove(); });
+  for (var row = 1; row <= 5; row++) {
+    for (var col = 2; col <= 6; col++) {
+      var cell = document.createElement('div');
+      cell.className = 'heat-cell';
+      cell.style.gridRow = row;
+      cell.style.gridColumn = col;
+      cell.dataset.row = row;
+      cell.dataset.col = col;
+      map.appendChild(cell);
+    }
+  }
+}
+
+function buildHeatLegend() {
+  var container = document.getElementById('heatLegend');
+  container.innerHTML = '';
+  var abbrevs = { cash: 'CA', payroll: 'PA', vendor: 'VE', tech: 'TE', inventory: 'IN', culture: 'CU' };
+  CATEGORIES.forEach(function(cat) {
+    var span = document.createElement('span');
+    span.innerHTML = '<span class="heat-legend-dot" style="background:var(--vault-gray-light)"></span>' +
+      abbrevs[cat.id] + ' = ' + cat.shortName;
+    container.appendChild(span);
+  });
+}
+
+function updateHeatMap() {
+  var cells = document.querySelectorAll('.heat-cell');
+  cells.forEach(function(c) { c.className = 'heat-cell'; });
+
+  CATEGORIES.forEach(function(cat) {
+    var score = calcCategoryScore(cat);
+    if (score === null) return;
+    var cell = document.querySelector('.heat-cell[data-row="' + cat.hmRow + '"][data-col="' + cat.hmCol + '"]');
+    if (!cell) return;
+    var risk = 100 - score;
+    if (risk >= 60) cell.classList.add('filled-red', 'has-dot');
+    else if (risk >= 40) cell.classList.add('filled-orange', 'has-dot');
+    else if (risk >= 20) cell.classList.add('filled-yellow', 'has-dot');
+    else cell.classList.add('filled-green', 'has-dot');
+  });
+}
+
+/* ══════════════════════════════
+   CATEGORY BARS
+   ══════════════════════════════ */
+function buildCatBars() {
+  var container = document.getElementById('catBars');
+  container.innerHTML = '';
+  CATEGORIES.forEach(function(cat) {
+    var row = document.createElement('div');
+    row.className = 'cat-row';
+    row.innerHTML =
+      '<span class="cat-label" title="' + cat.name + '">' + cat.shortName + '</span>' +
+      '<div class="cat-bar-track">' +
+        '<div class="threshold-line"></div>' +
+        '<div class="cat-bar-fill" id="bar-' + cat.id + '" style="width:0%;background:var(--vault-gray-light)"></div>' +
+      '</div>' +
+      '<span class="cat-pct" id="pct-' + cat.id + '">--%</span>';
+    container.appendChild(row);
+  });
+}
+
+/* ══════════════════════════════
+   SCORING ENGINE
+   ══════════════════════════════ */
+function calcCategoryScore(cat) {
+  var earned = 0, maxPossible = 0;
+  cat.questions.forEach(function(q) {
+    var a = answers[q.id];
+    if (!a || a === 'na') return;
+    var pts;
+    if (q.invert) {
+      /* Inverted: "Yes" is BAD (same person does both jobs), "No" is GOOD */
+      pts = (a === 'no') ? 1 : (a === 'partial') ? 0.5 : 0;
+    } else {
+      pts = (a === 'yes') ? 1 : (a === 'partial') ? 0.5 : 0;
+    }
+    earned += pts;
+    maxPossible += 1;
+  });
+  if (maxPossible === 0) return null;
+  return Math.round((earned / maxPossible) * 100);
+}
+
+function calcOverallScore() {
+  var weightedSum = 0, weightSum = 0;
+  CATEGORIES.forEach(function(cat) {
+    var s = calcCategoryScore(cat);
+    if (s !== null) {
+      weightedSum += s * cat.weight;
+      weightSum += cat.weight;
+    }
+  });
+  if (weightSum === 0) return null;
+  return Math.round(weightedSum / weightSum);
+}
+
+function getTier(score) {
+  if (score === null) return { label: 'AWAITING DATA', cls: 'tier-moderate' };
+  if (score >= 80) return { label: 'LOW RISK', cls: 'tier-low' };
+  if (score >= 60) return { label: 'MODERATE RISK', cls: 'tier-moderate' };
+  if (score >= 40) return { label: 'ELEVATED RISK', cls: 'tier-elevated' };
+  return { label: 'HIGH RISK', cls: 'tier-high' };
+}
+
+function tierColor(score) {
+  if (score === null) return '#4a5f6b';
+  if (score >= 80) return '#2e7d32';
+  if (score >= 60) return '#f9a825';
+  if (score >= 40) return '#e65100';
+  return '#d32f2f';
+}
+
+function tierCSSColor(score) {
+  if (score === null) return 'var(--vault-gray-light)';
+  if (score >= 80) return 'var(--low-green)';
+  if (score >= 60) return 'var(--moderate-yellow)';
+  if (score >= 40) return 'var(--elevated-orange)';
+  return 'var(--warning-red)';
+}
+
+/* ══════════════════════════════
+   GAUGE RENDERING
+   ══════════════════════════════ */
+function updateGauge(score) {
+  /* The semicircular arc has a total length of ~267 (pi * 85) */
+  var arcLength = Math.PI * 85;
+  var arc = document.getElementById('gaugeArc');
+  var textEl = document.getElementById('gaugeScoreText');
+
+  if (score === null) {
+    arc.setAttribute('stroke-dasharray', '0 ' + arcLength);
+    arc.setAttribute('stroke', '#4a5f6b');
+    textEl.innerHTML = '--';
+    return;
+  }
+
+  var fill = (score / 100) * arcLength;
+  arc.setAttribute('stroke-dasharray', fill + ' ' + arcLength);
+  arc.setAttribute('stroke', tierColor(score));
+  textEl.innerHTML = score + '<span class="gauge-score-pct">%</span>';
+}
+
+/* ══════════════════════════════
+   UPDATE SCOREBOARD
+   ══════════════════════════════ */
+function updateScoreboard() {
+  var overall = calcOverallScore();
+  var tier = getTier(overall);
+
+  /* Gauge */
+  updateGauge(overall);
+
+  /* Tier label */
+  var tierEl = document.getElementById('heroTier');
+  tierEl.textContent = tier.label;
+  tierEl.className = 'hero-tier ' + tier.cls;
+  tierEl.style.visibility = (overall !== null) ? 'visible' : 'hidden';
+
+  /* Category bars */
+  CATEGORIES.forEach(function(cat) {
+    var s = calcCategoryScore(cat);
+    var bar = document.getElementById('bar-' + cat.id);
+    var pct = document.getElementById('pct-' + cat.id);
+    if (s !== null) {
+      bar.style.width = s + '%';
+      bar.style.background = tierCSSColor(s);
+      pct.textContent = s + '%';
+    } else {
+      bar.style.width = '0%';
+      bar.style.background = 'var(--vault-gray-light)';
+      pct.textContent = '--%';
+    }
+  });
+
+  /* Heat map */
+  updateHeatMap();
+
+  /* Answered count */
+  var answered = 0;
+  ALL_QUESTIONS.forEach(function(q) { if (answers[q.id]) answered++; });
+  document.getElementById('answeredSummary').textContent = answered + ' of ' + TOTAL_Q + ' questions answered';
+
+  saveState();
+}
+
+/* ══════════════════════════════
+   VIEW MANAGEMENT
+   ══════════════════════════════ */
+function showView(id) {
+  ['view-intake', 'view-questionnaire', 'view-report'].forEach(function(v) {
+    document.getElementById(v).style.display = (v === id) ? 'block' : 'none';
+  });
+}
+
+/* ══════════════════════════════
+   INTAKE
+   ══════════════════════════════ */
+function startAssessment() {
+  bizInfo.name = document.getElementById('bizName').value.trim() || 'My Business';
+  bizInfo.type = document.getElementById('bizType').value || 'Not specified';
+  bizInfo.employees = document.getElementById('bizEmployees').value || 'Not specified';
+  currentCatIdx = 0;
+  showView('view-questionnaire');
+  renderCategory();
+  updateScoreboard();
+}
+
+/* ══════════════════════════════
+   EXAMPLE LOADER
+   ══════════════════════════════ */
+function loadExample() {
+  document.getElementById('bizName').value = 'Scott County Landscaping Company';
+  document.getElementById('bizType').value = 'Landscaping / Exterior Services';
+  document.getElementById('bizEmployees').value = '6-15';
+
+  /* Pre-populated: strong cash handling, weak tech + vendor controls */
+  answers = {
+    cash_1: 'yes', cash_2: 'yes', cash_3: 'no', cash_4: 'yes', cash_5: 'partial',
+    payroll_1: 'partial', payroll_2: 'yes', payroll_3: 'no', payroll_4: 'no',
+    vendor_1: 'no', vendor_2: 'no', vendor_3: 'no', vendor_4: 'no',
+    tech_1: 'no', tech_2: 'no', tech_3: 'no', tech_4: 'no',
+    inv_1: 'partial', inv_2: 'yes', inv_3: 'partial',
+    culture_1: 'no', culture_2: 'no', culture_3: 'yes', culture_4: 'no'
+  };
+  /* Note: cash_1 is inverted — "yes" means the same person opens mail AND posts payments,
+     which is a control weakness. So "yes" scores 0 for that question. */
+  updateScoreboard();
+  startAssessment();
+}
+
+/* ══════════════════════════════
+   QUESTIONNAIRE RENDERING
+   ══════════════════════════════ */
+function renderCategory() {
+  var cat = CATEGORIES[currentCatIdx];
+  var total = CATEGORIES.length;
+
+  document.getElementById('catTitle').textContent = cat.name;
+  document.getElementById('qProgress').textContent =
+    'Category ' + (currentCatIdx + 1) + ' of ' + total + ' \u2014 ' +
+    Math.round((currentCatIdx / total) * 100) + '% complete';
+  document.getElementById('qProgressFill').style.width = ((currentCatIdx) / total * 100) + '%';
+  document.getElementById('catDesc').textContent = cat.desc;
+
+  document.getElementById('btnPrev').style.visibility = (currentCatIdx === 0) ? 'hidden' : 'visible';
+  document.getElementById('btnNext').textContent =
+    (currentCatIdx === total - 1) ? 'Generate Report' : 'Next Category';
+
+  var container = document.getElementById('questionsContainer');
+  container.innerHTML = '';
+
+  cat.questions.forEach(function(q, qi) {
+    var block = document.createElement('div');
+    block.className = 'question-block';
+    var current = answers[q.id] || '';
+    var opts = ['yes', 'partial', 'no', 'na'];
+    var labels = { yes: 'Yes', partial: 'Partial', no: 'No', na: 'N/A' };
+
+    var optHTML = opts.map(function(o) {
+      var selClass = (current === o) ? ' sel-' + o : '';
+      return '<button class="q-opt' + selClass + '" data-qid="' + q.id +
+        '" data-val="' + o + '" role="radio" aria-checked="' + (current === o) + '">' +
+        labels[o] + '</button>';
+    }).join('');
+
+    block.innerHTML =
+      '<div class="question-num">Q' + (qi + 1) + '</div>' +
+      '<div class="question-text">' + q.text + '</div>' +
+      '<div class="q-options" role="radiogroup" aria-label="' + q.text + '">' + optHTML + '</div>';
+
+    container.appendChild(block);
+  });
+
+  /* Click handlers */
+  container.querySelectorAll('.q-opt').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var qid = this.dataset.qid;
+      var val = this.dataset.val;
+      answers[qid] = val;
+      /* Update siblings */
+      var siblings = this.parentElement.querySelectorAll('.q-opt');
+      siblings.forEach(function(b) {
+        var isSel = (b.dataset.val === val);
+        b.className = 'q-opt' + (isSel ? ' sel-' + val : '');
+        b.setAttribute('aria-checked', isSel ? 'true' : 'false');
+      });
+      updateScoreboard();
+    });
+  });
+
+  document.getElementById('leftPanel').scrollTop = 0;
+}
+
+function nextCategory() {
+  if (currentCatIdx < CATEGORIES.length - 1) {
+    currentCatIdx++;
+    renderCategory();
+  } else {
+    generateReport();
+  }
+}
+
+function prevCategory() {
+  if (currentCatIdx > 0) {
+    currentCatIdx--;
+    renderCategory();
+  }
+}
+
+/* ══════════════════════════════
+   REPORT GENERATION
+   ══════════════════════════════ */
+function generateReport() {
+  document.getElementById('qProgressFill').style.width = '100%';
+  showView('view-report');
+
+  var overall = calcOverallScore() || 0;
+  var tier = getTier(overall);
+  var now = new Date();
+  var dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+  /* Header */
+  document.getElementById('reportHeader').innerHTML =
+    '<strong>' + escHTML(bizInfo.name) + '</strong> &middot; ' + escHTML(bizInfo.type) +
+    ' &middot; ' + escHTML(bizInfo.employees) + ' employees<br>' +
+    'Assessment Date: ' + dateStr + '<br>' +
+    'Overall Score: <strong style="color:' + tierColor(overall) + '">' +
+    overall + '% \u2014 ' + tier.label + '</strong>';
+
+  /* Report gauge */
+  renderReportGauge(overall);
+
+  /* Tier label in report */
+  var tierLabel = document.getElementById('reportTierLabel');
+  tierLabel.innerHTML = '<span class="hero-tier ' + tier.cls + '">' + tier.label + '</span>';
+
+  /* Chart */
+  renderChart();
+
+  /* Top 3 vulnerabilities */
+  var ranked = CATEGORIES.map(function(cat) {
+    return { cat: cat, score: calcCategoryScore(cat) };
+  }).filter(function(r) { return r.score !== null; })
+    .sort(function(a, b) { return a.score - b.score; });
+
+  var vulnContainer = document.getElementById('vulnList');
+  vulnContainer.innerHTML = '';
+  ranked.slice(0, 3).forEach(function(r) {
+    var div = document.createElement('div');
+    div.className = 'vuln-item';
+    div.innerHTML =
+      '<div class="vuln-cat">' + r.cat.name + ' \u2014 ' + r.score + '%</div>' +
+      '<div class="vuln-text">' + r.cat.vuln.replace('{pct}', r.score) + '</div>';
+    vulnContainer.appendChild(div);
+  });
+
+  /* Priority actions by timeframe */
+  var actionsByTime = { week: [], month: [], quarter: [] };
+  var bankProds = [];
+  var bankProdSet = {};
+
+  ALL_QUESTIONS.forEach(function(q) {
+    var a = answers[q.id];
+    if (a === 'no' || a === 'partial') {
+      actionsByTime[q.timeframe].push(q);
+      if (q.bankProduct) {
+        q.bankProduct.split(',').forEach(function(p) {
+          var trimmed = p.trim();
+          if (!bankProdSet[trimmed]) {
+            bankProdSet[trimmed] = true;
+            bankProds.push(trimmed);
+          }
+        });
+      }
+    }
+  });
+
+  var actionContainer = document.getElementById('actionList');
+  actionContainer.innerHTML = '';
+  var timeLabels = { week: 'Do This Week', month: 'Do This Month', quarter: 'Do This Quarter' };
+  var timeCls = { week: 'ag-week', month: 'ag-month', quarter: 'ag-quarter' };
+
+  ['week', 'month', 'quarter'].forEach(function(t) {
+    if (actionsByTime[t].length === 0) return;
+    var group = document.createElement('div');
+    group.className = 'action-group';
+    group.innerHTML = '<div class="action-group-title ' + timeCls[t] + '">' + timeLabels[t] + '</div>';
+    actionsByTime[t].forEach(function(q) {
+      var item = document.createElement('div');
+      item.className = 'action-item';
+      item.textContent = q.action;
+      item.setAttribute('contenteditable', 'true');
+      group.appendChild(item);
+    });
+    actionContainer.appendChild(group);
+  });
+
+  /* Bank products */
+  var bpContainer = document.getElementById('bankProducts');
+  bpContainer.innerHTML = '';
+  if (bankProds.length === 0) {
+    bpContainer.innerHTML = '<span style="font-size:0.78rem;color:var(--text-mid)">No specific banking product gaps identified.</span>';
+  } else {
+    bankProds.forEach(function(p) {
+      var span = document.createElement('span');
+      span.className = 'bp-item';
+      span.textContent = p;
+      bpContainer.appendChild(span);
+    });
+  }
+
+  /* Next steps */
+  var nsContainer = document.getElementById('nextSteps');
+  nsContainer.innerHTML = '';
+  var steps = [
+    'Schedule a fraud review conversation with your banker.',
+    'Call your bank to activate Positive Pay / ACH Debit Filters if not already in place.',
+    'Share this report with your accountant or bookkeeper at your next meeting.'
+  ];
+  steps.forEach(function(s, i) {
+    var div = document.createElement('div');
+    div.className = 'next-step';
+    div.innerHTML = '<span class="step-num">' + (i + 1) + '.</span>' + s;
+    div.setAttribute('contenteditable', 'true');
+    nsContainer.appendChild(div);
+  });
+}
+
+/* Report-specific larger gauge */
+function renderReportGauge(score) {
+  var wrap = document.getElementById('reportGaugeWrap');
+  var r = 110;
+  var arcLen = Math.PI * r;
+  var fill = (score / 100) * arcLen;
+  var color = tierColor(score);
+
+  wrap.innerHTML =
+    '<svg viewBox="0 0 260 140" xmlns="http://www.w3.org/2000/svg">' +
+      '<path d="M 20 130 A ' + r + ' ' + r + ' 0 0 1 240 130" fill="none" stroke="#4a5f6b" stroke-width="16" stroke-linecap="round"/>' +
+      '<path d="M 20 130 A ' + r + ' ' + r + ' 0 0 1 240 130" fill="none" stroke="' + color + '" stroke-width="16" stroke-linecap="round"' +
+        ' stroke-dasharray="' + fill + ' ' + arcLen + '" style="transition:stroke-dasharray 0.8s ease"/>' +
+    '</svg>' +
+    '<div class="report-gauge-score">' + score + '<span style="font-size:1.2rem;color:var(--gold-dim)">%</span></div>';
+}
+
+/* Chart.js horizontal bar */
+function renderChart() {
+  var ctx = document.getElementById('catChart').getContext('2d');
+  if (chartInstance) chartInstance.destroy();
+
+  var labels = CATEGORIES.map(function(c) { return c.shortName; });
+  var data = CATEGORIES.map(function(c) { return calcCategoryScore(c) || 0; });
+  var colors = data.map(function(d) { return tierColor(d); });
+
+  chartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: data,
+        backgroundColor: colors,
+        borderWidth: 0,
+        barThickness: 18
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) { return ctx.parsed.x + '%'; }
+          }
+        }
+      },
+      scales: {
+        x: {
+          min: 0, max: 100,
+          grid: { color: 'rgba(255,255,255,0.08)' },
+          ticks: {
+            color: '#9e9a92',
+            font: { family: "'Lucida Console', Monaco, monospace", size: 10 },
+            callback: function(v) { return v + '%'; }
+          }
+        },
+        y: {
+          grid: { display: false },
+          ticks: {
+            color: '#d8d4cc',
+            font: { family: 'Tahoma, Geneva, sans-serif', size: 11 }
+          }
+        }
+      }
+    }
+  });
+}
+
+/* ══════════════════════════════
+   RESET
+   ══════════════════════════════ */
+function resetTool() {
+  answers = {};
+  currentCatIdx = 0;
+  bizInfo = { name: '', type: '', employees: '' };
+  document.getElementById('bizName').value = '';
+  document.getElementById('bizType').value = '';
+  document.getElementById('bizEmployees').value = '';
+  try { localStorage.removeItem('prattFraudTool'); } catch(e) {}
+  showView('view-intake');
+  updateScoreboard();
+}
+
+/* ══════════════════════════════
+   LOCAL STORAGE
+   ══════════════════════════════ */
+function saveState() {
+  try {
+    localStorage.setItem('prattFraudTool', JSON.stringify({
+      answers: answers,
+      bizInfo: bizInfo,
+      currentCatIdx: currentCatIdx
+    }));
+  } catch(e) {}
+}
+
+function loadState() {
+  try {
+    var raw = localStorage.getItem('prattFraudTool');
+    if (!raw) return;
+    var saved = JSON.parse(raw);
+    if (saved && saved.answers && Object.keys(saved.answers).length > 0) {
+      answers = saved.answers;
+      if (saved.bizInfo) bizInfo = saved.bizInfo;
+      if (typeof saved.currentCatIdx === 'number') currentCatIdx = saved.currentCatIdx;
+      if (bizInfo.name) document.getElementById('bizName').value = bizInfo.name;
+      if (bizInfo.type) document.getElementById('bizType').value = bizInfo.type;
+      if (bizInfo.employees) document.getElementById('bizEmployees').value = bizInfo.employees;
+    }
+  } catch(e) {}
+}
+
+/* ══════════════════════════════
+   UTILITY
+   ══════════════════════════════ */
+function escHTML(str) {
+  var div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+</script>
+</body>
+</html>

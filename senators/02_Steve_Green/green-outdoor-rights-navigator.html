@@ -1,0 +1,1676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minnesota Outdoor Recreation Rights &amp; Property Navigator</title>
+<style>
+/* ================================================================
+   RESET & BASE
+   ================================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color: #1A1A1A;
+  line-height: 1.55;
+  min-height: 100vh;
+  /* Graph-paper background via repeating SVG */
+  background-color: #F7F3EC;
+  background-image:
+    linear-gradient(rgba(180,170,155,0.15) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(180,170,155,0.15) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* ================================================================
+   PALETTE (CSS Custom Properties)
+   ================================================================ */
+:root {
+  --forest: #2D5016;
+  --cream: #F5F0E8;
+  --lake: #1B4F72;
+  --walnut: #3D2B1F;
+  --text: #1A1A1A;
+  --warning: #C4500A;
+  --moss: #4A7C59;
+  --bg: #F7F3EC;
+  --card-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  --border-light: #d5cfc5;
+}
+
+/* ================================================================
+   TYPOGRAPHY
+   ================================================================ */
+h1, h2, h3, h4 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 700;
+}
+h1 { font-size: 1.5rem; color: var(--forest); }
+h2 { font-size: 1.25rem; margin-bottom: 0.5rem; }
+h3 { font-size: 1.1rem; margin-bottom: 0.4rem; }
+p { margin-bottom: 0.75rem; }
+ul, ol { margin-bottom: 0.5rem; }
+
+a {
+  color: var(--lake);
+  text-decoration: underline;
+}
+a:hover { color: var(--forest); }
+
+code, .statute {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.92em;
+}
+
+.statute-link {
+  color: var(--lake);
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.92em;
+}
+
+/* ================================================================
+   HEADER — worn leather cover feel
+   ================================================================ */
+.site-header {
+  background:
+    linear-gradient(135deg, #3D2B1F 0%, #5a3d2a 40%, #3D2B1F 100%);
+  color: var(--cream);
+  padding: 1.5rem 1rem 1.25rem;
+  text-align: center;
+  border-bottom: 4px solid var(--forest);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+}
+
+.site-header h1 {
+  color: var(--cream);
+  font-size: 1.35rem;
+  margin-bottom: 0.2rem;
+  letter-spacing: 0.02em;
+}
+
+.site-header .subtitle {
+  font-size: 0.88rem;
+  opacity: 0.88;
+  font-style: italic;
+  font-family: Georgia, serif;
+}
+
+/* ================================================================
+   INTRO BLOCK
+   ================================================================ */
+.intro {
+  max-width: 720px;
+  margin: 1.25rem auto;
+  padding: 1rem 1.25rem;
+  background: var(--cream);
+  border-left: 4px solid var(--forest);
+  border-radius: 4px;
+  font-size: 0.95rem;
+  box-shadow: var(--card-shadow);
+}
+
+.intro .sf956 {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-light);
+  font-size: 0.9rem;
+  color: #444;
+  font-style: italic;
+}
+
+/* ================================================================
+   TAB BAR — notebook divider tabs
+   ================================================================ */
+.tab-bar {
+  display: flex;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 0.5rem;
+  gap: 4px;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 0.7rem 0.5rem 0.55rem;
+  border: none;
+  border-radius: 8px 8px 0 0;
+  font-family: Georgia, serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  color: #fff;
+  opacity: 0.65;
+  transition: opacity 0.2s, transform 0.15s;
+  position: relative;
+  top: 3px;
+  letter-spacing: 0.01em;
+}
+
+.tab-btn:hover { opacity: 0.85; }
+
+.tab-btn.active {
+  opacity: 1;
+  top: 0;
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.12);
+}
+
+.tab-btn[data-tab="landowner"] {
+  background: linear-gradient(180deg, #5a3d2a, var(--walnut));
+}
+
+.tab-btn[data-tab="hunting"] {
+  background: linear-gradient(180deg, #3a6a1e, var(--forest));
+}
+
+.tab-btn[data-tab="resort"] {
+  background: linear-gradient(180deg, #24628a, var(--lake));
+}
+
+/* ================================================================
+   MAIN CONTENT PANEL
+   ================================================================ */
+.main-content {
+  max-width: 720px;
+  margin: 0 auto 2rem;
+  background: #fff;
+  border: 1px solid var(--border-light);
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  min-height: 400px;
+  padding: 1.5rem 1.25rem;
+  box-shadow: var(--card-shadow);
+}
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+.section-title {
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e0dbd3;
+}
+
+.section-intro {
+  font-size: 0.93rem;
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+/* ================================================================
+   SCENARIO ACCORDION (Section 1)
+   ================================================================ */
+.scenario {
+  border: 1px solid var(--border-light);
+  border-radius: 5px;
+  margin-bottom: 0.75rem;
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+}
+
+.scenario:hover {
+  box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+}
+
+.scenario-header {
+  background: var(--cream);
+  padding: 0.8rem 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  user-select: none;
+  transition: background 0.15s;
+}
+
+.scenario-header:hover { background: #ebe6da; }
+
+.scenario-header .num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--walnut);
+  color: #fff;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+.scenario-header .arrow {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid var(--walnut);
+  transition: transform 0.25s;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.scenario.open .scenario-header .arrow {
+  transform: rotate(180deg);
+}
+
+.scenario-body {
+  display: none;
+  padding: 0.85rem 1rem;
+  font-size: 0.93rem;
+  border-top: 1px solid #ece7dd;
+}
+
+.scenario.open .scenario-body { display: block; }
+
+/* Content boxes inside scenarios */
+.law-box {
+  background: #f0ede6;
+  border-left: 3px solid var(--forest);
+  padding: 0.65rem 0.85rem;
+  margin: 0.5rem 0;
+  border-radius: 3px;
+}
+
+.law-box h4 {
+  font-size: 0.9rem;
+  color: var(--forest);
+  margin-bottom: 0.35rem;
+}
+
+.action-box {
+  background: #eaf2e8;
+  border-left: 3px solid var(--moss);
+  padding: 0.65rem 0.85rem;
+  margin: 0.5rem 0;
+  border-radius: 3px;
+}
+
+.action-box h4 {
+  font-size: 0.9rem;
+  color: var(--moss);
+  margin-bottom: 0.35rem;
+}
+
+.warning-box {
+  background: #fdf3ec;
+  border-left: 3px solid var(--warning);
+  padding: 0.65rem 0.85rem;
+  margin: 0.5rem 0;
+  border-radius: 3px;
+}
+
+.warning-box h4 {
+  font-size: 0.9rem;
+  color: var(--warning);
+  margin-bottom: 0.35rem;
+}
+
+.info-list {
+  margin: 0.3rem 0 0.5rem 1.25rem;
+}
+
+.info-list li {
+  margin-bottom: 0.3rem;
+}
+
+/* ================================================================
+   DECISION TREE (Section 2)
+   ================================================================ */
+.tree-step {
+  border: 1px solid var(--border-light);
+  border-radius: 5px;
+  margin-bottom: 0.75rem;
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+}
+
+.tree-step:hover {
+  box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+}
+
+.tree-question {
+  background: #e8f0e4;
+  padding: 0.8rem 1rem;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  user-select: none;
+  transition: background 0.15s;
+}
+
+.tree-question:hover { background: #dce8d6; }
+
+.tree-question .qicon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--forest);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.tree-question .arrow {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid var(--forest);
+  transition: transform 0.25s;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.tree-step.open .tree-question .arrow {
+  transform: rotate(180deg);
+}
+
+.tree-answer {
+  display: none;
+  padding: 0.85rem 1rem;
+  font-size: 0.93rem;
+  border-top: 1px solid #d5e0cf;
+}
+
+.tree-step.open .tree-answer { display: block; }
+
+.branch {
+  margin: 0.6rem 0;
+  padding: 0.55rem 0.85rem;
+  border-left: 3px solid var(--lake);
+  background: #f4f7fa;
+  border-radius: 3px;
+}
+
+.branch strong {
+  color: var(--lake);
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+/* ================================================================
+   RESORT SECTION (Section 3)
+   ================================================================ */
+.calendar-grid {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+}
+
+.cal-item {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.55rem 0.7rem;
+  background: var(--cream);
+  border-radius: 4px;
+  font-size: 0.9rem;
+  border-left: 3px solid var(--lake);
+  transition: background 0.15s;
+}
+
+.cal-item:hover {
+  background: #ede8dd;
+}
+
+.cal-month {
+  font-weight: 700;
+  min-width: 58px;
+  color: var(--lake);
+  font-size: 0.85rem;
+  font-family: 'Courier New', monospace;
+}
+
+/* Interactive checklist */
+.checklist {
+  list-style: none;
+  margin: 0.5rem 0;
+}
+
+.checklist li {
+  padding: 0.45rem 0;
+  padding-left: 1.75rem;
+  position: relative;
+  font-size: 0.93rem;
+  cursor: pointer;
+  transition: color 0.15s;
+  user-select: none;
+}
+
+.checklist li::before {
+  content: "\2610";
+  position: absolute;
+  left: 0;
+  font-size: 1.15rem;
+  color: var(--walnut);
+}
+
+.checklist li.checked {
+  color: #666;
+}
+
+.checklist li.checked::before {
+  content: "\2611";
+  color: var(--moss);
+}
+
+/* License wizard */
+.wizard-box {
+  background: var(--cream);
+  border: 1px solid var(--border-light);
+  border-radius: 5px;
+  padding: 1rem;
+  margin: 0.75rem 0;
+}
+
+.wizard-box label {
+  display: block;
+  padding: 0.4rem 0;
+  font-size: 0.93rem;
+  cursor: pointer;
+  transition: background 0.1s;
+  padding-left: 0.25rem;
+  border-radius: 3px;
+}
+
+.wizard-box label:hover {
+  background: rgba(0,0,0,0.04);
+}
+
+.wizard-box input[type="checkbox"] {
+  margin-right: 0.6rem;
+  accent-color: var(--forest);
+}
+
+#wizard-result {
+  margin-top: 0.75rem;
+  padding: 0.85rem;
+  background: #eaf2e8;
+  border: 1px solid #c8dbc4;
+  border-radius: 5px;
+  display: none;
+  font-size: 0.92rem;
+}
+
+#wizard-result.show { display: block; }
+
+#wizard-result li {
+  margin-bottom: 0.3rem;
+  margin-left: 1rem;
+}
+
+.note-box {
+  background: #faf6ef;
+  border: 1px dashed #c4b99a;
+  padding: 0.85rem;
+  border-radius: 4px;
+  margin-top: 1.25rem;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+/* ================================================================
+   BUTTONS
+   ================================================================ */
+.btn {
+  display: inline-block;
+  padding: 0.55rem 1.1rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.2s, transform 0.1s;
+  font-family: system-ui, sans-serif;
+}
+
+.btn:active { transform: scale(0.97); }
+
+.btn-print {
+  background: var(--forest);
+  color: #fff;
+}
+
+.btn-print:hover { background: #3a6a1e; }
+
+.btn-secondary {
+  background: var(--lake);
+  color: #fff;
+}
+
+.btn-secondary:hover { background: #24628a; }
+
+.btn-small {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.82rem;
+}
+
+/* ================================================================
+   RIGHTS CARD (in-page preview & print)
+   ================================================================ */
+.rights-card {
+  border: 2px solid var(--walnut);
+  border-radius: 6px;
+  padding: 0.75rem;
+  max-width: 400px;
+  background: #fff;
+  margin: 0.75rem 0;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.rights-card h4 {
+  font-size: 0.88rem;
+  text-align: center;
+  margin-bottom: 0.4rem;
+  color: var(--forest);
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid #ddd;
+}
+
+.rights-card ul {
+  margin: 0.3rem 0 0.3rem 0.9rem;
+  font-size: 0.76rem;
+}
+
+.rights-card ul li {
+  margin-bottom: 0.2rem;
+}
+
+.rights-card .card-footer {
+  font-size: 0.66rem;
+  color: #777;
+  text-align: center;
+  margin-top: 0.4rem;
+  border-top: 1px solid #ddd;
+  padding-top: 0.3rem;
+}
+
+/* ================================================================
+   ENCOUNTER / DOCUMENTATION CARDS
+   ================================================================ */
+.encounter-card {
+  border: 2px solid var(--walnut);
+  border-radius: 6px;
+  padding: 0.85rem;
+  background: #fff;
+  margin: 0.75rem 0;
+  font-size: 0.85rem;
+}
+
+.encounter-card h4 {
+  text-align: center;
+  margin-bottom: 0.6rem;
+  color: var(--walnut);
+  font-size: 0.95rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid #ddd;
+}
+
+.encounter-card .field-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.encounter-card .field {
+  flex: 1;
+  min-width: 140px;
+  border-bottom: 1px solid #aaa;
+  padding: 0.25rem 0;
+  min-height: 1.5em;
+}
+
+.encounter-card .field-label {
+  font-size: 0.72rem;
+  color: #666;
+  display: block;
+  font-weight: 600;
+}
+
+.encounter-card .field-wide {
+  flex: 100%;
+  min-height: 2.5rem;
+  border-bottom: 1px solid #aaa;
+  padding: 0.25rem 0;
+}
+
+/* ================================================================
+   SECTION DIVIDER
+   ================================================================ */
+.section-divider {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 2px solid #e0dbd3;
+}
+
+/* ================================================================
+   FOOTER
+   ================================================================ */
+.site-footer {
+  max-width: 720px;
+  margin: 0 auto 2rem;
+  padding: 0.85rem 1rem;
+  font-size: 0.8rem;
+  color: #777;
+  text-align: center;
+  border-top: 1px solid var(--border-light);
+  line-height: 1.5;
+}
+
+/* ================================================================
+   PRINT STYLES
+   ================================================================ */
+@media print {
+  body {
+    background: #fff !important;
+    background-image: none !important;
+  }
+
+  .site-header,
+  .tab-bar,
+  .intro,
+  .site-footer,
+  .btn,
+  .no-print {
+    display: none !important;
+  }
+
+  .main-content {
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    max-width: 100%;
+    background: #fff;
+  }
+
+  .tab-panel { display: none !important; }
+
+  /* === Rights Card Print === */
+  .print-rights-card {
+    display: block !important;
+    page-break-inside: avoid;
+  }
+
+  .print-rights-card .rights-card {
+    width: 3.5in;
+    height: 2in;
+    border: 2.5pt solid #000;
+    border-radius: 8px;
+    padding: 0.12in 0.15in;
+    margin: 0.5in auto;
+    page-break-inside: avoid;
+    font-size: 7pt;
+    line-height: 1.3;
+    max-width: none;
+    overflow: hidden;
+  }
+
+  .print-rights-card .rights-card h4 {
+    font-size: 8.5pt;
+    border-bottom: 0.5pt solid #000;
+    padding-bottom: 2pt;
+    margin-bottom: 3pt;
+  }
+
+  .print-rights-card .rights-card ul {
+    font-size: 6.5pt;
+    margin-left: 0.15in;
+  }
+
+  .print-rights-card .rights-card .card-footer {
+    font-size: 5.5pt;
+    border-top: 0.5pt solid #000;
+    padding-top: 2pt;
+    margin-top: 3pt;
+  }
+
+  /* === Encounter Card Print === */
+  .print-encounter-card {
+    display: block !important;
+    page-break-inside: avoid;
+  }
+
+  .print-encounter-card .encounter-card {
+    width: 5in;
+    border: 2.5pt solid #000;
+    border-radius: 8px;
+    padding: 0.15in 0.2in;
+    margin: 0.5in auto;
+    page-break-inside: avoid;
+    font-size: 8pt;
+  }
+
+  .print-encounter-card .encounter-card h4 {
+    font-size: 10pt;
+    border-bottom: 0.5pt solid #000;
+  }
+
+  .print-encounter-card .encounter-card .field {
+    border-bottom: 1pt solid #000;
+    min-height: 1.4em;
+  }
+
+  .print-encounter-card .encounter-card .field-wide {
+    border-bottom: 1pt solid #000;
+    min-height: 2.2em;
+  }
+
+  /* === Retrieval Card Print === */
+  .print-retrieval-card {
+    display: block !important;
+    page-break-inside: avoid;
+  }
+
+  .print-retrieval-card .retrieval-card {
+    width: 4in;
+    border: 2.5pt solid #000;
+    border-radius: 8px;
+    padding: 0.15in 0.2in;
+    margin: 0.5in auto;
+    page-break-inside: avoid;
+    font-size: 8pt;
+  }
+
+  .print-retrieval-card .retrieval-card .field {
+    border-bottom: 1pt solid #000;
+  }
+
+  .print-retrieval-card .retrieval-card .field-wide {
+    border-bottom: 1pt solid #000;
+  }
+}
+
+/* Hidden print containers (shown only in print mode) */
+.print-rights-card,
+.print-encounter-card,
+.print-retrieval-card {
+  display: none;
+}
+
+/* ================================================================
+   MOBILE RESPONSIVE
+   ================================================================ */
+@media (max-width: 520px) {
+  .site-header {
+    padding: 1rem 0.75rem 0.8rem;
+  }
+
+  .site-header h1 {
+    font-size: 1.1rem;
+  }
+
+  .site-header .subtitle {
+    font-size: 0.8rem;
+  }
+
+  .tab-btn {
+    font-size: 0.7rem;
+    padding: 0.55rem 0.25rem 0.4rem;
+  }
+
+  .main-content {
+    padding: 1rem 0.85rem;
+  }
+
+  .intro {
+    margin: 0.75rem 0.5rem;
+    padding: 0.85rem;
+  }
+
+  .tab-bar {
+    padding: 0 0.25rem;
+  }
+
+  .cal-item {
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .encounter-card .field-row {
+    flex-direction: column;
+  }
+
+  .rights-card {
+    max-width: 100%;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- ================================================================
+     HEADER
+     ================================================================ -->
+<header class="site-header">
+  <h1>Minnesota Outdoor Recreation Rights &amp; Property Navigator</h1>
+  <div class="subtitle">Know Your Rights in the Field &mdash; A Plain-Language Guide for Landowners, Hunters, Anglers, and Resort Operators</div>
+</header>
+
+<!-- ================================================================
+     INTRO
+     ================================================================ -->
+<div class="intro">
+  <p>Minnesota's conservation laws are complex &mdash; and most rural residents navigate them without legal advice. This guide covers the rights and rules that matter most in northwest Minnesota: when a conservation officer needs a warrant, where you can hunt and fish, how to retrieve your game from the neighbor's land, and what licenses your resort actually needs.</p>
+  <p style="margin-bottom:0;">Built on Minnesota statute. Plain language. No law degree required.</p>
+  <div class="sf956">Senator Green introduced SF956 to strengthen warrant requirements for conservation officers &mdash; because rural property owners deserve clarity about when the state can enter their land and search their property. This tool is built around that same principle: the clearer the rules, the fairer the enforcement.</div>
+</div>
+
+<!-- ================================================================
+     TAB BAR
+     ================================================================ -->
+<nav class="tab-bar" role="tablist">
+  <button class="tab-btn active" data-tab="landowner" role="tab" aria-selected="true">Landowner Rights</button>
+  <button class="tab-btn" data-tab="hunting" role="tab" aria-selected="false">Hunting &amp; Fishing</button>
+  <button class="tab-btn" data-tab="resort" role="tab" aria-selected="false">Resort Toolkit</button>
+</nav>
+
+<!-- ================================================================
+     MAIN CONTENT
+     ================================================================ -->
+<main class="main-content">
+
+<!-- ================================================================
+     SECTION 1: LANDOWNER & PROPERTY RIGHTS
+     ================================================================ -->
+<div id="landowner" class="tab-panel active" role="tabpanel">
+  <h2 class="section-title" style="color:var(--walnut);">When the CO Knocks</h2>
+
+  <p class="section-intro">Where Minnesota law stands as of 2025: conservation officers hold broad authority under
+    <a href="https://www.revisor.mn.gov/statutes/cite/97A.211" class="statute-link">Minn. Stat. &sect; 97A.211</a>.
+    Senator Green's SF956 (2025) would have required COs to obtain a warrant or court order before conducting searches or seizures, except in cases of imminent danger or consent. The Minnesota Sheriffs' Association, Chiefs of Police, and MPPOA all opposed it. The bill did not pass. Current law gives COs expansive authority &mdash; but you still have rights under the U.S. and Minnesota constitutions. Here is what they are.</p>
+
+  <!-- Scenario 1: CO at the gate -->
+  <div class="scenario">
+    <div class="scenario-header" onclick="togglePanel(this)">
+      <span class="num">1</span>
+      <span>CO at your gate or driveway wants to enter your property</span>
+      <span class="arrow"></span>
+    </div>
+    <div class="scenario-body">
+      <div class="law-box">
+        <h4>What the Law Says</h4>
+        <p><strong>Open fields doctrine:</strong> No warrant is needed for fields, pastures, woodlands, and unenclosed areas &mdash; even land posted "No Trespassing." Under federal open-fields doctrine, these areas do not carry 4th Amendment protection. A CO can walk onto your unenclosed farmland or timber without a warrant.</p>
+        <p><strong>Curtilage protection:</strong> Buildings, yards, and enclosed areas immediately surrounding your home <em>do</em> have 4th Amendment protection. An officer needs a warrant, your consent, or exigent circumstances to enter curtilage. The distinction between "open fields" and "curtilage" is the key legal boundary. See <a href="https://www.revisor.mn.gov/statutes/cite/609.066" class="statute-link">Minn. Stat. &sect; 609.066</a> for curtilage context.</p>
+        <p>Conservation officer authority: <a href="https://www.revisor.mn.gov/statutes/cite/97A.211" class="statute-link">Minn. Stat. &sect; 97A.211</a></p>
+      </div>
+      <div class="action-box">
+        <h4>What You Can Do</h4>
+        <ul class="info-list">
+          <li>Ask clearly: <em>"Are you here on official business?"</em> and <em>"Do you have a warrant?"</em></li>
+          <li>You <strong>cannot</strong> physically obstruct a conservation officer. Do not block the gate, stand in the way, or grab equipment.</li>
+          <li>Verbal refusal to consent is legal and meaningful: <em>"I do not consent to a search of my property."</em></li>
+          <li>If the officer enters open fields without a warrant, that is currently lawful. Your refusal preserves your legal position for any future challenge.</li>
+          <li>Be calm. Be clear. Be on the record.</li>
+        </ul>
+      </div>
+      <div class="warning-box">
+        <h4>Document It</h4>
+        <p>Immediately after the encounter, record: date, time, officer name and badge number, what they said, what you said, whether they presented a warrant, what areas they searched, and what (if anything) they seized. Use the documentation card below.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scenario 2: Outbuildings -->
+  <div class="scenario">
+    <div class="scenario-header" onclick="togglePanel(this)">
+      <span class="num">2</span>
+      <span>Officer wants to inspect outbuildings, garage, or your residence</span>
+      <span class="arrow"></span>
+    </div>
+    <div class="scenario-body">
+      <div class="law-box">
+        <h4>What the Law Says</h4>
+        <p>Outbuildings, garages, sheds, and your residence fall within <strong>curtilage</strong> or are structures with higher protection. A warrant or your voluntary consent is required for these areas.</p>
+        <p><em>"I do not consent to a search"</em> is a legally meaningful statement in Minnesota. Saying it clearly establishes for the record that any subsequent entry was not consensual.</p>
+        <p><strong>Exception &mdash; exigent circumstances:</strong> Hot pursuit of a suspect, imminent destruction of evidence, or an emergency situation can allow warrantless entry. These exceptions are narrow and can be challenged later in court.</p>
+      </div>
+      <div class="action-box">
+        <h4>What You Can Do</h4>
+        <ul class="info-list">
+          <li>State clearly and calmly: <em>"I do not consent to a search of this building."</em></li>
+          <li>If they enter anyway: <strong>do not physically resist.</strong> Resistance creates its own legal problems and puts you at risk.</li>
+          <li>Document everything immediately afterward. Your documentation is the foundation for any later legal challenge to the search.</li>
+          <li>Note whether the officer stated a reason for claiming exigent circumstances.</li>
+        </ul>
+      </div>
+      <div class="warning-box">
+        <h4>Important</h4>
+        <p>You cannot be penalized for refusing consent. But if an officer enters despite your refusal and claims exigent circumstances, the legality of that entry becomes a question for a court. Your job in the moment is to refuse clearly and document thoroughly.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scenario 3: License/bag check -->
+  <div class="scenario">
+    <div class="scenario-header" onclick="togglePanel(this)">
+      <span class="num">3</span>
+      <span>Officer wants to check your hunting/fishing license or bag count</span>
+      <span class="arrow"></span>
+    </div>
+    <div class="scenario-body">
+      <div class="law-box">
+        <h4>What the Law Says</h4>
+        <p>You <strong>are required</strong> to show your hunting, fishing, or trapping license to a conservation officer on demand when you are engaged in those activities.
+          <a href="https://www.revisor.mn.gov/statutes/cite/97A.161" class="statute-link">Minn. Stat. &sect; 97A.161</a></p>
+        <p>You can also be required to present your harvested game, fish, or equipment for inspection in the field. This is classified as a <strong>regulatory inspection</strong>, not a criminal search. It is part of the licensing framework you agreed to when you purchased your license.</p>
+      </div>
+      <div class="action-box">
+        <h4>The Key Distinction</h4>
+        <p>A license and bag check is legally different from a property search. Cooperate with the license check &mdash; you are required to. But a license check does <em>not</em> authorize the officer to search your vehicle, your home, or your outbuildings. Those are separate legal questions with separate legal standards.</p>
+        <ul class="info-list">
+          <li><strong>Required:</strong> Show your license. Present your harvest for counting.</li>
+          <li><strong>Not required:</strong> Consent to a search of your truck bed, cooler in your vehicle (beyond visible game), or locked compartments.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scenario 4: Equipment seizure -->
+  <div class="scenario">
+    <div class="scenario-header" onclick="togglePanel(this)">
+      <span class="num">4</span>
+      <span>Officer wants to seize your equipment (firearm, boat, ATV)</span>
+      <span class="arrow"></span>
+    </div>
+    <div class="scenario-body">
+      <div class="law-box">
+        <h4>What the Law Says</h4>
+        <p>Equipment used in a "taking violation" (illegal harvest of game or fish) can be seized by a conservation officer pending a hearing.
+          <a href="https://www.revisor.mn.gov/statutes/cite/97A.221" class="statute-link">Minn. Stat. &sect; 97A.221</a> governs forfeiture of equipment used to take protected species.</p>
+        <p>You have the right to a <strong>hearing within 96 hours</strong> for equipment held in custody. This is not optional for the state &mdash; they must provide the hearing if you request it.</p>
+      </div>
+      <div class="action-box">
+        <h4>What You Can Do</h4>
+        <ul class="info-list">
+          <li>Request a written copy of the seizure notice immediately.</li>
+          <li>You can contest the seizure. Document the notice carefully &mdash; photograph it if possible.</li>
+          <li>Record what was seized: description, serial numbers, condition, and the officer's stated reason.</li>
+          <li>Request the 96-hour hearing. Do not assume the equipment is gone permanently.</li>
+          <li>Consider consulting an attorney &mdash; forfeiture proceedings have specific procedural requirements the state must follow.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scenario 5: Disputed citation -->
+  <div class="scenario">
+    <div class="scenario-header" onclick="togglePanel(this)">
+      <span class="num">5</span>
+      <span>You're cited for a violation you dispute</span>
+      <span class="arrow"></span>
+    </div>
+    <div class="scenario-body">
+      <div class="law-box">
+        <h4>What the Law Says</h4>
+        <p>You have <strong>10 days to appear in court</strong> rather than paying the fine. Paying the fine is an admission; appearing in court is not.</p>
+        <p>Pleading not guilty is your right. It does <em>not</em> mean you are automatically subject to higher penalties. The court examines the evidence &mdash; if the state can't prove the violation, the charge is dismissed.</p>
+      </div>
+      <div class="action-box">
+        <h4>What You Can Do</h4>
+        <ul class="info-list">
+          <li><strong>In the field:</strong> Do not argue with the officer. Accept the citation and note your disagreement calmly. The time to dispute is in court, not roadside.</li>
+          <li><strong>After the encounter:</strong> Write down everything while it's fresh. Details fade quickly.</li>
+          <li><strong>In court:</strong> Request discovery &mdash; what evidence does the officer have? Officer notes, photographs, GPS data, witness statements.</li>
+          <li>You are not required to hire an attorney for a misdemeanor wildlife citation, but it may be worth a consultation for equipment forfeiture cases or charges that could affect your license.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- === RIGHTS CARD === -->
+  <div class="section-divider">
+    <h3>Your Rights Card</h3>
+    <p style="font-size:0.9rem;">A wallet-sized summary of your core rights during a CO encounter. Print it, laminate it, keep it in the glovebox or tackle bag.</p>
+    <div class="rights-card" id="rightsCardPreview">
+      <h4>MN Landowner Rights &mdash; CO Encounters</h4>
+      <ul>
+        <li><strong>Open fields:</strong> No warrant needed for unenclosed land, even if posted.</li>
+        <li><strong>Curtilage:</strong> Warrant or consent needed for buildings, yard, home.</li>
+        <li><strong>You can say:</strong> "I do not consent to a search."</li>
+        <li><strong>Do not</strong> physically obstruct. Stay calm. Document everything.</li>
+        <li><strong>License check:</strong> You must show it when hunting/fishing (&sect; 97A.161).</li>
+        <li><strong>Seizure:</strong> You have a right to a hearing within 96 hours (&sect; 97A.221).</li>
+        <li><strong>Citation:</strong> 10 days to appear in court. Not guilty plea is your right.</li>
+      </ul>
+      <div class="card-footer">Based on MN Statutes as of 2025. Educational reference &mdash; not legal advice.</div>
+    </div>
+    <button class="btn btn-print no-print" onclick="printCard('rights')">Print My Rights Card</button>
+  </div>
+
+  <!-- === ENCOUNTER DOCUMENTATION CARD === -->
+  <div class="section-divider">
+    <h3>Field Encounter Documentation Card</h3>
+    <p style="font-size:0.9rem;">Print this card and keep copies in your vehicle, your boat, and your hunting pack. Fill it out immediately after any CO encounter while details are fresh.</p>
+    <div class="encounter-card" id="encounterCardPreview">
+      <h4>Field Encounter Record</h4>
+      <div class="field-row">
+        <div class="field"><span class="field-label">Date</span></div>
+        <div class="field"><span class="field-label">Time</span></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><span class="field-label">Location (road, landmark, or GPS coordinates)</span></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><span class="field-label">Officer Name</span></div>
+        <div class="field"><span class="field-label">Badge Number</span></div>
+      </div>
+      <div class="field-row">
+        <div class="field-wide"><span class="field-label">Stated Reason for Contact</span></div>
+      </div>
+      <div class="field-row">
+        <div class="field-wide"><span class="field-label">What Was Requested (search, license, equipment inspection, etc.)</span></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><span class="field-label">What You Consented To</span></div>
+        <div class="field"><span class="field-label">What You Refused</span></div>
+      </div>
+      <div class="field-row">
+        <div class="field-wide"><span class="field-label">Outcome (citation issued, warning, seizure, no action)</span></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><span class="field-label">Witnesses Present (names, contact)</span></div>
+        <div class="field"><span class="field-label">Warrant Shown?&nbsp; Y / N</span></div>
+      </div>
+      <div class="field-row">
+        <div class="field-wide"><span class="field-label">Additional Notes (officer demeanor, what was searched, what was seized, condition of equipment)</span></div>
+      </div>
+    </div>
+    <button class="btn btn-print no-print" onclick="printCard('encounter')">Print Encounter Card</button>
+  </div>
+</div>
+
+<!-- ================================================================
+     SECTION 2: HUNTING & FISHING ACCESS
+     ================================================================ -->
+<div id="hunting" class="tab-panel" role="tabpanel">
+  <h2 class="section-title" style="color:var(--forest);">Where Can I Go? What Can I Do?</h2>
+  <p class="section-intro">Common access and legality questions for hunters and anglers in northwest Minnesota &mdash; Becker County lakes, Clearwater River country, Hubbard County, and lands near the White Earth Reservation. Each question walks through the relevant law step by step.</p>
+
+  <!-- Tree 1: Wounded Game Retrieval -->
+  <div class="tree-step">
+    <div class="tree-question" onclick="togglePanel(this)">
+      <span class="qicon">Q</span>
+      <span>A deer I shot crossed onto the neighbor's property. Can I retrieve it?</span>
+      <span class="arrow"></span>
+    </div>
+    <div class="tree-answer">
+      <div class="law-box">
+        <h4>Yes &mdash; under specific conditions</h4>
+        <p><a href="https://www.revisor.mn.gov/statutes/cite/97B.045" class="statute-link">Minn. Stat. &sect; 97B.045</a> allows you to enter private property to retrieve lawfully shot game <strong>without the owner's permission</strong>, provided all three conditions are met:</p>
+        <ul class="info-list">
+          <li>You are <strong>unarmed</strong> (leave your firearm/bow behind)</li>
+          <li>You are <strong>not in a vehicle</strong> (enter on foot)</li>
+          <li>You retrieve the animal <strong>promptly</strong> (go straight to it, collect it, leave)</li>
+        </ul>
+        <p>This statute exists because game animals don't respect property lines. The legislature recognized that requiring landowner permission for every retrieval would be impractical and would waste lawfully harvested game.</p>
+      </div>
+
+      <div class="branch">
+        <strong>What if the landowner tells me to leave?</strong>
+        The landowner can deny entry even under &sect; 97B.045. If they tell you to leave, you must leave immediately. At that point, contact a conservation officer for assistance retrieving the animal. Do not escalate the situation.
+      </div>
+
+      <div class="branch">
+        <strong>What about tribal land?</strong>
+        Different rules apply entirely. Tribal law governs on trust land. Do <strong>not</strong> enter tribal trust land &mdash; such as White Earth Reservation land throughout SD-2 &mdash; to retrieve game without tribal permission, regardless of the state game retrieval statute. State law does not override tribal sovereignty on trust land. Contact the White Earth DNR or tribal law enforcement for assistance.
+      </div>
+
+      <div class="branch">
+        <strong>What about land posted "No Trespassing"?</strong>
+        Under &sect; 97B.045, you can enter posted land unarmed and on foot to retrieve game. However, some landowners in Clearwater, Becker, and Hubbard counties dispute this. Best practice: retrieve the animal quickly, leave a retrieval notice card (below) with your contact information, and exit promptly. Do not linger, and do not hunt on the property.
+      </div>
+
+      <div class="branch">
+        <strong>What if I can't find the animal quickly?</strong>
+        "Promptly" means a reasonable effort. If you've been searching for an extended time, consider calling a conservation officer or the landowner for assistance. Prolonged presence on someone else's property, even under &sect; 97B.045, can create conflict.
+      </div>
+
+      <div style="margin-top:1rem;">
+        <h4>Game Retrieval Notice Card</h4>
+        <p style="font-size:0.9rem;">Leave this card for the landowner when you enter their property to retrieve game. It explains the legal basis and gives them a way to contact you.</p>
+        <div class="encounter-card" id="retrievalCardPreview" style="max-width:420px;">
+          <h4>Game Retrieval Notice</h4>
+          <p style="text-align:center; font-size:0.85rem; margin-bottom:0.5rem;">Pursuant to <a href="https://www.revisor.mn.gov/statutes/cite/97B.045" class="statute-link">Minn. Stat. &sect; 97B.045</a></p>
+          <div class="field-row"><div class="field"><span class="field-label">Date &amp; Time of Entry</span></div></div>
+          <div class="field-row"><div class="field"><span class="field-label">Your Name</span></div></div>
+          <div class="field-row"><div class="field"><span class="field-label">Phone Number</span></div></div>
+          <div class="field-row"><div class="field-wide"><span class="field-label">I entered your property unarmed and on foot to retrieve a lawfully harvested animal. I exited the property promptly after retrieval.</span></div></div>
+          <div class="field-row"><div class="field"><span class="field-label">Animal Retrieved (species, description)</span></div></div>
+          <div class="field-row"><div class="field-wide"><span class="field-label">Approximate location on your property where animal was found</span></div></div>
+        </div>
+        <button class="btn btn-print btn-small no-print" onclick="printCard('retrieval')">Print Retrieval Cards</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tree 2: Fishing Access -->
+  <div class="tree-step">
+    <div class="tree-question" onclick="togglePanel(this)">
+      <span class="qicon">Q</span>
+      <span>Can I fish from this shoreline, boat landing, or stretch of water?</span>
+      <span class="arrow"></span>
+    </div>
+    <div class="tree-answer">
+      <div class="branch">
+        <strong>Is the water body on the DNR's Public Waters Inventory (PWI)?</strong>
+        If yes, the public has navigational rights on that water &mdash; meaning you can boat and fish on it. Most lakes and rivers in Becker, Hubbard, Clearwater, and Mahnomen counties are on the PWI. You can check the <a href="https://www.dnr.state.mn.us/waters/watermgmt_section/pwi/maps.html">DNR PWI maps online</a>.
+      </div>
+
+      <div class="branch">
+        <strong>What about the shoreline &mdash; is it public?</strong>
+        Shoreline access is a separate question from water access. The lake may be public water, but the shoreline and surrounding land can be private. You cannot cross private land to access public water without permission or a public access point.
+      </div>
+
+      <div class="branch">
+        <strong>Can I tie up to a private dock?</strong>
+        No. You cannot anchor to, tie to, or use a private dock without the owner's permission. This applies even on public waters.
+      </div>
+
+      <div class="branch">
+        <strong>Lake entirely surrounded by private land?</strong>
+        If it's on the PWI, you still have the right to boat and fish on it. You just cannot trespass on the surrounding private shore to access it. Look for a public boat landing, carry-in access, or negotiate access permission with a shoreline landowner.
+      </div>
+
+      <div class="branch">
+        <strong>Reservation or tribal waters?</strong>
+        Tribal law governs fishing on reservation waters. Non-tribal members need a <strong>tribal fishing license</strong> for on-reservation waters, in addition to (not instead of) their state license. In SD-2, this is especially relevant for waters within and near the White Earth Reservation boundaries.
+      </div>
+
+      <div class="warning-box">
+        <strong>Mahnomen County &amp; White Earth Reservation</strong>
+        <p>Shooting Star Lake and other waters near the White Earth Reservation may require dual licenses. If you're fishing on reservation waters, you need both a Minnesota state fishing license and a White Earth tribal fishing license. Contact the White Earth DNR office for current tribal license requirements and fees. When in doubt about whether a water body is on reservation trust land, ask before you fish.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tree 3: Trespass & Hunters on Your Land -->
+  <div class="tree-step">
+    <div class="tree-question" onclick="togglePanel(this)">
+      <span class="qicon">Q</span>
+      <span>Someone is hunting on my land without permission. What can I do?</span>
+      <span class="arrow"></span>
+    </div>
+    <div class="tree-answer">
+      <div class="action-box">
+        <h4>Steps to Take</h4>
+        <ol class="info-list">
+          <li><strong>Post your land correctly</strong> under Minnesota law. You have two options: purple paint marks on trees or posts at required intervals, OR "No Trespassing" / "No Hunting" signs posted at legally required intervals. See <a href="https://www.revisor.mn.gov/statutes/cite/609.605" class="statute-link">Minn. Stat. &sect; 609.605</a> for trespass requirements.</li>
+          <li><strong>Give a verbal order to leave.</strong> Approach safely and state clearly that they do not have permission to hunt on your land and must leave. They are legally required to comply.</li>
+          <li><strong>If they refuse to leave:</strong> Failure to leave after a verbal order is <strong>misdemeanor trespass</strong> under &sect; 609.605.</li>
+          <li><strong>Call a conservation officer</strong> to remove them. You do not have the legal right to physically detain them, and attempting to do so creates risk for you.</li>
+        </ol>
+      </div>
+
+      <div class="branch">
+        <strong>Am I liable if a trespassing hunter gets injured on my land?</strong>
+        Generally no. In Minnesota, trespassers take on their own risk. Landowner liability for injuries to trespassers is very limited. You have no duty to make your land safe for people who are there without permission. The exception would be intentional traps or hazards designed to injure &mdash; which obviously you should not create.
+      </div>
+
+      <div class="branch">
+        <strong>Practical tip: channel requests instead of confrontations</strong>
+        Consider posting a "Hunting by Permission Only" sign with your phone number or a note directing hunters to contact you. This turns surprise encounters into managed conversations. Many rural landowners in Becker and Hubbard counties find this approach reduces conflict and lets them grant permission to responsible hunters while keeping track of who's on their land.
+      </div>
+    </div>
+  </div>
+
+  <!-- Tree 4: Hunting from Vehicle/Road -->
+  <div class="tree-step">
+    <div class="tree-question" onclick="togglePanel(this)">
+      <span class="qicon">Q</span>
+      <span>Can I shoot from or across a road?</span>
+      <span class="arrow"></span>
+    </div>
+    <div class="tree-answer">
+      <div class="law-box">
+        <h4>Vehicle Rules</h4>
+        <p><strong>Shooting from a motor vehicle:</strong> Generally prohibited under
+          <a href="https://www.revisor.mn.gov/statutes/cite/97B.091" class="statute-link">Minn. Stat. &sect; 97B.091</a>.
+          You cannot discharge a firearm or bow from inside or off of a motor vehicle while hunting.</p>
+        <p><strong>Exception:</strong> Mobility-impaired hunters who hold a valid DNR permit may shoot from a stationary vehicle. The permit must be in your possession.</p>
+      </div>
+
+      <div class="branch">
+        <strong>Shooting across a public road?</strong>
+        There is no general prohibition on shooting across a road in Minnesota. However, you are fully responsible for knowing your target and what is beyond it. Shooting across a road with traffic present is reckless and can be charged as such. Use judgment. If there's any question about safety, don't take the shot.
+      </div>
+
+      <div class="branch">
+        <strong>Hunting in road ditches?</strong>
+        Road ditches are public right-of-way. Hunting in ditches is legal for some species but has specific rules that vary by game type and local ordinance. Check current DNR regulations for the species you're pursuing and any local restrictions in your county. In general, you may walk and hunt in road ditches on public roads, but some townships have restrictions &mdash; particularly near developed areas in the Park Rapids and Detroit Lakes corridors.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     SECTION 3: SMALL RESORT OPERATOR TOOLKIT
+     ================================================================ -->
+<div id="resort" class="tab-panel" role="tabpanel">
+  <h2 class="section-title" style="color:var(--lake);">Staying Compliant Without a Lawyer</h2>
+  <p class="section-intro">A practical compliance reference for small seasonal resort operators in northwest Minnesota &mdash; Becker County lake country, Hubbard County (Park Rapids area), Mahnomen County, and surrounding areas. These are the deadlines, licenses, and inspections that catch operators off guard.</p>
+
+  <!-- Annual Compliance Calendar -->
+  <h3 style="margin-top:1rem;">Annual Compliance Calendar</h3>
+  <p style="font-size:0.9rem;">Scroll through the year. Each item links to the time of year when you need to act &mdash; not when the season opens, but when the paperwork is due.</p>
+  <div class="calendar-grid">
+    <div class="cal-item">
+      <span class="cal-month">JAN</span>
+      <span>Minnesota income tax annual filing (if applicable to your business structure). Review previous season's financial records.</span>
+    </div>
+    <div class="cal-item">
+      <span class="cal-month">FEB</span>
+      <span>Begin seasonal staff recruitment. If using H-2B visa workers, check filing deadlines &mdash; these slots fill early and the process takes months.</span>
+    </div>
+    <div class="cal-item">
+      <span class="cal-month">MAR 1</span>
+      <span>County lodging license renewal. Deadlines vary by county &mdash; verify with Mahnomen, Becker, or Hubbard County licensing offices.</span>
+    </div>
+    <div class="cal-item">
+      <span class="cal-month">MAR 15</span>
+      <span>DNR Fishing License Agent agreement renewal (if your resort sells fishing licenses to guests).</span>
+    </div>
+    <div class="cal-item">
+      <span class="cal-month">APR 1</span>
+      <span>DNR Public Water Access Site posting requirements (if your dock serves as a public access point).</span>
+    </div>
+    <div class="cal-item">
+      <span class="cal-month">APR 15</span>
+      <span>Watercraft dealer or rental license renewal with DNR (if you rent boats, motors, canoes, or kayaks to guests).</span>
+    </div>
+    <div class="cal-item">
+      <span class="cal-month">MAY 1</span>
+      <span>Season opening prep: verify fire extinguisher inspection tags are current, dock permits are posted, boat safety equipment (life jackets, throwable devices) is complete and in good condition.</span>
+    </div>
+    <div class="cal-item">
+      <span class="cal-month">MAY 15</span>
+      <span>County or city health permit renewal for any food service operation (restaurant, snack bar, even continental breakfast).</span>
+    </div>
+    <div class="cal-item">
+      <span class="cal-month">OCT</span>
+      <span>End of season: winterize facilities, document any incidents from the season, collect and reconcile deposit records, file final seasonal payroll reports.</span>
+    </div>
+    <div class="cal-item">
+      <span class="cal-month">DEC</span>
+      <span>Annual business registration renewal with the Minnesota Secretary of State. Do not let this lapse &mdash; it affects your ability to operate legally.</span>
+    </div>
+  </div>
+
+  <!-- License Checklist Wizard -->
+  <div class="section-divider">
+    <h3>License Checklist Wizard</h3>
+    <p style="font-size:0.9rem;">Check everything that applies to your resort operation. A custom list of required licenses and permits will appear below.</p>
+    <div class="wizard-box">
+      <label><input type="checkbox" value="fishing" onchange="updateWizard()"> We sell fishing licenses to guests</label>
+      <label><input type="checkbox" value="watercraft" onchange="updateWizard()"> We rent watercraft (boats, motors, canoes, kayaks)</label>
+      <label><input type="checkbox" value="food" onchange="updateWizard()"> We serve food or operate a restaurant</label>
+      <label><input type="checkbox" value="marina" onchange="updateWizard()"> We have a marina or fuel dock</label>
+      <label><input type="checkbox" value="seasonal" onchange="updateWizard()"> We employ seasonal workers from outside Minnesota</label>
+      <label><input type="checkbox" value="campground" onchange="updateWizard()"> We have a campground in addition to cabins</label>
+    </div>
+    <div id="wizard-result">
+      <h4 style="margin-bottom:0.5rem; color:var(--forest);">Your Required Licenses &amp; Permits</h4>
+      <ul id="wizard-list"></ul>
+    </div>
+  </div>
+
+  <!-- DNR Inspection Prep Checklist -->
+  <div class="section-divider">
+    <h3>DNR Inspection Prep Checklist</h3>
+    <p style="font-size:0.9rem;">What conservation officers check when they inspect resort operations. Click each item to mark it complete. Review this list before opening day.</p>
+    <ul class="checklist" id="inspectionChecklist">
+      <li onclick="toggleCheck(this)">All rented watercraft are properly titled and registered with the state</li>
+      <li onclick="toggleCheck(this)">Life jackets present in required numbers and sizes for each watercraft (including child sizes)</li>
+      <li onclick="toggleCheck(this)">Fire extinguishers are current &mdash; check annual inspection tags on each unit</li>
+      <li onclick="toggleCheck(this)">Fishing license sales are properly recorded in your agent logbook (if you sell licenses)</li>
+      <li onclick="toggleCheck(this)">Fuel dock or marina is compliant with spill prevention requirements (SPCC plan if applicable)</li>
+      <li onclick="toggleCheck(this)">Any live bait tanks on the property are properly permitted</li>
+    </ul>
+  </div>
+
+  <!-- Season Incident Log -->
+  <div class="section-divider">
+    <h3>Document Your Season</h3>
+    <p style="font-size:0.9rem;">A printable incident log template. Keep a running record of any incidents involving guests, trespassing hunters, property damage, or injuries. This documentation protects you if a liability question arises later.</p>
+    <div class="encounter-card" style="max-width:100%;">
+      <h4>Season Incident Log</h4>
+      <div class="field-row">
+        <div class="field"><span class="field-label">Date</span></div>
+        <div class="field"><span class="field-label">Guest Name / Cabin or Room #</span></div>
+      </div>
+      <div class="field-row">
+        <div class="field-wide"><span class="field-label">Incident Description (what happened, where, when)</span></div>
+      </div>
+      <div class="field-row">
+        <div class="field-wide"><span class="field-label">Action Taken (first aid, called EMS, contacted insurance, etc.)</span></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><span class="field-label">Witnesses (names, contact info)</span></div>
+        <div class="field"><span class="field-label">Follow-Up Needed?&nbsp; Y / N</span></div>
+      </div>
+      <div style="border-top:1px dashed #bbb; margin-top:0.65rem; padding-top:0.65rem;">
+        <div class="field-row">
+          <div class="field"><span class="field-label">Date</span></div>
+          <div class="field"><span class="field-label">Guest Name / Cabin or Room #</span></div>
+        </div>
+        <div class="field-row">
+          <div class="field-wide"><span class="field-label">Incident Description</span></div>
+        </div>
+        <div class="field-row">
+          <div class="field-wide"><span class="field-label">Action Taken</span></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><span class="field-label">Witnesses</span></div>
+          <div class="field"><span class="field-label">Follow-Up Needed?&nbsp; Y / N</span></div>
+        </div>
+      </div>
+      <div style="border-top:1px dashed #bbb; margin-top:0.65rem; padding-top:0.65rem;">
+        <div class="field-row">
+          <div class="field"><span class="field-label">Date</span></div>
+          <div class="field"><span class="field-label">Guest Name / Cabin or Room #</span></div>
+        </div>
+        <div class="field-row">
+          <div class="field-wide"><span class="field-label">Incident Description</span></div>
+        </div>
+        <div class="field-row">
+          <div class="field-wide"><span class="field-label">Action Taken</span></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><span class="field-label">Witnesses</span></div>
+          <div class="field"><span class="field-label">Follow-Up Needed?&nbsp; Y / N</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tribal Trust Land Note -->
+  <div class="note-box">
+    <strong>Tribal Trust Land &amp; Property Taxes</strong><br>
+    If your resort is in Mahnomen County or near tribal land, be aware that land taken into tribal trust is removed from local property tax rolls. This shifts the tax burden to remaining private property owners. Senator Green's SF1205 (2023) addressed state aid to Mahnomen County specifically to compensate for property tax base lost when Shooting Star Casino land was taken into trust. If adjacent tribal land acquisition is planned or underway, contact your county assessor to understand the potential levy impacts on your resort property. This is a financial planning issue, not a political one &mdash; know what your future tax picture may look like.
+  </div>
+</div>
+
+</main>
+
+<!-- ================================================================
+     HIDDEN PRINT CONTAINERS
+     (These are invisible on screen, shown only in print mode)
+     ================================================================ -->
+
+<!-- Rights Card for Printing -->
+<div class="print-rights-card" id="printRightsContainer">
+  <div class="rights-card">
+    <h4>MN Landowner Rights &mdash; CO Encounters</h4>
+    <ul>
+      <li><strong>Open fields:</strong> No warrant needed for unenclosed land, even if posted.</li>
+      <li><strong>Curtilage:</strong> Warrant or consent needed for buildings, yard, home.</li>
+      <li><strong>You can say:</strong> "I do not consent to a search."</li>
+      <li><strong>Do not</strong> physically obstruct. Stay calm. Document everything.</li>
+      <li><strong>License check:</strong> Must show when hunting/fishing (&sect; 97A.161).</li>
+      <li><strong>Seizure:</strong> Hearing within 96 hours (&sect; 97A.221).</li>
+      <li><strong>Citation:</strong> 10 days to appear in court. Not guilty plea is your right.</li>
+    </ul>
+    <div class="card-footer">Based on MN Statutes as of 2025. Educational reference, not legal advice.</div>
+  </div>
+</div>
+
+<!-- Encounter Card for Printing -->
+<div class="print-encounter-card" id="printEncounterContainer">
+  <div class="encounter-card">
+    <h4>Field Encounter Record</h4>
+    <div class="field-row">
+      <div class="field"><span class="field-label">Date</span></div>
+      <div class="field"><span class="field-label">Time</span></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><span class="field-label">Location (road, landmark, GPS)</span></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><span class="field-label">Officer Name</span></div>
+      <div class="field"><span class="field-label">Badge Number</span></div>
+    </div>
+    <div class="field-row">
+      <div class="field-wide"><span class="field-label">Stated Reason for Contact</span></div>
+    </div>
+    <div class="field-row">
+      <div class="field-wide"><span class="field-label">What Was Requested (search, license, equipment)</span></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><span class="field-label">Consented To</span></div>
+      <div class="field"><span class="field-label">Refused</span></div>
+    </div>
+    <div class="field-row">
+      <div class="field-wide"><span class="field-label">Outcome (citation, warning, seizure, none)</span></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><span class="field-label">Witnesses</span></div>
+      <div class="field"><span class="field-label">Warrant Shown?&nbsp; Y / N</span></div>
+    </div>
+    <div class="field-row">
+      <div class="field-wide"><span class="field-label">Additional Notes</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Retrieval Card for Printing -->
+<div class="print-retrieval-card" id="printRetrievalContainer">
+  <div class="encounter-card retrieval-card">
+    <h4>Game Retrieval Notice</h4>
+    <p style="text-align:center; font-size:0.85rem; margin-bottom:0.5rem;">
+      Pursuant to Minn. Stat. &sect; 97B.045
+    </p>
+    <div class="field-row">
+      <div class="field"><span class="field-label">Date &amp; Time of Entry</span></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><span class="field-label">Your Name</span></div>
+      <div class="field"><span class="field-label">Phone Number</span></div>
+    </div>
+    <div class="field-row">
+      <div class="field-wide"><span class="field-label">I entered your property unarmed and on foot to retrieve a lawfully harvested animal. I exited the property promptly after retrieval.</span></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><span class="field-label">Animal Retrieved (species)</span></div>
+    </div>
+    <div class="field-row">
+      <div class="field-wide"><span class="field-label">Approximate location on your property where animal was found</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     FOOTER
+     ================================================================ -->
+<footer class="site-footer">
+  Based on Minnesota Statutes as of 2025. This is an educational reference tool, not legal advice.
+  For specific legal situations, consult an attorney.<br>
+  Statute links connect to the
+  <a href="https://www.revisor.mn.gov/statutes/" style="color:#777;">Minnesota Office of the Revisor of Statutes</a>
+  and require an internet connection.
+</footer>
+
+<!-- ================================================================
+     JAVASCRIPT
+     ================================================================ -->
+<script>
+(function() {
+  'use strict';
+
+  /* ============================================================
+     TAB NAVIGATION
+     ============================================================ */
+  var TAB_STORAGE_KEY = 'mn-outdoor-nav-tab';
+  var tabBtns = document.querySelectorAll('.tab-btn');
+  var tabPanels = document.querySelectorAll('.tab-panel');
+
+  function activateTab(tabId) {
+    for (var i = 0; i < tabBtns.length; i++) {
+      var btn = tabBtns[i];
+      var isActive = btn.getAttribute('data-tab') === tabId;
+      btn.classList.toggle('active', isActive);
+      btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    }
+    for (var j = 0; j < tabPanels.length; j++) {
+      tabPanels[j].classList.toggle('active', tabPanels[j].id === tabId);
+    }
+    try {
+      localStorage.setItem(TAB_STORAGE_KEY, tabId);
+    } catch (e) {
+      /* localStorage unavailable — fail silently */
+    }
+  }
+
+  for (var k = 0; k < tabBtns.length; k++) {
+    (function(btn) {
+      btn.addEventListener('click', function() {
+        activateTab(btn.getAttribute('data-tab'));
+      });
+    })(tabBtns[k]);
+  }
+
+  /* Restore last-viewed tab from localStorage */
+  try {
+    var savedTab = localStorage.getItem(TAB_STORAGE_KEY);
+    if (savedTab && document.getElementById(savedTab)) {
+      activateTab(savedTab);
+    }
+  } catch (e) {
+    /* localStorage unavailable — use default tab */
+  }
+
+  /* ============================================================
+     ACCORDION / TREE PANEL TOGGLE
+     ============================================================ */
+  window.togglePanel = function(headerEl) {
+    var parent = headerEl.parentElement;
+    parent.classList.toggle('open');
+  };
+
+  /* ============================================================
+     CHECKLIST TOGGLE (Resort Section)
+     ============================================================ */
+  window.toggleCheck = function(li) {
+    li.classList.toggle('checked');
+  };
+
+  /* ============================================================
+     LICENSE WIZARD (Resort Section)
+     ============================================================ */
+  var wizardData = {
+    fishing: [
+      'DNR Fishing License Agent Agreement &mdash; renew by March 15 each year',
+      'Maintain proper sales record-keeping system for all license transactions',
+      'Ensure license sales receipts are available for CO inspection'
+    ],
+    watercraft: [
+      'DNR Watercraft Dealer or Rental License &mdash; renew by April 15',
+      'Current title and registration for every rental watercraft',
+      'Life jackets in required numbers and sizes aboard each vessel (including child sizes)',
+      'Boat safety equipment: throwable devices, fire extinguishers on motorized craft',
+      'Regular hull and motor condition inspections documented'
+    ],
+    food: [
+      'County or city food handler permit / health permit &mdash; renew by May 15',
+      'At least one staff member with food manager certification',
+      'Compliance with MN Department of Health food code (inspection-ready)',
+      'Proper food temperature logs maintained during operating season'
+    ],
+    marina: [
+      'Marina fuel storage permits from your county',
+      'Spill Prevention, Control, and Countermeasure (SPCC) plan if storing over 1,320 gallons above ground',
+      'Fire suppression equipment rated for fuel fires at the dock',
+      'DNR dock permit if your marina is on public waters'
+    ],
+    seasonal: [
+      'H-2B or J-1 visa compliance documentation (if using foreign seasonal workers)',
+      'MN Department of Labor &amp; Industry seasonal worker requirements',
+      'Workers\' compensation insurance coverage for all employees',
+      'Federal I-9 employment eligibility verification for every hire',
+      'Seasonal payroll tax registration with MN Revenue'
+    ],
+    campground: [
+      'Separate campground license from county (distinct from cabin lodging license)',
+      'MN Department of Health recreational camping area license',
+      'Compliance with campground spacing, sanitation, and fire safety regulations',
+      'Separate inspection schedule from your cabin operations &mdash; plan for both'
+    ]
+  };
+
+  window.updateWizard = function() {
+    var checks = document.querySelectorAll('.wizard-box input[type="checkbox"]');
+    var list = document.getElementById('wizard-list');
+    var result = document.getElementById('wizard-result');
+    var items = [];
+
+    /* Base items every resort needs regardless of checkboxes */
+    items.push('County lodging license &mdash; renew by March 1 (check your county\'s specific deadline)');
+    items.push('Annual business registration with MN Secretary of State &mdash; renew in December');
+    items.push('Minnesota income tax filing &mdash; January');
+    items.push('Liability insurance current and adequate for your operations');
+
+    for (var i = 0; i < checks.length; i++) {
+      if (checks[i].checked && wizardData[checks[i].value]) {
+        var additions = wizardData[checks[i].value];
+        for (var j = 0; j < additions.length; j++) {
+          items.push(additions[j]);
+        }
+      }
+    }
+
+    var html = '';
+    for (var m = 0; m < items.length; m++) {
+      html += '<li>' + items[m] + '</li>';
+    }
+    list.innerHTML = html;
+    result.classList.add('show');
+  };
+
+  /* ============================================================
+     PRINT FUNCTIONS
+     For each card type, we show only that print container
+     and trigger the browser print dialog.
+     ============================================================ */
+  var printContainers = {
+    rights: 'printRightsContainer',
+    encounter: 'printEncounterContainer',
+    retrieval: 'printRetrievalContainer'
+  };
+
+  window.printCard = function(cardType) {
+    var containerId = printContainers[cardType];
+    if (!containerId) return;
+
+    var container = document.getElementById(containerId);
+    if (!container) return;
+
+    /* Temporarily show the container for print */
+    container.style.display = 'block';
+    window.print();
+
+    /* Reset after a short delay to let the print dialog render */
+    setTimeout(function() {
+      container.style.display = '';
+    }, 600);
+  };
+
+})();
+</script>
+</body>
+</html>

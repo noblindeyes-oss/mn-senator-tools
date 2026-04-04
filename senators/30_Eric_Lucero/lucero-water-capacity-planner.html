@@ -1,0 +1,1521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Regional Water System Growth &amp; Compliance Planner — SD-30</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Tabbed report — three sharp-cornered tabs, full-width document view per tab. Dense tables, footnotes, government-report clean. No sidebar.
+   2. Navigation: Sharp-cornered rectangular tabs, active tab = navy bg + white text. No rounded corners anywhere.
+   3. Typography: Verdana (body), Tahoma (headers/labels), Consolas (data/numbers)
+   4. Hero moment: Large water-tower SVG with dynamic fill level in navy/water-blue, dominating Tab 1 top area
+   5. Color strategy: #2 High contrast / two-tone — pure white (#fff) + navy (#1a237e), single water-blue accent (#0277bd). Minimal, institutional.
+   6. Entry experience: Tab 1 loads immediately showing the water tower SVG hero and system inputs. No intro paragraph blocking interaction.
+   Additional: No bordered callout boxes, no parchment backgrounds, no emoji icons, no rounded-top tabs. Monospace for all numerical readouts. Dense data tables styled like government reports.
+*/
+
+:root {
+  --navy: #1a237e;
+  --navy-light: #283593;
+  --accent: #0277bd;
+  --accent-light: #e1f0f7;
+  --white: #ffffff;
+  --text: #1a237e;
+  --text-secondary: #455a7d;
+  --border: #b0bec5;
+  --border-light: #dce3e8;
+  --success: #2D7A4F;
+  --warning: #D4A017;
+  --alert: #C1121F;
+  --gray: #6B7280;
+  --light-bg: #f0f3f8;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text);
+  background: var(--white);
+}
+
+h1, h2, h3, h4 {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.num, .mono, input[type="number"], input[type="text"], select {
+  font-family: Consolas, 'Liberation Mono', monospace;
+}
+
+/* ── TOP BAR ── */
+.top-bar {
+  background: var(--navy);
+  color: var(--white);
+  padding: 14px 32px 0 32px;
+}
+
+.top-bar h1 {
+  font-size: 15px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 2px;
+  color: var(--white);
+}
+
+.top-bar .subtitle {
+  font-size: 11px;
+  color: #90a4f4;
+  font-family: Tahoma, Geneva, sans-serif;
+  margin-bottom: 12px;
+}
+
+/* ── TAB NAVIGATION ── */
+.tab-row {
+  display: flex;
+  gap: 0;
+}
+
+.tab-btn {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  padding: 10px 28px;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  background: #0d1554;
+  color: #7986cb;
+  transition: background 0.15s, color 0.15s;
+}
+
+.tab-btn:hover {
+  background: #1a237e;
+  color: #c5cae9;
+}
+
+.tab-btn.active {
+  background: var(--white);
+  color: var(--navy);
+}
+
+/* ── MAIN CONTENT AREA ── */
+.tab-panel { display: none; padding: 0; }
+.tab-panel.active { display: block; }
+
+.page-body {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 32px 60px 32px;
+}
+
+/* ── SECTION HEADINGS ── */
+.section-title {
+  font-size: 16px;
+  color: var(--navy);
+  border-bottom: 2px solid var(--navy);
+  padding-bottom: 4px;
+  margin: 28px 0 14px 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.section-title:first-child { margin-top: 0; }
+
+.sub-heading {
+  font-size: 13px;
+  color: var(--accent);
+  font-weight: 700;
+  margin: 18px 0 8px 0;
+}
+
+/* ── HERO: WATER TOWER SVG ── */
+.hero-row {
+  display: flex;
+  gap: 36px;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.hero-tower {
+  flex: 0 0 200px;
+  text-align: center;
+}
+
+.hero-tower svg { display: block; margin: 0 auto; }
+
+.hero-stats {
+  flex: 1;
+  min-width: 0;
+}
+
+.hero-stat-line {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.hero-stat-line .big-num {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--navy);
+  display: block;
+  line-height: 1.1;
+}
+
+.hero-stat-line .big-num.accent { color: var(--accent); }
+
+.headroom-badge {
+  display: inline-block;
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 4px 14px;
+  margin-top: 6px;
+}
+
+.headroom-badge.good { background: var(--success); color: #fff; }
+.headroom-badge.warn { background: var(--warning); color: #fff; }
+.headroom-badge.bad { background: var(--alert); color: #fff; }
+
+/* ── FORM INPUTS ── */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 24px;
+  margin-bottom: 16px;
+}
+
+.form-grid.three-col {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.field { margin-bottom: 4px; }
+
+.field label {
+  display: block;
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+  margin-bottom: 3px;
+}
+
+.field input, .field select {
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 13px;
+  border: 1px solid var(--border);
+  background: var(--white);
+  color: var(--navy);
+}
+
+.field input:focus, .field select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(2,119,189,0.15);
+}
+
+.field .help {
+  font-size: 10px;
+  color: var(--gray);
+  margin-top: 2px;
+}
+
+.field .cagr-display {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 11px;
+  color: var(--accent);
+  margin-top: 2px;
+}
+
+/* ── COMMUNITY BLOCKS ── */
+.community-block {
+  background: var(--light-bg);
+  padding: 14px 18px;
+  margin-bottom: 12px;
+}
+
+.community-block h4 {
+  font-size: 13px;
+  color: var(--navy);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+/* ── TABLES ── */
+table.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  margin: 12px 0;
+}
+
+table.data-table th {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--white);
+  background: var(--navy);
+  padding: 7px 10px;
+  text-align: left;
+  font-weight: 600;
+}
+
+table.data-table th.right, table.data-table td.right { text-align: right; }
+
+table.data-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border-light);
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 12px;
+}
+
+table.data-table tr:nth-child(even) { background: #f7f9fc; }
+
+table.data-table td.label-cell {
+  font-family: Verdana, Geneva, sans-serif;
+  font-weight: 600;
+  color: var(--navy);
+}
+
+table.data-table .exceed { color: var(--alert); font-weight: 700; }
+table.data-table .warn-cell { color: var(--warning); font-weight: 700; }
+
+/* ── CHART CONTAINER ── */
+.chart-wrap {
+  margin: 20px 0;
+  background: var(--white);
+  border: 1px solid var(--border-light);
+  padding: 16px;
+  position: relative;
+}
+
+.chart-wrap canvas { width: 100% !important; }
+
+/* ── BUTTONS ── */
+.btn {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 8px 22px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: #01579b; }
+
+.btn-navy { background: var(--navy); color: #fff; }
+.btn-navy:hover { background: #0d1554; }
+
+.btn-outline {
+  background: transparent;
+  color: var(--navy);
+  border: 2px solid var(--navy);
+}
+.btn-outline:hover { background: var(--navy); color: #fff; }
+
+.btn-row {
+  display: flex;
+  gap: 12px;
+  margin: 16px 0;
+  flex-wrap: wrap;
+}
+
+/* ── COMPLIANCE MODULE ── */
+.compliance-bar-wrap {
+  margin: 8px 0 14px 0;
+}
+
+.compliance-bar-label {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.compliance-bar-outer {
+  width: 100%;
+  height: 22px;
+  background: #e8eaf0;
+  position: relative;
+}
+
+.compliance-bar-fill {
+  height: 100%;
+  transition: width 0.3s;
+}
+
+.compliance-bar-fill.green { background: var(--success); }
+.compliance-bar-fill.yellow { background: var(--warning); }
+.compliance-bar-fill.red { background: var(--alert); }
+
+.compliance-bar-marker {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: 22px;
+  background: var(--navy);
+}
+
+.compliance-bar-marker-label {
+  position: absolute;
+  top: -16px;
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 10px;
+  color: var(--navy);
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.compliance-status {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 10px;
+  display: inline-block;
+  margin: 4px 0;
+}
+
+.status-green { background: var(--success); color: #fff; }
+.status-yellow { background: var(--warning); color: #fff; }
+.status-red { background: var(--alert); color: #fff; }
+
+.compliance-alert {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 0;
+  line-height: 1.5;
+}
+
+.compliance-alert.red-alert { color: var(--alert); }
+.compliance-alert.yellow-alert { color: var(--warning); }
+
+/* ── COLLAPSIBLE ── */
+.collapsible-toggle {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.collapsible-toggle:hover { text-decoration: underline; }
+
+.collapsible-body {
+  display: none;
+  padding: 10px 0;
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--text-secondary);
+}
+
+.collapsible-body.open { display: block; }
+
+/* ── MODULE 3: REPORT ── */
+.report-section {
+  margin-bottom: 20px;
+}
+
+.report-section h3 {
+  font-size: 14px;
+  color: var(--navy);
+  border-bottom: 1px solid var(--navy);
+  padding-bottom: 3px;
+  margin-bottom: 8px;
+}
+
+.report-editable {
+  border: 1px dashed var(--border);
+  padding: 8px 12px;
+  min-height: 40px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.report-editable:focus { outline: 2px solid var(--accent); border-style: solid; }
+
+.edit-hint {
+  font-size: 10px;
+  color: var(--gray);
+  font-style: italic;
+  margin-bottom: 4px;
+}
+
+/* ── FOOTER ── */
+.footer {
+  background: var(--navy);
+  color: #90a4f4;
+  font-size: 10px;
+  padding: 14px 32px;
+  text-align: center;
+  line-height: 1.6;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .hero-row { flex-direction: column; }
+  .hero-tower { flex: none; }
+  .form-grid, .form-grid.three-col { grid-template-columns: 1fr; }
+  .page-body { padding: 16px; }
+  .top-bar { padding: 12px 16px 0 16px; }
+  .tab-btn { padding: 8px 14px; font-size: 11px; letter-spacing: 0.6px; }
+}
+
+/* ── PRINT ── */
+@media print {
+  .top-bar, .tab-row, .footer, .btn-row, #tab1, #tab2,
+  .edit-hint, .no-print { display: none !important; }
+  #tab3 { display: block !important; }
+  .page-body { padding: 0; max-width: none; }
+  body { font-size: 11px; color: #000; }
+  .report-editable { border: none; padding: 0; }
+  table.data-table th { background: #333; color: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════ TOP BAR + TABS ════════════════ -->
+<div class="top-bar">
+  <h1>Regional Water System Growth &amp; Compliance Planner</h1>
+  <div class="subtitle">SD-30 — A capacity planning tool for fast-growing exurban water systems</div>
+  <div class="tab-row">
+    <button class="tab-btn active" onclick="switchTab('tab1', this)">1 &nbsp;Capacity Projection</button>
+    <button class="tab-btn" onclick="switchTab('tab2', this)">2 &nbsp;Water Quality</button>
+    <button class="tab-btn" onclick="switchTab('tab3', this)">3 &nbsp;Planning Report</button>
+  </div>
+</div>
+
+<!-- ════════════════ TAB 1: CAPACITY GROWTH PROJECTION ════════════════ -->
+<div id="tab1" class="tab-panel active">
+<div class="page-body">
+
+  <div class="btn-row no-print">
+    <button class="btn btn-navy" onclick="loadDemoData()">Load SD-30 Example Data</button>
+    <button class="btn btn-outline" onclick="clearAllData()">Clear All</button>
+    <button class="btn btn-primary" onclick="runProjection()">Calculate Projection</button>
+  </div>
+
+  <h2 class="section-title">System Configuration</h2>
+  <div class="form-grid">
+    <div class="field">
+      <label for="sysName">System Name</label>
+      <input type="text" id="sysName" value="" placeholder="e.g., Regional Water System">
+    </div>
+    <div class="field">
+      <label for="numCommunities">Member Communities (1–4)</label>
+      <select id="numCommunities" onchange="rebuildCommunities()">
+        <option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="currentCap">Current Treatment Capacity (MGD)</label>
+      <input type="number" id="currentCap" step="0.1" min="0" placeholder="10">
+    </div>
+    <div class="field">
+      <label for="postCap">Post-Project Treatment Capacity (MGD)</label>
+      <input type="number" id="postCap" step="0.1" min="0" placeholder="15">
+    </div>
+  </div>
+
+  <h2 class="section-title">Member Communities</h2>
+  <div id="communitiesContainer"></div>
+
+  <div class="btn-row no-print">
+    <button class="btn btn-primary" onclick="runProjection()">Calculate Projection</button>
+  </div>
+
+  <!-- HERO ROW: Water tower + headline stats -->
+  <div id="heroSection" style="display:none;">
+    <h2 class="section-title">System Capacity Overview</h2>
+    <div class="hero-row">
+      <div class="hero-tower" id="waterTowerContainer"></div>
+      <div class="hero-stats">
+        <div class="hero-stat-line">
+          Current System Demand
+          <span class="big-num" id="heroCurrentDemand">—</span>
+        </div>
+        <div class="hero-stat-line" style="margin-top:12px;">
+          Post-Upgrade Capacity
+          <span class="big-num accent" id="heroPostCap">—</span>
+        </div>
+        <div class="hero-stat-line" style="margin-top:12px;">
+          Capacity Utilization (Current)
+          <span class="big-num" id="heroUtilization">—</span>
+        </div>
+        <div class="hero-stat-line" style="margin-top:12px;">
+          Years of Headroom (Base Case, Post-Upgrade)
+          <div id="heroHeadroom"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Demand Projection Table -->
+    <h2 class="section-title">Demand Projection — Combined System</h2>
+    <div style="overflow-x:auto;">
+      <table class="data-table" id="projectionTable"></table>
+    </div>
+
+    <!-- Per-Community Breakdown -->
+    <h2 class="section-title">Per-Community Demand Breakdown (Base Case, MGD)</h2>
+    <div style="overflow-x:auto;">
+      <table class="data-table" id="communityBreakdown"></table>
+    </div>
+
+    <!-- CHART -->
+    <h2 class="section-title">Capacity Projection Chart</h2>
+    <div class="chart-wrap">
+      <canvas id="projChart" height="340"></canvas>
+    </div>
+
+    <div id="crossingAnnotations" style="font-size:11px;color:var(--text-secondary);margin-top:8px;"></div>
+  </div>
+
+</div>
+</div>
+
+<!-- ════════════════ TAB 2: WATER QUALITY COMPLIANCE ════════════════ -->
+<div id="tab2" class="tab-panel">
+<div class="page-body">
+
+  <div class="btn-row no-print">
+    <button class="btn btn-primary" onclick="runCompliance()">Update Compliance Status</button>
+  </div>
+
+  <h2 class="section-title">Contaminant Monitoring — Current Levels</h2>
+  <div class="form-grid">
+    <div class="field">
+      <label for="mnLevel">Manganese Level (mg/L)</label>
+      <input type="number" id="mnLevel" step="0.001" min="0" placeholder="0.00">
+      <div class="help">EPA Secondary MCL: 0.05 mg/L (aesthetic guideline)</div>
+    </div>
+    <div class="field">
+      <label for="raLevel">Combined Radium Ra-226 + Ra-228 (pCi/L)</label>
+      <input type="number" id="raLevel" step="0.1" min="0" placeholder="0.0">
+      <div class="help">EPA Primary MCL: 5.0 pCi/L (federally enforceable)</div>
+    </div>
+    <div class="field">
+      <label for="testDate">Date of Most Recent Test</label>
+      <input type="date" id="testDate">
+    </div>
+    <div class="field">
+      <label for="mnTreatment">Manganese Treatment System</label>
+      <select id="mnTreatment">
+        <option value="none">None</option>
+        <option value="greensand">Greensand Filtration</option>
+        <option value="oxidation">Oxidation-Filtration</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="raTreatment">Radium Treatment System</label>
+      <select id="raTreatment">
+        <option value="none">None</option>
+        <option value="ion_exchange">Ion Exchange</option>
+        <option value="lime">Lime Softening</option>
+        <option value="ro">Reverse Osmosis</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="mnTreatmentOther">If Other, Describe</label>
+      <input type="text" id="mnTreatmentOther" placeholder="Describe treatment">
+    </div>
+    <div class="field">
+      <label for="raTreatmentOther">If Other, Describe</label>
+      <input type="text" id="raTreatmentOther" placeholder="Describe treatment">
+    </div>
+  </div>
+
+  <h2 class="section-title">Planned Treatment Upgrade</h2>
+  <div class="form-grid">
+    <div class="field">
+      <label for="upgradeYesNo">Upgrade Planned?</label>
+      <select id="upgradeYesNo" onchange="toggleUpgradeFields()">
+        <option value="no">No</option>
+        <option value="yes">Yes</option>
+      </select>
+    </div>
+    <div class="field" id="upgradeYearField" style="display:none;">
+      <label for="upgradeYear">Expected Completion Year</label>
+      <input type="number" id="upgradeYear" min="2025" max="2060" placeholder="2027">
+    </div>
+    <div class="field" id="upgradeMnField" style="display:none;">
+      <label for="upgradeMnLevel">Projected Post-Upgrade Manganese (mg/L)</label>
+      <input type="number" id="upgradeMnLevel" step="0.001" min="0" placeholder="0.02">
+    </div>
+    <div class="field" id="upgradeRaField" style="display:none;">
+      <label for="upgradeRaLevel">Projected Post-Upgrade Radium (pCi/L)</label>
+      <input type="number" id="upgradeRaLevel" step="0.1" min="0" placeholder="1.5">
+    </div>
+  </div>
+
+  <div class="btn-row no-print">
+    <button class="btn btn-primary" onclick="runCompliance()">Update Compliance Status</button>
+  </div>
+
+  <!-- Compliance Results -->
+  <div id="complianceResults" style="display:none;">
+    <h2 class="section-title">Compliance Status</h2>
+
+    <h3 class="sub-heading">Manganese</h3>
+    <div id="mnComplianceBar" class="compliance-bar-wrap"></div>
+    <div id="mnComplianceStatus"></div>
+    <div id="mnComplianceAlert"></div>
+    <div id="mnUpgradeStatus"></div>
+
+    <h3 class="sub-heading" style="margin-top:24px;">Combined Radium (Ra-226 + Ra-228)</h3>
+    <div id="raComplianceBar" class="compliance-bar-wrap"></div>
+    <div id="raComplianceStatus"></div>
+    <div id="raComplianceAlert"></div>
+    <div id="raUpgradeStatus"></div>
+  </div>
+
+  <!-- About These Standards -->
+  <div style="margin-top:28px;">
+    <button class="collapsible-toggle" onclick="toggleCollapsible(this)">&#9654; About These Standards</button>
+    <div class="collapsible-body">
+      <p style="margin-bottom:8px;"><strong>Primary vs. Secondary MCL.</strong> The EPA sets two kinds of maximum contaminant levels. A Primary MCL is federally enforceable — water systems that exceed it must take corrective action and issue public notice. A Secondary MCL (SMCL) is a non-enforceable aesthetic guideline addressing taste, odor, or appearance. Manganese at 0.05 mg/L is a secondary standard; combined radium at 5 pCi/L is a primary standard. The regulatory weight is very different.</p>
+      <p style="margin-bottom:8px;"><strong>Why these contaminants appear in upper Midwest groundwater.</strong> Glacial aquifers across Minnesota contain naturally elevated levels of manganese and radium. Manganese dissolves from subsurface mineral deposits into groundwater under low-oxygen conditions common in deep wells. Radium-226 and radium-228 occur naturally in sandstone and granite formations; glacial aquifer geology in Wright County and surrounding areas is particularly associated with elevated radium levels.</p>
+      <p style="margin-bottom:8px;"><strong>SF2138 and the regional system.</strong> Senator Lucero's SF2138 (2025) appropriates $10 million through the Public Facilities Authority to the Albertville-Hanover-St. Michael joint powers water board. The investment addresses both capacity expansion (10 to 15 MGD) and installation of treatment equipment for manganese and radium — tackling the two problems simultaneously.</p>
+      <p><strong>Minnesota Health Advisory.</strong> The Minnesota Department of Health sets an advisory level for manganese at 0.1 mg/L, above the federal SMCL of 0.05 mg/L. MDH recommends that infants under 1 year not consume water with manganese above 0.1 mg/L due to potential neurological effects at elevated exposure levels (above 0.3 mg/L).</p>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ════════════════ TAB 3: PLANNING REPORT ════════════════ -->
+<div id="tab3" class="tab-panel">
+<div class="page-body">
+
+  <div class="btn-row no-print">
+    <button class="btn btn-primary" onclick="generateReport()">Generate Report</button>
+    <button class="btn btn-navy" onclick="window.print()">Print Report</button>
+  </div>
+
+  <div id="reportContent" style="display:none;">
+
+    <div class="report-section">
+      <h3>Regional Water System — Capital Planning Summary</h3>
+      <table class="data-table" style="max-width:500px;">
+        <tr><td class="label-cell" style="width:200px;">System Name</td><td id="rptSysName"></td></tr>
+        <tr><td class="label-cell">Report Date</td><td id="rptDate"></td></tr>
+        <tr><td class="label-cell">Member Communities</td><td id="rptCommunities"></td></tr>
+      </table>
+    </div>
+
+    <div class="report-section">
+      <h3>System Overview</h3>
+      <table class="data-table" style="max-width:500px;">
+        <tr><td class="label-cell" style="width:200px;">Current Treatment Capacity</td><td id="rptCurrentCap"></td></tr>
+        <tr><td class="label-cell">Post-Project Treatment Capacity</td><td id="rptPostCap"></td></tr>
+        <tr><td class="label-cell">Current Combined Demand</td><td id="rptCurrentDemand"></td></tr>
+        <tr><td class="label-cell">Current Utilization</td><td id="rptUtilization"></td></tr>
+      </table>
+    </div>
+
+    <div class="report-section">
+      <h3>Growth Projection Summary (Base Case)</h3>
+      <div style="overflow-x:auto;">
+        <table class="data-table" id="rptProjectionTable"></table>
+      </div>
+      <div style="margin-top:10px;">
+        <span class="compliance-bar-label">Years of Headroom (Post-Upgrade, Base Case):</span>
+        <span id="rptHeadroom" class="headroom-badge" style="margin-left:8px;"></span>
+      </div>
+    </div>
+
+    <div class="report-section">
+      <h3>Capacity Planning Recommendation</h3>
+      <div class="edit-hint">Click text below to edit before printing.</div>
+      <div class="report-editable" contenteditable="true" id="rptRecommendation"></div>
+    </div>
+
+    <div class="report-section">
+      <h3>Water Quality Compliance Summary</h3>
+      <div style="overflow-x:auto;">
+        <table class="data-table" id="rptComplianceTable"></table>
+      </div>
+    </div>
+
+    <div class="report-section">
+      <h3>Financing Context</h3>
+      <div class="edit-hint">Click text below to edit before printing.</div>
+      <div class="report-editable" contenteditable="true">
+        The Minnesota Public Facilities Authority administers the Drinking Water Revolving Fund, which is the standard financing pathway for municipal water system upgrades. Systems seeking major capacity expansions may also pursue state bonding appropriations through the Capital Investment process. SF2138 (2025), authored by Senator Eric Lucero, is an example of this pathway — a $10,000,000 bond appropriation to the Public Facilities Authority for a grant to the joint powers water board serving Albertville, Hanover, and St. Michael.
+      </div>
+    </div>
+
+    <div class="report-section">
+      <h3>Legislator Coordination</h3>
+      <div class="edit-hint">Click text below to edit before printing.</div>
+      <div class="report-editable" contenteditable="true" id="rptLegislator"></div>
+    </div>
+
+  </div>
+
+</div>
+</div>
+
+<!-- ════════════════ FOOTER ════════════════ -->
+<div class="footer">
+  A resource for SD-30 communities and regional water system planning. Built with AI.<br>
+  Regulatory data reflects EPA and Minnesota Department of Health standards as of 2025. Always verify current standards with your regulatory agency.
+</div>
+
+<!-- ════════════════ JAVASCRIPT ════════════════ -->
+<script>
+(function() {
+'use strict';
+
+const CURRENT_YEAR = new Date().getFullYear();
+const PROJECTION_YEARS = 25;
+let projChart = null;
+
+// ── TAB SWITCHING ──
+window.switchTab = function(tabId, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  btn.classList.add('active');
+  if (tabId === 'tab3') generateReport();
+};
+
+// ── COMMUNITY BLOCKS ──
+function communityHTML(idx) {
+  const n = idx + 1;
+  return `
+  <div class="community-block" id="comm${idx}">
+    <h4>Community ${n}</h4>
+    <div class="form-grid three-col">
+      <div class="field"><label for="cName${idx}">Name</label>
+        <input type="text" id="cName${idx}" placeholder="Community name"></div>
+      <div class="field"><label for="cPop${idx}">Current Population</label>
+        <input type="number" id="cPop${idx}" min="0" placeholder="0"></div>
+      <div class="field"><label for="cConn${idx}">Water Connections (Accounts)</label>
+        <input type="number" id="cConn${idx}" min="0" placeholder="0">
+        <div class="help" id="cConnNote${idx}"></div></div>
+      <div class="field"><label for="cDemand${idx}">Avg Daily Demand/Connection (gpd)</label>
+        <input type="number" id="cDemand${idx}" min="0" value="100">
+        <div class="help">Typical residential: 80–120 gpd</div></div>
+      <div class="field"><label for="cGrowthCon${idx}">Conservative Growth (%)</label>
+        <input type="number" id="cGrowthCon${idx}" step="0.1" min="0" value="1.5"></div>
+      <div class="field"><label for="cGrowthBase${idx}">Base Case Growth (%)</label>
+        <input type="number" id="cGrowthBase${idx}" step="0.1" min="0" value="3.0"></div>
+      <div class="field"><label for="cGrowthHigh${idx}">High Growth (%)</label>
+        <input type="number" id="cGrowthHigh${idx}" step="0.1" min="0" value="5.0"></div>
+      <div class="field"><label for="cHistPop1${idx}">Historical Pop (Year 1)</label>
+        <input type="number" id="cHistPop1${idx}" min="0" placeholder="Pop"></div>
+      <div class="field"><label for="cHistYear1${idx}">Year 1</label>
+        <input type="number" id="cHistYear1${idx}" min="1900" max="2030" placeholder="2010"></div>
+      <div class="field"><label for="cHistPop2${idx}">Historical Pop (Year 2)</label>
+        <input type="number" id="cHistPop2${idx}" min="0" placeholder="Pop"></div>
+      <div class="field"><label for="cHistYear2${idx}">Year 2</label>
+        <input type="number" id="cHistYear2${idx}" min="1900" max="2030" placeholder="2020"></div>
+      <div class="field"><label>&nbsp;</label>
+        <div class="cagr-display" id="cCAGR${idx}">Enter historical data to calculate CAGR</div></div>
+    </div>
+  </div>`;
+}
+
+window.rebuildCommunities = function() {
+  const n = parseInt(document.getElementById('numCommunities').value) || 3;
+  const container = document.getElementById('communitiesContainer');
+  container.innerHTML = '';
+  for (let i = 0; i < n; i++) container.innerHTML += communityHTML(i);
+  attachInputListeners();
+};
+
+// ── CAGR CALCULATION ──
+function calcCAGR(startPop, endPop, years) {
+  if (startPop <= 0 || endPop <= 0 || years <= 0) return null;
+  return Math.pow(endPop / startPop, 1 / years) - 1;
+}
+
+function updateCAGR(idx) {
+  const p1 = parseFloat(document.getElementById(`cHistPop1${idx}`)?.value);
+  const y1 = parseInt(document.getElementById(`cHistYear1${idx}`)?.value);
+  const p2 = parseFloat(document.getElementById(`cHistPop2${idx}`)?.value);
+  const y2 = parseInt(document.getElementById(`cHistYear2${idx}`)?.value);
+  const el = document.getElementById(`cCAGR${idx}`);
+  if (!el) return;
+  if (p1 && y1 && p2 && y2 && y2 > y1) {
+    const cagr = calcCAGR(p1, p2, y2 - y1);
+    if (cagr !== null) {
+      el.textContent = `Historical CAGR: ${(cagr * 100).toFixed(2)}% (${y1}–${y2})`;
+      return;
+    }
+  }
+  el.textContent = 'Enter historical data to calculate CAGR';
+}
+
+// ── GATHER COMMUNITY DATA ──
+function getCommunities() {
+  const n = parseInt(document.getElementById('numCommunities').value) || 3;
+  const communities = [];
+  for (let i = 0; i < n; i++) {
+    communities.push({
+      name: document.getElementById(`cName${i}`)?.value || `Community ${i+1}`,
+      pop: parseFloat(document.getElementById(`cPop${i}`)?.value) || 0,
+      conn: parseFloat(document.getElementById(`cConn${i}`)?.value) || 0,
+      demand: parseFloat(document.getElementById(`cDemand${i}`)?.value) || 100,
+      growthCon: (parseFloat(document.getElementById(`cGrowthCon${i}`)?.value) || 1.5) / 100,
+      growthBase: (parseFloat(document.getElementById(`cGrowthBase${i}`)?.value) || 3.0) / 100,
+      growthHigh: (parseFloat(document.getElementById(`cGrowthHigh${i}`)?.value) || 5.0) / 100
+    });
+  }
+  return communities;
+}
+
+// ── PROJECTION CALCULATIONS ──
+function projectDemand(communities, growthKey, years) {
+  // growthKey: 'growthCon' | 'growthBase' | 'growthHigh'
+  const demands = [];
+  for (let t = 0; t <= years; t++) {
+    let totalMGD = 0;
+    const perComm = [];
+    for (const c of communities) {
+      const ratio = c.pop > 0 ? c.pop / c.conn : 1;
+      const projPop = c.pop * Math.pow(1 + c[growthKey], t);
+      const projConn = projPop / ratio;
+      const demandGPD = projConn * c.demand;
+      const demandMGD = demandGPD / 1e6;
+      totalMGD += demandMGD;
+      perComm.push({ name: c.name, mgd: demandMGD });
+    }
+    demands.push({ year: CURRENT_YEAR + t, totalMGD, perComm });
+  }
+  return demands;
+}
+
+function findCrossingYear(demands, capMGD) {
+  for (let i = 0; i < demands.length; i++) {
+    if (demands[i].totalMGD >= capMGD) return demands[i].year;
+  }
+  return null;
+}
+
+// ── WATER TOWER SVG ──
+function renderWaterTower(pct) {
+  pct = Math.max(0, Math.min(100, pct));
+  const fillH = Math.round(120 * pct / 100);
+  const fillY = 50 + (120 - fillH);
+  return `<svg width="160" height="280" viewBox="0 0 160 280" xmlns="http://www.w3.org/2000/svg">
+    <!-- Tower legs -->
+    <line x1="45" y1="170" x2="30" y2="270" stroke="#1a237e" stroke-width="4"/>
+    <line x1="115" y1="170" x2="130" y2="270" stroke="#1a237e" stroke-width="4"/>
+    <line x1="80" y1="170" x2="80" y2="270" stroke="#1a237e" stroke-width="3"/>
+    <!-- Cross braces -->
+    <line x1="38" y1="210" x2="80" y2="200" stroke="#1a237e" stroke-width="2" opacity="0.5"/>
+    <line x1="80" y1="200" x2="122" y2="210" stroke="#1a237e" stroke-width="2" opacity="0.5"/>
+    <line x1="34" y1="240" x2="80" y2="235" stroke="#1a237e" stroke-width="2" opacity="0.5"/>
+    <line x1="80" y1="235" x2="126" y2="240" stroke="#1a237e" stroke-width="2" opacity="0.5"/>
+    <!-- Tank body -->
+    <rect x="25" y="50" width="110" height="120" rx="6" fill="none" stroke="#1a237e" stroke-width="3"/>
+    <!-- Water fill -->
+    <clipPath id="tankClip"><rect x="27" y="52" width="106" height="116" rx="4"/></clipPath>
+    <rect x="27" y="${fillY}" width="106" height="${fillH}" fill="#0277bd" opacity="0.7" clip-path="url(#tankClip)"/>
+    <!-- Tank top dome -->
+    <path d="M25,50 Q25,20 80,15 Q135,20 135,50" fill="none" stroke="#1a237e" stroke-width="3"/>
+    <circle cx="80" cy="12" r="5" fill="#1a237e"/>
+    <!-- Percentage label -->
+    <text x="80" y="118" text-anchor="middle" font-family="Consolas,monospace" font-size="22" font-weight="700" fill="#1a237e">${pct.toFixed(0)}%</text>
+    <text x="80" y="136" text-anchor="middle" font-family="Tahoma,sans-serif" font-size="9" fill="#455a7d">CAPACITY USED</text>
+  </svg>`;
+}
+
+// ── RUN PROJECTION ──
+window.runProjection = function() {
+  const communities = getCommunities();
+  const currentCap = parseFloat(document.getElementById('currentCap').value) || 0;
+  const postCap = parseFloat(document.getElementById('postCap').value) || 0;
+
+  if (communities.length === 0 || currentCap <= 0) return;
+
+  const conDemands = projectDemand(communities, 'growthCon', PROJECTION_YEARS);
+  const baseDemands = projectDemand(communities, 'growthBase', PROJECTION_YEARS);
+  const highDemands = projectDemand(communities, 'growthHigh', PROJECTION_YEARS);
+
+  const currentDemandMGD = baseDemands[0].totalMGD;
+  const utilizationPct = currentCap > 0 ? (currentDemandMGD / currentCap * 100) : 0;
+
+  // Crossing years
+  const conCrossCurrent = findCrossingYear(conDemands, currentCap);
+  const baseCrossCurrent = findCrossingYear(baseDemands, currentCap);
+  const highCrossCurrent = findCrossingYear(highDemands, currentCap);
+  const conCrossPost = findCrossingYear(conDemands, postCap);
+  const baseCrossPost = findCrossingYear(baseDemands, postCap);
+  const highCrossPost = findCrossingYear(highDemands, postCap);
+
+  const baseHeadroom = baseCrossPost ? baseCrossPost - CURRENT_YEAR : null;
+
+  // Show hero section
+  document.getElementById('heroSection').style.display = 'block';
+
+  // Water tower
+  document.getElementById('waterTowerContainer').innerHTML = renderWaterTower(utilizationPct);
+
+  // Hero stats
+  document.getElementById('heroCurrentDemand').textContent = currentDemandMGD.toFixed(2) + ' MGD';
+  document.getElementById('heroPostCap').textContent = postCap.toFixed(1) + ' MGD';
+  document.getElementById('heroUtilization').textContent = utilizationPct.toFixed(1) + '%';
+
+  const hEl = document.getElementById('heroHeadroom');
+  if (baseHeadroom !== null) {
+    const cls = baseHeadroom > 15 ? 'good' : baseHeadroom > 7 ? 'warn' : 'bad';
+    hEl.innerHTML = `<span class="headroom-badge ${cls}">${baseHeadroom} years (by ${baseCrossPost})</span>`;
+  } else {
+    hEl.innerHTML = `<span class="headroom-badge good">Beyond ${CURRENT_YEAR + PROJECTION_YEARS}</span>`;
+  }
+
+  // Projection table
+  buildProjectionTable(conDemands, baseDemands, highDemands, currentCap, postCap);
+
+  // Community breakdown
+  buildCommunityBreakdown(baseDemands);
+
+  // Chart
+  buildChart(conDemands, baseDemands, highDemands, currentCap, postCap,
+    {conCrossCurrent, baseCrossCurrent, highCrossCurrent, conCrossPost, baseCrossPost, highCrossPost});
+
+  // Crossing annotations text
+  const annEl = document.getElementById('crossingAnnotations');
+  let annHTML = '<strong>Capacity threshold crossings:</strong> ';
+  const items = [];
+  if (conCrossCurrent) items.push(`Conservative exceeds current capacity: ${conCrossCurrent}`);
+  if (baseCrossCurrent) items.push(`Base case exceeds current capacity: ${baseCrossCurrent}`);
+  if (highCrossCurrent) items.push(`High growth exceeds current capacity: ${highCrossCurrent}`);
+  if (conCrossPost) items.push(`Conservative exceeds post-upgrade: ${conCrossPost}`);
+  if (baseCrossPost) items.push(`Base case exceeds post-upgrade: ${baseCrossPost}`);
+  if (highCrossPost) items.push(`High growth exceeds post-upgrade: ${highCrossPost}`);
+  annHTML += items.length > 0 ? items.join(' | ') : 'No capacity thresholds reached within 25-year horizon.';
+  annEl.innerHTML = annHTML;
+
+  saveToStorage();
+};
+
+function buildProjectionTable(con, base, high, curCap, postCap) {
+  const milestones = [0, 5, 10, 15, 20, 25];
+  let html = `<thead><tr>
+    <th>Year</th><th class="right">Conservative (MGD)</th><th class="right">% Post-Cap</th>
+    <th class="right">Base Case (MGD)</th><th class="right">% Post-Cap</th>
+    <th class="right">High Growth (MGD)</th><th class="right">% Post-Cap</th>
+  </tr></thead><tbody>`;
+  for (const t of milestones) {
+    if (t >= con.length) continue;
+    const yr = CURRENT_YEAR + t;
+    html += `<tr><td class="label-cell">${yr}</td>`;
+    for (const ds of [con, base, high]) {
+      const d = ds[t].totalMGD;
+      const pctPost = postCap > 0 ? (d / postCap * 100) : 0;
+      const cls = pctPost >= 100 ? 'exceed' : pctPost >= 80 ? 'warn-cell' : '';
+      html += `<td class="right">${d.toFixed(3)}</td><td class="right ${cls}">${pctPost.toFixed(1)}%</td>`;
+    }
+    html += '</tr>';
+  }
+  html += '</tbody>';
+  document.getElementById('projectionTable').innerHTML = html;
+}
+
+function buildCommunityBreakdown(baseDemands) {
+  const milestones = [0, 5, 10, 15, 20, 25];
+  const names = baseDemands[0].perComm.map(c => c.name);
+  let html = '<thead><tr><th>Community</th>';
+  for (const t of milestones) html += `<th class="right">${CURRENT_YEAR + t}</th>`;
+  html += '</tr></thead><tbody>';
+  for (let ci = 0; ci < names.length; ci++) {
+    html += `<tr><td class="label-cell">${names[ci]}</td>`;
+    for (const t of milestones) {
+      if (t < baseDemands.length) {
+        html += `<td class="right">${baseDemands[t].perComm[ci].mgd.toFixed(3)}</td>`;
+      }
+    }
+    html += '</tr>';
+  }
+  // Total row
+  html += '<tr style="font-weight:700;border-top:2px solid var(--navy);"><td class="label-cell">TOTAL</td>';
+  for (const t of milestones) {
+    if (t < baseDemands.length) {
+      html += `<td class="right">${baseDemands[t].totalMGD.toFixed(3)}</td>`;
+    }
+  }
+  html += '</tr></tbody>';
+  document.getElementById('communityBreakdown').innerHTML = html;
+}
+
+// ── CHART ──
+function buildChart(con, base, high, curCap, postCap, crossings) {
+  const labels = con.map(d => d.year);
+  const conData = con.map(d => d.totalMGD);
+  const baseData = base.map(d => d.totalMGD);
+  const highData = high.map(d => d.totalMGD);
+
+  // Build annotation points for crossings
+  const annotations = {};
+  annotations.currentCapLine = {
+    type: 'line', yMin: curCap, yMax: curCap,
+    borderColor: '#6B7280', borderWidth: 2, borderDash: [8, 4],
+    label: { display: true, content: `Current capacity (${curCap} MGD)`, position: 'end',
+      font: { family: 'Tahoma', size: 10 }, color: '#6B7280', backgroundColor: 'rgba(255,255,255,0.85)' }
+  };
+  annotations.postCapLine = {
+    type: 'line', yMin: postCap, yMax: postCap,
+    borderColor: '#6B7280', borderWidth: 2,
+    label: { display: true, content: `Post-upgrade capacity (${postCap} MGD)`, position: 'end',
+      font: { family: 'Tahoma', size: 10 }, color: '#6B7280', backgroundColor: 'rgba(255,255,255,0.85)' }
+  };
+
+  // Crossing point annotations
+  const crossList = [
+    { key: 'conCrossCurrent', data: conData, cap: curCap, color: '#2D7A4F', label: 'Con' },
+    { key: 'baseCrossCurrent', data: baseData, cap: curCap, color: '#D4A017', label: 'Base' },
+    { key: 'highCrossCurrent', data: highData, cap: curCap, color: '#C1121F', label: 'High' },
+    { key: 'conCrossPost', data: conData, cap: postCap, color: '#2D7A4F', label: 'Con' },
+    { key: 'baseCrossPost', data: baseData, cap: postCap, color: '#D4A017', label: 'Base' },
+    { key: 'highCrossPost', data: highData, cap: postCap, color: '#C1121F', label: 'High' },
+  ];
+
+  crossList.forEach((c, i) => {
+    const yr = crossings[c.key];
+    if (yr) {
+      annotations[`cross${i}`] = {
+        type: 'point',
+        xValue: yr, yValue: c.cap,
+        backgroundColor: c.color, borderColor: '#fff', borderWidth: 2,
+        radius: 6,
+        label: {
+          display: true, content: `${yr}`, position: 'top',
+          font: { family: 'Consolas', size: 10, weight: 'bold' },
+          color: c.color, backgroundColor: 'rgba(255,255,255,0.9)',
+          padding: 2
+        }
+      };
+    }
+  });
+
+  if (projChart) projChart.destroy();
+
+  const ctx = document.getElementById('projChart').getContext('2d');
+  projChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Conservative', data: conData,
+          borderColor: '#2D7A4F', backgroundColor: 'rgba(45,122,79,0.08)',
+          borderWidth: 2, pointRadius: 0, fill: false, tension: 0.3
+        },
+        {
+          label: 'Base Case', data: baseData,
+          borderColor: '#D4A017', backgroundColor: 'rgba(212,160,23,0.08)',
+          borderWidth: 2.5, pointRadius: 0, fill: false, tension: 0.3
+        },
+        {
+          label: 'High Growth', data: highData,
+          borderColor: '#C1121F', backgroundColor: 'rgba(193,18,31,0.08)',
+          borderWidth: 2, pointRadius: 0, fill: false, tension: 0.3
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { intersect: false, mode: 'index' },
+      scales: {
+        x: {
+          title: { display: true, text: 'Year', font: { family: 'Tahoma', size: 12, weight: '600' }, color: '#1a237e' },
+          ticks: { font: { family: 'Consolas', size: 10 }, color: '#455a7d', maxRotation: 45 },
+          grid: { color: '#e8eaf0' }
+        },
+        y: {
+          title: { display: true, text: 'System Demand (MGD)', font: { family: 'Tahoma', size: 12, weight: '600' }, color: '#1a237e' },
+          ticks: { font: { family: 'Consolas', size: 10 }, color: '#455a7d' },
+          grid: { color: '#e8eaf0' },
+          beginAtZero: true
+        }
+      },
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { font: { family: 'Tahoma', size: 11 }, color: '#1a237e', padding: 16 }
+        },
+        annotation: { annotations },
+        tooltip: {
+          titleFont: { family: 'Tahoma' },
+          bodyFont: { family: 'Consolas', size: 12 },
+          callbacks: {
+            label: function(ctx) { return `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(3)} MGD`; }
+          }
+        }
+      }
+    }
+  });
+}
+
+// ── COMPLIANCE (TAB 2) ──
+window.toggleUpgradeFields = function() {
+  const show = document.getElementById('upgradeYesNo').value === 'yes';
+  ['upgradeYearField','upgradeMnField','upgradeRaField'].forEach(id => {
+    document.getElementById(id).style.display = show ? '' : 'none';
+  });
+};
+
+window.runCompliance = function() {
+  const mnLevel = parseFloat(document.getElementById('mnLevel').value);
+  const raLevel = parseFloat(document.getElementById('raLevel').value);
+  if (isNaN(mnLevel) && isNaN(raLevel)) return;
+
+  document.getElementById('complianceResults').style.display = 'block';
+
+  const MN_SMCL = 0.05;
+  const MN_MDH = 0.1;
+  const RA_MCL = 5.0;
+
+  // Manganese
+  if (!isNaN(mnLevel)) {
+    const pct = (mnLevel / MN_SMCL) * 100;
+    const status = pct < 80 ? 'green' : pct < 100 ? 'yellow' : 'red';
+    const statusText = pct < 80 ? 'BELOW STANDARD' : pct < 100 ? 'APPROACHING STANDARD' : 'EXCEEDS STANDARD';
+    renderComplianceBar('mnComplianceBar', 'Manganese vs. EPA SMCL (0.05 mg/L)', mnLevel, MN_SMCL, status);
+    document.getElementById('mnComplianceStatus').innerHTML =
+      `<span class="compliance-status status-${status}">${statusText}</span> &nbsp; ${mnLevel.toFixed(3)} mg/L — ${pct.toFixed(1)}% of SMCL`;
+
+    let alertHTML = '';
+    if (mnLevel >= MN_SMCL) {
+      alertHTML = `<div class="compliance-alert yellow-alert">This system exceeds the EPA Secondary MCL (aesthetic guideline). Minnesota Health Advisory is 0.1 mg/L. MDH recommends additional testing if infants under 1 year use this water.</div>`;
+    }
+    if (mnLevel >= MN_MDH) {
+      alertHTML += `<div class="compliance-alert red-alert">Level also exceeds the Minnesota Department of Health Advisory Level of 0.1 mg/L. MDH recommends that infants under 1 year not consume this water.</div>`;
+    }
+    document.getElementById('mnComplianceAlert').innerHTML = alertHTML;
+
+    // Upgrade projection
+    if (document.getElementById('upgradeYesNo').value === 'yes') {
+      const upgMn = parseFloat(document.getElementById('upgradeMnLevel').value);
+      if (!isNaN(upgMn)) {
+        const upgPct = (upgMn / MN_SMCL) * 100;
+        const upgStatus = upgPct < 80 ? 'green' : upgPct < 100 ? 'yellow' : 'red';
+        const upgText = upgPct < 80 ? 'BELOW STANDARD' : upgPct < 100 ? 'APPROACHING' : 'EXCEEDS';
+        document.getElementById('mnUpgradeStatus').innerHTML =
+          `<div style="margin-top:6px;font-size:12px;">Projected post-upgrade: <span class="compliance-status status-${upgStatus}">${upgText}</span> ${upgMn.toFixed(3)} mg/L (${upgPct.toFixed(1)}% of SMCL)</div>`;
+      }
+    } else {
+      document.getElementById('mnUpgradeStatus').innerHTML = '';
+    }
+  }
+
+  // Radium
+  if (!isNaN(raLevel)) {
+    const pct = (raLevel / RA_MCL) * 100;
+    const status = pct < 80 ? 'green' : pct < 100 ? 'yellow' : 'red';
+    const statusText = pct < 80 ? 'BELOW STANDARD' : pct < 100 ? 'APPROACHING STANDARD' : 'EXCEEDS STANDARD';
+    renderComplianceBar('raComplianceBar', 'Combined Radium vs. EPA MCL (5.0 pCi/L)', raLevel, RA_MCL, status);
+    document.getElementById('raComplianceStatus').innerHTML =
+      `<span class="compliance-status status-${status}">${statusText}</span> &nbsp; ${raLevel.toFixed(1)} pCi/L — ${pct.toFixed(1)}% of MCL`;
+
+    let alertHTML = '';
+    if (raLevel >= RA_MCL) {
+      alertHTML = `<div class="compliance-alert red-alert">This system is above the federal primary MCL. Public notification requirements apply under 40 CFR Part 141 Subpart O.</div>`;
+    }
+    document.getElementById('raComplianceAlert').innerHTML = alertHTML;
+
+    if (document.getElementById('upgradeYesNo').value === 'yes') {
+      const upgRa = parseFloat(document.getElementById('upgradeRaLevel').value);
+      if (!isNaN(upgRa)) {
+        const upgPct = (upgRa / RA_MCL) * 100;
+        const upgStatus = upgPct < 80 ? 'green' : upgPct < 100 ? 'yellow' : 'red';
+        const upgText = upgPct < 80 ? 'BELOW STANDARD' : upgPct < 100 ? 'APPROACHING' : 'EXCEEDS';
+        document.getElementById('raUpgradeStatus').innerHTML =
+          `<div style="margin-top:6px;font-size:12px;">Projected post-upgrade: <span class="compliance-status status-${upgStatus}">${upgText}</span> ${upgRa.toFixed(1)} pCi/L (${upgPct.toFixed(1)}% of MCL)</div>`;
+      }
+    } else {
+      document.getElementById('raUpgradeStatus').innerHTML = '';
+    }
+  }
+
+  saveToStorage();
+};
+
+function renderComplianceBar(containerId, label, level, standard, status) {
+  const maxDisplay = standard * 2;
+  const pctFill = Math.min((level / maxDisplay) * 100, 100);
+  const markerPct = Math.min((standard / maxDisplay) * 100, 100);
+  document.getElementById(containerId).innerHTML = `
+    <div class="compliance-bar-label">${label}</div>
+    <div class="compliance-bar-outer">
+      <div class="compliance-bar-fill ${status}" style="width:${pctFill}%"></div>
+      <div class="compliance-bar-marker" style="left:${markerPct}%">
+        <span class="compliance-bar-marker-label" style="left:0;">Standard</span>
+      </div>
+    </div>`;
+}
+
+window.toggleCollapsible = function(btn) {
+  const body = btn.nextElementSibling;
+  body.classList.toggle('open');
+  btn.innerHTML = body.classList.contains('open') ? '&#9660; About These Standards' : '&#9654; About These Standards';
+};
+
+// ── MODULE 3: REPORT GENERATION ──
+window.generateReport = function() {
+  const sysName = document.getElementById('sysName').value || 'Regional Water System';
+  const currentCap = parseFloat(document.getElementById('currentCap').value) || 0;
+  const postCap = parseFloat(document.getElementById('postCap').value) || 0;
+  const communities = getCommunities();
+
+  const baseDemands = projectDemand(communities, 'growthBase', PROJECTION_YEARS);
+  const currentDemandMGD = baseDemands[0].totalMGD;
+  const utilizationPct = currentCap > 0 ? (currentDemandMGD / currentCap * 100) : 0;
+  const baseCrossPost = findCrossingYear(baseDemands, postCap);
+  const baseHeadroom = baseCrossPost ? baseCrossPost - CURRENT_YEAR : null;
+
+  document.getElementById('reportContent').style.display = 'block';
+
+  // Header
+  document.getElementById('rptSysName').textContent = sysName;
+  document.getElementById('rptDate').textContent = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  document.getElementById('rptCommunities').textContent = communities.map(c => c.name).join(', ');
+  document.getElementById('rptCurrentCap').textContent = currentCap.toFixed(1) + ' MGD';
+  document.getElementById('rptPostCap').textContent = postCap.toFixed(1) + ' MGD';
+  document.getElementById('rptCurrentDemand').textContent = currentDemandMGD.toFixed(3) + ' MGD';
+  document.getElementById('rptUtilization').textContent = utilizationPct.toFixed(1) + '%';
+
+  // Projection table
+  const milestones = [5, 10, 15, 20];
+  let tblHTML = '<thead><tr><th>Year</th><th class="right">Base Demand (MGD)</th><th class="right">% of Post-Upgrade Capacity</th></tr></thead><tbody>';
+  for (const t of milestones) {
+    if (t >= baseDemands.length) continue;
+    const d = baseDemands[t].totalMGD;
+    const pctPost = postCap > 0 ? (d / postCap * 100) : 0;
+    const cls = pctPost >= 100 ? 'exceed' : pctPost >= 80 ? 'warn-cell' : '';
+    tblHTML += `<tr><td class="label-cell">${CURRENT_YEAR + t}</td><td class="right">${d.toFixed(3)}</td><td class="right ${cls}">${pctPost.toFixed(1)}%</td></tr>`;
+  }
+  tblHTML += '</tbody>';
+  document.getElementById('rptProjectionTable').innerHTML = tblHTML;
+
+  // Headroom badge
+  const hrEl = document.getElementById('rptHeadroom');
+  if (baseHeadroom !== null) {
+    const cls = baseHeadroom > 15 ? 'good' : baseHeadroom > 7 ? 'warn' : 'bad';
+    hrEl.className = 'headroom-badge ' + cls;
+    hrEl.textContent = `${baseHeadroom} years (by ${baseCrossPost})`;
+  } else {
+    hrEl.className = 'headroom-badge good';
+    hrEl.textContent = `Beyond ${CURRENT_YEAR + PROJECTION_YEARS}`;
+  }
+
+  // Recommendation
+  const recEl = document.getElementById('rptRecommendation');
+  if (baseHeadroom !== null && baseHeadroom <= PROJECTION_YEARS) {
+    const planBy = baseCrossPost - 5;
+    recEl.textContent = `Under the base-case growth scenario, the ${sysName} will reach ${(baseDemands[baseHeadroom].totalMGD / postCap * 100).toFixed(0)}% of its post-upgrade treatment capacity by ${baseCrossPost}. The board should initiate preliminary engineering for the next capacity expansion no later than ${planBy} to maintain adequate lead time.`;
+  } else {
+    recEl.textContent = `Under the base-case scenario, the ${sysName}'s post-upgrade capacity is not projected to be reached within the 25-year planning horizon. The board should continue monitoring growth rates and re-run this analysis every 3–5 years.`;
+  }
+
+  // Compliance table
+  const mnLevel = parseFloat(document.getElementById('mnLevel').value);
+  const raLevel = parseFloat(document.getElementById('raLevel').value);
+  let compHTML = '<thead><tr><th>Contaminant</th><th class="right">Current Level</th><th>Standard</th><th>Status</th></tr></thead><tbody>';
+  if (!isNaN(mnLevel)) {
+    const pct = (mnLevel / 0.05) * 100;
+    const st = pct < 80 ? 'Below' : pct < 100 ? 'Approaching' : 'Exceeds';
+    compHTML += `<tr><td class="label-cell">Manganese</td><td class="right">${mnLevel.toFixed(3)} mg/L</td><td>0.05 mg/L (SMCL, non-enforceable)</td><td>${st}</td></tr>`;
+  }
+  if (!isNaN(raLevel)) {
+    const pct = (raLevel / 5.0) * 100;
+    const st = pct < 80 ? 'Below' : pct < 100 ? 'Approaching' : 'Exceeds';
+    compHTML += `<tr><td class="label-cell">Radium (Ra-226+228)</td><td class="right">${raLevel.toFixed(1)} pCi/L</td><td>5.0 pCi/L (Primary MCL, enforceable)</td><td>${st}</td></tr>`;
+  }
+  if (isNaN(mnLevel) && isNaN(raLevel)) {
+    compHTML += '<tr><td colspan="4">No water quality data entered. Complete Tab 2 for compliance data.</td></tr>';
+  }
+  compHTML += '</tbody>';
+  document.getElementById('rptComplianceTable').innerHTML = compHTML;
+
+  // Legislator note
+  document.getElementById('rptLegislator').textContent =
+    `This report was prepared to support infrastructure planning for the ${communities.map(c => c.name).join(', ')} regional water system. State Senator Eric Lucero (SD-30) has championed this system's capacity expansion through SF2138 (2025). Community administrators are encouraged to coordinate with their legislative delegation as planning for the next expansion cycle begins.`;
+};
+
+// ── DEMO DATA ──
+window.loadDemoData = function() {
+  document.getElementById('sysName').value = 'Albertville-Hanover-St. Michael Regional Water System';
+  document.getElementById('currentCap').value = '10';
+  document.getElementById('postCap').value = '15';
+  document.getElementById('numCommunities').value = '3';
+  rebuildCommunities();
+
+  // St. Michael
+  document.getElementById('cName0').value = 'St. Michael';
+  document.getElementById('cPop0').value = '21034';
+  document.getElementById('cConn0').value = '6981';
+  document.getElementById('cConnNote0').textContent = '2023 ACS households';
+  document.getElementById('cDemand0').value = '100';
+  document.getElementById('cGrowthCon0').value = '2.0';
+  document.getElementById('cGrowthBase0').value = '3.5';
+  document.getElementById('cGrowthHigh0').value = '5.5';
+  document.getElementById('cHistPop10').value = '11678';
+  document.getElementById('cHistYear10').value = '2010';
+  document.getElementById('cHistPop20').value = '18235';
+  document.getElementById('cHistYear20').value = '2020';
+  updateCAGR(0);
+
+  // Albertville
+  document.getElementById('cName1').value = 'Albertville';
+  document.getElementById('cPop1').value = '7970';
+  document.getElementById('cConn1').value = '2800';
+  document.getElementById('cConnNote1').textContent = 'Estimated from population / avg household size';
+  document.getElementById('cDemand1').value = '100';
+  document.getElementById('cGrowthCon1').value = '1.5';
+  document.getElementById('cGrowthBase1').value = '2.5';
+  document.getElementById('cGrowthHigh1').value = '4.0';
+  document.getElementById('cHistPop11').value = '3621';
+  document.getElementById('cHistYear11').value = '2000';
+  document.getElementById('cHistPop21').value = '7896';
+  document.getElementById('cHistYear21').value = '2020';
+  updateCAGR(1);
+
+  // Hanover
+  document.getElementById('cName2').value = 'Hanover';
+  document.getElementById('cPop2').value = '3594';
+  document.getElementById('cConn2').value = '1200';
+  document.getElementById('cConnNote2').textContent = 'Estimated';
+  document.getElementById('cDemand2').value = '100';
+  document.getElementById('cGrowthCon2').value = '1.5';
+  document.getElementById('cGrowthBase2').value = '3.0';
+  document.getElementById('cGrowthHigh2').value = '5.0';
+  document.getElementById('cHistPop12').value = '1355';
+  document.getElementById('cHistYear12').value = '2000';
+  document.getElementById('cHistPop22').value = '3548';
+  document.getElementById('cHistYear22').value = '2020';
+  updateCAGR(2);
+
+  // Module 2 demo data
+  // VERIFY: Demo contaminant levels are illustrative only — not actual test results
+  document.getElementById('mnLevel').value = '0.07';
+  document.getElementById('raLevel').value = '3.2';
+  document.getElementById('mnTreatment').value = 'greensand';
+  document.getElementById('raTreatment').value = 'none';
+  document.getElementById('upgradeYesNo').value = 'yes';
+  toggleUpgradeFields();
+  document.getElementById('upgradeYear').value = '2027';
+  document.getElementById('upgradeMnLevel').value = '0.02';
+  document.getElementById('upgradeRaLevel').value = '1.5';
+
+  runProjection();
+  runCompliance();
+};
+
+window.clearAllData = function() {
+  localStorage.removeItem('lucero_water_planner');
+  document.getElementById('sysName').value = '';
+  document.getElementById('currentCap').value = '';
+  document.getElementById('postCap').value = '';
+  document.getElementById('numCommunities').value = '3';
+  rebuildCommunities();
+  document.getElementById('heroSection').style.display = 'none';
+  document.getElementById('complianceResults').style.display = 'none';
+  document.getElementById('reportContent').style.display = 'none';
+  // Clear Module 2
+  document.getElementById('mnLevel').value = '';
+  document.getElementById('raLevel').value = '';
+  document.getElementById('testDate').value = '';
+  document.getElementById('mnTreatment').value = 'none';
+  document.getElementById('raTreatment').value = 'none';
+  document.getElementById('upgradeYesNo').value = 'no';
+  toggleUpgradeFields();
+  if (projChart) { projChart.destroy(); projChart = null; }
+};
+
+// ── LOCAL STORAGE ──
+function saveToStorage() {
+  const data = {};
+  document.querySelectorAll('input, select').forEach(el => {
+    if (el.id) data[el.id] = el.value;
+  });
+  try { localStorage.setItem('lucero_water_planner', JSON.stringify(data)); } catch(e) {}
+}
+
+function loadFromStorage() {
+  try {
+    const raw = localStorage.getItem('lucero_water_planner');
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    // Rebuild communities first
+    if (data.numCommunities) {
+      document.getElementById('numCommunities').value = data.numCommunities;
+      rebuildCommunities();
+    }
+    Object.keys(data).forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = data[id];
+    });
+    toggleUpgradeFields();
+    // Update CAGRs
+    const n = parseInt(data.numCommunities) || 3;
+    for (let i = 0; i < n; i++) updateCAGR(i);
+    return true;
+  } catch(e) { return false; }
+}
+
+// ── INPUT LISTENERS ──
+function attachInputListeners() {
+  document.querySelectorAll('input, select').forEach(el => {
+    el.addEventListener('input', () => {
+      // Update CAGR for community fields
+      const match = el.id.match(/^cHist(?:Pop|Year)[12](\d)$/);
+      if (match) updateCAGR(parseInt(match[1]));
+      saveToStorage();
+    });
+  });
+}
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded', function() {
+  rebuildCommunities();
+  const loaded = loadFromStorage();
+  if (loaded) {
+    const cap = parseFloat(document.getElementById('currentCap').value);
+    if (cap > 0) {
+      runProjection();
+      runCompliance();
+    }
+  }
+  attachInputListeners();
+});
+
+})();
+</script>
+</body>
+</html>

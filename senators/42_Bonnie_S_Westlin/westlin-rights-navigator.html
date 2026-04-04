@@ -1,0 +1,1757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minnesota Foster Youth Rights Navigator — SF3154</title>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Full-width magazine/editorial — no sidebar, no max-width shell. Full-bleed colored sections alternate with white sections. Content constrained per-section at varying widths (600px for text, 800px for forms).
+   2. Navigation: Segmented control — three pill-shaped buttons in a horizontal row, sticky below the hero. Active state uses cedar green fill with white text. No tabs, no rounded-top boxes.
+   3. Typography: Verdana body (web-native, highly legible on screens, distinct from Georgia). Headers in Trebuchet MS bold condensed with generous letter-spacing and all-caps for section labels. Print mode uses Times New Roman for document authority.
+   4. Hero moment: A 220px tall full-bleed cedar green hero with the tool title at 32px white text and a dramatic oversized decorative bracket glyph. This is the first thing you see — bold, institutional, confident.
+   5. Color commitment: Hero + nav bar in cedar green (#3A6B4A). Module 2 has an amber (#C97B2A) section header band. Document preview uses a dark near-black (#1C1C1C) header band. Running tally bar is a full-width green band. Privacy note is an amber full-width band. Footer is dark green. At least 6 sections use saturated palette colors as backgrounds.
+   Additional: No bordered callout boxes anywhere — disclaimers use full-width bands or inline bold text. Checkboxes/radios are custom-styled with green/amber fills. Density contrast: hero is spacious, checklist is dense and compact, documents are editorial.
+*/
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --cedar: #3A6B4A;
+  --cedar-dark: #2C5239;
+  --cedar-light: #4A8B5E;
+  --gray: #8A9099;
+  --amber: #C97B2A;
+  --amber-light: #E8A84C;
+  --bg: #FFFFFF;
+  --text: #1C1C1C;
+  --success: #2D6A4F;
+  --warning: #C97B2A;
+  --alert: #B5192C;
+  --light-green: #E8F0EB;
+  --light-amber: #FDF3E6;
+}
+
+body {
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* HERO SECTION */
+.hero {
+  background: var(--cedar);
+  color: #fff;
+  padding: 48px 24px 40px;
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  position: relative;
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 4px;
+  background: var(--amber);
+  border-radius: 2px;
+}
+
+.hero-title {
+  font-family: 'Trebuchet MS', 'Lucida Sans', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+  max-width: 700px;
+}
+
+.hero-subtitle {
+  font-size: 14px;
+  opacity: 0.9;
+  max-width: 600px;
+  line-height: 1.5;
+  font-style: italic;
+}
+
+.hero-attribution {
+  margin-top: 20px;
+  font-size: 12px;
+  opacity: 0.7;
+  max-width: 580px;
+}
+
+/* PRIVACY BAND */
+.privacy-band {
+  background: var(--amber);
+  color: #fff;
+  text-align: center;
+  padding: 10px 24px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+/* SEGMENTED NAV */
+.nav-bar {
+  background: var(--cedar-dark);
+  padding: 12px 24px;
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.nav-btn {
+  font-family: 'Trebuchet MS', 'Lucida Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  padding: 10px 20px;
+  border: 2px solid rgba(255,255,255,0.4);
+  border-radius: 24px;
+  background: transparent;
+  color: rgba(255,255,255,0.75);
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 44px;
+}
+
+.nav-btn:hover {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+
+.nav-btn.active {
+  background: #fff;
+  color: var(--cedar-dark);
+  border-color: #fff;
+}
+
+.nav-btn:focus-visible {
+  outline: 3px solid var(--amber);
+  outline-offset: 2px;
+}
+
+/* MODULES */
+.module { display: none; }
+.module.active { display: block; }
+
+/* INTRO SECTION */
+.intro-section {
+  background: var(--light-green);
+  padding: 32px 24px;
+  text-align: center;
+}
+
+.intro-text {
+  max-width: 640px;
+  margin: 0 auto;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+/* AGE INPUT */
+.age-bar {
+  background: #fff;
+  border-bottom: 2px solid var(--cedar);
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.age-bar label {
+  font-family: 'Trebuchet MS', 'Lucida Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--cedar);
+}
+
+.age-bar input {
+  width: 70px;
+  padding: 8px 12px;
+  border: 2px solid var(--cedar);
+  border-radius: 8px;
+  font-size: 16px;
+  font-family: Verdana, Geneva, sans-serif;
+  text-align: center;
+  background: var(--light-green);
+}
+
+.age-bar input:focus {
+  outline: 3px solid var(--amber);
+  outline-offset: 1px;
+}
+
+.age-note {
+  font-size: 12px;
+  color: var(--gray);
+}
+
+/* TALLY BAR */
+.tally-bar {
+  background: var(--cedar);
+  color: #fff;
+  padding: 14px 24px;
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  flex-wrap: wrap;
+  font-family: 'Trebuchet MS', 'Lucida Sans', sans-serif;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+  position: sticky;
+  top: 52px;
+  z-index: 99;
+}
+
+.tally-num {
+  font-size: 22px;
+  font-weight: 700;
+  margin-right: 4px;
+}
+
+.tally-confirmed { color: #A8E6C0; }
+.tally-concerns { color: #FFCC80; }
+
+/* RIGHTS CATEGORIES */
+.rights-list {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 24px 40px;
+}
+
+.rights-category {
+  margin-top: 24px;
+}
+
+.category-header {
+  font-family: 'Trebuchet MS', 'Lucida Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--cedar);
+  padding: 12px 0 8px;
+  border-bottom: 3px solid var(--cedar);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+}
+
+.category-header:hover {
+  color: var(--cedar-light);
+}
+
+.category-arrow {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-left: 6px solid var(--cedar);
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+
+.rights-category.open .category-arrow {
+  transform: rotate(90deg);
+}
+
+.category-items {
+  display: none;
+  padding: 8px 0;
+}
+
+.rights-category.open .category-items {
+  display: block;
+}
+
+.age-gated { display: none; }
+.age-gated.visible { display: block; }
+
+.age-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--amber);
+  background: var(--light-amber);
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-left: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* RIGHT ITEM */
+.right-item {
+  padding: 12px 0;
+  border-bottom: 1px solid #E0E0E0;
+}
+
+.right-text {
+  font-size: 15px;
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+.right-options {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.right-option {
+  position: relative;
+}
+
+.right-option input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.right-option label {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 2px solid #D0D0D0;
+  background: #fff;
+  color: var(--text);
+  transition: all 0.15s;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+.right-option label:hover {
+  border-color: var(--cedar);
+}
+
+.right-option input:checked + label.opt-yes {
+  background: var(--success);
+  color: #fff;
+  border-color: var(--success);
+}
+
+.right-option input:checked + label.opt-no {
+  background: var(--alert);
+  color: #fff;
+  border-color: var(--alert);
+}
+
+.right-option input:checked + label.opt-unsure {
+  background: var(--amber);
+  color: #fff;
+  border-color: var(--amber);
+}
+
+.right-option input:focus-visible + label {
+  outline: 3px solid var(--amber);
+  outline-offset: 2px;
+}
+
+/* DETAILS PANEL */
+.right-details {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, padding 0.3s ease;
+}
+
+.right-details.open {
+  max-height: 300px;
+  padding: 12px 0 4px;
+}
+
+.right-details textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 2px solid var(--amber);
+  border-radius: 8px;
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 14px;
+  resize: vertical;
+  min-height: 60px;
+  background: var(--light-amber);
+}
+
+.right-details textarea:focus {
+  outline: 3px solid var(--cedar);
+  outline-offset: 1px;
+}
+
+.detail-label {
+  font-size: 12px;
+  color: var(--gray);
+  margin-bottom: 4px;
+  font-weight: 700;
+}
+
+/* MODULE 2: INTERVIEW */
+.interview-header-band {
+  background: var(--amber);
+  color: #fff;
+  padding: 28px 24px;
+  text-align: center;
+}
+
+.interview-header-band h2 {
+  font-family: 'Trebuchet MS', 'Lucida Sans', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.interview-header-band p {
+  font-size: 14px;
+  margin-top: 8px;
+  opacity: 0.9;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.interview-form {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 24px 24px 48px;
+}
+
+.question-block {
+  margin-bottom: 28px;
+}
+
+.q-label {
+  font-family: 'Trebuchet MS', 'Lucida Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--cedar);
+  margin-bottom: 8px;
+}
+
+.q-text {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.q-options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.q-option {
+  position: relative;
+}
+
+.q-option input[type="radio"],
+.q-option input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.q-option label {
+  display: block;
+  padding: 10px 16px;
+  border: 2px solid #D8D8D8;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.15s;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+.q-option label:hover {
+  border-color: var(--cedar);
+  background: var(--light-green);
+}
+
+.q-option input:checked + label {
+  border-color: var(--cedar);
+  background: var(--cedar);
+  color: #fff;
+}
+
+.q-option input:focus-visible + label {
+  outline: 3px solid var(--amber);
+  outline-offset: 2px;
+}
+
+.q-freetext {
+  width: 100%;
+  padding: 10px 14px;
+  border: 2px solid #D8D8D8;
+  border-radius: 8px;
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 14px;
+  min-height: 44px;
+  margin-top: 6px;
+}
+
+.q-freetext:focus {
+  border-color: var(--cedar);
+  outline: 3px solid var(--amber);
+  outline-offset: 1px;
+}
+
+textarea.q-freetext {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.q-date {
+  padding: 10px 14px;
+  border: 2px solid #D8D8D8;
+  border-radius: 8px;
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 14px;
+  min-height: 44px;
+}
+
+.q-date:focus {
+  border-color: var(--cedar);
+  outline: 3px solid var(--amber);
+  outline-offset: 1px;
+}
+
+.retaliation-notice {
+  background: var(--cedar);
+  color: #fff;
+  padding: 14px 20px;
+  border-radius: 12px;
+  margin-top: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  display: none;
+  line-height: 1.5;
+}
+
+.retaliation-notice.visible {
+  display: block;
+}
+
+.privacy-inline {
+  font-size: 12px;
+  color: var(--gray);
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+/* MODULE 3: DOCUMENTS */
+.doc-header-band {
+  background: var(--text);
+  color: #fff;
+  padding: 28px 24px;
+  text-align: center;
+}
+
+.doc-header-band h2 {
+  font-family: 'Trebuchet MS', 'Lucida Sans', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.doc-header-band p {
+  font-size: 14px;
+  margin-top: 8px;
+  opacity: 0.8;
+  max-width: 520px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.doc-controls {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.doc-type-buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.doc-type-btn {
+  flex: 1;
+  min-width: 200px;
+  padding: 16px;
+  border: 3px solid #D8D8D8;
+  border-radius: 12px;
+  background: #fff;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+  min-height: 44px;
+  font-family: Verdana, Geneva, sans-serif;
+}
+
+.doc-type-btn:hover {
+  border-color: var(--cedar);
+  background: var(--light-green);
+}
+
+.doc-type-btn.active {
+  border-color: var(--cedar);
+  background: var(--cedar);
+  color: #fff;
+}
+
+.doc-type-btn .doc-type-letter {
+  font-family: 'Trebuchet MS', 'Lucida Sans', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.doc-type-btn.active .doc-type-letter { color: var(--amber-light); }
+
+.doc-type-btn .doc-type-name {
+  font-size: 13px;
+  display: block;
+}
+
+.doc-extra-fields {
+  margin-bottom: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.doc-extra-fields label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--cedar);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.doc-extra-fields input,
+.doc-extra-fields select {
+  padding: 8px 12px;
+  border: 2px solid #D8D8D8;
+  border-radius: 8px;
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 14px;
+  min-height: 44px;
+}
+
+.doc-extra-fields input:focus,
+.doc-extra-fields select:focus {
+  border-color: var(--cedar);
+  outline: 3px solid var(--amber);
+  outline-offset: 1px;
+}
+
+.generate-btn {
+  display: inline-block;
+  padding: 14px 32px;
+  background: var(--cedar);
+  color: #fff;
+  border: none;
+  border-radius: 24px;
+  font-family: 'Trebuchet MS', 'Lucida Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  cursor: pointer;
+  min-height: 44px;
+  transition: background 0.15s;
+}
+
+.generate-btn:hover { background: var(--cedar-dark); }
+.generate-btn:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+
+.print-btn {
+  display: inline-block;
+  padding: 14px 32px;
+  background: var(--amber);
+  color: #fff;
+  border: none;
+  border-radius: 24px;
+  font-family: 'Trebuchet MS', 'Lucida Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  cursor: pointer;
+  min-height: 44px;
+  margin-left: 12px;
+  transition: background 0.15s;
+  display: none;
+}
+
+.print-btn.visible { display: inline-block; }
+.print-btn:hover { background: #B06B22; }
+.print-btn:focus-visible { outline: 3px solid var(--cedar); outline-offset: 2px; }
+
+/* DOCUMENT PREVIEW */
+#document-preview {
+  display: none;
+  max-width: 800px;
+  margin: 24px auto 48px;
+  padding: 32px;
+  background: #FAFAFA;
+  border: 2px solid #D8D8D8;
+  border-radius: 4px;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+#document-preview.visible { display: block; }
+
+#document-preview h3 {
+  font-family: 'Trebuchet MS', 'Lucida Sans', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--cedar);
+  margin-bottom: 4px;
+}
+
+#document-preview h4 {
+  font-family: 'Trebuchet MS', 'Lucida Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text);
+  margin-top: 20px;
+  margin-bottom: 8px;
+}
+
+#document-preview .doc-subtitle {
+  font-size: 12px;
+  color: var(--gray);
+  margin-bottom: 16px;
+}
+
+#document-preview .doc-divider {
+  border: none;
+  border-top: 2px solid var(--cedar);
+  margin: 16px 0;
+}
+
+#document-preview ul { margin-left: 20px; margin-bottom: 12px; }
+#document-preview li { margin-bottom: 4px; }
+
+#document-preview .doc-footer {
+  font-size: 11px;
+  color: var(--gray);
+  margin-top: 24px;
+  padding-top: 12px;
+  border-top: 1px solid #D8D8D8;
+  line-height: 1.6;
+}
+
+#document-preview .doc-letter-body {
+  white-space: pre-wrap;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+#document-preview [contenteditable] {
+  border-bottom: 1px dashed var(--amber);
+  padding: 0 2px;
+}
+
+#document-preview [contenteditable]:focus {
+  background: var(--light-amber);
+  outline: none;
+}
+
+.edit-hint {
+  font-size: 11px;
+  color: var(--amber);
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+/* FOOTER */
+.site-footer {
+  background: var(--cedar-dark);
+  color: rgba(255,255,255,0.8);
+  padding: 28px 24px;
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.site-footer strong { color: #fff; }
+
+.clear-data-btn {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 8px 20px;
+  background: transparent;
+  color: var(--amber-light);
+  border: 2px solid var(--amber-light);
+  border-radius: 20px;
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 44px;
+  transition: all 0.15s;
+}
+
+.clear-data-btn:hover {
+  background: var(--amber-light);
+  color: var(--cedar-dark);
+}
+
+/* PRINT STYLES */
+@media print {
+  body * { visibility: hidden; }
+  #document-preview, #document-preview * { visibility: visible; }
+  #document-preview {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    max-width: 100%;
+    border: none;
+    background: #fff;
+    padding: 40px;
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 12pt;
+    line-height: 1.6;
+    color: #000;
+  }
+  #document-preview h3 {
+    font-family: 'Times New Roman', Times, serif;
+    color: #000;
+    font-size: 16pt;
+  }
+  #document-preview h4 {
+    font-family: 'Times New Roman', Times, serif;
+    color: #000;
+    font-size: 12pt;
+  }
+  #document-preview [contenteditable] {
+    border-bottom: none;
+  }
+  .edit-hint { display: none; }
+}
+
+/* RESPONSIVE */
+@media (max-width: 600px) {
+  .hero-title { font-size: 22px; }
+  .hero { padding: 36px 20px 32px; min-height: 180px; }
+  .nav-btn { font-size: 11px; padding: 8px 12px; letter-spacing: 0.8px; }
+  .tally-bar { font-size: 12px; gap: 16px; top: 48px; }
+  .tally-num { font-size: 18px; }
+  .doc-type-buttons { flex-direction: column; }
+  .doc-type-btn { min-width: auto; }
+  .right-options { flex-direction: column; }
+  .right-option label { justify-content: center; }
+  .print-btn { margin-left: 0; margin-top: 8px; }
+}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<header class="hero">
+  <h1 class="hero-title">Minnesota Foster Youth Rights Navigator</h1>
+  <p class="hero-subtitle">"Know Your Rights. Document What Happened. File Your Complaint."</p>
+  <p class="hero-attribution">Senator Westlin's SF3154 established a Foster Youth Bill of Rights in Minnesota -- a detailed framework of protections for children and young adults in the foster care system. This tool was built to put those rights directly in the hands of the youth they were written to protect.</p>
+</header>
+
+<!-- PRIVACY BAND -->
+<div class="privacy-band">
+  Privacy: Nothing you enter here is sent anywhere. This tool works entirely in your browser. Your answers are not stored on any server.
+</div>
+
+<!-- NAVIGATION -->
+<nav class="nav-bar" role="navigation" aria-label="Module navigation">
+  <button class="nav-btn active" data-module="mod1" aria-current="true">Check My Rights</button>
+  <button class="nav-btn" data-module="mod2">Describe a Situation</button>
+  <button class="nav-btn" data-module="mod3">Create a Document</button>
+</nav>
+
+<!-- ==================== MODULE 1 ==================== -->
+<section id="mod1" class="module active" aria-label="Rights Inventory Checker">
+
+  <div class="intro-section">
+    <p class="intro-text">Minnesota law gives foster youth specific rights -- to monthly visits from your caseworker, to be part of your placement plan, to contact your siblings, and more. Check each right below: do you have it, is it missing, or are you unsure? For anything marked "No" or "I don't know," you can add details to help build a document later.</p>
+  </div>
+
+  <div class="age-bar">
+    <label for="age-input">Your Age (Optional)</label>
+    <input type="number" id="age-input" min="0" max="26" placeholder="--" aria-describedby="age-desc">
+    <span class="age-note" id="age-desc">Some rights depend on your age. Enter your age to see all rights that apply to you.</span>
+  </div>
+
+  <div class="tally-bar" id="tally-bar">
+    <span><span class="tally-num tally-confirmed" id="tally-yes">0</span> rights confirmed</span>
+    <span><span class="tally-num tally-concerns" id="tally-concerns">0</span> concerns identified</span>
+  </div>
+
+  <div class="rights-list" id="rights-list">
+    <!-- populated by JS -->
+  </div>
+</section>
+
+<!-- ==================== MODULE 2 ==================== -->
+<section id="mod2" class="module" aria-label="Situation Interview">
+
+  <div class="interview-header-band">
+    <h2>Describe a Situation</h2>
+    <p>Answer a few questions about a specific concern. Your answers will be used to create a document in the next step.</p>
+  </div>
+
+  <div class="interview-form" id="interview-form">
+
+    <div class="question-block">
+      <div class="q-label">Question 1</div>
+      <div class="q-text">What type of concern are you describing?</div>
+      <div class="q-options" id="q1-options">
+        <div class="q-option"><input type="radio" name="q1" id="q1a" value="I was punished physically or put in isolation"><label for="q1a">I was punished physically or put in isolation</label></div>
+        <div class="q-option"><input type="radio" name="q1" id="q1b" value="My placement is being changed without notice"><label for="q1b">My placement is being changed without notice</label></div>
+        <div class="q-option"><input type="radio" name="q1" id="q1c" value="I am not getting to see my siblings or family"><label for="q1c">I am not getting to see my siblings or family</label></div>
+        <div class="q-option"><input type="radio" name="q1" id="q1d" value="My caseworker has not visited me in over a month"><label for="q1d">My caseworker has not visited me in over a month</label></div>
+        <div class="q-option"><input type="radio" name="q1" id="q1e" value="I am not getting medical care I need"><label for="q1e">I am not getting medical care I need</label></div>
+        <div class="q-option"><input type="radio" name="q1" id="q1f" value="My private communications are being monitored"><label for="q1f">My private communications are being monitored</label></div>
+        <div class="q-option"><input type="radio" name="q1" id="q1g" value="I was not included in my placement plan"><label for="q1g">I was not included in my placement plan</label></div>
+        <div class="q-option"><input type="radio" name="q1" id="q1h" value="I am being denied school enrollment or penalized for absences"><label for="q1h">I am being denied school enrollment or penalized for absences</label></div>
+        <div class="q-option"><input type="radio" name="q1" id="q1i" value="I was not given my vital documents"><label for="q1i">I was not given my vital documents</label></div>
+        <div class="q-option"><input type="radio" name="q1" id="q1j" value="I was not told about services I am entitled to"><label for="q1j">I was not told about services I am entitled to</label></div>
+        <div class="q-option"><input type="radio" name="q1" id="q1k" value="other"><label for="q1k">Something else</label></div>
+      </div>
+      <input type="text" class="q-freetext" id="q1-other" placeholder="Describe your concern..." style="display:none" aria-label="Describe other concern">
+    </div>
+
+    <div class="question-block">
+      <div class="q-label">Question 2</div>
+      <div class="q-text">When did this happen or start happening?</div>
+      <input type="date" class="q-date" id="q2-date" aria-label="Date of concern">
+      <input type="text" class="q-freetext" id="q2-text" placeholder="Or describe the timeframe in your own words..." aria-label="Timeframe description">
+    </div>
+
+    <div class="question-block">
+      <div class="q-label">Question 3</div>
+      <div class="q-text">Who was involved?</div>
+      <div class="q-options">
+        <div class="q-option"><input type="checkbox" id="q3a" value="Foster parent"><label for="q3a">Foster parent</label></div>
+        <div class="q-option"><input type="checkbox" id="q3b" value="Caseworker"><label for="q3b">Caseworker</label></div>
+        <div class="q-option"><input type="checkbox" id="q3c" value="Group home staff"><label for="q3c">Group home staff</label></div>
+        <div class="q-option"><input type="checkbox" id="q3d" value="Teacher"><label for="q3d">Teacher</label></div>
+        <div class="q-option"><input type="checkbox" id="q3e" value="other"><label for="q3e">Other</label></div>
+      </div>
+      <input type="text" class="q-freetext" id="q3-other" placeholder="Who else?" style="display:none" aria-label="Describe other person">
+      <p class="privacy-inline">This information stays on your device. It is not sent anywhere.</p>
+    </div>
+
+    <div class="question-block">
+      <div class="q-label">Question 4</div>
+      <div class="q-text">Have you already tried to report this to someone?</div>
+      <div class="q-options" id="q4-options">
+        <div class="q-option"><input type="radio" name="q4" id="q4a" value="Yes - to my caseworker"><label for="q4a">Yes -- to my caseworker</label></div>
+        <div class="q-option"><input type="radio" name="q4" id="q4b" value="Yes - to my agency"><label for="q4b">Yes -- to my agency</label></div>
+        <div class="q-option"><input type="radio" name="q4" id="q4c" value="Yes - to my guardian ad litem or attorney"><label for="q4c">Yes -- to my guardian ad litem or attorney</label></div>
+        <div class="q-option"><input type="radio" name="q4" id="q4d" value="No - I did not know who to tell"><label for="q4d">No -- I didn't know who to tell</label></div>
+        <div class="q-option"><input type="radio" name="q4" id="q4e" value="No - I was afraid of retaliation"><label for="q4e">No -- I was afraid of retaliation</label></div>
+      </div>
+      <div class="retaliation-notice" id="retaliation-notice">The Foster Youth Bill of Rights protects you from retaliation for filing a complaint. This protection is written into Minnesota law (SF3154). You have the right to report without fear of punishment.</div>
+    </div>
+
+    <div class="question-block">
+      <div class="q-label">Question 5</div>
+      <div class="q-text">What outcome are you looking for?</div>
+      <div class="q-options" id="q5-options">
+        <div class="q-option"><input type="radio" name="q5" id="q5a" value="I want the situation to stop"><label for="q5a">I want the situation to stop</label></div>
+        <div class="q-option"><input type="radio" name="q5" id="q5b" value="I want my placement plan updated"><label for="q5b">I want my placement plan updated</label></div>
+        <div class="q-option"><input type="radio" name="q5" id="q5c" value="I want a formal complaint on record"><label for="q5c">I want a formal complaint on record</label></div>
+        <div class="q-option"><input type="radio" name="q5" id="q5d" value="I want to be connected to legal help"><label for="q5d">I want to be connected to legal help</label></div>
+        <div class="q-option"><input type="radio" name="q5" id="q5e" value="I am not sure yet"><label for="q5e">I'm not sure yet</label></div>
+      </div>
+    </div>
+
+    <div class="question-block">
+      <div class="q-label">Question 6</div>
+      <div class="q-text">Is there anything else important to describe?</div>
+      <textarea class="q-freetext" id="q6-text" placeholder="Add anything else you want included in your document..." aria-label="Additional details"></textarea>
+    </div>
+
+  </div>
+</section>
+
+<!-- ==================== MODULE 3 ==================== -->
+<section id="mod3" class="module" aria-label="Document Generator">
+
+  <div class="doc-header-band">
+    <h2>Create a Document</h2>
+    <p>Choose a document type below. The document is built from your answers in the previous steps.</p>
+  </div>
+
+  <div class="doc-controls">
+    <div class="doc-type-buttons">
+      <button class="doc-type-btn" data-doc="A">
+        <span class="doc-type-letter">A</span>
+        <span class="doc-type-name">Rights Summary Report -- a personal record of your rights check-in</span>
+      </button>
+      <button class="doc-type-btn" data-doc="B">
+        <span class="doc-type-letter">B</span>
+        <span class="doc-type-name">Complaint Letter -- a formal letter to your caseworker or agency</span>
+      </button>
+      <button class="doc-type-btn" data-doc="C">
+        <span class="doc-type-letter">C</span>
+        <span class="doc-type-name">Ombudsperson Complaint -- a structured summary for the state office</span>
+      </button>
+    </div>
+
+    <div class="doc-extra-fields" id="doc-extra-fields" style="display:none">
+      <div id="field-name-wrap">
+        <label for="doc-your-name">Your First Name (optional)</label>
+        <input type="text" id="doc-your-name" placeholder="Optional">
+      </div>
+      <div id="field-cw-wrap" style="display:none">
+        <label for="doc-cw-name">Caseworker Name (optional)</label>
+        <input type="text" id="doc-cw-name" placeholder="Optional">
+      </div>
+      <div id="field-agency-wrap" style="display:none">
+        <label for="doc-agency-name">Agency Name (optional)</label>
+        <input type="text" id="doc-agency-name" placeholder="Optional">
+      </div>
+      <div id="field-deadline-wrap" style="display:none">
+        <label for="doc-deadline">Response Deadline</label>
+        <select id="doc-deadline">
+          <option value="10 days">10 days</option>
+          <option value="14 days" selected>14 days</option>
+          <option value="30 days">30 days</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="generate-btn" id="generate-btn" style="display:none">Generate Document</button>
+    <button class="print-btn" id="print-btn">Print This Document</button>
+  </div>
+
+  <div id="document-preview"></div>
+</section>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <p><strong>Built to support SF3154, the Minnesota Foster Youth Bill of Rights, authored by Senator Bonnie Westlin (SD-42).</strong></p>
+  <p>Tool built with AI. For legal advice, contact your guardian ad litem or attorney.</p>
+  <p>This tool does not provide legal advice. It generates documents from your own inputs using templates grounded in Minnesota statute.</p>
+  <button class="clear-data-btn" id="clear-data-btn">Clear All Saved Data</button>
+</footer>
+
+<script>
+/* ============================================================
+   DATA: Rights categories from SF3154
+   ============================================================ */
+const RIGHTS_DATA = [
+  {
+    category: "Physical and Emotional Safety",
+    section: "SF3154, Section: Physical and Emotional Safety",
+    items: [
+      { id: "safety1", text: "I am not physically punished or put in isolation." },
+      { id: "safety2", text: "I am not threatened with placement change as punishment." },
+      { id: "safety3", text: "I feel safe from exploitation and trafficking." }
+    ]
+  },
+  {
+    category: "Basic Needs",
+    section: "SF3154, Section: Basic Needs",
+    items: [
+      { id: "basic1", text: "I have enough food that fits my cultural and health needs." },
+      { id: "basic2", text: "I have appropriate clothing." },
+      { id: "basic3", text: "I have a clean bedroom and personal belongings that are mine." }
+    ]
+  },
+  {
+    category: "Privacy",
+    section: "SF3154, Section: Privacy",
+    items: [
+      { id: "priv1", text: "My private communications are not monitored without a documented reason." },
+      { id: "priv2", text: "I have privacy in the bathroom and when changing." },
+      { id: "priv3", text: "My belongings are not searched without cause." }
+    ]
+  },
+  {
+    category: "Health and Medical Care",
+    section: "SF3154, Section: Health and Medical Care",
+    items: [
+      { id: "health1", text: "I can access health care in a timely way." },
+      { id: "health2", text: "My medical information is kept confidential." },
+      { id: "health3", text: "I am not required to take medication beyond what my treatment plan says." }
+    ]
+  },
+  {
+    category: "Family and Sibling Contact",
+    section: "SF3154, Section: Family and Sibling Connections",
+    items: [
+      { id: "family1", text: "I have regular contact with my family and relatives." },
+      { id: "family2", text: "I can see my siblings at least once a week when possible." },
+      { id: "family3", text: "I receive updated sibling contact information at least every three months." }
+    ]
+  },
+  {
+    category: "Community and Culture",
+    section: "SF3154, Section: Community and Culture",
+    items: [
+      { id: "culture1", text: "I have access to culturally appropriate hair and hygiene products." },
+      { id: "culture2", text: "I can stay connected to my community and speak my native language." },
+      { id: "culture3", text: "I have access to peer support groups." }
+    ]
+  },
+  {
+    category: "Education",
+    section: "SF3154, Section: Education",
+    items: [
+      { id: "edu1", text: "I stay enrolled in the same school unless a change is in my best interest." },
+      { id: "edu2", text: "My credits transfer if I change schools." },
+      { id: "edu3", text: "I am not penalized (grade reduction, discipline) for foster care absences." }
+    ]
+  },
+  {
+    category: "Activities and Social Life",
+    section: "SF3154, Section: Activities and Social Life",
+    items: [
+      { id: "act1", text: "I can participate in age-appropriate activities, sports, and events." },
+      { id: "act2", text: "I have transportation to activities." }
+    ]
+  },
+  {
+    category: "Case Management",
+    section: "SF3154, Section: Case Management",
+    items: [
+      { id: "case1", text: "I have a caseworker who visits me in person at least once a month." },
+      { id: "case2", text: "I am involved in creating my placement plan, updated every six months." },
+      { id: "case3", text: "I receive advance notice before my placement changes." },
+      { id: "case4", text: "I have a guardian ad litem and attorney.", ageMin: 10, ageNote: "This right applies at age 10 and older." }
+    ]
+  },
+  {
+    category: "Transition Planning",
+    section: "SF3154, Section: Transition Planning",
+    ageMin: 14,
+    ageNote: "These rights apply at age 14 and older.",
+    items: [
+      { id: "trans1", text: "I have an independent living plan." },
+      { id: "trans2", text: "I received at least 60 days' notice before case management services end." },
+      { id: "trans3", text: "I have free access to my birth certificate, ID, and Social Security card." },
+      { id: "trans4", text: "I know about medical assistance eligibility through age 26." }
+    ]
+  },
+  {
+    category: "Grievances",
+    section: "SF3154, Section: Grievances",
+    items: [
+      { id: "griev1", text: "I know how to file a complaint with my placement, agency, or the ombudsperson." },
+      { id: "griev2", text: "I have not been punished for reporting a violation." }
+    ]
+  }
+];
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let answers = {}; // { rightId: { status: "yes"|"no"|"unsure", detail: "" } }
+let interviewData = {};
+let currentDoc = null;
+
+/* ============================================================
+   INIT
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+  buildRightsList();
+  loadFromStorage();
+  setupNav();
+  setupInterview();
+  setupDocuments();
+  setupClearData();
+  updateTally();
+});
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+function setupNav() {
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.nav-btn').forEach(b => { b.classList.remove('active'); b.removeAttribute('aria-current'); });
+      document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
+      btn.classList.add('active');
+      btn.setAttribute('aria-current', 'true');
+      document.getElementById(btn.dataset.module).classList.add('active');
+      window.scrollTo(0, 0);
+    });
+  });
+}
+
+/* ============================================================
+   MODULE 1: RIGHTS CHECKLIST
+   ============================================================ */
+function buildRightsList() {
+  const container = document.getElementById('rights-list');
+  let html = '';
+
+  RIGHTS_DATA.forEach((cat, ci) => {
+    const isAgeGated = cat.ageMin ? true : false;
+    const ageClass = isAgeGated ? 'age-gated' : '';
+    const ageTag = cat.ageNote ? `<span class="age-tag">${cat.ageNote}</span>` : '';
+
+    html += `<div class="rights-category ${ageClass}" data-age-min="${cat.ageMin || 0}">
+      <div class="category-header" role="button" tabindex="0" aria-expanded="false"
+           onclick="toggleCategory(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleCategory(this)}">
+        <span class="category-arrow"></span>
+        ${escHtml(cat.category)} ${ageTag}
+      </div>
+      <div class="category-items">`;
+
+    cat.items.forEach(item => {
+      const itemAgeClass = item.ageMin ? 'age-gated' : '';
+      const itemAgeTag = item.ageNote ? `<span class="age-tag">${item.ageNote}</span>` : '';
+      html += `
+        <div class="right-item ${itemAgeClass}" data-age-min="${item.ageMin || 0}">
+          <div class="right-text">${escHtml(item.text)} ${itemAgeTag}</div>
+          <div class="right-options">
+            <div class="right-option">
+              <input type="radio" name="${item.id}" id="${item.id}_yes" value="yes"
+                     onchange="setAnswer('${item.id}','yes')">
+              <label for="${item.id}_yes" class="opt-yes">Yes, I have this</label>
+            </div>
+            <div class="right-option">
+              <input type="radio" name="${item.id}" id="${item.id}_no" value="no"
+                     onchange="setAnswer('${item.id}','no')">
+              <label for="${item.id}_no" class="opt-no">No, this is not happening</label>
+            </div>
+            <div class="right-option">
+              <input type="radio" name="${item.id}" id="${item.id}_unsure" value="unsure"
+                     onchange="setAnswer('${item.id}','unsure')">
+              <label for="${item.id}_unsure" class="opt-unsure">I don't know</label>
+            </div>
+          </div>
+          <div class="right-details" id="detail_${item.id}">
+            <div class="detail-label">What is happening instead? When did it start?</div>
+            <textarea placeholder="Describe what's going on..."
+                      aria-label="Details for: ${escAttr(item.text)}"
+                      oninput="setDetail('${item.id}', this.value)"></textarea>
+          </div>
+        </div>`;
+    });
+
+    html += `</div></div>`;
+  });
+
+  container.innerHTML = html;
+
+  // Age input
+  document.getElementById('age-input').addEventListener('input', function() {
+    showHideAgeSpecificRights();
+    saveToStorage();
+  });
+}
+
+function toggleCategory(header) {
+  const cat = header.parentElement;
+  cat.classList.toggle('open');
+  header.setAttribute('aria-expanded', cat.classList.contains('open'));
+}
+
+function setAnswer(id, status) {
+  if (!answers[id]) answers[id] = { status: '', detail: '' };
+  answers[id].status = status;
+
+  const detailPanel = document.getElementById('detail_' + id);
+  if (status === 'no' || status === 'unsure') {
+    detailPanel.classList.add('open');
+  } else {
+    detailPanel.classList.remove('open');
+  }
+
+  updateTally();
+  saveToStorage();
+}
+
+function setDetail(id, text) {
+  if (!answers[id]) answers[id] = { status: '', detail: '' };
+  answers[id].detail = text;
+  saveToStorage();
+}
+
+function updateTally() {
+  let yes = 0, concerns = 0;
+  Object.values(answers).forEach(a => {
+    if (a.status === 'yes') yes++;
+    if (a.status === 'no' || a.status === 'unsure') concerns++;
+  });
+  document.getElementById('tally-yes').textContent = yes;
+  document.getElementById('tally-concerns').textContent = concerns;
+}
+
+function showHideAgeSpecificRights() {
+  const ageVal = parseInt(document.getElementById('age-input').value) || 0;
+  document.querySelectorAll('.age-gated').forEach(el => {
+    const min = parseInt(el.dataset.ageMin) || 0;
+    if (ageVal === 0) {
+      // No age entered: show everything
+      el.classList.add('visible');
+    } else if (ageVal >= min) {
+      el.classList.add('visible');
+    } else {
+      el.classList.remove('visible');
+    }
+  });
+
+  // If no age entered, show all
+  if (ageVal === 0) {
+    document.querySelectorAll('.age-gated').forEach(el => el.classList.add('visible'));
+  }
+}
+
+/* ============================================================
+   MODULE 2: INTERVIEW
+   ============================================================ */
+function setupInterview() {
+  // Q1 "other" toggle
+  document.querySelectorAll('input[name="q1"]').forEach(r => {
+    r.addEventListener('change', () => {
+      document.getElementById('q1-other').style.display = r.value === 'other' ? 'block' : 'none';
+    });
+  });
+
+  // Q3 "other" toggle
+  document.getElementById('q3e').addEventListener('change', function() {
+    document.getElementById('q3-other').style.display = this.checked ? 'block' : 'none';
+  });
+
+  // Q4 retaliation notice
+  document.querySelectorAll('input[name="q4"]').forEach(r => {
+    r.addEventListener('change', () => {
+      const notice = document.getElementById('retaliation-notice');
+      notice.classList.toggle('visible', r.value === 'No - I was afraid of retaliation' && r.checked);
+    });
+  });
+
+  // Save on any input change
+  document.getElementById('interview-form').addEventListener('input', saveInterviewData);
+  document.getElementById('interview-form').addEventListener('change', saveInterviewData);
+}
+
+function saveInterviewData() {
+  const q1 = document.querySelector('input[name="q1"]:checked');
+  interviewData.concernType = q1 ? (q1.value === 'other' ? document.getElementById('q1-other').value : q1.value) : '';
+
+  interviewData.dateValue = document.getElementById('q2-date').value;
+  interviewData.dateText = document.getElementById('q2-text').value;
+
+  const involved = [];
+  ['q3a','q3b','q3c','q3d'].forEach(id => {
+    if (document.getElementById(id).checked) involved.push(document.getElementById(id).value);
+  });
+  if (document.getElementById('q3e').checked) {
+    involved.push(document.getElementById('q3-other').value || 'Other');
+  }
+  interviewData.involved = involved;
+
+  const q4 = document.querySelector('input[name="q4"]:checked');
+  interviewData.priorReport = q4 ? q4.value : '';
+
+  const q5 = document.querySelector('input[name="q5"]:checked');
+  interviewData.outcome = q5 ? q5.value : '';
+
+  interviewData.additional = document.getElementById('q6-text').value;
+
+  saveToStorage();
+}
+
+function getInterviewData() {
+  saveInterviewData();
+  return interviewData;
+}
+
+/* ============================================================
+   MODULE 3: DOCUMENT GENERATION
+   ============================================================ */
+function setupDocuments() {
+  document.querySelectorAll('.doc-type-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.doc-type-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentDoc = btn.dataset.doc;
+
+      document.getElementById('doc-extra-fields').style.display = 'flex';
+      document.getElementById('generate-btn').style.display = 'inline-block';
+
+      // Show/hide doc-specific fields
+      document.getElementById('field-cw-wrap').style.display = (currentDoc === 'B') ? 'block' : 'none';
+      document.getElementById('field-agency-wrap').style.display = (currentDoc === 'B' || currentDoc === 'C') ? 'block' : 'none';
+      document.getElementById('field-deadline-wrap').style.display = (currentDoc === 'B') ? 'block' : 'none';
+
+      // Hide preview until generated
+      document.getElementById('document-preview').classList.remove('visible');
+      document.getElementById('print-btn').classList.remove('visible');
+    });
+  });
+
+  document.getElementById('generate-btn').addEventListener('click', generateDocument);
+  document.getElementById('print-btn').addEventListener('click', () => window.print());
+}
+
+function generateDocument() {
+  const preview = document.getElementById('document-preview');
+  const data = getInterviewData();
+  const yourName = document.getElementById('doc-your-name').value.trim();
+  const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+  // Gather concerns from Module 1
+  const concerns = [];
+  const confirmed = [];
+  RIGHTS_DATA.forEach(cat => {
+    cat.items.forEach(item => {
+      const a = answers[item.id];
+      if (a && (a.status === 'no' || a.status === 'unsure')) {
+        concerns.push({ text: item.text, detail: a.detail, section: cat.section, category: cat.category, status: a.status });
+      }
+      if (a && a.status === 'yes') {
+        confirmed.push({ text: item.text, category: cat.category });
+      }
+    });
+  });
+
+  let html = '';
+
+  if (currentDoc === 'A') {
+    html = generateDocA(yourName, today, concerns, confirmed);
+  } else if (currentDoc === 'B') {
+    html = generateDocB(yourName, today, concerns, data);
+  } else if (currentDoc === 'C') {
+    html = generateDocC(yourName, today, concerns, data);
+  }
+
+  preview.innerHTML = html;
+  preview.classList.add('visible');
+  document.getElementById('print-btn').classList.add('visible');
+  preview.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function generateDocA(name, date, concerns, confirmed) {
+  let confirmedHtml = '';
+  if (confirmed.length > 0) {
+    confirmedHtml = '<ul>' + confirmed.map(c => `<li>${escHtml(c.text)}</li>`).join('') + '</ul>';
+  } else {
+    confirmedHtml = '<p>No rights were marked as confirmed.</p>';
+  }
+
+  let concernsHtml = '';
+  if (concerns.length > 0) {
+    concernsHtml = '<ul>' + concerns.map(c => {
+      let line = `<li><strong>${escHtml(c.text)}</strong> (${c.status === 'no' ? 'Not happening' : 'Unsure'})`;
+      if (c.detail) line += `<br>Details: ${escHtml(c.detail)}`;
+      line += `<br><em>${escHtml(c.section)}</em></li>`;
+      return line;
+    }).join('') + '</ul>';
+  } else {
+    concernsHtml = '<p>No concerns were identified.</p>';
+  }
+
+  return `
+    <h3>Foster Youth Rights Review</h3>
+    <div class="doc-subtitle">Prepared under Minnesota SF3154 (Foster Youth Bill of Rights)</div>
+    <hr class="doc-divider">
+    ${name ? `<p><strong>Prepared for:</strong> ${escHtml(name)}</p>` : ''}
+    <p><strong>Date of this review:</strong> ${escHtml(date)}</p>
+
+    <h4>Rights Confirmed (${confirmed.length})</h4>
+    ${confirmedHtml}
+
+    <h4>Concerns Identified (${concerns.length})</h4>
+    ${concernsHtml}
+
+    <div class="doc-footer">
+      This document was prepared by the youth or their advocate for personal use. It is not a legal filing.
+    </div>`;
+}
+
+function generateDocB(name, date, concerns, data) {
+  const cwName = document.getElementById('doc-cw-name').value.trim();
+  const agencyName = document.getElementById('doc-agency-name').value.trim();
+  const deadline = document.getElementById('doc-deadline').value;
+
+  const salutation = cwName ? `Dear ${escHtml(cwName)}` : 'To my caseworker';
+  const agencyLine = agencyName ? ` and ${escHtml(agencyName)}` : '';
+
+  const concernType = data.concernType || 'a concern about my rights';
+  const timeframe = data.dateText || data.dateValue || 'recently';
+  const involvedStr = data.involved && data.involved.length > 0 ? data.involved.join(', ') : '';
+  const priorReport = data.priorReport || 'I have not previously reported this.';
+  const outcome = data.outcome || 'I would like this issue addressed.';
+  const additional = data.additional || '';
+
+  // Find matching section citation
+  let citation = '';
+  if (concerns.length > 0) {
+    citation = concerns[0].section;
+  }
+
+  const letterBody = `${salutation}${agencyLine}:
+
+I am writing to report a concern about a right I have under Minnesota's Foster Youth Bill of Rights (SF3154).
+
+My concern: ${escHtml(concernType)}.
+
+This started: ${escHtml(timeframe)}.${involvedStr ? '\n\nPeople involved: ' + escHtml(involvedStr) + '.' : ''}
+
+${citation ? 'The specific right affected is protected under ' + escHtml(citation) + '.' : ''}
+
+Prior reporting: ${escHtml(priorReport)}
+
+What I am asking for: ${escHtml(outcome)}${additional ? '\n\nAdditional information: ' + escHtml(additional) : ''}
+
+I am asking you to respond in writing within ${escHtml(deadline)} and describe what steps will be taken to address this concern.
+
+${name ? escHtml(name) : '[Your name]'}
+${escHtml(date)}`;
+
+  return `
+    <h3>Complaint Letter to Caseworker / Agency</h3>
+    <div class="doc-subtitle">Generated from your answers -- you can edit any text below before printing</div>
+    <hr class="doc-divider">
+    <p class="edit-hint">Click any underlined text to edit it before printing.</p>
+    <div class="doc-letter-body" contenteditable="true">${letterBody}</div>
+    <div class="doc-footer">
+      This letter was prepared using the Minnesota Foster Youth Rights Navigator, a tool built to support SF3154. It is not a legal filing. For legal advice, contact your guardian ad litem or attorney.
+    </div>`;
+}
+
+function generateDocC(name, date, concerns, data) {
+  const agencyName = document.getElementById('doc-agency-name').value.trim();
+  const concernType = data.concernType || '';
+  const timeframe = data.dateText || data.dateValue || '';
+  const priorReport = data.priorReport || '';
+  const outcome = data.outcome || '';
+  const additional = data.additional || '';
+
+  let rightsAffected = '';
+  if (concerns.length > 0) {
+    rightsAffected = concerns.map(c => `${escHtml(c.text)} (${escHtml(c.section)})`).join('; ');
+  }
+
+  return `
+    <h3>Complaint Summary for the Office of Foster Youth Ombudsperson</h3>
+    <div class="doc-subtitle">Minnesota SF3154 -- Structured complaint form</div>
+    <hr class="doc-divider">
+
+    <h4>Youth Information</h4>
+    <p><strong>First name:</strong> ${name ? escHtml(name) : '(not provided)'}</p>
+    <p><strong>Date of concern:</strong> ${escHtml(timeframe) || escHtml(date)}</p>
+    ${agencyName ? `<p><strong>Placing agency:</strong> ${escHtml(agencyName)}</p>` : ''}
+
+    <h4>Rights Affected</h4>
+    <p>${rightsAffected || 'No specific rights were flagged in the rights check-in.'}</p>
+
+    <h4>Description of Situation</h4>
+    <p>${escHtml(concernType) || '(No concern type selected.)'}</p>
+    ${additional ? `<p>${escHtml(additional)}</p>` : ''}
+
+    <h4>Prior Reporting Attempts</h4>
+    <p>${escHtml(priorReport) || '(None reported.)'}</p>
+
+    <h4>Desired Outcome</h4>
+    <p>${escHtml(outcome) || '(Not specified.)'}</p>
+
+    <hr class="doc-divider">
+
+    <h4>Ombudsperson Contact</h4>
+    <p><strong>Minnesota Office of Foster Youth Ombudsperson</strong></p>
+    <p>Contact your caseworker or guardian ad litem if you do not have the current address or phone number for this office, or search mn.gov for "foster youth ombudsperson."</p>
+
+    <div class="doc-footer">
+      Under MN SF3154, youth cannot be retaliated against for filing a complaint with the ombudsperson.
+      <br>This document was generated using the Minnesota Foster Youth Rights Navigator. It is not a legal filing.
+    </div>`;
+}
+
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+function escHtml(str) {
+  if (!str) return '';
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function escAttr(str) {
+  return str.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+/* ============================================================
+   LOCAL STORAGE
+   ============================================================ */
+const STORAGE_KEY = 'westlin_rights_nav';
+
+function saveToStorage() {
+  try {
+    const data = {
+      answers: answers,
+      interview: interviewData,
+      age: document.getElementById('age-input').value
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch (e) { /* storage not available */ }
+}
+
+function loadFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      showHideAgeSpecificRights();
+      return;
+    }
+    const data = JSON.parse(raw);
+
+    // Restore age
+    if (data.age) {
+      document.getElementById('age-input').value = data.age;
+    }
+
+    // Restore answers
+    if (data.answers) {
+      answers = data.answers;
+      Object.entries(answers).forEach(([id, a]) => {
+        if (a.status) {
+          const radio = document.getElementById(id + '_' + a.status);
+          if (radio) {
+            radio.checked = true;
+            if (a.status === 'no' || a.status === 'unsure') {
+              const detailPanel = document.getElementById('detail_' + id);
+              if (detailPanel) detailPanel.classList.add('open');
+            }
+          }
+        }
+        if (a.detail) {
+          const detailPanel = document.getElementById('detail_' + id);
+          if (detailPanel) {
+            const ta = detailPanel.querySelector('textarea');
+            if (ta) ta.value = a.detail;
+          }
+        }
+      });
+    }
+
+    // Restore interview
+    if (data.interview) {
+      interviewData = data.interview;
+      // Restore Q1
+      if (interviewData.concernType) {
+        const q1Radios = document.querySelectorAll('input[name="q1"]');
+        let matched = false;
+        q1Radios.forEach(r => {
+          if (r.value === interviewData.concernType) { r.checked = true; matched = true; }
+        });
+        if (!matched && interviewData.concernType) {
+          const otherRadio = document.getElementById('q1k');
+          if (otherRadio) otherRadio.checked = true;
+          document.getElementById('q1-other').value = interviewData.concernType;
+          document.getElementById('q1-other').style.display = 'block';
+        }
+      }
+      if (interviewData.dateValue) document.getElementById('q2-date').value = interviewData.dateValue;
+      if (interviewData.dateText) document.getElementById('q2-text').value = interviewData.dateText;
+      if (interviewData.involved) {
+        const map = { 'Foster parent': 'q3a', 'Caseworker': 'q3b', 'Group home staff': 'q3c', 'Teacher': 'q3d' };
+        interviewData.involved.forEach(v => {
+          if (map[v]) document.getElementById(map[v]).checked = true;
+          else {
+            document.getElementById('q3e').checked = true;
+            document.getElementById('q3-other').value = v;
+            document.getElementById('q3-other').style.display = 'block';
+          }
+        });
+      }
+      if (interviewData.priorReport) {
+        document.querySelectorAll('input[name="q4"]').forEach(r => {
+          if (r.value === interviewData.priorReport) r.checked = true;
+        });
+        if (interviewData.priorReport === 'No - I was afraid of retaliation') {
+          document.getElementById('retaliation-notice').classList.add('visible');
+        }
+      }
+      if (interviewData.outcome) {
+        document.querySelectorAll('input[name="q5"]').forEach(r => {
+          if (r.value === interviewData.outcome) r.checked = true;
+        });
+      }
+      if (interviewData.additional) document.getElementById('q6-text').value = interviewData.additional;
+    }
+
+    showHideAgeSpecificRights();
+    updateTally();
+  } catch (e) {
+    showHideAgeSpecificRights();
+  }
+}
+
+function setupClearData() {
+  document.getElementById('clear-data-btn').addEventListener('click', () => {
+    if (confirm('This will clear all your saved answers. Are you sure?')) {
+      localStorage.removeItem(STORAGE_KEY);
+      answers = {};
+      interviewData = {};
+      // Reset all form inputs
+      document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+      document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false);
+      document.querySelectorAll('textarea').forEach(t => t.value = '');
+      document.querySelectorAll('.q-freetext').forEach(f => { f.value = ''; f.style.display = f.id.includes('other') ? 'none' : f.style.display; });
+      document.getElementById('q2-date').value = '';
+      document.getElementById('q2-text').value = '';
+      document.getElementById('age-input').value = '';
+      document.querySelectorAll('.right-details').forEach(d => d.classList.remove('open'));
+      document.getElementById('retaliation-notice').classList.remove('visible');
+      document.getElementById('document-preview').classList.remove('visible');
+      document.getElementById('print-btn').classList.remove('visible');
+      updateTally();
+      showHideAgeSpecificRights();
+    }
+  });
+}
+
+/* Initialize age-gated visibility on load */
+showHideAgeSpecificRights();
+</script>
+</body>
+</html>

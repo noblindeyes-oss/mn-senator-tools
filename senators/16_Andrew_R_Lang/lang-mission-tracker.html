@@ -1,0 +1,2041 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SD-16 Infrastructure Mission Tracker — Sen. Andrew R. Lang</title>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Kanban-style three-column board (Planned / In Progress / Complete) with project cards
+   2. Navigation: Filter bar across the top — by category, status, funding source
+   3. Typography: Franklin Gothic for headers, Calibri for body, Consolas for data/badges
+   4. Hero moment: Large "$XX.XM" total infrastructure figure in highway-sign style
+   5. Color strategy: #2 High-contrast two-tone — deep charcoal (#2d2d2d) + bright white (#ffffff), construction-orange (#e65100) for interactive/progress
+   6. Entry experience: Blueprint grid background fading in, project cards appearing sequentially
+   Additional: Aviation status badges retained from brief; no bordered callout boxes; no emoji icons
+*/
+
+:root {
+  --charcoal: #2d2d2d;
+  --white: #ffffff;
+  --orange: #e65100;
+  --orange-light: #ff8a3a;
+  --orange-dim: rgba(230, 81, 0, 0.15);
+  --green: #3A7D44;
+  --amber: #C4922A;
+  --gray: #6B7280;
+  --blue: #2563A8;
+  --red: #B91C1C;
+  --blueprint: #1a2a3a;
+  --grid-line: rgba(230, 81, 0, 0.08);
+  --card-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: Calibri, 'Segoe UI', sans-serif;
+  background: var(--charcoal);
+  color: var(--white);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Blueprint grid background */
+.blueprint-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(rgba(230,81,0,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(230,81,0,0.03) 1px, transparent 1px);
+  background-size: 80px 80px, 80px 80px, 16px 16px, 16px 16px;
+  opacity: 0;
+  animation: fadeGrid 1.2s ease-out 0.2s forwards;
+}
+
+@keyframes fadeGrid {
+  to { opacity: 1; }
+}
+
+/* ── HEADER ── */
+.top-header {
+  position: relative;
+  z-index: 10;
+  background: var(--charcoal);
+  border-bottom: 3px solid var(--orange);
+  padding: 0;
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 32px 0 32px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.header-title {
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow Bold', sans-serif;
+  font-size: 15px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--orange);
+  font-weight: 400;
+}
+
+.header-subtitle {
+  font-family: Calibri, sans-serif;
+  font-size: 13px;
+  color: #999;
+  letter-spacing: 1px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.btn {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  padding: 8px 18px;
+  transition: all 0.15s;
+}
+
+.btn-orange {
+  background: var(--orange);
+  color: var(--white);
+}
+.btn-orange:hover { background: var(--orange-light); }
+
+.btn-outline {
+  background: transparent;
+  color: var(--orange);
+  border: 1.5px solid var(--orange);
+}
+.btn-outline:hover { background: var(--orange-dim); }
+
+.btn-ghost {
+  background: transparent;
+  color: #aaa;
+  border: 1px solid #555;
+}
+.btn-ghost:hover { color: var(--white); border-color: #888; }
+
+/* ── HERO BAND ── */
+.hero-band {
+  position: relative;
+  z-index: 10;
+  background: var(--charcoal);
+  padding: 28px 32px 18px 32px;
+  display: flex;
+  align-items: flex-end;
+  gap: 48px;
+  flex-wrap: wrap;
+}
+
+.hero-figure {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.hero-dollar {
+  font-family: Consolas, 'Courier New', monospace;
+  font-size: 64px;
+  font-weight: 700;
+  color: var(--white);
+  line-height: 1;
+  letter-spacing: -2px;
+  background: linear-gradient(135deg, var(--orange), var(--orange-light));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  /* Highway sign feel */
+  text-shadow: none;
+  position: relative;
+}
+
+.hero-dollar-bg {
+  display: inline-block;
+  background: var(--charcoal);
+  border: 3px solid var(--orange);
+  border-radius: 6px;
+  padding: 8px 24px 4px 24px;
+  position: relative;
+}
+
+.hero-dollar-bg::before {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border: 1px solid rgba(230,81,0,0.3);
+  border-radius: 3px;
+  pointer-events: none;
+}
+
+.hero-label {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--orange);
+  margin-top: 8px;
+}
+
+.hero-stats {
+  display: flex;
+  gap: 36px;
+  flex-wrap: wrap;
+}
+
+.hero-stat {
+  text-align: left;
+}
+
+.hero-stat-val {
+  font-family: Consolas, monospace;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--white);
+  line-height: 1.1;
+}
+
+.hero-stat-label {
+  font-family: Calibri, sans-serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #888;
+  margin-top: 2px;
+}
+
+.hero-countdown {
+  margin-left: auto;
+  text-align: right;
+}
+
+.hero-countdown-val {
+  font-family: Consolas, monospace;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1;
+}
+.countdown-green { color: var(--green); }
+.countdown-amber { color: var(--amber); }
+.countdown-red { color: var(--red); }
+
+.hero-countdown-label {
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #888;
+  margin-top: 2px;
+}
+
+/* ── INTRO LINE ── */
+.intro-line {
+  position: relative;
+  z-index: 10;
+  padding: 0 32px 12px 32px;
+  background: var(--charcoal);
+  font-family: Calibri, sans-serif;
+  font-size: 14px;
+  color: #aaa;
+  line-height: 1.5;
+  max-width: 900px;
+}
+
+/* ── FILTER BAR ── */
+.filter-bar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: #222;
+  border-bottom: 1px solid #444;
+  padding: 10px 32px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.filter-bar label {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #999;
+}
+
+.filter-bar select,
+.filter-bar input[type="text"] {
+  font-family: Calibri, sans-serif;
+  font-size: 13px;
+  background: var(--charcoal);
+  color: var(--white);
+  border: 1px solid #555;
+  padding: 5px 10px;
+  outline: none;
+}
+.filter-bar select:focus,
+.filter-bar input[type="text"]:focus {
+  border-color: var(--orange);
+}
+
+.filter-bar .filter-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.view-toggle {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+}
+
+.view-toggle button {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  background: transparent;
+  color: #777;
+  border: 1px solid #555;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.view-toggle button.active {
+  color: var(--orange);
+  border-color: var(--orange);
+  background: var(--orange-dim);
+}
+
+/* ── KANBAN BOARD ── */
+.main-content {
+  position: relative;
+  z-index: 10;
+  padding: 20px 24px;
+  min-height: calc(100vh - 280px);
+}
+
+.kanban-board {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.kanban-column {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid #444;
+  border-radius: 4px;
+  min-height: 300px;
+}
+
+.kanban-col-header {
+  padding: 14px 16px 10px 16px;
+  border-bottom: 2px solid #444;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.kanban-col-title {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 13px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+}
+
+.col-planned .kanban-col-title { color: var(--amber); }
+.col-planned .kanban-col-header { border-bottom-color: var(--amber); }
+
+.col-inprogress .kanban-col-title { color: var(--orange); }
+.col-inprogress .kanban-col-header { border-bottom-color: var(--orange); }
+
+.col-complete .kanban-col-title { color: var(--green); }
+.col-complete .kanban-col-header { border-bottom-color: var(--green); }
+
+.kanban-col-count {
+  font-family: Consolas, monospace;
+  font-size: 13px;
+  color: #777;
+}
+
+.kanban-col-body {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── PROJECT CARDS ── */
+.project-card {
+  background: var(--white);
+  color: var(--charcoal);
+  border-radius: 3px;
+  padding: 16px;
+  box-shadow: var(--card-shadow);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  position: relative;
+  opacity: 0;
+  transform: translateY(12px);
+  animation: cardIn 0.4s ease-out forwards;
+  /* Draggable look */
+  border-left: 4px solid transparent;
+}
+
+.project-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+}
+
+.project-card::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  width: 16px;
+  height: 10px;
+  background:
+    linear-gradient(#ccc 2px, transparent 2px),
+    linear-gradient(#ccc 2px, transparent 2px),
+    linear-gradient(#ccc 2px, transparent 2px);
+  background-size: 16px 4px;
+  background-position: 0 0, 0 4px, 0 8px;
+  background-repeat: no-repeat;
+  opacity: 0.4;
+}
+
+@keyframes cardIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.card-community {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 2px;
+  padding-right: 24px;
+}
+
+.card-county {
+  font-family: Calibri, sans-serif;
+  font-size: 12px;
+  color: #888;
+  margin-bottom: 8px;
+}
+
+.card-type {
+  font-family: Calibri, sans-serif;
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.card-dollars {
+  font-family: Consolas, monospace;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--charcoal);
+  margin-bottom: 4px;
+}
+
+.card-dollars-label {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #999;
+  font-family: Calibri, sans-serif;
+}
+
+.card-status-badge {
+  display: inline-block;
+  font-family: Consolas, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 2px;
+  margin-top: 8px;
+}
+
+.badge-flight-ready { background: var(--green); color: #fff; }
+.badge-in-development { background: var(--amber); color: #fff; }
+.badge-on-hold { background: var(--gray); color: #fff; }
+.badge-submitted { background: var(--blue); color: #fff; }
+
+.card-readiness {
+  margin-top: 10px;
+}
+
+.readiness-bar-bg {
+  height: 6px;
+  background: #e0e0e0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.readiness-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s;
+}
+
+.readiness-text {
+  font-family: Consolas, monospace;
+  font-size: 11px;
+  color: #888;
+  margin-top: 2px;
+  text-align: right;
+}
+
+.card-updated {
+  font-family: Calibri, sans-serif;
+  font-size: 11px;
+  color: #aaa;
+  margin-top: 6px;
+}
+
+/* Card left-border colors per column */
+.col-planned .project-card { border-left-color: var(--amber); }
+.col-inprogress .project-card { border-left-color: var(--orange); }
+.col-complete .project-card { border-left-color: var(--green); }
+
+/* ── DETAIL PANEL (overlay) ── */
+.detail-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: rgba(0,0,0,0.6);
+}
+
+.detail-overlay.visible { display: flex; justify-content: center; align-items: flex-start; padding-top: 40px; }
+
+.detail-panel {
+  background: var(--white);
+  color: var(--charcoal);
+  width: 720px;
+  max-width: 95vw;
+  max-height: 85vh;
+  overflow-y: auto;
+  border-radius: 4px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+}
+
+.detail-header {
+  background: var(--charcoal);
+  color: var(--white);
+  padding: 20px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.detail-header h2 {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 20px;
+  letter-spacing: 1px;
+}
+
+.detail-header .detail-close {
+  background: none;
+  border: none;
+  color: #aaa;
+  font-size: 24px;
+  cursor: pointer;
+  line-height: 1;
+}
+.detail-header .detail-close:hover { color: var(--white); }
+
+.detail-body { padding: 24px; }
+
+.detail-section-title {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 12px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--orange);
+  margin: 20px 0 10px 0;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #eee;
+}
+.detail-section-title:first-child { margin-top: 0; }
+
+.detail-field {
+  margin-bottom: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.detail-field strong {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-weight: 400;
+  color: #555;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  display: block;
+}
+
+.detail-field span,
+.detail-field p {
+  color: var(--charcoal);
+}
+
+.detail-field .mono {
+  font-family: Consolas, monospace;
+  font-weight: 700;
+}
+
+/* Checklist in detail */
+.checklist-section { margin-bottom: 16px; }
+
+.checklist-section h4 {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--charcoal);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-progress {
+  font-family: Consolas, monospace;
+  font-size: 11px;
+  color: #888;
+  font-weight: 400;
+}
+
+.checklist-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 13px;
+  color: #444;
+  line-height: 1.4;
+}
+
+.checklist-item input[type="checkbox"] {
+  accent-color: var(--orange);
+  margin-top: 3px;
+  flex-shrink: 0;
+  width: 15px;
+  height: 15px;
+}
+
+.checklist-item.checked label {
+  color: #aaa;
+  text-decoration: line-through;
+}
+
+.detail-actions {
+  padding: 16px 24px;
+  border-top: 1px solid #eee;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+/* ── ADD/EDIT FORM PANEL ── */
+.form-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 600;
+  background: rgba(0,0,0,0.6);
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 30px;
+}
+.form-overlay.visible { display: flex; }
+
+.form-panel {
+  background: var(--white);
+  color: var(--charcoal);
+  width: 600px;
+  max-width: 95vw;
+  max-height: 88vh;
+  overflow-y: auto;
+  border-radius: 4px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+}
+
+.form-panel .detail-header h2 { font-size: 16px; }
+
+.form-body {
+  padding: 20px 24px;
+}
+
+.form-row {
+  margin-bottom: 14px;
+}
+
+.form-row label {
+  display: block;
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.form-row input[type="text"],
+.form-row input[type="number"],
+.form-row textarea,
+.form-row select {
+  width: 100%;
+  font-family: Calibri, sans-serif;
+  font-size: 14px;
+  background: #f5f5f5;
+  color: var(--charcoal);
+  border: 1px solid #ccc;
+  padding: 8px 10px;
+  outline: none;
+  border-radius: 2px;
+}
+
+.form-row input:focus,
+.form-row textarea:focus,
+.form-row select:focus {
+  border-color: var(--orange);
+  background: #fff;
+}
+
+.form-row textarea { resize: vertical; min-height: 60px; }
+
+.form-row-inline {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.checkbox-group label {
+  font-family: Calibri, sans-serif;
+  font-size: 13px;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--charcoal);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.checkbox-group input[type="checkbox"] {
+  accent-color: var(--orange);
+}
+
+.form-actions {
+  padding: 14px 24px;
+  border-top: 1px solid #eee;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+/* ── TIMELINE VIEW ── */
+.timeline-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: rgba(0,0,0,0.6);
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 30px;
+}
+.timeline-overlay.visible { display: flex; }
+
+.timeline-panel {
+  background: var(--charcoal);
+  color: var(--white);
+  width: 560px;
+  max-width: 95vw;
+  max-height: 88vh;
+  overflow-y: auto;
+  border-radius: 4px;
+  border: 1px solid #555;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+}
+
+.timeline-header {
+  padding: 20px 24px;
+  border-bottom: 2px solid var(--orange);
+}
+
+.timeline-header h2 {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 14px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--orange);
+}
+
+.timeline-body { padding: 20px 24px; }
+
+.milestone {
+  display: flex;
+  gap: 16px;
+  padding-bottom: 24px;
+  position: relative;
+}
+
+.milestone:last-child { padding-bottom: 0; }
+
+.milestone-line {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 20px;
+  flex-shrink: 0;
+}
+
+.milestone-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #555;
+  border: 2px solid #777;
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.milestone-dot.active {
+  background: var(--orange);
+  border-color: var(--orange);
+  box-shadow: 0 0 8px rgba(230,81,0,0.5);
+}
+
+.milestone-dot.done {
+  background: var(--green);
+  border-color: var(--green);
+}
+
+.milestone-stem {
+  width: 2px;
+  flex: 1;
+  background: #444;
+  margin-top: 4px;
+}
+
+.milestone-content { flex: 1; }
+
+.milestone-title {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.milestone-title.highlight-amber { color: var(--amber); }
+.milestone-title.highlight-green { color: var(--green); }
+.milestone-title.highlight-red { color: var(--red); }
+
+.milestone-desc {
+  font-family: Calibri, sans-serif;
+  font-size: 13px;
+  color: #aaa;
+  line-height: 1.5;
+  margin-bottom: 4px;
+}
+
+.milestone-action {
+  font-family: Calibri, sans-serif;
+  font-size: 12px;
+  color: var(--orange);
+  font-style: italic;
+}
+
+/* ── PRINT SUMMARY ── */
+.print-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 700;
+  background: rgba(0,0,0,0.7);
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 20px;
+}
+.print-overlay.visible { display: flex; }
+
+.print-panel {
+  background: var(--white);
+  color: var(--charcoal);
+  width: 700px;
+  max-width: 95vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 4px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+}
+
+.print-summary-content {
+  padding: 40px;
+  font-family: Calibri, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.print-summary-content h1 {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 16px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  border-bottom: 2px solid var(--charcoal);
+  padding-bottom: 6px;
+  margin-bottom: 16px;
+}
+
+.print-summary-content h2 {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #555;
+  margin: 20px 0 8px 0;
+}
+
+.print-summary-content .meta-line {
+  font-family: Consolas, monospace;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.print-summary-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10px 0;
+  font-size: 13px;
+}
+
+.print-summary-content table th,
+.print-summary-content table td {
+  text-align: left;
+  padding: 6px 10px;
+  border: 1px solid #ddd;
+}
+
+.print-summary-content table th {
+  background: #f0f0f0;
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.print-actions {
+  padding: 14px 24px;
+  border-top: 1px solid #eee;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  background: #fafafa;
+}
+
+/* ── TABLE VIEW ── */
+.tbl { width:100%; border-collapse:collapse; font-family:Calibri,sans-serif; font-size:13px; }
+.tbl thead tr { background:#222; color:#aaa; text-align:left; }
+.tbl th { padding:10px 12px; font-family:'Franklin Gothic Medium',sans-serif; font-size:11px; letter-spacing:2px; text-transform:uppercase; }
+.tbl td { padding:10px 12px; }
+.tbl tbody tr { cursor:pointer; border-bottom:1px solid #333; }
+.tbl-alt { background:rgba(255,255,255,0.04); }
+.tbl-bold { color:#fff; font-weight:600; }
+.tbl-dim { color:#aaa; }
+.tbl-mono { font-family:Consolas,monospace; color:#fff; }
+.tbl-date { color:#777; font-size:12px; }
+.tbl-bar-wrap { display:flex; align-items:center; gap:8px; }
+.tbl-bar-bg { flex:1; height:6px; background:#444; border-radius:3px; overflow:hidden; }
+.tbl-bar-fill { height:100%; border-radius:3px; }
+.tbl-pct { font-family:Consolas,monospace; font-size:12px; color:#aaa; min-width:36px; }
+
+/* ── FOOTER ── */
+.site-footer {
+  position: relative;
+  z-index: 10;
+  padding: 24px 32px;
+  font-family: Calibri, sans-serif;
+  font-size: 12px;
+  color: #666;
+  text-align: center;
+  border-top: 1px solid #444;
+}
+
+/* ── EMPTY COLUMN STATE ── */
+.empty-col-msg {
+  font-family: Calibri, sans-serif;
+  font-size: 13px;
+  color: #666;
+  text-align: center;
+  padding: 32px 12px;
+  font-style: italic;
+}
+
+/* ── MOBILE ── */
+@media (max-width: 900px) {
+  .kanban-board {
+    grid-template-columns: 1fr;
+  }
+  .hero-band { flex-direction: column; gap: 20px; }
+  .hero-countdown { margin-left: 0; text-align: left; }
+  .hero-dollar { font-size: 44px; }
+}
+
+@media (max-width: 600px) {
+  .header-inner { padding: 12px 16px 0 16px; }
+  .hero-band { padding: 16px; }
+  .filter-bar { padding: 8px 16px; }
+  .main-content { padding: 12px; }
+  .hero-dollar { font-size: 36px; }
+  .detail-panel, .form-panel, .timeline-panel, .print-panel { width: 98vw; }
+}
+
+/* ── PRINT CSS ── */
+@media print {
+  body { background: #fff; color: #000; }
+  .blueprint-bg, .top-header, .hero-band, .intro-line, .filter-bar,
+  .main-content, .site-footer, .detail-overlay, .form-overlay,
+  .timeline-overlay, .print-actions { display: none !important; }
+  .print-overlay { display: block !important; position: static; background: none; padding: 0; }
+  .print-panel { width: 100%; max-width: 100%; box-shadow: none; border: none; max-height: none; overflow: visible; }
+  .print-summary-content { padding: 0.5in; }
+  .print-summary-content h1 { font-size: 14pt; }
+}
+</style>
+</head>
+<body>
+
+<div class="blueprint-bg"></div>
+
+<!-- HEADER -->
+<header class="top-header">
+  <div class="header-inner">
+    <div>
+      <div class="header-title">SD-16 Infrastructure Mission Tracker</div>
+      <div class="header-subtitle">Sen. Andrew R. Lang &mdash; Chippewa, Kandiyohi, Meeker, Renville Counties</div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-outline" onclick="showTimeline()" aria-label="View bonding cycle timeline">Bonding Cycle</button>
+      <button class="btn btn-orange" onclick="openAddForm()" aria-label="Add a new project">+ Add Project</button>
+    </div>
+  </div>
+</header>
+
+<!-- HERO BAND -->
+<div class="hero-band">
+  <div class="hero-figure">
+    <div class="hero-dollar-bg">
+      <div class="hero-dollar" id="heroTotal">$0.0M</div>
+    </div>
+    <div class="hero-label">Total Bonding Requested</div>
+  </div>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div class="hero-stat-val" id="statTotal">0</div>
+      <div class="hero-stat-label">Projects Tracked</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-val" id="statReady">0</div>
+      <div class="hero-stat-label">Flight Ready</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-val" id="statAttention">0</div>
+      <div class="hero-stat-label">Need Attention</div>
+    </div>
+  </div>
+  <div class="hero-countdown">
+    <div class="hero-countdown-val" id="countdownVal">---</div>
+    <div class="hero-countdown-label" id="countdownLabel">Days to next deadline</div>
+  </div>
+</div>
+
+<!-- INTRO LINE -->
+<div class="intro-line">
+  Senator Lang's SF301 secured $3.5 million in state bonding for Lake Lillian's final infrastructure phase &mdash; but SD-16's communities have more projects in the pipeline than any single bonding bill can carry. This tool tracks them all.
+</div>
+
+<!-- FILTER BAR -->
+<nav class="filter-bar" aria-label="Project filters">
+  <div class="filter-group">
+    <label for="filterStatus">Status</label>
+    <select id="filterStatus" onchange="renderBoard()">
+      <option value="all">All</option>
+      <option value="FLIGHT READY">Flight Ready</option>
+      <option value="IN DEVELOPMENT">In Development</option>
+      <option value="ON HOLD">On Hold</option>
+      <option value="SUBMITTED">Submitted</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label for="filterType">Category</label>
+    <select id="filterType" onchange="renderBoard()">
+      <option value="all">All Types</option>
+      <option value="Water / Sewer">Water / Sewer</option>
+      <option value="Trail / Recreation">Trail / Rec</option>
+      <option value="Facility">Facility</option>
+      <option value="Streets">Streets</option>
+      <option value="Combined">Combined</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label for="filterFunding">Funding</label>
+    <select id="filterFunding" onchange="renderBoard()">
+      <option value="all">All Sources</option>
+      <option value="USDA Water & Waste Disposal Loan">USDA Water/Waste</option>
+      <option value="IIJA/State Revolving Fund">IIJA/SRF</option>
+      <option value="MN DNR Clean Water Fund">DNR Clean Water</option>
+      <option value="USDA Community Facilities">USDA Community</option>
+      <option value="None">None</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label for="filterSearch">Search</label>
+    <input type="text" id="filterSearch" placeholder="Community..." oninput="renderBoard()" style="width:120px;">
+  </div>
+  <div class="view-toggle">
+    <button class="active" id="viewKanban" onclick="setView('kanban')">Board</button>
+    <button id="viewTable" onclick="setView('table')">Table</button>
+  </div>
+</nav>
+
+<!-- MAIN CONTENT -->
+<main class="main-content">
+  <!-- Kanban view -->
+  <div class="kanban-board" id="kanbanBoard"></div>
+  <!-- Table view -->
+  <div id="tableView" style="display:none;"></div>
+</main>
+
+<!-- DETAIL OVERLAY -->
+<div class="detail-overlay" id="detailOverlay">
+  <div class="detail-panel" id="detailPanel"></div>
+</div>
+
+<!-- ADD/EDIT FORM OVERLAY -->
+<div class="form-overlay" id="formOverlay">
+  <div class="form-panel" id="formPanel"></div>
+</div>
+
+<!-- TIMELINE OVERLAY -->
+<div class="timeline-overlay" id="timelineOverlay">
+  <div class="timeline-panel" id="timelinePanel"></div>
+</div>
+
+<!-- PRINT OVERLAY -->
+<div class="print-overlay" id="printOverlay">
+  <div class="print-panel" id="printPanel"></div>
+</div>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  A resource for SD-16 communities and Senator Lang's office. Data reflects Minnesota capital investment process as of 2025&ndash;2026. Built with AI.
+</footer>
+
+<script>
+// ═══ DATA LAYER ═══
+const STORAGE_KEY = 'sd16_projects';
+const CHECKLIST_KEY = 'sd16_checklists';
+
+const CHECKLIST_ITEMS = {
+  docA: [
+    'City council resolution authorizing bond request (with dollar amount)',
+    'Project narrative written (what, why, scope, timeline)',
+    'Community need narrative (population, infrastructure age, failure risk)',
+    'Local contribution statement (cash, in-kind, federal leverage)',
+    'Engineering feasibility complete',
+    'Permits identified (list which are required)',
+    'Project map or site photos',
+    'Operating cost impact analysis (utility rate effect)'
+  ],
+  docB: [
+    'Total project cost estimated by engineer (not just ballpark)',
+    'Bond request amount finalized',
+    'Federal program eligibility confirmed (or N/A)',
+    'Local match source identified',
+    'Debt service coverage ratio calculated (or N/A for grants)',
+    'Rate impact per household calculated'
+  ],
+  docC: [
+    'Mayor / city administrator briefed and supportive',
+    'City council vote scheduled or completed',
+    'Presented to county board (if applicable)',
+    "Sen. Lang's office notified and engaged",
+    'Coordinated with any other state funding requests'
+  ],
+  docD: [
+    'Project on track for current bonding cycle (odd-year submission)',
+    'Project better suited to NEXT bonding cycle',
+    'Federal application deadlines identified and calendared'
+  ]
+};
+
+const SECTION_LABELS = {
+  docA: 'A: Documentation',
+  docB: 'B: Financial Readiness',
+  docC: 'C: Political Readiness',
+  docD: 'D: Timing'
+};
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+function loadProjects() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  return raw ? JSON.parse(raw) : null;
+}
+
+function saveProjects(projects) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+}
+
+function loadChecklists() {
+  const raw = localStorage.getItem(CHECKLIST_KEY);
+  return raw ? JSON.parse(raw) : {};
+}
+
+function saveChecklists(checklists) {
+  localStorage.setItem(CHECKLIST_KEY, JSON.stringify(checklists));
+}
+
+function getReadinessScore(checklistId) {
+  const checklists = loadChecklists();
+  const cl = checklists[checklistId];
+  if (!cl) return 0;
+  let total = 0, checked = 0;
+  for (const sec of ['docA','docB','docC','docD']) {
+    const arr = cl[sec] || [];
+    total += CHECKLIST_ITEMS[sec].length;
+    checked += arr.filter(Boolean).length;
+  }
+  return total > 0 ? Math.round((checked / total) * 100) : 0;
+}
+
+function suggestStatus(score) {
+  if (score >= 90) return 'FLIGHT READY';
+  if (score >= 40) return 'IN DEVELOPMENT';
+  return 'ON HOLD';
+}
+
+// ═══ SEED DATA ═══
+function seedDemoData() {
+  const id1 = uid(), id2 = uid(), id3 = uid();
+  const cl1 = uid(), cl2 = uid(), cl3 = uid();
+
+  const projects = [
+    {
+      id: id1, community: 'Lake Lillian', county: 'Kandiyohi',
+      projectType: 'Water / Sewer',
+      description: '2021 study found arsenic levels 2.5\u00d7 allowable compliance limit. First four phases complete. This is the final infrastructure phase.',
+      totalCost: 3500000, bondRequest: 3500000,
+      federalPrograms: ['USDA Water & Waste Disposal Loan'],
+      localMatch: 0, engineeringComplete: 'Yes',
+      status: 'FLIGHT READY', population: 246,
+      utilityBefore: 138, utilityAfter: 290,
+      notes: 'SF301, Chief Author: Lang. Final phase of multi-phase project; prior phases $17.3M including 2023 bonding bill ($4M).',
+      lastUpdated: new Date().toISOString().slice(0,10),
+      checklistId: cl1
+    },
+    {
+      id: id2, community: 'New London', county: 'Kandiyohi',
+      projectType: 'Trail / Recreation',
+      description: 'Extension from New London to Sibley State Park. Toured by Capital Investment Committee December 2025. Scope and cost estimate in development.',
+      totalCost: null, bondRequest: null,
+      federalPrograms: [],
+      localMatch: 0, engineeringComplete: 'No',
+      status: 'IN DEVELOPMENT', population: null,
+      utilityBefore: null, utilityAfter: null,
+      notes: 'Scope and cost estimate in development.',
+      lastUpdated: new Date().toISOString().slice(0,10),
+      checklistId: cl2
+    },
+    {
+      id: id3, community: 'Willmar', county: 'Kandiyohi',
+      projectType: 'Facility',
+      description: 'Placeholder \u2014 add details when project scope is defined.',
+      totalCost: null, bondRequest: null,
+      federalPrograms: [],
+      localMatch: 0, engineeringComplete: 'No',
+      status: 'ON HOLD', population: null,
+      utilityBefore: null, utilityAfter: null,
+      notes: '',
+      lastUpdated: new Date().toISOString().slice(0,10),
+      checklistId: cl3
+    }
+  ];
+
+  // Lake Lillian: mostly checked
+  const checklists = {};
+  checklists[cl1] = {
+    docA: [true,true,true,true,true,true,true,true],
+    docB: [true,true,true,true,true,true],
+    docC: [true,true,true,true,true],
+    docD: [true,false,true]
+  };
+  // New London: ~40% Section A, minimal B
+  checklists[cl2] = {
+    docA: [false,true,true,false,false,false,true,false],
+    docB: [false,false,false,false,false,false],
+    docC: [false,false,false,true,false],
+    docD: [false,true,false]
+  };
+  // Willmar: minimal
+  checklists[cl3] = {
+    docA: [false,false,false,false,false,false,false,false],
+    docB: [false,false,false,false,false,false],
+    docC: [false,false,false,false,false],
+    docD: [false,false,false]
+  };
+
+  saveProjects(projects);
+  saveChecklists(checklists);
+  return projects;
+}
+
+// ═══ DEADLINE COUNTDOWN ═══
+function getNextDeadline(today) {
+  const year = today.getFullYear();
+  const isOdd = year % 2 === 1;
+  let targetDate, label;
+
+  if (isOdd) {
+    targetDate = new Date(year, 5, 15); // June 15
+    if (today > targetDate) {
+      // Next even year May 15
+      targetDate = new Date(year + 1, 4, 15);
+      label = 'Days to Floor Vote Window';
+    } else {
+      label = 'Days to MMB Submission';
+    }
+  } else {
+    targetDate = new Date(year, 4, 15); // May 15
+    if (today > targetDate) {
+      // Next odd year June 15
+      targetDate = new Date(year + 1, 5, 15);
+      label = 'Days to MMB Submission';
+    } else {
+      label = 'Days to Floor Vote Window';
+    }
+  }
+
+  const diffMs = targetDate - today;
+  const days = Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+  return { days, label, targetDate };
+}
+
+// ═══ FORMAT HELPERS ═══
+function fmtDollar(n) {
+  if (n == null || isNaN(n)) return 'TBD';
+  if (n >= 1000000) return '$' + (n / 1000000).toFixed(1) + 'M';
+  if (n >= 1000) return '$' + (n / 1000).toFixed(0) + 'K';
+  return '$' + n.toLocaleString();
+}
+
+function fmtDollarFull(n) {
+  if (n == null || isNaN(n)) return 'TBD';
+  return '$' + n.toLocaleString();
+}
+
+function badgeClass(status) {
+  switch (status) {
+    case 'FLIGHT READY': return 'badge-flight-ready';
+    case 'IN DEVELOPMENT': return 'badge-in-development';
+    case 'ON HOLD': return 'badge-on-hold';
+    case 'SUBMITTED': return 'badge-submitted';
+    default: return 'badge-on-hold';
+  }
+}
+
+function readinessColor(score) {
+  if (score >= 90) return 'var(--green)';
+  if (score >= 70) return 'var(--orange)';
+  if (score >= 40) return 'var(--amber)';
+  return 'var(--gray)';
+}
+
+// ═══ COLUMN MAPPING ═══
+function getColumn(status) {
+  switch (status) {
+    case 'ON HOLD': return 'planned';
+    case 'IN DEVELOPMENT': return 'inprogress';
+    case 'FLIGHT READY': return 'complete';
+    case 'SUBMITTED': return 'complete';
+    default: return 'planned';
+  }
+}
+
+// ═══ RENDER ═══
+let currentView = 'kanban';
+
+function setView(v) {
+  currentView = v;
+  document.getElementById('viewKanban').classList.toggle('active', v === 'kanban');
+  document.getElementById('viewTable').classList.toggle('active', v === 'table');
+  renderBoard();
+}
+
+function getFilteredProjects() {
+  const projects = loadProjects() || [];
+  const statusF = document.getElementById('filterStatus').value;
+  const typeF = document.getElementById('filterType').value;
+  const fundF = document.getElementById('filterFunding').value;
+  const searchF = document.getElementById('filterSearch').value.toLowerCase();
+
+  return projects.filter(p => {
+    if (statusF !== 'all' && p.status !== statusF) return false;
+    if (typeF !== 'all' && p.projectType !== typeF) return false;
+    if (fundF !== 'all') {
+      if (fundF === 'None') {
+        if (p.federalPrograms && p.federalPrograms.length > 0) return false;
+      } else {
+        if (!p.federalPrograms || !p.federalPrograms.includes(fundF)) return false;
+      }
+    }
+    if (searchF && !p.community.toLowerCase().includes(searchF)) return false;
+    return true;
+  });
+}
+
+function renderBoard() {
+  const projects = getFilteredProjects();
+  updateHeroStats();
+
+  if (currentView === 'kanban') {
+    document.getElementById('kanbanBoard').style.display = 'grid';
+    document.getElementById('tableView').style.display = 'none';
+    renderKanban(projects);
+  } else {
+    document.getElementById('kanbanBoard').style.display = 'none';
+    document.getElementById('tableView').style.display = 'block';
+    renderTable(projects);
+  }
+}
+
+function renderKanban(projects) {
+  const cols = { planned: [], inprogress: [], complete: [] };
+  projects.forEach(p => {
+    const col = getColumn(p.status);
+    cols[col].push(p);
+  });
+
+  // Sort each column by readiness descending
+  for (const key in cols) {
+    cols[key].sort((a, b) => getReadinessScore(b.checklistId) - getReadinessScore(a.checklistId));
+  }
+
+  const board = document.getElementById('kanbanBoard');
+  let delay = 0;
+  board.innerHTML = `
+    <div class="kanban-column col-planned">
+      <div class="kanban-col-header">
+        <div class="kanban-col-title">Planned / On Hold</div>
+        <div class="kanban-col-count">${cols.planned.length}</div>
+      </div>
+      <div class="kanban-col-body">${cols.planned.length ? cols.planned.map(p => { delay += 120; return cardHTML(p, delay); }).join('') : '<div class="empty-col-msg">No projects in this stage</div>'}</div>
+    </div>
+    <div class="kanban-column col-inprogress">
+      <div class="kanban-col-header">
+        <div class="kanban-col-title">In Development</div>
+        <div class="kanban-col-count">${cols.inprogress.length}</div>
+      </div>
+      <div class="kanban-col-body">${cols.inprogress.length ? cols.inprogress.map(p => { delay += 120; return cardHTML(p, delay); }).join('') : '<div class="empty-col-msg">No projects in this stage</div>'}</div>
+    </div>
+    <div class="kanban-column col-complete">
+      <div class="kanban-col-header">
+        <div class="kanban-col-title">Flight Ready / Submitted</div>
+        <div class="kanban-col-count">${cols.complete.length}</div>
+      </div>
+      <div class="kanban-col-body">${cols.complete.length ? cols.complete.map(p => { delay += 120; return cardHTML(p, delay); }).join('') : '<div class="empty-col-msg">No projects in this stage</div>'}</div>
+    </div>
+  `;
+}
+
+function cardHTML(p, delay) {
+  const score = getReadinessScore(p.checklistId);
+  const color = readinessColor(score);
+  return `
+    <div class="project-card" style="animation-delay:${delay}ms" onclick="showDetail('${p.id}')">
+      <div class="card-community">${esc(p.community)}</div>
+      <div class="card-county">${esc(p.county)} County</div>
+      <div class="card-type">${esc(p.projectType)}</div>
+      <div class="card-dollars">${fmtDollar(p.bondRequest)}</div>
+      <div class="card-dollars-label">Bond Request</div>
+      <span class="card-status-badge ${badgeClass(p.status)}" aria-label="Status: ${p.status}">${p.status}</span>
+      <div class="card-readiness">
+        <div class="readiness-bar-bg"><div class="readiness-bar-fill" style="width:${score}%;background:${color}"></div></div>
+        <div class="readiness-text">${score}% ready</div>
+      </div>
+      <div class="card-updated">Updated ${p.lastUpdated || 'N/A'}</div>
+    </div>
+  `;
+}
+
+function renderTable(projects) {
+  projects.sort((a, b) => getReadinessScore(b.checklistId) - getReadinessScore(a.checklistId));
+  const tv = document.getElementById('tableView');
+  const rows = projects.map((p, i) => {
+    const score = getReadinessScore(p.checklistId);
+    const cls = i % 2 === 0 ? ' class="tbl-alt"' : '';
+    return `<tr${cls} onclick="showDetail('${p.id}')">
+      <td class="tbl-bold">${esc(p.community)}</td><td class="tbl-dim">${esc(p.projectType)}</td>
+      <td class="tbl-mono">${fmtDollar(p.bondRequest)}</td>
+      <td><span class="card-status-badge ${badgeClass(p.status)}">${p.status}</span></td>
+      <td><div class="tbl-bar-wrap"><div class="tbl-bar-bg"><div class="tbl-bar-fill" style="width:${score}%;background:${readinessColor(score)}"></div></div><span class="tbl-pct">${score}%</span></div></td>
+      <td class="tbl-date">${p.lastUpdated || 'N/A'}</td></tr>`;
+  }).join('');
+  tv.innerHTML = `<table class="tbl"><thead><tr><th>Community</th><th>Type</th><th>Bond Request</th><th>Status</th><th>Readiness</th><th>Updated</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function updateHeroStats() {
+  const all = loadProjects() || [];
+  let totalBond = 0;
+  let readyCount = 0;
+  let attentionCount = 0;
+
+  all.forEach(p => {
+    if (p.bondRequest) totalBond += p.bondRequest;
+    if (p.status === 'FLIGHT READY') readyCount++;
+    if (p.status === 'ON HOLD' || p.status === 'IN DEVELOPMENT') attentionCount++;
+  });
+
+  const totalM = totalBond >= 1000000
+    ? '$' + (totalBond / 1000000).toFixed(1) + 'M'
+    : totalBond > 0 ? fmtDollar(totalBond) : '$0.0M';
+
+  document.getElementById('heroTotal').textContent = totalM;
+  document.getElementById('statTotal').textContent = all.length;
+  document.getElementById('statReady').textContent = readyCount;
+  document.getElementById('statAttention').textContent = attentionCount;
+
+  // Countdown
+  const dl = getNextDeadline(new Date());
+  const cvEl = document.getElementById('countdownVal');
+  cvEl.textContent = dl.days;
+  document.getElementById('countdownLabel').textContent = dl.label;
+  cvEl.className = 'hero-countdown-val';
+  if (dl.days <= 7) cvEl.classList.add('countdown-red');
+  else if (dl.days <= 30) cvEl.classList.add('countdown-amber');
+  else cvEl.classList.add('countdown-green');
+}
+
+// ═══ DETAIL VIEW ═══
+function showDetail(id) {
+  const projects = loadProjects() || [];
+  const p = projects.find(x => x.id === id);
+  if (!p) return;
+
+  const checklists = loadChecklists();
+  const cl = checklists[p.checklistId] || { docA: [], docB: [], docC: [], docD: [] };
+  const score = getReadinessScore(p.checklistId);
+
+  const panel = document.getElementById('detailPanel');
+  panel.innerHTML = `
+    <div class="detail-header">
+      <div>
+        <h2>${esc(p.community)} &mdash; ${esc(p.projectType)}</h2>
+        <span class="card-status-badge ${badgeClass(p.status)}" style="margin-top:6px;">${p.status}</span>
+      </div>
+      <button class="detail-close" onclick="closeDetail()" aria-label="Close">&times;</button>
+    </div>
+    <div class="detail-body">
+      <div class="detail-section-title">Project Details</div>
+      <div class="detail-field"><strong>County</strong><span>${esc(p.county)}</span></div>
+      <div class="detail-field"><strong>Description</strong><p>${esc(p.description || 'No description provided.')}</p></div>
+      <div class="detail-field"><strong>Total Estimated Cost</strong><span class="mono">${fmtDollarFull(p.totalCost)}</span></div>
+      <div class="detail-field"><strong>Bond Request</strong><span class="mono">${fmtDollarFull(p.bondRequest)}</span></div>
+      <div class="detail-field"><strong>Federal Programs</strong><span>${p.federalPrograms && p.federalPrograms.length ? p.federalPrograms.join(', ') : 'None'}</span></div>
+      <div class="detail-field"><strong>Local Match</strong><span class="mono">${p.localMatch ? fmtDollarFull(p.localMatch) : 'N/A'}</span></div>
+      <div class="detail-field"><strong>Engineering Complete</strong><span>${esc(p.engineeringComplete || 'Unknown')}</span></div>
+      <div class="detail-field"><strong>Population Served</strong><span>${p.population || 'TBD'}</span></div>
+      ${p.utilityBefore != null ? `<div class="detail-field"><strong>Monthly Utility Cost</strong><span class="mono">$${p.utilityBefore}/mo &rarr; $${p.utilityAfter}/mo without state help</span></div>` : ''}
+      ${p.notes ? `<div class="detail-field"><strong>Notes</strong><p>${esc(p.notes)}</p></div>` : ''}
+
+      <div class="detail-section-title">Readiness Checklist &mdash; ${score}%</div>
+      <div style="margin-bottom:12px;">
+        <div class="readiness-bar-bg" style="height:10px;">
+          <div class="readiness-bar-fill" style="width:${score}%;background:${readinessColor(score)};height:100%;"></div>
+        </div>
+      </div>
+      ${['docA','docB','docC','docD'].map(sec => {
+        const items = CHECKLIST_ITEMS[sec];
+        const vals = cl[sec] || new Array(items.length).fill(false);
+        const secChecked = vals.filter(Boolean).length;
+        return `<div class="checklist-section">
+          <h4>${SECTION_LABELS[sec]} <span class="section-progress">${secChecked}/${items.length}</span></h4>
+          ${items.map((item, idx) => `
+            <div class="checklist-item ${vals[idx] ? 'checked' : ''}">
+              <input type="checkbox" id="cl_${sec}_${idx}" ${vals[idx] ? 'checked' : ''}
+                onchange="toggleCheckItem('${p.id}','${sec}',${idx})" aria-label="${item}">
+              <label for="cl_${sec}_${idx}">${item}</label>
+            </div>
+          `).join('')}
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="detail-actions">
+      <button class="btn btn-ghost" onclick="openEditForm('${p.id}')">Edit Project</button>
+      <button class="btn btn-outline" onclick="generatePrintSummary('${p.id}')">Print Summary</button>
+      <button class="btn btn-ghost" onclick="deleteProject('${p.id}')" style="color:var(--red);border-color:var(--red);">Delete</button>
+    </div>
+  `;
+
+  document.getElementById('detailOverlay').classList.add('visible');
+}
+
+function closeDetail() {
+  document.getElementById('detailOverlay').classList.remove('visible');
+}
+
+function toggleCheckItem(projectId, section, idx) {
+  const checklists = loadChecklists();
+  const projects = loadProjects() || [];
+  const p = projects.find(x => x.id === projectId);
+  if (!p) return;
+
+  if (!checklists[p.checklistId]) {
+    checklists[p.checklistId] = {
+      docA: new Array(CHECKLIST_ITEMS.docA.length).fill(false),
+      docB: new Array(CHECKLIST_ITEMS.docB.length).fill(false),
+      docC: new Array(CHECKLIST_ITEMS.docC.length).fill(false),
+      docD: new Array(CHECKLIST_ITEMS.docD.length).fill(false)
+    };
+  }
+
+  const cl = checklists[p.checklistId];
+  if (!cl[section]) cl[section] = new Array(CHECKLIST_ITEMS[section].length).fill(false);
+  cl[section][idx] = !cl[section][idx];
+  saveChecklists(checklists);
+
+  // Re-render detail to update scores
+  showDetail(projectId);
+  renderBoard();
+}
+
+// ═══ ADD/EDIT FORM ═══
+let editingProjectId = null;
+
+function openAddForm() {
+  editingProjectId = null;
+  renderForm(null);
+  document.getElementById('formOverlay').classList.add('visible');
+}
+
+function openEditForm(id) {
+  closeDetail();
+  editingProjectId = id;
+  const projects = loadProjects() || [];
+  const p = projects.find(x => x.id === id);
+  renderForm(p);
+  document.getElementById('formOverlay').classList.add('visible');
+}
+
+function closeForm() {
+  document.getElementById('formOverlay').classList.remove('visible');
+  editingProjectId = null;
+}
+
+function renderForm(p) {
+  const isEdit = !!p;
+  const panel = document.getElementById('formPanel');
+
+  const fedOptions = [
+    'USDA Water & Waste Disposal Loan',
+    'IIJA/State Revolving Fund',
+    'MN DNR Clean Water Fund',
+    'USDA Community Facilities'
+  ];
+
+  panel.innerHTML = `
+    <div class="detail-header">
+      <h2>${isEdit ? 'Edit' : 'Add'} Project</h2>
+      <button class="detail-close" onclick="closeForm()" aria-label="Close">&times;</button>
+    </div>
+    <div class="form-body">
+      <div class="form-row">
+        <label for="fCommunity">Community Name</label>
+        <input type="text" id="fCommunity" value="${isEdit ? esc(p.community) : ''}">
+      </div>
+      <div class="form-row-inline">
+        <div class="form-row">
+          <label for="fCounty">County</label>
+          <select id="fCounty">
+            ${['Chippewa','Kandiyohi','Meeker','Renville','Other'].map(c =>
+              `<option value="${c}" ${isEdit && p.county === c ? 'selected' : ''}>${c}</option>`
+            ).join('')}
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="fType">Project Type</label>
+          <select id="fType">
+            ${['Water / Sewer','Trail / Recreation','Facility','Streets','Combined'].map(t =>
+              `<option value="${t}" ${isEdit && p.projectType === t ? 'selected' : ''}>${t}</option>`
+            ).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <label for="fDesc">Project Description</label>
+        <textarea id="fDesc">${isEdit ? esc(p.description || '') : ''}</textarea>
+      </div>
+      <div class="form-row-inline">
+        <div class="form-row">
+          <label for="fTotalCost">Total Estimated Cost ($)</label>
+          <input type="number" id="fTotalCost" value="${isEdit && p.totalCost ? p.totalCost : ''}">
+        </div>
+        <div class="form-row">
+          <label for="fBondRequest">Bond Request Amount ($)</label>
+          <input type="number" id="fBondRequest" value="${isEdit && p.bondRequest ? p.bondRequest : ''}">
+        </div>
+      </div>
+      <div class="form-row">
+        <label>Federal Program Participation</label>
+        <div class="checkbox-group">
+          ${fedOptions.map(f => `
+            <label><input type="checkbox" class="fedCheck" value="${f}"
+              ${isEdit && p.federalPrograms && p.federalPrograms.includes(f) ? 'checked' : ''}> ${f}</label>
+          `).join('')}
+        </div>
+      </div>
+      <div class="form-row-inline">
+        <div class="form-row">
+          <label for="fLocalMatch">Local Match ($)</label>
+          <input type="number" id="fLocalMatch" value="${isEdit && p.localMatch ? p.localMatch : ''}">
+        </div>
+        <div class="form-row">
+          <label for="fEngineering">Engineering Complete?</label>
+          <select id="fEngineering">
+            ${['Yes','In progress','No'].map(e =>
+              `<option value="${e}" ${isEdit && p.engineeringComplete === e ? 'selected' : ''}>${e}</option>`
+            ).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <label for="fStatus">Status</label>
+        <select id="fStatus">
+          ${['FLIGHT READY','IN DEVELOPMENT','ON HOLD','SUBMITTED'].map(s =>
+            `<option value="${s}" ${isEdit && p.status === s ? 'selected' : ''}>${s}</option>`
+          ).join('')}
+        </select>
+      </div>
+      <div class="form-row-inline">
+        <div class="form-row">
+          <label for="fPop">Population Served</label>
+          <input type="number" id="fPop" value="${isEdit && p.population ? p.population : ''}">
+        </div>
+        <div class="form-row">
+          <label for="fUtilBefore">Monthly Utility Before ($)</label>
+          <input type="number" id="fUtilBefore" value="${isEdit && p.utilityBefore != null ? p.utilityBefore : ''}">
+        </div>
+      </div>
+      <div class="form-row">
+        <label for="fUtilAfter">Monthly Utility After (without state help) ($)</label>
+        <input type="number" id="fUtilAfter" value="${isEdit && p.utilityAfter != null ? p.utilityAfter : ''}">
+      </div>
+      <div class="form-row">
+        <label for="fNotes">Notes</label>
+        <textarea id="fNotes">${isEdit ? esc(p.notes || '') : ''}</textarea>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeForm()">Cancel</button>
+      <button class="btn btn-orange" onclick="saveForm()">Save Project</button>
+    </div>
+  `;
+}
+
+function saveForm() {
+  const community = document.getElementById('fCommunity').value.trim();
+  if (!community) { alert('Community name is required.'); return; }
+
+  const projects = loadProjects() || [];
+  const checklists = loadChecklists();
+
+  let p;
+  if (editingProjectId) {
+    p = projects.find(x => x.id === editingProjectId);
+    if (!p) return;
+  } else {
+    const clId = uid();
+    p = { id: uid(), checklistId: clId };
+    checklists[clId] = {
+      docA: new Array(CHECKLIST_ITEMS.docA.length).fill(false),
+      docB: new Array(CHECKLIST_ITEMS.docB.length).fill(false),
+      docC: new Array(CHECKLIST_ITEMS.docC.length).fill(false),
+      docD: new Array(CHECKLIST_ITEMS.docD.length).fill(false)
+    };
+    projects.push(p);
+  }
+
+  p.community = community;
+  p.county = document.getElementById('fCounty').value;
+  p.projectType = document.getElementById('fType').value;
+  p.description = document.getElementById('fDesc').value.trim();
+  p.totalCost = parseFloat(document.getElementById('fTotalCost').value) || null;
+  p.bondRequest = parseFloat(document.getElementById('fBondRequest').value) || null;
+  p.federalPrograms = Array.from(document.querySelectorAll('.fedCheck:checked')).map(c => c.value);
+  p.localMatch = parseFloat(document.getElementById('fLocalMatch').value) || 0;
+  p.engineeringComplete = document.getElementById('fEngineering').value;
+  p.status = document.getElementById('fStatus').value;
+  p.population = parseInt(document.getElementById('fPop').value) || null;
+  p.utilityBefore = parseFloat(document.getElementById('fUtilBefore').value) || null;
+  p.utilityAfter = parseFloat(document.getElementById('fUtilAfter').value) || null;
+  p.notes = document.getElementById('fNotes').value.trim();
+  p.lastUpdated = new Date().toISOString().slice(0, 10);
+
+  saveProjects(projects);
+  saveChecklists(checklists);
+  closeForm();
+  renderBoard();
+}
+
+function deleteProject(id) {
+  if (!confirm('Delete this project? This cannot be undone.')) return;
+  let projects = loadProjects() || [];
+  const p = projects.find(x => x.id === id);
+  if (p) {
+    const checklists = loadChecklists();
+    delete checklists[p.checklistId];
+    saveChecklists(checklists);
+  }
+  projects = projects.filter(x => x.id !== id);
+  saveProjects(projects);
+  closeDetail();
+  renderBoard();
+}
+
+// ═══ TIMELINE ═══
+function showTimeline() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const isOdd = year % 2 === 1;
+
+  const milestones = [
+    {
+      title: 'Spring (Odd Year)',
+      desc: 'MMB issues capital budget instructions.',
+      action: 'Monitor MMB guidance; notify communities to begin narratives.',
+      highlightClass: '',
+      isActive: isOdd && today.getMonth() < 5
+    },
+    {
+      title: 'June 15 (Odd Year) \u2014 Submission Deadline',
+      desc: 'Local government submission to MMB. Required: resolution + narrative + local contribution + map.',
+      action: 'Every FLIGHT READY project must have package submitted.',
+      highlightClass: 'highlight-amber',
+      isActive: isOdd && today.getMonth() >= 4 && today.getMonth() <= 5
+    },
+    {
+      title: 'August (Odd Year)',
+      desc: 'State agencies compile and forward to MMB.',
+      action: 'Follow up with MMB; confirm receipt.',
+      highlightClass: '',
+      isActive: isOdd && today.getMonth() >= 6 && today.getMonth() <= 8
+    },
+    {
+      title: 'January (Even Year)',
+      desc: "Governor submits capital budget to Legislature.",
+      action: "Verify projects appear in Governor's recommendation.",
+      highlightClass: '',
+      isActive: !isOdd && today.getMonth() === 0
+    },
+    {
+      title: 'February\u2013May (Even Year)',
+      desc: 'Legislative bonding bill hearings. Capital Investment committee testimony.',
+      action: 'Testify or arrange city testimony; coordinate with committee chair.',
+      highlightClass: '',
+      isActive: !isOdd && today.getMonth() >= 1 && today.getMonth() <= 4
+    },
+    {
+      title: 'May (Even Year) \u2014 Floor Vote',
+      desc: 'Bonding bill requires 3/5 supermajority (both chambers). If bill fails, 2-year wait.',
+      action: 'Coordinate floor vote support.',
+      highlightClass: 'highlight-green',
+      isActive: !isOdd && today.getMonth() === 4
+    },
+    {
+      title: 'Summer (Even Year)',
+      desc: 'Governor signs / vetoes; MMB releases bond proceeds.',
+      action: 'Notify city; coordinate contractor procurement.',
+      highlightClass: '',
+      isActive: !isOdd && today.getMonth() >= 5
+    }
+  ];
+
+  const panel = document.getElementById('timelinePanel');
+  panel.innerHTML = `
+    <div class="timeline-header">
+      <h2>Minnesota Capital Bonding Cycle</h2>
+    </div>
+    <div class="timeline-body">
+      ${milestones.map((m, i) => `
+        <div class="milestone">
+          <div class="milestone-line">
+            <div class="milestone-dot ${m.isActive ? 'active' : ''}"></div>
+            ${i < milestones.length - 1 ? '<div class="milestone-stem"></div>' : ''}
+          </div>
+          <div class="milestone-content">
+            <div class="milestone-title ${m.highlightClass}">${m.title}</div>
+            <div class="milestone-desc">${m.desc}</div>
+            <div class="milestone-action">${m.action}</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+    <div style="padding:16px 24px;border-top:1px solid #444;text-align:right;">
+      <button class="btn btn-ghost" onclick="closeTimeline()">Close</button>
+    </div>
+  `;
+
+  document.getElementById('timelineOverlay').classList.add('visible');
+}
+
+function closeTimeline() {
+  document.getElementById('timelineOverlay').classList.remove('visible');
+}
+
+// ═══ PRINT SUMMARY ═══
+function generatePrintSummary(id) {
+  closeDetail();
+  const projects = loadProjects() || [];
+  const p = projects.find(x => x.id === id);
+  if (!p) return;
+
+  const score = getReadinessScore(p.checklistId);
+  const checklists = loadChecklists();
+  const cl = checklists[p.checklistId] || { docA:[], docB:[], docC:[], docD:[] };
+
+  // Find incomplete items in sections A and B
+  const pending = [];
+  ['docA','docB'].forEach(sec => {
+    const items = CHECKLIST_ITEMS[sec];
+    const vals = cl[sec] || [];
+    items.forEach((item, i) => {
+      if (!vals[i]) pending.push(item);
+    });
+  });
+
+  // Total checked
+  let totalItems = 0, totalChecked = 0;
+  ['docA','docB','docC','docD'].forEach(sec => {
+    totalItems += CHECKLIST_ITEMS[sec].length;
+    totalChecked += (cl[sec] || []).filter(Boolean).length;
+  });
+
+  const utilLine = (p.utilityBefore != null && p.utilityAfter != null)
+    ? ` Without state assistance, monthly utility costs are projected to rise from $${p.utilityBefore} to $${p.utilityAfter} per household.`
+    : '';
+
+  const panel = document.getElementById('printPanel');
+  panel.innerHTML = `
+    <div class="print-summary-content" id="printContent">
+      <h1>SD-16 Capital Investment Summary</h1>
+      <div class="meta-line">Community: ${esc(p.community)} | County: ${esc(p.county)} | Type: ${esc(p.projectType)}</div>
+      <div class="meta-line">Bond Request: ${fmtDollarFull(p.bondRequest)} | Total Project Cost: ${fmtDollarFull(p.totalCost)}</div>
+
+      <h2>Community Need</h2>
+      <p>The City of ${esc(p.community)}${p.population ? ' (' + p.population + ' residents, ' + esc(p.county) + ' County)' : ''} is seeking ${fmtDollarFull(p.bondRequest)} in state bonding for ${esc(p.projectType).toLowerCase()} improvements. ${esc(p.description || '')}${utilLine}</p>
+
+      <h2>Project Scope</h2>
+      <p>${esc(p.description || 'No detailed description provided.')}</p>
+
+      <h2>Financing Summary</h2>
+      <table>
+        <tr><th>Total Cost</th><th>Bond Request</th><th>Federal Programs</th><th>Local Match</th></tr>
+        <tr>
+          <td>${fmtDollarFull(p.totalCost)}</td>
+          <td>${fmtDollarFull(p.bondRequest)}</td>
+          <td>${p.federalPrograms && p.federalPrograms.length ? p.federalPrograms.join(', ') : 'None'}</td>
+          <td>${p.localMatch ? fmtDollarFull(p.localMatch) : 'N/A'}</td>
+        </tr>
+      </table>
+
+      <h2>Readiness Status</h2>
+      <p>Checklist completion: ${totalChecked} of ${totalItems} items complete (${score}%)<br>
+      Status: <strong>${p.status}</strong></p>
+      ${pending.length > 0 ? '<p><strong>Pending:</strong></p><ul>' + pending.map(item => '<li>' + item + '</li>').join('') + '</ul>' : '<p>All documentation and financial readiness items complete.</p>'}
+
+      <h2>Legislator Note</h2>
+      <p>This project is consistent with SD-16 priorities for rural infrastructure maintenance and community viability. Senator Lang has been briefed and is coordinating with ${esc(p.community)} leadership.</p>
+    </div>
+    <div class="print-actions">
+      <button class="btn btn-ghost" onclick="closePrint()">Close</button>
+      <button class="btn btn-orange" onclick="window.print()">Print</button>
+    </div>
+  `;
+
+  document.getElementById('printOverlay').classList.add('visible');
+}
+
+function closePrint() {
+  document.getElementById('printOverlay').classList.remove('visible');
+}
+
+// ═══ UTILITY ═══
+function esc(str) {
+  if (!str) return '';
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// Close overlays on outside click
+document.getElementById('detailOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeDetail();
+});
+document.getElementById('formOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeForm();
+});
+document.getElementById('timelineOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeTimeline();
+});
+document.getElementById('printOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closePrint();
+});
+
+// Keyboard escape
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    closeDetail();
+    closeForm();
+    closeTimeline();
+    closePrint();
+  }
+});
+
+// ═══ INIT ═══
+(function init() {
+  if (!loadProjects()) {
+    seedDemoData();
+  }
+  renderBoard();
+})();
+</script>
+</body>
+</html>

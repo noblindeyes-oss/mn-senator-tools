@@ -1,0 +1,1524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minnesota Adult Learner Pathway Planner — Sen. Tou Xiong, SD-44</title>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Full-bleed viewport-height sections with snap-scrolling; each section a different saturated color from sunrise gradient (orange→purple)
+   2. Navigation: Small circular dots on right edge, color-matched to each section — phone swipe indicator style
+   3. Typography: Century Gothic (headers), Tahoma (body), Consolas (data/numbers) — distinct trio, no Georgia/Arial Narrow/Courier
+   4. Hero moment: Large "YOUR PATH" in white with glowing text-shadow over orange gradient opening — 72px+ type
+   5. Color strategy: #6 Color-blocked sections — SUNRISE GRADIENT from warm orange (#e65100) to deep purple (#4a148c), white text throughout, bold saturated zero neutrals
+   6. Entry experience: Animated gradient wash from orange (top-left) to purple (bottom-right), then hero text fades in — no explanatory paragraph first
+   Additional: No cards with borders, no parchment, no emoji icons; CSS shape markers; dense data zones vs dramatic whitespace zones
+*/
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --orange: #e65100;
+  --deep-orange: #bf360c;
+  --amber: #e68a00;
+  --red-orange: #c62828;
+  --crimson: #ad1457;
+  --magenta: #880e4f;
+  --deep-purple: #4a148c;
+  --violet: #6a1b9a;
+  --indigo: #311b92;
+  --white: #ffffff;
+  --white-90: rgba(255,255,255,0.9);
+  --white-70: rgba(255,255,255,0.7);
+  --white-50: rgba(255,255,255,0.5);
+  --white-20: rgba(255,255,255,0.2);
+  --white-10: rgba(255,255,255,0.1);
+  --success: #66bb6a;
+  --success-dark: #2e7d32;
+}
+
+html {
+  scroll-snap-type: y proximity;
+  scroll-behavior: smooth;
+  font-size: 16px;
+}
+
+body {
+  font-family: Tahoma, Geneva, sans-serif;
+  color: var(--white);
+  background: var(--deep-purple);
+  overflow-x: hidden;
+  line-height: 1.5;
+}
+
+h1, h2, h3, h4 {
+  font-family: 'Century Gothic', 'Apple Gothic', CenturyGothic, sans-serif;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.data-text, .cost-figure, .stat-number {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  letter-spacing: 0.5px;
+}
+
+/* ═══════════════════════════════════════
+   ENTRY ANIMATION
+   ═══════════════════════════════════════ */
+#entry-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 9999;
+  background: linear-gradient(135deg, var(--orange), var(--crimson), var(--deep-purple));
+  background-size: 300% 300%;
+  animation: gradientWash 2.2s ease-out forwards;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+#entry-overlay.done {
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+@keyframes gradientWash {
+  0% { background-position: 0% 0%; }
+  50% { background-position: 100% 100%; }
+  100% { background-position: 100% 100%; }
+}
+
+/* ═══════════════════════════════════════
+   SECTIONS — full-bleed viewport panels
+   ═══════════════════════════════════════ */
+.section {
+  min-height: 100vh;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 60px 5vw;
+  position: relative;
+}
+
+#sec-hero {
+  background: linear-gradient(135deg, var(--orange), var(--deep-orange));
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+#sec-intake {
+  background: linear-gradient(180deg, var(--deep-orange), var(--red-orange));
+}
+
+#sec-pathway {
+  background: linear-gradient(180deg, var(--red-orange), var(--crimson));
+  min-height: auto;
+  padding-top: 40px;
+  padding-bottom: 80px;
+}
+
+#sec-programs {
+  background: linear-gradient(180deg, var(--crimson), var(--magenta));
+  min-height: auto;
+  padding-bottom: 80px;
+}
+
+#sec-about {
+  background: linear-gradient(180deg, var(--violet), var(--deep-purple));
+  min-height: 50vh;
+}
+
+/* ═══════════════════════════════════════
+   DOT NAVIGATION (right edge)
+   ═══════════════════════════════════════ */
+#dot-nav {
+  position: fixed;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.dot {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 2px solid var(--white-70);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+}
+
+.dot:hover { transform: scale(1.4); }
+
+.dot.active {
+  background: var(--white);
+  border-color: var(--white);
+  box-shadow: 0 0 8px rgba(255,255,255,0.6);
+}
+
+.dot[data-section="sec-hero"] { border-color: #ffcc80; }
+.dot[data-section="sec-hero"].active { background: #ffcc80; border-color: #ffcc80; }
+.dot[data-section="sec-intake"] { border-color: #ef9a9a; }
+.dot[data-section="sec-intake"].active { background: #ef9a9a; border-color: #ef9a9a; }
+.dot[data-section="sec-pathway"] { border-color: #f48fb1; }
+.dot[data-section="sec-pathway"].active { background: #f48fb1; border-color: #f48fb1; }
+.dot[data-section="sec-programs"] { border-color: #ce93d8; }
+.dot[data-section="sec-programs"].active { background: #ce93d8; border-color: #ce93d8; }
+.dot[data-section="sec-about"] { border-color: #b39ddb; }
+.dot[data-section="sec-about"].active { background: #b39ddb; border-color: #b39ddb; }
+
+/* ═══════════════════════════════════════
+   HERO SECTION
+   ═══════════════════════════════════════ */
+.hero-title {
+  font-size: clamp(48px, 10vw, 96px);
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  color: var(--white);
+  text-shadow: 0 0 40px rgba(255,255,255,0.5), 0 0 80px rgba(255,165,0,0.3);
+  opacity: 0;
+  animation: heroFadeIn 1s ease 2s forwards;
+}
+
+.hero-subtitle {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: clamp(16px, 3vw, 22px);
+  font-weight: 400;
+  color: var(--white-90);
+  margin-top: 16px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  opacity: 0;
+  animation: heroFadeIn 1s ease 2.4s forwards;
+}
+
+.hero-description {
+  max-width: 600px;
+  margin-top: 32px;
+  font-size: 17px;
+  color: var(--white-90);
+  line-height: 1.7;
+  opacity: 0;
+  animation: heroFadeIn 1s ease 2.8s forwards;
+}
+
+.hero-cta {
+  margin-top: 40px;
+  opacity: 0;
+  animation: heroFadeIn 1s ease 3.1s forwards;
+}
+
+.btn-start {
+  display: inline-block;
+  padding: 16px 48px;
+  font-family: 'Century Gothic', 'Apple Gothic', CenturyGothic, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--orange);
+  background: var(--white);
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-decoration: none;
+}
+
+.btn-start:hover {
+  background: #fff3e0;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+}
+
+@keyframes heroFadeIn {
+  to { opacity: 1; }
+}
+
+/* ═══════════════════════════════════════
+   INTAKE SECTION (Module 1)
+   ═══════════════════════════════════════ */
+.intake-container {
+  max-width: 620px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.intake-header {
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.intake-header h2 {
+  font-size: 28px;
+  letter-spacing: 1px;
+}
+
+/* Progress bar */
+.progress-bar-wrap {
+  width: 100%;
+  height: 6px;
+  background: var(--white-20);
+  border-radius: 3px;
+  margin: 20px 0 30px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: var(--white);
+  border-radius: 3px;
+  transition: width 0.4s ease;
+  width: 0%;
+}
+
+.progress-label {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 13px;
+  color: var(--white-70);
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+/* Question cards */
+.q-card {
+  display: none;
+  animation: slideUp 0.35s ease;
+}
+
+.q-card.active { display: block; }
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.q-card h3 {
+  font-size: 22px;
+  margin-bottom: 20px;
+  line-height: 1.3;
+}
+
+.q-option {
+  display: block;
+  width: 100%;
+  padding: 14px 20px;
+  margin-bottom: 10px;
+  background: var(--white-10);
+  border: 2px solid var(--white-20);
+  border-radius: 8px;
+  color: var(--white);
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.q-option:hover {
+  background: var(--white-20);
+  border-color: var(--white-50);
+}
+
+.q-option.selected {
+  background: var(--white-20);
+  border-color: var(--white);
+  font-weight: 700;
+}
+
+.q-option.selected::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: var(--white);
+  border-radius: 50%;
+  margin-right: 10px;
+  vertical-align: middle;
+}
+
+.q-text-input {
+  width: 100%;
+  padding: 14px 20px;
+  margin-top: 10px;
+  background: var(--white-10);
+  border: 2px solid var(--white-20);
+  border-radius: 8px;
+  color: var(--white);
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 15px;
+  outline: none;
+}
+
+.q-text-input::placeholder { color: var(--white-50); }
+.q-text-input:focus { border-color: var(--white); }
+
+.q-nav {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 28px;
+}
+
+.btn-nav {
+  padding: 10px 28px;
+  font-family: 'Century Gothic', 'Apple Gothic', CenturyGothic, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border: 2px solid var(--white-70);
+  border-radius: 30px;
+  background: transparent;
+  color: var(--white);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-nav:hover {
+  background: var(--white-20);
+  border-color: var(--white);
+}
+
+.btn-nav:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.btn-nav.primary {
+  background: var(--white);
+  color: var(--deep-orange);
+  border-color: var(--white);
+}
+
+.btn-nav.primary:hover {
+  background: #fff3e0;
+}
+
+/* ═══════════════════════════════════════
+   PATHWAY SECTION (Module 2)
+   ═══════════════════════════════════════ */
+#sec-pathway, #sec-programs { display: none; }
+#sec-pathway.visible, #sec-programs.visible { display: flex; }
+
+.pathway-container {
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.pathway-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.pathway-header h2 {
+  font-size: 32px;
+  letter-spacing: 1px;
+}
+
+.pathway-header p {
+  color: var(--white-90);
+  font-size: 16px;
+  margin-top: 10px;
+}
+
+/* Roadmap vertical timeline */
+.roadmap {
+  position: relative;
+  padding-left: 60px;
+}
+
+.roadmap::before {
+  content: "";
+  position: absolute;
+  left: 22px;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--white-20);
+}
+
+.stage {
+  position: relative;
+  margin-bottom: 40px;
+  animation: slideUp 0.5s ease;
+}
+
+.stage-marker {
+  position: absolute;
+  left: -60px;
+  top: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--white-20);
+  border: 3px solid var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Century Gothic', 'Apple Gothic', CenturyGothic, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.stage-content h3 {
+  font-size: 22px;
+  margin-bottom: 10px;
+  letter-spacing: 0.5px;
+}
+
+.stage-content p {
+  font-size: 15px;
+  color: var(--white-90);
+  line-height: 1.65;
+  margin-bottom: 10px;
+}
+
+.stage-content strong { color: var(--white); }
+
+/* GED vs HiSET comparison */
+.compare-row {
+  display: flex;
+  gap: 16px;
+  margin: 16px 0;
+}
+
+.compare-col {
+  flex: 1;
+  padding: 20px;
+  background: var(--white-10);
+  border-radius: 10px;
+  border: 2px solid var(--white-20);
+}
+
+.compare-col h4 {
+  font-size: 20px;
+  margin-bottom: 10px;
+  letter-spacing: 1px;
+}
+
+.compare-col .cost-figure {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--white);
+  margin-bottom: 6px;
+}
+
+.compare-col p {
+  font-size: 13px;
+  color: var(--white-70);
+  line-height: 1.5;
+}
+
+.compare-note {
+  text-align: center;
+  font-size: 14px;
+  color: var(--white-70);
+  margin-top: 12px;
+  font-style: italic;
+}
+
+/* Time estimate band */
+.time-band {
+  background: var(--white-10);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin: 14px 0;
+}
+
+.time-band .stat-number {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.time-band .fine-print {
+  font-size: 12px;
+  color: var(--white-50);
+  margin-top: 6px;
+}
+
+/* Support resources items */
+.support-item {
+  margin-bottom: 14px;
+  padding-left: 20px;
+  position: relative;
+}
+
+.support-item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--white-50);
+}
+
+.sf-callout {
+  margin-top: 20px;
+  padding: 16px 20px;
+  background: rgba(230,81,0,0.15);
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--white-90);
+  line-height: 1.6;
+}
+
+.sf-callout strong { color: var(--white); }
+
+/* Pathway action buttons */
+.pathway-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 36px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn-action {
+  padding: 12px 32px;
+  font-family: 'Century Gothic', 'Apple Gothic', CenturyGothic, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border: 2px solid var(--white);
+  border-radius: 30px;
+  background: transparent;
+  color: var(--white);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-action:hover {
+  background: var(--white-20);
+}
+
+.btn-action.filled {
+  background: var(--white);
+  color: var(--crimson);
+}
+
+.btn-action.filled:hover {
+  background: #fff3e0;
+}
+
+/* ═══════════════════════════════════════
+   PROGRAMS SECTION (Module 3)
+   ═══════════════════════════════════════ */
+.programs-container {
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.programs-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.programs-header h2 {
+  font-size: 28px;
+  letter-spacing: 1px;
+}
+
+.program-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.program-entry {
+  padding: 22px;
+  background: var(--white-10);
+  border: 2px solid var(--white-20);
+  border-radius: 10px;
+  transition: all 0.3s;
+}
+
+.program-entry.match {
+  border-color: var(--success);
+  background: rgba(102,187,106,0.12);
+}
+
+.match-badge {
+  display: inline-block;
+  padding: 3px 12px;
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  background: var(--success);
+  color: #fff;
+  border-radius: 20px;
+  margin-bottom: 10px;
+}
+
+.program-entry h4 {
+  font-size: 17px;
+  margin-bottom: 4px;
+}
+
+.program-entry .org-name {
+  font-size: 13px;
+  color: var(--white-70);
+  margin-bottom: 10px;
+}
+
+.program-detail {
+  font-size: 13px;
+  color: var(--white-90);
+  margin-bottom: 4px;
+  padding-left: 14px;
+  position: relative;
+}
+
+.program-detail::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 7px;
+  width: 5px;
+  height: 5px;
+  background: var(--white-50);
+  border-radius: 50%;
+}
+
+.program-entry .program-note {
+  font-size: 12px;
+  color: var(--white-50);
+  margin-top: 8px;
+  font-style: italic;
+}
+
+.statewide-cta {
+  text-align: center;
+  margin-top: 32px;
+  padding: 20px;
+  background: var(--white-10);
+  border-radius: 10px;
+}
+
+.statewide-cta p {
+  font-size: 15px;
+  margin-bottom: 10px;
+}
+
+.statewide-cta a {
+  color: #ffcc80;
+  text-decoration: underline;
+  font-weight: 700;
+}
+
+.statewide-cta a:hover { color: #ffe0b2; }
+
+/* ═══════════════════════════════════════
+   ABOUT / FOOTER SECTION
+   ═══════════════════════════════════════ */
+#sec-about {
+  justify-content: flex-end;
+  padding-bottom: 40px;
+  min-height: auto;
+}
+
+.about-content {
+  max-width: 700px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.about-content h3 {
+  font-size: 20px;
+  margin-bottom: 14px;
+  letter-spacing: 1px;
+}
+
+.about-content p {
+  font-size: 14px;
+  color: var(--white-70);
+  line-height: 1.7;
+  margin-bottom: 12px;
+}
+
+.about-content .footer-line {
+  font-size: 12px;
+  color: var(--white-50);
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--white-10);
+}
+
+/* ═══════════════════════════════════════
+   PRINT STYLES
+   ═══════════════════════════════════════ */
+@media print {
+  html { scroll-snap-type: none; }
+  body { color: #1c1c1c; background: #fff; }
+  #dot-nav, #entry-overlay, #sec-hero, .btn-action, .btn-nav, .btn-start,
+  .progress-bar-wrap, .progress-label, .q-nav, .hero-cta { display: none !important; }
+  #sec-intake { display: none !important; }
+  #sec-pathway, #sec-programs { display: block !important; }
+  .section {
+    min-height: auto !important;
+    background: none !important;
+    color: #1c1c1c !important;
+    padding: 20px 0;
+    page-break-inside: avoid;
+  }
+  .section * { color: #1c1c1c !important; }
+  .stage-marker { border-color: #333 !important; }
+  .roadmap::before { background: #ccc !important; }
+  .compare-col, .time-band, .sf-callout, .program-entry, .statewide-cta {
+    border: 1px solid #ccc !important;
+    background: #f9f9f9 !important;
+  }
+  .match-badge { background: #2e7d32 !important; color: #fff !important; }
+  .program-entry.match { border-color: #2e7d32 !important; }
+  h2::after { content: " — Pathway Planner for " attr(data-learner); }
+}
+
+/* ═══════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════ */
+@media (max-width: 700px) {
+  .section { padding: 40px 20px; }
+  .compare-row { flex-direction: column; }
+  .program-grid { grid-template-columns: 1fr; }
+  #dot-nav { right: 8px; gap: 10px; }
+  .dot { width: 10px; height: 10px; }
+  .roadmap { padding-left: 50px; }
+  .stage-marker { left: -50px; width: 36px; height: 36px; font-size: 15px; }
+  .pathway-actions { flex-direction: column; align-items: center; }
+}
+
+@media (max-width: 400px) {
+  .hero-title { letter-spacing: 3px; }
+  .section { padding: 30px 14px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Entry animation overlay -->
+<div id="entry-overlay"></div>
+
+<!-- Dot navigation -->
+<nav id="dot-nav" aria-label="Section navigation">
+  <div class="dot active" data-section="sec-hero" role="button" tabindex="0" aria-label="Hero section"></div>
+  <div class="dot" data-section="sec-intake" role="button" tabindex="0" aria-label="Intake questionnaire"></div>
+  <div class="dot" data-section="sec-pathway" role="button" tabindex="0" aria-label="Your pathway"></div>
+  <div class="dot" data-section="sec-programs" role="button" tabindex="0" aria-label="Program finder"></div>
+  <div class="dot" data-section="sec-about" role="button" tabindex="0" aria-label="About this tool"></div>
+</nav>
+
+<!-- ═══════════ SECTION 1: HERO ═══════════ -->
+<section id="sec-hero" class="section">
+  <h1 class="hero-title">Your Path</h1>
+  <p class="hero-subtitle">Minnesota Adult Learner Pathway Planner</p>
+  <p class="hero-description">
+    For adults in Minnesota who want to earn a GED, improve their skills, or find a path to a better job.
+    Answer a few questions and see the programs and steps that fit your life.
+  </p>
+  <div class="hero-cta">
+    <button class="btn-start" onclick="scrollToSection('sec-intake')">Get Started</button>
+  </div>
+</section>
+
+<!-- ═══════════ SECTION 2: INTAKE ═══════════ -->
+<section id="sec-intake" class="section">
+  <div class="intake-container">
+    <div class="intake-header">
+      <h2>Tell Us About You</h2>
+    </div>
+    <div class="progress-label"><span id="progress-text">Question 1 of 8</span></div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progress-fill"></div>
+    </div>
+
+    <!-- Q1 -->
+    <div class="q-card active" data-q="1">
+      <h3>What is your current education level?</h3>
+      <button class="q-option" data-key="educationLevel" data-value="someHighSchool">Some high school (did not finish)</button>
+      <button class="q-option" data-key="educationLevel" data-value="highSchool">High school diploma or equivalent</button>
+      <button class="q-option" data-key="educationLevel" data-value="someCollege">Some college</button>
+      <button class="q-option" data-key="educationLevel" data-value="other">Other / not sure</button>
+    </div>
+
+    <!-- Q2 -->
+    <div class="q-card" data-q="2">
+      <h3>What is your main goal?</h3>
+      <button class="q-option" data-key="goal" data-value="ged">Earn a GED or high school equivalency (HiSET)</button>
+      <button class="q-option" data-key="goal" data-value="skills">Improve reading, writing, or math skills</button>
+      <button class="q-option" data-key="goal" data-value="esl">Learn or improve English (ESL)</button>
+      <button class="q-option" data-key="goal" data-value="college">Prepare for college or vocational training</button>
+      <button class="q-option" data-key="goal" data-value="job">Get a better job or change careers</button>
+    </div>
+
+    <!-- Q3 -->
+    <div class="q-card" data-q="3">
+      <h3>What language do you feel most comfortable learning in?</h3>
+      <button class="q-option" data-key="language" data-value="englishOnly">English only</button>
+      <button class="q-option" data-key="language" data-value="bilingual">English and another language (Hmong, Spanish, Somali, etc.)</button>
+      <button class="q-option" data-key="language" data-value="eslSupport">Primarily another language — I need ESL support</button>
+    </div>
+
+    <!-- Q4 -->
+    <div class="q-card" data-q="4">
+      <h3>How many hours per week can you study or attend class?</h3>
+      <button class="q-option" data-key="hoursPerWeek" data-value="under5">Fewer than 5 hours</button>
+      <button class="q-option" data-key="hoursPerWeek" data-value="5to10">5 to 10 hours</button>
+      <button class="q-option" data-key="hoursPerWeek" data-value="10to20">10 to 20 hours</button>
+      <button class="q-option" data-key="hoursPerWeek" data-value="over20">More than 20 hours</button>
+    </div>
+
+    <!-- Q5 -->
+    <div class="q-card" data-q="5">
+      <h3>What time of day works best for you?</h3>
+      <button class="q-option" data-key="timeOfDay" data-value="daytime">Daytime (weekdays)</button>
+      <button class="q-option" data-key="timeOfDay" data-value="evenings">Evenings</button>
+      <button class="q-option" data-key="timeOfDay" data-value="weekends">Weekends</button>
+      <button class="q-option" data-key="timeOfDay" data-value="online">Online / self-paced (any time)</button>
+    </div>
+
+    <!-- Q6 -->
+    <div class="q-card" data-q="6">
+      <h3>Do you have children or other caregiving responsibilities?</h3>
+      <button class="q-option" data-key="hasDependents" data-value="yes">Yes — childcare availability matters to me</button>
+      <button class="q-option" data-key="hasDependents" data-value="no">No</button>
+    </div>
+
+    <!-- Q7 -->
+    <div class="q-card" data-q="7">
+      <h3>Do you have reliable transportation or access to transit?</h3>
+      <button class="q-option" data-key="hasTransport" data-value="yes">Yes, I have a car or reliable transit</button>
+      <button class="q-option" data-key="hasTransport" data-value="limited">Limited — I need a program close to home or online</button>
+    </div>
+
+    <!-- Q8 -->
+    <div class="q-card" data-q="8">
+      <h3>Which area are you in?</h3>
+      <button class="q-option" data-key="location" data-value="maplewood">Maplewood</button>
+      <button class="q-option" data-key="location" data-value="northStPaul">North Saint Paul</button>
+      <button class="q-option" data-key="location" data-value="oakdale">Oakdale</button>
+      <button class="q-option" data-key="location" data-value="littleCanada">Little Canada / Landfall / Pine Springs</button>
+      <button class="q-option" data-key="location" data-value="otherEastMetro">Other east-metro area</button>
+    </div>
+
+    <div class="q-nav">
+      <button class="btn-nav" id="btn-prev" onclick="prevQuestion()" disabled>Back</button>
+      <button class="btn-nav primary" id="btn-next" onclick="nextQuestion()">Next</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ SECTION 3: PATHWAY ═══════════ -->
+<section id="sec-pathway" class="section">
+  <div class="pathway-container">
+    <div class="pathway-header">
+      <h2>Your Personalized Pathway</h2>
+      <p>Based on your answers, here are the steps ahead of you.</p>
+    </div>
+    <div class="roadmap" id="roadmap-container">
+      <!-- Filled by JS -->
+    </div>
+    <div class="pathway-actions">
+      <button class="btn-action filled" onclick="window.print()">Print My Pathway</button>
+      <button class="btn-action" onclick="scrollToSection('sec-programs')">See Programs Near Me</button>
+      <button class="btn-action" onclick="startOver()">Start Over</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ SECTION 4: PROGRAMS ═══════════ -->
+<section id="sec-programs" class="section">
+  <div class="programs-container">
+    <div class="programs-header">
+      <h2>East-Metro Program Finder</h2>
+    </div>
+    <div class="program-grid" id="program-grid">
+      <!-- Filled by JS -->
+    </div>
+    <div class="statewide-cta">
+      <p>Not in SD-44? Find programs across the state.</p>
+      <!-- VERIFY: URL from software brief — public MDE resource -->
+      <a href="https://pub.education.mn.gov/abemap/" target="_blank" rel="noopener">Minnesota ABE Program Map</a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ SECTION 5: ABOUT / FOOTER ═══════════ -->
+<section id="sec-about" class="section">
+  <div class="about-content">
+    <h3>About This Tool</h3>
+    <p>
+      Senator Tou Xiong's SF2341 put $65 million behind adult basic education in Minnesota.
+      This tool was built to help the people in his district actually find and use those programs.
+      He graduated from Tartan High School — the same ISD 622 district that runs the
+      North Saint Paul-Maplewood ABE program this tool highlights. The path he took
+      is the path this tool maps.
+    </p>
+    <p>
+      Senator Xiong chairs the Senate State and Local Government Committee. He was born
+      to Hmong refugees from Laos, earned his B.A. in Economics from St. Cloud State University
+      and his J.D. from William Mitchell College of Law (now Mitchell Hamline). He has worked
+      at Minnesota Legal Aid, the Public Health Law Center, and served on the Ramsey County
+      Library Board of Directors.
+    </p>
+    <p class="footer-line">
+      A resource for SD-44 communities and adult learners across Minnesota.
+      Built with AI to demonstrate what technology can do for the people Senator Xiong's
+      legislation serves. Data reflects Minnesota ABE programs and test costs as of 2025.
+      All information should be verified with the relevant institution before making decisions.
+    </p>
+  </div>
+</section>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════════════════════ */
+const TOTAL_QUESTIONS = 8;
+let currentQ = 1;
+let profile = loadProfile();
+
+function loadProfile() {
+  try {
+    const saved = localStorage.getItem('xiong-planner-profile');
+    return saved ? JSON.parse(saved) : {};
+  } catch(e) { return {}; }
+}
+
+function saveProfile() {
+  try { localStorage.setItem('xiong-planner-profile', JSON.stringify(profile)); } catch(e) {}
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ENTRY ANIMATION
+   ═══════════════════════════════════════════════════════════ */
+setTimeout(function() {
+  var overlay = document.getElementById('entry-overlay');
+  overlay.classList.add('done');
+  setTimeout(function() { overlay.style.display = 'none'; }, 700);
+}, 2200);
+
+/* ═══════════════════════════════════════════════════════════
+   DOT NAVIGATION
+   ═══════════════════════════════════════════════════════════ */
+document.querySelectorAll('.dot').forEach(function(dot) {
+  dot.addEventListener('click', function() {
+    scrollToSection(dot.getAttribute('data-section'));
+  });
+  dot.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      scrollToSection(dot.getAttribute('data-section'));
+    }
+  });
+});
+
+function scrollToSection(id) {
+  var el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth' });
+}
+
+/* Intersection Observer for dot active state */
+var sectionIds = ['sec-hero','sec-intake','sec-pathway','sec-programs','sec-about'];
+var observer = new IntersectionObserver(function(entries) {
+  entries.forEach(function(entry) {
+    if (entry.isIntersecting) {
+      document.querySelectorAll('.dot').forEach(function(d) { d.classList.remove('active'); });
+      var dot = document.querySelector('.dot[data-section="' + entry.target.id + '"]');
+      if (dot) dot.classList.add('active');
+    }
+  });
+}, { threshold: 0.4 });
+
+sectionIds.forEach(function(id) {
+  var el = document.getElementById(id);
+  if (el) observer.observe(el);
+});
+
+/* ═══════════════════════════════════════════════════════════
+   INTAKE QUESTIONNAIRE
+   ═══════════════════════════════════════════════════════════ */
+function updateProgress() {
+  var pct = ((currentQ - 1) / TOTAL_QUESTIONS) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-text').textContent = 'Question ' + currentQ + ' of ' + TOTAL_QUESTIONS;
+  document.getElementById('btn-prev').disabled = (currentQ === 1);
+
+  var nextBtn = document.getElementById('btn-next');
+  var card = document.querySelector('.q-card[data-q="' + currentQ + '"]');
+  var key = card.querySelector('.q-option') ? card.querySelector('.q-option').getAttribute('data-key') : null;
+  var answered = key && profile[key];
+  nextBtn.textContent = (currentQ === TOTAL_QUESTIONS) ? 'See My Path' : 'Next';
+}
+
+function showQuestion(n) {
+  document.querySelectorAll('.q-card').forEach(function(c) { c.classList.remove('active'); });
+  var target = document.querySelector('.q-card[data-q="' + n + '"]');
+  if (target) target.classList.add('active');
+
+  // Restore selection state
+  target.querySelectorAll('.q-option').forEach(function(opt) {
+    var key = opt.getAttribute('data-key');
+    var val = opt.getAttribute('data-value');
+    opt.classList.toggle('selected', profile[key] === val);
+  });
+
+  updateProgress();
+}
+
+// Option click handler
+document.querySelectorAll('.q-option').forEach(function(opt) {
+  opt.addEventListener('click', function() {
+    var key = opt.getAttribute('data-key');
+    var val = opt.getAttribute('data-value');
+    profile[key] = val;
+    saveProfile();
+
+    // Update sibling selections
+    opt.closest('.q-card').querySelectorAll('.q-option').forEach(function(o) {
+      o.classList.toggle('selected', o.getAttribute('data-value') === val);
+    });
+
+    updateProgress();
+  });
+});
+
+function nextQuestion() {
+  var card = document.querySelector('.q-card[data-q="' + currentQ + '"]');
+  var key = card.querySelector('.q-option') ? card.querySelector('.q-option').getAttribute('data-key') : null;
+  if (key && !profile[key]) return; // must select before advancing
+
+  if (currentQ < TOTAL_QUESTIONS) {
+    currentQ++;
+    showQuestion(currentQ);
+  } else {
+    generatePathway();
+    renderPrograms();
+    document.getElementById('sec-pathway').classList.add('visible');
+    document.getElementById('sec-programs').classList.add('visible');
+    scrollToSection('sec-pathway');
+  }
+}
+
+function prevQuestion() {
+  if (currentQ > 1) {
+    currentQ--;
+    showQuestion(currentQ);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PATHWAY GENERATION (Module 2)
+   ═══════════════════════════════════════════════════════════ */
+function generatePathway() {
+  var stages = [];
+  var stageNum = 0;
+
+  // Stage A: Foundation
+  if (profile.educationLevel === 'someHighSchool' || profile.language === 'eslSupport') {
+    stageNum++;
+    var content = '<h3>Stage A: Foundation</h3>';
+    content += '<p><strong>Adult Basic Education (ABE)</strong> classes build core reading, writing, and math skills. ABE is free or very low cost for all Minnesota adults. About 50,000 adults use ABE programs across the state each year.</p>';
+    if (profile.language === 'eslSupport' || profile.language === 'bilingual') {
+      content += '<p><strong>English Learner (EL/ESL) programs</strong> are part of ABE and available at most sites. About half of Minnesota ABE students are English learners. Programs serve speakers of Hmong, Spanish, Somali, and many other languages.</p>';
+    }
+    content += '<p>Foundation work typically takes 3 to 12 months depending on your starting point. Your local ABE program will do an assessment to place you at the right level.</p>';
+    stages.push({ num: stageNum, html: content });
+  }
+
+  // Stage B: High School Equivalency
+  if (profile.goal === 'ged' || profile.educationLevel === 'someHighSchool') {
+    stageNum++;
+    var timeEst = getTimeEstimate();
+    var content = '<h3>Stage B: High School Equivalency</h3>';
+    content += '<p>Minnesota accepts two high school equivalency exams. Both are valid for employment and college admission in the state. Either path works.</p>';
+    content += '<div class="compare-row">';
+    content += '<div class="compare-col">';
+    content += '<h4>GED</h4>';
+    /* VERIFY: GED cost from software brief — confirmed via MDE and GED.com */
+    content += '<div class="cost-figure data-text">$36/subject</div>';
+    content += '<p>4 subjects, $144 total. Widely recognized nationwide.</p>';
+    content += '</div>';
+    content += '<div class="compare-col">';
+    content += '<h4>HiSET</h4>';
+    /* VERIFY: HiSET cost from software brief — confirmed via MDE */
+    content += '<div class="cost-figure data-text">$28/subtest</div>';
+    content += '<p>5 subtests, $140 total. Also fully accepted in Minnesota.</p>';
+    content += '</div>';
+    content += '</div>';
+    content += '<p class="compare-note">Promo code <strong class="data-text">MNHSEFREE</strong> covers first-attempt fees while state funds last.</p>';
+    content += '<div class="time-band">';
+    content += '<div class="stat-number">' + timeEst.range + '</div>';
+    content += '<p>of prep at your availability (' + timeEst.hours + ')</p>';
+    content += '<p class="fine-print">These are estimates. Your local ABE program can give you a more specific timeline after an assessment.</p>';
+    content += '</div>';
+    content += '<p style="font-size:13px;color:var(--white-70);">Minnesota funds commissioner-selected test options. Check with your local ABE provider about which test they recommend.</p>';
+    stages.push({ num: stageNum, html: content });
+  }
+
+  // Stage C: Next Credential
+  if (profile.goal === 'job' || profile.goal === 'college') {
+    stageNum++;
+    var content = '<h3>Stage C: Next Credential</h3>';
+    content += '<p>After your equivalency (or if you already have a diploma), these are common next steps in the east metro:</p>';
+    content += '<div class="support-item"><strong>Community or technical college</strong> — 2-year degrees or shorter certificates at schools like Century College. Connects directly to careers in healthcare, IT, trades, and more.</div>';
+    content += '<div class="support-item"><strong>Apprenticeships</strong> — earn while you learn in construction, manufacturing, and healthcare. Programs combine paid on-the-job training with classroom instruction.</div>';
+    content += '<div class="support-item"><strong>Industry certifications</strong> — targeted credentials like CDL (trucking), CNA (nursing assistant), or HVAC. Many take weeks to months, not years.</div>';
+    content += '<div class="support-item"><strong>CareerForce</strong> — Minnesota\'s network of job search and placement centers. They help with resumes, interviews, and connecting you to employers. Free to use.</div>';
+    content += '<p style="font-size:13px;color:var(--white-70);margin-top:10px;">For college programs, visit the Minnesota State system at minnstate.edu. For job services, visit mn.gov/deed/careerforce.</p>';
+    stages.push({ num: stageNum, html: content });
+  }
+
+  // Stage D: Support Resources (always)
+  stageNum++;
+  var content = '<h3>Stage D: Support Resources</h3>';
+  content += '<p>Getting your credential is easier when you know what help is available.</p>';
+
+  if (profile.hasDependents === 'yes') {
+    content += '<div class="support-item"><strong>Childcare.</strong> Minnesota\'s Child Care Assistance Program (CCAP) helps adults in education and training programs cover childcare costs. Ask your ABE program coordinator about eligibility.</div>';
+  }
+
+  if (profile.hasTransport === 'limited') {
+    content += '<div class="support-item"><strong>Transportation.</strong> East-metro communities are served by Metro Transit. Many ABE sites also offer online or hybrid class options that reduce the need to travel.</div>';
+  }
+
+  content += '<div class="support-item"><strong>Cost.</strong> ABE classes are free or very low cost. GED and HiSET first attempts are covered by the state promo code MNHSEFREE while funding lasts.</div>';
+
+  /* VERIFY: SF2341 data from software brief — confirmed via MN Revisor */
+  content += '<div class="sf-callout"><strong>Your senator funded this.</strong> SF2341, filed by Sen. Tou Xiong (SD-44) on March 7, 2025, increased state ABE aid from $52,759,000 to $65,170,000 for FY2026 and raised commissioner-selected HSE test funding from $10,000 to $12,000. The programs you are about to use got more funding because of that bill.</div>';
+
+  stages.push({ num: stageNum, html: content });
+
+  // Render
+  var container = document.getElementById('roadmap-container');
+  container.innerHTML = '';
+  stages.forEach(function(s) {
+    var div = document.createElement('div');
+    div.className = 'stage';
+    div.innerHTML = '<div class="stage-marker">' + s.num + '</div><div class="stage-content">' + s.html + '</div>';
+    container.appendChild(div);
+  });
+}
+
+function getTimeEstimate() {
+  var h = profile.hoursPerWeek;
+  if (h === 'under5') return { range: '18 \u2013 24 months', hours: 'fewer than 5 hrs/week' };
+  if (h === '5to10') return { range: '12 \u2013 18 months', hours: '5\u201310 hrs/week' };
+  if (h === '10to20') return { range: '6 \u2013 12 months', hours: '10\u201320 hrs/week' };
+  return { range: '3 \u2013 6 months', hours: '20+ hrs/week' };
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PROGRAM DIRECTORY (Module 3)
+   ═══════════════════════════════════════════════════════════ */
+var programs = [
+  {
+    name: 'ISD 622 Community Education',
+    org: 'North Saint Paul\u2013Maplewood\u2013Oakdale School District',
+    type: 'Adult Basic Education',
+    serves: ['maplewood','northStPaul','oakdale'],
+    schedule: ['daytime','evenings'],
+    languages: 'English, Hmong, Spanish, Somali (verify current offerings)',
+    childcare: 'Call to confirm',
+    /* VERIFY: Website URL from software brief — public record */
+    contact: 'isd622.org/communityeducation',
+    note: "Senator Xiong's home district program"
+  },
+  {
+    name: 'Hubbs Center for Lifelong Learning',
+    org: 'Saint Paul Public Schools',
+    type: 'GED/HiSET testing site, ABE classes',
+    serves: ['maplewood','northStPaul','oakdale','littleCanada','otherEastMetro'],
+    schedule: ['daytime','evenings'],
+    languages: 'English, multilingual support available',
+    childcare: 'Call to confirm',
+    /* VERIFY: Address and website from software brief */
+    contact: 'hubbs.spps.org | 1030 University Ave W, Saint Paul, MN 55104',
+    note: 'Accessible from east metro via public transit'
+  },
+  {
+    name: 'Century College',
+    org: 'Minnesota State system (White Bear Lake)',
+    type: 'ABE, developmental education, degrees and certificates',
+    serves: ['oakdale','maplewood','littleCanada','otherEastMetro'],
+    schedule: ['daytime','evenings','online'],
+    languages: 'English (ESL courses available)',
+    childcare: 'Call to confirm',
+    /* VERIFY: Website from software brief */
+    contact: 'century.edu',
+    note: 'Also offers certificate and degree pathways after your GED'
+  },
+  {
+    name: 'Metro North Adult Basic Education',
+    org: 'Anoka-Hennepin School District consortium',
+    type: 'ESL and basic skills programs',
+    serves: ['littleCanada','maplewood','otherEastMetro'],
+    schedule: ['daytime','evenings'],
+    languages: 'Hmong, Spanish, Somali speakers served',
+    childcare: 'Call to confirm',
+    contact: 'Contact through Anoka-Hennepin Community Education',
+    note: 'ESL programs available for multiple language communities'
+  },
+  {
+    name: 'Literacy Minnesota',
+    org: 'Minnesota Literacy Council',
+    type: 'Online and hybrid ABE options',
+    serves: ['maplewood','northStPaul','oakdale','littleCanada','otherEastMetro'],
+    schedule: ['online','daytime','evenings'],
+    languages: 'Multiple languages served',
+    childcare: 'N/A (online options available)',
+    /* VERIFY: Phone and website from software brief */
+    contact: 'literacymn.org | Adult Literacy Hotline: 1-800-222-1990',
+    note: 'Call the hotline to find the program closest to your address'
+  },
+  {
+    name: 'CareerForce East Metro',
+    org: 'Minnesota DEED Workforce Solutions',
+    type: 'Job placement and training referral (not ABE)',
+    serves: ['maplewood','northStPaul','oakdale','littleCanada','otherEastMetro'],
+    schedule: ['daytime'],
+    languages: 'English (interpreter services available)',
+    childcare: 'N/A',
+    contact: 'mn.gov/deed/careerforce',
+    note: 'After your GED or HiSET, come here for job search support'
+  }
+];
+
+function renderPrograms() {
+  var grid = document.getElementById('program-grid');
+  grid.innerHTML = '';
+
+  var loc = profile.location || '';
+  var time = profile.timeOfDay || '';
+
+  // Score and sort
+  var scored = programs.map(function(p) {
+    var score = 0;
+    if (loc && p.serves.indexOf(loc) !== -1) score += 2;
+    if (time && p.schedule.indexOf(time) !== -1) score += 1;
+    return { program: p, score: score };
+  });
+
+  scored.sort(function(a, b) { return b.score - a.score; });
+
+  scored.forEach(function(item) {
+    var p = item.program;
+    var isMatch = item.score >= 2;
+
+    var div = document.createElement('div');
+    div.className = 'program-entry' + (isMatch ? ' match' : '');
+
+    var html = '';
+    if (isMatch) html += '<span class="match-badge">Schedule Match</span>';
+    html += '<h4>' + p.name + '</h4>';
+    html += '<div class="org-name">' + p.org + '</div>';
+    html += '<div class="program-detail">' + p.type + '</div>';
+    html += '<div class="program-detail">Schedule: ' + p.schedule.join(', ') + '</div>';
+    html += '<div class="program-detail">Languages: ' + p.languages + '</div>';
+    html += '<div class="program-detail">Childcare: ' + p.childcare + '</div>';
+    html += '<div class="program-detail data-text" style="font-size:12px;">' + p.contact + '</div>';
+    if (p.note) html += '<div class="program-note">' + p.note + '</div>';
+
+    div.innerHTML = html;
+    grid.appendChild(div);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   START OVER
+   ═══════════════════════════════════════════════════════════ */
+function startOver() {
+  profile = {};
+  saveProfile();
+  currentQ = 1;
+  showQuestion(1);
+  document.getElementById('sec-pathway').classList.remove('visible');
+  document.getElementById('sec-programs').classList.remove('visible');
+  document.getElementById('roadmap-container').innerHTML = '';
+  document.getElementById('program-grid').innerHTML = '';
+  scrollToSection('sec-intake');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RESTORE STATE ON LOAD
+   ═══════════════════════════════════════════════════════════ */
+(function() {
+  // If there's a saved profile with all 8 answers, show results
+  var keys = ['educationLevel','goal','language','hoursPerWeek','timeOfDay','hasDependents','hasTransport','location'];
+  var complete = keys.every(function(k) { return profile[k]; });
+
+  if (complete) {
+    generatePathway();
+    renderPrograms();
+    document.getElementById('sec-pathway').classList.add('visible');
+    document.getElementById('sec-programs').classList.add('visible');
+  }
+
+  showQuestion(currentQ);
+})();
+
+/* ═══════════════════════════════════════════════════════════
+   KEYBOARD NAVIGATION
+   ═══════════════════════════════════════════════════════════ */
+document.addEventListener('keydown', function(e) {
+  // Allow Enter/Space to trigger focused option buttons
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('q-option')) {
+    e.preventDefault();
+    e.target.click();
+    return;
+  }
+
+  // Arrow keys to navigate questions
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+    var activeCard = document.querySelector('.q-card.active');
+    if (activeCard && document.activeElement.classList.contains('q-option')) {
+      var opts = Array.from(activeCard.querySelectorAll('.q-option'));
+      var idx = opts.indexOf(document.activeElement);
+      if (idx < opts.length - 1) {
+        opts[idx + 1].focus();
+        e.preventDefault();
+      }
+    }
+  }
+
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+    var activeCard = document.querySelector('.q-card.active');
+    if (activeCard && document.activeElement.classList.contains('q-option')) {
+      var opts = Array.from(activeCard.querySelectorAll('.q-option'));
+      var idx = opts.indexOf(document.activeElement);
+      if (idx > 0) {
+        opts[idx - 1].focus();
+        e.preventDefault();
+      }
+    }
+  }
+});
+
+/* ═══════════════════════════════════════════════════════════
+   SCROLL-DRIVEN SECTION COLOR TRANSITIONS
+   Add a subtle parallax shift to each section background
+   ═══════════════════════════════════════════════════════════ */
+(function() {
+  var sections = document.querySelectorAll('.section');
+  var ticking = false;
+
+  function onScroll() {
+    if (!ticking) {
+      requestAnimationFrame(function() {
+        var scrollY = window.scrollY;
+        var vh = window.innerHeight;
+        sections.forEach(function(sec) {
+          var rect = sec.getBoundingClientRect();
+          var progress = 1 - (rect.top / vh);
+          if (progress > 0 && progress < 2) {
+            var shift = Math.max(0, Math.min(1, progress - 0.5));
+            sec.style.backgroundPositionY = (shift * 20) + '%';
+          }
+        });
+        ticking = false;
+      });
+      ticking = true;
+    }
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+})();
+
+/* ═══════════════════════════════════════════════════════════
+   ACCESSIBLE FOCUS STYLES — ensure keyboard users see focus
+   ═══════════════════════════════════════════════════════════ */
+(function() {
+  var styleEl = document.createElement('style');
+  styleEl.textContent = [
+    '.q-option:focus-visible { outline: 3px solid rgba(255,255,255,0.8); outline-offset: 2px; }',
+    '.btn-nav:focus-visible, .btn-start:focus-visible, .btn-action:focus-visible { outline: 3px solid rgba(255,255,255,0.8); outline-offset: 2px; }',
+    '.dot:focus-visible { outline: 2px solid rgba(255,255,255,0.8); outline-offset: 4px; }',
+    '.program-entry:focus-within { outline: 2px solid rgba(255,255,255,0.4); outline-offset: 2px; }'
+  ].join('\n');
+  document.head.appendChild(styleEl);
+})();
+
+/* ═══════════════════════════════════════════════════════════
+   SUMMARY DATA FOR PRINT
+   Build a learner summary line at the top of the pathway
+   ═══════════════════════════════════════════════════════════ */
+function getLearnerSummary() {
+  var parts = [];
+  var goalMap = {
+    ged: 'Earn GED/HiSET',
+    skills: 'Improve basic skills',
+    esl: 'Learn English (ESL)',
+    college: 'Prepare for college/vocational training',
+    job: 'Career change or better job'
+  };
+  var locMap = {
+    maplewood: 'Maplewood',
+    northStPaul: 'North Saint Paul',
+    oakdale: 'Oakdale',
+    littleCanada: 'Little Canada / Landfall / Pine Springs',
+    otherEastMetro: 'Other east metro'
+  };
+
+  if (profile.goal && goalMap[profile.goal]) parts.push('Goal: ' + goalMap[profile.goal]);
+  if (profile.location && locMap[profile.location]) parts.push('Area: ' + locMap[profile.location]);
+
+  var hoursMap = {
+    under5: '<5 hrs/week',
+    '5to10': '5\u201310 hrs/week',
+    '10to20': '10\u201320 hrs/week',
+    over20: '20+ hrs/week'
+  };
+  if (profile.hoursPerWeek && hoursMap[profile.hoursPerWeek]) {
+    parts.push('Availability: ' + hoursMap[profile.hoursPerWeek]);
+  }
+
+  return parts.join('  |  ');
+}
+
+/* Inject summary into pathway header when pathway is generated */
+var origGenerate = generatePathway;
+generatePathway = function() {
+  origGenerate();
+  var header = document.querySelector('.pathway-header p');
+  if (header) {
+    var summary = getLearnerSummary();
+    if (summary) {
+      header.innerHTML = 'Based on your answers: <span class="data-text" style="font-size:13px;display:block;margin-top:6px;color:var(--white-70);">' + summary + '</span>';
+    }
+  }
+};
+
+/* ═══════════════════════════════════════════════════════════
+   CONTEXT: MINNESOTA ABE SCALE
+   Display system scale as ambient context in the about section
+   ═══════════════════════════════════════════════════════════ */
+(function() {
+  var aboutContent = document.querySelector('.about-content');
+  if (aboutContent) {
+    var scaleDiv = document.createElement('div');
+    scaleDiv.style.cssText = 'display:flex;justify-content:center;gap:40px;margin:20px 0;flex-wrap:wrap;';
+    scaleDiv.innerHTML = [
+      '<div style="text-align:center"><div class="stat-number data-text" style="font-size:28px;">~50,000</div><div style="font-size:11px;color:var(--white-50);margin-top:2px;">adult students/year</div></div>',
+      '<div style="text-align:center"><div class="stat-number data-text" style="font-size:28px;">300+</div><div style="font-size:11px;color:var(--white-50);margin-top:2px;">ABE sites statewide</div></div>',
+      '<div style="text-align:center"><div class="stat-number data-text" style="font-size:28px;">~50%</div><div style="font-size:11px;color:var(--white-50);margin-top:2px;">are English learners</div></div>'
+    ].join('');
+    var firstP = aboutContent.querySelector('p');
+    if (firstP) aboutContent.insertBefore(scaleDiv, firstP);
+  }
+})();
+</script>
+</body>
+</html>

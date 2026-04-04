@@ -1,0 +1,1632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Farm Input &amp; Green Ammonia Cost Dashboard — SD-12</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script>
+if(typeof Chart==='undefined'){console.warn('Charts unavailable offline — all numeric results remain functional.');}
+</script>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Dashboard grid — 2x2 major panels with a full-width summary bar across the top; asymmetric density (tight data grids vs. spacious hero ticker)
+   2. Navigation: Tab row inset into the summary bar (not a separate nav element, not rounded-top tabs)
+   3. Typography: Cambria (serif body/labels), Franklin Gothic Medium (headers/nav), Lucida Console (data values/monospace)
+   4. Hero moment: Oversized anhydrous ammonia $/ton price ticker in industrial stencil style — dominates upper-right quadrant
+   5. Color strategy: #1 Monochromatic — deep earth brown (#2a1f14 to #f5efe8) with a single pop of chemical green (#7cb342) for ammonia/nitrogen elements
+   6. Entry experience: Animated nitrogen molecule SVG that breaks apart into the four dashboard panels
+   Additional: No parchment-on-white cards; alternating dark brown rows for data; environmental color (70%+ brown tones); industrial/agricultural dashboard aesthetic
+*/
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --brown-900:#2a1f14;
+  --brown-800:#3d2e1e;
+  --brown-700:#5a4433;
+  --brown-600:#7a6247;
+  --brown-500:#9a8068;
+  --brown-400:#b49e86;
+  --brown-300:#cdbaa5;
+  --brown-200:#e2d5c5;
+  --brown-100:#f0e8dc;
+  --brown-50:#f5efe8;
+  --green:#7cb342;
+  --green-dim:#5a8a30;
+  --green-light:#a4d65e;
+  --red:#b03030;
+  --amber:#c99a2a;
+  --font-head:'Franklin Gothic Medium','Franklin Gothic','Arial Narrow',sans-serif;
+  --font-body:Cambria,'Palatino Linotype',serif;
+  --font-data:'Lucida Console',Monaco,monospace;
+}
+html{font-size:15px;}
+body{
+  background:var(--brown-900);
+  color:var(--brown-100);
+  font-family:var(--font-body);
+  line-height:1.45;
+  min-height:100vh;
+  overflow:hidden;
+}
+/* === ENTRY ANIMATION OVERLAY === */
+#entry-overlay{
+  position:fixed;inset:0;z-index:9999;
+  background:var(--brown-900);
+  display:flex;align-items:center;justify-content:center;
+  flex-direction:column;
+  transition:opacity .8s ease;
+}
+#entry-overlay.fade-out{opacity:0;pointer-events:none;}
+#entry-overlay svg{width:340px;height:340px;}
+#entry-overlay .n-atom{
+  fill:var(--green);
+  transition:all 1.2s cubic-bezier(.23,1,.32,1);
+  transform-origin:center;
+}
+#entry-overlay .h-atom{
+  fill:var(--brown-300);
+  transition:all 1.2s cubic-bezier(.23,1,.32,1);
+  transform-origin:center;
+}
+#entry-overlay .bond{
+  stroke:var(--brown-500);
+  stroke-width:2.5;
+  transition:all 1s ease;
+  stroke-dasharray:0;
+}
+/* Pulse animation before explode */
+@keyframes atomPulse{
+  0%,100%{r:28;}
+  50%{r:32;}
+}
+#entry-overlay:not(.explode) .n-atom{animation:atomPulse 1.5s ease infinite;}
+@keyframes atomPulseSmall{
+  0%,100%{r:20;}
+  50%{r:24;}
+}
+#entry-overlay:not(.explode) .h-atom{animation:atomPulseSmall 1.5s ease infinite .3s;}
+/* Explode states — each atom flies to a different corner (maps to 2x2 grid) */
+#entry-overlay.explode .n-atom.tl{transform:translate(-160px,-140px);opacity:0;}
+#entry-overlay.explode .n-atom.tr{transform:translate(160px,-140px);opacity:0;}
+#entry-overlay.explode .h-atom.bl{transform:translate(-160px,140px);opacity:0;}
+#entry-overlay.explode .h-atom.br{transform:translate(160px,140px);opacity:0;}
+#entry-overlay.explode .bond{opacity:0;stroke-dasharray:80;stroke-dashoffset:80;}
+#entry-overlay.explode .center-atom{transform:scale(0);opacity:0;}
+#entry-overlay .center-atom{
+  transition:all .8s cubic-bezier(.23,1,.32,1) .2s;
+  transform-origin:170px 170px;
+}
+#entry-overlay .entry-label{
+  font-family:var(--font-head);font-size:13px;letter-spacing:5px;
+  text-transform:uppercase;color:var(--brown-400);
+  margin-top:24px;
+  transition:opacity .6s ease;
+}
+#entry-overlay.explode .entry-label{opacity:0;}
+#entry-overlay .entry-sub{
+  font-family:var(--font-body);font-size:11px;color:var(--brown-600);
+  margin-top:6px;letter-spacing:1px;
+  transition:opacity .6s ease;
+}
+#entry-overlay.explode .entry-sub{opacity:0;}
+/* === MAIN LAYOUT === */
+#app{
+  display:grid;
+  grid-template-rows:auto 1fr;
+  grid-template-columns:1fr 1fr;
+  height:100vh;
+  opacity:0;transition:opacity .6s ease .3s;
+}
+#app.visible{opacity:1;}
+/* === SUMMARY BAR (full width top) === */
+#summary-bar{
+  grid-column:1/-1;
+  background:var(--brown-800);
+  border-bottom:3px solid var(--green);
+  display:flex;align-items:stretch;
+  min-height:62px;
+}
+#summary-bar .brand{
+  padding:10px 20px;display:flex;flex-direction:column;justify-content:center;
+  border-right:1px solid var(--brown-700);min-width:260px;
+}
+#summary-bar .brand h1{
+  font-family:var(--font-head);font-size:14px;letter-spacing:3px;
+  text-transform:uppercase;color:var(--brown-100);font-weight:500;line-height:1.2;
+}
+#summary-bar .brand .subtitle{
+  font-size:11px;color:var(--brown-400);margin-top:2px;
+}
+/* Tab row inset into summary bar */
+#tab-row{
+  display:flex;align-items:stretch;flex:1;
+}
+#tab-row button{
+  background:none;border:none;border-bottom:3px solid transparent;
+  padding:0 22px;cursor:pointer;
+  font-family:var(--font-head);font-size:12px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--brown-400);
+  transition:color .2s,border-color .2s,background .2s;
+  white-space:nowrap;
+}
+#tab-row button:hover{color:var(--brown-100);background:rgba(124,179,66,.06);}
+#tab-row button.active{
+  color:var(--green);border-bottom-color:var(--green);
+  background:rgba(124,179,66,.08);
+}
+#summary-stats{
+  display:flex;align-items:center;gap:24px;
+  padding:0 20px;margin-left:auto;
+  border-left:1px solid var(--brown-700);
+}
+.summary-stat{text-align:right;}
+.summary-stat .ss-label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--brown-500);font-family:var(--font-head);}
+.summary-stat .ss-val{font-family:var(--font-data);font-size:16px;color:var(--green);font-weight:700;}
+
+/* === PANELS (2x2 grid) === */
+#panel-area{
+  grid-column:1/-1;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  grid-template-rows:1fr 1fr;
+  gap:0;
+  overflow:hidden;
+}
+.panel{
+  overflow-y:auto;
+  padding:18px 22px;
+  border-right:1px solid var(--brown-800);
+  border-bottom:1px solid var(--brown-800);
+}
+.panel:nth-child(2){border-right:none;}
+.panel:nth-child(4){border-right:none;}
+.panel:nth-child(3),.panel:nth-child(4){border-bottom:none;}
+
+/* Module containers */
+.module{display:none;}
+.module.active{display:block;}
+
+/* === HERO TICKER (upper-right panel default) === */
+#hero-ticker{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:100%;text-align:center;
+}
+#hero-ticker .ticker-label{
+  font-family:var(--font-head);font-size:11px;letter-spacing:4px;
+  text-transform:uppercase;color:var(--brown-500);margin-bottom:8px;
+}
+#hero-ticker .ticker-value{
+  font-family:var(--font-data);font-size:72px;font-weight:700;
+  color:var(--green);letter-spacing:-2px;
+  text-shadow:0 0 40px rgba(124,179,66,.2);
+  line-height:1;
+}
+#hero-ticker .ticker-unit{
+  font-family:var(--font-head);font-size:14px;letter-spacing:3px;
+  text-transform:uppercase;color:var(--brown-400);margin-top:6px;
+}
+#hero-ticker .ticker-note{
+  font-size:11px;color:var(--brown-500);margin-top:12px;max-width:260px;
+}
+#hero-ticker .stencil-bar{
+  width:180px;height:3px;background:var(--green);margin:10px auto 0;
+  opacity:.5;
+}
+
+/* === FORM STYLING === */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;}
+.form-grid.single{grid-template-columns:1fr;}
+.form-group{display:flex;flex-direction:column;gap:2px;}
+.form-group label{
+  font-family:var(--font-head);font-size:10px;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--brown-400);
+}
+.form-group input,.form-group select{
+  background:var(--brown-800);border:1px solid var(--brown-600);
+  color:var(--brown-100);font-family:var(--font-data);font-size:13px;
+  padding:6px 8px;border-radius:2px;
+  transition:border-color .2s;
+}
+.form-group input:focus,.form-group select:focus{
+  outline:none;border-color:var(--green);box-shadow:0 0 0 1px rgba(124,179,66,.3);
+}
+.form-group select{cursor:pointer;}
+.form-group .hint{font-size:10px;color:var(--brown-500);font-style:italic;margin-top:1px;}
+.form-section-title{
+  font-family:var(--font-head);font-size:11px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--green);
+  margin:14px 0 6px;padding-bottom:4px;
+  border-bottom:1px solid var(--brown-700);
+  grid-column:1/-1;
+}
+.form-section-title:first-child{margin-top:0;}
+.form-group.full{grid-column:1/-1;}
+.toggle-row{
+  display:flex;gap:6px;align-items:center;
+  grid-column:1/-1;margin:4px 0;
+}
+.toggle-row label{
+  font-family:var(--font-head);font-size:10px;text-transform:uppercase;
+  letter-spacing:1px;color:var(--brown-400);cursor:pointer;
+  padding:3px 8px;border:1px solid var(--brown-600);border-radius:2px;
+  transition:all .2s;
+}
+.toggle-row input[type="radio"]{display:none;}
+.toggle-row input[type="radio"]:checked+label{
+  background:var(--green);color:var(--brown-900);border-color:var(--green);
+}
+
+/* === DATA OUTPUT === */
+.data-table{width:100%;border-collapse:collapse;margin:8px 0;}
+.data-table th{
+  font-family:var(--font-head);font-size:10px;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--brown-400);text-align:left;
+  padding:5px 8px;border-bottom:1px solid var(--brown-600);
+}
+.data-table td{
+  padding:5px 8px;font-size:13px;
+  border-bottom:1px solid rgba(90,68,51,.3);
+}
+.data-table tr:nth-child(even) td{background:rgba(58,46,30,.4);}
+.data-table tr:nth-child(odd) td{background:rgba(42,31,20,.5);}
+.data-table .val{
+  font-family:var(--font-data);color:var(--green-light);text-align:right;
+  white-space:nowrap;
+}
+.data-table .val.key{font-size:15px;color:var(--green);font-weight:700;}
+.big-number{
+  text-align:center;margin:14px 0 6px;
+}
+.big-number .bn-val{
+  font-family:var(--font-data);font-size:38px;color:var(--green);
+  font-weight:700;letter-spacing:-1px;display:block;
+}
+.big-number .bn-label{
+  font-family:var(--font-head);font-size:10px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--brown-400);
+}
+.big-number .bn-rule{
+  width:100px;height:2px;background:var(--green);margin:4px auto 0;opacity:.4;
+}
+/* Comparison table */
+.comp-table{width:100%;border-collapse:collapse;margin:10px 0;}
+.comp-table th{
+  font-family:var(--font-head);font-size:10px;letter-spacing:1.5px;
+  text-transform:uppercase;padding:6px 8px;
+  border-bottom:2px solid var(--brown-600);
+}
+.comp-table th:first-child{text-align:left;color:var(--brown-400);}
+.comp-table th:nth-child(2){text-align:center;color:var(--brown-300);}
+.comp-table th:nth-child(3){text-align:center;color:var(--green);}
+.comp-table td{padding:5px 8px;font-size:12px;border-bottom:1px solid rgba(90,68,51,.3);}
+.comp-table tr:nth-child(even) td{background:rgba(58,46,30,.3);}
+.comp-table td:first-child{color:var(--brown-300);}
+.comp-table td:nth-child(2),.comp-table td:nth-child(3){
+  font-family:var(--font-data);text-align:center;
+}
+.comp-table td:nth-child(2){color:var(--brown-200);}
+.comp-table td:nth-child(3){color:var(--green-light);}
+
+/* Feasibility pill */
+.feasibility-pill{
+  display:inline-block;padding:8px 22px;border-radius:20px;
+  font-family:var(--font-head);font-size:12px;letter-spacing:2px;
+  text-transform:uppercase;color:#fff;font-weight:700;
+  margin:10px auto;text-align:center;
+}
+.feasibility-pill.green{background:var(--green-dim);}
+.feasibility-pill.yellow{background:#8a7a20;}
+.feasibility-pill.red{background:var(--red);}
+.feasibility-text{font-size:12px;color:var(--brown-300);text-align:center;margin-top:4px;max-width:400px;margin-left:auto;margin-right:auto;}
+
+/* Chart containers */
+.chart-wrap{
+  background:rgba(42,31,20,.3);border-radius:3px;
+  padding:10px;margin:10px 0;position:relative;
+}
+.chart-wrap canvas{max-height:200px;}
+
+/* === MODULE 3 / REFERENCE CONTENT === */
+.ref-section{margin-bottom:18px;}
+.ref-section h3{
+  font-family:var(--font-head);font-size:12px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--green);margin-bottom:6px;
+  padding-bottom:4px;border-bottom:1px solid var(--brown-700);
+}
+.ref-section p,.ref-section li{
+  font-size:13px;color:var(--brown-200);line-height:1.5;margin-bottom:6px;
+}
+.ref-section ul{padding-left:16px;}
+.ref-section li{margin-bottom:4px;}
+.ref-link-box{
+  background:var(--brown-800);padding:10px 14px;border-radius:3px;
+  border:1px solid var(--brown-600);margin:8px 0;
+}
+.ref-link-box a{
+  color:var(--green);font-family:var(--font-data);font-size:12px;
+  text-decoration:none;
+}
+.ref-link-box a:hover{text-decoration:underline;}
+.ref-link-box .rl-label{
+  font-family:var(--font-head);font-size:10px;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--brown-400);display:block;margin-bottom:2px;
+}
+.green-callout{
+  background:rgba(124,179,66,.12);border:1px solid var(--green-dim);
+  padding:10px 14px;border-radius:3px;margin:8px 0;
+}
+.green-callout p{color:var(--brown-100);font-size:12px;}
+
+/* Resource list */
+.resource-list{list-style:none;padding:0;}
+.resource-list li{
+  padding:6px 0;border-bottom:1px solid var(--brown-800);
+  display:flex;flex-direction:column;gap:1px;
+}
+.resource-list .rl-name{font-family:var(--font-head);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--brown-300);}
+.resource-list .rl-url{font-family:var(--font-data);font-size:11px;color:var(--green);}
+
+/* Demo badge */
+.demo-badge{
+  display:inline-block;background:var(--green-dim);color:#fff;
+  font-family:var(--font-head);font-size:9px;letter-spacing:2px;
+  text-transform:uppercase;padding:3px 10px;border-radius:2px;margin-bottom:8px;
+}
+/* Buttons */
+.btn{
+  background:var(--green-dim);border:none;color:#fff;
+  font-family:var(--font-head);font-size:11px;letter-spacing:1.5px;
+  text-transform:uppercase;padding:7px 16px;border-radius:2px;
+  cursor:pointer;transition:background .2s;
+}
+.btn:hover{background:var(--green);}
+.btn-row{display:flex;gap:8px;margin:10px 0;flex-wrap:wrap;}
+.btn-sm{padding:4px 10px;font-size:10px;}
+
+/* Footer */
+#footer{
+  grid-column:1/-1;
+  background:var(--brown-900);border-top:1px solid var(--brown-800);
+  padding:8px 20px;
+  font-size:10px;color:var(--brown-500);line-height:1.4;
+  display:none;
+}
+/* === ADDITIONAL VISUAL DETAILS === */
+/* Animated glow on hero ticker value */
+@keyframes tickerGlow{
+  0%,100%{text-shadow:0 0 40px rgba(124,179,66,.15);}
+  50%{text-shadow:0 0 60px rgba(124,179,66,.3),0 0 20px rgba(124,179,66,.1);}
+}
+#hero-ticker .ticker-value{
+  animation:tickerGlow 4s ease infinite;
+}
+/* Industrial stencil feel: add letter-spacing and make it feel cut-out */
+#hero-ticker .ticker-value{
+  letter-spacing:2px;
+  -webkit-text-stroke:1px rgba(124,179,66,.6);
+}
+/* Data table hover */
+.data-table tr:hover td{
+  background:rgba(124,179,66,.08)!important;
+  transition:background .15s;
+}
+.comp-table tr:hover td{
+  background:rgba(124,179,66,.06)!important;
+}
+/* Focus-visible for keyboard accessibility */
+.btn:focus-visible,
+#tab-row button:focus-visible{
+  outline:2px solid var(--green);
+  outline-offset:2px;
+}
+.form-group input:focus-visible,
+.form-group select:focus-visible{
+  outline:2px solid var(--green);
+  outline-offset:1px;
+}
+/* Panel background subtle texture via gradient */
+.panel{
+  background:linear-gradient(
+    180deg,
+    var(--brown-900) 0%,
+    rgba(42,31,20,.7) 100%
+  );
+}
+/* Alternating panel tints for visual differentiation */
+#panel-ul{background:linear-gradient(135deg,var(--brown-900) 0%,rgba(61,46,30,.6) 100%);}
+#panel-ur{background:linear-gradient(135deg,rgba(42,31,20,.9) 0%,var(--brown-900) 100%);}
+#panel-ll{background:linear-gradient(135deg,rgba(42,31,20,.8) 0%,rgba(61,46,30,.5) 100%);}
+#panel-lr{background:linear-gradient(135deg,var(--brown-900) 0%,rgba(42,31,20,.7) 100%);}
+/* scrollbar */
+::-webkit-scrollbar{width:6px;}
+::-webkit-scrollbar-track{background:var(--brown-900);}
+::-webkit-scrollbar-thumb{background:var(--brown-700);border-radius:3px;}
+/* Panel title */
+.panel-title{
+  font-family:var(--font-head);font-size:11px;letter-spacing:3px;
+  text-transform:uppercase;color:var(--brown-400);margin-bottom:10px;
+}
+.intro-text{font-size:13px;color:var(--brown-300);margin-bottom:10px;line-height:1.5;}
+.section-divider{height:1px;background:var(--brown-700);margin:12px 0;}
+
+/* === PRINT === */
+@media print{
+  body{
+    overflow:visible;
+    background:#fff;
+    color:#222;
+    font-size:12px;
+  }
+  #entry-overlay,
+  #tab-row,
+  #summary-stats,
+  .btn-row,
+  .btn,
+  .demo-badge{
+    display:none!important;
+  }
+  #app{
+    display:block!important;
+    height:auto!important;
+    opacity:1!important;
+  }
+  #summary-bar{
+    background:#f0f0f0;
+    border-bottom:2px solid #333;
+    print-color-adjust:exact;
+    -webkit-print-color-adjust:exact;
+  }
+  #summary-bar .brand h1{color:#222;font-size:16px;}
+  #summary-bar .brand .subtitle{color:#555;}
+  #panel-area{
+    display:grid!important;
+    grid-template-columns:1fr 1fr;
+    grid-template-rows:auto auto;
+  }
+  .panel{
+    border:1px solid #ddd!important;
+    page-break-inside:avoid;
+    padding:12px 10px;
+  }
+  .module{display:block!important;}
+  .panel-title{color:#333;}
+  .form-section-title{color:#333;border-color:#ccc;}
+  .data-table td,
+  .data-table th,
+  .comp-table td,
+  .comp-table th{
+    color:#222;
+    border-color:#ccc;
+  }
+  .data-table .val{color:#333;}
+  .data-table .val.key{color:#111;}
+  .big-number .bn-val{color:#111;}
+  .big-number .bn-rule{background:#333;}
+  .feasibility-pill{
+    print-color-adjust:exact;
+    -webkit-print-color-adjust:exact;
+  }
+  .green-callout{
+    border-color:#333;
+    background:#f5f5f0;
+    print-color-adjust:exact;
+    -webkit-print-color-adjust:exact;
+  }
+  .green-callout p{color:#222;}
+  .ref-section p,
+  .ref-section li{color:#222;}
+  .ref-section h3{color:#333;border-color:#ccc;}
+  #hero-ticker .ticker-value{color:#111;font-size:48px;}
+  #hero-ticker .ticker-label,
+  #hero-ticker .ticker-unit{color:#555;}
+  #footer{
+    display:block!important;
+    border-top:1px solid #ccc;
+    color:#666;
+    font-size:9px;
+    padding:6px 10px;
+  }
+  .chart-wrap{
+    page-break-inside:avoid;
+  }
+  .form-group input,
+  .form-group select{
+    border-color:#999;
+    background:#fff;
+    color:#222;
+  }
+}
+/* === RESPONSIVE === */
+@media(max-width:900px){
+  #panel-area{grid-template-columns:1fr;grid-template-rows:auto;}
+  .panel{border-right:none!important;}
+  #hero-ticker .ticker-value{font-size:48px;}
+}
+@media(max-width:768px){
+  #summary-bar{flex-wrap:wrap;}
+  #summary-bar .brand{min-width:auto;flex:1 1 100%;border-right:none;border-bottom:1px solid var(--brown-700);}
+  #tab-row{flex:1 1 100%;overflow-x:auto;}
+  #tab-row button{padding:0 14px;font-size:10px;}
+  #summary-stats{flex:1 1 100%;border-left:none;border-top:1px solid var(--brown-700);padding:6px 12px;justify-content:space-around;}
+  #panel-area{grid-template-columns:1fr;grid-template-rows:auto;}
+  .form-grid{grid-template-columns:1fr;}
+  .comp-table{font-size:11px;}
+}
+</style>
+</head>
+<body>
+<!-- ========== ENTRY ANIMATION ========== -->
+<div id="entry-overlay">
+  <svg viewBox="0 0 340 340" id="molecule-svg">
+    <!-- N atom center -->
+    <line class="bond" x1="170" y1="170" x2="100" y2="100"/>
+    <line class="bond" x1="170" y1="170" x2="240" y2="100"/>
+    <line class="bond" x1="170" y1="170" x2="100" y2="250"/>
+    <line class="bond" x1="170" y1="170" x2="240" y2="250"/>
+    <!-- Atoms — class names map to quadrants: tl=top-left, tr=top-right, bl=bottom-left, br=bottom-right -->
+    <circle class="n-atom tl" cx="100" cy="100" r="28"/>
+    <circle class="n-atom tr" cx="240" cy="100" r="28"/>
+    <circle class="h-atom bl" cx="100" cy="250" r="20"/>
+    <circle class="h-atom br" cx="240" cy="250" r="20"/>
+    <!-- Center N (nitrogen) -->
+    <g class="center-atom">
+      <circle cx="170" cy="170" r="34" fill="#7cb342"/>
+      <text x="170" y="177" text-anchor="middle" fill="#2a1f14"
+            font-family="Franklin Gothic Medium,sans-serif" font-size="22" font-weight="700">N</text>
+    </g>
+    <!-- Labels on outer atoms -->
+    <text x="100" y="107" text-anchor="middle" fill="#2a1f14"
+          font-family="Franklin Gothic Medium,sans-serif" font-size="16" font-weight="700"
+          class="n-atom tl" style="transition:all 1.2s cubic-bezier(.23,1,.32,1)">N</text>
+    <text x="240" y="107" text-anchor="middle" fill="#2a1f14"
+          font-family="Franklin Gothic Medium,sans-serif" font-size="16" font-weight="700"
+          class="n-atom tr" style="transition:all 1.2s cubic-bezier(.23,1,.32,1)">H</text>
+    <text x="100" y="256" text-anchor="middle" fill="#2a1f14"
+          font-family="Franklin Gothic Medium,sans-serif" font-size="14" font-weight="700"
+          class="h-atom bl" style="transition:all 1.2s cubic-bezier(.23,1,.32,1)">H</text>
+    <text x="240" y="256" text-anchor="middle" fill="#2a1f14"
+          font-family="Franklin Gothic Medium,sans-serif" font-size="14" font-weight="700"
+          class="h-atom br" style="transition:all 1.2s cubic-bezier(.23,1,.32,1)">H</text>
+  </svg>
+  <div class="entry-label">NH&#8323; &mdash; Loading Dashboard</div>
+  <div class="entry-sub">Farm Input &amp; Green Ammonia Cost Tool</div>
+</div>
+
+<!-- ========== MAIN APP ========== -->
+<div id="app">
+  <!-- SUMMARY BAR -->
+  <header id="summary-bar">
+    <div class="brand">
+      <h1>Farm Input &amp; Green Ammonia Dashboard</h1>
+      <div class="subtitle">Senate District 12 &mdash; West-Central Minnesota</div>
+    </div>
+    <nav id="tab-row" role="tablist">
+      <button class="active" onclick="showModule(1)" role="tab" aria-selected="true" id="tab-1">Input Costs</button>
+      <button onclick="showModule(2)" role="tab" aria-selected="false" id="tab-2">Green Ammonia</button>
+      <button onclick="showModule(3)" role="tab" aria-selected="false" id="tab-3">District 12</button>
+    </nav>
+    <div id="summary-stats">
+      <div class="summary-stat">
+        <div class="ss-label">Corn Acres</div>
+        <div class="ss-val" id="ss-acres">300</div>
+      </div>
+      <div class="summary-stat">
+        <div class="ss-label">N $/Acre</div>
+        <div class="ss-val" id="ss-ncost">--</div>
+      </div>
+      <div class="summary-stat">
+        <div class="ss-label">N $/Bu</div>
+        <div class="ss-val" id="ss-nbu">--</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 2x2 PANEL AREA -->
+  <main id="panel-area">
+    <!-- PANEL 1: upper-left — Module 1 form / Module 2 form / Module 3 part A -->
+    <section class="panel" id="panel-ul" aria-label="Input panel">
+      <!-- MODULE 1 FORM -->
+      <div class="module active" id="m1-form">
+        <div class="demo-badge">Demo: 480-acre western MN operation</div>
+        <div class="panel-title">Farm Input Cost Analyzer</div>
+        <div class="form-grid">
+          <div class="form-section-title">Acreage</div>
+          <div class="form-group">
+            <label for="f-total-acres">Total Acres</label>
+            <input type="number" id="f-total-acres" value="480" min="1" step="10">
+          </div>
+          <div class="form-group">
+            <label for="f-corn-acres">Corn Acres</label>
+            <input type="number" id="f-corn-acres" value="300" min="0" step="10">
+          </div>
+          <div class="form-group">
+            <label for="f-soy-acres">Soybean Acres</label>
+            <input type="number" id="f-soy-acres" value="180" min="0" step="10">
+          </div>
+          <div class="form-group">
+            <label for="f-other-acres">Other Acres</label>
+            <input type="number" id="f-other-acres" value="0" min="0" step="10">
+          </div>
+
+          <div class="form-section-title">Nitrogen</div>
+          <div class="form-group">
+            <label for="f-n-rate">Application Rate (lbs N/acre)</label>
+            <input type="number" id="f-n-rate" value="155" min="0" step="5">
+          </div>
+          <div class="form-group">
+            <label for="f-n-source">Nitrogen Source</label>
+            <select id="f-n-source">
+              <option value="82" selected>Anhydrous Ammonia (82% N)</option>
+              <option value="46">Urea (46% N)</option>
+              <option value="28">UAN 28% (28% N)</option>
+              <option value="32">UAN 32% (32% N)</option>
+            </select>
+          </div>
+          <div class="toggle-row">
+            <input type="radio" name="price-unit" id="pu-lbn" value="lbn" checked>
+            <label for="pu-lbn">$/lb N</label>
+            <input type="radio" name="price-unit" id="pu-ton" value="ton">
+            <label for="pu-ton">$/ton</label>
+          </div>
+          <div class="form-group full">
+            <label for="f-n-price" id="lbl-n-price">Purchase Price ($/lb N)</label>
+            <input type="number" id="f-n-price" value="0.42" min="0" step="0.01">
+            <div class="hint">Illustrative &mdash; update with your actual contract price</div>
+          </div>
+          <div class="form-group">
+            <label for="f-app-method">Application Method</label>
+            <select id="f-app-method">
+              <option value="fall">Fall Pre-plant ($10/ac)</option>
+              <option value="spring" selected>Spring Pre-plant ($12/ac)</option>
+              <option value="split">Split / Sidedress ($18/ac)</option>
+            </select>
+          </div>
+
+          <div class="form-section-title">Yield &amp; Price</div>
+          <div class="form-group">
+            <label for="f-yield">Yield Goal (bu/acre corn)</label>
+            <input type="number" id="f-yield" value="185" min="1" step="5">
+          </div>
+          <div class="form-group">
+            <label for="f-crop-price">Crop Price ($/bu)</label>
+            <input type="number" id="f-crop-price" value="4.40" min="0" step="0.05">
+            <div class="hint">Illustrative &mdash; enter current market price</div>
+          </div>
+
+          <div class="form-section-title">Optional Inputs ($/acre)</div>
+          <div class="form-group">
+            <label for="f-seed">Seed</label>
+            <input type="number" id="f-seed" value="" min="0" step="1" placeholder="--">
+          </div>
+          <div class="form-group">
+            <label for="f-herb">Herbicide</label>
+            <input type="number" id="f-herb" value="" min="0" step="1" placeholder="--">
+          </div>
+          <div class="form-group">
+            <label for="f-fuel">Fuel / Machinery</label>
+            <input type="number" id="f-fuel" value="" min="0" step="1" placeholder="--">
+          </div>
+          <div class="form-group">
+            <label for="f-rent">Rent / Land</label>
+            <input type="number" id="f-rent" value="" min="0" step="1" placeholder="--">
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-sm" onclick="loadDemo()">Load Demo</button>
+          <button class="btn btn-sm" onclick="clearInputs()">Clear</button>
+        </div>
+      </div>
+
+      <!-- MODULE 2 FORM -->
+      <div class="module" id="m2-form">
+        <div class="panel-title">Green Ammonia Scenario</div>
+        <div class="form-grid">
+          <div class="form-section-title">System Scale</div>
+          <div class="form-group full">
+            <label for="f-ga-tier">Scale Tier</label>
+            <select id="f-ga-tier">
+              <option value="small">Small Farm Unit (50 MT/yr)</option>
+              <option value="coop" selected>Cooperative Mid-Scale (300 MT/yr)</option>
+              <option value="regional">Regional Facility (1,500 MT/yr)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="f-ga-capex">Capital Cost ($)</label>
+            <input type="number" id="f-ga-capex" value="4500000" min="0" step="100000">
+            <div class="hint">Illustrative estimate &mdash; not a vendor quote</div>
+          </div>
+          <div class="form-group">
+            <label for="f-ga-om">Annual O&amp;M ($)</label>
+            <input type="number" id="f-ga-om" value="180000" min="0" step="5000">
+          </div>
+          <div class="form-group full" id="tier-description" style="margin-bottom:4px;">
+            <div style="font-size:11px;color:var(--brown-400);line-height:1.4;padding:6px 8px;background:rgba(42,31,20,.4);border-radius:2px;">
+              <span id="tier-desc-text">Cooperative mid-scale: shared by 5&ndash;10 farms, ~300 metric tons NH&#8323; per year. Capital and O&amp;M estimates are illustrative, based on published engineering research ranges.</span>
+            </div>
+          </div>
+          <div class="form-section-title">Financing</div>
+          <div class="form-group">
+            <label for="f-ga-down">Down Payment (%)</label>
+            <input type="number" id="f-ga-down" value="20" min="0" max="100" step="5">
+          </div>
+          <div class="form-group">
+            <label for="f-ga-rate">Interest Rate (%)</label>
+            <input type="number" id="f-ga-rate" value="6.5" min="0" step="0.25">
+          </div>
+          <div class="form-group">
+            <label for="f-ga-term">Term (years)</label>
+            <input type="number" id="f-ga-term" value="15" min="1" step="1">
+          </div>
+          <div class="form-section-title">Production</div>
+          <div class="form-group full">
+            <label for="f-ga-elec">Off-Peak Electricity Rate ($/kWh)</label>
+            <input type="number" id="f-ga-elec" value="0.065" min="0" step="0.005">
+            <div class="hint">Contact your co-op for actual off-peak rate; many western MN co-ops offer sub-$0.06/kWh at night</div>
+          </div>
+          <div class="form-group">
+            <label for="f-ga-util">Capacity Utilization (%)</label>
+            <input type="number" id="f-ga-util" value="80" min="10" max="100" step="5">
+          </div>
+          <div class="form-group">
+            <label for="f-ga-farms">Farms Sharing System</label>
+            <input type="number" id="f-ga-farms" value="8" min="1" step="1">
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-sm" onclick="loadDemo()">Load Demo</button>
+        </div>
+      </div>
+
+      <!-- MODULE 3: left half — District snapshot + UMN-Morris -->
+      <div class="module" id="m3-left">
+        <div class="panel-title">District 12 Context &amp; Resources</div>
+
+        <div class="ref-section">
+          <h3>A &mdash; District 12 Agriculture Snapshot</h3>
+          <table class="data-table">
+            <tr><td>Geography</td><td class="val">10 counties, west-central MN</td></tr>
+            <tr><td>Primary Crops</td><td class="val">Corn, soybeans, wheat, sunflowers, sugar beets</td></tr>
+            <tr><td>MN Corn Rank</td><td class="val">Top-5 nationally</td></tr>
+            <tr><td>Key Employers</td><td class="val">Grain &amp; food-processing, ethanol</td></tr>
+            <!-- VERIFY: General facts from USDA/MDA public data -->
+            <tr><td>Largest Variable Cost</td><td class="val">Nitrogen fertilizer (corn)</td></tr>
+          </table>
+          <p style="font-size:11px;color:var(--brown-500);margin-top:6px;">Source: U of MN Extension crop enterprise budgets provide current $/acre benchmarks.</p>
+        </div>
+
+        <div class="ref-section">
+          <h3>B &mdash; UMN-Morris Green Ammonia Project</h3>
+          <p><strong>What is green ammonia?</strong> Ammonia (NH&#8323;) synthesized from air (N&#8322;) and water (H&#8322;O) using electrolysis and the Haber-Bosch process, powered by renewable electricity instead of natural gas.</p>
+          <p><strong>The UMN-Morris facility</strong> is a second-generation plant, approximately 17&times; the size of the pilot it replaced, opened in 2025 in Stevens County &mdash; within or adjacent to SD-12. It demonstrates that modular green ammonia production is technically viable at a scale relevant to cooperatives.</p>
+          <p><strong>Why it matters locally:</strong> It breaks the link between nitrogen fertilizer cost and natural gas prices. Western Minnesota's wind belt can supply off-peak power, and co-op ownership models keep production economics local.</p>
+          <div class="green-callout">
+            <p><strong>Senator Westrom's role:</strong> Attended the October 2025 ribbon-cutting and has championed the project as a model for rural energy and agriculture independence. In his words: <em>"could allow Minnesota farmers to take control of their own fertilizer production."</em></p>
+          </div>
+          <div class="ref-link-box">
+            <span class="rl-label">UMN-Morris Green Ammonia Research (external link)</span>
+            <a href="https://z.umn.edu/GreenAmmonia" target="_blank" rel="noopener">z.umn.edu/GreenAmmonia</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PANEL 2: upper-right — Hero ticker / Module 1 results / Module 2 comparison -->
+    <section class="panel" id="panel-ur" aria-label="Results panel">
+      <!-- MODULE 1 RESULTS — Hero ticker + supplementary stats -->
+      <div class="module active" id="m1-results">
+        <div id="hero-ticker">
+          <div class="ticker-label">Your Anhydrous Ammonia Cost</div>
+          <div class="ticker-value" id="ticker-price">$---</div>
+          <div class="ticker-unit">Per Ton</div>
+          <div class="stencil-bar"></div>
+          <div class="ticker-note" id="ticker-note">Based on your entered $/lb N and 82% N content for anhydrous ammonia</div>
+        </div>
+        <!-- Secondary stats below the hero ticker -->
+        <div style="display:flex;justify-content:center;gap:32px;margin-top:18px;">
+          <div class="summary-stat" style="text-align:center;">
+            <div class="ss-label">N Cost / Acre</div>
+            <div class="ss-val" id="hero-ncost-acre" style="font-size:20px;">--</div>
+          </div>
+          <div class="summary-stat" style="text-align:center;">
+            <div class="ss-label">N Cost / Bushel</div>
+            <div class="ss-val" id="hero-ncost-bu" style="font-size:20px;">--</div>
+          </div>
+          <div class="summary-stat" style="text-align:center;">
+            <div class="ss-label">Season Total</div>
+            <div class="ss-val" id="hero-season" style="font-size:20px;">--</div>
+          </div>
+        </div>
+        <!-- Formula transparency note -->
+        <div style="margin-top:16px;padding:8px 12px;background:rgba(42,31,20,.5);border-radius:3px;">
+          <div style="font-family:var(--font-head);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--brown-500);margin-bottom:4px;">How This Is Calculated</div>
+          <div id="formula-display" style="font-family:var(--font-data);font-size:11px;color:var(--brown-400);line-height:1.6;">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- MODULE 2 RESULTS (upper half) -->
+      <div class="module" id="m2-results-top">
+        <div class="panel-title">Green Ammonia Production Cost</div>
+        <table class="data-table" id="ga-cost-table">
+          <tr><td>Annual Debt Service</td><td class="val" id="ga-debt">--</td></tr>
+          <tr><td>Annual Electricity Cost</td><td class="val" id="ga-elec-cost">--</td></tr>
+          <tr><td>Annual O&amp;M</td><td class="val" id="ga-om-cost">--</td></tr>
+          <tr><td>Total Annual Cost</td><td class="val key" id="ga-total-annual">--</td></tr>
+          <tr><td>Cost / MT Green NH&#8323;</td><td class="val key" id="ga-cost-mt">--</td></tr>
+          <tr><td>Cost / lb N (green)</td><td class="val key" id="ga-cost-lbn">--</td></tr>
+          <tr><td>Green N Cost / Acre</td><td class="val key" id="ga-cost-acre">--</td></tr>
+        </table>
+        <div class="big-number">
+          <span class="bn-label">Break-Even Electricity Rate</span>
+          <span class="bn-val" id="ga-breakeven">--</span>
+          <div class="bn-rule"></div>
+        </div>
+        <!-- Energy intensity source note -->
+        <div style="font-size:10px;color:var(--brown-500);line-height:1.4;margin-top:8px;padding:6px 8px;background:rgba(42,31,20,.3);border-radius:2px;">
+          Energy intensity: 9.5 MWh/MT NH&#8323; (midpoint of 9&ndash;10 range). Based on Haber-Bosch electrolysis efficiency ranges, per published University of Minnesota Morris research.
+        </div>
+      </div>
+
+      <!-- MODULE 3: right half — SF4539, bonding, resources -->
+      <div class="module" id="m3-right">
+        <div class="ref-section">
+          <h3>C &mdash; SF4539: Sauk Centre / TH 71 Bonding</h3>
+          <p>Westrom chief-authored <strong>SF4539</strong> (2025 session) to authorize Sauk Centre voters to raise the city's local-sales-tax-backed bonding authority from $10 million to $20 million for Trunk Highway 71 reconstruction. The tax would be extended until Sauk Centre has collected $20 million or until December 31, 2045.</p>
+          <p style="margin-top:4px;">TH 71 is a primary north-south corridor through Stearns County; reconstruction is a multi-year MnDOT project. The bonding expansion lets the city pursue state and local financing for the local match component &mdash; a precise statutory mechanism moved through the Capitol by Westrom.</p>
+        </div>
+        <div class="ref-section">
+          <h3>D &mdash; Pope-Douglas Solid Waste &amp; Beardsley Drainage</h3>
+          <p><strong>$12.833 million</strong> secured for Phase 2 of the Pope-Douglas Solid Waste Management facility (waste diversion and recycling processing upgrades).</p>
+          <p><strong>$2 million</strong> secured for the City of Beardsley's Dry Lake drainage tile system replacement &mdash; state funding covered approximately half the project cost, keeping the remainder off local property taxes.</p>
+          <p style="font-size:11px;color:var(--brown-400);margin-top:4px;">These bonding requests illustrate how state capital investment translates into property-tax protection for District 12 communities.</p>
+        </div>
+        <div class="ref-section">
+          <h3>E &mdash; Key Resources</h3>
+          <ul class="resource-list">
+            <li><span class="rl-name">U of MN Extension &mdash; Corn Production Budgets</span><span class="rl-url">extension.umn.edu</span></li>
+            <li><span class="rl-name">MN Dept. of Agriculture &mdash; Ag Statistics</span><span class="rl-url">mda.state.mn.us</span></li>
+            <li><span class="rl-name">UMN-Morris West Central Research &amp; Outreach Center</span><span class="rl-url">wcroc.cfans.umn.edu</span></li>
+            <li><span class="rl-name">Minnesota Rural Water Association</span><span class="rl-url">mrwa.com</span></li>
+            <li><span class="rl-name">USDA NRCS &mdash; Minnesota</span><span class="rl-url">nrcs.usda.gov/minnesota</span></li>
+            <li><span class="rl-name">Senator Westrom</span><span class="rl-url">senate.mn/members (search "Westrom")</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- PANEL 3: lower-left — Module 1 data table / Module 2 chart / Module 3 (hidden) -->
+    <section class="panel" id="panel-ll" aria-label="Data panel">
+      <div class="module active" id="m1-data">
+        <div class="panel-title">Nitrogen Cost Breakdown</div>
+        <table class="data-table" id="m1-table">
+          <tr><td>N Source</td><td class="val" id="r-source">--</td></tr>
+          <tr><td>N Content</td><td class="val" id="r-ncontent">--</td></tr>
+          <tr><td>Cost / lb N</td><td class="val" id="r-costlbn">--</td></tr>
+          <tr><td>N Material Cost / Acre</td><td class="val" id="r-matcost">--</td></tr>
+          <tr><td>Application Cost / Acre</td><td class="val" id="r-appcost">--</td></tr>
+          <tr><td>Total N Cost / Acre</td><td class="val key" id="r-totalcost">--</td></tr>
+          <tr><td>Total N Cost / Season</td><td class="val key" id="r-seasoncost">--</td></tr>
+          <tr><td>N Cost / Bushel</td><td class="val key" id="r-costbu">--</td></tr>
+          <tr><td>N as % of Crop Revenue</td><td class="val" id="r-pctrev">--</td></tr>
+        </table>
+        <!-- Split application breakdown — visible only when split method selected -->
+        <div id="m1-split-row" style="display:none;">
+          <div class="section-divider"></div>
+          <div class="panel-title" style="margin-top:8px;">Split Application Breakdown</div>
+          <table class="data-table">
+            <tr><td>Pre-plant Pass</td><td class="val" id="r-split-pre">--</td></tr>
+            <tr><td>Sidedress Pass</td><td class="val" id="r-split-side">--</td></tr>
+          </table>
+        </div>
+        <div id="m1-optional-row" style="display:none;">
+          <div class="section-divider"></div>
+          <table class="data-table">
+            <tr><td>Total Cash Cost / Acre</td><td class="val key" id="r-totalcash">--</td></tr>
+            <tr><td>Total Cash Cost / Bushel</td><td class="val" id="r-cashbu">--</td></tr>
+          </table>
+          <div class="big-number">
+            <span class="bn-label">Break-Even Corn Price</span>
+            <span class="bn-val" id="r-breakeven">--</span>
+            <div class="bn-rule"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="module" id="m2-chart-panel">
+        <div class="panel-title">Cost Comparison Chart</div>
+        <div class="chart-wrap">
+          <canvas id="chart-comparison" aria-label="Side-by-side cost comparison chart: conventional vs green ammonia"></canvas>
+        </div>
+        <div class="panel-title" style="margin-top:14px;">Electricity Sensitivity</div>
+        <div class="chart-wrap">
+          <canvas id="chart-sensitivity" aria-label="Line chart showing green ammonia cost per lb N as electricity rate varies"></canvas>
+        </div>
+      </div>
+
+      <div class="module" id="m3-ll">
+        <div class="panel-title">Understanding Green Ammonia Economics</div>
+        <div class="ref-section">
+          <h3>How the Numbers Work</h3>
+          <p>Conventional anhydrous ammonia price tracks <strong>natural gas</strong> via the Henry Hub benchmark. When gas doubles, nitrogen fertilizer follows within months. Farmers in Big Stone, Stevens, and Swift counties have no control over this price mechanism.</p>
+          <p>Green ammonia replaces natural gas with <strong>electricity</strong> for the hydrogen step. The Haber-Bosch synthesis remains the same. The critical input becomes the local electricity rate, not a global commodity.</p>
+        </div>
+        <div class="ref-section">
+          <h3>Scale Matters</h3>
+          <table class="data-table">
+            <tr>
+              <th>Tier</th>
+              <th style="text-align:right;">Output</th>
+              <th style="text-align:right;">Est. Capital</th>
+            </tr>
+            <tr>
+              <td>Farm-Scale</td>
+              <td class="val">50 MT/yr</td>
+              <td class="val">~$1.8M</td>
+            </tr>
+            <tr>
+              <td>Co-op Mid-Scale</td>
+              <td class="val">300 MT/yr</td>
+              <td class="val">~$4.5M</td>
+            </tr>
+            <tr>
+              <td>Regional Facility</td>
+              <td class="val">1,500 MT/yr</td>
+              <td class="val">~$18M</td>
+            </tr>
+          </table>
+          <p style="font-size:10px;color:var(--brown-500);margin-top:4px;">Capital estimates are illustrative, based on published research ranges. Not vendor quotes. Energy intensity: 9&ndash;10 MWh per metric ton NH&#8323; (Haber-Bosch electrolysis efficiency, per UMN-Morris research).</p>
+        </div>
+        <div class="ref-section">
+          <h3>Key Variables to Watch</h3>
+          <ul>
+            <li><strong>Off-peak electricity rate:</strong> the single biggest lever. Below $0.05/kWh, green ammonia becomes competitive at cooperative scale.</li>
+            <li><strong>Capacity utilization:</strong> running 80%+ matters. Downtime on a capital-intensive system destroys the per-unit economics.</li>
+            <li><strong>Natural gas volatility:</strong> the higher conventional ammonia goes, the better green ammonia looks relative to it.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- PANEL 4: lower-right — Module 1 chart / Module 2 comparison table / Module 3 (hidden) -->
+    <section class="panel" id="panel-lr" aria-label="Visualization panel">
+      <div class="module active" id="m1-chart-panel">
+        <div class="panel-title">Input Cost Breakdown</div>
+        <div class="chart-wrap" id="m1-chart-wrap" style="display:none;">
+          <canvas id="chart-inputs" aria-label="Horizontal bar chart showing proportional input cost breakdown per acre"></canvas>
+        </div>
+        <div id="m1-chart-placeholder">
+          <p class="intro-text">Enter optional input costs (seed, herbicide, fuel, rent) in the left panel to see a proportional cost breakdown chart.</p>
+        </div>
+        <div class="section-divider"></div>
+        <p class="intro-text" style="font-size:12px;">Senator Westrom stood at the University of Minnesota-Morris in October 2025 as the second-generation green ammonia plant came online &mdash; a machine that makes fertilizer out of air and water using Minnesota wind. This tool was built to help the farmers in his district understand what that might mean for their cost sheets.</p>
+      </div>
+
+      <div class="module" id="m2-comp-panel">
+        <div class="panel-title">Conventional vs. Green Ammonia</div>
+        <table class="comp-table" id="comp-table">
+          <thead>
+            <tr><th>Metric</th><th>Conventional</th><th>Green NH&#8323;</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>$/lb N</td><td id="c-conv-lbn">--</td><td id="c-grn-lbn">--</td></tr>
+            <tr><td>$/acre</td><td id="c-conv-acre">--</td><td id="c-grn-acre">--</td></tr>
+            <tr><td>$/season</td><td id="c-conv-season">--</td><td id="c-grn-season">--</td></tr>
+            <tr><td>Price exposure</td><td>Natural gas</td><td style="color:var(--green);">Electricity</td></tr>
+            <tr><td>Supply chain</td><td>Global commodity</td><td style="color:var(--green);">Local production</td></tr>
+          </tbody>
+        </table>
+        <div style="text-align:center;margin:12px 0;">
+          <div class="feasibility-pill" id="feas-pill">--</div>
+          <div class="feasibility-text" id="feas-text"></div>
+        </div>
+      </div>
+
+      <div class="module" id="m3-lr">
+        <div class="panel-title">About This Tool</div>
+        <div class="ref-section">
+          <p>Nitrogen fertilizer is the single largest variable cost in corn production &mdash; and its price is set by natural gas markets, not by anything a Minnesota farmer controls.</p>
+          <p>This dashboard helps you calculate what nitrogen actually costs your operation, compare it against locally-produced green ammonia, and understand what Senator Westrom's advocacy at the University of Minnesota-Morris could mean for your farm's input economics.</p>
+        </div>
+        <div class="section-divider"></div>
+        <div class="ref-section">
+          <h3>How to Use</h3>
+          <ul>
+            <li><strong>Input Costs tab:</strong> Enter your farm's acreage, nitrogen source and price, application method, and yield goal. Results update live in the right and lower panels.</li>
+            <li><strong>Green Ammonia tab:</strong> Compare your conventional nitrogen cost against a modular green ammonia production scenario. Adjust scale tier, financing, and electricity rate.</li>
+            <li><strong>District 12 tab:</strong> Reference materials on the UMN-Morris green ammonia project, Westrom's legislative wins, and key resources for farmers.</li>
+          </ul>
+        </div>
+        <div class="section-divider"></div>
+        <div style="font-size:11px;color:var(--brown-500);line-height:1.5;">
+          <strong>Data persistence:</strong> Your inputs are saved in your browser's local storage. They will persist when you reload this page. Use the "Clear" button to reset to demo data.
+        </div>
+        <div style="margin-top:12px;font-size:11px;color:var(--brown-500);line-height:1.5;">
+          <strong>Print:</strong> Use your browser's print function (Ctrl+P) to generate a clean printout of all modules suitable for a co-op board meeting or extension office visit.
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer id="footer">
+    A resource for SD-12 communities and Minnesota grain farmers. Built with AI. Fertilizer cost estimates are illustrative &mdash; consult University of Minnesota Extension for current crop enterprise budgets. Green ammonia capital estimates reflect published research ranges; not a substitute for vendor or engineering quotes.
+  </footer>
+</div>
+
+<script>
+/* ================================================================
+   STATE & CONFIG
+   ================================================================ */
+const SOURCES = {82:'Anhydrous Ammonia',46:'Urea',28:'UAN 28%',32:'UAN 32%'};
+const APP_COSTS = {fall:10,spring:12,split:18};
+const TIERS = {
+  small:{capacity:50,capex:1800000,om:72000,label:'Small Farm Unit (50 MT/yr)'},
+  coop:{capacity:300,capex:4500000,om:180000,label:'Co-op Mid-Scale (300 MT/yr)'},
+  regional:{capacity:1500,capex:18000000,om:540000,label:'Regional (1,500 MT/yr)'}
+};
+const ENERGY_INTENSITY = 9.5; // MWh per MT NH3
+const LBS_PER_MT = 2204.62;
+const NH3_N_FRACTION = 0.82;
+
+let state = {};
+let charts = {inputs:null,comparison:null,sensitivity:null};
+
+/* ================================================================
+   ENTRY ANIMATION
+   ================================================================ */
+window.addEventListener('DOMContentLoaded',()=>{
+  setTimeout(()=>{
+    document.getElementById('entry-overlay').classList.add('explode');
+  },600);
+  setTimeout(()=>{
+    document.getElementById('entry-overlay').classList.add('fade-out');
+    document.getElementById('app').classList.add('visible');
+  },1800);
+  setTimeout(()=>{
+    document.getElementById('entry-overlay').style.display='none';
+    document.getElementById('footer').style.display='block';
+  },2600);
+
+  // Try restore from localStorage
+  if(localStorage.getItem('westrom-dash-state')){
+    try{
+      const saved=JSON.parse(localStorage.getItem('westrom-dash-state'));
+      restoreState(saved);
+    }catch(e){loadDemo();}
+  } else {
+    loadDemo();
+  }
+  bindInputs();
+  recalcAll();
+});
+
+/* ================================================================
+   MODULE SWITCHING
+   ================================================================ */
+function showModule(n){
+  document.querySelectorAll('#tab-row button').forEach((b,i)=>{
+    b.classList.toggle('active',i===n-1);
+    b.setAttribute('aria-selected',i===n-1?'true':'false');
+  });
+  // Module 1 panels
+  toggle('m1-form',n===1);toggle('m1-results',n===1);toggle('m1-data',n===1);toggle('m1-chart-panel',n===1);
+  // Module 2 panels
+  toggle('m2-form',n===2);toggle('m2-results-top',n===2);toggle('m2-chart-panel',n===2);toggle('m2-comp-panel',n===2);
+  // Module 3 panels
+  toggle('m3-left',n===3);toggle('m3-right',n===3);toggle('m3-ll',n===3);toggle('m3-lr',n===3);
+
+  if(n===2) renderModule2Charts();
+}
+function toggle(id,show){
+  const el=document.getElementById(id);
+  if(el) el.classList.toggle('active',show);
+}
+
+/* ================================================================
+   INPUT BINDING
+   ================================================================ */
+function bindInputs(){
+  const ids=['f-total-acres','f-corn-acres','f-soy-acres','f-other-acres',
+    'f-n-rate','f-n-source','f-n-price','f-app-method','f-yield','f-crop-price',
+    'f-seed','f-herb','f-fuel','f-rent',
+    'f-ga-tier','f-ga-capex','f-ga-om','f-ga-down','f-ga-rate','f-ga-term',
+    'f-ga-elec','f-ga-util','f-ga-farms'];
+  ids.forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.addEventListener('input',()=>{readInputs();recalcAll();saveState();});
+  });
+  document.querySelectorAll('input[name="price-unit"]').forEach(r=>{
+    r.addEventListener('change',()=>{
+      const unit=document.querySelector('input[name="price-unit"]:checked').value;
+      document.getElementById('lbl-n-price').textContent=unit==='ton'?'Purchase Price ($/ton)':'Purchase Price ($/lb N)';
+      readInputs();recalcAll();saveState();
+    });
+  });
+  document.getElementById('f-ga-tier').addEventListener('change',()=>{
+    const tierKey = document.getElementById('f-ga-tier').value;
+    const t = TIERS[tierKey];
+    document.getElementById('f-ga-capex').value = t.capex;
+    document.getElementById('f-ga-om').value = t.om;
+    // Update tier description
+    const descEl = document.getElementById('tier-desc-text');
+    if(descEl){
+      const descs = {
+        small: 'Small farm unit: single-operator scale, ~50 metric tons NH\u2083 per year. Suitable for a single large grain operation. Capital and O&M estimates are illustrative.',
+        coop: 'Cooperative mid-scale: shared by 5\u201310 farms, ~300 metric tons NH\u2083 per year. Capital and O&M estimates are illustrative, based on published engineering research ranges.',
+        regional: 'Regional production facility: co-op or commercial scale, ~1,500 metric tons NH\u2083 per year. Serves a wide geographic area. Capital and O&M estimates are illustrative.'
+      };
+      descEl.innerHTML = descs[tierKey] || '';
+    }
+    readInputs();recalcAll();saveState();
+  });
+}
+
+function readInputs(){
+  const v=id=>parseFloat(document.getElementById(id).value)||0;
+  const unit=document.querySelector('input[name="price-unit"]:checked').value;
+  const nPct=parseInt(document.getElementById('f-n-source').value);
+  const priceRaw=v('f-n-price');
+  const costPerLbN=unit==='ton'?priceRaw/2000:priceRaw;
+  const method=document.getElementById('f-app-method').value;
+
+  state={
+    totalAcres:v('f-total-acres'),cornAcres:v('f-corn-acres'),
+    soyAcres:v('f-soy-acres'),otherAcres:v('f-other-acres'),
+    nRate:v('f-n-rate'),nPct:nPct,costPerLbN:costPerLbN,
+    appMethod:method,appCost:APP_COSTS[method]||12,
+    yieldGoal:v('f-yield'),cropPrice:v('f-crop-price'),
+    seed:v('f-seed'),herb:v('f-herb'),fuel:v('f-fuel'),rent:v('f-rent'),
+    priceUnit:unit,priceRaw:priceRaw,
+    // Module 2
+    gaTier:document.getElementById('f-ga-tier').value,
+    gaCapex:v('f-ga-capex'),gaOm:v('f-ga-om'),
+    gaDown:v('f-ga-down'),gaRate:v('f-ga-rate'),gaTerm:v('f-ga-term'),
+    gaElec:v('f-ga-elec'),gaUtil:v('f-ga-util'),gaFarms:v('f-ga-farms')
+  };
+}
+
+/* ================================================================
+   MODULE 1 CALCULATIONS
+   ================================================================ */
+function calcModule1(){
+  const s=state;
+  if(!s.nRate||!s.nPct) return;
+
+  /*
+   * Formula per software brief:
+   *   cost_per_lb_N is the user's entered price (already in $/lb N)
+   *   N_material_cost_per_acre = lbs_N_per_acre x cost_per_lb_N / (pct_N / 100)
+   *   This divides by N content to get cost of the PRODUCT (not just the N element).
+   *   Example: 155 lbs N x $0.42/lb N / 0.82 = $79.39/acre of anhydrous ammonia product
+   */
+  const nFraction = s.nPct / 100;
+  const nMatCostPerAcre = s.nRate * s.costPerLbN / nFraction;
+
+  // Application cost — for split, show pre-plant vs sidedress breakdown
+  let appCostTotal = s.appCost;
+  let splitPrePlant = 0;
+  let splitSidedress = 0;
+  if(s.appMethod === 'split'){
+    // Assume 60% pre-plant, 40% sidedress; application cost split accordingly
+    splitPrePlant = nMatCostPerAcre * 0.6 + 10; // base pass at $10/ac
+    splitSidedress = nMatCostPerAcre * 0.4 + 8; // sidedress pass at $8/ac
+    appCostTotal = 18; // total application cost per the dropdown
+  }
+
+  const totalNCostPerAcre = nMatCostPerAcre + appCostTotal;
+  const totalSeasonN = totalNCostPerAcre * s.cornAcres;
+  const nCostPerBu = s.yieldGoal > 0 ? totalNCostPerAcre / s.yieldGoal : 0;
+  const revenue = s.yieldGoal * s.cropPrice;
+  const nPctRev = revenue > 0 ? (totalNCostPerAcre / revenue) * 100 : 0;
+
+  // Hero ticker: $/ton of the selected product
+  // Convert from $/lb N back to $/ton of product
+  // $/lb product = costPerLbN * nFraction  (since product is nFraction% N)
+  // Wait — if costPerLbN = price per lb of pure N element, then:
+  //   price per lb of product = costPerLbN * nFraction
+  //   price per ton of product = costPerLbN * nFraction * 2000
+  // But that gives a LOW number. The brief formula implies:
+  //   costPerLbN is what user pays per lb of N in the product
+  //   $/ton product = costPerLbN * (lbs of N per ton of product)
+  //                 = costPerLbN * 2000 * nFraction
+  const pricePerTonProduct = s.costPerLbN * 2000 * nFraction;
+  let tickerPrice = '$' + Math.round(pricePerTonProduct).toLocaleString('en-US');
+
+  // Update ticker label based on source
+  const tickerNote = document.getElementById('ticker-note');
+  if(s.nPct === 82){
+    tickerNote.textContent = 'Based on $' + s.costPerLbN.toFixed(2) + '/lb N at 82% N content for anhydrous ammonia';
+  } else {
+    tickerNote.textContent = 'Equivalent product cost for ' + SOURCES[s.nPct] + ' at ' + s.nPct + '% N';
+  }
+
+  setText('ticker-price', tickerPrice);
+  setText('r-source', SOURCES[s.nPct]);
+  setText('r-ncontent', s.nPct + '%');
+  setText('r-costlbn', '$' + s.costPerLbN.toFixed(3));
+  setText('r-matcost', '$' + nMatCostPerAcre.toFixed(2) + '/ac');
+  setText('r-appcost', '$' + appCostTotal.toFixed(2) + '/ac');
+  setText('r-totalcost', '$' + totalNCostPerAcre.toFixed(2) + '/ac');
+  setText('r-seasoncost', '$' + fmt(totalSeasonN));
+  setText('r-costbu', '$' + nCostPerBu.toFixed(3) + '/bu');
+  setText('r-pctrev', nPctRev.toFixed(1) + '%');
+
+  // Hero secondary stats
+  setText('hero-ncost-acre', '$' + totalNCostPerAcre.toFixed(2));
+  setText('hero-ncost-bu', '$' + nCostPerBu.toFixed(2));
+  setText('hero-season', '$' + fmt(totalSeasonN));
+
+  // Formula transparency display
+  const formulaEl = document.getElementById('formula-display');
+  if(formulaEl){
+    let html = '';
+    html += s.nRate + ' lbs N/ac &times; $' + s.costPerLbN.toFixed(3) + '/lb N';
+    html += ' &divide; ' + nFraction.toFixed(2) + ' = <strong style="color:var(--green);">$' + nMatCostPerAcre.toFixed(2) + '</strong> material/ac<br>';
+    html += '$' + nMatCostPerAcre.toFixed(2) + ' + $' + appCostTotal.toFixed(0) + ' application';
+    html += ' = <strong style="color:var(--green);">$' + totalNCostPerAcre.toFixed(2) + '</strong> total N/ac<br>';
+    html += '$' + totalNCostPerAcre.toFixed(2) + ' &divide; ' + s.yieldGoal + ' bu/ac';
+    html += ' = <strong style="color:var(--green);">$' + nCostPerBu.toFixed(3) + '</strong>/bu';
+    formulaEl.innerHTML = html;
+  }
+
+  // Summary bar
+  setText('ss-acres', s.cornAcres);
+  setText('ss-ncost', '$' + totalNCostPerAcre.toFixed(0));
+  setText('ss-nbu', '$' + nCostPerBu.toFixed(2));
+
+  // Split application breakdown (show/hide)
+  const splitRow = document.getElementById('m1-split-row');
+  if(splitRow){
+    if(s.appMethod === 'split'){
+      splitRow.style.display = 'block';
+      setText('r-split-pre', '$' + splitPrePlant.toFixed(2) + '/ac (60% N + $10 pass)');
+      setText('r-split-side', '$' + splitSidedress.toFixed(2) + '/ac (40% N + $8 pass)');
+    } else {
+      splitRow.style.display = 'none';
+    }
+  }
+
+  // Optional costs
+  const optTotal = s.seed + s.herb + s.fuel + s.rent;
+  const hasOpt = optTotal > 0;
+  document.getElementById('m1-optional-row').style.display = hasOpt ? 'block' : 'none';
+  if(hasOpt){
+    const totalCash = totalNCostPerAcre + optTotal;
+    const cashBu = s.yieldGoal > 0 ? totalCash / s.yieldGoal : 0;
+    const breakeven = s.yieldGoal > 0 ? totalCash / s.yieldGoal : 0;
+    setText('r-totalcash', '$' + totalCash.toFixed(2) + '/ac');
+    setText('r-cashbu', '$' + cashBu.toFixed(2) + '/bu');
+    setText('r-breakeven', '$' + breakeven.toFixed(2) + '/bu');
+  }
+
+  // Chart — render if optional inputs provided
+  if(hasOpt){
+    document.getElementById('m1-chart-wrap').style.display = 'block';
+    document.getElementById('m1-chart-placeholder').style.display = 'none';
+    renderInputChart(totalNCostPerAcre, s.seed, s.herb, s.fuel, s.rent);
+  } else {
+    document.getElementById('m1-chart-wrap').style.display = 'none';
+    document.getElementById('m1-chart-placeholder').style.display = 'block';
+  }
+
+  // Store calculated values for Module 2
+  state._nCostPerAcre = totalNCostPerAcre;
+  state._nCostPerLbN = s.costPerLbN;
+  state._nCostSeason = totalSeasonN;
+  state._nMatCostPerAcre = nMatCostPerAcre;
+}
+
+/* ================================================================
+   MODULE 2 CALCULATIONS
+   ================================================================ */
+function calcModule2(){
+  const s=state;
+  const tierData=TIERS[s.gaTier];
+  const capacity=tierData.capacity;
+
+  // Debt service
+  const principal=s.gaCapex*(1-s.gaDown/100);
+  const mr=s.gaRate/100/12;
+  const n=s.gaTerm*12;
+  let annualDebt=0;
+  if(mr>0&&n>0){
+    const mp=principal*(mr*Math.pow(1+mr,n))/(Math.pow(1+mr,n)-1);
+    annualDebt=mp*12;
+  } else if(n>0){
+    annualDebt=principal/(s.gaTerm);
+  }
+
+  const actualMT=capacity*(s.gaUtil/100);
+  const annualMWh=actualMT*ENERGY_INTENSITY;
+  const annualElecCost=annualMWh*1000*s.gaElec;
+  const annualOM=s.gaOm;
+  const totalAnnual=annualDebt+annualElecCost+annualOM;
+  const costPerMT=actualMT>0?totalAnnual/actualMT:0;
+  const costPerLbNGreen=actualMT>0?(costPerMT/LBS_PER_MT)/NH3_N_FRACTION:0;
+  const greenCostPerAcre=costPerLbNGreen*s.nRate;
+
+  setText('ga-debt','$'+fmt(annualDebt));
+  setText('ga-elec-cost','$'+fmt(annualElecCost));
+  setText('ga-om-cost','$'+fmt(annualOM));
+  setText('ga-total-annual','$'+fmt(totalAnnual));
+  setText('ga-cost-mt','$'+costPerMT.toFixed(0)+'/MT');
+  setText('ga-cost-lbn','$'+costPerLbNGreen.toFixed(3));
+  setText('ga-cost-acre','$'+greenCostPerAcre.toFixed(2)+'/ac');
+
+  // Break-even electricity rate
+  const fixedCost=annualDebt+annualOM;
+  const convNSeason=state._nCostSeason||0;
+  // We want total cost at break-even = conventional total cost for the acres served
+  const acresServed=s.cornAcres*s.gaFarms;
+  const convCostPerLbN=state._nCostPerLbN||0;
+  // Solve: (fixedCost + annualMWh*1000*X) / actualMT / LBS_PER_MT / NH3_N_FRACTION = convCostPerLbN
+  // X = (convCostPerLbN * actualMT * LBS_PER_MT * NH3_N_FRACTION - fixedCost) / (annualMWh * 1000)
+  let breakEvenElec=0;
+  const denom=annualMWh*1000;
+  if(denom>0 && convCostPerLbN>0){
+    breakEvenElec=(convCostPerLbN*actualMT*LBS_PER_MT*NH3_N_FRACTION - fixedCost)/denom;
+    if(breakEvenElec<0) breakEvenElec=0;
+  }
+  setText('ga-breakeven','$'+breakEvenElec.toFixed(4)+'/kWh');
+
+  // Comparison table
+  const convPerAcre=state._nCostPerAcre||0;
+  const convSeason=state._nCostSeason||0;
+  const greenSeason=greenCostPerAcre*s.cornAcres;
+  setText('c-conv-lbn','$'+convCostPerLbN.toFixed(3));
+  setText('c-grn-lbn','$'+costPerLbNGreen.toFixed(3));
+  setText('c-conv-acre','$'+convPerAcre.toFixed(2));
+  setText('c-grn-acre','$'+greenCostPerAcre.toFixed(2));
+  setText('c-conv-season','$'+fmt(convSeason));
+  setText('c-grn-season','$'+fmt(greenSeason));
+
+  // Feasibility signal
+  const ratio=convPerAcre>0?greenCostPerAcre/convPerAcre:999;
+  const pill=document.getElementById('feas-pill');
+  const ftxt=document.getElementById('feas-text');
+  pill.className='feasibility-pill';
+  if(ratio<=1.15){
+    pill.classList.add('green');pill.textContent='COST-COMPETITIVE';
+    ftxt.textContent='Green ammonia is within 15% of your conventional nitrogen cost at the entered electricity rate.';
+  } else if(ratio<=1.40){
+    pill.classList.add('yellow');pill.textContent='MARGINAL';
+    ftxt.textContent='Green ammonia is 15\u201340% higher than conventional \u2014 economically marginal. Watch electricity rates and scale.';
+  } else {
+    pill.classList.add('red');pill.textContent='NOT COMPETITIVE';
+    ftxt.textContent='Green ammonia is more than 40% higher at entered inputs \u2014 not cost-competitive at this scale under these assumptions.';
+  }
+
+  // Store for charts
+  state._ga={annualDebt,annualElecCost,annualOM,totalAnnual,costPerMT,costPerLbNGreen,greenCostPerAcre,actualMT,annualMWh,fixedCost};
+}
+
+/* ================================================================
+   CHARTS
+   ================================================================ */
+function renderInputChart(nCost,seed,herb,fuel,rent){
+  if(typeof Chart==='undefined') return;
+  const ctx=document.getElementById('chart-inputs');
+  const data={
+    labels:['Nitrogen','Seed','Herbicide','Fuel/Mach.','Rent/Land'],
+    datasets:[{
+      data:[nCost,seed,herb,fuel,rent],
+      backgroundColor:['#7cb342','#5a4433','#9a8068','#b49e86','#cdbaa5'],
+      borderWidth:0,borderRadius:2
+    }]
+  };
+  const opts={
+    indexAxis:'y',responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'$'+c.raw.toFixed(2)+'/ac'}}},
+    scales:{
+      x:{ticks:{color:'#b49e86',font:{family:'Lucida Console',size:10},callback:v=>'$'+v},grid:{color:'rgba(90,68,51,.3)'}},
+      y:{ticks:{color:'#cdbaa5',font:{family:'Franklin Gothic Medium',size:10}},grid:{display:false}}
+    }
+  };
+  if(charts.inputs){charts.inputs.data=data;charts.inputs.update();}
+  else{charts.inputs=new Chart(ctx,{type:'bar',data,options:opts});}
+}
+
+function renderModule2Charts(){
+  if(typeof Chart==='undefined') return;
+  const ga=state._ga;if(!ga) return;
+  const convPerAcre=state._nCostPerAcre||0;
+
+  // Comparison bar chart
+  const ctx1=document.getElementById('chart-comparison');
+  const d1={
+    labels:['Conventional','Green NH\u2083'],
+    datasets:[
+      {label:'Capital/Debt',data:[0,ga.annualDebt],backgroundColor:'#5a4433'},
+      {label:'Electricity',data:[0,ga.annualElecCost],backgroundColor:'#7cb342'},
+      {label:'O&M',data:[0,ga.annualOM],backgroundColor:'#9a8068'},
+      {label:'Conventional Cost',data:[state._nCostSeason||0,0],backgroundColor:'#cdbaa5'}
+    ]
+  };
+  const o1={
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{labels:{color:'#b49e86',font:{family:'Franklin Gothic Medium',size:10}}}},
+    scales:{
+      x:{stacked:true,ticks:{color:'#b49e86',font:{family:'Lucida Console',size:10}},grid:{display:false}},
+      y:{stacked:true,ticks:{color:'#b49e86',font:{family:'Lucida Console',size:10},callback:v=>'$'+fmt(v)},grid:{color:'rgba(90,68,51,.3)'}}
+    }
+  };
+  if(charts.comparison){charts.comparison.data=d1;charts.comparison.update();}
+  else{charts.comparison=new Chart(ctx1,{type:'bar',data:d1,options:o1});}
+
+  // Sensitivity line chart: shows $/lb N as electricity rate varies
+  // fixedCost in ga = annualDebt + annualOM (non-electricity costs)
+  const ctx2 = document.getElementById('chart-sensitivity');
+  const rates = [];
+  const greenCosts = [];
+  const convCosts = [];
+  const convLbN = state._nCostPerLbN || 0;
+
+  // Sweep electricity rate from $0.03 to $0.12 in $0.005 steps
+  for(let r = 0.03; r <= 0.121; r += 0.005){
+    rates.push('$' + r.toFixed(3));
+    const elecCost = ga.annualMWh * 1000 * r;
+    const totalCostAtRate = ga.annualDebt + elecCost + ga.annualOM;
+    const costPerMTAtRate = ga.actualMT > 0 ? totalCostAtRate / ga.actualMT : 0;
+    const costPerLbNAtRate = (costPerMTAtRate / LBS_PER_MT) / NH3_N_FRACTION;
+    greenCosts.push(parseFloat(costPerLbNAtRate.toFixed(4)));
+    convCosts.push(parseFloat(convLbN.toFixed(4)));
+  }
+
+  // Highlight the user's current electricity rate
+  const userIdx = Math.round((state.gaElec - 0.03) / 0.005);
+  const pointBg = greenCosts.map((_, i) => i === userIdx ? '#7cb342' : 'rgba(124,179,66,.3)');
+  const pointR = greenCosts.map((_, i) => i === userIdx ? 7 : 2);
+
+  const d2 = {
+    labels: rates,
+    datasets: [
+      {
+        label: 'Green NH\u2083 $/lb N',
+        data: greenCosts,
+        borderColor: '#7cb342',
+        backgroundColor: 'rgba(124,179,66,.1)',
+        pointBackgroundColor: pointBg,
+        pointRadius: pointR,
+        fill: true,
+        tension: 0.3,
+        borderWidth: 2
+      },
+      {
+        label: 'Conventional $/lb N',
+        data: convCosts,
+        borderColor: '#b49e86',
+        borderDash: [6, 4],
+        pointRadius: 0,
+        borderWidth: 1.5,
+        fill: false
+      }
+    ]
+  };
+  const o2 = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        labels: {
+          color: '#b49e86',
+          font: { family: 'Franklin Gothic Medium', size: 10 },
+          usePointStyle: true,
+          pointStyleWidth: 10
+        }
+      },
+      tooltip: {
+        callbacks: {
+          label: function(c) {
+            return c.dataset.label + ': $' + c.raw.toFixed(4) + '/lb N';
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        ticks: {
+          color: '#b49e86',
+          font: { family: 'Lucida Console', size: 9 },
+          maxRotation: 45
+        },
+        grid: { color: 'rgba(90,68,51,.2)' }
+      },
+      y: {
+        ticks: {
+          color: '#b49e86',
+          font: { family: 'Lucida Console', size: 10 },
+          callback: function(v) { return '$' + v.toFixed(3); }
+        },
+        grid: { color: 'rgba(90,68,51,.3)' }
+      }
+    }
+  };
+
+  if(charts.sensitivity){
+    charts.sensitivity.data = d2;
+    charts.sensitivity.update();
+  } else {
+    charts.sensitivity = new Chart(ctx2, { type: 'line', data: d2, options: o2 });
+  }
+}
+
+/* ================================================================
+   RECALC & HELPERS
+   ================================================================ */
+function recalcAll(){
+  readInputs();
+  calcModule1();
+  calcModule2();
+}
+
+function setText(id,val){
+  const el=document.getElementById(id);
+  if(el) el.textContent=val;
+}
+function fmt(n){
+  if(isNaN(n)) return '--';
+  return Math.round(n).toLocaleString('en-US');
+}
+
+/* ================================================================
+   DEMO / CLEAR / PERSIST
+   ================================================================ */
+function loadDemo(){
+  document.getElementById('f-total-acres').value=480;
+  document.getElementById('f-corn-acres').value=300;
+  document.getElementById('f-soy-acres').value=180;
+  document.getElementById('f-other-acres').value=0;
+  document.getElementById('f-n-rate').value=155;
+  document.getElementById('f-n-source').value='82';
+  document.getElementById('f-n-price').value=0.42;
+  document.getElementById('f-app-method').value='spring';
+  document.getElementById('f-yield').value=185;
+  document.getElementById('f-crop-price').value=4.40;
+  document.getElementById('f-seed').value='';
+  document.getElementById('f-herb').value='';
+  document.getElementById('f-fuel').value='';
+  document.getElementById('f-rent').value='';
+  document.getElementById('pu-lbn').checked=true;
+  document.getElementById('lbl-n-price').textContent='Purchase Price ($/lb N)';
+  // Module 2
+  document.getElementById('f-ga-tier').value='coop';
+  document.getElementById('f-ga-capex').value=4500000;
+  document.getElementById('f-ga-om').value=180000;
+  document.getElementById('f-ga-down').value=20;
+  document.getElementById('f-ga-rate').value=6.5;
+  document.getElementById('f-ga-term').value=15;
+  document.getElementById('f-ga-elec').value=0.065;
+  document.getElementById('f-ga-util').value=80;
+  document.getElementById('f-ga-farms').value=8;
+  recalcAll();
+  saveState();
+}
+
+function clearInputs(){
+  localStorage.removeItem('westrom-dash-state');
+  loadDemo();
+}
+
+function saveState(){
+  const fields={};
+  document.querySelectorAll('#m1-form input,#m1-form select,#m2-form input,#m2-form select').forEach(el=>{
+    if(el.type==='radio'){if(el.checked) fields[el.name]=el.value;}
+    else fields[el.id]=el.value;
+  });
+  try{localStorage.setItem('westrom-dash-state',JSON.stringify(fields));}catch(e){}
+}
+
+function restoreState(saved){
+  Object.keys(saved).forEach(k=>{
+    if(k==='price-unit'){
+      const r=document.getElementById(saved[k]==='ton'?'pu-ton':'pu-lbn');
+      if(r){r.checked=true;document.getElementById('lbl-n-price').textContent=saved[k]==='ton'?'Purchase Price ($/ton)':'Purchase Price ($/lb N)';}
+    } else {
+      const el=document.getElementById(k);
+      if(el) el.value=saved[k];
+    }
+  });
+}
+</script>
+</body>
+</html>

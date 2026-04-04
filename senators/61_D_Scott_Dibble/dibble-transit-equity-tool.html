@@ -1,0 +1,1682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minneapolis Transit Corridor Housing Equity Tool — SD-61</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Route-map transit line (SVG) on left (~80px) as nav spine; main content scrolls right; asymmetric 80/rest split
+   2. Navigation: SVG transit line with clickable station dots — active station enlarged and purple-highlighted
+   3. Typography: Palatino Linotype for body/headings, Century Gothic for labels/UI, Consolas for data figures
+   4. Hero moment: Full-width purple header band 180px+ with corridor name in giant type, housing units + equity score
+   5. Color strategy: #8 Saturated accent — transit purple (#7b1fa2) dominates as environmental color; dark asphalt base
+   6. Entry experience: Transit line SVG draws itself top-to-bottom, stations pulse on, then first station highlights
+   Additional: No bordered callout boxes; data shown as inline DL pairs and table rows; dark asphalt environmental sections
+*/
+
+:root {
+  --purple: #7b1fa2;
+  --purple-light: #9c4dcc;
+  --purple-dark: #4a0072;
+  --concrete: #9e9e9e;
+  --asphalt: #212121;
+  --equity-green: #2e7d32;
+  --green-light: #4caf50;
+  --white: #fafafa;
+  --off-white: #f0eff2;
+  --text: #212121;
+  --text-light: #e0e0e0;
+  --eline: #0D6BA8;
+  --cline: #D4580A;
+  --dline: #5A3F8E;
+  --greenline: #2D7A3A;
+  --nicollet: #7b1fa2;
+  --transit-line-width: 72px;
+  --font-body: 'Palatino Linotype', Palatino, 'Book Antiqua', serif;
+  --font-ui: 'Century Gothic', 'Apple Gothic', CenturyGothic, sans-serif;
+  --font-data: Consolas, 'Liberation Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  color: var(--text);
+  background: var(--off-white);
+  line-height: 1.55;
+  font-size: 15px;
+  overflow-x: hidden;
+}
+
+/* ── TRANSIT LINE NAV (left spine) ── */
+#transit-nav {
+  position: fixed;
+  left: 0; top: 0;
+  width: var(--transit-line-width);
+  height: 100vh;
+  background: var(--asphalt);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 24px;
+}
+
+#transit-nav svg {
+  width: 40px;
+  flex: 1;
+}
+
+.station-group { cursor: pointer; }
+.station-group:hover .station-dot { r: 10; }
+
+.station-label {
+  font-family: var(--font-ui);
+  font-size: 8px;
+  fill: var(--concrete);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.station-dot {
+  fill: var(--concrete);
+  stroke: var(--asphalt);
+  stroke-width: 2;
+  transition: all 0.3s ease;
+}
+
+.station-dot.active {
+  fill: var(--purple);
+  r: 10;
+  stroke: var(--purple-light);
+  stroke-width: 3;
+}
+
+.transit-spine {
+  stroke: var(--concrete);
+  stroke-width: 3;
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  fill: none;
+}
+
+.transit-spine.drawn { stroke-dashoffset: 0; transition: stroke-dashoffset 1.8s ease-out; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+.station-dot.entering { animation: pulse 0.6s ease-in-out 2; }
+
+/* ── MAIN CONTENT ── */
+#main {
+  margin-left: var(--transit-line-width);
+  min-height: 100vh;
+}
+
+/* ── HERO HEADER BAND ── */
+#hero {
+  background: linear-gradient(135deg, var(--purple-dark) 0%, var(--purple) 60%, var(--purple-light) 100%);
+  color: #fff;
+  padding: 48px 48px 40px;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  position: relative;
+  overflow: hidden;
+}
+
+#hero::before {
+  content: '';
+  position: absolute;
+  top: -40px; right: -60px;
+  width: 320px; height: 320px;
+  border: 4px solid rgba(255,255,255,0.08);
+  border-radius: 50%;
+}
+
+#hero::after {
+  content: '';
+  position: absolute;
+  bottom: -80px; right: 60px;
+  width: 200px; height: 200px;
+  border: 3px solid rgba(255,255,255,0.06);
+  border-radius: 50%;
+}
+
+.hero-superlabel {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.65);
+  margin-bottom: 8px;
+}
+
+.hero-corridor-name {
+  font-family: var(--font-body);
+  font-size: 42px;
+  font-weight: 700;
+  line-height: 1.1;
+  margin-bottom: 12px;
+}
+
+.hero-stats {
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.hero-stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.hero-stat-value {
+  font-family: var(--font-data);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.hero-stat-label {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.6);
+  margin-top: 4px;
+}
+
+/* ── SECTION COMMON ── */
+.section {
+  padding: 40px 48px;
+  scroll-margin-top: 20px;
+}
+
+.section-dark {
+  background: var(--asphalt);
+  color: var(--text-light);
+}
+
+.section-purple {
+  background: var(--purple);
+  color: #fff;
+}
+
+.section-tinted {
+  background: #ede7f6;
+}
+
+.section-title {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--purple);
+  margin-bottom: 20px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--purple);
+  display: inline-block;
+}
+
+.section-dark .section-title {
+  color: var(--purple-light);
+  border-bottom-color: var(--purple-light);
+}
+
+.section-tinted .section-title {
+  color: var(--purple-dark);
+  border-bottom-color: var(--purple-dark);
+}
+
+/* ── CORRIDOR SELECTOR CARDS ── */
+#corridor-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.corridor-card {
+  display: flex;
+  align-items: stretch;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.corridor-card:hover { background: #f5f0fa; }
+.corridor-card.active { background: #ede7f6; }
+
+.corridor-card-stripe {
+  width: 6px;
+  flex-shrink: 0;
+}
+
+.corridor-card-body {
+  padding: 14px 18px;
+  flex: 1;
+  min-width: 0;
+}
+
+.corridor-card-name {
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.corridor-card-meta {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  color: var(--concrete);
+  margin-top: 3px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  display: inline-block;
+  font-family: var(--font-ui);
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 2px;
+  font-weight: 700;
+}
+
+.badge-brt { background: var(--purple); color: #fff; }
+.badge-lrt { background: var(--greenline); color: #fff; }
+.badge-local { background: var(--concrete); color: #fff; }
+.badge-status { background: transparent; border: 1px solid var(--concrete); color: var(--text); }
+.corridor-card.active .badge-status { border-color: var(--purple); color: var(--purple); }
+
+/* ── DATA PANEL ── */
+.data-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+
+.data-grid dt {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--concrete);
+  padding: 10px 0 2px;
+  border-bottom: 1px solid rgba(158,158,158,0.2);
+}
+
+.data-grid dd {
+  font-family: var(--font-data);
+  font-size: 15px;
+  padding: 10px 0 2px;
+  border-bottom: 1px solid rgba(158,158,158,0.2);
+  text-align: right;
+}
+
+.section-dark .data-grid dt { color: rgba(255,255,255,0.5); border-bottom-color: rgba(255,255,255,0.1); }
+.section-dark .data-grid dd { border-bottom-color: rgba(255,255,255,0.1); }
+
+.overlap-indicator {
+  display: inline-block;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 3px 10px;
+  border-radius: 2px;
+  font-weight: 700;
+}
+
+.overlap-high { background: var(--equity-green); color: #fff; }
+.overlap-medium { background: #f9a825; color: var(--asphalt); }
+.overlap-low { background: var(--concrete); color: #fff; }
+
+/* ── HOUSING PANEL ── */
+.housing-narrative {
+  font-size: 14px;
+  line-height: 1.65;
+  max-width: 660px;
+}
+
+.housing-narrative strong { color: var(--purple-dark); }
+.section-dark .housing-narrative strong { color: var(--purple-light); }
+
+.transit-dep-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 4px 12px;
+  border-radius: 2px;
+  font-weight: 700;
+  margin-top: 12px;
+}
+
+.dep-high { background: #c62828; color: #fff; }
+.dep-medium { background: #f9a825; color: var(--asphalt); }
+
+/* ── CHART AREA ── */
+#chart-container {
+  max-width: 560px;
+  margin: 20px 0;
+  height: 120px;
+}
+
+/* ── CITYWIDE BASELINE ── */
+.baseline-table {
+  width: 100%;
+  max-width: 660px;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.baseline-table th {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-align: left;
+  padding: 8px 12px;
+  background: var(--purple-dark);
+  color: #fff;
+}
+
+.baseline-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(158,158,158,0.15);
+  vertical-align: top;
+}
+
+.baseline-table td:first-child {
+  font-family: var(--font-data);
+  font-weight: 700;
+  white-space: nowrap;
+  width: 140px;
+}
+
+.baseline-table td:last-child {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  color: var(--concrete);
+}
+
+/* ── USER INPUT FIELDS ── */
+.field-group {
+  margin: 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.field-group label {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--purple);
+}
+
+.section-dark .field-group label { color: var(--purple-light); }
+
+.field-group input,
+.field-group textarea,
+.field-group select {
+  font-family: var(--font-body);
+  font-size: 14px;
+  padding: 8px 12px;
+  border: 2px solid var(--concrete);
+  border-radius: 2px;
+  background: #fff;
+  color: var(--text);
+  transition: border-color 0.2s;
+  max-width: 560px;
+}
+
+.field-group input:focus,
+.field-group textarea:focus,
+.field-group select:focus {
+  outline: none;
+  border-color: var(--purple);
+}
+
+.section-dark .field-group input,
+.section-dark .field-group textarea,
+.section-dark .field-group select {
+  background: #333;
+  color: var(--text-light);
+  border-color: #555;
+}
+
+.section-dark .field-group input:focus,
+.section-dark .field-group textarea:focus,
+.section-dark .field-group select:focus {
+  border-color: var(--purple-light);
+}
+
+.field-group textarea { resize: vertical; min-height: 60px; }
+
+.field-hint {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  color: var(--concrete);
+  letter-spacing: 0.5px;
+}
+
+/* ── EDIT TOGGLE ── */
+.edit-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--purple);
+  cursor: pointer;
+  background: none;
+  border: 1px solid var(--purple);
+  padding: 4px 12px;
+  border-radius: 2px;
+  margin: 12px 0;
+  transition: all 0.2s;
+}
+
+.edit-toggle:hover { background: var(--purple); color: #fff; }
+
+/* ── BRIEF GENERATOR ── */
+#brief-output {
+  background: #fff;
+  max-width: 720px;
+  padding: 48px;
+  font-size: 14px;
+  line-height: 1.7;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+}
+
+.brief-header {
+  text-align: center;
+  padding-bottom: 20px;
+  border-bottom: 3px solid var(--purple);
+  margin-bottom: 24px;
+}
+
+.brief-header h2 {
+  font-family: var(--font-body);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--purple-dark);
+  margin-bottom: 4px;
+}
+
+.brief-header .brief-sub {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--concrete);
+}
+
+.brief-section {
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.brief-section-label {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--purple);
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+
+.brief-editable {
+  padding: 6px 8px;
+  border: 1px dashed transparent;
+  border-radius: 2px;
+  transition: border-color 0.2s;
+  min-height: 24px;
+}
+
+.brief-editable:hover {
+  border-color: var(--concrete);
+}
+
+.brief-editable:focus {
+  outline: none;
+  border-color: var(--purple);
+  border-style: solid;
+  background: #faf8ff;
+}
+
+.brief-edit-hint {
+  font-family: var(--font-ui);
+  font-size: 9px;
+  color: var(--concrete);
+  opacity: 0;
+  transition: opacity 0.2s;
+  position: absolute;
+  right: 0; top: 0;
+}
+
+.brief-section:hover .brief-edit-hint { opacity: 1; }
+
+/* ── CORRIDOR SCHEMATIC (print) ── */
+.corridor-schematic {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin: 16px 0;
+  padding: 12px 0;
+}
+
+.schematic-line {
+  height: 4px;
+  flex: 1;
+  border-radius: 2px;
+}
+
+.schematic-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid;
+  background: #fff;
+  flex-shrink: 0;
+}
+
+.schematic-terminus {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── BUTTONS ── */
+.btn {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 10px 24px;
+  border: none;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.2s;
+  font-weight: 700;
+}
+
+.btn-purple {
+  background: var(--purple);
+  color: #fff;
+}
+
+.btn-purple:hover { background: var(--purple-dark); }
+
+.btn-outline {
+  background: transparent;
+  color: var(--purple);
+  border: 2px solid var(--purple);
+}
+
+.btn-outline:hover { background: var(--purple); color: #fff; }
+
+.btn-group { display: flex; gap: 12px; flex-wrap: wrap; margin: 16px 0; }
+
+/* ── QUOTE ── */
+.framing-quote {
+  font-size: 18px;
+  font-style: italic;
+  line-height: 1.6;
+  max-width: 620px;
+  color: rgba(255,255,255,0.9);
+  position: relative;
+  padding-left: 24px;
+}
+
+.framing-quote::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 4px;
+  width: 4px;
+  height: 100%;
+  background: rgba(255,255,255,0.3);
+  border-radius: 2px;
+}
+
+.framing-attribution {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.5);
+  margin-top: 12px;
+  padding-left: 24px;
+}
+
+/* ── FOOTER ── */
+#footer {
+  background: var(--asphalt);
+  color: rgba(255,255,255,0.4);
+  padding: 24px 48px;
+  font-family: var(--font-ui);
+  font-size: 10px;
+  letter-spacing: 1px;
+  line-height: 1.8;
+}
+
+/* ── AMI CALCULATOR ── */
+.ami-result {
+  font-family: var(--font-data);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--equity-green);
+  margin: 8px 0;
+}
+
+.ami-detail {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  color: var(--concrete);
+}
+
+/* ── OVERRIDE PANEL ── */
+.override-panel {
+  display: none;
+  padding: 16px 0;
+}
+
+.override-panel.visible { display: block; }
+
+.override-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.override-row label {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--concrete);
+  width: 160px;
+  flex-shrink: 0;
+}
+
+.override-row input {
+  font-family: var(--font-data);
+  font-size: 13px;
+  padding: 4px 8px;
+  border: 1px solid #555;
+  background: #333;
+  color: var(--text-light);
+  border-radius: 2px;
+  width: 180px;
+}
+
+.override-row input:focus {
+  outline: none;
+  border-color: var(--purple-light);
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  :root { --transit-line-width: 48px; }
+  .section { padding: 28px 20px; }
+  #hero { padding: 32px 20px 28px; min-height: 160px; }
+  .hero-corridor-name { font-size: 28px; }
+  .hero-stat-value { font-size: 22px; }
+  .data-grid { grid-template-columns: 1fr; }
+  .data-grid dd { text-align: left; }
+  #brief-output { padding: 24px 16px; }
+  .baseline-table { font-size: 12px; }
+  .station-label { display: none; }
+}
+
+/* ── PRINT ── */
+@media print {
+  #transit-nav, #hero, #section-corridors, #section-housing,
+  #section-generator-controls, #footer, .btn-group,
+  .edit-toggle, .override-panel, .no-print { display: none !important; }
+
+  #main { margin-left: 0; }
+
+  #section-brief { display: block !important; padding: 0; }
+  #brief-output {
+    box-shadow: none;
+    max-width: 100%;
+    padding: 24px 0;
+    font-size: 12pt;
+  }
+
+  .brief-editable { border: none !important; padding: 0; }
+  .brief-edit-hint { display: none; }
+
+  body { background: #fff; color: #000; font-size: 12pt; }
+
+  .brief-header { border-bottom-color: #000; }
+  .brief-header h2 { color: #000; }
+  .brief-section-label { color: #333; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ TRANSIT LINE NAV ══ -->
+<nav id="transit-nav" aria-label="Section navigation">
+  <svg id="transit-svg" viewBox="0 0 40 600" preserveAspectRatio="xMidYMid meet">
+    <line class="transit-spine" x1="20" y1="30" x2="20" y2="570" />
+    <!-- Stations injected by JS -->
+  </svg>
+</nav>
+
+<!-- ══ MAIN CONTENT ══ -->
+<div id="main">
+
+  <!-- HERO BAND -->
+  <section id="hero" aria-label="Corridor overview">
+    <div class="hero-superlabel">Corridor</div>
+    <h1 class="hero-corridor-name" id="hero-name">METRO E Line</h1>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <span class="hero-stat-value" id="hero-length">13.3 mi</span>
+        <span class="hero-stat-label">Route Length</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-value" id="hero-type">BRT</span>
+        <span class="hero-stat-label">Service Type</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-value" id="hero-overlap">HIGH</span>
+        <span class="hero-stat-label">SD-61 Overlap</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-value" id="hero-costburden" style="color:#ef9a9a">49%</span>
+        <span class="hero-stat-label">Citywide Cost-Burdened</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATION 1: FRAMING QUOTE -->
+  <section id="section-framing" class="section section-purple">
+    <div class="framing-quote">
+      Senator Dibble has spent two decades making a single argument: that transit is not a transportation issue — it's a housing issue, an equity issue, and a climate issue. This tool was built to put that argument in the hands of anyone who needs to make it at a committee table, a community meeting, or a city desk.
+    </div>
+    <div class="framing-attribution">A resource for SD-61 transit advocacy</div>
+  </section>
+
+  <!-- STATION 2: CORRIDOR SELECTOR -->
+  <section id="section-corridors" class="section">
+    <div class="section-title">Select Corridor</div>
+    <div id="corridor-selector"></div>
+    <button class="edit-toggle no-print" id="toggle-overrides" aria-expanded="false">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8.5 1.5l2 2L4 10H2v-2z"/></svg>
+      Edit / Override Data
+    </button>
+    <div class="override-panel" id="override-panel" role="region" aria-label="Data overrides">
+      <div class="override-row">
+        <label for="ovr-ridership">Ridership figure</label>
+        <input type="text" id="ovr-ridership" placeholder="e.g. 2.1M rides">
+      </div>
+      <div class="override-row">
+        <label for="ovr-length">Route length</label>
+        <input type="text" id="ovr-length" placeholder="e.g. 13.3 miles">
+      </div>
+      <div class="override-row">
+        <label for="ovr-status">Status</label>
+        <input type="text" id="ovr-status" placeholder="e.g. Opened 2025">
+      </div>
+    </div>
+  </section>
+
+  <!-- STATION 3: ROUTE DATA -->
+  <section id="section-data" class="section section-dark">
+    <div class="section-title">Route Data</div>
+    <dl class="data-grid" id="data-panel">
+      <!-- Filled by JS -->
+    </dl>
+    <div id="ridership-note" style="font-family:var(--font-ui);font-size:11px;color:var(--concrete);margin-top:12px;max-width:560px;"></div>
+  </section>
+
+  <!-- STATION 4: HOUSING EQUITY -->
+  <section id="section-housing" class="section section-tinted">
+    <div class="section-title">Housing Equity Overlay</div>
+
+    <div id="chart-container">
+      <canvas id="burden-chart"></canvas>
+    </div>
+
+    <div id="housing-narrative" class="housing-narrative" style="margin-top:20px;"></div>
+
+    <div id="transit-dep-container" style="margin-top:16px;"></div>
+    <div id="displacement-note" style="margin-top:12px;font-family:var(--font-ui);font-size:12px;color:#555;max-width:560px;"></div>
+
+    <h3 style="font-family:var(--font-ui);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--purple-dark);margin-top:32px;margin-bottom:12px;">Minneapolis Citywide Baseline</h3>
+
+    <table class="baseline-table">
+      <thead>
+        <tr><th>Figure</th><th>Detail</th><th>Source</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>49%</td>
+          <td>All Minneapolis households cost-burdened (pay &gt;30% of income on housing)</td>
+          <td>Minneapolis 2040 Plan / MHP</td>
+        </tr>
+        <tr>
+          <td>80%+</td>
+          <td>Minneapolis renters earning under $50,000 who are cost-burdened (2023)</td>
+          <td>MHP analysis of ACS data</td>
+        </tr>
+        <tr>
+          <td>~$1,391/mo</td>
+          <td>Median rent, Minneapolis (August 2025 average)</td>
+          <!-- VERIFY: Rent figure from software brief — sourced to Apartments.com -->
+          <td>Apartments.com</td>
+        </tr>
+        <tr>
+          <td>$31.19/hr</td>
+          <td>Housing wage for a 2-BR in Minneapolis metro ($64,880/yr)</td>
+          <td>MHP Out of Reach 2024</td>
+        </tr>
+        <tr>
+          <td>Majority</td>
+          <td>Minneapolis residents are renters; majority of renters are people of color</td>
+          <td>Minneapolis 2040 Plan</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="field-group" style="margin-top:28px;">
+      <label for="ami-input">Analyze by % of Area Median Income</label>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <input type="number" id="ami-input" value="50" min="10" max="120" step="5" style="width:100px;">
+        <span style="font-family:var(--font-ui);font-size:11px;color:var(--purple-dark);">% AMI</span>
+      </div>
+      <div class="field-hint">Minneapolis metro AMI for a family of 4: ~$113,800 (2024 HUD estimate; verify current figure)</div>
+    </div>
+    <div id="ami-result"></div>
+
+    <div class="field-group" style="margin-top:20px;">
+      <label for="anchor-input">Community Anchor on Corridor</label>
+      <textarea id="anchor-input" rows="3" placeholder="Name a housing project, facility, or community anchor on this corridor..."></textarea>
+      <div class="field-hint">This flows into the generated Corridor Investment Brief</div>
+    </div>
+  </section>
+
+  <!-- STATION 5: BRIEF GENERATOR CONTROLS -->
+  <section id="section-generator-controls" class="section section-dark">
+    <div class="section-title">Generate Corridor Investment Brief</div>
+    <p style="font-size:14px;max-width:560px;margin-bottom:16px;color:var(--text-light);">
+      Assemble a formatted, print-ready policy memo combining corridor data and housing equity context. Edit any section inline after generation.
+    </p>
+    <div class="field-group">
+      <label for="investment-ask">Investment Ask</label>
+      <input type="text" id="investment-ask" placeholder="e.g. E Line capital maintenance funding">
+    </div>
+    <div class="field-group">
+      <label for="cta-select">Call to Action</label>
+      <select id="cta-select">
+        <option value="maintain">Maintain state transit funding at current levels or increase</option>
+        <option value="support">Support E Line/BRT capital investment in FY2026 budget</option>
+        <option value="oppose">Oppose federal transit funding cuts affecting Metro Transit</option>
+        <option value="custom">Custom (enter below)</option>
+      </select>
+    </div>
+    <div class="field-group" id="custom-cta-group" style="display:none;">
+      <label for="custom-cta">Custom Call to Action</label>
+      <input type="text" id="custom-cta" placeholder="Enter your call to action...">
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-purple" id="btn-generate" onclick="generateBrief()">Generate Brief</button>
+      <button class="btn btn-outline" id="btn-print" onclick="window.print()" style="display:none;">Print Brief</button>
+    </div>
+  </section>
+
+  <!-- STATION 6: GENERATED BRIEF -->
+  <section id="section-brief" class="section" style="display:none;">
+    <div id="brief-output"></div>
+    <div class="btn-group no-print" style="margin-top:20px;">
+      <button class="btn btn-outline" onclick="window.print()">Print Brief</button>
+    </div>
+  </section>
+
+  <!-- LEGISLATIVE CONTEXT TOOLTIP DATA (hidden) -->
+  <div id="leg-context-data" style="display:none;">
+    <!-- VERIFY: Ridership figures from software brief -->
+    Metro Transit systemwide ridership: 47.5 million rides in 2024 (+6% vs. 2023).
+    BRT ridership: ~8.3 million rides in 2024 (+14% vs. 2023).
+    Light rail ridership fell 14% in 2025.
+    E Line replaces former Route 6: signal priority, all-door boarding, ~34 stops on 13.3-mile route.
+    Green Line Extension to Eden Prairie opens 2027; Blue Line Extension to Brooklyn Park in development.
+  </div>
+
+  <!-- FOOTER -->
+  <footer id="footer">
+    A resource for SD-61 and Minneapolis transit advocacy. Built with AI.<br>
+    Transit data reflects Metro Transit / Met Council sources as of 2025.
+    Housing data: Minnesota Housing Partnership, Minneapolis 2040 Plan.
+  </footer>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// CORRIDOR DATA — single source of truth
+// ═══════════════════════════════════════════════
+const corridorData = {
+  eline: {
+    id: 'eline',
+    name: 'METRO E Line',
+    subtitle: 'Hennepin Ave / France Ave',
+    type: 'BRT',
+    typeBadge: 'badge-brt',
+    status: 'Opened late 2025',
+    statusShort: 'New 2025',
+    length: '13.3 miles',
+    lengthNum: 13.3,
+    districtOverlap: 'High',
+    overlapClass: 'overlap-high',
+    openedYear: 2025,
+    routeColor: '#0D6BA8',
+    description: 'Downtown Minneapolis through Uptown on Hennepin Avenue to 44th St',
+    stopsNote: '~20 of 34 total stops in Minneapolis',
+    neighborhoods: 'Loring Park, Uptown, Lyn-Lake, South Minneapolis',
+    features: 'All-door boarding, transit signal priority, bus lanes in key segments',
+    ridership: {
+      value: 'Replaces former Route 6',
+      year: '2025',
+      source: 'Metro Transit',
+      note: 'Predecessor route data available; new BRT ridership tracking began late 2025'
+    },
+    housing: {
+      costBurdenNote: 'Dense renter corridor. Uptown/Lyn-Lake median home sale price ~$217,450 in nearby Whittier. Apartment mix ranges from $800 studios to $3,000+ luxury units in new Lyndale/Hennepin development. Area subject to rapid gentrification pressure as E Line increases corridor desirability.',
+      transitDependency: 'Medium',
+      transitDepNote: 'Mixed-income corridor with growing transit ridership; new BRT expected to increase transit mode share.',
+      displacementRisk: 'Gentrification pressure intensifying as E Line raises corridor desirability; lower-income renters face displacement from new luxury development.',
+      /* VERIFY: Whittier median home sale price from software brief */
+    },
+    briefCorridor: 'The METRO E Line is a 13.3-mile Bus Rapid Transit route running from downtown Minneapolis through Uptown on Hennepin Avenue to 44th Street. Opened in late 2025, it replaces the former Route 6 with BRT-grade features including signal priority, all-door boarding, and dedicated bus lanes.',
+    briefServes: 'The E Line corridor passes through some of the most renter-dense neighborhoods in Minneapolis — Loring Park, Uptown, and Lyn-Lake — where apartment rents range from $800 studios to $3,000+ luxury units. Citywide, 49% of all Minneapolis households are cost-burdened, and 80% or more of renters earning under $50,000 cannot afford their housing.'
+  },
+  cline: {
+    id: 'cline',
+    name: 'METRO C Line',
+    subtitle: 'Penn Avenue',
+    type: 'BRT',
+    typeBadge: 'badge-brt',
+    status: 'Operating since June 2019',
+    statusShort: 'Operating',
+    length: '8.5 miles',
+    lengthNum: 8.5,
+    districtOverlap: 'Low',
+    overlapClass: 'overlap-low',
+    openedYear: 2019,
+    routeColor: '#D4580A',
+    description: 'Brooklyn Center to Downtown Minneapolis via Penn Ave and Olson Memorial Hwy',
+    stopsNote: 'Full route serves North Minneapolis corridor',
+    neighborhoods: 'North Minneapolis, Near North, Brooklyn Center',
+    features: 'Leading BRT performer in Metro Transit system',
+    ridership: {
+      value: '~14% BRT ridership growth systemwide in 2024; C Line cited as leading performer',
+      year: '2024',
+      source: 'Metro Transit',
+      note: 'C Line was cited as leading BRT performer in system'
+    },
+    housing: {
+      costBurdenNote: 'North Minneapolis neighborhoods have among the highest shares of cost-burdened renters and transit-dependent households citywide. BRT investment in this corridor directly serves residents with the fewest car-ownership options.',
+      transitDependency: 'High',
+      transitDepNote: 'Highest transit dependency in the BRT system; serves residents with fewest car-ownership options.',
+      displacementRisk: 'Longtime residents face cost pressures as corridor investment increases; area historically underserved by infrastructure spending.',
+    },
+    briefCorridor: 'The METRO C Line is an 8.5-mile Bus Rapid Transit route connecting Brooklyn Center to downtown Minneapolis via Penn Avenue and Olson Memorial Highway. Operating since June 2019, it has become the leading ridership performer in the Metro Transit BRT system.',
+    briefServes: 'The C Line serves North Minneapolis — a corridor where transit-dependent households and cost-burdened renters are concentrated at rates above the citywide average. For many riders on this route, the bus is not a choice but a necessity: car ownership rates are among the lowest in the city.'
+  },
+  dline: {
+    id: 'dline',
+    name: 'METRO D Line',
+    subtitle: 'Fremont / Chicago / Snelling Ave',
+    type: 'BRT',
+    typeBadge: 'badge-brt',
+    status: 'Operating since 2022',
+    statusShort: 'Operating',
+    length: 'Brooklyn Center to Mall of America',
+    lengthNum: null,
+    districtOverlap: 'Medium',
+    overlapClass: 'overlap-medium',
+    openedYear: 2022,
+    routeColor: '#5A3F8E',
+    description: 'Brooklyn Center to Mall of America via Fremont Ave, Chicago Ave, Snelling Ave',
+    stopsNote: 'Key south Minneapolis spine on Chicago Avenue',
+    neighborhoods: 'South Minneapolis, Powderhorn, Phillips, Brooklyn Center',
+    features: 'Chicago Ave passes through high-renter-density areas',
+    ridership: {
+      value: 'Part of BRT system with ~8.3M rides in 2024',
+      year: '2024',
+      source: 'Metro Transit',
+      note: 'BRT systemwide figure; corridor-specific breakout not separately published'
+    },
+    housing: {
+      costBurdenNote: 'Chicago Avenue corridor in south Minneapolis has high renter density. Corridor passes through neighborhoods with significant immigrant and refugee communities. Transit dependency is high.',
+      transitDependency: 'High',
+      transitDepNote: 'Serves immigrant and refugee communities with high transit reliance; renter density above citywide average along Chicago Ave.',
+      displacementRisk: 'Immigrant and refugee renters in corridor neighborhoods face language barriers in housing market; transit access is essential to employment and services.',
+    },
+    briefCorridor: 'The METRO D Line is a Bus Rapid Transit route connecting Brooklyn Center to the Mall of America via Fremont Avenue, Chicago Avenue, and Snelling Avenue. Operating since 2022, its Chicago Avenue segment is a key south Minneapolis transit spine.',
+    briefServes: 'The D Line corridor on Chicago Avenue passes through neighborhoods with significant immigrant and refugee communities and high renter density. For these residents, reliable transit is the link between housing and employment — a connection that cannot be replaced by car ownership.'
+  },
+  greenline: {
+    id: 'greenline',
+    name: 'METRO Green Line',
+    subtitle: 'University Ave / LRT',
+    type: 'LRT',
+    typeBadge: 'badge-lrt',
+    status: 'Operating since 2014; Extension opening 2027',
+    statusShort: 'Operating',
+    length: '11 miles (original); Extension adds ~14.5 miles',
+    lengthNum: 11,
+    districtOverlap: 'Low',
+    overlapClass: 'overlap-low',
+    openedYear: 2014,
+    routeColor: '#2D7A3A',
+    description: 'Connects Minneapolis and St. Paul CBDs; Extension to Eden Prairie opening 2027',
+    stopsNote: 'University Avenue alignment through both downtowns',
+    neighborhoods: 'Downtown Minneapolis, University Ave, Midway, Downtown St. Paul',
+    features: 'Light rail; Green Line Extension to Eden Prairie opens 2027',
+    ridership: {
+      value: 'Systemwide LRT ridership fell 14% in 2025 vs. 2024',
+      year: '2025',
+      source: 'Metro Transit / Met Council',
+      note: 'Supports the "service quality and safety investment needed" argument'
+    },
+    housing: {
+      costBurdenNote: 'University Avenue corridor has seen significant development since 2014 LRT opening. Equity concern: transit-induced gentrification has displaced lower-income renters who depended on the corridor most.',
+      transitDependency: 'Medium',
+      transitDepNote: 'Mixed ridership base; gentrification has shifted corridor demographics since 2014 opening.',
+      displacementRisk: 'Transit-induced gentrification is documented along University Avenue; lower-income renters displaced by rising rents near LRT stations.',
+    },
+    briefCorridor: 'The METRO Green Line is an 11-mile Light Rail Transit route connecting downtown Minneapolis to downtown St. Paul via University Avenue. Operating since 2014, a 14.5-mile extension to Eden Prairie is scheduled to open in 2027.',
+    briefServes: 'The Green Line corridor illustrates both the promise and peril of transit investment: while the 2014 LRT opening spurred significant development along University Avenue, it also displaced lower-income renters who depended on the corridor most. Systemwide light-rail ridership fell 14% in 2025 — a signal that service quality and safety investment are needed to sustain ridership.'
+  },
+  nicollet: {
+    id: 'nicollet',
+    name: 'Nicollet Mall Corridor',
+    subtitle: 'Routes 10/11/17/18/25',
+    type: 'Local Bus',
+    typeBadge: 'badge-local',
+    status: 'Operating — highest-frequency non-BRT corridor',
+    statusShort: 'Operating',
+    length: 'Downtown Minneapolis spine',
+    lengthNum: null,
+    districtOverlap: 'High',
+    overlapClass: 'overlap-high',
+    openedYear: null,
+    routeColor: '#7b1fa2',
+    description: 'Minnesota\'s busiest transit corridor by trip count — 635 daily trips (2023)',
+    stopsNote: 'Downtown spine on Nicollet Mall',
+    neighborhoods: 'Downtown Minneapolis, Nicollet Mall',
+    features: '635 weekday trips (2023) — busiest transit corridor in Minnesota',
+    ridership: {
+      value: '635 weekday trips (2023)',
+      year: '2023',
+      source: 'Metro Transit',
+      note: 'Busiest transit corridor in Minnesota by daily trip count'
+    },
+    housing: {
+      costBurdenNote: 'Downtown-adjacent corridor. Serves the St. David\'s Center facility (SF246) at 1130 Nicollet Mall, which provides early childhood, mental health, and family support services — transit access is a direct enabler of service utilization.',
+      transitDependency: 'Medium',
+      transitDepNote: 'Downtown workers and service users rely on Nicollet Mall routes; connects employment centers to residential neighborhoods.',
+      displacementRisk: 'Downtown housing costs are among the highest in the metro; affordability of transit access matters most to workers commuting into the corridor, not residents of it.',
+    },
+    briefCorridor: 'The Nicollet Mall corridor carries Routes 10, 11, 17, 18, and 25 through the heart of downtown Minneapolis — 635 weekday trips in 2023, making it the busiest transit corridor in Minnesota by trip count.',
+    briefServes: 'This corridor serves downtown Minneapolis workers and the St. David\'s Center for Child & Family Development at 1130 Nicollet Mall, which provides early childhood education, children\'s mental health services, pediatric therapy, and family support. State bond investment of $10M (SF246, 2025) is directly tied to a facility that depends on transit access for the families it serves.'
+  }
+};
+
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+let activeCorridor = 'eline';
+let burdenChart = null;
+
+const sections = [
+  { id: 'section-framing', label: 'INTRO', y: 60 },
+  { id: 'section-corridors', label: 'SELECT', y: 140 },
+  { id: 'section-data', label: 'DATA', y: 220 },
+  { id: 'section-housing', label: 'HOUSING', y: 300 },
+  { id: 'section-generator-controls', label: 'BRIEF', y: 380 },
+  { id: 'section-brief', label: 'OUTPUT', y: 460 }
+];
+
+// ═══════════════════════════════════════════════
+// TRANSIT LINE SVG NAV
+// ═══════════════════════════════════════════════
+function buildTransitNav() {
+  const svg = document.getElementById('transit-svg');
+  const spine = svg.querySelector('.transit-spine');
+
+  sections.forEach((s, i) => {
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    g.classList.add('station-group');
+    g.setAttribute('data-section', s.id);
+    g.setAttribute('role', 'button');
+    g.setAttribute('tabindex', '0');
+    g.setAttribute('aria-label', 'Navigate to ' + s.label);
+
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.classList.add('station-dot');
+    circle.setAttribute('cx', '20');
+    circle.setAttribute('cy', String(s.y));
+    circle.setAttribute('r', '7');
+
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.classList.add('station-label');
+    text.setAttribute('x', '20');
+    text.setAttribute('y', String(s.y + 20));
+    text.setAttribute('text-anchor', 'middle');
+    text.textContent = s.label;
+
+    g.appendChild(circle);
+    g.appendChild(text);
+    svg.appendChild(g);
+
+    g.addEventListener('click', () => {
+      document.getElementById(s.id).scrollIntoView({ behavior: 'smooth' });
+    });
+    g.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        document.getElementById(s.id).scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  });
+
+  // Entry animation: draw spine then pulse stations
+  requestAnimationFrame(() => {
+    spine.classList.add('drawn');
+    sections.forEach((s, i) => {
+      setTimeout(() => {
+        const dot = svg.querySelector(`[data-section="${s.id}"] .station-dot`);
+        if (dot) dot.classList.add('entering');
+      }, 400 + i * 250);
+    });
+    // Highlight first station after animation
+    setTimeout(() => updateActiveStation('section-framing'), 2200);
+  });
+}
+
+function updateActiveStation(sectionId) {
+  document.querySelectorAll('.station-dot').forEach(d => d.classList.remove('active'));
+  const g = document.querySelector(`[data-section="${sectionId}"]`);
+  if (g) g.querySelector('.station-dot').classList.add('active');
+}
+
+// Scroll spy
+function initScrollSpy() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        updateActiveStation(entry.target.id);
+      }
+    });
+  }, { threshold: 0.35, rootMargin: '-10% 0px -50% 0px' });
+
+  sections.forEach(s => {
+    const el = document.getElementById(s.id);
+    if (el) observer.observe(el);
+  });
+}
+
+// ═══════════════════════════════════════════════
+// CORRIDOR SELECTOR
+// ═══════════════════════════════════════════════
+function buildCorridorSelector() {
+  const container = document.getElementById('corridor-selector');
+  container.innerHTML = '';
+
+  Object.values(corridorData).forEach(c => {
+    const card = document.createElement('div');
+    card.className = 'corridor-card' + (c.id === activeCorridor ? ' active' : '');
+    card.setAttribute('role', 'button');
+    card.setAttribute('tabindex', '0');
+    card.setAttribute('aria-label', 'Select ' + c.name);
+    card.dataset.corridor = c.id;
+
+    card.innerHTML = `
+      <div class="corridor-card-stripe" style="background:${c.routeColor}"></div>
+      <div class="corridor-card-body">
+        <div class="corridor-card-name">${c.name}</div>
+        <div class="corridor-card-meta">
+          <span class="badge ${c.typeBadge}">${c.type}</span>
+          <span class="badge badge-status">${c.statusShort}</span>
+          <span>${c.description}</span>
+        </div>
+      </div>
+    `;
+
+    card.addEventListener('click', () => selectCorridor(c.id));
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectCorridor(c.id); }
+    });
+    container.appendChild(card);
+  });
+}
+
+function selectCorridor(id) {
+  activeCorridor = id;
+  try { localStorage.setItem('dibble_corridor', id); } catch(e) {}
+
+  // Update cards
+  document.querySelectorAll('.corridor-card').forEach(c => {
+    c.classList.toggle('active', c.dataset.corridor === id);
+  });
+
+  updateHero();
+  updateDataPanel();
+  updateHousingPanel();
+  updateChart();
+  updateAMI();
+
+  // If anchor text was for a different corridor, load default for nicollet
+  const c = corridorData[id];
+  if (id === 'nicollet') {
+    document.getElementById('anchor-input').value =
+      'St. David\'s Center for Child & Family Development, 1130 Nicollet Mall — early childhood education, children\'s mental health, pediatric therapy, and family support services. State bond investment: $10M (SF246, 2025).';
+  } else if (id === 'eline') {
+    document.getElementById('anchor-input').value =
+      'Note: St. David\'s Center (SF246, $10M state bond) is on the Nicollet Mall corridor. Switch to Nicollet Mall to see it in full context.';
+  } else {
+    const saved = getSavedField(id, 'anchor');
+    document.getElementById('anchor-input').value = saved || '';
+  }
+}
+
+// ═══════════════════════════════════════════════
+// HERO UPDATE
+// ═══════════════════════════════════════════════
+function updateHero() {
+  const c = corridorData[activeCorridor];
+  const ovr = getOverrides();
+
+  document.getElementById('hero-name').textContent = c.name;
+  document.getElementById('hero-length').textContent = ovr.length || c.length;
+  document.getElementById('hero-type').textContent = c.type;
+  document.getElementById('hero-overlap').textContent = c.districtOverlap.toUpperCase();
+
+  // Set hero background accent to route color
+  const hero = document.getElementById('hero');
+  hero.style.background = `linear-gradient(135deg, var(--purple-dark) 0%, ${c.routeColor} 80%)`;
+}
+
+// ═══════════════════════════════════════════════
+// DATA PANEL
+// ═══════════════════════════════════════════════
+function updateDataPanel() {
+  const c = corridorData[activeCorridor];
+  const ovr = getOverrides();
+  const panel = document.getElementById('data-panel');
+
+  const rows = [
+    ['Route Type', c.type],
+    ['Status', ovr.status || c.status],
+    ['Route Length', ovr.length || c.length],
+    ['SD-61 Overlap', `<span class="overlap-indicator ${c.overlapClass}">${c.districtOverlap}</span>`],
+    ['Neighborhoods', c.neighborhoods],
+    ['Stops / Alignment', c.stopsNote],
+    ['Key Features', c.features],
+    ['Ridership', ovr.ridership || c.ridership.value],
+  ];
+
+  panel.innerHTML = rows.map(([dt, dd]) =>
+    `<dt>${dt}</dt><dd>${dd}</dd>`
+  ).join('');
+
+  document.getElementById('ridership-note').innerHTML =
+    `Source: ${c.ridership.source} (${c.ridership.year}). ${c.ridership.note}`;
+}
+
+// ═══════════════════════════════════════════════
+// HOUSING PANEL
+// ═══════════════════════════════════════════════
+function updateHousingPanel() {
+  const c = corridorData[activeCorridor];
+  document.getElementById('housing-narrative').innerHTML =
+    `<strong>${c.name} — Housing Context:</strong> ${c.housing.costBurdenNote}`;
+
+  const depClass = c.housing.transitDependency === 'High' ? 'dep-high' : 'dep-medium';
+  document.getElementById('transit-dep-container').innerHTML =
+    `<span class="transit-dep-badge ${depClass}">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="5" width="8" height="5" rx="1"/><line x1="4" y1="5" x2="4" y2="3"/><line x1="8" y1="5" x2="8" y2="3"/><line x1="4" y1="3" x2="8" y2="3"/></svg>
+      Transit Dependency: ${c.housing.transitDependency}
+    </span>
+    <div style="font-family:var(--font-ui);font-size:11px;color:#666;margin-top:6px;max-width:560px;">
+      ${c.housing.transitDepNote}
+    </div>`;
+
+  document.getElementById('displacement-note').innerHTML =
+    `<strong style="color:var(--purple-dark);">Displacement Risk:</strong> ${c.housing.displacementRisk}`;
+}
+
+// ═══════════════════════════════════════════════
+// CHART
+// ═══════════════════════════════════════════════
+function updateChart() {
+  const c = corridorData[activeCorridor];
+  const ctx = document.getElementById('burden-chart').getContext('2d');
+
+  if (burdenChart) burdenChart.destroy();
+
+  // Citywide: 49% cost-burdened
+  // Corridor-specific: we show citywide for all as corridor-specific breakouts aren't available
+  const corridorHasFigure = false; // No corridor-specific cost-burden % in brief data
+
+  burdenChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: corridorHasFigure ? ['Citywide', c.name + ' Corridor'] : ['Citywide Minneapolis'],
+      datasets: [
+        {
+          label: 'Cost-Burdened (>30% income)',
+          data: corridorHasFigure ? [49, 49] : [49],
+          backgroundColor: '#7b1fa2',
+          barThickness: 28
+        },
+        {
+          label: 'Not Cost-Burdened',
+          data: corridorHasFigure ? [51, 51] : [51],
+          backgroundColor: '#e0e0e0',
+          barThickness: 28
+        }
+      ]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            font: { family: "'Century Gothic', sans-serif", size: 11 },
+            padding: 16
+          }
+        },
+        title: {
+          display: true,
+          text: corridorHasFigure
+            ? 'Household Cost Burden: Citywide vs. Corridor'
+            : 'Household Cost Burden (Citywide — corridor-specific data not available)',
+          font: { family: "'Century Gothic', sans-serif", size: 11, weight: 'normal' },
+          color: '#555',
+          padding: { bottom: 8 }
+        },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => `${ctx.dataset.label}: ${ctx.raw}%`
+          }
+        }
+      },
+      scales: {
+        x: {
+          stacked: true,
+          max: 100,
+          ticks: {
+            callback: v => v + '%',
+            font: { family: 'Consolas, monospace', size: 11 }
+          },
+          grid: { display: false }
+        },
+        y: {
+          stacked: true,
+          ticks: {
+            font: { family: "'Century Gothic', sans-serif", size: 11 }
+          },
+          grid: { display: false }
+        }
+      }
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════
+// AMI CALCULATOR
+// ═══════════════════════════════════════════════
+function updateAMI() {
+  const pct = parseInt(document.getElementById('ami-input').value) || 50;
+  // VERIFY: AMI figure from HUD — ~$113,800 for Minneapolis metro area family of 4 (2024)
+  const ami = 113800;
+  const income = Math.round(ami * pct / 100);
+  const monthlyIncome = Math.round(income / 12);
+  const affordableRent = Math.round(monthlyIncome * 0.30);
+  const medianRent = 1391;
+  const gap = medianRent - affordableRent;
+
+  const container = document.getElementById('ami-result');
+  if (gap > 0) {
+    container.innerHTML = `
+      <div class="ami-result" style="color:#c62828;">-$${gap.toLocaleString()}/mo gap</div>
+      <div class="ami-detail">
+        At ${pct}% AMI, annual income = $${income.toLocaleString()} | Monthly = $${monthlyIncome.toLocaleString()}<br>
+        Affordable rent (30% of income): <strong>$${affordableRent.toLocaleString()}/mo</strong><br>
+        Minneapolis median rent: <strong>$${medianRent.toLocaleString()}/mo</strong><br>
+        <span style="color:#c62828;font-weight:700;">Gap: $${gap.toLocaleString()}/mo ($${(gap*12).toLocaleString()}/yr)</span>
+      </div>
+      <div class="field-hint" style="margin-top:6px;">AMI: ~$113,800 (2024 HUD estimate for Mpls metro, family of 4; verify current figure). Median rent: Apartments.com Aug 2025.</div>
+    `;
+  } else {
+    container.innerHTML = `
+      <div class="ami-result">+$${Math.abs(gap).toLocaleString()}/mo surplus</div>
+      <div class="ami-detail">
+        At ${pct}% AMI, annual income = $${income.toLocaleString()}<br>
+        Affordable rent: $${affordableRent.toLocaleString()}/mo vs. median $${medianRent.toLocaleString()}/mo
+      </div>
+      <div class="field-hint" style="margin-top:6px;">AMI: ~$113,800 (2024 HUD estimate; verify current figure)</div>
+    `;
+  }
+}
+
+// ═══════════════════════════════════════════════
+// BRIEF GENERATOR
+// ═══════════════════════════════════════════════
+function generateBrief() {
+  const c = corridorData[activeCorridor];
+  const ovr = getOverrides();
+  const anchor = document.getElementById('anchor-input').value.trim();
+  const investmentAsk = document.getElementById('investment-ask').value.trim() || 'increased state transit investment';
+  const ctaSelect = document.getElementById('cta-select').value;
+  let cta;
+  if (ctaSelect === 'maintain') cta = 'Maintain state transit funding at current levels or increase.';
+  else if (ctaSelect === 'support') cta = 'Support E Line/BRT capital investment in the FY2026 budget.';
+  else if (ctaSelect === 'oppose') cta = 'Oppose federal transit funding cuts affecting Metro Transit.';
+  else cta = document.getElementById('custom-cta').value.trim() || 'Support continued state investment in transit infrastructure.';
+
+  const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+  // Who it serves
+  let servesText = c.briefServes;
+  if (anchor) {
+    servesText += ` The ${anchor.split('—')[0].trim()} on this corridor further grounds the case for sustained transit service.`;
+  }
+
+  // Why state investment matters
+  const whyText = `The ${c.name} corridor represents exactly the type of infrastructure where state investment yields compounding returns. ${investmentAsk.charAt(0).toUpperCase() + investmentAsk.slice(1)} would strengthen a transit line that serves cost-burdened renters, connects workers to employment centers, and reduces vehicle miles traveled in one of Minnesota's densest urban corridors. When 80% of low-income renters in Minneapolis are already housing cost-burdened, every transit dollar that keeps fares affordable and service reliable is a housing dollar by another name.`;
+
+  // Housing connection
+  const housingText = `In Minneapolis, 49% of all households pay more than 30% of their income on housing. The housing wage — what a worker must earn to afford a two-bedroom apartment without being cost-burdened — is $31.19 per hour ($64,880 per year). For the majority of Minneapolis renters, who are people of color, transit is not optional infrastructure. It is the link between affordable housing and employment. ${c.housing.displacementRisk}`;
+
+  // Legislative context
+  const legText = `Senator Dibble, as Chair of the Senate Transportation Finance and Policy Committee, has advanced legislation connecting transit investment to equity outcomes — including the 2025 complete streets bill, the $10M state bond for St. David's Center (SF246), and provisions for free transit for disabled Metro riders. This corridor brief is designed to support the committee's work in framing transit investment as housing infrastructure.`;
+
+  // Build schematic dots
+  const routeColor = c.routeColor;
+  const dotCount = 7;
+  let schematic = `<div class="corridor-schematic">
+    <div class="schematic-terminus" style="background:${routeColor};"></div>`;
+  for (let i = 0; i < dotCount; i++) {
+    schematic += `<div class="schematic-line" style="background:${routeColor};"></div>
+    <div class="schematic-dot" style="border-color:${routeColor};"></div>`;
+  }
+  schematic += `<div class="schematic-line" style="background:${routeColor};"></div>
+    <div class="schematic-terminus" style="background:${routeColor};"></div>
+  </div>`;
+
+  const output = document.getElementById('brief-output');
+  output.innerHTML = `
+    <div class="brief-header">
+      <h2>${c.name} — State Investment Brief</h2>
+      <div class="brief-sub">Senate District 61 &nbsp;|&nbsp; Transportation Finance and Policy Committee &nbsp;|&nbsp; ${date}</div>
+      ${schematic}
+    </div>
+
+    <div class="brief-section">
+      <div class="brief-section-label">The Corridor</div>
+      <span class="brief-edit-hint">click to edit</span>
+      <div class="brief-editable" contenteditable="true">${ovr.status ? c.briefCorridor.replace(c.status, ovr.status) : c.briefCorridor}</div>
+    </div>
+
+    <div class="brief-section">
+      <div class="brief-section-label">Who It Serves</div>
+      <span class="brief-edit-hint">click to edit</span>
+      <div class="brief-editable" contenteditable="true">${servesText}</div>
+    </div>
+
+    <div class="brief-section">
+      <div class="brief-section-label">Why State Investment Matters</div>
+      <span class="brief-edit-hint">click to edit</span>
+      <div class="brief-editable" contenteditable="true">${whyText}</div>
+    </div>
+
+    <div class="brief-section">
+      <div class="brief-section-label">The Housing Connection</div>
+      <span class="brief-edit-hint">click to edit</span>
+      <div class="brief-editable" contenteditable="true">${housingText}</div>
+    </div>
+
+    <div class="brief-section">
+      <div class="brief-section-label">Legislative Context</div>
+      <span class="brief-edit-hint">click to edit</span>
+      <div class="brief-editable" contenteditable="true">${legText}</div>
+    </div>
+
+    <div class="brief-section">
+      <div class="brief-section-label">Call to Action</div>
+      <span class="brief-edit-hint">click to edit</span>
+      <div class="brief-editable" contenteditable="true" style="font-weight:700;color:var(--purple-dark);">${cta}</div>
+    </div>
+  `;
+
+  document.getElementById('section-brief').style.display = 'block';
+  document.getElementById('btn-print').style.display = 'inline-flex';
+
+  // Save editable content on blur
+  output.querySelectorAll('.brief-editable').forEach(el => {
+    el.addEventListener('blur', () => {
+      try { localStorage.setItem('dibble_brief_' + activeCorridor, output.innerHTML); } catch(e) {}
+    });
+  });
+
+  // Scroll to brief
+  setTimeout(() => {
+    document.getElementById('section-brief').scrollIntoView({ behavior: 'smooth' });
+  }, 100);
+}
+
+// ═══════════════════════════════════════════════
+// OVERRIDES & PERSISTENCE
+// ═══════════════════════════════════════════════
+function getOverrides() {
+  return {
+    ridership: document.getElementById('ovr-ridership').value.trim() || '',
+    length: document.getElementById('ovr-length').value.trim() || '',
+    status: document.getElementById('ovr-status').value.trim() || '',
+  };
+}
+
+function getSavedField(corridorId, field) {
+  try { return localStorage.getItem('dibble_' + corridorId + '_' + field) || ''; } catch(e) { return ''; }
+}
+
+function savePersistence() {
+  try {
+    localStorage.setItem('dibble_corridor', activeCorridor);
+    const anchor = document.getElementById('anchor-input').value;
+    localStorage.setItem('dibble_' + activeCorridor + '_anchor', anchor);
+  } catch(e) {}
+}
+
+function loadPersistence() {
+  try {
+    const saved = localStorage.getItem('dibble_corridor');
+    if (saved && corridorData[saved]) activeCorridor = saved;
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════════════════
+// EVENT WIRING
+// ═══════════════════════════════════════════════
+function init() {
+  loadPersistence();
+  buildTransitNav();
+  buildCorridorSelector();
+  selectCorridor(activeCorridor);
+  initScrollSpy();
+
+  // AMI slider
+  document.getElementById('ami-input').addEventListener('input', updateAMI);
+
+  // Override toggle
+  document.getElementById('toggle-overrides').addEventListener('click', function() {
+    const panel = document.getElementById('override-panel');
+    const visible = panel.classList.toggle('visible');
+    this.setAttribute('aria-expanded', visible);
+  });
+
+  // Override inputs update display
+  ['ovr-ridership', 'ovr-length', 'ovr-status'].forEach(id => {
+    document.getElementById(id).addEventListener('input', () => {
+      updateHero();
+      updateDataPanel();
+    });
+  });
+
+  // Custom CTA toggle
+  document.getElementById('cta-select').addEventListener('change', function() {
+    document.getElementById('custom-cta-group').style.display =
+      this.value === 'custom' ? 'block' : 'none';
+  });
+
+  // Anchor persistence
+  document.getElementById('anchor-input').addEventListener('blur', savePersistence);
+
+  // Pre-populate E Line anchor with St. David's note
+  if (!getSavedField('eline', 'anchor')) {
+    document.getElementById('anchor-input').value =
+      'Note: St. David\'s Center (SF246, $10M state bond) is on the Nicollet Mall corridor. Switch to Nicollet Mall to see it in full context.';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+
+</body>
+</html>

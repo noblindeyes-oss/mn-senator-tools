@@ -1,0 +1,1574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Foster Youth Vital Documents Tracker — Sen. Hemmingsen-Jaeger SD-47</title>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Checklist-forward — left sidebar (200px) with category icons collapses to top bar on mobile; main panel is the interactive checklist with expandable groups; right area shows progress ring and alerts
+   2. Navigation: Left sidebar with SVG document-category icons (not tabs, not rounded-top)
+   3. Typography: Verdana (body), Trebuchet MS (headings), Lucida Console (data/counts)
+   4. Hero moment: Large circular SVG progress ring (180px) showing "X of Y documents secured" in deep teal, updating live
+   5. Color strategy: #5 — Cool dominant. Deep teal (#004d40) and sand (#d7ccc8) as environmental colors; coral (#ff6f61) for urgency. 60%+ of page is teal/sand tones.
+   6. Entry experience: File folder SVG animation opens to reveal the checklist — 1.5s, no intro paragraph blocking interaction
+   Additional: No bordered callout boxes; no emoji icons; urgency uses color + text + SVG markers; density contrast between dense checklist and spacious progress ring area
+*/
+
+:root {
+  --teal-deep: #004d40;
+  --teal-mid: #00695c;
+  --teal-light: #4db6ac;
+  --sand: #d7ccc8;
+  --sand-light: #efebe9;
+  --cream: #fafafa;
+  --coral: #ff6f61;
+  --coral-dark: #e5574a;
+  --success: #2e7d32;
+  --warning: #f9a825;
+  --amber: #ff8f00;
+  --blocked: #c62828;
+  --text-dark: #1a1a1a;
+  --text-mid: #4e4e4e;
+  --text-light: #f5f5f5;
+  --sidebar-w: 200px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 13px;
+  color: var(--text-dark);
+  background: var(--sand-light);
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4 {
+  font-family: 'Trebuchet MS', sans-serif;
+  font-weight: 700;
+}
+
+.mono {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 12px;
+}
+
+/* ═══ ENTRY ANIMATION ═══ */
+#entry-overlay {
+  position: fixed; inset: 0;
+  background: var(--teal-deep);
+  z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  animation: fadeOutOverlay 0.4s ease 1.5s forwards;
+}
+#entry-overlay svg {
+  width: 180px; height: 160px;
+}
+.folder-back { fill: var(--sand); }
+.folder-front { fill: #bcaaa4; transform-origin: 50% 100%; animation: openFolder 1s ease 0.3s forwards; }
+.folder-doc { fill: var(--cream); opacity: 0; animation: riseDoc 0.6s ease 0.8s forwards; }
+@keyframes openFolder {
+  0% { transform: rotateX(0); }
+  100% { transform: rotateX(-70deg); opacity: 0.3; }
+}
+@keyframes riseDoc {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(-10px); }
+}
+@keyframes fadeOutOverlay {
+  0% { opacity: 1; }
+  100% { opacity: 0; pointer-events: none; }
+}
+
+/* ═══ SIDEBAR ═══ */
+#sidebar {
+  position: fixed; left: 0; top: 0; bottom: 0;
+  width: var(--sidebar-w);
+  background: var(--teal-deep);
+  color: var(--text-light);
+  display: flex; flex-direction: column;
+  z-index: 100;
+  transition: transform 0.3s;
+}
+#sidebar-header {
+  padding: 16px 14px 12px;
+  background: rgba(0,0,0,0.15);
+}
+#sidebar-header h2 {
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--sand);
+  margin-bottom: 2px;
+}
+#sidebar-header p {
+  font-size: 10px;
+  color: var(--teal-light);
+  line-height: 1.3;
+}
+.nav-list { list-style: none; flex: 1; padding: 10px 0; overflow-y: auto; }
+.nav-list li {
+  padding: 10px 14px;
+  cursor: pointer;
+  display: flex; align-items: center; gap: 10px;
+  font-size: 12px;
+  border-left: 3px solid transparent;
+  transition: background 0.15s, border-color 0.15s;
+}
+.nav-list li:hover { background: rgba(255,255,255,0.08); }
+.nav-list li.active {
+  background: rgba(255,255,255,0.12);
+  border-left-color: var(--teal-light);
+}
+.nav-list li svg { width: 18px; height: 18px; flex-shrink: 0; fill: var(--sand); }
+.nav-list li.active svg { fill: var(--teal-light); }
+.sidebar-bottom {
+  padding: 12px 14px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  font-size: 10px;
+  color: var(--teal-light);
+}
+.sidebar-bottom a { color: var(--sand); cursor: pointer; text-decoration: underline; }
+#mobile-toggle {
+  display: none;
+  position: fixed; top: 8px; left: 8px; z-index: 200;
+  background: var(--teal-deep); color: var(--cream);
+  border: none; padding: 8px 12px; border-radius: 4px;
+  font-family: Verdana; font-size: 12px; cursor: pointer;
+}
+
+/* ═══ MAIN AREA ═══ */
+#main {
+  margin-left: var(--sidebar-w);
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+}
+
+/* ═══ TOP BAR ═══ */
+#topbar {
+  background: var(--sand);
+  padding: 10px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 8px;
+  border-bottom: 2px solid var(--teal-deep);
+}
+#topbar h1 {
+  font-size: 16px;
+  color: var(--teal-deep);
+  letter-spacing: -0.3px;
+}
+#topbar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+#topbar-actions button, #topbar-actions label {
+  font-family: 'Trebuchet MS', sans-serif;
+  font-size: 11px;
+  padding: 6px 14px;
+  border: 1px solid var(--teal-mid);
+  background: var(--cream);
+  color: var(--teal-deep);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+#topbar-actions button:hover, #topbar-actions label:hover {
+  background: var(--teal-deep);
+  color: var(--cream);
+}
+#topbar-actions input[type="file"] { display: none; }
+
+/* ═══ CONTENT WRAPPER ═══ */
+#content-wrapper {
+  display: flex; flex: 1;
+}
+
+/* ═══ PROGRESS SIDEBAR (right) ═══ */
+#progress-panel {
+  width: 240px; flex-shrink: 0;
+  background: var(--teal-deep);
+  color: var(--text-light);
+  padding: 24px 16px;
+  display: flex; flex-direction: column; align-items: center; gap: 20px;
+}
+#progress-ring-wrap {
+  position: relative;
+  width: 180px; height: 180px;
+}
+#progress-ring-wrap svg { width: 180px; height: 180px; transform: rotate(-90deg); }
+#progress-ring-wrap .ring-bg { fill: none; stroke: rgba(255,255,255,0.12); stroke-width: 14; }
+#progress-ring-wrap .ring-fill { fill: none; stroke: var(--teal-light); stroke-width: 14; stroke-linecap: round; transition: stroke-dashoffset 0.6s ease; }
+#progress-text {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+#progress-text .big-num {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 36px; font-weight: 700; color: var(--cream);
+}
+#progress-text .sub {
+  font-size: 11px; color: var(--sand); margin-top: 2px;
+}
+#alerts-list {
+  width: 100%;
+}
+#alerts-list h4 {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--sand);
+  margin-bottom: 8px;
+}
+.alert-item {
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  line-height: 1.4;
+  display: flex; align-items: flex-start; gap: 6px;
+}
+.alert-item svg { width: 14px; height: 14px; flex-shrink: 0; margin-top: 1px; }
+.alert-urgent { background: rgba(255,111,97,0.2); color: #ffcdd2; }
+.alert-urgent svg { fill: var(--coral); }
+.alert-warn { background: rgba(249,168,37,0.15); color: #fff8e1; }
+.alert-warn svg { fill: var(--warning); }
+.alert-info { background: rgba(77,182,172,0.15); color: var(--sand); }
+.alert-info svg { fill: var(--teal-light); }
+
+/* ═══ MAIN CONTENT ═══ */
+#main-content {
+  flex: 1; padding: 20px; min-width: 0;
+  overflow-y: auto;
+}
+
+/* ═══ VIEWS ═══ */
+.view { display: none; }
+.view.active { display: block; }
+
+/* ═══ DASHBOARD TABLE ═══ */
+#summary-bar {
+  display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;
+}
+.summary-stat {
+  background: var(--teal-deep);
+  color: var(--cream);
+  padding: 10px 16px;
+  border-radius: 3px;
+  flex: 1; min-width: 140px;
+}
+.summary-stat .stat-val {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 24px; font-weight: 700;
+}
+.summary-stat .stat-label {
+  font-size: 10px; text-transform: uppercase;
+  letter-spacing: 0.8px; color: var(--sand); margin-top: 2px;
+}
+#roster-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+#roster-table th {
+  background: var(--sand);
+  color: var(--teal-deep);
+  padding: 8px 10px;
+  text-align: left;
+  font-family: 'Trebuchet MS', sans-serif;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  user-select: none;
+  border-bottom: 2px solid var(--teal-deep);
+}
+#roster-table th:hover { background: #c8b9b4; }
+#roster-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--sand);
+  vertical-align: middle;
+}
+#roster-table tr:hover td { background: rgba(0,77,64,0.04); }
+.pct-bar {
+  width: 80px; height: 8px;
+  background: #e0d6d0;
+  border-radius: 4px;
+  overflow: hidden;
+  display: inline-block; vertical-align: middle;
+}
+.pct-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: var(--teal-mid);
+  transition: width 0.3s;
+}
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 8px;
+  border-radius: 3px;
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.badge-gray { background: #e0e0e0; color: #555; }
+.badge-amber { background: #fff3e0; color: #e65100; }
+.badge-red { background: #ffebee; color: #b71c1c; }
+.badge-dark-red { background: #b71c1c; color: #fff; }
+.badge-green { background: #e8f5e9; color: #1b5e20; }
+.sijs-flag { display: inline-flex; align-items: center; gap: 3px; }
+.sijs-flag svg { width: 14px; height: 14px; }
+.btn {
+  font-family: 'Trebuchet MS', sans-serif;
+  font-size: 11px;
+  padding: 5px 12px;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+.btn:active { transform: scale(0.97); }
+.btn-teal { background: var(--teal-mid); color: #fff; }
+.btn-teal:hover { background: var(--teal-deep); }
+.btn-coral { background: var(--coral); color: #fff; }
+.btn-coral:hover { background: var(--coral-dark); }
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--teal-mid);
+  color: var(--teal-mid);
+}
+.btn-outline:hover { background: var(--teal-mid); color: #fff; }
+.btn-sm { padding: 3px 8px; font-size: 10px; }
+
+/* ═══ CHECKLIST VIEW ═══ */
+.tier-group {
+  margin-bottom: 16px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.tier-header {
+  background: var(--teal-deep);
+  color: var(--cream);
+  padding: 10px 14px;
+  display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+}
+.tier-header h3 {
+  font-size: 13px;
+  display: flex; align-items: center; gap: 8px;
+}
+.tier-header .tier-count {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 11px;
+  color: var(--teal-light);
+}
+.tier-header .chevron {
+  transition: transform 0.2s;
+  fill: var(--sand);
+}
+.tier-header.collapsed .chevron { transform: rotate(-90deg); }
+.tier-body { background: var(--cream); }
+.tier-body.collapsed { display: none; }
+.doc-row {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--sand-light);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+}
+.doc-row:last-child { border-bottom: none; }
+.doc-label {
+  flex: 1; min-width: 200px;
+  font-size: 12px;
+}
+.doc-status-select {
+  font-family: Verdana, sans-serif;
+  font-size: 11px;
+  padding: 4px 8px;
+  border: 1px solid var(--sand);
+  border-radius: 3px;
+  background: #fff;
+  color: var(--text-dark);
+  cursor: pointer;
+}
+.doc-status-select:focus { outline: 2px solid var(--teal-light); }
+.status-not-started { border-left: 3px solid #bbb; }
+.status-in-progress { border-left: 3px solid var(--warning); background: #fffde7; }
+.status-complete { border-left: 3px solid var(--success); background: #e8f5e9; }
+.status-blocked { border-left: 3px solid var(--blocked); background: #ffebee; }
+.doc-date-field {
+  font-family: Verdana; font-size: 11px;
+  padding: 3px 6px;
+  border: 1px solid var(--sand);
+  border-radius: 3px;
+}
+.doc-note-field {
+  width: 100%;
+  font-family: Verdana; font-size: 11px;
+  padding: 4px 8px;
+  border: 1px solid var(--sand);
+  border-radius: 3px;
+  margin-top: 4px;
+}
+.countdown-tag {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 2px;
+}
+.countdown-ok { background: #e8f5e9; color: #2e7d32; }
+.countdown-overdue { background: #fff3e0; color: #e65100; }
+.sijs-explainer {
+  padding: 12px 14px;
+  background: var(--sand-light);
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--text-mid);
+}
+.sijs-explainer strong { color: var(--teal-deep); }
+.youth-header-bar {
+  background: var(--sand);
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+}
+.youth-header-bar h2 { font-size: 18px; color: var(--teal-deep); }
+.youth-meta { font-size: 11px; color: var(--text-mid); display: flex; gap: 16px; flex-wrap: wrap; }
+
+/* ═══ MODAL ═══ */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 500;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.hidden { display: none; }
+.modal {
+  background: var(--cream);
+  border-radius: 6px;
+  width: 100%; max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.modal-head {
+  background: var(--teal-deep);
+  color: var(--cream);
+  padding: 14px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-radius: 6px 6px 0 0;
+}
+.modal-head h3 { font-size: 14px; }
+.modal-close {
+  background: none; border: none;
+  color: var(--sand); font-size: 20px;
+  cursor: pointer; line-height: 1;
+}
+.modal-body { padding: 20px; }
+.field-group { margin-bottom: 14px; }
+.field-group label {
+  display: block;
+  font-family: 'Trebuchet MS', sans-serif;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--teal-deep);
+  margin-bottom: 4px;
+}
+.field-group input, .field-group select, .field-group textarea {
+  width: 100%;
+  font-family: Verdana, sans-serif;
+  font-size: 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--sand);
+  border-radius: 3px;
+  background: #fff;
+  color: var(--text-dark);
+}
+.field-group input:focus, .field-group select:focus, .field-group textarea:focus {
+  outline: none;
+  border-color: var(--teal-mid);
+  box-shadow: 0 0 0 2px rgba(0,77,64,0.15);
+}
+.field-group textarea { resize: vertical; min-height: 60px; }
+.field-group .hint {
+  font-size: 10px;
+  color: var(--text-mid);
+  margin-top: 2px;
+}
+.modal-foot {
+  padding: 12px 20px;
+  display: flex; gap: 8px; justify-content: flex-end;
+  border-top: 1px solid var(--sand);
+}
+
+/* ═══ REPORTS VIEW ═══ */
+.report-section {
+  background: var(--cream);
+  padding: 20px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+.report-section h3 {
+  font-size: 14px;
+  color: var(--teal-deep);
+  margin-bottom: 12px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--teal-deep);
+}
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.report-table th, .report-table td {
+  padding: 6px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--sand);
+}
+.report-table th {
+  font-family: 'Trebuchet MS'; font-size: 11px;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  background: var(--sand-light); color: var(--teal-deep);
+}
+.grant-fields { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.grant-fields .field-group { flex: 1; min-width: 180px; }
+.bar-chart-container { max-width: 500px; margin: 16px 0; }
+.bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.bar-label { width: 80px; font-size: 11px; text-align: right; color: var(--text-mid); }
+.bar-track { flex: 1; height: 22px; background: var(--sand); border-radius: 3px; overflow: hidden; position: relative; }
+.bar-fill { height: 100%; border-radius: 3px; transition: width 0.4s; display: flex; align-items: center; padding-left: 8px; }
+.bar-fill span { font-family: 'Lucida Console'; font-size: 10px; color: #fff; font-weight: 700; }
+.bar-fill.tier1 { background: var(--teal-deep); }
+.bar-fill.tier2 { background: var(--teal-mid); }
+.bar-fill.tier3 { background: var(--teal-light); }
+.bar-fill.tier4 { background: #80cbc4; }
+
+/* ═══ ABOUT VIEW ═══ */
+#about-view {
+  max-width: 640px;
+}
+#about-view h2 { font-size: 18px; color: var(--teal-deep); margin-bottom: 12px; }
+#about-view h4 { font-size: 13px; color: var(--teal-deep); margin: 16px 0 6px; }
+#about-view p, #about-view li { font-size: 12px; line-height: 1.7; color: var(--text-mid); margin-bottom: 6px; }
+#about-view ul { margin-left: 16px; }
+
+/* ═══ BANNER ═══ */
+#save-banner {
+  background: var(--sand);
+  padding: 10px 20px;
+  font-size: 11px;
+  color: var(--teal-deep);
+  display: flex; align-items: center; justify-content: space-between;
+}
+#save-banner.hidden { display: none; }
+#save-banner button {
+  background: var(--teal-mid); color: #fff;
+  border: none; padding: 4px 12px; border-radius: 3px;
+  font-family: Verdana; font-size: 10px; cursor: pointer;
+}
+
+/* ═══ FOOTER ═══ */
+#footer {
+  padding: 12px 20px;
+  font-size: 10px;
+  color: var(--text-mid);
+  line-height: 1.5;
+  border-top: 1px solid var(--sand);
+  background: var(--sand-light);
+}
+
+/* ═══ PRINT ═══ */
+@media print {
+  #sidebar, #mobile-toggle, #topbar-actions, #save-banner, #entry-overlay,
+  .btn, button, #progress-panel, .modal-overlay, .nav-list { display: none !important; }
+  #main { margin-left: 0 !important; }
+  #content-wrapper { display: block !important; }
+  #main-content { padding: 0 !important; }
+  body { background: #fff; font-size: 11px; }
+  .tier-header { background: #333 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .summary-stat { background: #eee !important; color: #000 !important; }
+  .summary-stat .stat-label { color: #555 !important; }
+  #topbar { border-bottom: 2px solid #000; }
+  #footer { border-top: 1px solid #000; }
+  .report-section { break-inside: avoid; }
+}
+
+/* ═══ MOBILE ═══ */
+@media (max-width: 768px) {
+  #sidebar { transform: translateX(-100%); }
+  #sidebar.open { transform: translateX(0); }
+  #mobile-toggle { display: block; }
+  #main { margin-left: 0; }
+  #content-wrapper { flex-direction: column; }
+  #progress-panel {
+    width: 100%; flex-direction: row; flex-wrap: wrap;
+    padding: 16px; justify-content: center;
+  }
+  #progress-ring-wrap { width: 120px; height: 120px; }
+  #progress-ring-wrap svg { width: 120px; height: 120px; }
+  #progress-text .big-num { font-size: 24px; }
+  #alerts-list { width: auto; flex: 1; min-width: 200px; }
+  .summary-stat { min-width: 100px; }
+  .summary-stat .stat-val { font-size: 18px; }
+  .doc-row { flex-direction: column; align-items: flex-start; }
+}
+@media (max-width: 1024px) and (min-width: 769px) {
+  #progress-panel { width: 200px; padding: 16px 12px; }
+  #progress-ring-wrap { width: 140px; height: 140px; }
+  #progress-ring-wrap svg { width: 140px; height: 140px; }
+  #progress-text .big-num { font-size: 28px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ENTRY ANIMATION -->
+<div id="entry-overlay">
+  <svg viewBox="0 0 180 160" xmlns="http://www.w3.org/2000/svg">
+    <rect class="folder-back" x="10" y="40" width="160" height="110" rx="4"/>
+    <path class="folder-back" d="M10 44 C10 38 14 34 20 34 L70 34 L80 44 Z"/>
+    <rect class="folder-doc" x="40" y="50" width="100" height="70" rx="2"/>
+    <line x1="55" y1="70" x2="125" y2="70" stroke="#004d40" stroke-width="1.5" opacity="0" style="animation: riseDoc 0.6s ease 0.8s forwards"/>
+    <line x1="55" y1="82" x2="125" y2="82" stroke="#004d40" stroke-width="1.5" opacity="0" style="animation: riseDoc 0.6s ease 0.9s forwards"/>
+    <line x1="55" y1="94" x2="110" y2="94" stroke="#004d40" stroke-width="1.5" opacity="0" style="animation: riseDoc 0.6s ease 1.0s forwards"/>
+    <rect class="folder-front" x="10" y="44" width="160" height="106" rx="4"/>
+  </svg>
+</div>
+
+<!-- MOBILE TOGGLE -->
+<button id="mobile-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')" aria-label="Toggle navigation">Menu</button>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div id="sidebar-header">
+    <h2>Foster Docs</h2>
+    <p>SD-47 Document Tracker</p>
+  </div>
+  <ul class="nav-list">
+    <li class="active" data-view="dashboard" onclick="switchView('dashboard')">
+      <svg viewBox="0 0 18 18"><rect x="1" y="1" width="7" height="7" rx="1"/><rect x="10" y="1" width="7" height="7" rx="1"/><rect x="1" y="10" width="7" height="7" rx="1"/><rect x="10" y="10" width="7" height="7" rx="1"/></svg>
+      Caseload
+    </li>
+    <li data-view="checklist" onclick="switchView('checklist')">
+      <svg viewBox="0 0 18 18"><rect x="1" y="1" width="6" height="6" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="9" y1="4" x2="17" y2="4" stroke="currentColor" stroke-width="1.5"/><rect x="1" y="11" width="6" height="6" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="9" y1="14" x2="17" y2="14" stroke="currentColor" stroke-width="1.5"/></svg>
+      Checklist
+    </li>
+    <li data-view="reports" onclick="switchView('reports')">
+      <svg viewBox="0 0 18 18"><path d="M3 1h8l4 4v12H3z" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="6" y1="9" x2="12" y2="9" stroke="currentColor" stroke-width="1.2"/><line x1="6" y1="12" x2="12" y2="12" stroke="currentColor" stroke-width="1.2"/></svg>
+      Reports
+    </li>
+    <li data-view="about" onclick="switchView('about')">
+      <svg viewBox="0 0 18 18"><circle cx="9" cy="9" r="8" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="9" y1="8" x2="9" y2="13" stroke="currentColor" stroke-width="1.5"/><circle cx="9" cy="5.5" r="1" fill="currentColor"/></svg>
+      About
+    </li>
+  </ul>
+  <div class="sidebar-bottom">
+    <a onclick="loadDemo()">Load Demo Caseload</a>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div id="main">
+  <div id="topbar">
+    <h1>Foster Youth Vital Documents Tracker</h1>
+    <div id="topbar-actions">
+      <button onclick="openAddModal()">+ Add Youth</button>
+      <button onclick="exportData()">Download Caseload</button>
+      <label>Import <input type="file" accept=".json" onchange="importData(event)"></label>
+    </div>
+  </div>
+
+  <div id="save-banner" class="hidden">
+    Your data is saved in this browser only. Use "Download Caseload" to back up or share your records.
+    <button onclick="dismissBanner()">Got it</button>
+  </div>
+
+  <div id="content-wrapper">
+    <div id="main-content">
+      <!-- DASHBOARD -->
+      <div id="dashboard-view" class="view active">
+        <div id="summary-bar"></div>
+        <table id="roster-table">
+          <thead>
+            <tr>
+              <th data-sort="identifier">Identifier</th>
+              <th data-sort="age">Age</th>
+              <th data-sort="daysTo21">Days to 21</th>
+              <th data-sort="pct">Docs %</th>
+              <th data-sort="sijs">SIJS</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="roster-body"></tbody>
+        </table>
+        <p id="empty-roster" style="text-align:center;padding:40px 20px;color:var(--text-mid);font-size:12px;display:none;">
+          No youth records yet. Click "+ Add Youth" above or <a href="#" onclick="loadDemo();return false" style="color:var(--teal-mid)">load the demo caseload</a>.
+        </p>
+      </div>
+
+      <!-- CHECKLIST -->
+      <div id="checklist-view" class="view">
+        <p id="no-youth-selected" style="padding:40px 20px;text-align:center;color:var(--text-mid);font-size:12px;">
+          Select a youth from the Caseload view to see their document checklist.
+        </p>
+        <div id="checklist-content" style="display:none;"></div>
+      </div>
+
+      <!-- REPORTS -->
+      <div id="reports-view" class="view">
+        <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+          <button class="btn btn-teal" onclick="showReport('individual')">Individual Summary</button>
+          <button class="btn btn-teal" onclick="showReport('grant')">Grant Compliance Summary</button>
+          <button class="btn btn-outline" onclick="window.print()">Print Report</button>
+        </div>
+        <div id="report-output"></div>
+      </div>
+
+      <!-- ABOUT -->
+      <div id="about-view" class="view">
+        <h2>About This Tool</h2>
+        <p>Senator Hemmingsen-Jaeger's SF4337 directs $300,000 to pair social-service agencies with nonprofits to help noncitizen foster youth secure the documents their futures depend on. This tool was built for the people doing that work -- so that no deadline slips through a spreadsheet, and every kid has their papers before the window closes.</p>
+        <h4>Reference Facts</h4>
+        <ul>
+          <!-- VERIFY: Approximate figure from DCYF -->
+          <li>Minnesota had approximately 10,000 youth in foster care in 2025 (DCYF)</li>
+          <li>SIJS applications must be filed before the youth's 21st birthday (USCIS)</li>
+          <li>Minnesota law (Northstar Care / Minn. Stat. &sect; 260C.212) requires agencies to help youth obtain vital documents before leaving care</li>
+          <!-- VERIFY: SF4337 details from software brief -->
+          <li>SF4337 (2025 session, chief author Hemmingsen-Jaeger) appropriates $300,000 in FY2027 for grants pairing social-service agencies with nonprofits to help noncitizen foster youth secure required documents</li>
+          <li>The Minnesota Department of Children, Youth, and Families (DCYF) administers foster care statewide</li>
+          <!-- VERIFY: Phone number from software brief — not independently confirmed -->
+          <li>Free or reduced-fee birth certificates for homeless youth under 24 are available through the Minnesota Department of Health (651-201-5970)</li>
+        </ul>
+        <h4>Privacy</h4>
+        <p>All data stays on this device in your browser's local storage. Nothing is transmitted to any server. Use "Download Caseload" to create backups.</p>
+        <h4>Disclaimer</h4>
+        <p>Built with AI. References Minnesota law and USCIS requirements as of 2025. This is not legal advice. Consult an immigration attorney for individual cases.</p>
+      </div>
+    </div>
+
+    <!-- PROGRESS PANEL -->
+    <div id="progress-panel">
+      <div id="progress-ring-wrap">
+        <svg viewBox="0 0 180 180">
+          <circle class="ring-bg" cx="90" cy="90" r="76"/>
+          <circle class="ring-fill" id="progress-ring" cx="90" cy="90" r="76" stroke-dasharray="477.5" stroke-dashoffset="477.5"/>
+        </svg>
+        <div id="progress-text">
+          <span class="big-num" id="ring-num">0</span>
+          <span class="sub" id="ring-sub">of 0 secured</span>
+        </div>
+      </div>
+      <div id="alerts-list">
+        <h4>Alerts</h4>
+        <div id="alerts-container">
+          <div class="alert-item alert-info"><span>No youth records yet.</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="footer">
+    A resource for caseworkers and nonprofits serving Minnesota foster youth. Data is stored in your browser's local storage and is not transmitted. Built with AI. Not legal advice.
+  </div>
+</div>
+
+<!-- ADD/EDIT MODAL -->
+<div class="modal-overlay hidden" id="add-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modal-title">Add New Youth</h3>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-id">
+      <div class="field-group">
+        <label for="f-identifier">Identifier</label>
+        <input type="text" id="f-identifier" placeholder="Name or case number">
+        <div class="hint">Use name or case number -- data stays on this device</div>
+      </div>
+      <div class="field-group">
+        <label for="f-dob">Date of Birth</label>
+        <input type="date" id="f-dob">
+      </div>
+      <div class="field-group">
+        <label for="f-country">Country of Birth</label>
+        <select id="f-country">
+          <option value="">-- Select --</option>
+          <option>Afghanistan</option><option>Burma (Myanmar)</option><option>Cambodia</option>
+          <option>China</option><option>Colombia</option><option>Cuba</option>
+          <option>Democratic Republic of Congo</option><option>Ecuador</option>
+          <option>Egypt</option><option>El Salvador</option><option>Eritrea</option>
+          <option>Ethiopia</option><option>Guatemala</option><option>Haiti</option>
+          <option>Honduras</option><option>India</option><option>Iraq</option>
+          <option>Kenya</option><option>Laos</option><option>Liberia</option>
+          <option>Mexico</option><option>Nepal</option><option>Nicaragua</option>
+          <option>Nigeria</option><option>Pakistan</option><option>Philippines</option>
+          <option>Somalia</option><option>South Sudan</option><option>Syria</option>
+          <option>Vietnam</option><option value="Other">Other / Unknown</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label for="f-placement">Current Placement Type</label>
+        <select id="f-placement">
+          <option value="">-- Select --</option>
+          <option>Foster family</option>
+          <option>Relative/kinship</option>
+          <option>Group home</option>
+          <option>Transitional housing</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label for="f-agency">Agency</label>
+        <input type="text" id="f-agency" placeholder="County name or nonprofit organization">
+      </div>
+      <div class="field-group">
+        <label for="f-notes">Notes</label>
+        <textarea id="f-notes" rows="3"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-teal" onclick="saveYouth()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   DATA MODEL & STORAGE
+   ═══════════════════════════════════════════════════════════════ */
+
+const DOC_SCHEMA = [
+  { tier: 1, tierName: 'Identity Documents', items: [
+    { id: 'birth_cert', label: 'Certified birth certificate' },
+    { id: 'passport', label: 'Passport (or home country travel document)' },
+    { id: 'ssn_card', label: 'Social Security card' },
+    { id: 'state_id', label: 'State-issued photo ID or driver\'s license' }
+  ]},
+  { tier: 2, tierName: 'Immigration / Status Documents', items: [
+    { id: 'visa_entry', label: 'Visa, entry permit, or immigration document on file' },
+    { id: 'i94', label: 'I-94 Arrival/Departure Record (or USCIS record of entry)' },
+    { id: 'sijs_discussed', label: 'SIJS eligibility discussed with youth?' },
+    { id: 'court_order', label: 'Juvenile court order with SIJS findings' },
+    { id: 'i360_filed', label: 'Form I-360 (SIJS petition) filed with USCIS?' },
+    { id: 'priority_date', label: 'Priority date documented (I-360 receipt notice on file)' }
+  ]},
+  { tier: 3, tierName: 'Health and Benefits', items: [
+    { id: 'ma_enrollment', label: 'Medical Assistance (MA) enrollment confirmed' },
+    { id: 'vaccines', label: 'Vaccination records' },
+    { id: 'mental_health', label: 'Mental health / developmental records on file' },
+    { id: 'northstar', label: 'Northstar Care benefit level documented' }
+  ]},
+  { tier: 4, tierName: 'Transition / Stability', items: [
+    { id: 'edu_records', label: 'Education enrollment / school records' },
+    { id: 'ead_card', label: 'Employment authorization (EAD card, if applicable)' },
+    { id: 'housing_plan', label: 'Housing plan documented' },
+    { id: 'extended_fc', label: 'Extended foster care to 21 -- offered and decision documented' }
+  ]}
+];
+
+const ALL_DOC_IDS = DOC_SCHEMA.flatMap(t => t.items.map(i => i.id));
+
+function getStore() {
+  try { return JSON.parse(localStorage.getItem('fydocs_caseload') || '[]'); }
+  catch { return []; }
+}
+function setStore(data) { localStorage.setItem('fydocs_caseload', JSON.stringify(data)); }
+
+function getGrantInfo() {
+  try { return JSON.parse(localStorage.getItem('fydocs_grant') || '{}'); }
+  catch { return {}; }
+}
+function setGrantInfo(d) { localStorage.setItem('fydocs_grant', JSON.stringify(d)); }
+
+let caseload = getStore();
+let selectedYouthId = null;
+let currentSort = { key: 'daysTo21', asc: true };
+
+/* ═══════════════════════════════════════════════════════════════
+   CALCULATIONS
+   ═══════════════════════════════════════════════════════════════ */
+
+function calcAge(dob) {
+  const d = new Date(dob), now = new Date();
+  let y = now.getFullYear() - d.getFullYear();
+  let m = now.getMonth() - d.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < d.getDate())) { y--; m += 12; }
+  if (now.getDate() < d.getDate()) m--;
+  if (m < 0) m += 12;
+  return { years: y, months: m };
+}
+
+function daysTo21(dob) {
+  const d = new Date(dob);
+  const bday21 = new Date(d);
+  bday21.setFullYear(bday21.getFullYear() + 21);
+  return Math.floor((bday21 - new Date()) / 86400000);
+}
+
+function docStats(youth) {
+  const docs = youth.documents || {};
+  let total = ALL_DOC_IDS.length;
+  let complete = 0;
+  ALL_DOC_IDS.forEach(id => { if (docs[id] && docs[id].status === 'complete') complete++; });
+  return { complete, total, pct: total > 0 ? Math.round(complete / total * 100) : 0 };
+}
+
+function sijsFlag(youth) {
+  const docs = youth.documents || {};
+  const discussed = docs.sijs_discussed && docs.sijs_discussed.status === 'complete';
+  const courtOrder = docs.court_order && (docs.court_order.status === 'complete' || docs.court_order.status === 'in_progress');
+  const filed = docs.i360_filed && docs.i360_filed.status === 'complete';
+  if (filed) return 'green';
+  if (discussed || courtOrder) return 'yellow';
+  return 'red';
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   VIEWS
+   ═══════════════════════════════════════════════════════════════ */
+
+function switchView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(name + '-view').classList.add('active');
+  document.querySelectorAll('.nav-list li').forEach(li => {
+    li.classList.toggle('active', li.dataset.view === name);
+  });
+  document.getElementById('sidebar').classList.remove('open');
+  if (name === 'dashboard') renderDashboard();
+  else if (name === 'checklist') renderChecklist();
+  else if (name === 'reports') document.getElementById('report-output').innerHTML = '<p style="color:var(--text-mid);font-size:12px;">Choose a report type above.</p>';
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DASHBOARD
+   ═══════════════════════════════════════════════════════════════ */
+
+function renderDashboard() {
+  const data = getStore();
+  caseload = data;
+
+  // Summary
+  const totalYouth = data.length;
+  let allComplete = 0, sijsWithin12 = 0, zeroDocs = 0;
+  data.forEach(y => {
+    const s = docStats(y);
+    if (s.pct === 100) allComplete++;
+    if (s.complete === 0) zeroDocs++;
+    const d = daysTo21(y.dob);
+    if (d > 0 && d <= 365) sijsWithin12++;
+  });
+
+  document.getElementById('summary-bar').innerHTML = `
+    <div class="summary-stat"><div class="stat-val">${totalYouth}</div><div class="stat-label">Total Youth</div></div>
+    <div class="summary-stat"><div class="stat-val">${allComplete}</div><div class="stat-label">All Docs Complete</div></div>
+    <div class="summary-stat" ${sijsWithin12 > 0 ? 'style="background:var(--coral)"' : ''}><div class="stat-val">${sijsWithin12}</div><div class="stat-label">SIJS Deadline &lt; 12 mo</div></div>
+    <div class="summary-stat" ${zeroDocs > 0 ? 'style="background:var(--coral)"' : ''}><div class="stat-val">${zeroDocs}</div><div class="stat-label">Zero Documents</div></div>
+  `;
+
+  // Sort
+  const sorted = [...data].sort((a, b) => {
+    let va, vb;
+    switch (currentSort.key) {
+      case 'identifier': va = (a.identifier || '').toLowerCase(); vb = (b.identifier || '').toLowerCase(); return currentSort.asc ? va.localeCompare(vb) : vb.localeCompare(va);
+      case 'age': va = daysTo21(a.dob); vb = daysTo21(b.dob); break;
+      case 'daysTo21': va = daysTo21(a.dob); vb = daysTo21(b.dob); break;
+      case 'pct': va = docStats(a).pct; vb = docStats(b).pct; break;
+      case 'sijs': va = sijsFlag(a) === 'green' ? 2 : sijsFlag(a) === 'yellow' ? 1 : 0; vb = sijsFlag(b) === 'green' ? 2 : sijsFlag(b) === 'yellow' ? 1 : 0; break;
+      default: va = daysTo21(a.dob); vb = daysTo21(b.dob);
+    }
+    if (typeof va === 'number') return currentSort.asc ? va - vb : vb - va;
+    return 0;
+  });
+
+  const tbody = document.getElementById('roster-body');
+  if (sorted.length === 0) {
+    tbody.innerHTML = '';
+    document.getElementById('empty-roster').style.display = 'block';
+    document.getElementById('roster-table').style.display = 'none';
+  } else {
+    document.getElementById('empty-roster').style.display = 'none';
+    document.getElementById('roster-table').style.display = 'table';
+    tbody.innerHTML = sorted.map(y => {
+      const age = calcAge(y.dob);
+      const d21 = daysTo21(y.dob);
+      const s = docStats(y);
+      const sFlag = sijsFlag(y);
+      let badgeClass = 'badge-gray', badgeText = `${d21} days`;
+      if (d21 <= 0) { badgeClass = 'badge-dark-red'; badgeText = 'Passed'; }
+      else if (d21 <= 180) { badgeClass = 'badge-red'; badgeText = `URGENT: ${d21}d`; }
+      else if (d21 <= 365) { badgeClass = 'badge-amber'; badgeText = `${d21}d`; }
+
+      const flagSvg = sFlag === 'green'
+        ? '<svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" fill="#2e7d32"/><path d="M4 7l2 2 4-4" stroke="#fff" stroke-width="1.5" fill="none"/></svg>'
+        : sFlag === 'yellow'
+        ? '<svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" fill="#f9a825"/><text x="7" y="10.5" text-anchor="middle" font-size="10" fill="#fff" font-weight="700">?</text></svg>'
+        : '<svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" fill="#c62828"/><path d="M4.5 4.5l5 5M9.5 4.5l-5 5" stroke="#fff" stroke-width="1.5"/></svg>';
+
+      return `<tr>
+        <td><strong>${esc(y.identifier)}</strong></td>
+        <td class="mono">${age.years}y ${age.months}m</td>
+        <td><span class="badge ${badgeClass}">${badgeText}</span></td>
+        <td><span class="mono">${s.pct}%</span> <span class="pct-bar"><span class="pct-bar-fill" style="width:${s.pct}%"></span></span></td>
+        <td><span class="sijs-flag">${flagSvg}</span></td>
+        <td>
+          <button class="btn btn-teal btn-sm" onclick="openYouth('${y.id}')">Open</button>
+          <button class="btn btn-outline btn-sm" onclick="editYouth('${y.id}')">Edit</button>
+          <button class="btn btn-sm" style="color:var(--blocked)" onclick="deleteYouth('${y.id}')">Del</button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  updateProgressRing();
+  updateAlerts();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PROGRESS RING & ALERTS
+   ═══════════════════════════════════════════════════════════════ */
+
+function updateProgressRing() {
+  const data = getStore();
+  let totalDocs = 0, completeDocs = 0;
+  data.forEach(y => { const s = docStats(y); totalDocs += s.total; completeDocs += s.complete; });
+  const pct = totalDocs > 0 ? completeDocs / totalDocs : 0;
+  const circumference = 2 * Math.PI * 76; // r=76
+  const offset = circumference * (1 - pct);
+  document.getElementById('progress-ring').style.strokeDashoffset = offset;
+  document.getElementById('ring-num').textContent = completeDocs;
+  document.getElementById('ring-sub').textContent = `of ${totalDocs} secured`;
+}
+
+function updateAlerts() {
+  const data = getStore();
+  const container = document.getElementById('alerts-container');
+  if (data.length === 0) {
+    container.innerHTML = '<div class="alert-item alert-info"><span>No youth records yet.</span></div>';
+    return;
+  }
+  let html = '';
+  const warnSvg = '<svg viewBox="0 0 14 14"><path d="M7 1l6.5 12H.5z" fill="currentColor"/><text x="7" y="11" text-anchor="middle" font-size="8" fill="#fff" font-weight="700">!</text></svg>';
+
+  data.forEach(y => {
+    const d21 = daysTo21(y.dob);
+    const s = docStats(y);
+    if (d21 > 0 && d21 <= 180) {
+      html += `<div class="alert-item alert-urgent">${warnSvg}<span><strong>${esc(y.identifier)}</strong> — ${d21} days to SIJS deadline</span></div>`;
+    } else if (d21 > 180 && d21 <= 365) {
+      html += `<div class="alert-item alert-warn">${warnSvg}<span><strong>${esc(y.identifier)}</strong> — ${d21} days to age 21</span></div>`;
+    }
+    if (s.complete === 0) {
+      html += `<div class="alert-item alert-urgent">${warnSvg}<span><strong>${esc(y.identifier)}</strong> — zero documents collected</span></div>`;
+    }
+  });
+
+  if (!html) html = '<div class="alert-item alert-info"><span>No urgent alerts.</span></div>';
+  container.innerHTML = html;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TABLE SORT
+   ═══════════════════════════════════════════════════════════════ */
+
+document.querySelectorAll('#roster-table th[data-sort]').forEach(th => {
+  th.addEventListener('click', () => {
+    const key = th.dataset.sort;
+    if (currentSort.key === key) currentSort.asc = !currentSort.asc;
+    else { currentSort.key = key; currentSort.asc = true; }
+    renderDashboard();
+  });
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   CHECKLIST
+   ═══════════════════════════════════════════════════════════════ */
+
+function openYouth(id) {
+  selectedYouthId = id;
+  switchView('checklist');
+}
+
+function renderChecklist() {
+  if (!selectedYouthId) {
+    document.getElementById('no-youth-selected').style.display = 'block';
+    document.getElementById('checklist-content').style.display = 'none';
+    return;
+  }
+  const data = getStore();
+  const youth = data.find(y => y.id === selectedYouthId);
+  if (!youth) {
+    document.getElementById('no-youth-selected').style.display = 'block';
+    document.getElementById('checklist-content').style.display = 'none';
+    return;
+  }
+  document.getElementById('no-youth-selected').style.display = 'none';
+  document.getElementById('checklist-content').style.display = 'block';
+
+  const age = calcAge(youth.dob);
+  const d21 = daysTo21(youth.dob);
+  let badgeClass = 'badge-gray', badgeText = `Age 21 in ${d21} days`;
+  if (d21 <= 0) { badgeClass = 'badge-dark-red'; badgeText = 'Age 21 passed -- SIJS window closed'; }
+  else if (d21 <= 180) { badgeClass = 'badge-red'; badgeText = `URGENT: ${d21} days to SIJS deadline`; }
+  else if (d21 <= 365) { badgeClass = 'badge-amber'; badgeText = `SIJS: ${d21} days`; }
+
+  const docs = youth.documents || {};
+  let html = `
+    <div class="youth-header-bar">
+      <h2>${esc(youth.identifier)}</h2>
+      <div class="youth-meta">
+        <span class="mono">${age.years}y ${age.months}m</span>
+        <span>${esc(youth.countryOfBirth || '')}</span>
+        <span>${esc(youth.placementType || '')}</span>
+        <span>${esc(youth.agency || '')}</span>
+        <span class="badge ${badgeClass}">${badgeText}</span>
+      </div>
+    </div>`;
+
+  DOC_SCHEMA.forEach(tier => {
+    const tierComplete = tier.items.filter(i => docs[i.id] && docs[i.id].status === 'complete').length;
+    html += `<div class="tier-group">
+      <div class="tier-header" onclick="toggleTier(this)">
+        <h3>
+          <svg class="chevron" viewBox="0 0 12 12" width="12" height="12"><path d="M3 1l6 5-6 5" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+          Tier ${tier.tier}: ${tier.tierName}
+        </h3>
+        <span class="tier-count">${tierComplete}/${tier.items.length}</span>
+      </div>
+      <div class="tier-body">`;
+
+    if (tier.tier === 2) {
+      html += `<div class="sijs-explainer" id="sijs-explainer">
+        <strong>Special Immigrant Juvenile Status (SIJS)</strong> allows noncitizen youth who have experienced abuse, neglect, or abandonment and are in state custody to apply for a green card. The petition (Form I-360) must be filed before the youth's 21st birthday. A juvenile court order with specific findings is required first. <em>Source: USCIS.gov</em>
+        <br><button class="btn btn-sm btn-outline" style="margin-top:6px" onclick="document.getElementById('sijs-explainer').style.display='none'">Collapse</button>
+      </div>`;
+    }
+
+    tier.items.forEach(item => {
+      const d = docs[item.id] || { status: 'not_started', expectedDate: '', completedDate: '', note: '' };
+      const statusClass = 'status-' + d.status.replace('_', '-');
+      let extra = '';
+
+      if (d.status === 'in_progress' && d.expectedDate) {
+        const diff = Math.floor((new Date(d.expectedDate) - new Date()) / 86400000);
+        if (diff >= 0) extra = `<span class="countdown-tag countdown-ok">Expected in ${diff} days</span>`;
+        else extra = `<span class="countdown-tag countdown-overdue">Overdue by ${Math.abs(diff)} days</span>`;
+      }
+
+      const showDate = d.status === 'in_progress' || d.status === 'complete';
+      const showNote = d.status === 'blocked';
+
+      html += `<div class="doc-row ${statusClass}" data-doc="${item.id}">
+        <span class="doc-label">${item.label}</span>
+        <select class="doc-status-select" onchange="updateDocStatus('${youth.id}','${item.id}',this.value)" aria-label="Status for ${item.label}">
+          <option value="not_started" ${d.status === 'not_started' ? 'selected' : ''}>Not Started</option>
+          <option value="in_progress" ${d.status === 'in_progress' ? 'selected' : ''}>In Progress</option>
+          <option value="complete" ${d.status === 'complete' ? 'selected' : ''}>Complete</option>
+          <option value="blocked" ${d.status === 'blocked' ? 'selected' : ''}>Blocked</option>
+        </select>
+        ${extra}
+        ${showDate ? `<input type="date" class="doc-date-field" value="${d.status === 'complete' ? d.completedDate || '' : d.expectedDate || ''}" onchange="updateDocDate('${youth.id}','${item.id}',this.value)" aria-label="${d.status === 'complete' ? 'Date secured' : 'Expected date'}">` : ''}
+        ${showNote ? `<input type="text" class="doc-note-field" value="${esc(d.note || '')}" placeholder="Reason blocked..." onchange="updateDocNote('${youth.id}','${item.id}',this.value)" aria-label="Block reason">` : ''}
+      </div>`;
+    });
+
+    html += '</div></div>';
+  });
+
+  if (youth.notes) {
+    html += `<div style="margin-top:16px;padding:12px;background:var(--sand-light);border-radius:4px;font-size:12px;"><strong style="color:var(--teal-deep)">Notes:</strong> ${esc(youth.notes)}</div>`;
+  }
+
+  document.getElementById('checklist-content').innerHTML = html;
+}
+
+function toggleTier(headerEl) {
+  headerEl.classList.toggle('collapsed');
+  headerEl.nextElementSibling.classList.toggle('collapsed');
+}
+
+function updateDocStatus(youthId, docId, status) {
+  const data = getStore();
+  const y = data.find(x => x.id === youthId);
+  if (!y) return;
+  if (!y.documents) y.documents = {};
+  if (!y.documents[docId]) y.documents[docId] = {};
+  y.documents[docId].status = status;
+  if (status === 'not_started') { y.documents[docId].expectedDate = ''; y.documents[docId].completedDate = ''; y.documents[docId].note = ''; }
+  setStore(data);
+  renderChecklist();
+  updateProgressRing();
+  updateAlerts();
+}
+
+function updateDocDate(youthId, docId, date) {
+  const data = getStore();
+  const y = data.find(x => x.id === youthId);
+  if (!y || !y.documents || !y.documents[docId]) return;
+  if (y.documents[docId].status === 'complete') y.documents[docId].completedDate = date;
+  else y.documents[docId].expectedDate = date;
+  setStore(data);
+  renderChecklist();
+}
+
+function updateDocNote(youthId, docId, note) {
+  const data = getStore();
+  const y = data.find(x => x.id === youthId);
+  if (!y || !y.documents || !y.documents[docId]) return;
+  y.documents[docId].note = note;
+  setStore(data);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ADD / EDIT / DELETE YOUTH
+   ═══════════════════════════════════════════════════════════════ */
+
+function openAddModal() {
+  document.getElementById('modal-title').textContent = 'Add New Youth';
+  document.getElementById('edit-id').value = '';
+  document.getElementById('f-identifier').value = '';
+  document.getElementById('f-dob').value = '';
+  document.getElementById('f-country').value = '';
+  document.getElementById('f-placement').value = '';
+  document.getElementById('f-agency').value = '';
+  document.getElementById('f-notes').value = '';
+  document.getElementById('add-modal').classList.remove('hidden');
+}
+
+function editYouth(id) {
+  const data = getStore();
+  const y = data.find(x => x.id === id);
+  if (!y) return;
+  document.getElementById('modal-title').textContent = 'Edit Youth';
+  document.getElementById('edit-id').value = id;
+  document.getElementById('f-identifier').value = y.identifier || '';
+  document.getElementById('f-dob').value = y.dob || '';
+  document.getElementById('f-country').value = y.countryOfBirth || '';
+  document.getElementById('f-placement').value = y.placementType || '';
+  document.getElementById('f-agency').value = y.agency || '';
+  document.getElementById('f-notes').value = y.notes || '';
+  document.getElementById('add-modal').classList.remove('hidden');
+}
+
+function closeModal() {
+  document.getElementById('add-modal').classList.add('hidden');
+}
+
+function saveYouth() {
+  const id = document.getElementById('edit-id').value;
+  const identifier = document.getElementById('f-identifier').value.trim();
+  const dob = document.getElementById('f-dob').value;
+  if (!identifier || !dob) { alert('Identifier and date of birth are required.'); return; }
+
+  const data = getStore();
+  if (id) {
+    const y = data.find(x => x.id === id);
+    if (y) {
+      y.identifier = identifier;
+      y.dob = dob;
+      y.countryOfBirth = document.getElementById('f-country').value;
+      y.placementType = document.getElementById('f-placement').value;
+      y.agency = document.getElementById('f-agency').value;
+      y.notes = document.getElementById('f-notes').value;
+    }
+  } else {
+    data.push({
+      id: 'y_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+      identifier,
+      dob,
+      countryOfBirth: document.getElementById('f-country').value,
+      placementType: document.getElementById('f-placement').value,
+      agency: document.getElementById('f-agency').value,
+      notes: document.getElementById('f-notes').value,
+      documents: {}
+    });
+  }
+  setStore(data);
+  closeModal();
+  renderDashboard();
+}
+
+function deleteYouth(id) {
+  if (!confirm('Delete this youth record? This cannot be undone.')) return;
+  let data = getStore();
+  data = data.filter(y => y.id !== id);
+  setStore(data);
+  if (selectedYouthId === id) selectedYouthId = null;
+  renderDashboard();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   REPORTS
+   ═══════════════════════════════════════════════════════════════ */
+
+function showReport(type) {
+  const data = getStore();
+  const output = document.getElementById('report-output');
+
+  if (type === 'individual') {
+    if (!selectedYouthId) {
+      output.innerHTML = '<p style="color:var(--text-mid);font-size:12px;padding:20px;">Select a youth from the Caseload first, then return here.</p>';
+      return;
+    }
+    const y = data.find(x => x.id === selectedYouthId);
+    if (!y) return;
+    const age = calcAge(y.dob);
+    const d21 = daysTo21(y.dob);
+    const docs = y.documents || {};
+    const s = docStats(y);
+
+    let deadlineText = `Age 21 in ${d21} days`;
+    if (d21 <= 0) deadlineText = 'Age 21 passed -- SIJS window closed';
+    else if (d21 <= 180) deadlineText = `URGENT: ${d21} days to SIJS deadline`;
+    else if (d21 <= 365) deadlineText = `${d21} days to SIJS deadline`;
+
+    let rows = '';
+    DOC_SCHEMA.forEach(tier => {
+      rows += `<tr><td colspan="3" style="background:var(--sand);font-weight:700;font-family:'Trebuchet MS';font-size:11px;text-transform:uppercase;letter-spacing:0.5px;padding:6px 10px;">Tier ${tier.tier}: ${tier.tierName}</td></tr>`;
+      tier.items.forEach(item => {
+        const d = docs[item.id] || { status: 'not_started' };
+        const statusLabel = { not_started: 'Not Started', in_progress: 'In Progress', complete: 'Complete', blocked: 'BLOCKED' }[d.status] || d.status;
+        const dateStr = d.status === 'complete' ? (d.completedDate || '') : d.status === 'in_progress' ? (d.expectedDate ? `exp. ${d.expectedDate}` : '') : '';
+        const noteStr = d.status === 'blocked' && d.note ? ` -- ${esc(d.note)}` : '';
+        rows += `<tr><td>${item.label}</td><td><strong>${statusLabel}</strong>${noteStr}</td><td class="mono">${dateStr}</td></tr>`;
+      });
+    });
+
+    // Next Actions
+    let actions = '';
+    if (!docs.birth_cert || docs.birth_cert.status === 'not_started') {
+      actions += `<li>Birth certificate not started -- Contact ${y.countryOfBirth || 'country of origin'} consulate or vital records agency. Allow 60-120 days for international requests. For MN-born youth: MN Dept of Health (651-201-5970).</li>`;
+    }
+    if (!docs.i360_filed || docs.i360_filed.status === 'not_started') {
+      if (d21 > 0) actions += `<li>Form I-360 (SIJS petition) not filed. ${d21} days remain before 21st birthday. Consult immigration attorney immediately.</li>`;
+    }
+    if (!docs.court_order || docs.court_order.status === 'not_started') {
+      actions += '<li>Juvenile court order with SIJS findings not started. This must be obtained before Form I-360 can be filed.</li>';
+    }
+    if (!docs.ssn_card || docs.ssn_card.status === 'not_started') {
+      actions += '<li>Social Security card not started -- Visit local SSA office with available ID documents.</li>';
+    }
+    if (!docs.state_id || docs.state_id.status === 'not_started') {
+      actions += '<li>State-issued photo ID not started -- Visit MN DVS with required documentation.</li>';
+    }
+    if (!docs.ma_enrollment || docs.ma_enrollment.status === 'not_started') {
+      actions += '<li>Medical Assistance enrollment not confirmed -- Contact county financial worker.</li>';
+    }
+    if (!actions) actions = '<li>All critical documents are in progress or complete. Continue monitoring deadlines.</li>';
+
+    output.innerHTML = `
+      <div class="report-section">
+        <h3>Individual Youth Summary</h3>
+        <p style="font-size:12px;margin-bottom:8px;"><strong>${esc(y.identifier)}</strong> | Age: ${age.years}y ${age.months}m | Country: ${esc(y.countryOfBirth || 'Unknown')} | Placement: ${esc(y.placementType || 'Unknown')} | Agency: ${esc(y.agency || 'Unknown')}</p>
+        <p style="font-size:12px;margin-bottom:8px;"><strong>SIJS Deadline:</strong> ${deadlineText}</p>
+        <p style="font-size:12px;margin-bottom:12px;"><strong>Document Completion:</strong> ${s.complete}/${s.total} (${s.pct}%)</p>
+        <table class="report-table">
+          <thead><tr><th>Document</th><th>Status</th><th>Date</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <h3 style="margin-top:16px;">Next Actions</h3>
+        <ul style="font-size:12px;line-height:1.7;margin-left:16px;">${actions}</ul>
+      </div>`;
+  }
+
+  if (type === 'grant') {
+    const grant = getGrantInfo();
+    let tierStats = DOC_SCHEMA.map(tier => {
+      let total = 0, complete = 0;
+      data.forEach(y => {
+        const docs = y.documents || {};
+        tier.items.forEach(item => {
+          total++;
+          if (docs[item.id] && docs[item.id].status === 'complete') complete++;
+        });
+      });
+      return { tier: tier.tier, name: tier.tierName, total, complete, pct: total > 0 ? Math.round(complete / total * 100) : 0 };
+    });
+
+    let sijsFiled = 0, tier1Complete = 0, sijsApproaching = 0;
+    data.forEach(y => {
+      const docs = y.documents || {};
+      if (docs.i360_filed && docs.i360_filed.status === 'complete') sijsFiled++;
+      const t1 = DOC_SCHEMA[0].items.every(i => docs[i.id] && docs[i.id].status === 'complete');
+      if (t1) tier1Complete++;
+      const d21 = daysTo21(y.dob);
+      if (d21 > 0 && d21 <= 365) sijsApproaching++;
+    });
+
+    const bars = tierStats.map(t =>
+      `<div class="bar-row">
+        <span class="bar-label">Tier ${t.tier}</span>
+        <div class="bar-track"><div class="bar-fill tier${t.tier}" style="width:${t.pct}%"><span>${t.pct}%</span></div></div>
+      </div>`
+    ).join('');
+
+    output.innerHTML = `
+      <div class="report-section">
+        <h3>Caseload Grant Compliance Summary</h3>
+        <div class="grant-fields">
+          <div class="field-group">
+            <label for="grant-period">Reporting Period</label>
+            <input type="text" id="grant-period" value="${esc(grant.period || '')}" placeholder="e.g. Jan 2027 - Jun 2027" onchange="updateGrant('period',this.value)">
+          </div>
+          <div class="field-group">
+            <label for="grant-org">Organization</label>
+            <input type="text" id="grant-org" value="${esc(grant.org || '')}" placeholder="Organization name" onchange="updateGrant('org',this.value)">
+          </div>
+        </div>
+        <table class="report-table">
+          <tbody>
+            <tr><td>Total youth served</td><td class="mono"><strong>${data.length}</strong></td></tr>
+            <tr><td>SIJS petitions (I-360) filed</td><td class="mono"><strong>${sijsFiled}</strong></td></tr>
+            <tr><td>Youth with all Tier 1 (identity) docs secured</td><td class="mono"><strong>${tier1Complete}</strong></td></tr>
+            <tr><td>Youth approaching SIJS deadline (within 12 months)</td><td class="mono"><strong>${sijsApproaching}</strong></td></tr>
+          </tbody>
+        </table>
+        <h3 style="margin-top:16px;">Document Completion by Tier</h3>
+        <div class="bar-chart-container">${bars}</div>
+      </div>`;
+  }
+}
+
+function updateGrant(key, val) {
+  const g = getGrantInfo();
+  g[key] = val;
+  setGrantInfo(g);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   EXPORT / IMPORT
+   ═══════════════════════════════════════════════════════════════ */
+
+function exportData() {
+  const data = getStore();
+  const grant = getGrantInfo();
+  const blob = new Blob([JSON.stringify({ caseload: data, grant }, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'foster-docs-caseload-' + new Date().toISOString().slice(0, 10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(evt) {
+  const file = evt.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const obj = JSON.parse(e.target.result);
+      if (obj.caseload && Array.isArray(obj.caseload)) {
+        if (!confirm(`Import ${obj.caseload.length} youth records? This will replace your current data.`)) return;
+        setStore(obj.caseload);
+        if (obj.grant) setGrantInfo(obj.grant);
+        selectedYouthId = null;
+        renderDashboard();
+      } else {
+        alert('Invalid file format. Expected a JSON file exported from this tool.');
+      }
+    } catch { alert('Could not parse file. Ensure it is a valid JSON export.'); }
+  };
+  reader.readAsText(file);
+  evt.target.value = '';
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DEMO DATA
+   ═══════════════════════════════════════════════════════════════ */
+
+function loadDemo() {
+  if (getStore().length > 0) {
+    if (!confirm('This will replace your current caseload with demo data. Continue?')) return;
+  }
+  const now = new Date();
+
+  // Youth A: 20 years 4 months old
+  const dobA = new Date(now.getFullYear() - 20, now.getMonth() - 4, now.getDate());
+  // Youth B: 17 years 8 months old
+  const dobB = new Date(now.getFullYear() - 17, now.getMonth() - 8, now.getDate());
+  // Youth C: 15 years 2 months old
+  const dobC = new Date(now.getFullYear() - 15, now.getMonth() - 2, now.getDate());
+
+  const fmt = d => d.toISOString().slice(0, 10);
+  const exp45 = new Date(now.getTime() + 45 * 86400000);
+
+  const demo = [
+    {
+      id: 'demo_a', identifier: 'Sample Youth A (DEMO)', dob: fmt(dobA),
+      countryOfBirth: 'Guatemala', placementType: 'Foster family',
+      agency: 'Washington County', notes: 'DEMO -- NOT REAL DATA. SIJS deadline urgency example.',
+      documents: {
+        birth_cert: { status: 'in_progress', expectedDate: fmt(exp45), completedDate: '', note: '' },
+        ssn_card: { status: 'complete', completedDate: fmt(new Date(now.getTime() - 30 * 86400000)), expectedDate: '', note: '' },
+        i360_filed: { status: 'not_started', expectedDate: '', completedDate: '', note: '' }
+      }
+    },
+    {
+      id: 'demo_b', identifier: 'Sample Youth B (DEMO)', dob: fmt(dobB),
+      countryOfBirth: 'Somalia', placementType: 'Relative/kinship',
+      agency: 'Ramsey County', notes: 'DEMO -- NOT REAL DATA. Mid-process record example.',
+      documents: {
+        birth_cert: { status: 'complete', completedDate: fmt(new Date(now.getTime() - 60 * 86400000)), expectedDate: '', note: '' },
+        passport: { status: 'complete', completedDate: fmt(new Date(now.getTime() - 45 * 86400000)), expectedDate: '', note: '' },
+        ssn_card: { status: 'complete', completedDate: fmt(new Date(now.getTime() - 90 * 86400000)), expectedDate: '', note: '' },
+        state_id: { status: 'complete', completedDate: fmt(new Date(now.getTime() - 20 * 86400000)), expectedDate: '', note: '' },
+        sijs_discussed: { status: 'complete', completedDate: fmt(new Date(now.getTime() - 10 * 86400000)), expectedDate: '', note: '' },
+        court_order: { status: 'in_progress', expectedDate: fmt(new Date(now.getTime() + 60 * 86400000)), completedDate: '', note: '' }
+      }
+    },
+    {
+      id: 'demo_c', identifier: 'Sample Youth C (DEMO)', dob: fmt(dobC),
+      countryOfBirth: 'Mexico', placementType: 'Group home',
+      agency: 'Hennepin County', notes: 'DEMO -- NOT REAL DATA. Zero-documents urgent flag example.',
+      documents: {
+        birth_cert: { status: 'complete', completedDate: fmt(new Date(now.getTime() - 15 * 86400000)), expectedDate: '', note: '' }
+      }
+    }
+  ];
+
+  setStore(demo);
+  selectedYouthId = null;
+  switchView('dashboard');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BANNER
+   ═══════════════════════════════════════════════════════════════ */
+
+function dismissBanner() {
+  document.getElementById('save-banner').classList.add('hidden');
+  localStorage.setItem('fydocs_banner_dismissed', '1');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   UTILITIES
+   ═══════════════════════════════════════════════════════════════ */
+
+function esc(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   INIT
+   ═══════════════════════════════════════════════════════════════ */
+
+(function init() {
+  if (!localStorage.getItem('fydocs_banner_dismissed')) {
+    document.getElementById('save-banner').classList.remove('hidden');
+  }
+  renderDashboard();
+
+  // Remove entry overlay after animation
+  setTimeout(() => {
+    const overlay = document.getElementById('entry-overlay');
+    if (overlay) overlay.remove();
+  }, 2200);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MN Vacation Rental Host Compliance Planner — SD-6</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Full-width editorial magazine — no sidebar, no max-width shell. Sections alternate between
+      full-bleed color environments (dark spruce, iron red, slate) and tight data-dense white zones.
+      Asymmetry via 65/35 split grids inside modules.
+   2. Navigation: Sticky top bar with plain text links, active state = thick bottom underline + color shift.
+      No rounded tabs, no boxes. Compact, 44px tall, dark background.
+   3. Typography: Trebuchet MS for body/UI, Courier New monospace for numbers/data/inputs — giving a
+      "ledger meets field guide" feel. Bold condensed all-caps for section labels. NO Georgia, NO system-ui default.
+   4. Hero moment: Module 1 opens with a massive $61,916 number (72px) on a full-viewport dark spruce
+      panel with the question "Are you collecting the right taxes?" — no intro paragraph.
+   5. Color commitment: 60%+ of viewport is saturated color. Spruce green hero, iron-red seasonal calendar,
+      slate-blue checklist header bands. White is the minority, used only for data-entry zones.
+   Additional: No cards anywhere — data lives in tables, definition lists, and inline spans.
+   Inputs styled dark with light text to match the tool's identity. Print CSS for Modules 2 & 3.
+*/
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --iron: #8B2E2E;
+  --iron-light: #a84040;
+  --spruce: #2E5E3A;
+  --spruce-dark: #1a3d24;
+  --spruce-light: #3a7a4a;
+  --slate: #4A6580;
+  --slate-light: #5d809e;
+  --birch: #F5F2EC;
+  --near-black: #1C1C1C;
+  --cream: #FFFDF7;
+  --gold: #C4882A;
+  --alert: #B91C1C;
+  --white: #ffffff;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Trebuchet MS', 'Lucida Grande', 'Lucida Sans', sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--near-black);
+  background: var(--near-black);
+}
+
+/* ─── STICKY NAV ─── */
+.topnav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--near-black);
+  display: flex;
+  align-items: stretch;
+  height: 48px;
+  border-bottom: 2px solid var(--spruce);
+}
+
+.topnav button {
+  flex: 1;
+  background: none;
+  border: none;
+  color: #999;
+  font-family: 'Trebuchet MS', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s;
+  padding: 0 8px;
+}
+
+.topnav button:hover { color: var(--cream); }
+
+.topnav button.active { color: var(--white); }
+
+.topnav button.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 10%;
+  width: 80%;
+  height: 3px;
+  background: var(--gold);
+}
+
+.topnav .brand {
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  color: var(--spruce-light);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  font-weight: 700;
+  min-width: 80px;
+}
+
+/* ─── MODULE PANELS ─── */
+.module { display: none; }
+.module.active { display: block; }
+
+/* ─── HERO / MODULE 1 ─── */
+.hero {
+  background: linear-gradient(165deg, var(--spruce-dark) 0%, var(--spruce) 60%, var(--slate) 100%);
+  color: var(--white);
+  padding: 60px 40px 40px;
+  min-height: 45vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.hero .big-number {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 72px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--gold);
+  margin-bottom: 8px;
+}
+
+.hero .big-question {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 6px;
+}
+
+.hero .sub {
+  font-size: 14px;
+  color: rgba(255,255,255,0.7);
+  max-width: 600px;
+  margin-top: 4px;
+}
+
+.hero .sub strong { color: var(--gold); }
+
+/* ─── FORM ZONES ─── */
+.form-zone {
+  background: var(--cream);
+  padding: 32px 40px;
+}
+
+.form-zone h2 {
+  font-size: 12px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--slate);
+  font-weight: 700;
+  margin-bottom: 20px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #ddd;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px 24px;
+}
+
+.form-group { display: flex; flex-direction: column; }
+
+.form-group label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--slate);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.form-group select,
+.form-group input[type="text"],
+.form-group input[type="number"] {
+  font-family: 'Courier New', monospace;
+  font-size: 15px;
+  padding: 10px 12px;
+  border: 2px solid var(--spruce-dark);
+  background: var(--near-black);
+  color: var(--gold);
+  border-radius: 2px;
+  transition: border-color 0.2s;
+}
+
+.form-group select:focus,
+.form-group input:focus {
+  outline: none;
+  border-color: var(--gold);
+}
+
+.form-group select option { background: var(--near-black); color: var(--cream); }
+
+.form-group .hint {
+  font-size: 11px;
+  color: #888;
+  margin-top: 3px;
+}
+
+/* ─── TAX RESULTS BAND ─── */
+.results-band {
+  background: var(--near-black);
+  color: var(--cream);
+  padding: 32px 40px;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+.results-band .result-table { width: 100%; }
+
+.results-band .result-table tr { border-bottom: 1px solid rgba(255,255,255,0.1); }
+
+.results-band .result-table td {
+  padding: 8px 0;
+  vertical-align: top;
+}
+
+.results-band .result-table td:first-child {
+  font-size: 13px;
+  color: rgba(255,255,255,0.65);
+  padding-right: 24px;
+}
+
+.results-band .result-table td:last-child {
+  font-family: 'Courier New', monospace;
+  font-size: 18px;
+  text-align: right;
+  color: var(--gold);
+  font-weight: 700;
+}
+
+.results-band .result-table tr.total-row td {
+  border-top: 2px solid var(--gold);
+  padding-top: 12px;
+  font-size: 15px;
+}
+
+.results-band .result-table tr.total-row td:last-child {
+  font-size: 24px;
+  color: var(--white);
+}
+
+.results-band .effective-rate {
+  text-align: center;
+  padding: 24px;
+  background: var(--spruce-dark);
+  border-radius: 2px;
+}
+
+.results-band .effective-rate .rate-num {
+  font-family: 'Courier New', monospace;
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--gold);
+  line-height: 1;
+}
+
+.results-band .effective-rate .rate-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: rgba(255,255,255,0.5);
+  margin-top: 8px;
+}
+
+/* ─── DISCLAIMER BAND ─── */
+.disclaimer-band {
+  background: var(--iron);
+  color: var(--cream);
+  padding: 14px 40px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.disclaimer-band strong { color: var(--gold); }
+
+/* ─── MODULE 2: CHECKLIST ─── */
+.checklist-header {
+  background: var(--slate);
+  color: var(--white);
+  padding: 40px;
+}
+
+.checklist-header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.checklist-header .progress-bar-wrap {
+  background: rgba(0,0,0,0.3);
+  height: 12px;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-top: 16px;
+  max-width: 500px;
+}
+
+.checklist-header .progress-bar-fill {
+  height: 100%;
+  background: var(--gold);
+  transition: width 0.4s;
+  border-radius: 6px;
+}
+
+.checklist-header .progress-text {
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  margin-top: 8px;
+  color: rgba(255,255,255,0.8);
+}
+
+.checklist-county-select {
+  background: var(--near-black);
+  color: var(--cream);
+  padding: 16px 40px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.checklist-county-select label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.checklist-county-select select {
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  padding: 8px 12px;
+  background: var(--spruce-dark);
+  color: var(--cream);
+  border: 1px solid var(--spruce-light);
+  border-radius: 2px;
+}
+
+.checklist-body {
+  background: var(--cream);
+  padding: 24px 40px 40px;
+}
+
+.checklist-section-title {
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--white);
+  background: var(--spruce-dark);
+  padding: 8px 16px;
+  margin: 24px 0 12px;
+  font-weight: 700;
+}
+
+.checklist-body details {
+  margin-bottom: 2px;
+}
+
+.checklist-body summary {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 8px;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1.4;
+  border-bottom: 1px solid #e8e4dc;
+  list-style: none;
+  transition: background 0.15s;
+}
+
+.checklist-body summary:hover { background: rgba(46,94,58,0.06); }
+
+.checklist-body summary::-webkit-details-marker { display: none; }
+
+.checklist-body summary input[type="checkbox"] {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: var(--spruce);
+  cursor: pointer;
+}
+
+.checklist-body .detail-content {
+  padding: 8px 8px 12px 38px;
+  font-size: 13px;
+  color: #555;
+  line-height: 1.6;
+  border-bottom: 1px solid #e8e4dc;
+  background: rgba(74,101,128,0.04);
+}
+
+.checklist-body .detail-content a {
+  color: var(--slate);
+  font-weight: 700;
+}
+
+/* ─── MODULE 3: INCOME TRACKER ─── */
+.tracker-intro {
+  background: linear-gradient(135deg, var(--iron) 0%, var(--iron-light) 100%);
+  color: var(--white);
+  padding: 40px;
+}
+
+.tracker-intro h1 { font-size: 28px; font-weight: 700; }
+
+.tracker-intro .note {
+  font-size: 13px;
+  color: rgba(255,255,255,0.7);
+  margin-top: 8px;
+  max-width: 600px;
+}
+
+.tracker-table-wrap {
+  background: var(--cream);
+  padding: 16px 20px 40px;
+  overflow-x: auto;
+}
+
+.tracker-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.tracker-table th {
+  background: var(--near-black);
+  color: var(--gold);
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 8px 4px;
+  text-align: center;
+  position: sticky;
+  top: 48px;
+  z-index: 10;
+}
+
+.tracker-table th:first-child { text-align: left; padding-left: 8px; }
+
+.tracker-table td { padding: 2px; text-align: center; }
+
+.tracker-table td:first-child {
+  text-align: left;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--slate);
+  padding-left: 8px;
+  background: rgba(74,101,128,0.06);
+  min-width: 50px;
+}
+
+.tracker-table input[type="number"] {
+  width: 100%;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  padding: 6px 4px;
+  border: 1px solid #ddd;
+  background: var(--white);
+  text-align: right;
+  color: var(--near-black);
+  min-width: 72px;
+}
+
+.tracker-table input[type="number"]:focus {
+  border-color: var(--spruce);
+  outline: none;
+  background: #f0fff4;
+}
+
+.tracker-table tr.totals-row td {
+  background: var(--near-black);
+  color: var(--gold);
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 10px 4px;
+  text-align: right;
+}
+
+.tracker-table tr.totals-row td:first-child {
+  color: var(--white);
+  background: var(--near-black);
+  text-align: left;
+  padding-left: 8px;
+}
+
+.tracker-summary {
+  background: var(--near-black);
+  color: var(--cream);
+  padding: 24px 40px;
+  display: flex;
+  gap: 40px;
+  flex-wrap: wrap;
+  align-items: baseline;
+}
+
+.tracker-summary dl { display: flex; gap: 8px; align-items: baseline; }
+.tracker-summary dt {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: rgba(255,255,255,0.5);
+}
+.tracker-summary dd {
+  font-family: 'Courier New', monospace;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.tracker-actions {
+  padding: 16px 40px;
+  background: var(--cream);
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.btn {
+  font-family: 'Trebuchet MS', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 10px 24px;
+  border: none;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.btn:active { transform: scale(0.97); }
+
+.btn-primary { background: var(--spruce); color: var(--white); }
+.btn-primary:hover { background: var(--spruce-light); }
+.btn-secondary { background: var(--slate); color: var(--white); }
+.btn-secondary:hover { background: var(--slate-light); }
+
+.chart-wrap {
+  background: var(--cream);
+  padding: 16px 40px 32px;
+  max-height: 400px;
+}
+
+.chart-wrap canvas { max-height: 340px; }
+
+.chart-fallback {
+  display: none;
+  background: rgba(74,101,128,0.1);
+  padding: 24px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--slate);
+}
+
+.seasonal-insight {
+  background: var(--spruce-dark);
+  color: var(--cream);
+  padding: 16px 40px;
+  font-size: 14px;
+}
+
+.seasonal-insight strong { color: var(--gold); }
+
+.schedule-e-note {
+  background: var(--iron);
+  color: var(--cream);
+  padding: 12px 40px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* ─── MODULE 4: RATE GUIDE ─── */
+.rate-hero {
+  background: var(--slate);
+  color: var(--white);
+  padding: 48px 40px 32px;
+}
+
+.rate-hero h1 { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+.rate-hero .market-stat {
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  color: rgba(255,255,255,0.65);
+}
+
+.rate-hero .market-stat span {
+  color: var(--gold);
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.rate-form {
+  background: var(--cream);
+  padding: 24px 40px;
+}
+
+.rate-form .form-row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.rate-form .form-group { flex: 1; min-width: 140px; }
+
+.rate-results {
+  background: var(--near-black);
+  color: var(--cream);
+  padding: 32px 40px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 24px;
+}
+
+.rate-result-item { text-align: center; }
+.rate-result-item .val {
+  font-family: 'Courier New', monospace;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--gold);
+  line-height: 1;
+}
+.rate-result-item .lbl {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: rgba(255,255,255,0.5);
+  margin-top: 6px;
+}
+
+.rate-range {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.rate-range span {
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  color: rgba(255,255,255,0.5);
+}
+
+.rate-range span.mid { color: var(--gold); font-weight: 700; font-size: 16px; }
+
+/* ─── SEASONAL CALENDAR ─── */
+.season-calendar-title {
+  background: var(--iron);
+  color: var(--white);
+  padding: 16px 40px;
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.season-calendar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: var(--cream);
+  padding: 16px 40px 32px;
+  gap: 4px;
+}
+
+.season-cell {
+  padding: 14px 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  border-radius: 2px;
+}
+
+.season-cell:hover { transform: scale(1.04); box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+
+.season-cell .month-name {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.season-cell .tier-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-top: 4px;
+  opacity: 0.8;
+}
+
+.season-cell.peak { background: var(--iron); color: var(--white); }
+.season-cell.shoulder { background: var(--gold); color: var(--near-black); }
+.season-cell.off { background: var(--slate); color: var(--white); }
+
+.rate-note {
+  padding: 12px 40px;
+  font-size: 12px;
+  color: #888;
+  background: var(--cream);
+}
+
+/* ─── FOOTER ─── */
+.site-footer {
+  background: var(--near-black);
+  color: rgba(255,255,255,0.35);
+  padding: 20px 40px;
+  font-size: 11px;
+  line-height: 1.6;
+  border-top: 2px solid var(--spruce-dark);
+}
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 768px) {
+  .topnav { flex-wrap: wrap; height: auto; }
+  .topnav .brand { width: 100%; justify-content: center; padding: 8px; }
+  .topnav button { padding: 10px 4px; font-size: 11px; }
+  .hero { padding: 40px 20px; min-height: 35vh; }
+  .hero .big-number { font-size: 48px; }
+  .hero .big-question { font-size: 20px; }
+  .form-grid { grid-template-columns: 1fr; }
+  .results-band { grid-template-columns: 1fr; padding: 24px 20px; }
+  .rate-results { grid-template-columns: 1fr 1fr; }
+  .season-calendar { grid-template-columns: repeat(3, 1fr); }
+  .form-zone, .checklist-body, .tracker-table-wrap, .disclaimer-band,
+  .checklist-header, .tracker-intro, .tracker-summary, .tracker-actions,
+  .chart-wrap, .seasonal-insight, .schedule-e-note, .rate-hero, .rate-form,
+  .rate-note, .site-footer, .season-calendar-title, .checklist-county-select { padding-left: 20px; padding-right: 20px; }
+}
+
+/* ─── PRINT ─── */
+@media print {
+  .topnav, .site-footer, .btn, .chart-wrap, .chart-fallback { display: none !important; }
+  body { background: white; color: black; font-size: 12px; }
+  .module { display: none !important; }
+  .module.print-target { display: block !important; }
+  .hero, .results-band, .disclaimer-band, .tracker-intro, .tracker-summary,
+  .tracker-actions, .seasonal-insight, .schedule-e-note, .rate-hero,
+  .rate-form, .rate-results, .season-calendar-title, .season-calendar,
+  .rate-note, .checklist-header { background: white !important; color: black !important; }
+  .checklist-header .progress-bar-wrap { display: none; }
+  .tracker-table th { background: #eee !important; color: black !important; }
+  .tracker-table input { border: none; font-size: 11px; }
+  .checklist-section-title { background: #ddd !important; color: black !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ NAVIGATION ═══ -->
+<nav class="topnav" role="navigation" aria-label="Module navigation">
+  <div class="brand">SD-6</div>
+  <button class="active" onclick="showModule(0)" aria-label="Tax Calculator">Tax Calculator</button>
+  <button onclick="showModule(1)" aria-label="Compliance Checklist">Checklist</button>
+  <button onclick="showModule(2)" aria-label="Income Tracker">Income Tracker</button>
+  <button onclick="showModule(3)" aria-label="Rate Guide">Rate Guide</button>
+</nav>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- MODULE 1: TAX OBLIGATION CALCULATOR    -->
+<!-- ═══════════════════════════════════════ -->
+<section class="module active" id="mod-tax">
+
+  <div class="hero">
+    <div class="big-number">$61,916</div>
+    <div class="big-question">Are you collecting the right taxes on that?</div>
+    <p class="sub">Median annual revenue per Brainerd Lakes vacation rental, 2025. Over <strong>1,100 active listings</strong> across Crow Wing, Cass, and Itasca counties. Most hosts guess on taxes. Stop guessing.</p>
+  </div>
+
+  <div class="form-zone">
+    <h2>Your Property &amp; Revenue</h2>
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="tax-county">County</label>
+        <select id="tax-county">
+          <option value="crow_wing">Crow Wing</option>
+          <option value="cass">Cass</option>
+          <option value="itasca">Itasca</option>
+          <option value="other">Other MN County</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="tax-city">City / Township</label>
+        <input type="text" id="tax-city" placeholder="e.g. Nisswa, Crosslake">
+        <span class="hint">Check local ordinances for city-level taxes</span>
+      </div>
+      <div class="form-group">
+        <label for="tax-platform">Booking Platform</label>
+        <select id="tax-platform">
+          <option value="airbnb">Airbnb</option>
+          <option value="vrbo">VRBO</option>
+          <option value="booking">Booking.com</option>
+          <option value="direct">Direct Bookings</option>
+          <option value="multiple">Multiple Platforms</option>
+          <option value="platform_all">Platform handles all my taxes</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="tax-nights">Nights Booked</label>
+        <input type="number" id="tax-nights" min="0" placeholder="153">
+      </div>
+      <div class="form-group">
+        <label for="tax-rate">Avg Nightly Rate ($)</label>
+        <input type="number" id="tax-rate" min="0" step="1" placeholder="321">
+        <span class="hint">Or enter total gross below instead</span>
+      </div>
+      <div class="form-group">
+        <label for="tax-gross">Total Gross Income ($)</label>
+        <input type="number" id="tax-gross" min="0" step="1" placeholder="0">
+        <span class="hint">Overrides nights x rate if filled</span>
+      </div>
+      <div class="form-group">
+        <label for="tax-cleaning">Cleaning Fees ($)</label>
+        <input type="number" id="tax-cleaning" min="0" step="1" placeholder="0">
+        <span class="hint">Taxable in Minnesota</span>
+      </div>
+      <div class="form-group">
+        <label for="tax-other-fees">Other Fees ($)</label>
+        <input type="number" id="tax-other-fees" min="0" step="1" placeholder="0">
+        <span class="hint">Pet fees, service charges, etc.</span>
+      </div>
+      <div class="form-group">
+        <label for="tax-property-type">Property Type</label>
+        <select id="tax-property-type">
+          <option value="cabin">Cabin / Lake Home</option>
+          <option value="townhome">Townhome or Condo</option>
+          <option value="room">Room in Owner-Occupied Home</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="tax-primary">Primary Residence?</label>
+        <select id="tax-primary">
+          <option value="no">No</option>
+          <option value="yes">Yes</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="results-band" id="tax-results">
+    <table class="result-table">
+      <tr><td>Gross rental income (incl. fees)</td><td id="res-gross">$0</td></tr>
+      <tr><td>MN State Sales Tax (6.875%)</td><td id="res-state-tax">$0</td></tr>
+      <tr><td>County / City Lodging Tax</td><td id="res-local-tax">$0</td></tr>
+      <tr class="total-row"><td>Total taxes to collect from guests</td><td id="res-total-tax">$0</td></tr>
+      <tr><td>Platform remits on your behalf?</td><td id="res-platform-remit">—</td></tr>
+      <tr><td>Taxes YOU must remit directly</td><td id="res-you-owe">$0</td></tr>
+    </table>
+    <div class="effective-rate">
+      <div class="rate-num" id="res-eff-rate">0.0%</div>
+      <div class="rate-label">Effective Tax Rate</div>
+    </div>
+  </div>
+
+  <div class="disclaimer-band">
+    <strong>Important:</strong> General guidance only. Verify at revenue.state.mn.us or consult a tax professional. Local tax rules vary by city and change year to year. The "isolated and occasional" exemption is narrow — if you regularly list a property, you are almost certainly required to collect and remit.
+  </div>
+
+</section>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- MODULE 2: LOCAL COMPLIANCE CHECKLIST   -->
+<!-- ═══════════════════════════════════════ -->
+<section class="module" id="mod-checklist">
+
+  <div class="checklist-header">
+    <h1>Local Compliance Checklist</h1>
+    <div class="progress-text" id="checklist-progress-text">0 of 0 items checked</div>
+    <div class="progress-bar-wrap"><div class="progress-bar-fill" id="checklist-bar" style="width:0%"></div></div>
+  </div>
+
+  <div class="checklist-county-select">
+    <label for="checklist-county">County</label>
+    <select id="checklist-county">
+      <option value="crow_wing">Crow Wing</option>
+      <option value="cass">Cass</option>
+      <option value="itasca">Itasca</option>
+      <option value="other">Other MN County</option>
+    </select>
+  </div>
+
+  <div class="checklist-body" id="checklist-body">
+    <!-- populated by JS -->
+  </div>
+
+</section>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- MODULE 3: INCOME & EXPENSE TRACKER     -->
+<!-- ═══════════════════════════════════════ -->
+<section class="module" id="mod-tracker">
+
+  <div class="tracker-intro">
+    <h1>Income &amp; Expense Tracker</h1>
+    <p class="note">A seasonal ledger for lake-cabin rental. Enter monthly figures — totals and charts update live. Data stays on your device.</p>
+  </div>
+
+  <div class="tracker-table-wrap">
+    <table class="tracker-table" id="tracker-table">
+      <thead>
+        <tr>
+          <th>Month</th>
+          <th>Nights</th>
+          <th>Revenue</th>
+          <th>Platform Fees</th>
+          <th>Clean/Supplies</th>
+          <th>Maintenance</th>
+          <th>Utilities</th>
+          <th>Mortgage/Int</th>
+          <th>Other Exp</th>
+          <th>Net</th>
+        </tr>
+      </thead>
+      <tbody id="tracker-tbody">
+        <!-- populated by JS -->
+      </tbody>
+    </table>
+  </div>
+
+  <div class="tracker-summary">
+    <dl><dt>Annual Revenue</dt><dd id="sum-revenue">$0</dd></dl>
+    <dl><dt>Total Expenses</dt><dd id="sum-expenses">$0</dd></dl>
+    <dl><dt>Net Income</dt><dd id="sum-net">$0</dd></dl>
+  </div>
+
+  <div class="tracker-actions">
+    <button class="btn btn-primary" onclick="exportCSV()">Export CSV</button>
+    <button class="btn btn-secondary" onclick="clearTracker()">Clear All Data</button>
+  </div>
+
+  <div class="chart-wrap">
+    <canvas id="tracker-chart"></canvas>
+    <div class="chart-fallback" id="chart-fallback">Chart requires an internet connection to display (Chart.js CDN).</div>
+  </div>
+
+  <div class="seasonal-insight" id="seasonal-insight">Enter monthly data above to see seasonal insights.</div>
+
+  <div class="schedule-e-note">
+    <strong>Schedule E note:</strong> Rental income is typically reported on IRS Schedule E. If you use the property personally for more than 14 days or 10% of rented days, mixed-use rules apply — consult a tax professional.
+  </div>
+
+</section>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- MODULE 4: RATE-SETTING GUIDE           -->
+<!-- ═══════════════════════════════════════ -->
+<section class="module" id="mod-rate">
+
+  <div class="rate-hero">
+    <h1>Rate-Setting Guide</h1>
+    <div class="market-stat">Brainerd Lakes 2025 median nightly rate: <span>$321</span> &middot; Occupancy: <span>42%</span> &middot; 153 nights/yr</div>
+  </div>
+
+  <div class="rate-form">
+    <div class="form-row">
+      <div class="form-group">
+        <label for="rate-type">Property Type</label>
+        <select id="rate-type">
+          <option value="cabin">Cabin</option>
+          <option value="lakehome">Lake Home</option>
+          <option value="townhome">Townhome</option>
+          <option value="room">Room</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="rate-beds">Bedrooms</label>
+        <select id="rate-beds">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3" selected>3</option>
+          <option value="4">4</option>
+          <option value="5">5+</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="rate-lake">Lakefront?</label>
+        <select id="rate-lake">
+          <option value="yes">Yes</option>
+          <option value="no">No</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="rate-hot">Hot Tub / Pool?</label>
+        <select id="rate-hot">
+          <option value="no">No</option>
+          <option value="yes">Yes</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="rate-season">Season</label>
+        <select id="rate-season">
+          <option value="peak">Peak (Jun–Aug)</option>
+          <option value="shoulder">Shoulder (May, Sep)</option>
+          <option value="off">Off-Season (Oct–Apr)</option>
+        </select>
+      </div>
+      <div class="form-group" style="display:flex;justify-content:flex-end">
+        <button class="btn btn-primary" onclick="calcRate()">Calculate Rate</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="rate-results" id="rate-results">
+    <div class="rate-result-item">
+      <div class="val" id="rate-low">—</div>
+      <div class="lbl">Low</div>
+    </div>
+    <div class="rate-result-item">
+      <div class="val" id="rate-mid">—</div>
+      <div class="lbl">Suggested Rate</div>
+    </div>
+    <div class="rate-result-item">
+      <div class="val" id="rate-high">—</div>
+      <div class="lbl">High</div>
+    </div>
+    <div class="rate-result-item">
+      <div class="val" id="rate-annual">—</div>
+      <div class="lbl">Est. Annual Revenue @ 42%</div>
+    </div>
+  </div>
+
+  <div class="season-calendar-title">Seasonal Pricing Calendar — click a month to cycle tiers</div>
+  <div class="season-calendar" id="season-calendar">
+    <!-- populated by JS -->
+  </div>
+
+  <div class="rate-note">Pricing data reflects the Brainerd Lakes market as of 2025. Rates vary by property features, location, and platform. Source: SkyRun Vacation Rentals / AirDNA 2025 Brainerd Lakes market data.</div>
+
+</section>
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="site-footer">
+  A resource for SD-6 rental hosts and Minnesota small business owners. Data reflects Minnesota tax rules and Brainerd Lakes market conditions as of 2025. Always verify current requirements at revenue.state.mn.us.
+</footer>
+
+<script>
+// ═══════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════
+const modules = document.querySelectorAll('.module');
+const navBtns = document.querySelectorAll('.topnav button');
+
+function showModule(idx) {
+  modules.forEach((m, i) => {
+    m.classList.toggle('active', i === idx);
+    m.classList.remove('print-target');
+  });
+  navBtns.forEach((b, i) => b.classList.toggle('active', i === idx));
+  // For print targeting
+  modules[idx].classList.add('print-target');
+  if (idx === 2 && trackerChart) trackerChart.update();
+  window.scrollTo(0, 0);
+}
+
+// ═══════════════════════════════════════
+// MODULE 1: TAX CALCULATOR
+// ═══════════════════════════════════════
+const MN_STATE_TAX = 0.06875;
+
+const localTaxData = {
+  crow_wing: { name: 'Crow Wing County', rate: 0, note: 'No additional county lodging tax. Brainerd city may have local sales tax — verify with MN Dept of Revenue.' },
+  cass: { name: 'Cass County', rate: 0, note: 'No county-wide STR-specific additional tax as of 2025.' },
+  itasca: { name: 'Itasca County', rate: 0, note: 'No county-wide STR additional tax as of 2025.' },
+  other: { name: 'Other MN County', rate: 0.03, note: 'Using 3% estimate. Many MN counties/cities add 3–7%+ lodging tax. Verify your specific jurisdiction.' }
+};
+
+const platformRemits = {
+  airbnb: true, vrbo: true, booking: false, direct: false, multiple: false, platform_all: true
+};
+
+const taxFields = ['tax-county','tax-city','tax-platform','tax-nights','tax-rate','tax-gross','tax-cleaning','tax-other-fees','tax-property-type','tax-primary'];
+
+function calcTax() {
+  const county = document.getElementById('tax-county').value;
+  const platform = document.getElementById('tax-platform').value;
+  const nights = parseFloat(document.getElementById('tax-nights').value) || 0;
+  const nrate = parseFloat(document.getElementById('tax-rate').value) || 0;
+  const grossDirect = parseFloat(document.getElementById('tax-gross').value) || 0;
+  const cleaning = parseFloat(document.getElementById('tax-cleaning').value) || 0;
+  const otherFees = parseFloat(document.getElementById('tax-other-fees').value) || 0;
+
+  const baseIncome = grossDirect > 0 ? grossDirect : (nights * nrate);
+  const totalGross = baseIncome + cleaning + otherFees;
+
+  const stateTax = totalGross * MN_STATE_TAX;
+  const localRate = localTaxData[county].rate;
+  const localTax = totalGross * localRate;
+  const totalTax = stateTax + localTax;
+
+  const remits = platformRemits[platform];
+  const youOwe = remits ? localTax : totalTax;
+  const effRate = totalGross > 0 ? ((stateTax + localTax) / totalGross * 100) : 0;
+
+  document.getElementById('res-gross').textContent = '$' + totalGross.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+  document.getElementById('res-state-tax').textContent = '$' + stateTax.toFixed(2);
+  document.getElementById('res-local-tax').textContent = '$' + localTax.toFixed(2) + (localRate === 0 ? ' *' : '');
+  document.getElementById('res-total-tax').textContent = '$' + totalTax.toFixed(2);
+  document.getElementById('res-platform-remit').textContent = remits ? 'Yes (state)' : 'No';
+  document.getElementById('res-you-owe').textContent = '$' + youOwe.toFixed(2);
+  document.getElementById('res-eff-rate').textContent = effRate.toFixed(1) + '%';
+
+  saveTaxInputs();
+}
+
+function saveTaxInputs() {
+  taxFields.forEach(id => {
+    const el = document.getElementById(id);
+    localStorage.setItem('str_' + id, el.value);
+  });
+}
+
+function loadTaxInputs() {
+  taxFields.forEach(id => {
+    const saved = localStorage.getItem('str_' + id);
+    if (saved !== null) document.getElementById(id).value = saved;
+  });
+}
+
+// Bind live calculation
+taxFields.forEach(id => {
+  const el = document.getElementById(id);
+  el.addEventListener('input', calcTax);
+  el.addEventListener('change', calcTax);
+});
+
+// ═══════════════════════════════════════
+// MODULE 2: COMPLIANCE CHECKLIST
+// ═══════════════════════════════════════
+const checklistData = {
+  crow_wing: {
+    'Zoning & Land Use': [
+      { text: 'Is your property in a shoreland overlay zone? (Within 1,000 ft of a lake or 300 ft of a river)', detail: 'Most lake cabins in Crow Wing County fall within a shoreland zone. This triggers additional land-use rules including impervious surface limits and setback requirements. Contact Crow Wing County Land Services for a determination.' },
+      { text: 'If shoreland: does your impervious surface coverage meet the 25% maximum?', detail: 'Impervious surface includes driveways, patios, walkways, and structures — not just the building footprint. Exceeding 25% may require mitigation. Crow Wing County Environmental Services: cwcounty.com/environmental-services' },
+      { text: 'If shoreland: is the required vegetative buffer maintained along the shoreline?', detail: 'A natural vegetation buffer is required along the shoreline to protect water quality. Removing trees or natural cover in this zone may violate county ordinance.' },
+      { text: 'Is the property setback from the ordinary high water line? (50–150 ft depending on lake class)', detail: 'Setback distance depends on lake classification: 50 ft for Recreational Development lakes, up to 150 ft for Natural Environment lakes. Check your specific lake classification with Crow Wing County.' },
+      { text: 'Does your well/septic meet Crow Wing County environmental health standards?', detail: 'Private well and septic systems must meet MN Rules Chapter 7080 standards. Non-compliant systems must be upgraded. Crow Wing County Environmental Services handles inspections and certificates.' },
+      { text: 'Is your septic system certified for the maximum guest occupancy you advertise?', detail: 'Septic systems are rated for a specific number of bedrooms/occupants. If you advertise more sleeping capacity than your system supports, you may face compliance issues and potential system failure.' }
+    ],
+    'Registration & Licensing': [
+      { text: 'Registered with MN Dept of Revenue as a retailer?', detail: 'Required if you regularly rent lodging. Registration is free at revenue.state.mn.us. Without registration, you cannot legally collect and remit sales tax.' },
+      { text: 'Certificate of Compliance from Crow Wing County Environmental Services?', detail: 'Required for properties with private water/sewer systems. Ensures your well and septic meet current standards. Contact Crow Wing County Environmental Services.' }
+    ],
+    'Safety': [
+      { text: 'Smoke detectors on every level and in every sleeping room?', detail: 'Minnesota State Fire Code requires working smoke detectors on every level and in each sleeping area. Test monthly and replace batteries annually.' },
+      { text: 'Carbon monoxide detectors within 10 feet of each sleeping room?', detail: 'Required by MN law in all residential properties with fuel-burning appliances or attached garages. Must be within 10 feet of every sleeping room.' },
+      { text: 'Fire extinguisher accessible to guests?', detail: 'Not legally mandated for private residences in all cases, but strongly recommended and expected by guests. Place a rated extinguisher in the kitchen area.' },
+      { text: 'Emergency contact and local fire/police numbers posted visibly?', detail: 'Post local emergency numbers, the property address (for 911), and your contact information where guests can easily find them.' },
+      { text: 'Safe water supply — if private well, tested within 3 years?', detail: 'MN Dept of Health recommends well testing every 2-3 years for coliform bacteria and nitrate. Required for real estate transactions and strongly recommended for rental properties.' }
+    ],
+    'Insurance': [
+      { text: 'Does your homeowner\'s/landlord policy cover STR guests?', detail: 'Most standard homeowner\'s policies do NOT cover commercial short-term rental activity. You need either an STR endorsement or a separate commercial policy. Contact your insurer before hosting.' },
+      { text: 'Platform liability coverage adequate? (e.g., Airbnb AirCover)', detail: 'Platform coverage like AirCover supplements but does not replace your own insurance. Review the specific terms — coverage limits, exclusions, and claim processes vary by platform.' }
+    ],
+    'Tax Collection': [
+      { text: 'Collecting all required taxes on direct (non-platform) bookings?', detail: 'For direct bookings, you are responsible for collecting and remitting all applicable state and local taxes. The MN state sales tax of 6.875% applies to all lodging under 30 consecutive days.' },
+      { text: 'Verified which taxes the platform remits vs. your responsibility?', detail: 'Airbnb and VRBO collect MN state sales tax on most listings, but coverage of local taxes varies. Log in to your platform account and check the tax collection settings for your listing. Verify at revenue.state.mn.us.' }
+    ]
+  }
+};
+
+// Cass and Itasca are similar but with county-specific notes
+checklistData.cass = JSON.parse(JSON.stringify(checklistData.crow_wing));
+checklistData.cass['Zoning & Land Use'][0].detail = 'Cass County has its own shoreland overlay rules. Check with Cass County Environmental Services for your property\'s zoning status.';
+checklistData.cass['Zoning & Land Use'][1].detail = 'Impervious surface limits apply in Cass County shoreland zones. Contact Cass County Planning & Zoning for specifics.';
+checklistData.cass['Registration & Licensing'][1].text = 'Certificate of Compliance from Cass County Environmental Services?';
+checklistData.cass['Registration & Licensing'][1].detail = 'Required for properties with private water/sewer systems. Contact Cass County Environmental Services.';
+
+checklistData.itasca = JSON.parse(JSON.stringify(checklistData.crow_wing));
+checklistData.itasca['Zoning & Land Use'][0].detail = 'Itasca County planning ordinances apply. Check with Itasca County Planning & Zoning for shoreland status.';
+checklistData.itasca['Registration & Licensing'][1].text = 'Certificate of Compliance from Itasca County Environmental Services?';
+checklistData.itasca['Registration & Licensing'][1].detail = 'Contact Itasca County Environmental Services for well/septic compliance requirements.';
+
+checklistData.other = {
+  'Registration & Licensing': [
+    { text: 'Registered with MN Dept of Revenue as a retailer?', detail: 'Required statewide if you regularly rent lodging. Free registration at revenue.state.mn.us.' },
+    { text: 'Checked for county/city STR licensing requirements?', detail: 'Many Minnesota cities and counties have their own STR registration or licensing requirements. Check with your local government.' }
+  ],
+  'Safety': checklistData.crow_wing['Safety'],
+  'Insurance': checklistData.crow_wing['Insurance'],
+  'Tax Collection': [
+    { text: 'Collecting MN state sales tax (6.875%) on all bookings?', detail: 'MN state sales tax of 6.875% applies to all lodging rentals under 30 consecutive days. This includes rent, cleaning fees, and most additional charges.' },
+    { text: 'Checked for local/county lodging taxes?', detail: 'Many Minnesota counties and cities levy additional lodging taxes ranging from 3% to 7%+. Verify your specific obligations with your county and city.' },
+    { text: 'Verified platform tax remittance for your jurisdiction?', detail: 'Platform tax collection varies by jurisdiction. Verify which taxes are covered for your specific location.' }
+  ]
+};
+
+function buildChecklist() {
+  const county = document.getElementById('checklist-county').value;
+  const data = checklistData[county];
+  const body = document.getElementById('checklist-body');
+  body.innerHTML = '';
+
+  let totalItems = 0;
+  for (const section in data) {
+    const sTitle = document.createElement('div');
+    sTitle.className = 'checklist-section-title';
+    sTitle.textContent = section;
+    body.appendChild(sTitle);
+
+    data[section].forEach((item, idx) => {
+      totalItems++;
+      const key = `str_check_${county}_${section}_${idx}`;
+      const details = document.createElement('details');
+      const summary = document.createElement('summary');
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.id = key;
+      cb.checked = localStorage.getItem(key) === 'true';
+      cb.setAttribute('aria-label', item.text);
+      cb.addEventListener('change', () => {
+        localStorage.setItem(key, cb.checked);
+        updateChecklistProgress();
+      });
+      const span = document.createElement('span');
+      span.textContent = item.text;
+      summary.appendChild(cb);
+      summary.appendChild(span);
+      details.appendChild(summary);
+
+      const content = document.createElement('div');
+      content.className = 'detail-content';
+      content.innerHTML = item.detail;
+      details.appendChild(content);
+      body.appendChild(details);
+    });
+  }
+  updateChecklistProgress();
+}
+
+function updateChecklistProgress() {
+  const boxes = document.querySelectorAll('#checklist-body input[type="checkbox"]');
+  const total = boxes.length;
+  const checked = Array.from(boxes).filter(b => b.checked).length;
+  const pct = total > 0 ? (checked / total * 100) : 0;
+  document.getElementById('checklist-bar').style.width = pct + '%';
+
+  const bar = document.getElementById('checklist-bar');
+  if (pct >= 100) bar.style.background = 'var(--spruce)';
+  else if (pct >= 50) bar.style.background = 'var(--gold)';
+  else bar.style.background = 'var(--alert)';
+
+  document.getElementById('checklist-progress-text').textContent =
+    `${checked} of ${total} items checked. ${total - checked} still need attention.`;
+}
+
+document.getElementById('checklist-county').addEventListener('change', buildChecklist);
+
+// ═══════════════════════════════════════
+// MODULE 3: INCOME & EXPENSE TRACKER
+// ═══════════════════════════════════════
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const EXPENSE_COLS = ['nights','revenue','platform_fees','cleaning','maintenance','utilities','mortgage','other_exp'];
+const COL_LABELS = ['Nights','Revenue','Platform Fees','Clean/Supplies','Maintenance','Utilities','Mortgage/Int','Other Exp'];
+
+function buildTracker() {
+  const tbody = document.getElementById('tracker-tbody');
+  tbody.innerHTML = '';
+
+  MONTHS.forEach((m, mi) => {
+    const tr = document.createElement('tr');
+    const tdMonth = document.createElement('td');
+    tdMonth.textContent = m;
+    tr.appendChild(tdMonth);
+
+    EXPENSE_COLS.forEach(col => {
+      const td = document.createElement('td');
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.min = '0';
+      input.step = col === 'nights' ? '1' : '0.01';
+      input.id = `tr_${mi}_${col}`;
+      input.setAttribute('aria-label', `${m} ${col}`);
+      const saved = localStorage.getItem('str_ledger_' + input.id);
+      if (saved) input.value = saved;
+      input.addEventListener('input', () => {
+        localStorage.setItem('str_ledger_' + input.id, input.value);
+        updateTrackerTotals();
+      });
+      td.appendChild(input);
+      tr.appendChild(td);
+    });
+
+    // Net column (computed)
+    const tdNet = document.createElement('td');
+    tdNet.id = `tr_net_${mi}`;
+    tdNet.style.fontFamily = "'Courier New', monospace";
+    tdNet.style.fontWeight = '700';
+    tdNet.style.textAlign = 'right';
+    tdNet.style.fontSize = '13px';
+    tdNet.style.padding = '6px 8px';
+    tr.appendChild(tdNet);
+    tbody.appendChild(tr);
+  });
+
+  // Totals row
+  const totRow = document.createElement('tr');
+  totRow.className = 'totals-row';
+  const tdLabel = document.createElement('td');
+  tdLabel.textContent = 'TOTAL';
+  totRow.appendChild(tdLabel);
+  EXPENSE_COLS.forEach(col => {
+    const td = document.createElement('td');
+    td.id = `tr_total_${col}`;
+    totRow.appendChild(td);
+  });
+  const tdNetTotal = document.createElement('td');
+  tdNetTotal.id = 'tr_total_net';
+  totRow.appendChild(tdNetTotal);
+  tbody.appendChild(totRow);
+
+  updateTrackerTotals();
+}
+
+function getTrackerVal(mi, col) {
+  const el = document.getElementById(`tr_${mi}_${col}`);
+  return el ? (parseFloat(el.value) || 0) : 0;
+}
+
+function updateTrackerTotals() {
+  const colTotals = {};
+  EXPENSE_COLS.forEach(c => colTotals[c] = 0);
+  let netTotal = 0;
+
+  const monthlyRevenue = [];
+  const monthlyExpense = [];
+
+  MONTHS.forEach((m, mi) => {
+    const rev = getTrackerVal(mi, 'revenue');
+    const expenses = ['platform_fees','cleaning','maintenance','utilities','mortgage','other_exp']
+      .reduce((s, c) => s + getTrackerVal(mi, c), 0);
+    const net = rev - expenses;
+
+    document.getElementById(`tr_net_${mi}`).textContent = net === 0 ? '' : '$' + net.toLocaleString('en-US', {maximumFractionDigits: 0});
+    document.getElementById(`tr_net_${mi}`).style.color = net < 0 ? 'var(--alert)' : 'var(--spruce)';
+
+    EXPENSE_COLS.forEach(c => colTotals[c] += getTrackerVal(mi, c));
+    netTotal += net;
+    monthlyRevenue.push(rev);
+    monthlyExpense.push(expenses);
+  });
+
+  EXPENSE_COLS.forEach(c => {
+    const el = document.getElementById(`tr_total_${c}`);
+    if (el) el.textContent = colTotals[c] === 0 ? '' : (c === 'nights' ? colTotals[c] : '$' + colTotals[c].toLocaleString('en-US', {maximumFractionDigits: 0}));
+  });
+
+  document.getElementById('tr_total_net').textContent = netTotal === 0 ? '' : '$' + netTotal.toLocaleString('en-US', {maximumFractionDigits: 0});
+
+  document.getElementById('sum-revenue').textContent = '$' + colTotals.revenue.toLocaleString('en-US', {maximumFractionDigits: 0});
+  const totalExp = colTotals.platform_fees + colTotals.cleaning + colTotals.maintenance + colTotals.utilities + colTotals.mortgage + colTotals.other_exp;
+  document.getElementById('sum-expenses').textContent = '$' + totalExp.toLocaleString('en-US', {maximumFractionDigits: 0});
+  document.getElementById('sum-net').textContent = '$' + netTotal.toLocaleString('en-US', {maximumFractionDigits: 0});
+
+  updateChart(monthlyRevenue, monthlyExpense);
+  updateSeasonalInsight(monthlyRevenue, colTotals.revenue);
+}
+
+let trackerChart = null;
+
+function updateChart(rev, exp) {
+  if (typeof Chart === 'undefined') {
+    document.getElementById('chart-fallback').style.display = 'block';
+    return;
+  }
+  const ctx = document.getElementById('tracker-chart').getContext('2d');
+  if (trackerChart) {
+    trackerChart.data.datasets[0].data = rev;
+    trackerChart.data.datasets[1].data = exp;
+    trackerChart.update();
+    return;
+  }
+  trackerChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: MONTHS,
+      datasets: [
+        { label: 'Revenue', data: rev, backgroundColor: '#2E5E3A', borderRadius: 2 },
+        { label: 'Expenses', data: exp, backgroundColor: '#8B2E2E', borderRadius: 2 }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top', labels: { font: { family: 'Trebuchet MS', size: 12 }, boxWidth: 14 } }
+      },
+      scales: {
+        y: { beginAtZero: true, ticks: { font: { family: 'Courier New', size: 11 }, callback: v => '$' + v.toLocaleString() } },
+        x: { ticks: { font: { family: 'Trebuchet MS', size: 11 } } }
+      }
+    }
+  });
+}
+
+function updateSeasonalInsight(monthlyRev, totalRev) {
+  const el = document.getElementById('seasonal-insight');
+  if (totalRev === 0) { el.textContent = 'Enter monthly data above to see seasonal insights.'; return; }
+  let peakMonth = 0, peakVal = 0;
+  monthlyRev.forEach((v, i) => { if (v > peakVal) { peakVal = v; peakMonth = i; } });
+  const offSeasonMonths = [0,1,2,3,9,10,11];
+  const offAvg = offSeasonMonths.reduce((s, i) => s + monthlyRev[i], 0) / offSeasonMonths.length;
+  const peakPct = totalRev > 0 ? ((monthlyRev[5] + monthlyRev[6] + monthlyRev[7]) / totalRev * 100) : 0;
+  el.innerHTML = `Your peak month was <strong>${MONTHS[peakMonth]}</strong> at <strong>$${peakVal.toLocaleString()}</strong>. Off-season average (Oct–Apr): <strong>$${Math.round(offAvg).toLocaleString()}/mo</strong>. Peak season (Jun–Aug) represents <strong>${peakPct.toFixed(0)}%</strong> of annual revenue.`;
+}
+
+function exportCSV() {
+  let csv = 'Month,Nights,Revenue,Platform Fees,Cleaning/Supplies,Maintenance,Utilities,Mortgage/Interest,Other Expenses,Net Income\n';
+  MONTHS.forEach((m, mi) => {
+    const vals = EXPENSE_COLS.map(c => getTrackerVal(mi, c));
+    const net = vals[1] - vals.slice(2).reduce((s, v) => s + v, 0);
+    csv += m + ',' + vals.join(',') + ',' + net + '\n';
+  });
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'rental_income_tracker.csv';
+  a.click();
+}
+
+function clearTracker() {
+  if (!confirm('Clear all income/expense data? This cannot be undone.')) return;
+  MONTHS.forEach((m, mi) => {
+    EXPENSE_COLS.forEach(col => {
+      const id = `tr_${mi}_${col}`;
+      localStorage.removeItem('str_ledger_' + id);
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+  });
+  updateTrackerTotals();
+}
+
+// ═══════════════════════════════════════
+// MODULE 4: RATE-SETTING GUIDE
+// ═══════════════════════════════════════
+
+// Base rates by bedrooms (non-lakefront, peak season)
+const baseRates = {
+  cabin:    { 1: 180, 2: 250, 3: 320, 4: 420, 5: 520 },
+  lakehome: { 1: 220, 2: 310, 3: 400, 4: 520, 5: 650 },
+  townhome: { 1: 150, 2: 210, 3: 280, 4: 360, 5: 440 },
+  room:     { 1: 90,  2: 120, 3: 120, 4: 120, 5: 120 }
+};
+
+const lakePremium = 1.3;
+const hotTubPremium = 1.12;
+const seasonMultiplier = { peak: 1.0, shoulder: 0.65, off: 0.4 };
+
+function calcRate() {
+  const type = document.getElementById('rate-type').value;
+  const beds = document.getElementById('rate-beds').value;
+  const lake = document.getElementById('rate-lake').value === 'yes';
+  const hot = document.getElementById('rate-hot').value === 'yes';
+  const season = document.getElementById('rate-season').value;
+
+  let base = baseRates[type][beds] || 321;
+  if (lake) base *= lakePremium;
+  if (hot) base *= hotTubPremium;
+  base *= seasonMultiplier[season];
+
+  const low = Math.round(base * 0.8);
+  const mid = Math.round(base);
+  const high = Math.round(base * 1.25);
+  const annual = Math.round(mid * 153);
+
+  document.getElementById('rate-low').textContent = '$' + low;
+  document.getElementById('rate-mid').textContent = '$' + mid;
+  document.getElementById('rate-high').textContent = '$' + high;
+  document.getElementById('rate-annual').textContent = '$' + annual.toLocaleString();
+}
+
+// Seasonal calendar
+const defaultSeasons = [
+  'off','off','off','off','shoulder','peak',
+  'peak','peak','shoulder','off','off','off'
+];
+const seasonLabels = { peak: 'Peak', shoulder: 'Shoulder', off: 'Off-Season' };
+const fullMonths = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function buildSeasonCalendar() {
+  const cal = document.getElementById('season-calendar');
+  cal.innerHTML = '';
+  const saved = JSON.parse(localStorage.getItem('str_season_cal') || 'null') || [...defaultSeasons];
+
+  saved.forEach((tier, i) => {
+    const cell = document.createElement('div');
+    cell.className = 'season-cell ' + tier;
+    cell.innerHTML = `<div class="month-name">${fullMonths[i]}</div><div class="tier-label">${seasonLabels[tier]}</div>`;
+    cell.setAttribute('role', 'button');
+    cell.setAttribute('aria-label', `${fullMonths[i]}: ${seasonLabels[tier]}. Click to change.`);
+    cell.addEventListener('click', () => {
+      const cycle = { peak: 'shoulder', shoulder: 'off', off: 'peak' };
+      saved[i] = cycle[saved[i]];
+      localStorage.setItem('str_season_cal', JSON.stringify(saved));
+      buildSeasonCalendar();
+    });
+    cal.appendChild(cell);
+  });
+}
+
+// ═══════════════════════════════════════
+// INITIALIZATION
+// ═══════════════════════════════════════
+loadTaxInputs();
+calcTax();
+buildChecklist();
+buildTracker();
+buildSeasonCalendar();
+calcRate();
+
+// Sync county dropdowns between Module 1 and 2
+document.getElementById('tax-county').addEventListener('change', function() {
+  document.getElementById('checklist-county').value = this.value;
+  buildChecklist();
+});
+</script>
+
+</body>
+</html>

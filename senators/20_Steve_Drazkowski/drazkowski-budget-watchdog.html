@@ -1,0 +1,1517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minnesota State Budget Watchdog Dashboard — Sen. Steve Drazkowski, SD-20</title>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Spreadsheet-dominant — full-width ledger table fills 80%+ of viewport, no sidebar, no cards
+   2. Navigation: Filter/sort controls in a compact toolbar row above ledger; underline-style module selectors
+   3. Typography: Franklin Gothic Medium for headers, Calibri for body/labels, Consolas for all numbers/data
+   4. Hero moment: Fixed top bar showing TOTAL SURPLUS/(DEFICIT) in large red or green type — always visible
+   5. Color strategy: #2 High contrast / two-tone — black ink + red ink on aged paper, like a real accounting ledger
+   6. Entry experience: Ledger is immediately visible. Amounts fill in via typewriter effect (1 second total). No intro paragraph blocking the data.
+   Additional: Green horizontal ledger lines, alternating row tinting, old-school bookkeeping aesthetic. No bordered callout boxes, no cards, no emoji.
+*/
+
+/* ── RESET & BASE ────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  font-size: 15px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: Calibri, 'Segoe UI', sans-serif;
+  background: #e8e2d0;
+  color: #000;
+  line-height: 1.4;
+  min-height: 100vh;
+}
+
+/* ── HERO BAR — fixed at top ─────────────────── */
+#hero-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: #000;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  height: 54px;
+  border-bottom: 3px solid #cc0000;
+}
+
+#hero-bar .hero-label {
+  font-family: Calibri, sans-serif;
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #999;
+}
+
+#hero-bar .hero-amount {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+#hero-bar .hero-amount.deficit { color: #cc0000; }
+#hero-bar .hero-amount.surplus { color: #00cc44; }
+
+#hero-bar .hero-context {
+  font-family: Calibri, sans-serif;
+  font-size: 11px;
+  color: #888;
+  text-align: right;
+  max-width: 300px;
+}
+
+/* ── MODULE NAV — sits below hero ────────────── */
+#module-nav {
+  position: fixed;
+  top: 57px;
+  left: 0;
+  right: 0;
+  z-index: 999;
+  background: #1a1a1a;
+  display: flex;
+  align-items: stretch;
+  height: 38px;
+  border-bottom: 1px solid #333;
+}
+
+.nav-btn {
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow Bold', sans-serif;
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #999;
+  background: transparent;
+  border: none;
+  padding: 0 28px;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.15s;
+}
+
+.nav-btn:hover { color: #ddd; }
+
+.nav-btn.active {
+  color: #fff;
+}
+
+.nav-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 12px;
+  right: 12px;
+  height: 3px;
+  background: #cc0000;
+}
+
+/* ── MAIN CONTENT AREA ───────────────────────── */
+main {
+  margin-top: 95px;
+  padding: 0;
+}
+
+.module {
+  display: none;
+  padding: 16px 20px 40px;
+}
+
+.module.active {
+  display: block;
+}
+
+/* ── TOOLBAR — filter/sort controls ──────────── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 16px;
+  background: #000;
+  color: #ccc;
+  font-family: Calibri, sans-serif;
+  font-size: 12px;
+  flex-wrap: wrap;
+}
+
+.toolbar label {
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  font-size: 11px;
+  color: #999;
+}
+
+.toolbar select,
+.toolbar input[type="text"],
+.toolbar button {
+  font-family: Consolas, monospace;
+  font-size: 12px;
+  background: #1a1a1a;
+  color: #ccc;
+  border: 1px solid #444;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+.toolbar select:focus,
+.toolbar input:focus {
+  outline: 1px solid #cc0000;
+  border-color: #cc0000;
+}
+
+.toolbar button {
+  background: #cc0000;
+  color: #fff;
+  border: none;
+  padding: 4px 14px;
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 11px;
+}
+
+.toolbar button:hover {
+  background: #ff1a1a;
+}
+
+.toolbar button.secondary {
+  background: #333;
+  color: #ccc;
+}
+
+.toolbar button.secondary:hover {
+  background: #555;
+}
+
+.toolbar .spacer { flex: 1; }
+
+/* ── THE LEDGER TABLE ────────────────────────── */
+.ledger-wrap {
+  overflow-x: auto;
+  border: 2px solid #000;
+  background: #f5f0e0;
+}
+
+table.ledger {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+table.ledger thead th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #000;
+  color: #f5f0e0;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow Bold', sans-serif;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 10px 12px;
+  text-align: left;
+  border-right: 1px solid #333;
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+}
+
+table.ledger thead th:last-child {
+  border-right: none;
+}
+
+table.ledger thead th .sort-arrow {
+  margin-left: 4px;
+  color: #cc0000;
+  font-size: 10px;
+}
+
+table.ledger thead th:hover {
+  background: #1a1a1a;
+}
+
+table.ledger thead th.num-col {
+  text-align: right;
+}
+
+table.ledger tbody td {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 13px;
+  padding: 7px 12px;
+  border-bottom: 1px solid #c5bf9f;
+  border-right: 1px solid #d5cfb0;
+  color: #000;
+  white-space: nowrap;
+}
+
+table.ledger tbody td:last-child {
+  border-right: none;
+}
+
+table.ledger tbody td.text-col {
+  font-family: Calibri, sans-serif;
+  font-size: 13px;
+}
+
+table.ledger tbody td.num-col {
+  text-align: right;
+}
+
+table.ledger tbody td.negative {
+  color: #cc0000;
+}
+
+table.ledger tbody td.positive {
+  color: #006400;
+}
+
+table.ledger tbody td.flagged {
+  background: #fff0e0;
+  font-weight: 700;
+}
+
+/* Ledger green lines — every row */
+table.ledger tbody tr {
+  border-bottom: 1px solid #a0c4a0;
+}
+
+/* Alternating row shading */
+table.ledger tbody tr:nth-child(even) {
+  background: #eee8d0;
+}
+
+table.ledger tbody tr:nth-child(odd) {
+  background: #f5f0e0;
+}
+
+table.ledger tbody tr:hover {
+  background: #e0d8b8;
+}
+
+/* Row that is flagged/highlighted */
+table.ledger tbody tr.highlight-row {
+  background: #ffe0cc !important;
+}
+
+/* Summary/total row pinned at bottom */
+table.ledger tfoot td {
+  position: sticky;
+  bottom: 0;
+  background: #000;
+  color: #f5f0e0;
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 10px 12px;
+  border-right: 1px solid #333;
+  border-top: 3px double #cc0000;
+}
+
+table.ledger tfoot td:last-child {
+  border-right: none;
+}
+
+table.ledger tfoot td.num-col {
+  text-align: right;
+}
+
+table.ledger tfoot td.negative {
+  color: #cc0000;
+}
+
+table.ledger tfoot td.positive {
+  color: #00cc44;
+}
+
+/* ── SECTION HEADERS ─────────────────────────── */
+.section-title {
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow Bold', sans-serif;
+  font-size: 14px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #000;
+  padding: 12px 0 6px;
+  border-bottom: 2px solid #000;
+  margin-bottom: 12px;
+}
+
+/* ── DATA NOTES ──────────────────────────────── */
+.data-note {
+  font-family: Calibri, sans-serif;
+  font-size: 11px;
+  color: #666;
+  padding: 8px 0;
+  line-height: 1.5;
+}
+
+.data-note strong {
+  color: #000;
+}
+
+/* ── MODULE 3: CALCULATOR ────────────────────── */
+.calc-grid {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 0;
+  border: 2px solid #000;
+  min-height: 400px;
+}
+
+.calc-inputs {
+  background: #000;
+  color: #f5f0e0;
+  padding: 24px 20px;
+}
+
+.calc-inputs h2 {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #cc0000;
+  margin-bottom: 20px;
+}
+
+.calc-inputs .field {
+  margin-bottom: 18px;
+}
+
+.calc-inputs .field label {
+  display: block;
+  font-family: Calibri, sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #999;
+  margin-bottom: 6px;
+}
+
+.calc-inputs .field .value-display {
+  font-family: Consolas, monospace;
+  font-size: 22px;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.calc-inputs input[type="range"] {
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  background: #333;
+  outline: none;
+  border-radius: 0;
+}
+
+.calc-inputs input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: #cc0000;
+  cursor: pointer;
+  border: 2px solid #fff;
+}
+
+.calc-inputs input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: #cc0000;
+  cursor: pointer;
+  border: 2px solid #fff;
+  border-radius: 0;
+}
+
+.calc-inputs select {
+  width: 100%;
+  font-family: Consolas, monospace;
+  font-size: 14px;
+  background: #1a1a1a;
+  color: #fff;
+  border: 1px solid #444;
+  padding: 8px;
+}
+
+.calc-inputs select:focus {
+  outline: 1px solid #cc0000;
+  border-color: #cc0000;
+}
+
+.calc-results {
+  background: #f5f0e0;
+  padding: 20px;
+}
+
+.result-ledger {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.result-ledger tr {
+  border-bottom: 1px solid #a0c4a0;
+}
+
+.result-ledger tr:nth-child(even) {
+  background: #eee8d0;
+}
+
+.result-ledger tr.total-row {
+  background: #000 !important;
+  color: #f5f0e0;
+}
+
+.result-ledger tr.total-row td {
+  color: #f5f0e0;
+  font-weight: 700;
+  border-top: 3px double #cc0000;
+  padding: 10px 12px;
+}
+
+.result-ledger tr.highlight-result {
+  background: #ffe0cc !important;
+}
+
+.result-ledger td {
+  padding: 8px 12px;
+  font-family: Calibri, sans-serif;
+  font-size: 13px;
+  color: #000;
+}
+
+.result-ledger td:first-child {
+  font-family: Calibri, sans-serif;
+}
+
+.result-ledger td:last-child {
+  text-align: right;
+  font-family: Consolas, monospace;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.result-ledger td.big-num {
+  font-size: 20px;
+  color: #cc0000;
+}
+
+/* ── SHARE BOX ───────────────────────────────── */
+.share-box {
+  margin-top: 16px;
+  border: 2px solid #000;
+  background: #fff;
+}
+
+.share-box-header {
+  background: #000;
+  color: #f5f0e0;
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.share-box-header button {
+  background: #cc0000;
+  color: #fff;
+  border: none;
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 3px 12px;
+  cursor: pointer;
+}
+
+.share-box-header button:hover { background: #ff1a1a; }
+
+.share-box textarea {
+  width: 100%;
+  height: 80px;
+  border: none;
+  font-family: Calibri, sans-serif;
+  font-size: 13px;
+  padding: 10px 12px;
+  resize: vertical;
+  color: #000;
+  background: #fff;
+}
+
+.share-box textarea:focus {
+  outline: 2px solid #cc0000;
+}
+
+/* ── COMPARISON BAR ──────────────────────────── */
+.comparison-bars {
+  margin-top: 16px;
+  padding: 16px;
+  background: #000;
+  color: #f5f0e0;
+}
+
+.comparison-bars h3 {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #999;
+  margin-bottom: 12px;
+}
+
+.bar-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  gap: 12px;
+}
+
+.bar-row .bar-label {
+  width: 200px;
+  font-family: Calibri, sans-serif;
+  font-size: 12px;
+  color: #ccc;
+  text-align: right;
+}
+
+.bar-row .bar-track {
+  flex: 1;
+  height: 22px;
+  background: #1a1a1a;
+  position: relative;
+}
+
+.bar-row .bar-fill {
+  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+  transition: width 0.4s;
+}
+
+.bar-row .bar-fill.red { background: #cc0000; }
+.bar-row .bar-fill.green { background: #006400; }
+
+.bar-row .bar-amount {
+  width: 120px;
+  font-family: Consolas, monospace;
+  font-size: 13px;
+  color: #fff;
+}
+
+/* ── FOOTER ──────────────────────────────────── */
+footer {
+  background: #000;
+  color: #888;
+  font-family: Calibri, sans-serif;
+  font-size: 11px;
+  padding: 16px 24px;
+  line-height: 1.6;
+  border-top: 3px solid #cc0000;
+}
+
+footer strong { color: #ccc; }
+
+/* ── OPENING ATTRIBUTION ─────────────────────── */
+.ledger-epigraph {
+  font-family: Calibri, sans-serif;
+  font-size: 13px;
+  color: #444;
+  padding: 10px 16px;
+  text-align: center;
+  background: #f5f0e0;
+  border-bottom: 1px solid #000;
+}
+
+.ledger-epigraph strong {
+  color: #000;
+}
+
+/* ── TYPEWRITER ANIMATION ────────────────────── */
+.typewrite {
+  visibility: hidden;
+}
+
+.typewrite.revealed {
+  visibility: visible;
+}
+
+/* ── CONTEXT BAND ────────────────────────────── */
+.context-band {
+  margin-top: 12px;
+  padding: 12px 16px;
+  background: #000;
+  color: #f5f0e0;
+  font-family: Calibri, sans-serif;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.context-band .band-label {
+  color: #cc0000;
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* ── PRINT STYLES ────────────────────────────── */
+@media print {
+  #hero-bar, #module-nav, .toolbar, .calc-inputs, .share-box, .comparison-bars { display: none !important; }
+  main { margin-top: 0; }
+  .module { display: block !important; page-break-inside: avoid; }
+  .calc-grid { grid-template-columns: 1fr; }
+  body { background: #fff; }
+  table.ledger tbody tr:nth-child(even) { background: #f0f0f0 !important; }
+  table.ledger tbody tr:nth-child(odd) { background: #fff !important; }
+  footer { background: #fff; color: #000; border-top: 2px solid #000; }
+  .context-band { background: #f0f0f0; color: #000; }
+  .context-band .band-label { color: #000; }
+}
+
+/* ── RESPONSIVE ──────────────────────────────── */
+@media (max-width: 800px) {
+  #hero-bar { height: auto; flex-wrap: wrap; padding: 8px 12px; gap: 4px; }
+  #hero-bar .hero-amount { font-size: 22px; }
+  #hero-bar .hero-context { display: none; }
+  #module-nav { top: auto; position: relative; flex-wrap: wrap; height: auto; }
+  main { margin-top: 54px; }
+  .nav-btn { padding: 8px 14px; font-size: 11px; }
+  .calc-grid { grid-template-columns: 1fr; }
+  .toolbar { flex-direction: column; align-items: flex-start; }
+  .bar-row .bar-label { width: 100px; font-size: 11px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ HERO BAR ═══════════ -->
+<header id="hero-bar" role="banner">
+  <div>
+    <div class="hero-label">FY2007-08 to FY2023-24</div>
+    <div class="hero-amount deficit" id="hero-amount" aria-live="polite">TOTAL GROWTH: +$40.8B (+131%)</div>
+  </div>
+  <div style="text-align:center;">
+    <div class="hero-label">Minnesota Budget Watchdog</div>
+    <div style="font-family:'Franklin Gothic Medium',sans-serif; font-size:14px; letter-spacing:2px; text-transform:uppercase; color:#f5f0e0;">Sen. Steve Drazkowski &middot; SD-20</div>
+  </div>
+  <div class="hero-context">
+    MN population grew ~10% over the same period. Per-household spending grew from ~$6,500/yr to ~$15,000/yr.
+  </div>
+</header>
+
+<!-- ═══════════ MODULE NAV ═══════════ -->
+<nav id="module-nav" role="navigation" aria-label="Module navigation">
+  <button class="nav-btn active" data-module="mod1" aria-selected="true">Budget Growth Ledger</button>
+  <button class="nav-btn" data-module="mod2" aria-selected="false">Agency Breakdown</button>
+  <button class="nav-btn" data-module="mod3" aria-selected="false">Taxpayer Calculator</button>
+</nav>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- MODULE 1: BIENNIAL BUDGET GROWTH TRACKER       -->
+<!-- ═══════════════════════════════════════════════ -->
+<main>
+<section class="module active" id="mod1" role="region" aria-label="Biennial Budget Growth Tracker">
+  <div class="ledger-epigraph">
+    Steve Drazkowski has spent his legislative career arguing the numbers don't add up for Minnesota taxpayers. <strong>This ledger lets anyone check those numbers.</strong>
+  </div>
+
+  <div class="toolbar" id="toolbar1">
+    <label for="viewToggle">View:</label>
+    <select id="viewToggle" aria-label="Data view mode">
+      <option value="nominal">Nominal Dollars</option>
+      <option value="real">Inflation-Adjusted (2007 Base)</option>
+      <option value="percapita">Per Capita</option>
+    </select>
+    <label for="sortToggle">Sort:</label>
+    <select id="sortToggle" aria-label="Sort order">
+      <option value="chronological">Chronological</option>
+      <option value="amount-desc">Amount (High to Low)</option>
+      <option value="amount-asc">Amount (Low to High)</option>
+      <option value="growth-desc">Growth % (High to Low)</option>
+    </select>
+    <label for="govFilter">Governor:</label>
+    <select id="govFilter" aria-label="Filter by governor">
+      <option value="all">All</option>
+      <option value="Pawlenty">Pawlenty</option>
+      <option value="Dayton">Dayton</option>
+      <option value="Walz">Walz</option>
+    </select>
+    <span class="spacer"></span>
+    <button class="secondary" id="resetBtn">Reset</button>
+  </div>
+
+  <div class="ledger-wrap" style="max-height: calc(100vh - 240px); overflow-y: auto;">
+    <table class="ledger" id="budgetLedger" aria-label="Biennial budget data">
+      <thead>
+        <tr>
+          <th style="width:130px;" data-sort="biennium">Biennium <span class="sort-arrow"></span></th>
+          <th style="width:110px;" data-sort="governor">Governor <span class="sort-arrow"></span></th>
+          <th style="width:150px;" data-sort="amount" class="num-col">All-Funds Total <span class="sort-arrow"></span></th>
+          <th style="width:130px;" data-sort="change" class="num-col">$ Change <span class="sort-arrow"></span></th>
+          <th style="width:90px;" data-sort="pctchange" class="num-col">% Change <span class="sort-arrow"></span></th>
+          <th style="width:120px;" data-sort="percapita" class="num-col">Per Capita <span class="sort-arrow"></span></th>
+          <th style="width:130px;" data-sort="perhousehold" class="num-col">Per Household/Yr <span class="sort-arrow"></span></th>
+          <th style="width:90px;" data-sort="pop" class="num-col">Pop. (M) <span class="sort-arrow"></span></th>
+          <th style="width:90px;" data-sort="cpi" class="num-col">CPI Index <span class="sort-arrow"></span></th>
+        </tr>
+      </thead>
+      <tbody id="budgetBody"></tbody>
+      <tfoot id="budgetFoot"></tfoot>
+    </table>
+  </div>
+
+  <div class="data-note" style="margin-top:8px;">
+    <strong>Data note:</strong> Budget figures are approximate totals from Minnesota Management and Budget published biennial budget documents. Exact figures may vary by accounting method (all-funds vs. general fund). CPI adjustment uses approximate BLS CPI-U annual averages (2007 base = 1.000). Population from Census estimates. Per-household calculations use 2.4 million approximate MN households. <strong>Verify against current MMB publications before citing in official materials.</strong>
+  </div>
+
+  <!-- Context band: SF618 & surplus -->
+  <div class="context-band">
+    <span class="band-label">Local Context</span><br>
+    <!-- VERIFY: SF618 details from software brief -->
+    <strong>SF618</strong> (Drazkowski, 2023): $2,894,000 appropriation for Trunk Highway 60 realignment in Wabasha — local roads, sidewalks, sewer, water main, storm sewer, lighting, and pedestrian safety. Part of a $9.9M total project ($5M federal FY2024, Klobuchar/Smith; $4.9M requested state bonding; construction projected 2027 if funded). Even while pressing for statewide fiscal restraint, Drazkowski carried this targeted infrastructure investment for his district.
+    <br><br>
+    <span class="band-label">Surplus Record</span><br>
+    <!-- VERIFY: Surplus figures from MMB projections, publicly reported -->
+    Minnesota ran surpluses of ~$7.7 billion (FY2021-22) and ~$17.6 billion (projected peak before FY2023-24 session) before a large portion was spent. Drazkowski's repeated position: surplus money should be returned to taxpayers, not spent. The FY2025-26 enacted budget projects ~$66.0B — and a looming $2.31 billion deficit.
+    <!-- VERIFY: $2.31B deficit figure from Drazkowski 2025 Senate public statement -->
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- MODULE 2: AGENCY SPENDING BREAKDOWN             -->
+<!-- ═══════════════════════════════════════════════ -->
+<section class="module" id="mod2" role="region" aria-label="Agency Spending Breakdown">
+  <div class="ledger-epigraph">
+    FY2023-24 enacted budget by agency category. <strong>Where does $72 billion go?</strong>
+  </div>
+
+  <div class="toolbar" id="toolbar2">
+    <label for="agencyViewToggle">View:</label>
+    <select id="agencyViewToggle" aria-label="Agency data view mode">
+      <option value="total">Total (Billions)</option>
+      <option value="perhousehold">Per Household (Annual)</option>
+    </select>
+    <label for="agencySortToggle">Sort:</label>
+    <select id="agencySortToggle" aria-label="Agency sort order">
+      <option value="amount-desc">Amount (High to Low)</option>
+      <option value="amount-asc">Amount (Low to High)</option>
+      <option value="growth-desc">Growth % (High to Low)</option>
+      <option value="alpha">Alphabetical</option>
+    </select>
+    <span class="spacer"></span>
+    <button class="secondary" id="agencyResetBtn">Reset</button>
+  </div>
+
+  <div class="ledger-wrap" style="max-height: calc(100vh - 260px); overflow-y: auto;">
+    <table class="ledger" id="agencyLedger" aria-label="Agency spending data">
+      <thead>
+        <tr>
+          <th style="width:240px;">Category</th>
+          <th style="width:140px;" class="num-col">FY2023-24</th>
+          <th style="width:140px;" class="num-col">FY2021-22</th>
+          <th style="width:100px;" class="num-col">$ Change</th>
+          <th style="width:80px;" class="num-col">% Change</th>
+          <th style="width:120px;" class="num-col">Per Household/Yr</th>
+          <th style="width:60px;" class="num-col">% of Total</th>
+          <th style="min-width:200px;">Description</th>
+        </tr>
+      </thead>
+      <tbody id="agencyBody"></tbody>
+      <tfoot id="agencyFoot"></tfoot>
+    </table>
+  </div>
+
+  <!-- HHS callout — full-width band, not a bordered box -->
+  <div class="context-band">
+    <span class="band-label">Health &amp; Human Services</span> now accounts for more than 37% of Minnesota's all-funds budget — the largest single category. It has grown faster than inflation and population combined in every biennium since 2013.
+    <br><br>
+    <span class="band-label">SF2101 Context</span><br>
+    <!-- VERIFY: SF2101 details from brief -->
+    Drazkowski authored SF2101 to repeal inflation adjustments on the Child Tax Credit and Working Family Credit — arguing that refundable credits function as spending programs embedded in the tax code, not as true tax relief. The HHS and E-12 budget lines above include the fiscal impact of such credits.
+  </div>
+
+  <div class="data-note" style="margin-top:8px;">
+    <strong>Data note:</strong> Agency figures are approximate FY2023-24 all-funds enacted totals from public MMB summary documents. FY2021-22 figures are estimates for comparison. Per-household uses 2.4M MN households. <strong>Verify against current MMB publications before citing.</strong>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- MODULE 3: TAXPAYER COST CALCULATOR              -->
+<!-- ═══════════════════════════════════════════════ -->
+<section class="module" id="mod3" role="region" aria-label="Taxpayer Cost Calculator">
+  <div class="ledger-epigraph">
+    What does Minnesota's state budget growth cost <strong>you</strong>?
+  </div>
+
+  <div class="calc-grid">
+    <!-- LEFT: Inputs -->
+    <div class="calc-inputs">
+      <h2>Your Household</h2>
+
+      <div class="field">
+        <label for="incomeSlider">Household Gross Income</label>
+        <div class="value-display" id="incomeDisplay" aria-live="polite">$65,000</div>
+        <input type="range" id="incomeSlider" min="30000" max="250000" step="1000" value="65000" aria-label="Household gross income slider">
+        <div style="display:flex; justify-content:space-between; font-size:11px; color:#666; margin-top:2px;">
+          <span>$30,000</span><span>$250,000</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="filingStatus">Filing Status</label>
+        <select id="filingStatus" aria-label="Filing status">
+          <option value="single">Single</option>
+          <option value="mfj" selected>Married Filing Jointly</option>
+          <option value="hoh">Head of Household</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="dependents">Dependents</label>
+        <select id="dependents" aria-label="Number of dependents">
+          <option value="0">0</option>
+          <option value="1">1</option>
+          <option value="2" selected>2</option>
+          <option value="3">3+</option>
+        </select>
+      </div>
+
+      <div style="margin-top:24px; padding-top:16px; border-top:1px solid #333;">
+        <div style="font-size:11px; color:#666; text-transform:uppercase; letter-spacing:1px;">District 20</div>
+        <div style="font-size:12px; color:#999; margin-top:4px;">Wabasha County area median household income: ~$65,000 (approximate; verify with Census data)</div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Results ledger -->
+    <div class="calc-results">
+      <div class="section-title">Tax &amp; Spending Estimate</div>
+      <table class="result-ledger" id="calcResults" aria-label="Tax and spending calculation results">
+        <tbody>
+          <tr>
+            <td>Estimated MN State Income Tax</td>
+            <td id="calcIncomeTax" class="num-col">--</td>
+          </tr>
+          <tr>
+            <td>Estimated Sales Tax Contribution (approx. 2% of income)</td>
+            <td id="calcSalesTax" class="num-col">--</td>
+          </tr>
+          <tr class="total-row">
+            <td>Estimated Total State Tax Burden</td>
+            <td id="calcTotalTax" class="num-col">--</td>
+          </tr>
+          <tr><td colspan="2" style="height:12px; border:none; background:transparent;"></td></tr>
+          <tr>
+            <td>Your Share of Spending Growth Since 2013 (per year)</td>
+            <td id="calcGrowthYear" class="num-col">--</td>
+          </tr>
+          <tr>
+            <td>... per month</td>
+            <td id="calcGrowthMonth" class="num-col">--</td>
+          </tr>
+          <tr class="highlight-result">
+            <td>FY2023-24 Single-Biennium Increase (per household/year)</td>
+            <td id="calcBienniumCost" class="big-num">--</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="data-note" style="margin-top:12px;">
+        <!-- VERIFY: Tax bracket figures from public MN DOR 2025 materials per brief -->
+        Tax estimates are simplified approximations for illustration purposes only. Does not reflect deductions, credits, or all tax circumstances. Consult a tax professional for actual liability. Sales tax estimate uses flat 2% of income as rough proxy for average sales tax incidence. Spending growth per household: ~$34.1B increase (FY2013-14 to FY2023-24) / 2.4M households / 10 years. FY2023-24 single-biennium jump: ~$19.9B / 2.4M households / 2 years.
+      </div>
+
+      <!-- Comparison bars -->
+      <div class="comparison-bars" aria-label="Tax contribution vs. spending comparison">
+        <h3>Your Tax Contribution vs. Per-Household Cost of State Spending</h3>
+        <div class="bar-row">
+          <div class="bar-label">Your Est. Annual State Taxes</div>
+          <div class="bar-track"><div class="bar-fill green" id="barTax" style="width:0%;"></div></div>
+          <div class="bar-amount" id="barTaxAmt">--</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">Per-Household State Spending (annual)</div>
+          <div class="bar-track"><div class="bar-fill red" id="barSpend" style="width:0%;"></div></div>
+          <div class="bar-amount" id="barSpendAmt">--</div>
+        </div>
+      </div>
+
+      <!-- Share box -->
+      <div class="share-box">
+        <div class="share-box-header">
+          <span>Shareable Summary</span>
+          <button id="copyBtn" aria-label="Copy shareable text to clipboard">Copy Text</button>
+        </div>
+        <textarea id="shareText" spellcheck="false" aria-label="Editable shareable summary text"></textarea>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- ═══════════ FOOTER ═══════════ -->
+<footer role="contentinfo">
+  <strong>A resource for SD-20 constituents and Minnesota taxpayers.</strong> Built with AI.<br>
+  Budget data sourced from Minnesota Management and Budget published documents. All figures approximate — verify against current MMB publications before citing. Data reflects Minnesota fiscal records through FY2025-26 enacted budget.<br>
+  Representing communities in Wabasha, Goodhue, Winona, Olmsted, and Dakota counties — bluff country and river-town southeastern Minnesota.<br>
+  <!-- VERIFY: Tax brackets from MN DOR 2025 approximations per brief -->
+  Tax bracket approximations from public MN Department of Revenue materials (2025). CPI data approximate BLS CPI-U.
+</footer>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   DATA
+   ═══════════════════════════════════════════════════════════════ */
+
+var HOUSEHOLDS = 2400000;
+
+/* VERIFY: Budget figures assembled from public MMB and legislative sources per brief */
+var budgetData = [
+  { biennium: 'FY2007-08', year: 2007, amount: 31.2, governor: 'Pawlenty', pop: 5.20, cpi: 1.000 },
+  { biennium: 'FY2009-10', year: 2009, amount: 30.0, governor: 'Pawlenty', pop: 5.25, cpi: 1.020 },
+  { biennium: 'FY2011-12', year: 2011, amount: 34.4, governor: 'Dayton',   pop: 5.36, cpi: 1.084 },
+  { biennium: 'FY2013-14', year: 2013, amount: 37.9, governor: 'Dayton',   pop: 5.40, cpi: 1.120 },
+  { biennium: 'FY2015-16', year: 2015, amount: 42.0, governor: 'Dayton',   pop: 5.52, cpi: 1.130 },
+  { biennium: 'FY2017-18', year: 2017, amount: 45.6, governor: 'Dayton',   pop: 5.58, cpi: 1.155 },
+  { biennium: 'FY2019-20', year: 2019, amount: 48.3, governor: 'Walz',     pop: 5.64, cpi: 1.183 },
+  { biennium: 'FY2021-22', year: 2021, amount: 52.1, governor: 'Walz',     pop: 5.68, cpi: 1.247 },
+  { biennium: 'FY2023-24', year: 2023, amount: 72.0, governor: 'Walz',     pop: 5.74, cpi: 1.378, flag: true },
+  { biennium: 'FY2025-26', year: 2025, amount: 66.0, governor: 'Walz',     pop: 5.76, cpi: 1.430 }
+];
+
+/* VERIFY: Agency figures approximate FY2023-24 all-funds from MMB summary per brief */
+/* VERIFY: FY2021-22 figures are estimates for comparison */
+var agencyData = [
+  { category: 'Health & Human Services',     fy2324: 27.1, fy2122: 20.5, desc: 'Medical assistance, long-term care, child welfare, economic assistance, behavioral health.' },
+  { category: 'E-12 Education',              fy2324: 24.1, fy2122: 20.8, desc: 'General education aid, special education, early childhood programs.' },
+  { category: 'Transportation',              fy2324: 8.2,  fy2122: 7.0,  desc: 'Trunk highway, county/municipal aid, transit, MnDOT operations.' },
+  { category: 'Higher Education',            fy2324: 4.9,  fy2122: 3.8,  desc: 'University of Minnesota, MN State system, financial aid.' },
+  { category: 'Public Safety & Judiciary',   fy2324: 3.1,  fy2122: 2.6,  desc: 'Courts, corrections, public defense, peace officer training.' },
+  { category: 'State Government/Admin',      fy2324: 2.2,  fy2122: 1.9,  desc: 'Revenue department, admin, IT services, capitol complex.' },
+  { category: 'Environment & Agriculture',   fy2324: 1.4,  fy2122: 1.2,  desc: 'MPCA, DNR, Board of Water & Soil Resources, MDA programs.' },
+  { category: 'Other/Remaining',             fy2324: 1.0,  fy2122: 0.8,  desc: 'Miscellaneous agencies, debt service, reserves.' }
+];
+
+var propertyTaxItem = {
+  category: '  \u2514\u2500 Property Tax Refund / Homestead Credit (within E-12)',
+  fy2324: 1.4, fy2122: 1.1,
+  desc: 'Property Tax Refund and Homestead Credit Refund. Drazkowski chaired House Property Tax Committee.',
+  isSub: true
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   MODULE NAVIGATION
+   ═══════════════════════════════════════════════════════════════ */
+document.querySelectorAll('.nav-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.nav-btn').forEach(function(b) {
+      b.classList.remove('active');
+      b.setAttribute('aria-selected', 'false');
+    });
+    document.querySelectorAll('.module').forEach(function(m) { m.classList.remove('active'); });
+    btn.classList.add('active');
+    btn.setAttribute('aria-selected', 'true');
+    document.getElementById(btn.dataset.module).classList.add('active');
+
+    // Update hero bar based on active module
+    updateHeroForModule(btn.dataset.module);
+  });
+});
+
+function updateHeroForModule(modId) {
+  var heroEl = document.getElementById('hero-amount');
+  var labelEl = heroEl.parentElement.querySelector('.hero-label');
+
+  if (modId === 'mod1') {
+    labelEl.textContent = 'FY2007-08 TO FY2023-24';
+    heroEl.textContent = 'TOTAL GROWTH: +$40.8B (+131%)';
+    heroEl.className = 'hero-amount deficit';
+  } else if (modId === 'mod2') {
+    labelEl.textContent = 'FY2023-24 LARGEST CATEGORY';
+    heroEl.textContent = 'HHS: $27.1B (37.6% OF TOTAL)';
+    heroEl.className = 'hero-amount deficit';
+  } else if (modId === 'mod3') {
+    labelEl.textContent = 'FY2023-24 BIENNIUM JUMP';
+    var cost = Math.round((19.9e9) / HOUSEHOLDS / 2);
+    heroEl.textContent = 'TOTAL SURPLUS/(DEFICIT): ($2.31B)';
+    heroEl.className = 'hero-amount deficit';
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   UTILITY FORMATTERS
+   ═══════════════════════════════════════════════════════════════ */
+
+function fmt(n, decimals) {
+  if (decimals === undefined) decimals = 1;
+  return n.toFixed(decimals);
+}
+
+function fmtDollar(billions) {
+  if (billions < 0) return '($' + fmt(Math.abs(billions)) + 'B)';
+  return '$' + fmt(billions) + 'B';
+}
+
+function fmtPct(pct) {
+  var sign = pct > 0 ? '+' : '';
+  return sign + fmt(pct, 1) + '%';
+}
+
+function fmtCurrency(n) {
+  if (n < 0) return '($' + Math.abs(Math.round(n)).toLocaleString('en-US') + ')';
+  return '$' + Math.round(n).toLocaleString('en-US');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MODULE 1: BUDGET GROWTH LEDGER
+   ═══════════════════════════════════════════════════════════════ */
+
+function renderBudgetLedger() {
+  var view = document.getElementById('viewToggle').value;
+  var sortMode = document.getElementById('sortToggle').value;
+  var govFilter = document.getElementById('govFilter').value;
+
+  var data = budgetData.slice();
+  if (govFilter !== 'all') {
+    data = data.filter(function(d) { return d.governor === govFilter; });
+  }
+
+  // Compute derived values
+  var rows = data.map(function(d) {
+    var idx = budgetData.indexOf(d);
+    var prev = idx > 0 ? budgetData[idx - 1] : null;
+    var displayAmount = d.amount;
+    var prevAmount = prev ? prev.amount : null;
+
+    if (view === 'real') {
+      displayAmount = d.amount / d.cpi;
+      if (prev) prevAmount = prev.amount / prev.cpi;
+    } else if (view === 'percapita') {
+      displayAmount = (d.amount * 1e9) / (d.pop * 1e6);
+      if (prev) prevAmount = (prev.amount * 1e9) / (prev.pop * 1e6);
+    }
+
+    var change = prevAmount !== null ? displayAmount - prevAmount : null;
+    var pctChange = (prevAmount !== null && prevAmount !== 0) ? ((displayAmount - prevAmount) / prevAmount) * 100 : null;
+    var perCapita = (d.amount * 1e9) / (d.pop * 1e6);
+    var perHousehold = (d.amount * 1e9) / HOUSEHOLDS / 2; // annual (biennial / 2)
+
+    return {
+      biennium: d.biennium, year: d.year, governor: d.governor,
+      pop: d.pop, cpi: d.cpi, flag: d.flag,
+      amount: d.amount, displayAmount: displayAmount,
+      change: change, pctChange: pctChange,
+      perCapita: perCapita, perHousehold: perHousehold
+    };
+  });
+
+  // Sort
+  if (sortMode === 'amount-desc') rows.sort(function(a, b) { return b.displayAmount - a.displayAmount; });
+  else if (sortMode === 'amount-asc') rows.sort(function(a, b) { return a.displayAmount - b.displayAmount; });
+  else if (sortMode === 'growth-desc') rows.sort(function(a, b) { return (b.pctChange || -999) - (a.pctChange || -999); });
+  // 'chronological' is default order
+
+  var tbody = document.getElementById('budgetBody');
+  tbody.innerHTML = '';
+
+  var isPerCapita = view === 'percapita';
+
+  rows.forEach(function(r) {
+    var tr = document.createElement('tr');
+    if (r.flag) tr.classList.add('highlight-row');
+
+    var amountStr, changeStr;
+    if (isPerCapita) {
+      amountStr = fmtCurrency(r.displayAmount);
+      changeStr = r.change !== null ? fmtCurrency(r.change) : '--';
+    } else {
+      amountStr = fmtDollar(r.displayAmount);
+      changeStr = r.change !== null ? (r.change >= 0 ? '+' : '') + fmtDollar(r.change) : '--';
+    }
+    if (view === 'real') amountStr += ' (adj)';
+
+    var pctStr = r.pctChange !== null ? fmtPct(r.pctChange) : '--';
+    var changeClass = r.change !== null ? (r.change > 0 ? 'negative' : (r.change < 0 ? 'positive' : '')) : '';
+    var pctClass = r.pctChange !== null ? (r.pctChange > 0 ? 'negative' : (r.pctChange < 0 ? 'positive' : '')) : '';
+
+    tr.innerHTML =
+      '<td>' + r.biennium + (r.flag ? ' *' : '') + '</td>' +
+      '<td class="text-col">' + r.governor + '</td>' +
+      '<td class="num-col typewrite">' + amountStr + '</td>' +
+      '<td class="num-col ' + changeClass + '">' + changeStr + '</td>' +
+      '<td class="num-col ' + pctClass + '">' + pctStr + '</td>' +
+      '<td class="num-col">' + fmtCurrency(r.perCapita) + '</td>' +
+      '<td class="num-col">' + fmtCurrency(r.perHousehold) + '/yr</td>' +
+      '<td class="num-col">' + fmt(r.pop, 2) + 'M</td>' +
+      '<td class="num-col">' + fmt(r.cpi, 3) + '</td>';
+
+    tbody.appendChild(tr);
+  });
+
+  // Footer summary — always use full dataset for totals
+  var first = budgetData[0];
+  var peak = budgetData[8]; // FY2023-24
+  var totalGrowth = peak.amount - first.amount;
+  var totalPct = ((peak.amount - first.amount) / first.amount) * 100;
+
+  var tfoot = document.getElementById('budgetFoot');
+  tfoot.innerHTML =
+    '<tr>' +
+      '<td>TOTAL</td>' +
+      '<td>FY07-24</td>' +
+      '<td class="num-col">' + fmtDollar(peak.amount) + '</td>' +
+      '<td class="num-col negative">+' + fmtDollar(totalGrowth) + '</td>' +
+      '<td class="num-col negative">+' + fmt(totalPct, 1) + '%</td>' +
+      '<td class="num-col">' + fmtCurrency((peak.amount * 1e9) / (peak.pop * 1e6)) + '</td>' +
+      '<td class="num-col">' + fmtCurrency((peak.amount * 1e9) / HOUSEHOLDS / 2) + '/yr</td>' +
+      '<td class="num-col">' + fmt(peak.pop, 2) + 'M</td>' +
+      '<td class="num-col">' + fmt(peak.cpi, 3) + '</td>' +
+    '</tr>';
+
+  // Typewriter effect on amounts
+  typewriteAmounts();
+}
+
+function typewriteAmounts() {
+  var cells = document.querySelectorAll('#budgetBody .typewrite');
+  cells.forEach(function(cell, i) {
+    var text = cell.textContent;
+    cell.textContent = '';
+    cell.classList.add('revealed');
+    var delay = (i / Math.max(cells.length, 1)) * 800;
+    setTimeout(function() {
+      var idx = 0;
+      var charTime = Math.max(8, Math.floor(200 / Math.max(text.length, 1)));
+      var interval = setInterval(function() {
+        idx++;
+        cell.textContent = text.substring(0, idx);
+        if (idx >= text.length) clearInterval(interval);
+      }, charTime);
+    }, delay);
+  });
+}
+
+// Wire up controls
+document.getElementById('viewToggle').addEventListener('change', renderBudgetLedger);
+document.getElementById('sortToggle').addEventListener('change', renderBudgetLedger);
+document.getElementById('govFilter').addEventListener('change', renderBudgetLedger);
+document.getElementById('resetBtn').addEventListener('click', function() {
+  document.getElementById('viewToggle').value = 'nominal';
+  document.getElementById('sortToggle').value = 'chronological';
+  document.getElementById('govFilter').value = 'all';
+  renderBudgetLedger();
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   MODULE 2: AGENCY BREAKDOWN LEDGER
+   ═══════════════════════════════════════════════════════════════ */
+
+function renderAgencyLedger() {
+  var viewMode = document.getElementById('agencyViewToggle').value;
+  var sortMode = document.getElementById('agencySortToggle').value;
+
+  // Sort main items (keep sub-items attached)
+  var sortable = agencyData.slice();
+  if (sortMode === 'amount-desc') sortable.sort(function(a, b) { return b.fy2324 - a.fy2324; });
+  else if (sortMode === 'amount-asc') sortable.sort(function(a, b) { return a.fy2324 - b.fy2324; });
+  else if (sortMode === 'growth-desc') sortable.sort(function(a, b) {
+    var gA = ((a.fy2324 - a.fy2122) / a.fy2122) * 100;
+    var gB = ((b.fy2324 - b.fy2122) / b.fy2122) * 100;
+    return gB - gA;
+  });
+  else if (sortMode === 'alpha') sortable.sort(function(a, b) { return a.category.localeCompare(b.category); });
+
+  // Rebuild with sub-items after E-12
+  var data = [];
+  sortable.forEach(function(d) {
+    data.push(d);
+    if (d.category === 'E-12 Education') data.push(propertyTaxItem);
+  });
+
+  var totalFy2324 = agencyData.reduce(function(s, d) { return s + d.fy2324; }, 0);
+  var totalFy2122 = agencyData.reduce(function(s, d) { return s + d.fy2122; }, 0);
+
+  var tbody = document.getElementById('agencyBody');
+  tbody.innerHTML = '';
+
+  data.forEach(function(d) {
+    var tr = document.createElement('tr');
+    var change = d.fy2324 - d.fy2122;
+    var pctChange = ((change) / d.fy2122) * 100;
+    var perHousehold = Math.round((d.fy2324 * 1e9) / HOUSEHOLDS / 2);
+    var pctOfTotal = ((d.fy2324 / totalFy2324) * 100);
+    var prevPerHousehold = Math.round((d.fy2122 * 1e9) / HOUSEHOLDS / 2);
+
+    var changeClass = change > 0 ? 'negative' : (change < 0 ? 'positive' : '');
+
+    if (d.isSub) tr.style.fontStyle = 'italic';
+    if (d.category === 'Health & Human Services') tr.classList.add('highlight-row');
+
+    var amountDisplay, prevDisplay;
+    if (viewMode === 'perhousehold') {
+      amountDisplay = fmtCurrency(perHousehold) + '/yr';
+      prevDisplay = fmtCurrency(prevPerHousehold) + '/yr';
+    } else {
+      amountDisplay = fmtDollar(d.fy2324);
+      prevDisplay = fmtDollar(d.fy2122);
+    }
+
+    tr.innerHTML =
+      '<td class="text-col">' + d.category + '</td>' +
+      '<td class="num-col">' + amountDisplay + '</td>' +
+      '<td class="num-col">' + prevDisplay + '</td>' +
+      '<td class="num-col ' + changeClass + '">' + (change >= 0 ? '+' : '') + fmtDollar(change) + '</td>' +
+      '<td class="num-col ' + changeClass + '">' + fmtPct(pctChange) + '</td>' +
+      '<td class="num-col">' + fmtCurrency(perHousehold) + '/yr</td>' +
+      '<td class="num-col">' + fmt(pctOfTotal, 1) + '%</td>' +
+      '<td class="text-col" style="white-space:normal; font-size:12px; color:#444;">' + d.desc + '</td>';
+
+    tbody.appendChild(tr);
+  });
+
+  // Footer totals
+  var totalChange = totalFy2324 - totalFy2122;
+  var totalPctChange = ((totalChange) / totalFy2122) * 100;
+
+  var tfoot = document.getElementById('agencyFoot');
+  tfoot.innerHTML =
+    '<tr>' +
+      '<td>TOTAL ALL AGENCIES</td>' +
+      '<td class="num-col">' + fmtDollar(totalFy2324) + '</td>' +
+      '<td class="num-col">' + fmtDollar(totalFy2122) + '</td>' +
+      '<td class="num-col negative">+' + fmtDollar(totalChange) + '</td>' +
+      '<td class="num-col negative">+' + fmt(totalPctChange, 1) + '%</td>' +
+      '<td class="num-col">' + fmtCurrency(Math.round((totalFy2324 * 1e9) / HOUSEHOLDS / 2)) + '/yr</td>' +
+      '<td class="num-col">100.0%</td>' +
+      '<td></td>' +
+    '</tr>';
+}
+
+document.getElementById('agencyViewToggle').addEventListener('change', renderAgencyLedger);
+document.getElementById('agencySortToggle').addEventListener('change', renderAgencyLedger);
+document.getElementById('agencyResetBtn').addEventListener('click', function() {
+  document.getElementById('agencyViewToggle').value = 'total';
+  document.getElementById('agencySortToggle').value = 'amount-desc';
+  renderAgencyLedger();
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   MODULE 3: TAXPAYER COST CALCULATOR
+   ═══════════════════════════════════════════════════════════════ */
+
+/* VERIFY: Tax brackets from brief — 2025 MN approximations from public DOR materials */
+function calcMNIncomeTax(income, status) {
+  var brackets;
+  if (status === 'mfj') {
+    brackets = [
+      { limit: 43950,  rate: 0.0535 },
+      { limit: 174400, rate: 0.0680 },
+      { limit: 304970, rate: 0.0785 },
+      { limit: Infinity, rate: 0.0985 }
+    ];
+  } else if (status === 'hoh') {
+    // Approximate HoH brackets (midpoint between single and MFJ)
+    brackets = [
+      { limit: 37010,  rate: 0.0535 },
+      { limit: 136580, rate: 0.0680 },
+      { limit: 244155, rate: 0.0785 },
+      { limit: Infinity, rate: 0.0985 }
+    ];
+  } else {
+    // Single
+    brackets = [
+      { limit: 30070,  rate: 0.0535 },
+      { limit: 98760,  rate: 0.0680 },
+      { limit: 183340, rate: 0.0785 },
+      { limit: Infinity, rate: 0.0985 }
+    ];
+  }
+
+  // Approximate standard deduction
+  var stdDeduction;
+  if (status === 'mfj') stdDeduction = 29200;
+  else if (status === 'hoh') stdDeduction = 21900;
+  else stdDeduction = 14600;
+
+  var taxableIncome = Math.max(0, income - stdDeduction);
+
+  var tax = 0;
+  var remaining = taxableIncome;
+  var prevLimit = 0;
+
+  for (var i = 0; i < brackets.length; i++) {
+    var b = brackets[i];
+    var bracketWidth = b.limit - prevLimit;
+    var taxable = Math.min(remaining, bracketWidth);
+    tax += taxable * b.rate;
+    remaining -= taxable;
+    prevLimit = b.limit;
+    if (remaining <= 0) break;
+  }
+
+  return Math.round(tax);
+}
+
+function updateCalculator() {
+  var income = parseInt(document.getElementById('incomeSlider').value);
+  var status = document.getElementById('filingStatus').value;
+  var dependents = parseInt(document.getElementById('dependents').value);
+
+  document.getElementById('incomeDisplay').textContent = fmtCurrency(income);
+
+  var incomeTax = calcMNIncomeTax(income, status);
+  var salesTax = Math.round(income * 0.02);
+  var totalTax = incomeTax + salesTax;
+
+  // Per-household spending growth since 2013
+  // ~$34.1B increase (FY2013-14 $37.9B to FY2023-24 $72.0B) / 2.4M households / 10 years
+  var growthPerYear = Math.round((34.1e9) / HOUSEHOLDS / 10);
+  var growthPerMonth = Math.round(growthPerYear / 12);
+
+  // FY2023-24 single biennium jump: ~$19.9B (from $52.1B to $72.0B) / 2.4M / 2 years
+  var bienniumPerYear = Math.round((19.9e9) / HOUSEHOLDS / 2);
+
+  // Per-household total state spending: FY2023-24 $72B / 2.4M / 2 years (annual)
+  var spendingPerYear = Math.round((72e9) / HOUSEHOLDS / 2);
+
+  document.getElementById('calcIncomeTax').textContent = fmtCurrency(incomeTax);
+  document.getElementById('calcSalesTax').textContent = fmtCurrency(salesTax);
+  document.getElementById('calcTotalTax').textContent = fmtCurrency(totalTax);
+  document.getElementById('calcGrowthYear').textContent = fmtCurrency(growthPerYear) + '/yr';
+  document.getElementById('calcGrowthMonth').textContent = fmtCurrency(growthPerMonth) + '/mo';
+  document.getElementById('calcBienniumCost').textContent = fmtCurrency(bienniumPerYear) + '/yr';
+
+  // Comparison bars
+  var maxBar = Math.max(totalTax, spendingPerYear);
+  document.getElementById('barTax').style.width = ((totalTax / maxBar) * 100) + '%';
+  document.getElementById('barSpend').style.width = ((spendingPerYear / maxBar) * 100) + '%';
+  document.getElementById('barTaxAmt').textContent = fmtCurrency(totalTax) + '/yr';
+  document.getElementById('barSpendAmt').textContent = fmtCurrency(spendingPerYear) + '/yr';
+
+  // Share text
+  var shareText = "Minnesota's state budget grew from $37.9B to $72.0B over the last decade \u2014 an 89% increase. " +
+    "For a household earning " + fmtCurrency(income) + " in Wabasha County, that growth represents an estimated " +
+    fmtCurrency(growthPerYear) + "/year increase in per-household spending burden. " +
+    "The FY2023-24 single-biennium spending jump alone costs an estimated " +
+    fmtCurrency(bienniumPerYear) + "/year per household.";
+  document.getElementById('shareText').value = shareText;
+
+  // Persist to localStorage
+  try {
+    localStorage.setItem('drazkowski_calc', JSON.stringify({
+      income: income, status: status, dependents: dependents
+    }));
+  } catch(e) { /* localStorage unavailable */ }
+}
+
+// Restore from localStorage
+function restoreCalcInputs() {
+  try {
+    var saved = JSON.parse(localStorage.getItem('drazkowski_calc'));
+    if (saved) {
+      if (saved.income) document.getElementById('incomeSlider').value = saved.income;
+      if (saved.status) document.getElementById('filingStatus').value = saved.status;
+      if (saved.dependents !== undefined) document.getElementById('dependents').value = saved.dependents;
+    }
+  } catch(e) { /* no saved data */ }
+}
+
+document.getElementById('incomeSlider').addEventListener('input', updateCalculator);
+document.getElementById('filingStatus').addEventListener('change', updateCalculator);
+document.getElementById('dependents').addEventListener('change', updateCalculator);
+
+// Copy button
+document.getElementById('copyBtn').addEventListener('click', function() {
+  var text = document.getElementById('shareText').value;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function() {
+      document.getElementById('copyBtn').textContent = 'Copied';
+      setTimeout(function() { document.getElementById('copyBtn').textContent = 'Copy Text'; }, 2000);
+    }).catch(function() {
+      fallbackCopy(text);
+    });
+  } else {
+    fallbackCopy(text);
+  }
+});
+
+function fallbackCopy(text) {
+  var ta = document.getElementById('shareText');
+  ta.select();
+  try {
+    document.execCommand('copy');
+    document.getElementById('copyBtn').textContent = 'Copied';
+    setTimeout(function() { document.getElementById('copyBtn').textContent = 'Copy Text'; }, 2000);
+  } catch(e) {
+    prompt('Copy this text:', text);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COLUMN HEADER CLICK-TO-SORT (Module 1)
+   ═══════════════════════════════════════════════════════════════ */
+
+document.querySelectorAll('#budgetLedger thead th[data-sort]').forEach(function(th) {
+  th.addEventListener('click', function() {
+    var sortKey = th.dataset.sort;
+    var sel = document.getElementById('sortToggle');
+
+    var mapping = {
+      'biennium': 'chronological',
+      'governor': 'chronological',
+      'amount': 'amount-desc',
+      'change': 'amount-desc',
+      'pctchange': 'growth-desc',
+      'percapita': 'amount-desc',
+      'perhousehold': 'amount-desc',
+      'pop': 'chronological',
+      'cpi': 'chronological'
+    };
+
+    // Toggle between desc and asc if already on that sort
+    var target = mapping[sortKey] || 'chronological';
+    if (sel.value === target && target.indexOf('-desc') > -1) {
+      target = target.replace('-desc', '-asc');
+    } else if (sel.value === target && target.indexOf('-asc') > -1) {
+      target = target.replace('-asc', '-desc');
+    }
+
+    // Check if option exists
+    var exists = false;
+    for (var i = 0; i < sel.options.length; i++) {
+      if (sel.options[i].value === target) { exists = true; break; }
+    }
+    if (exists) sel.value = target;
+
+    renderBudgetLedger();
+  });
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   INITIALIZATION
+   ═══════════════════════════════════════════════════════════════ */
+
+(function init() {
+  renderBudgetLedger();
+  renderAgencyLedger();
+  restoreCalcInputs();
+  updateCalculator();
+})();
+</script>
+</body>
+</html>

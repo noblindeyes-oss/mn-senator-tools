@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>District 24 Med-Tech Workforce Pipeline Explorer</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Full-width editorial, NO sidebar. Horizontal color-banded sections that alternate blue/gold/white/black. Content max-width varies: 540px for text, 960px for data tables, full-bleed for hero bands.
+   2. Navigation: Scroll-based single page with sticky horizontal nav using underline-only text links (no tabs, no rounded tops). Segmented pill toggle for modules.
+   3. Typography: Palatino Linotype for headers (wide tracking, dramatic), Tahoma for body text (compact, clean), Lucida Console for data/numbers (technical precision). NOT Georgia, NOT Arial Narrow, NOT Courier New.
+   4. Hero moment: Opening with a single massive number "62,435" at 96px in a full-bleed blue band — the health workforce count — before any explanation.
+   5. Color strategy: #2 — High contrast / two-tone. Prairie blue (#2E6DA4) and Harvest gold (#C8902A) plus black and white ONLY. No mid-tones. No gradients. Bold, graphic, poster-like.
+   6. Entry experience: Opens with a single dramatic number (62,435 health workers) as a question. No explanatory paragraph. The tool IS the first thing after one line of context.
+   Additional: Extreme density contrast — one section is 12px tight-row data table, another is one huge number in vast whitespace. No cards anywhere. Tables, definition lists, and negative space only.
+*/
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --blue: #2E6DA4;
+  --gold: #C8902A;
+  --black: #1C1C1C;
+  --white: #FFFFFF;
+}
+
+body {
+  font-family: Tahoma, Geneva, sans-serif;
+  color: var(--black);
+  background: var(--white);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* STICKY NAV */
+.sticky-nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--black);
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  padding: 0;
+  border-bottom: 3px solid var(--gold);
+}
+.sticky-nav button {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.5);
+  padding: 14px 28px;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -3px;
+  transition: color 0.15s, border-color 0.15s;
+}
+.sticky-nav button:hover { color: var(--white); }
+.sticky-nav button.active {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+}
+.sticky-nav button:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: -2px;
+}
+
+/* HERO BAND */
+.hero-band {
+  background: var(--blue);
+  color: var(--white);
+  text-align: center;
+  padding: 60px 20px 50px;
+}
+.hero-number {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 96px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -2px;
+}
+.hero-question {
+  font-family: 'Palatino Linotype', Palatino, 'Book Antiqua', serif;
+  font-size: 22px;
+  font-weight: 400;
+  font-style: italic;
+  margin-top: 12px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.hero-subtext {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  margin-top: 20px;
+  opacity: 0.7;
+}
+
+/* GOLD CONTEXT BAND */
+.context-band {
+  background: var(--gold);
+  color: var(--black);
+  text-align: center;
+  padding: 18px 20px;
+  font-size: 13px;
+  line-height: 1.6;
+  font-weight: 700;
+}
+
+/* MODULE SECTIONS */
+.module { display: none; }
+.module.active { display: block; }
+
+/* SECTION BANDS */
+.band-white { background: var(--white); padding: 40px 20px; }
+.band-blue { background: var(--blue); color: var(--white); padding: 40px 20px; }
+.band-gold { background: var(--gold); color: var(--black); padding: 40px 20px; }
+.band-black { background: var(--black); color: var(--white); padding: 40px 20px; }
+
+.narrow { max-width: 540px; margin-left: auto; margin-right: auto; }
+.medium { max-width: 760px; margin-left: auto; margin-right: auto; }
+.wide { max-width: 960px; margin-left: auto; margin-right: auto; }
+
+/* HEADERS */
+h1, h2, h3 {
+  font-family: 'Palatino Linotype', Palatino, 'Book Antiqua', serif;
+}
+h2 {
+  font-size: 28px;
+  font-weight: 400;
+  letter-spacing: 1px;
+  margin-bottom: 24px;
+}
+h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+/* FORM STYLING */
+.filter-group {
+  margin-bottom: 28px;
+}
+.filter-group legend,
+.filter-group > label {
+  font-family: 'Palatino Linotype', Palatino, 'Book Antiqua', serif;
+  font-size: 16px;
+  font-weight: 700;
+  display: block;
+  margin-bottom: 10px;
+}
+.radio-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.radio-row label {
+  font-size: 14px;
+  cursor: pointer;
+  padding: 6px 10px;
+  border: 2px solid transparent;
+  transition: background 0.1s;
+}
+.radio-row label:hover {
+  background: var(--blue);
+  color: var(--white);
+}
+.radio-row input[type="radio"] {
+  accent-color: var(--gold);
+  margin-right: 8px;
+}
+select {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 14px;
+  padding: 8px 12px;
+  border: 2px solid var(--black);
+  background: var(--white);
+  width: 100%;
+  max-width: 400px;
+}
+select:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 2px var(--blue);
+}
+
+/* PATHWAY RESULTS — NO CARDS. Tables and DLs only. */
+.pathway-result {
+  border-bottom: 3px solid var(--black);
+  padding: 28px 0;
+}
+.pathway-result:last-child { border-bottom: none; }
+
+.pathway-title {
+  font-family: 'Palatino Linotype', Palatino, 'Book Antiqua', serif;
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.pathway-wage {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 20px;
+  color: var(--gold);
+  font-weight: 700;
+}
+.pathway-mayo {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-top: 6px;
+  color: var(--blue);
+  font-weight: 700;
+}
+
+/* PATHWAY STEP TABLE — ultra dense */
+.step-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 14px;
+  font-size: 12px;
+  line-height: 1.3;
+}
+.step-table th {
+  font-family: Tahoma, Geneva, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 10px;
+  text-align: left;
+  padding: 4px 8px 4px 0;
+  border-bottom: 2px solid var(--black);
+  font-weight: 700;
+}
+.step-table td {
+  font-family: Tahoma, Geneva, sans-serif;
+  padding: 4px 8px 4px 0;
+  border-bottom: 1px solid #ccc;
+  vertical-align: top;
+}
+.step-table td:nth-child(4),
+.step-table td:nth-child(3) {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 11px;
+}
+.step-table tr:last-child td { border-bottom: none; }
+
+.pathway-actions {
+  margin-top: 14px;
+  display: flex;
+  gap: 12px;
+}
+.pathway-actions button {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 8px 18px;
+  cursor: pointer;
+  border: 2px solid var(--black);
+  background: var(--white);
+  color: var(--black);
+  transition: all 0.1s;
+}
+.pathway-actions button:hover {
+  background: var(--black);
+  color: var(--white);
+}
+.pathway-actions button:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+.pathway-actions button.primary-btn {
+  background: var(--blue);
+  color: var(--white);
+  border-color: var(--blue);
+}
+.pathway-actions button.primary-btn:hover {
+  background: var(--black);
+  border-color: var(--black);
+}
+
+.no-results {
+  text-align: center;
+  padding: 60px 20px;
+  font-family: 'Palatino Linotype', Palatino, 'Book Antiqua', serif;
+  font-size: 20px;
+  font-style: italic;
+  color: var(--blue);
+}
+
+/* Legislative context — full-width gold band, no border-left callout */
+.legislative-note {
+  background: var(--gold);
+  color: var(--black);
+  padding: 16px 20px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.5;
+  text-align: center;
+  margin: 0;
+}
+.legislative-note strong {
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 11px;
+  display: block;
+  margin-bottom: 4px;
+}
+
+/* MODULE 2 — CALCULATOR */
+.calc-section { margin-bottom: 32px; }
+.calc-label {
+  font-family: 'Palatino Linotype', Palatino, 'Book Antiqua', serif;
+  font-size: 15px;
+  font-weight: 700;
+  display: block;
+  margin-bottom: 6px;
+}
+.calc-sublabel {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 8px;
+  display: block;
+}
+input[type="range"] {
+  width: 100%;
+  max-width: 400px;
+  accent-color: var(--blue);
+  display: block;
+}
+.range-value {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--blue);
+  margin-top: 4px;
+}
+.calc-radio-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+.calc-radio-row label {
+  font-size: 13px;
+  padding: 6px 14px;
+  border: 2px solid var(--black);
+  cursor: pointer;
+  transition: all 0.1s;
+}
+.calc-radio-row label:hover {
+  background: var(--blue);
+  color: var(--white);
+  border-color: var(--blue);
+}
+.calc-radio-row input[type="radio"] { display: none; }
+.calc-radio-row input[type="radio"]:checked + span {
+  /* parent label gets styled via JS */
+}
+
+/* Results DL — definition list, no cards */
+.results-dl {
+  margin: 0;
+}
+.results-dl dt {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 700;
+  padding-top: 16px;
+}
+.results-dl dd {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 32px;
+  font-weight: 700;
+  padding: 4px 0 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.3);
+}
+.band-blue .results-dl dd { color: var(--gold); }
+
+/* SPARSE section — one big number */
+.sparse-section {
+  text-align: center;
+  padding: 80px 20px;
+}
+.sparse-number {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 72px;
+  font-weight: 700;
+  line-height: 1;
+}
+.sparse-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  margin-top: 12px;
+}
+
+/* Chart container */
+.chart-wrap {
+  max-width: 500px;
+  margin: 30px auto 0;
+  background: var(--white);
+  padding: 20px;
+}
+
+/* MODULE 3 — PRINT SHEET */
+.print-sheet {
+  max-width: 700px;
+  margin: 0 auto;
+  font-size: 14px;
+}
+.print-sheet h2 {
+  border-bottom: 3px solid var(--black);
+  padding-bottom: 8px;
+}
+.print-field {
+  margin-bottom: 16px;
+}
+.print-field label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 700;
+  display: block;
+  margin-bottom: 4px;
+}
+.print-field textarea,
+.print-field input[type="text"] {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 14px;
+  width: 100%;
+  padding: 8px;
+  border: 2px solid var(--black);
+  background: var(--white);
+  resize: vertical;
+}
+.print-field textarea:focus,
+.print-field input[type="text"]:focus {
+  outline: none;
+  border-color: var(--blue);
+}
+.print-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+}
+.print-table th, .print-table td {
+  text-align: left;
+  padding: 6px 10px;
+  border: 1px solid var(--black);
+  font-size: 13px;
+}
+.print-table th {
+  background: var(--black);
+  color: var(--white);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.print-contacts dt {
+  font-weight: 700;
+  font-size: 13px;
+  margin-top: 10px;
+}
+.print-contacts dd {
+  font-size: 12px;
+  font-family: 'Lucida Console', Monaco, monospace;
+  margin-left: 0;
+}
+.print-btn {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  padding: 14px 36px;
+  background: var(--gold);
+  color: var(--black);
+  border: none;
+  cursor: pointer;
+  margin-top: 20px;
+  display: inline-block;
+}
+.print-btn:hover { background: var(--black); color: var(--gold); }
+.print-btn:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+/* SELECT PATHWAY prompt */
+.select-prompt {
+  text-align: center;
+  padding: 40px;
+  font-family: 'Palatino Linotype', Palatino, 'Book Antiqua', serif;
+  font-size: 18px;
+  font-style: italic;
+}
+
+/* FOOTER */
+.site-footer {
+  background: var(--black);
+  color: rgba(255,255,255,0.5);
+  text-align: center;
+  padding: 30px 20px;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+/* RESPONSIVE */
+@media (max-width: 640px) {
+  .hero-number { font-size: 56px; }
+  .hero-question { font-size: 18px; }
+  .sticky-nav button { padding: 10px 14px; font-size: 11px; letter-spacing: 1px; }
+  .pathway-title { font-size: 20px; }
+  .pathway-wage { font-size: 16px; }
+  .step-table { font-size: 11px; }
+  .results-dl dd { font-size: 24px; }
+  .sparse-number { font-size: 48px; }
+  .pathway-actions { flex-direction: column; }
+  .calc-radio-row { flex-direction: column; }
+  .range-value { font-size: 22px; }
+  h2 { font-size: 22px; }
+  .band-white, .band-blue, .band-gold, .band-black { padding: 28px 16px; }
+}
+
+/* PRINT CSS */
+@media print {
+  body { font-size: 12px; color: #000; background: #fff; }
+  .sticky-nav, .hero-band, .context-band, .site-footer,
+  .module:not(.print-active), .pathway-actions, .no-print { display: none !important; }
+  .module.print-active { display: block !important; }
+  .print-sheet { max-width: 100%; }
+  .print-field textarea, .print-field input[type="text"] { border: none; padding: 0; font-size: 12px; }
+  .print-table th { background: #000; color: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .print-btn { display: none; }
+  @page { margin: 0.75in; size: letter; }
+}
+</style>
+</head>
+<body>
+
+<!-- STICKY NAV -->
+<nav class="sticky-nav" role="navigation" aria-label="Module navigation">
+  <button id="nav-finder" class="active" onclick="switchModule('finder')" aria-current="true">Pathway Finder</button>
+  <button id="nav-calc" onclick="switchModule('calc')">Cost Calculator</button>
+  <button id="nav-print" onclick="switchModule('print')">Print Sheet</button>
+</nav>
+
+<!-- HERO BAND — single dramatic number, no explanatory paragraph -->
+<div class="hero-band">
+  <div class="hero-number">62,435</div>
+  <div class="hero-question">education &amp; health services workers in Southeast Minnesota. Where's your seat?</div>
+  <div class="hero-subtext">District 24 Workforce Pipeline Explorer</div>
+</div>
+
+<!-- GOLD CONTEXT BAND -->
+<div class="context-band">
+  Rochester's economy is anchored by Mayo Clinic's $5 billion downtown expansion and the Destination Medical Center initiative — the largest economic development project in Minnesota history. The region needs thousands of trained health science workers. This tool maps the education routes that get District 24 students there.
+</div>
+
+<!-- ═══════════════════ MODULE 1: PATHWAY FINDER ═══════════════════ -->
+<div id="module-finder" class="module active">
+
+  <!-- FILTER SECTION — white band, narrow -->
+  <div class="band-white">
+    <div class="narrow">
+      <h2>Find Your Pathway</h2>
+
+      <fieldset class="filter-group">
+        <legend>What interests you?</legend>
+        <div class="radio-row" id="q1-group">
+          <label><input type="radio" name="q1" value="patient-care"> Direct patient care — nursing, CNA, phlebotomy, surgical tech</label>
+          <label><input type="radio" name="q1" value="clinical-research"> Clinical research / laboratory</label>
+          <label><input type="radio" name="q1" value="med-tech"> Medical technology / device manufacturing</label>
+          <label><input type="radio" name="q1" value="health-admin"> Health administration / coding / billing</label>
+          <label><input type="radio" name="q1" value="mental-health"> Mental health / social services</label>
+        </div>
+      </fieldset>
+
+      <fieldset class="filter-group">
+        <legend>How soon do you want to start working?</legend>
+        <div class="radio-row" id="q2-group">
+          <label><input type="radio" name="q2" value="1-2"> 1–2 years</label>
+          <label><input type="radio" name="q2" value="4"> 4-year degree</label>
+          <label><input type="radio" name="q2" value="grad"> Graduate / professional degree</label>
+          <label><input type="radio" name="q2" value="all" checked> Not sure — show me everything</label>
+        </div>
+      </fieldset>
+
+      <div class="filter-group">
+        <label for="q3-select">Your school district</label>
+        <select id="q3-select">
+          <option value="rochester">Rochester (ISD 535)</option>
+          <option value="kasson">Kasson-Mantorville (Dodge County)</option>
+          <option value="byron">Byron (Olmsted County)</option>
+          <option value="pine-island">Pine Island / Zumbrota-Mazeppa</option>
+          <option value="stewartville">Stewartville</option>
+          <option value="other">Other District 24 school</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTS — wide band, alternating -->
+  <div class="band-black" style="padding: 20px;">
+    <div class="wide" style="text-align:center;">
+      <span style="font-family:'Lucida Console',Monaco,monospace;font-size:11px;text-transform:uppercase;letter-spacing:3px;color:var(--gold);" id="result-count">8 pathways found</span>
+    </div>
+  </div>
+
+  <div class="band-white">
+    <div class="wide" id="pathway-results">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════ MODULE 2: COST CALCULATOR ═══════════════════ -->
+<div id="module-calc" class="module">
+
+  <!-- SPARSE — one big savings number -->
+  <div class="band-blue sparse-section" id="savings-hero">
+    <div class="sparse-number" id="big-savings">$2,220</div>
+    <div class="sparse-label" style="color:var(--gold);">estimated savings through concurrent enrollment</div>
+  </div>
+
+  <!-- INPUTS — white band, narrow -->
+  <div class="band-white">
+    <div class="narrow">
+      <h2>Calculate Your Savings</h2>
+
+      <div class="calc-section">
+        <label class="calc-label" for="ce-credits">College credits taken in high school</label>
+        <span class="calc-sublabel">Via concurrent enrollment (juniors &amp; seniors)</span>
+        <input type="range" id="ce-credits" min="0" max="30" value="12" aria-label="Concurrent enrollment credits">
+        <div class="range-value" id="ce-credits-display">12 credits</div>
+      </div>
+
+      <div class="calc-section">
+        <label class="calc-label">Concurrent enrollment cost per credit</label>
+        <div class="calc-radio-row" id="ce-cost-group">
+          <label class="ce-cost-label" style="background:var(--blue);color:var(--white);border-color:var(--blue);">
+            <input type="radio" name="ce-cost" value="0" checked><span>$0 (income-qualified)</span>
+          </label>
+          <label class="ce-cost-label">
+            <input type="radio" name="ce-cost" value="10"><span>$10/credit</span>
+          </label>
+          <label class="ce-cost-label">
+            <input type="radio" name="ce-cost" value="25"><span>$25/credit</span>
+          </label>
+          <label class="ce-cost-label">
+            <input type="radio" name="ce-cost" value="50"><span>$50/credit</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="calc-section">
+        <label class="calc-label" for="compare-tuition">Compare against</label>
+        <select id="compare-tuition">
+          <option value="185" selected>RCTC — $185/credit</option>
+          <option value="510">UMR — $510/credit</option>
+          <option value="300">Minnesota State University — $300/credit</option>
+        </select>
+      </div>
+
+      <div class="calc-section">
+        <label class="calc-label">Estimated household income</label>
+        <div class="calc-radio-row" id="income-group">
+          <label class="income-label">
+            <input type="radio" name="income" value="under40"><span>Under $40K</span>
+          </label>
+          <label class="income-label" style="background:var(--blue);color:var(--white);border-color:var(--blue);">
+            <input type="radio" name="income" value="40-75" checked><span>$40K–$75K</span>
+          </label>
+          <label class="income-label">
+            <input type="radio" name="income" value="75-110"><span>$75K–$110K</span>
+          </label>
+          <label class="income-label">
+            <input type="radio" name="income" value="over110"><span>Over $110K</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="calc-section">
+        <label class="calc-label" for="pathway-select">Pathway</label>
+        <select id="pathway-select">
+          <!-- Populated by JS -->
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTS — blue band, dense DL -->
+  <div class="band-blue" id="calc-results-band">
+    <div class="medium">
+      <dl class="results-dl" id="calc-results">
+        <!-- Populated by JS -->
+      </dl>
+    </div>
+  </div>
+
+  <!-- CHART — white band -->
+  <div class="band-white">
+    <div class="medium">
+      <h2 style="text-align:center;">Cost Comparison</h2>
+      <div class="chart-wrap">
+        <canvas id="cost-chart" aria-label="Bar chart comparing pathway cost with and without concurrent enrollment" role="img"></canvas>
+      </div>
+      <p style="text-align:center;font-size:12px;margin-top:16px;max-width:500px;margin-left:auto;margin-right:auto;line-height:1.5;">
+        Concurrent enrollment reforms championed by Sen. Nelson reduced costs for thousands of Southeast Minnesota students. These estimates use current RCTC and state tuition schedules — verify with your school counselor.
+      </p>
+    </div>
+  </div>
+
+  <!-- LEGISLATIVE NOTE — gold band -->
+  <div class="legislative-note">
+    <strong>Legislative Context</strong>
+    Minnesota's concurrent enrollment system lets high school juniors and seniors earn college credits at a fraction of post-secondary cost. Sen. Nelson led reforms to concurrent enrollment practice that expanded access and improved credit recognition statewide.
+  </div>
+
+</div>
+
+<!-- ═══════════════════ MODULE 3: PRINT SHEET ═══════════════════ -->
+<div id="module-print" class="module">
+
+  <div class="band-white">
+    <div id="print-content" class="print-sheet">
+      <div id="print-select-prompt" class="select-prompt">
+        Select a pathway in the Pathway Finder, then return here to generate a counselor print sheet.
+      </div>
+      <div id="print-sheet-content" style="display:none;">
+        <h2>Pathway Summary</h2>
+
+        <div class="print-field">
+          <label for="print-title">Career Title</label>
+          <input type="text" id="print-title" value="">
+        </div>
+
+        <div class="print-field">
+          <label for="print-wage">Local Wage Range</label>
+          <input type="text" id="print-wage" value="">
+        </div>
+
+        <div class="print-field">
+          <label for="print-timeline">Timeline to Credential</label>
+          <input type="text" id="print-timeline" value="">
+        </div>
+
+        <div class="print-field">
+          <label for="print-cost">Estimated Total Cost</label>
+          <input type="text" id="print-cost" value="">
+        </div>
+
+        <table class="print-table" id="print-steps-table">
+          <thead>
+            <tr>
+              <th>Step</th>
+              <th>Institution</th>
+              <th>Credential</th>
+              <th>Duration</th>
+              <th>Est. Cost</th>
+            </tr>
+          </thead>
+          <tbody id="print-steps-body">
+          </tbody>
+        </table>
+
+        <div class="print-field">
+          <label for="print-notes">Additional Notes</label>
+          <textarea id="print-notes" rows="3"></textarea>
+        </div>
+
+        <h3 style="margin-top:24px;">Key Contacts &amp; Resources</h3>
+        <dl class="print-contacts">
+          <dt>RCTC Health Sciences Advising</dt>
+          <dd>rctc.edu — (507) 285-7210</dd>
+          <dt>UMR Admissions (Transfer Students)</dt>
+          <dd>r.umn.edu — (507) 258-8000</dd>
+          <dt>Mayo Clinic School of Health Sciences</dt>
+          <dd>college.mayo.edu — (507) 284-0208</dd>
+        </dl>
+
+        <p style="font-size:11px;margin-top:20px;border-top:1px solid var(--black);padding-top:10px;">
+          Prepared using the District 24 Pathway Explorer — a resource for Southeast Minnesota students and school counselors. Built with AI.
+        </p>
+
+        <button class="print-btn no-print" onclick="doPrint()">Print This Sheet</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  A resource for District 24 students, families, and school counselors.<br>
+  Built with AI to showcase what technology can do for Southeast Minnesota education.<br>
+  Pathway information reflects documented programs as of 2025 — verify details with individual institutions.
+</footer>
+
+<script>
+// ═══════════════════ DATA ═══════════════════
+const PATHWAYS = [
+  {
+    id: 'cna-rn',
+    title: 'Nursing Assistant (CNA) to Registered Nurse (RN)',
+    category: 'patient-care',
+    timeHorizon: '1-2',
+    timeHorizonAlt: '4',
+    wageRange: '$32–$42/hr',
+    wageNote: 'Olmsted County average for RN',
+    mayoConnection: true,
+    mayoNote: 'Direct pipeline from RCTC — Mayo Clinic is the largest RN employer in the region',
+    totalCredits: 72,
+    concurrentEligible: true,
+    totalTimeline: '3 years to RN licensure',
+    steps: [
+      { institution: 'High School (Concurrent Enrollment)', credential: 'CNA certification', duration: 'Grade 11–12', estimatedCost: '$0–$600', notes: 'Dual-credit through RCTC partnership' },
+      { institution: 'RCTC', credential: 'Associate Degree in Nursing (ADN)', duration: '2 years', estimatedCost: '~$14,000', notes: 'Full-time, Rochester campus' },
+      { institution: 'State Board', credential: 'NCLEX-RN licensure', duration: 'Exam', estimatedCost: '$200', notes: '' },
+      { institution: 'UMR or Winona State (Rochester)', credential: 'RN-to-BSN bridge (optional)', duration: '18 months online', estimatedCost: '~$12,000', notes: 'For career advancement' }
+    ]
+  },
+  {
+    id: 'mlt',
+    title: 'Medical Laboratory Technician (MLT)',
+    category: 'clinical-research',
+    timeHorizon: '1-2',
+    wageRange: '$22–$30/hr',
+    wageNote: 'Olmsted County, entry-level MLT',
+    mayoConnection: true,
+    mayoNote: 'Mayo Clinic employs hundreds of lab technicians; School of Health Sciences offers advanced clinical training',
+    totalCredits: 68,
+    concurrentEligible: true,
+    totalTimeline: '2 years post-high school',
+    steps: [
+      { institution: 'High School (Concurrent Enrollment)', credential: 'General education credits', duration: 'Grade 11–12', estimatedCost: '$0–$600', notes: 'Biology, chemistry dual-credit' },
+      { institution: 'RCTC', credential: 'AS Laboratory Science', duration: '2 years', estimatedCost: '~$13,000', notes: 'Includes clinical rotation' },
+      { institution: 'ASCP Board', credential: 'MLT Certification', duration: 'Exam', estimatedCost: '$240', notes: '' }
+    ]
+  },
+  {
+    id: 'surg-tech',
+    title: 'Surgical Technology',
+    category: 'patient-care',
+    timeHorizon: '1-2',
+    wageRange: '$30–$45/hr',
+    wageNote: 'Rochester metro area; Mayo Clinic and regional surgical centers',
+    mayoConnection: true,
+    mayoNote: 'Mayo Clinic provides surgical technology clinical rotations in Rochester; the AAS degree is earned through RCTC or affiliated colleges',
+    totalCredits: 64,
+    concurrentEligible: true,
+    totalTimeline: '2 years post-high school',
+    steps: [
+      { institution: 'High School (Concurrent Enrollment)', credential: 'General education credits', duration: 'Grade 11–12', estimatedCost: '$0–$600', notes: 'Anatomy, biology dual-credit' },
+      { institution: 'RCTC', credential: 'AAS Surgical Technology', duration: '2 years', estimatedCost: '~$13,500', notes: 'Includes clinical training hours' },
+      { institution: 'Mayo Clinic (clinical rotation)', credential: 'Clinical rotation hours', duration: 'Included in program', estimatedCost: '—', notes: 'OR experience at Mayo facilities' },
+      { institution: 'NBSTSA', credential: 'Certified Surgical Technologist', duration: 'Exam', estimatedCost: '$300', notes: '' }
+    ]
+  },
+  {
+    id: 'hit',
+    title: 'Health Information Technology / Medical Coding',
+    category: 'health-admin',
+    timeHorizon: '1-2',
+    wageRange: '$20–$28/hr',
+    wageNote: 'SE Minnesota, entry-level HIT',
+    mayoConnection: true,
+    mayoNote: 'Mayo Clinic and affiliated health systems employ large HIT/coding departments in Rochester',
+    totalCredits: 60,
+    concurrentEligible: true,
+    totalTimeline: '2 years post-high school',
+    steps: [
+      { institution: 'High School (Concurrent Enrollment)', credential: 'General education credits', duration: 'Grade 11–12', estimatedCost: '$0–$600', notes: 'Business, IT dual-credit options' },
+      { institution: 'RCTC', credential: 'AAS Health Information Technology', duration: '2 years', estimatedCost: '~$12,500', notes: 'Includes coding practicum' },
+      { institution: 'AHIMA', credential: 'RHIT or CCS Certification', duration: 'Exam', estimatedCost: '$300', notes: 'Industry-recognized credential' }
+    ]
+  },
+  {
+    id: 'rad-tech',
+    title: 'Radiologic Technology',
+    category: 'patient-care',
+    timeHorizon: '1-2',
+    timeHorizonAlt: '4',
+    wageRange: '$28–$40/hr',
+    wageNote: 'Olmsted County, certified RT',
+    mayoConnection: true,
+    mayoNote: 'Mayo Clinic School of Health Sciences operates its own radiography program in Rochester',
+    totalCredits: 72,
+    concurrentEligible: true,
+    totalTimeline: '2–3 years post-high school',
+    steps: [
+      { institution: 'High School (Concurrent Enrollment)', credential: 'General education credits', duration: 'Grade 11–12', estimatedCost: '$0–$600', notes: 'Math, science dual-credit' },
+      { institution: 'Mayo Clinic School of Health Sciences', credential: 'Certificate / AAS Radiography', duration: '2 years', estimatedCost: '~$10,000', notes: 'Competitive admission; clinical training at Mayo' },
+      { institution: 'ARRT', credential: 'Registered Technologist (RT)', duration: 'Exam', estimatedCost: '$225', notes: '' }
+    ]
+  },
+  {
+    id: 'bs-health',
+    title: 'BS Health Sciences (UMR, 4-year)',
+    category: 'clinical-research',
+    timeHorizon: '4',
+    wageRange: '$45K–$65K/yr',
+    wageNote: 'Entry-level with BS; higher with graduate work',
+    mayoConnection: true,
+    mayoNote: 'UMR\u2019s BS in Health Sciences was developed in collaboration with Mayo Clinic; graduates enter research, public health, and pre-professional tracks',
+    totalCredits: 120,
+    concurrentEligible: true,
+    totalTimeline: '4 years (less with transfer credits)',
+    steps: [
+      { institution: 'High School (Concurrent Enrollment)', credential: 'General education credits', duration: 'Grade 11–12', estimatedCost: '$0–$600', notes: 'Up to 30 transferable credits' },
+      { institution: 'RCTC (optional transfer start)', credential: 'Associate of Science', duration: '2 years', estimatedCost: '~$13,000', notes: 'Transfer pathway to UMR saves ~$12K' },
+      { institution: 'University of Minnesota Rochester', credential: 'BS Health Sciences', duration: '2–4 years', estimatedCost: '~$33,000–$50,000', notes: 'Tuition varies by residency and transfer status' }
+    ]
+  },
+  {
+    id: 'mental-health',
+    title: 'Mental Health / Social Work',
+    category: 'mental-health',
+    timeHorizon: '1-2',
+    timeHorizonAlt: '4',
+    wageRange: '$18–$26/hr',
+    wageNote: 'Certificate level; BSW opens $40K–$55K range',
+    mayoConnection: false,
+    mayoNote: 'Regional mental health providers including Zumbro Valley Health Center and Olmsted County serve growing demand',
+    totalCredits: 60,
+    concurrentEligible: true,
+    totalTimeline: '1–2 years for certificate; 4 years for BSW',
+    steps: [
+      { institution: 'High School (Concurrent Enrollment)', credential: 'General education credits', duration: 'Grade 11–12', estimatedCost: '$0–$600', notes: 'Psychology, sociology dual-credit' },
+      { institution: 'RCTC', credential: 'Human Services Certificate/AAS', duration: '1–2 years', estimatedCost: '~$8,500', notes: 'Includes practicum placement' },
+      { institution: 'Winona State (Rochester campus)', credential: 'BSW (optional)', duration: '2 additional years', estimatedCost: '~$18,000', notes: 'For licensed social work career' }
+    ]
+  },
+  {
+    id: 'biomed-tech',
+    title: 'Medical Device / Biomedical Technician',
+    category: 'med-tech',
+    timeHorizon: '1-2',
+    wageRange: '$24–$36/hr',
+    wageNote: 'Rochester-area med-tech manufacturers',
+    mayoConnection: false,
+    mayoNote: 'Med-tech spinoff companies near Mayo campus are expanding lab and manufacturing space; regional employers include Crenlo, Pemstar legacy firms, and growing device startups',
+    totalCredits: 64,
+    concurrentEligible: true,
+    totalTimeline: '2 years post-high school',
+    steps: [
+      { institution: 'High School (Concurrent Enrollment)', credential: 'General education credits', duration: 'Grade 11–12', estimatedCost: '$0–$600', notes: 'Math, electronics dual-credit' },
+      { institution: 'Area technical college', credential: 'AAS Electronics or Biomedical Technology', duration: '2 years', estimatedCost: '~$13,000', notes: 'Hands-on lab and equipment training (verify program availability with local institutions)' },
+      { institution: 'ACI', credential: 'Certified Biomedical Equipment Technician (optional)', duration: 'Exam', estimatedCost: '$350', notes: 'Enhances employability' }
+    ]
+  }
+];
+
+const LOCATION_NOTES = {
+  'rochester': 'Rochester ISD 535 offers dual-credit health science courses at John Marshall and Century High Schools through RCTC partnership.',
+  'kasson': 'Kasson-Mantorville students can access RCTC concurrent enrollment courses; check with your counselor about transportation options to Rochester campus.',
+  'byron': 'Byron High School students are eligible for RCTC concurrent enrollment; the Rochester campus is a short commute.',
+  'pine-island': 'Pine Island and Zumbrota-Mazeppa students can access RCTC concurrent enrollment. Distance may require planning — ask your counselor about online options.',
+  'stewartville': 'Stewartville students are eligible for RCTC concurrent enrollment. The Rochester campus is approximately 15 minutes away.',
+  'other': 'Most District 24 schools participate in RCTC concurrent enrollment. Contact your school counselor for specific course availability.'
+};
+
+const PELL_NOTES = {
+  'under40': 'At this income level, students typically qualify for the maximum Federal Pell Grant (~$7,395/year for 2024-25). This can cover most or all of RCTC tuition.',
+  '40-75': 'Students in this range often qualify for partial Pell Grant awards ($1,000–$5,000/year). Combined with concurrent enrollment savings, out-of-pocket costs drop substantially.',
+  '75-110': 'Pell Grant eligibility is limited at this income level, but state grants and institutional aid may be available. Concurrent enrollment savings become especially important.',
+  'over110': 'Pell Grant eligibility is unlikely, but concurrent enrollment provides direct dollar-for-dollar tuition savings. Merit scholarships may also apply.'
+};
+
+// ═══════════════════ STATE ═══════════════════
+let state = {
+  module: 'finder',
+  q1: null,
+  q2: 'all',
+  q3: 'rochester',
+  ceCredits: 12,
+  ceCost: 0,
+  compareTuition: 185,
+  income: '40-75',
+  selectedPathway: 'cna-rn',
+  printPathway: null
+};
+
+// Load from localStorage
+try {
+  const saved = JSON.parse(localStorage.getItem('nelson-pathway-tool-state'));
+  if (saved) Object.assign(state, saved);
+} catch(e) {}
+
+function saveState() {
+  try { localStorage.setItem('nelson-pathway-tool-state', JSON.stringify(state)); } catch(e) {}
+}
+
+// ═══════════════════ MODULE SWITCHING ═══════════════════
+function switchModule(mod) {
+  state.module = mod;
+  saveState();
+  document.querySelectorAll('.module').forEach(m => m.classList.remove('active', 'print-active'));
+  document.getElementById('module-' + mod).classList.add('active');
+  document.querySelectorAll('.sticky-nav button').forEach(b => {
+    b.classList.remove('active');
+    b.removeAttribute('aria-current');
+  });
+  document.getElementById('nav-' + mod).classList.add('active');
+  document.getElementById('nav-' + mod).setAttribute('aria-current', 'true');
+  if (mod === 'calc') updateCalc();
+  if (mod === 'print') updatePrintSheet();
+}
+
+// ═══════════════════ MODULE 1: PATHWAY FINDER ═══════════════════
+function filterPathways() {
+  const q1 = state.q1;
+  const q2 = state.q2;
+  let results = PATHWAYS;
+  if (q1) {
+    results = results.filter(p => p.category === q1);
+  }
+  if (q2 && q2 !== 'all') {
+    results = results.filter(p => p.timeHorizon === q2 || p.timeHorizonAlt === q2);
+  }
+  return results;
+}
+
+function renderPathways() {
+  const results = filterPathways();
+  const container = document.getElementById('pathway-results');
+  const countEl = document.getElementById('result-count');
+  countEl.textContent = results.length + ' pathway' + (results.length !== 1 ? 's' : '') + ' found';
+
+  if (results.length === 0) {
+    container.innerHTML = '<div class="no-results">No pathways match your current filters. Try broadening your selections.</div>';
+    return;
+  }
+
+  const location = state.q3;
+  const locNote = LOCATION_NOTES[location] || LOCATION_NOTES['other'];
+  let showGenomicsNote = false;
+
+  let html = '';
+  results.forEach((p, idx) => {
+    if (p.category === 'clinical-research' && !showGenomicsNote) {
+      showGenomicsNote = true;
+      html += '<div class="legislative-note" style="margin:20px 0;">';
+      html += '<strong>Legislative Context</strong>';
+      html += 'The Mayo Clinic–University of Minnesota genomics research partnership was established through legislation authored by Sen. Nelson, creating collaborative research infrastructure that supports careers in genomics and precision medicine in Rochester.';
+      html += '</div>';
+    }
+
+    html += '<div class="pathway-result">';
+    html += '<div class="pathway-title">' + p.title + '</div>';
+    html += '<div class="pathway-wage">' + p.wageRange + '</div>';
+    html += '<div style="font-size:12px;color:#666;margin-top:2px;">' + p.wageNote + '</div>';
+    if (p.mayoConnection) {
+      html += '<div class="pathway-mayo">&#9632; MAYO CLINIC CONNECTION — ' + p.mayoNote + '</div>';
+    } else {
+      html += '<div class="pathway-mayo" style="color:var(--gold);">&#9632; ' + p.mayoNote + '</div>';
+    }
+
+    // Step table — ultra dense
+    html += '<table class="step-table">';
+    html += '<thead><tr><th>Step</th><th>Institution</th><th>Duration</th><th>Est. Cost</th><th>Notes</th></tr></thead>';
+    html += '<tbody>';
+    p.steps.forEach((s, i) => {
+      html += '<tr>';
+      html += '<td>' + (i + 1) + '</td>';
+      html += '<td>' + s.institution + '<br><em style="font-size:10px;">' + s.credential + '</em></td>';
+      html += '<td>' + s.duration + '</td>';
+      html += '<td>' + s.estimatedCost + '</td>';
+      html += '<td style="font-size:11px;">' + (s.notes || '—') + '</td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+
+    // Location note
+    if (p.concurrentEligible) {
+      html += '<p style="font-size:11px;margin-top:8px;font-style:italic;">' + locNote + '</p>';
+    }
+
+    // Timeline
+    html += '<p style="font-size:13px;font-weight:700;margin-top:8px;">Total timeline: ' + p.totalTimeline + '</p>';
+
+    // Actions
+    html += '<div class="pathway-actions">';
+    html += '<button class="primary-btn" onclick="selectForCalc(\'' + p.id + '\')">See Cost Breakdown</button>';
+    html += '<button onclick="selectForPrint(\'' + p.id + '\')">Print This Pathway</button>';
+    html += '</div>';
+
+    html += '</div>';
+  });
+
+  container.innerHTML = html;
+}
+
+function selectForCalc(id) {
+  state.selectedPathway = id;
+  saveState();
+  // Update calc pathway select
+  document.getElementById('pathway-select').value = id;
+  switchModule('calc');
+}
+
+function selectForPrint(id) {
+  state.printPathway = id;
+  saveState();
+  switchModule('print');
+}
+
+// Filter event listeners
+document.querySelectorAll('input[name="q1"]').forEach(r => {
+  r.addEventListener('change', function() {
+    state.q1 = this.value;
+    saveState();
+    renderPathways();
+  });
+});
+document.querySelectorAll('input[name="q2"]').forEach(r => {
+  r.addEventListener('change', function() {
+    state.q2 = this.value;
+    saveState();
+    renderPathways();
+  });
+});
+document.getElementById('q3-select').addEventListener('change', function() {
+  state.q3 = this.value;
+  saveState();
+  renderPathways();
+});
+
+// ═══════════════════ MODULE 2: COST CALCULATOR ═══════════════════
+let costChart = null;
+
+function populatePathwaySelect() {
+  const sel = document.getElementById('pathway-select');
+  PATHWAYS.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = p.title;
+    sel.appendChild(opt);
+  });
+  sel.value = state.selectedPathway || 'cna-rn';
+}
+
+function getSelectedPathway() {
+  return PATHWAYS.find(p => p.id === (state.selectedPathway || 'cna-rn')) || PATHWAYS[0];
+}
+
+function calcSavings() {
+  const ceCredits = state.ceCredits;
+  const ceCost = state.ceCost;
+  const tuition = state.compareTuition;
+  const pathway = getSelectedPathway();
+  const totalCredits = pathway.totalCredits;
+
+  const savings = ceCredits * (tuition - ceCost);
+  const remaining = (totalCredits - ceCredits) * tuition;
+  const withoutCE = totalCredits * tuition;
+  const semestersSaved = Math.floor(ceCredits / 15);
+
+  // Monthly loan payment
+  const P = remaining;
+  const r = 0.055 / 12;
+  const n = 120;
+  let monthly = 0;
+  if (P > 0 && r > 0) {
+    monthly = P * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+  }
+
+  return { savings, remaining, withoutCE, semestersSaved, monthly, ceCredits, pathway };
+}
+
+function updateCalc() {
+  const c = calcSavings();
+  const pellNote = PELL_NOTES[state.income] || '';
+
+  // Big savings hero
+  document.getElementById('big-savings').textContent = '$' + c.savings.toLocaleString();
+
+  // Results DL
+  const dl = document.getElementById('calc-results');
+  dl.innerHTML = '';
+  dl.innerHTML += '<dt>Dollars Saved Through Concurrent Enrollment</dt><dd>$' + c.savings.toLocaleString() + '</dd>';
+  dl.innerHTML += '<dt>Semesters Saved</dt><dd>' + c.semestersSaved + '</dd>';
+  dl.innerHTML += '<dt>Estimated Remaining Degree Cost</dt><dd>$' + c.remaining.toLocaleString() + '</dd>';
+  dl.innerHTML += '<dt>Without Concurrent Enrollment</dt><dd>$' + c.withoutCE.toLocaleString() + '</dd>';
+  dl.innerHTML += '<dt>Estimated Monthly Loan Payment (5.5%, 10-yr)</dt><dd>$' + Math.round(c.monthly).toLocaleString() + '/mo</dd>';
+  dl.innerHTML += '<dt>Financial Aid Context</dt><dd style="font-family:Tahoma,Geneva,sans-serif;font-size:14px;color:var(--white);">' + pellNote + '</dd>';
+
+  // Chart
+  updateChart(c);
+}
+
+function updateChart(c) {
+  const ctx = document.getElementById('cost-chart');
+  if (!ctx) return;
+  if (typeof Chart === 'undefined') {
+    // Graceful fallback — no Chart.js
+    ctx.parentElement.innerHTML = '<div style="text-align:center;padding:20px;font-size:14px;">Chart.js not available — costs displayed above.</div>';
+    return;
+  }
+
+  if (costChart) costChart.destroy();
+
+  costChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Without Concurrent Enrollment', 'With Concurrent Enrollment'],
+      datasets: [{
+        data: [c.withoutCE, c.remaining],
+        backgroundColor: ['#1C1C1C', '#2E6DA4'],
+        borderWidth: 0,
+        barPercentage: 0.6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(context) { return '$' + context.parsed.y.toLocaleString(); }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: function(value) { return '$' + value.toLocaleString(); },
+            font: { family: "'Lucida Console', Monaco, monospace", size: 11 },
+            color: '#1C1C1C'
+          },
+          grid: { color: '#eee' }
+        },
+        x: {
+          ticks: {
+            font: { family: "Tahoma, Geneva, sans-serif", size: 11 },
+            color: '#1C1C1C'
+          },
+          grid: { display: false }
+        }
+      }
+    },
+    plugins: [{
+      afterDraw: function(chart) {
+        const ctx2 = chart.ctx;
+        chart.data.datasets[0].data.forEach(function(value, index) {
+          const meta = chart.getDatasetMeta(0);
+          const bar = meta.data[index];
+          ctx2.save();
+          ctx2.font = "bold 14px 'Lucida Console', Monaco, monospace";
+          ctx2.fillStyle = '#1C1C1C';
+          ctx2.textAlign = 'center';
+          ctx2.fillText('$' + value.toLocaleString(), bar.x, bar.y - 8);
+          ctx2.restore();
+        });
+      }
+    }]
+  });
+}
+
+// Calc event listeners
+document.getElementById('ce-credits').addEventListener('input', function() {
+  state.ceCredits = parseInt(this.value);
+  document.getElementById('ce-credits-display').textContent = this.value + ' credits';
+  saveState();
+  updateCalc();
+});
+
+document.querySelectorAll('input[name="ce-cost"]').forEach(r => {
+  r.addEventListener('change', function() {
+    state.ceCost = parseInt(this.value);
+    saveState();
+    updateCalc();
+    // Style radio labels
+    document.querySelectorAll('.ce-cost-label').forEach(l => {
+      l.style.background = '';
+      l.style.color = '';
+      l.style.borderColor = 'var(--black)';
+    });
+    this.closest('label').style.background = 'var(--blue)';
+    this.closest('label').style.color = 'var(--white)';
+    this.closest('label').style.borderColor = 'var(--blue)';
+  });
+});
+
+document.getElementById('compare-tuition').addEventListener('change', function() {
+  state.compareTuition = parseInt(this.value);
+  saveState();
+  updateCalc();
+});
+
+document.querySelectorAll('input[name="income"]').forEach(r => {
+  r.addEventListener('change', function() {
+    state.income = this.value;
+    saveState();
+    updateCalc();
+    document.querySelectorAll('.income-label').forEach(l => {
+      l.style.background = '';
+      l.style.color = '';
+      l.style.borderColor = 'var(--black)';
+    });
+    this.closest('label').style.background = 'var(--blue)';
+    this.closest('label').style.color = 'var(--white)';
+    this.closest('label').style.borderColor = 'var(--blue)';
+  });
+});
+
+document.getElementById('pathway-select').addEventListener('change', function() {
+  state.selectedPathway = this.value;
+  saveState();
+  updateCalc();
+});
+
+// ═══════════════════ MODULE 3: PRINT SHEET ═══════════════════
+function updatePrintSheet() {
+  const id = state.printPathway || state.selectedPathway || 'cna-rn';
+  const pathway = PATHWAYS.find(p => p.id === id);
+  if (!pathway) {
+    document.getElementById('print-select-prompt').style.display = '';
+    document.getElementById('print-sheet-content').style.display = 'none';
+    return;
+  }
+
+  document.getElementById('print-select-prompt').style.display = 'none';
+  document.getElementById('print-sheet-content').style.display = '';
+
+  document.getElementById('print-title').value = pathway.title;
+  document.getElementById('print-wage').value = pathway.wageRange + ' (' + pathway.wageNote + ')';
+  document.getElementById('print-timeline').value = pathway.totalTimeline;
+
+  // Cost from calc
+  const c = calcSavings();
+  document.getElementById('print-cost').value = '$' + c.remaining.toLocaleString() + ' estimated (with ' + state.ceCredits + ' concurrent enrollment credits)';
+
+  // Steps table
+  const tbody = document.getElementById('print-steps-body');
+  tbody.innerHTML = '';
+  pathway.steps.forEach((s, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td>' + (i + 1) + '</td><td>' + s.institution + '</td><td>' + s.credential + '</td><td>' + s.duration + '</td><td>' + s.estimatedCost + '</td>';
+    tbody.appendChild(tr);
+  });
+
+  // Notes
+  let notes = '';
+  if (pathway.mayoConnection) notes += 'Mayo Clinic connection: ' + pathway.mayoNote + '\n';
+  notes += LOCATION_NOTES[state.q3 || 'rochester'];
+  document.getElementById('print-notes').value = notes;
+}
+
+function doPrint() {
+  document.querySelectorAll('.module').forEach(m => m.classList.remove('print-active'));
+  document.getElementById('module-print').classList.add('print-active');
+  window.print();
+}
+
+// ═══════════════════ INITIALIZATION ═══════════════════
+function init() {
+  // Restore state to UI
+  if (state.q1) {
+    const r = document.querySelector('input[name="q1"][value="' + state.q1 + '"]');
+    if (r) r.checked = true;
+  }
+  const r2 = document.querySelector('input[name="q2"][value="' + state.q2 + '"]');
+  if (r2) r2.checked = true;
+  document.getElementById('q3-select').value = state.q3 || 'rochester';
+
+  document.getElementById('ce-credits').value = state.ceCredits;
+  document.getElementById('ce-credits-display').textContent = state.ceCredits + ' credits';
+
+  // Restore CE cost radio
+  const ceCostRadio = document.querySelector('input[name="ce-cost"][value="' + state.ceCost + '"]');
+  if (ceCostRadio) {
+    ceCostRadio.checked = true;
+    document.querySelectorAll('.ce-cost-label').forEach(l => {
+      l.style.background = '';
+      l.style.color = '';
+      l.style.borderColor = 'var(--black)';
+    });
+    ceCostRadio.closest('label').style.background = 'var(--blue)';
+    ceCostRadio.closest('label').style.color = 'var(--white)';
+    ceCostRadio.closest('label').style.borderColor = 'var(--blue)';
+  }
+
+  document.getElementById('compare-tuition').value = state.compareTuition;
+
+  // Restore income radio
+  const incomeRadio = document.querySelector('input[name="income"][value="' + state.income + '"]');
+  if (incomeRadio) {
+    incomeRadio.checked = true;
+    document.querySelectorAll('.income-label').forEach(l => {
+      l.style.background = '';
+      l.style.color = '';
+      l.style.borderColor = 'var(--black)';
+    });
+    incomeRadio.closest('label').style.background = 'var(--blue)';
+    incomeRadio.closest('label').style.color = 'var(--white)';
+    incomeRadio.closest('label').style.borderColor = 'var(--blue)';
+  }
+
+  populatePathwaySelect();
+  renderPathways();
+
+  // Switch to saved module
+  if (state.module && state.module !== 'finder') {
+    switchModule(state.module);
+  }
+}
+
+init();
+</script>
+</body>
+</html>

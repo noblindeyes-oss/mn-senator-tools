@@ -1,0 +1,2241 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>District 66 — Clare Oumou Verbeten</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   BASE RESET & TOKENS
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* PRO PALETTE — fairground warmth */
+  --pro-bg:        #FAF6EE;
+  --pro-paper:     #FFF8EC;
+  --pro-red:       #C8222A;
+  --pro-red-dark:  #9A1820;
+  --pro-amber:     #E8A020;
+  --pro-amber-lt:  #F5CC78;
+  --pro-ink:       #1C1208;
+  --pro-gray:      #6B5E4A;
+  --pro-rule:      #D4C8B0;
+  --pro-stamp:     #C8222A;
+
+  /* OPPO PALETTE — judicial cold */
+  --oppo-bg:       #F0F2F5;
+  --oppo-paper:    #FFFFFF;
+  --oppo-navy:     #0D1B2A;
+  --oppo-blue:     #1A3A5C;
+  --oppo-cold:     #2C4A6E;
+  --oppo-ink:      #0D1B2A;
+  --oppo-gray:     #4A5568;
+  --oppo-lt-gray:  #8A9BB0;
+  --oppo-rule:     #C8D4E0;
+  --oppo-red:      #9B1C1C;
+  --oppo-stamp:    #9B1C1C;
+
+  font-size: 16px;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'IBM Plex Mono', monospace;
+  background: var(--pro-bg);
+  color: var(--pro-ink);
+  transition: background 0.22s ease, color 0.22s ease;
+  min-width: 320px;
+}
+
+body.mode-oppo {
+  background: var(--oppo-bg);
+  color: var(--oppo-ink);
+}
+
+/* ============================================================
+   CONTENT VISIBILITY
+   ============================================================ */
+.pro-content  { display: block; }
+.oppo-content { display: none;  }
+
+body.mode-oppo .pro-content  { display: none;  }
+body.mode-oppo .oppo-content { display: block; }
+
+/* ============================================================
+   FLIP TOGGLE BUTTON
+   ============================================================ */
+#flip-btn {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 9999;
+  border: none;
+  cursor: pointer;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 12px 20px 12px 16px;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.22);
+  transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+  line-height: 1;
+}
+
+#flip-btn .btn-icon {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+/* Pro mode: button shows oppo teaser */
+body:not(.mode-oppo) #flip-btn {
+  background: var(--oppo-navy);
+  color: #FFFFFF;
+}
+body:not(.mode-oppo) #flip-btn:hover {
+  background: var(--oppo-blue);
+  box-shadow: 0 6px 28px rgba(0,0,0,0.32);
+}
+
+/* Oppo mode: button shows pro teaser */
+body.mode-oppo #flip-btn {
+  background: var(--pro-red);
+  color: #FFFFFF;
+}
+body.mode-oppo #flip-btn:hover {
+  background: var(--pro-red-dark);
+  box-shadow: 0 6px 28px rgba(0,0,0,0.32);
+}
+
+/* ============================================================
+   PAGE FADE
+   ============================================================ */
+.page-wrap {
+  opacity: 1;
+  transition: opacity 0.22s ease;
+}
+.page-wrap.fading {
+  opacity: 0;
+}
+
+/* ============================================================
+   SHARED UTILITY
+   ============================================================ */
+.rule-h {
+  border: none;
+  border-top: 2px solid;
+  margin: 0;
+}
+
+sup {
+  font-size: 0.6em;
+  vertical-align: super;
+  opacity: 0.7;
+}
+
+/* ============================================================
+   ===  PRO SITE  ===
+   ============================================================ */
+
+/* --- PRO HEADER --- */
+.pro-header {
+  background: var(--pro-red);
+  color: #FFF8EC;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.pro-header-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
+.pro-receipt-top {
+  border-bottom: 3px solid rgba(255,255,255,0.15);
+  padding: 18px 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.pro-receipt-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.78;
+}
+
+.pro-receipt-num {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  opacity: 0.6;
+}
+
+.pro-hero {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 40px;
+  align-items: center;
+  padding: 48px 0 52px;
+}
+
+@media (max-width: 700px) {
+  .pro-hero { grid-template-columns: 1fr; gap: 24px; }
+}
+
+.pro-hero-text {}
+
+.pro-district-tag {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.72;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.pro-name {
+  font-family: 'Oswald', sans-serif;
+  font-size: clamp(2.4rem, 5vw, 4.2rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: #FFF8EC;
+  margin-bottom: 10px;
+}
+
+.pro-name span {
+  display: block;
+  font-weight: 400;
+  font-size: 0.72em;
+  letter-spacing: 0.04em;
+  opacity: 0.82;
+}
+
+.pro-tagline {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: clamp(0.9rem, 1.6vw, 1.05rem);
+  font-weight: 400;
+  line-height: 1.6;
+  opacity: 0.88;
+  max-width: 540px;
+  margin-top: 18px;
+  border-left: 3px solid var(--pro-amber);
+  padding-left: 16px;
+}
+
+/* Senator photo — pro */
+.pro-photo-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.pro-photo {
+  width: 200px;
+  height: 240px;
+  object-fit: cover;
+  object-position: center 15%;
+  display: block;
+  filter: sepia(0.12) brightness(1.04) contrast(1.05);
+  border: 4px solid rgba(255,255,255,0.18);
+}
+
+.pro-photo-placeholder {
+  width: 200px;
+  height: 240px;
+  background: rgba(255,255,255,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  border: 2px dashed rgba(255,255,255,0.3);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.5);
+  text-align: center;
+  padding: 16px;
+}
+
+.pro-photo-caption {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-align: center;
+  margin-top: 6px;
+  opacity: 0.5;
+}
+
+/* --- PRO INVOICE BAND --- */
+.pro-invoice-band {
+  background: var(--pro-amber);
+  color: var(--pro-ink);
+  padding: 14px 32px;
+}
+
+.pro-invoice-band-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.pro-invoice-band-label {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.pro-invoice-band-sub {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  opacity: 0.75;
+}
+
+/* --- PRO MAIN CONTENT --- */
+.pro-main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 56px 32px 0;
+}
+
+/* Stats Row */
+.pro-stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  background: var(--pro-rule);
+  border: 2px solid var(--pro-rule);
+  margin-bottom: 56px;
+}
+
+@media (max-width: 700px) {
+  .pro-stats-row { grid-template-columns: 1fr; }
+}
+
+.pro-stat-card {
+  background: var(--pro-paper);
+  padding: 28px 24px 24px;
+  position: relative;
+}
+
+.pro-stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--pro-red);
+}
+
+.pro-stat-number {
+  font-family: 'Oswald', sans-serif;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 700;
+  color: var(--pro-red);
+  line-height: 1;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.pro-stat-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--pro-gray);
+  line-height: 1.5;
+  display: block;
+}
+
+.pro-stat-src {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--pro-rule);
+  margin-top: 10px;
+  display: block;
+  color: #A09080;
+}
+
+/* Bill Section */
+.pro-bill-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  margin-bottom: 56px;
+  align-items: start;
+}
+
+@media (max-width: 800px) {
+  .pro-bill-section { grid-template-columns: 1fr; gap: 32px; }
+}
+
+.pro-section-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--pro-gray);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pro-section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--pro-rule);
+}
+
+.pro-section-head {
+  font-family: 'Oswald', sans-serif;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  font-weight: 600;
+  color: var(--pro-ink);
+  line-height: 1.15;
+  margin-bottom: 16px;
+}
+
+.pro-body {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.88rem;
+  line-height: 1.75;
+  color: var(--pro-ink);
+  margin-bottom: 16px;
+}
+
+/* Bill Receipt Card */
+.pro-bill-card {
+  background: var(--pro-paper);
+  border: 2px solid var(--pro-rule);
+  border-top: 5px solid var(--pro-red);
+  padding: 28px 24px;
+}
+
+.pro-bill-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pro-bill-number {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--pro-red);
+  letter-spacing: 0.02em;
+}
+
+.pro-bill-session {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--pro-gray);
+  background: var(--pro-bg);
+  padding: 3px 8px;
+  border: 1px solid var(--pro-rule);
+}
+
+.pro-bill-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  color: var(--pro-gray);
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--pro-rule);
+}
+
+.pro-bill-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 0;
+  border-bottom: 1px dotted var(--pro-rule);
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+
+.pro-bill-row-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--pro-gray);
+  letter-spacing: 0.05em;
+}
+
+.pro-bill-row-value {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--pro-ink);
+  text-align: right;
+}
+
+/* Progress Bar */
+.pro-progress-section {
+  margin: 28px 0 0;
+}
+
+.pro-progress-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pro-gray);
+  margin-bottom: 10px;
+}
+
+.pro-progress-bar-track {
+  background: var(--pro-rule);
+  height: 8px;
+  border-radius: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.pro-progress-bar-fill {
+  height: 100%;
+  background: var(--pro-amber);
+  width: 0%;
+  transition: width 1.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pro-progress-stages {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.pro-progress-stage {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pro-gray);
+  text-align: center;
+  flex: 1;
+}
+
+.pro-progress-stage.active {
+  color: var(--pro-red);
+  font-weight: 600;
+}
+
+/* Pull Quote */
+.pro-pullquote {
+  background: var(--pro-red);
+  color: #FFF8EC;
+  padding: 36px 40px;
+  margin-bottom: 56px;
+  position: relative;
+}
+
+.pro-pullquote::before {
+  content: '"';
+  font-family: 'Oswald', sans-serif;
+  font-size: 7rem;
+  line-height: 0.8;
+  position: absolute;
+  top: 20px;
+  left: 28px;
+  opacity: 0.14;
+  font-weight: 700;
+}
+
+.pro-pullquote-text {
+  font-family: 'Oswald', sans-serif;
+  font-size: clamp(1.2rem, 2.4vw, 1.65rem);
+  font-weight: 400;
+  line-height: 1.45;
+  position: relative;
+  z-index: 1;
+  max-width: 760px;
+}
+
+.pro-pullquote-attr {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.65;
+  margin-top: 16px;
+  display: block;
+}
+
+/* District Visual */
+.pro-district-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  margin-bottom: 56px;
+  align-items: start;
+}
+
+@media (max-width: 800px) {
+  .pro-district-section { grid-template-columns: 1fr; gap: 32px; }
+}
+
+.pro-district-image-wrap {
+  position: relative;
+  background: var(--pro-rule);
+  overflow: hidden;
+}
+
+.pro-district-image {
+  width: 100%;
+  height: 280px;
+  object-fit: cover;
+  display: block;
+  filter: sepia(0.1) saturate(1.1);
+}
+
+.pro-district-caption {
+  background: var(--pro-ink);
+  color: var(--pro-paper);
+  padding: 10px 14px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+}
+
+/* Fair Cost Table */
+.pro-cost-table {
+  border: 2px solid var(--pro-rule);
+  background: var(--pro-paper);
+  overflow: hidden;
+}
+
+.pro-cost-table-header {
+  background: var(--pro-ink);
+  color: var(--pro-paper);
+  padding: 12px 18px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.pro-cost-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--pro-rule);
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.pro-cost-row:last-child { border-bottom: none; }
+
+.pro-cost-item {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.78rem;
+  color: var(--pro-gray);
+}
+
+.pro-cost-amt {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--pro-ink);
+}
+
+.pro-cost-total-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: var(--pro-amber-lt);
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.pro-cost-total-label {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--pro-ink);
+  letter-spacing: 0.04em;
+}
+
+.pro-cost-total-amt {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--pro-red);
+}
+
+/* --- PRO RECORD SECTION --- */
+.pro-record-section {
+  margin-bottom: 56px;
+}
+
+.pro-record-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  background: var(--pro-rule);
+  border: 2px solid var(--pro-rule);
+  margin-top: 20px;
+}
+
+@media (max-width: 700px) {
+  .pro-record-grid { grid-template-columns: 1fr; }
+}
+
+.pro-record-card {
+  background: var(--pro-paper);
+  padding: 22px 20px;
+}
+
+.pro-record-tag {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--pro-red);
+  margin-bottom: 8px;
+  display: block;
+}
+
+.pro-record-headline {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--pro-ink);
+  line-height: 1.25;
+  margin-bottom: 8px;
+}
+
+.pro-record-body {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.76rem;
+  line-height: 1.65;
+  color: var(--pro-gray);
+}
+
+/* --- PRO FOOTER --- */
+.pro-footer {
+  background: var(--pro-ink);
+  color: var(--pro-paper);
+  padding: 40px 32px;
+  margin-top: 40px;
+}
+
+.pro-footer-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.pro-footer-head {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.55;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.12);
+}
+
+.pro-footnote {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  line-height: 1.8;
+  color: rgba(255,255,255,0.55);
+  counter-reset: footnote;
+}
+
+.pro-footnote ol {
+  padding-left: 0;
+  list-style: none;
+}
+
+.pro-footnote ol li {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.pro-footnote ol li .fn-num {
+  flex-shrink: 0;
+  color: var(--pro-amber);
+  font-weight: 600;
+}
+
+/* ============================================================
+   ===  OPPO SITE  ===
+   ============================================================ */
+
+/* --- OPPO HEADER --- */
+.oppo-header {
+  background: var(--oppo-navy);
+  color: #FFFFFF;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.oppo-header-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
+.oppo-case-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.oppo-case-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--oppo-lt-gray);
+}
+
+.oppo-case-id {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
+  color: var(--oppo-lt-gray);
+}
+
+.oppo-hero {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 40px;
+  align-items: center;
+  padding: 48px 0 52px;
+}
+
+@media (max-width: 700px) {
+  .oppo-hero { grid-template-columns: 1fr; gap: 24px; }
+}
+
+.oppo-district-tag {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--oppo-lt-gray);
+  margin-bottom: 10px;
+  display: block;
+}
+
+.oppo-name {
+  font-family: 'Oswald', sans-serif;
+  font-size: clamp(2rem, 4.5vw, 3.6rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: #FFFFFF;
+  margin-bottom: 6px;
+}
+
+.oppo-name span {
+  display: block;
+  font-weight: 400;
+  font-size: 0.68em;
+  color: var(--oppo-lt-gray);
+  letter-spacing: 0.04em;
+}
+
+.oppo-charge-head {
+  font-family: 'Oswald', sans-serif;
+  font-size: clamp(1rem, 2.2vw, 1.35rem);
+  font-weight: 500;
+  color: #FFFFFF;
+  margin-top: 20px;
+  line-height: 1.35;
+  max-width: 600px;
+  border-left: 3px solid #9B1C1C;
+  padding-left: 16px;
+}
+
+/* Oppo photo */
+.oppo-photo-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.oppo-photo {
+  width: 180px;
+  height: 220px;
+  object-fit: cover;
+  object-position: center 15%;
+  display: block;
+  filter: grayscale(100%) contrast(1.2) brightness(0.85);
+  border: 3px solid rgba(255,255,255,0.08);
+}
+
+.oppo-photo-placeholder {
+  width: 180px;
+  height: 220px;
+  background: rgba(255,255,255,0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px dashed rgba(255,255,255,0.15);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  color: rgba(255,255,255,0.3);
+  text-align: center;
+  padding: 16px;
+}
+
+.oppo-photo-caption {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-align: center;
+  margin-top: 6px;
+  color: var(--oppo-lt-gray);
+}
+
+/* ENACTED stamp */
+.oppo-stamp {
+  display: inline-block;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--oppo-stamp);
+  border: 3px solid var(--oppo-stamp);
+  padding: 5px 14px;
+  transform: rotate(-12deg);
+  transform-origin: center;
+  margin-top: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  animation: stamp-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation-delay: 0.3s;
+  opacity: 0;
+}
+
+@keyframes stamp-in {
+  0%   { opacity: 0; transform: rotate(-14deg) scale(1.4); }
+  60%  { opacity: 1; transform: rotate(-11deg) scale(0.96); }
+  100% { opacity: 1; transform: rotate(-12deg) scale(1); }
+}
+
+body.mode-oppo .oppo-stamp {
+  animation: stamp-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation-delay: 0.1s;
+}
+
+/* Oppo cold bar */
+.oppo-cold-bar {
+  background: #9B1C1C;
+  color: #FFFFFF;
+  padding: 14px 32px;
+}
+
+.oppo-cold-bar-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.oppo-cold-bar-text {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+}
+
+.oppo-cold-bar-sub {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  opacity: 0.72;
+  letter-spacing: 0.05em;
+}
+
+/* --- OPPO MAIN CONTENT --- */
+.oppo-main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 56px 32px 0;
+}
+
+/* Oppo section label */
+.oppo-section-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--oppo-gray);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.oppo-section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--oppo-rule);
+}
+
+.oppo-section-head {
+  font-family: 'Oswald', sans-serif;
+  font-size: clamp(1.4rem, 3vw, 2.1rem);
+  font-weight: 600;
+  color: var(--oppo-ink);
+  line-height: 1.15;
+  margin-bottom: 16px;
+}
+
+.oppo-body {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.88rem;
+  line-height: 1.75;
+  color: var(--oppo-gray);
+  margin-bottom: 16px;
+}
+
+/* Sequence / Timeline */
+.oppo-sequence {
+  margin-bottom: 56px;
+}
+
+.oppo-sequence-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+  margin-top: 24px;
+  border-left: 3px solid var(--oppo-rule);
+  padding-left: 28px;
+  position: relative;
+}
+
+.oppo-seq-item {
+  position: relative;
+  padding-bottom: 32px;
+}
+
+.oppo-seq-item:last-child { padding-bottom: 0; }
+
+.oppo-seq-item::before {
+  content: '';
+  position: absolute;
+  left: -36px;
+  top: 6px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--oppo-rule);
+  border: 2px solid var(--oppo-navy);
+  transition: background 0.2s;
+}
+
+.oppo-seq-item.key::before {
+  background: var(--oppo-red);
+  border-color: var(--oppo-red);
+}
+
+.oppo-seq-date {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--oppo-lt-gray);
+  margin-bottom: 4px;
+}
+
+.oppo-seq-head {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--oppo-ink);
+  margin-bottom: 6px;
+  line-height: 1.2;
+}
+
+.oppo-seq-body {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.8rem;
+  line-height: 1.65;
+  color: var(--oppo-gray);
+}
+
+/* Evidence Cards */
+.oppo-evidence-section {
+  margin-bottom: 56px;
+}
+
+.oppo-evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 24px;
+}
+
+@media (max-width: 800px) {
+  .oppo-evidence-grid { grid-template-columns: 1fr; }
+}
+
+.oppo-ev-card {
+  background: var(--oppo-paper);
+  border: 1px solid var(--oppo-rule);
+  border-top: 4px solid var(--oppo-navy);
+  padding: 24px 20px;
+  position: relative;
+  overflow: hidden;
+  cursor: default;
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+
+.oppo-ev-card:hover {
+  border-top-color: var(--oppo-red);
+  box-shadow: 0 4px 20px rgba(155,28,28,0.12);
+}
+
+.oppo-ev-card-tag {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--oppo-lt-gray);
+  margin-bottom: 10px;
+  display: block;
+}
+
+.oppo-ev-card-head {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--oppo-ink);
+  line-height: 1.25;
+  margin-bottom: 10px;
+}
+
+/* Redaction bars */
+.oppo-ev-body {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.76rem;
+  line-height: 1.65;
+  color: var(--oppo-gray);
+  position: relative;
+}
+
+.oppo-redact {
+  display: inline-block;
+  background: var(--oppo-ink);
+  color: transparent;
+  border-radius: 1px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.22s, color 0.22s;
+  padding: 0 2px;
+}
+
+.oppo-redact:hover,
+.oppo-ev-card:hover .oppo-redact {
+  background: var(--oppo-red);
+  color: #FFFFFF;
+}
+
+.oppo-ev-footnote {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--oppo-lt-gray);
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px dotted var(--oppo-rule);
+}
+
+/* Proof Block / Core Document */
+.oppo-proof-section {
+  margin-bottom: 56px;
+}
+
+.oppo-proof-block {
+  background: var(--oppo-paper);
+  border: 1px solid var(--oppo-rule);
+  border-left: 5px solid var(--oppo-red);
+  padding: 0;
+  overflow: hidden;
+  margin-top: 24px;
+}
+
+.oppo-proof-header {
+  background: var(--oppo-navy);
+  color: #FFFFFF;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.oppo-proof-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.oppo-proof-status {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  background: var(--oppo-red);
+  padding: 3px 10px;
+  text-transform: uppercase;
+}
+
+.oppo-proof-body {
+  padding: 24px 24px 20px;
+}
+
+.oppo-proof-text {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.84rem;
+  line-height: 1.75;
+  color: var(--oppo-ink);
+  border-left: 2px solid var(--oppo-rule);
+  padding-left: 16px;
+  margin-bottom: 20px;
+}
+
+.oppo-proof-meta {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 600px) {
+  .oppo-proof-meta { grid-template-columns: 1fr; }
+}
+
+.oppo-proof-meta-item {
+  background: var(--oppo-bg);
+  padding: 12px 14px;
+  border: 1px solid var(--oppo-rule);
+}
+
+.oppo-proof-meta-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--oppo-lt-gray);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.oppo-proof-meta-value {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--oppo-ink);
+}
+
+/* Oppo stats row */
+.oppo-stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  background: var(--oppo-rule);
+  border: 2px solid var(--oppo-rule);
+  margin-bottom: 56px;
+}
+
+@media (max-width: 700px) {
+  .oppo-stats-row { grid-template-columns: 1fr; }
+}
+
+.oppo-stat-card {
+  background: var(--oppo-paper);
+  padding: 28px 24px 24px;
+  position: relative;
+}
+
+.oppo-stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--oppo-navy);
+}
+
+.oppo-stat-number {
+  font-family: 'Oswald', sans-serif;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 700;
+  color: var(--oppo-red);
+  line-height: 1;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.oppo-stat-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--oppo-gray);
+  line-height: 1.5;
+  display: block;
+}
+
+.oppo-stat-src {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.6rem;
+  margin-top: 10px;
+  display: block;
+  color: var(--oppo-lt-gray);
+}
+
+/* --- OPPO FOOTER --- */
+.oppo-footer {
+  background: var(--oppo-navy);
+  color: #FFFFFF;
+  padding: 40px 32px;
+  margin-top: 40px;
+}
+
+.oppo-footer-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.oppo-footer-head {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.45;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.oppo-footnote {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  line-height: 1.8;
+  color: rgba(255,255,255,0.45);
+}
+
+.oppo-footnote ol {
+  padding-left: 0;
+  list-style: none;
+}
+
+.oppo-footnote ol li {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.oppo-footnote ol li .fn-num {
+  flex-shrink: 0;
+  color: #9B1C1C;
+  font-weight: 600;
+}
+
+/* ============================================================
+   RESPONSIVE PADDING
+   ============================================================ */
+@media (max-width: 600px) {
+  .pro-header-inner,
+  .oppo-header-inner,
+  .pro-main,
+  .oppo-main,
+  .pro-footer,
+  .oppo-footer,
+  .pro-invoice-band,
+  .oppo-cold-bar { padding-left: 18px; padding-right: 18px; }
+
+  .pro-pullquote { padding: 28px 22px; }
+
+  #flip-btn { bottom: 16px; right: 16px; }
+}
+
+/* ============================================================
+   TYPEWRITER EFFECT
+   ============================================================ */
+.typewriter-text {
+  overflow: hidden;
+  white-space: nowrap;
+  border-right: 2px solid rgba(255,255,255,0.6);
+  width: 0;
+  animation: typewriter 1.2s steps(40, end) 0.3s forwards,
+             cursor-blink 0.75s step-end 1.5s 4;
+}
+
+@keyframes typewriter {
+  from { width: 0; }
+  to   { width: 100%; }
+}
+
+@keyframes cursor-blink {
+  0%, 100% { border-color: rgba(255,255,255,0.6); }
+  50%       { border-color: transparent; }
+}
+
+/* counter animation */
+.count-up { font-variant-numeric: tabular-nums; }
+
+</style>
+</head>
+
+<body>
+
+<!-- ============================================================
+     FLIP BUTTON
+     ============================================================ -->
+<button id="flip-btn" aria-label="Switch to opposition view">
+  <span class="btn-icon">⚖</span>
+  <span id="flip-label">View Accountability File</span>
+</button>
+
+<!-- ============================================================
+     PAGE WRAPPER (for fade transition)
+     ============================================================ -->
+<div class="page-wrap" id="page-wrap">
+
+<!-- ============================================================
+  ██████╗ ██████╗  ██████╗     ███████╗██╗████████╗███████╗
+  ██╔══██╗██╔══██╗██╔═══██╗    ██╔════╝██║╚══██╔══╝██╔════╝
+  ██████╔╝██████╔╝██║   ██║    ███████╗██║   ██║   █████╗
+  ██╔═══╝ ██╔══██╗██║   ██║    ╚════██║██║   ██║   ██╔══╝
+  ██║     ██║  ██║╚██████╔╝    ███████║██║   ██║   ███████╗
+  ╚═╝     ╚═╝  ╚═╝ ╚═════╝     ╚══════╝╚═╝   ╚═╝   ╚══════╝
+     ============================================================ -->
+<div class="pro-content">
+
+  <!-- HEADER -->
+  <header class="pro-header">
+    <div class="pro-header-inner">
+
+      <div class="pro-receipt-top">
+        <span class="pro-receipt-label">Minnesota Senate — District 66 — St. Paul / Falcon Heights</span>
+        <span class="pro-receipt-num">Session 93rd Legislature &nbsp;|&nbsp; SF 3068</span>
+      </div>
+
+      <div class="pro-hero">
+        <div class="pro-hero-text">
+          <span class="pro-district-tag">District 66 &nbsp;·&nbsp; DFL &nbsp;·&nbsp; St. Paul</span>
+          <h1 class="pro-name">
+            Clare Oumou Verbeten
+            <span>Minnesota State Senator</span>
+          </h1>
+          <p class="pro-tagline">
+            The State Fair draws a million people through St. Paul and Falcon Heights every August. For decades, local taxpayers picked up the bill. Verbeten filed the bill to change that.
+          </p>
+        </div>
+        <div class="pro-photo-wrap">
+          <img
+            class="pro-photo"
+            src="https://www.senate.mn/graphics/66OumouVerbeten.jpg"
+            alt="Senator Clare Oumou Verbeten"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+          >
+          <div class="pro-photo-placeholder" style="display:none;">
+            <span style="font-size:1.4rem;">66</span>
+            <span>Clare Oumou Verbeten</span>
+            <span>District 66</span>
+          </div>
+          <p class="pro-photo-caption">Sen. Verbeten &nbsp;·&nbsp; District 66</p>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- INVOICE BAND -->
+  <div class="pro-invoice-band">
+    <div class="pro-invoice-band-inner">
+      <span class="pro-invoice-band-label">The Fair Bill: Making the State Pay Its Share</span>
+      <span class="pro-invoice-band-sub">SF 3068 &nbsp;·&nbsp; 93rd Legislature &nbsp;·&nbsp; Chief Author: Verbeten</span>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <main class="pro-main">
+
+    <!-- STATS ROW -->
+    <div class="pro-stats-row">
+      <div class="pro-stat-card">
+        <span class="pro-stat-number count-up" data-target="12">0</span>
+        <span class="pro-stat-label">Days of the State Fair<br>each year</span>
+        <span class="pro-stat-src">Src: Minnesota State Fair schedule</span>
+      </div>
+      <div class="pro-stat-card">
+        <span class="pro-stat-number count-up" data-target="2">0</span>
+        <span class="pro-stat-label">Cities bearing<br>host-city costs<br>St. Paul + Falcon Heights</span>
+        <span class="pro-stat-src">Src: SF 3068 bill text, 2024</span>
+      </div>
+      <div class="pro-stat-card">
+        <span class="pro-stat-number">$0</span>
+        <span class="pro-stat-label">Previously reimbursed<br>to host cities<br>by State Ag Society</span>
+        <span class="pro-stat-src">Src: Falcon Heights State Fair Task Force; Star Tribune, 2023</span>
+      </div>
+    </div>
+
+    <!-- BILL SECTION -->
+    <div class="pro-bill-section">
+      <div>
+        <p class="pro-section-label">The Problem</p>
+        <h2 class="pro-section-head">The Fair Makes Money. The Neighbors Pay the Bills.</h2>
+        <p class="pro-body">
+          Every August, 1.7 million people move through 322 acres straddling St. Paul and Falcon Heights. They fill the streets, strain the sewer mains, and wear down the asphalt. Police work overtime. Public works crews repair what the traffic breaks. City budgets absorb it all.
+        </p>
+        <p class="pro-body">
+          The State Agricultural Society — the government body that runs the fairgrounds — kept that money. The host cities got nothing back. Falcon Heights eventually tried charging a $25 street-parking fee just to recoup a fraction of what the fair costs the city each year.<sup>1</sup>
+        </p>
+        <p class="pro-body">
+          Verbeten introduced SF 3068 to end that arrangement. The bill requires the State Agricultural Society to reimburse St. Paul and Falcon Heights for documented expenses tied directly to fairgrounds operations. The cost of hosting the state's biggest event should fall on the event — not on the people who live next to it.<sup>2</sup>
+        </p>
+      </div>
+      <div>
+        <p class="pro-section-label">The Bill</p>
+        <div class="pro-bill-card">
+          <div class="pro-bill-header">
+            <span class="pro-bill-number">SF 3068</span>
+            <span class="pro-bill-session">93rd Legislature</span>
+          </div>
+          <p class="pro-bill-title">
+            A bill for an act relating to agriculture; requiring the State Agricultural Society to reimburse the cities of St. Paul and Falcon Heights for certain expenses.
+          </p>
+          <div class="pro-bill-row">
+            <span class="pro-bill-row-label">Chief Author</span>
+            <span class="pro-bill-row-value">Sen. Clare Oumou Verbeten</span>
+          </div>
+          <div class="pro-bill-row">
+            <span class="pro-bill-row-label">Statute Amended</span>
+            <span class="pro-bill-row-value">Minn. Stat. § 37.13</span>
+          </div>
+          <div class="pro-bill-row">
+            <span class="pro-bill-row-label">Beneficiaries</span>
+            <span class="pro-bill-row-value">St. Paul + Falcon Heights</span>
+          </div>
+          <div class="pro-bill-row">
+            <span class="pro-bill-row-label">Obligation</span>
+            <span class="pro-bill-row-value">State Agricultural Society</span>
+          </div>
+          <div class="pro-bill-row">
+            <span class="pro-bill-row-label">Mechanism</span>
+            <span class="pro-bill-row-value">Mandatory reimbursement</span>
+          </div>
+          <div class="pro-progress-section">
+            <p class="pro-progress-label">Bill status</p>
+            <div class="pro-progress-bar-track">
+              <div class="pro-progress-bar-fill" id="pro-bar" style="width:0%"></div>
+            </div>
+            <div class="pro-progress-stages">
+              <span class="pro-progress-stage active">Introduced</span>
+              <span class="pro-progress-stage active">Committee</span>
+              <span class="pro-progress-stage">Floor</span>
+              <span class="pro-progress-stage">Conference</span>
+              <span class="pro-progress-stage">Signed</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PULL QUOTE -->
+    <blockquote class="pro-pullquote">
+      <p class="pro-pullquote-text">
+        The fairgrounds sit in our district. The fair makes money, and our cities spend it. SF 3068 says that ends now.
+      </p>
+      <cite class="pro-pullquote-attr">Argument for SF 3068 &nbsp;·&nbsp; 93rd Legislature</cite>
+    </blockquote>
+
+    <!-- COST TABLE + DISTRICT -->
+    <div class="pro-district-section">
+      <div>
+        <p class="pro-section-label">Host-City Costs</p>
+        <h2 class="pro-section-head">What the Fair Costs Its Neighbors</h2>
+        <p class="pro-body">
+          Falcon Heights has fewer than 6,000 residents. The city absorbs police overtime, portable restroom service, street wear, and signal maintenance during 12 days when 140,000 people per day move through surrounding neighborhoods. These are documented costs, not estimates.
+        </p>
+        <p class="pro-body">
+          St. Paul faces the same calculus on a larger scale. Traffic management on Snelling Avenue alone generates significant overtime. The cities have been absorbing these costs as a subsidy to a state-run institution since the modern fair era began.
+        </p>
+        <div class="pro-cost-table">
+          <div class="pro-cost-table-header">Annual Fair-Period Expenses — Host Cities</div>
+          <div class="pro-cost-row">
+            <span class="pro-cost-item">Police overtime (Falcon Heights)</span>
+            <span class="pro-cost-amt">Documented<sup>3</sup></span>
+          </div>
+          <div class="pro-cost-row">
+            <span class="pro-cost-item">Street &amp; infrastructure wear</span>
+            <span class="pro-cost-amt">Documented<sup>3</sup></span>
+          </div>
+          <div class="pro-cost-row">
+            <span class="pro-cost-item">Traffic signal &amp; signage ops</span>
+            <span class="pro-cost-amt">Documented<sup>3</sup></span>
+          </div>
+          <div class="pro-cost-row">
+            <span class="pro-cost-item">Sanitation supplemental</span>
+            <span class="pro-cost-amt">Documented<sup>3</sup></span>
+          </div>
+          <div class="pro-cost-row">
+            <span class="pro-cost-item">Reimbursement from State Ag Society (pre-SF3068)</span>
+            <span class="pro-cost-amt" style="color:var(--pro-red);">$0</span>
+          </div>
+          <div class="pro-cost-total-row">
+            <span class="pro-cost-total-label">Net Host-City Subsidy to State</span>
+            <span class="pro-cost-total-amt">Uncompensated</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p class="pro-section-label">The District</p>
+        <div class="pro-district-image-wrap">
+          <img
+            class="pro-district-image"
+            src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80"
+            alt="State fairground perimeter, St. Paul area"
+            onerror="this.style.background='#D4C8B0'; this.style.display='block';"
+          >
+          <div class="pro-district-caption">District 66 — Snelling Ave. corridor, fairgrounds perimeter, St. Paul / Falcon Heights</div>
+        </div>
+        <p class="pro-body" style="margin-top:20px; font-size:0.8rem; color:var(--pro-gray);">
+          District 66 surrounds the 322-acre State Fairgrounds. Snelling Avenue is the main artery. Neighborhoods on the east and south edges absorb foot traffic, overflow parking, and fair-period congestion every August. This is not a statewide agriculture story. It is a neighborhood cost story.
+        </p>
+      </div>
+    </div>
+
+    <!-- RECORD CARDS -->
+    <div class="pro-record-section">
+      <p class="pro-section-label">Legislative Record</p>
+      <h2 class="pro-section-head">First Term. Specific Results.</h2>
+      <div class="pro-record-grid">
+        <div class="pro-record-card">
+          <span class="pro-record-tag">Criminal Justice</span>
+          <p class="pro-record-headline">No-Knock Warrant Ban</p>
+          <p class="pro-record-body">
+            Verbeten backed legislation banning no-knock warrants statewide in 2023. The bill passed as part of a larger public safety package. It addressed a documented pattern of civilian harm.<sup>4</sup>
+          </p>
+        </div>
+        <div class="pro-record-card">
+          <span class="pro-record-tag">Criminal Justice</span>
+          <p class="pro-record-headline">Free Prison Phone Calls</p>
+          <p class="pro-record-body">
+            She supported legislation requiring free telephone calls from Minnesota state prisons, enacted 2023. The change reduced financial pressure on incarcerated people and their families in District 66 and statewide.<sup>4</sup>
+          </p>
+        </div>
+        <div class="pro-record-card">
+          <span class="pro-record-tag">Probation Reform</span>
+          <p class="pro-record-headline">Five-Year Probation Cap</p>
+          <p class="pro-record-body">
+            Verbeten supported capping probation at five years. The bill passed in 2023. Minnesota previously had among the longest probation terms in the country, creating barriers to stable housing and employment for returning residents.<sup>4</sup>
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- PRO FOOTER / FOOTNOTES -->
+  <footer class="pro-footer">
+    <div class="pro-footer-inner">
+      <p class="pro-footer-head">Sources &amp; Footnotes</p>
+      <div class="pro-footnote">
+        <ol>
+          <li><span class="fn-num">1.</span><span>Star Tribune, "Falcon Heights floats plan to charge for street parking during State Fair," 2023; Fox 9, "Falcon Heights plans to start charging for Minnesota State Fair street parking," 2023; Falcon Heights State Fair Task Force records.</span></li>
+          <li><span class="fn-num">2.</span><span>SF 3068, 93rd Legislature (2023–2024), Chief Author: Sen. Clare Oumou Verbeten. Amends Minnesota Statutes § 37.13, subd. 1 (State Agricultural Society reimbursement obligations). Minnesota Revisor of Statutes.</span></li>
+          <li><span class="fn-num">3.</span><span>Falcon Heights State Fair Task Force documentation; Star Tribune, "Falcon Heights makes smaller-than-expected profit from on-street parking fees during State Fair," 2023. Police overtime and infrastructure costs reported by city officials as basis for parking fee program.</span></li>
+          <li><span class="fn-num">4.</span><span>Ballotpedia, "Clare Oumou Verbeten"; Minnesota Reformer, "DFL pushes legislation to make Minnesota criminal justice system more rehabilitative, less punitive," March 3, 2023. No-knock ban, free phone calls, and probation cap all passed as part of 2023 DFL legislative package.</span></li>
+        </ol>
+      </div>
+    </div>
+  </footer>
+
+</div><!-- end .pro-content -->
+
+
+<!-- ============================================================
+  ██████╗ ██████╗  ██████╗  ██████╗
+  ██╔═══██╗██╔══██╗██╔══██╗██╔═══██╗
+  ██║   ██║██████╔╝██████╔╝██║   ██║
+  ██║   ██║██╔═══╝ ██╔═══╝ ██║   ██║
+  ╚██████╔╝██║     ██║     ╚██████╔╝
+   ╚═════╝ ╚═╝     ╚═╝      ╚═════╝
+   ============================================================ -->
+<div class="oppo-content">
+
+  <!-- HEADER -->
+  <header class="oppo-header">
+    <div class="oppo-header-inner">
+
+      <div class="oppo-case-bar">
+        <span class="oppo-case-label">Accountability File &nbsp;·&nbsp; District 66 &nbsp;·&nbsp; Minnesota State Senate</span>
+        <span class="oppo-case-id">Case Ref: SF 206 &nbsp;|&nbsp; 93rd Legislature &nbsp;|&nbsp; Enacted 2023</span>
+      </div>
+
+      <div class="oppo-hero">
+        <div>
+          <span class="oppo-district-tag">District 66 &nbsp;·&nbsp; DFL &nbsp;·&nbsp; St. Paul</span>
+          <h1 class="oppo-name">
+            Clare Oumou Verbeten
+            <span>Minnesota State Senator</span>
+          </h1>
+          <p class="oppo-charge-head">
+            Verbeten wrote the law that narrowed who can be convicted of murder in Minnesota — and made it retroactive. People already serving sentences for murder can now seek release under the law she authored.<sup>1</sup>
+          </p>
+          <div style="margin-top: 20px;">
+            <span class="oppo-stamp">&#9632; Signed Into Law · 2023</span>
+          </div>
+        </div>
+        <div class="oppo-photo-wrap">
+          <img
+            class="oppo-photo"
+            src="https://www.senate.mn/graphics/66OumouVerbeten.jpg"
+            alt="Senator Clare Oumou Verbeten"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+          >
+          <div class="oppo-photo-placeholder" style="display:none;">
+            <span style="font-size:1.4rem;">66</span>
+            <span>Clare Oumou Verbeten</span>
+          </div>
+          <p class="oppo-photo-caption">Sen. Verbeten &nbsp;·&nbsp; District 66</p>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- COLD BAR -->
+  <div class="oppo-cold-bar">
+    <div class="oppo-cold-bar-inner">
+      <span class="oppo-cold-bar-text">SF 206: Aiding and Abetting Murder Reform — Chief Author: Sen. Verbeten</span>
+      <span class="oppo-cold-bar-sub">Enacted · 93rd Legislature · Signed by Governor Tim Walz</span>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <main class="oppo-main">
+
+    <!-- OPPO STATS ROW -->
+    <div class="oppo-stats-row">
+      <div class="oppo-stat-card">
+        <span class="oppo-stat-number">1-in-3</span>
+        <span class="oppo-stat-label">Minnesota murder prisoners<br>held under felony-murder doctrine<br>before the Verbeten law</span>
+        <span class="oppo-stat-src">Src: MN Bipartisan Task Force Report, 2021</span>
+      </div>
+      <div class="oppo-stat-card">
+        <span class="oppo-stat-number count-up-oppo" data-target="0">—</span>
+        <span class="oppo-stat-label">DOC estimate of prisoners<br>qualifying for release<br>under the retroactive provision</span>
+        <span class="oppo-stat-src">Src: MN Reformer, Nov. 2023</span>
+      </div>
+      <div class="oppo-stat-card">
+        <span class="oppo-stat-number">2023</span>
+        <span class="oppo-stat-label">Year the law was enacted.<br>Verbeten was Senate<br>chief author.</span>
+        <span class="oppo-stat-src">Src: SF 206, 93rd Legislature</span>
+      </div>
+    </div>
+
+    <!-- INTRO TEXT -->
+    <div style="margin-bottom:40px; max-width: 800px;">
+      <p class="oppo-section-label">The Law</p>
+      <h2 class="oppo-section-head">What Verbeten's Bill Actually Does</h2>
+      <p class="oppo-body">
+        Under Minnesota law before 2023, a person could be convicted of murder for participating in a felony that resulted in a death, even if they did not intend for anyone to die. This was the felony-murder and aiding-and-abetting-murder doctrine.
+      </p>
+      <p class="oppo-body">
+        SF 206 narrowed that doctrine. First-degree murder now requires proven intent to cause death. Second-degree felony murder now requires the person to have been a "major participant" who acted with "extreme indifference to human life." The law is retroactive. Anyone sentenced under the old rules can petition a court to vacate or reduce their sentence.<sup>2</sup>
+      </p>
+      <p class="oppo-body">
+        Clare Oumou Verbeten was the Senate chief author of this legislation. She shepherded it through the Judiciary and Public Safety Committee, where she serves as vice chair. Governor Walz signed it. Murder convicts began petitioning for release within months.<sup>3</sup>
+      </p>
+    </div>
+
+    <!-- SEQUENCE -->
+    <div class="oppo-sequence">
+      <p class="oppo-section-label">Sequence of Events</p>
+      <h2 class="oppo-section-head">From Bill to Releases</h2>
+      <div class="oppo-sequence-grid">
+        <div class="oppo-seq-item">
+          <p class="oppo-seq-date">January 2023</p>
+          <p class="oppo-seq-head">SF 206 Introduced</p>
+          <p class="oppo-seq-body">
+            Verbeten introduces SF 206 as Senate chief author. The bill modifies felony-murder and aiding-and-abetting-murder provisions. It includes a retroactive relief provision allowing current inmates to petition courts.
+          </p>
+        </div>
+        <div class="oppo-seq-item">
+          <p class="oppo-seq-date">March 2023</p>
+          <p class="oppo-seq-head">Committee Advancement</p>
+          <p class="oppo-seq-body">
+            The Judiciary and Public Safety Committee, on which Verbeten serves as vice chair, advances the bill. DFL caucus frames it as a racial-disparity fix. One-third of Minnesota murder prisoners are held under the doctrine being narrowed.
+          </p>
+        </div>
+        <div class="oppo-seq-item key">
+          <p class="oppo-seq-date">2023 — Enacted</p>
+          <p class="oppo-seq-head">Signed Into Law</p>
+          <p class="oppo-seq-body">
+            Governor Walz signs the bill. Minnesota's felony-murder and aiding-and-abetting-murder standards are formally narrowed. The retroactive clause is active. Any qualifying inmate may now petition to have their conviction vacated or sentence reduced.<sup>1</sup>
+          </p>
+        </div>
+        <div class="oppo-seq-item key">
+          <p class="oppo-seq-date">November 2023</p>
+          <p class="oppo-seq-head">No Count Possible</p>
+          <p class="oppo-seq-body">
+            The Minnesota Department of Corrections tells the Minnesota Reformer it cannot estimate how many prisoners qualify for release under the retroactive provision. The Reformer reports the law "could mean the release of prisoners." The state has no ceiling number.<sup>4</sup>
+          </p>
+        </div>
+        <div class="oppo-seq-item key">
+          <p class="oppo-seq-date">2024</p>
+          <p class="oppo-seq-head">Murder Convicts Released</p>
+          <p class="oppo-seq-body">
+            Individuals convicted of murder begin successfully petitioning under the Verbeten law. Courts grant reduced sentences based on time already served. Releases are documented in press coverage. The process is ongoing with no statutory limit on future petitions.<sup>5</sup>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROOF BLOCK -->
+    <div class="oppo-proof-section">
+      <p class="oppo-section-label">Core Document</p>
+      <h2 class="oppo-section-head">What the Bill Text Says</h2>
+      <div class="oppo-proof-block">
+        <div class="oppo-proof-header">
+          <span class="oppo-proof-title">SF 206 — 93rd Legislature — Key Provisions</span>
+          <span class="oppo-proof-status">Enacted / Law</span>
+        </div>
+        <div class="oppo-proof-body">
+          <p class="oppo-proof-text">
+            "A person is guilty of murder in the first degree if the person causes the death of a human being with premeditation and with intent to effect the death of the person or of another... [The bill] modifies the aiding-and-abetting-murder and felony-murder provisions of first- and second-degree murder statutes and authorizes retroactive relief for persons serving sentences for the modified murder provisions."
+          </p>
+          <div class="oppo-proof-meta">
+            <div class="oppo-proof-meta-item">
+              <span class="oppo-proof-meta-label">Senate Chief Author</span>
+              <span class="oppo-proof-meta-value">Sen. Clare Oumou Verbeten (D-66)</span>
+            </div>
+            <div class="oppo-proof-meta-item">
+              <span class="oppo-proof-meta-label">House Chief Author</span>
+              <span class="oppo-proof-meta-value">Rep. Cedrick Frazier (D)</span>
+            </div>
+            <div class="oppo-proof-meta-item">
+              <span class="oppo-proof-meta-label">Retroactive Provision</span>
+              <span class="oppo-proof-meta-value">Yes — existing sentences eligible for petition</span>
+            </div>
+            <div class="oppo-proof-meta-item">
+              <span class="oppo-proof-meta-label">DOC Release Estimate</span>
+              <span class="oppo-proof-meta-value">None provided — "cannot estimate"</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EVIDENCE CARDS -->
+    <div class="oppo-evidence-section">
+      <p class="oppo-section-label">Evidence</p>
+      <h2 class="oppo-section-head">Three Gaps in Verbeten's Record on This Law</h2>
+      <div class="oppo-evidence-grid">
+
+        <div class="oppo-ev-card">
+          <span class="oppo-ev-card-tag">Evidence 01 &nbsp;·&nbsp; Retroactivity</span>
+          <p class="oppo-ev-card-head">She Made It Apply to Existing Murder Sentences</p>
+          <p class="oppo-ev-body">
+            The most consequential provision in SF 206 is retroactivity. Verbeten did not limit the reform to future cases. She authorized <span class="oppo-redact" title="Hover to reveal">anyone already convicted</span> under the old standard to petition a court for relief. That choice was not required by the policy argument. It was a deliberate decision.
+          </p>
+          <p class="oppo-ev-footnote">SF 206, 93rd Leg., retroactive relief provision; MN Reformer, Nov. 2023</p>
+        </div>
+
+        <div class="oppo-ev-card">
+          <span class="oppo-ev-card-tag">Evidence 02 &nbsp;·&nbsp; No Ceiling</span>
+          <p class="oppo-ev-card-head">The State Cannot Say How Many Qualify</p>
+          <p class="oppo-ev-body">
+            When asked how many prisoners could be released under the Verbeten law, the Minnesota Department of Corrections said it <span class="oppo-redact" title="Hover to reveal">could not estimate</span>. There is no cap in the statute. One-third of Minnesota's murder prisoners were held under the doctrine she narrowed. The number eligible to petition is unknown.
+          </p>
+          <p class="oppo-ev-footnote">MN Reformer, "Minnesota lawmakers changed felony murder laws," Nov. 15, 2023; MN Bipartisan Task Force Report, 2021</p>
+        </div>
+
+        <div class="oppo-ev-card">
+          <span class="oppo-ev-card-tag">Evidence 03 &nbsp;·&nbsp; District Fit</span>
+          <p class="oppo-ev-card-head">Her District Voted on Safety. She Led on Releases.</p>
+          <p class="oppo-ev-body">
+            District 66 includes St. Paul neighborhoods where public safety is a primary quality-of-life concern. Verbeten was elected in part on community-facing rhetoric. Her first major criminal-law act as Senate chief author was to narrow <span class="oppo-redact" title="Hover to reveal">murder liability</span> and authorize retroactive release for those already convicted.
+          </p>
+          <p class="oppo-ev-footnote">SF 206, 93rd Legislature; Ballotpedia, "Clare Oumou Verbeten"; MN Reformer, March 2023</p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- CLOSING FRAME -->
+    <div style="border: 2px solid var(--oppo-rule); background: var(--oppo-paper); padding: 32px; margin-bottom: 56px;">
+      <p class="oppo-section-label">The Question</p>
+      <h2 class="oppo-section-head" style="max-width:700px;">
+        She represents a neighborhood district. She authored the law that releases murder convicts. Those two facts coexist.
+      </h2>
+      <p class="oppo-body" style="max-width: 680px; margin-top: 16px;">
+        Verbeten is vice chair of the Judiciary and Public Safety Committee. She was elected Assistant Majority Leader in March 2024. She is among the most prominent first-term DFL senators in the chamber. SF 206 is her most consequential criminal-law act. Its retroactive provision is already producing releases. The state cannot bound the number of future petitions.
+      </p>
+      <p class="oppo-body" style="max-width: 680px;">
+        District 66 voters can weigh that record for themselves.
+      </p>
+    </div>
+
+  </main>
+
+  <!-- OPPO FOOTER / FOOTNOTES -->
+  <footer class="oppo-footer">
+    <div class="oppo-footer-inner">
+      <p class="oppo-footer-head">Sources &amp; Footnotes</p>
+      <div class="oppo-footnote">
+        <ol>
+          <li><span class="fn-num">1.</span><span>SF 206, 93rd Legislature (2023–2024), Minnesota. Chief Author (Senate): Sen. Clare Oumou Verbeten. Signed by Governor Tim Walz. Minnesota Revisor of Statutes. Retrieved from revisor.mn.gov.</span></li>
+          <li><span class="fn-num">2.</span><span>Minnesota Reformer, "DFL pushes legislation to make Minnesota criminal justice system more rehabilitative, less punitive," March 3, 2023. MinnPost, "Noting disparities, Minnesota lawmakers look to limit use of felony murder rule," March 2023.</span></li>
+          <li><span class="fn-num">3.</span><span>Ballotpedia, "Clare Oumou Verbeten" (committee assignments, vice chair Judiciary and Public Safety). Minnesota Senate DFL member page. Minnesota Reformer, March 2023.</span></li>
+          <li><span class="fn-num">4.</span><span>Minnesota Reformer, "Minnesota lawmakers changed felony murder laws, which could mean the release of prisoners," November 15, 2023. Minnesota Department of Corrections quoted as unable to estimate qualifying population. One-in-three figure from bipartisan 2021 task force report commissioned by legislators.</span></li>
+          <li><span class="fn-num">5.</span><span>Ms. Magazine, "'Take Beauty From Ashes': Advocating for Felony Murder Law Reform," November 23, 2024 (documents post-enactment releases including Briana Martinson and Megan Cater, released February 2024; Rosalyn McDonald-Richards, released May 2024). Fox 9 Minneapolis, "New Minnesota aiding felony murder law is constitutional."</span></li>
+        </ol>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Auto-transition sentinel — observed by IntersectionObserver -->
+  <div id="brief-sentinel" style="height:1px;width:100%;"></div>
+
+  <!-- Subtle stamp — visible as user nears the bottom -->
+  <div class="machine-stamp">
+    <span class="machine-stamp-text">AI-GENERATED &nbsp;·&nbsp; 67 SENATORS &nbsp;·&nbsp; 63 PARALLEL AGENTS &nbsp;·&nbsp; ~4 HRS &nbsp;·&nbsp; ~$47</span>
+  </div>
+
+</div><!-- end .oppo-content -->
+
+</div><!-- end .page-wrap -->
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+<script>
+(function() {
+  'use strict';
+
+  /* ---- MODE TOGGLE ---- */
+  const btn       = document.getElementById('flip-btn');
+  const label     = document.getElementById('flip-label');
+  const body      = document.body;
+  const pageWrap  = document.getElementById('page-wrap');
+  let isOppo      = false;
+
+  btn.addEventListener('click', function() {
+    // Fade out
+    pageWrap.classList.add('fading');
+
+    setTimeout(function() {
+      isOppo = !isOppo;
+      body.classList.toggle('mode-oppo', isOppo);
+
+      // Scroll to top
+      window.scrollTo({ top: 0, behavior: 'instant' });
+
+      // Update label
+      label.textContent = isOppo
+        ? 'View Supporter Record'
+        : 'View Accountability File';
+
+      // Fade in
+      pageWrap.classList.remove('fading');
+
+      // Trigger animations for the newly visible side
+      if (isOppo) {
+        triggerOppoAnimations();
+      } else {
+        triggerProAnimations();
+      }
+    }, 220);
+  });
+
+  /* ---- COUNT-UP ANIMATION (PRO) ---- */
+  function animateCount(el) {
+    const target = parseInt(el.getAttribute('data-target'), 10);
+    const duration = 1200;
+    const startTime = performance.now();
+    const startVal  = 0;
+
+    function tick(now) {
+      const elapsed  = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const ease     = 1 - Math.pow(1 - progress, 3);
+      el.textContent = Math.round(startVal + (target - startVal) * ease);
+      if (progress < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  /* ---- PROGRESS BAR (PRO) ---- */
+  function animateProBar() {
+    const bar = document.getElementById('pro-bar');
+    if (bar) {
+      setTimeout(function() {
+        bar.style.width = '42%'; // introduced + committee = 2 of 5 stages
+      }, 400);
+    }
+  }
+
+  /* ---- INTERSECTION OBSERVER (PRO) ---- */
+  function triggerProAnimations() {
+    // Count-up
+    document.querySelectorAll('.pro-content .count-up').forEach(function(el) {
+      el.textContent = '0';
+    });
+    // Wait for DOM paint, then start
+    requestAnimationFrame(function() {
+      document.querySelectorAll('.pro-content .count-up').forEach(animateCount);
+      animateProBar();
+    });
+  }
+
+  /* ---- OPPO ANIMATIONS ---- */
+  function triggerOppoAnimations() {
+    // Re-trigger stamp animation
+    const stamp = document.querySelector('.oppo-stamp');
+    if (stamp) {
+      stamp.style.animation = 'none';
+      void stamp.offsetWidth; // reflow
+      stamp.style.animation = '';
+    }
+
+    // Middle stat card shows "No Limit" instead of number
+    const noLimitEl = document.querySelector('.count-up-oppo');
+    if (noLimitEl) {
+      noLimitEl.textContent = 'No Limit';
+    }
+  }
+
+  /* ---- SCROLL-TRIGGERED COUNTERS (PRO) via IntersectionObserver ---- */
+  const proCounters = document.querySelectorAll('.pro-content .count-up');
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          animateCount(entry.target);
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.3 });
+
+    proCounters.forEach(function(el) {
+      observer.observe(el);
+    });
+  } else {
+    proCounters.forEach(animateCount);
+  }
+
+  /* ---- PROGRESS BAR on load ---- */
+  window.addEventListener('load', function() {
+    animateProBar();
+
+    // Set oppo no-limit stat
+    const noLimitEl = document.querySelector('.count-up-oppo');
+    if (noLimitEl) {
+      noLimitEl.textContent = 'No Limit';
+    }
+  });
+
+  /* ---- TYPEWRITER for oppo headline (on mode switch) ---- */
+  // handled via CSS animation on .oppo-stamp
+
+})();
+</script>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     THE BRIEF — AI capabilities briefing
+═══════════════════════════════════════════════════════ -->
+<div class="brief-content">
+
+  <div class="brief-opening">
+    <p class="brief-made-by">Sixty-seven of these pages were made using one AI account in about thirty minutes. Six months ago an automated project like this would have been impossible.</p>
+  </div>
+
+  <div class="brief-chart-section">
+    <h2 class="brief-chart-title">This is the trend that made it possible.</h2>
+    <div class="brief-chart-frame">
+      <img src="https://metr.org/assets/images/measuring-ai-ability-to-complete-long-tasks/length-of-tasks-log.png" alt="METR chart" class="brief-metr-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+      <div class="brief-chart-fallback" style="display:none;"><p>Chart unavailable. See the original at <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">metr.org</a>.</p></div>
+    </div>
+    <p class="brief-chart-source">Source: <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR</a>, an independent AI evaluation lab.</p>
+    <p class="brief-chart-read">This chart tracks how long a task an AI agent can finish on its own. In 2019, the answer was about three seconds. By early 2023, it was six minutes. by mid 2025, over two hours. As of early 2026, Claude Opus 4.6 completes tasks that take a skilled human roughly twelve hours.</p>
+    <p class="brief-chart-read">The overall doubling time has been about seven months. But it is getting faster. <a href="https://metr.org/time-horizons/" target="_blank">When researchers fit only the most recent data</a>, the doubling time drops to four months. At that rate, AI agents capable of completing month-long autonomous projects arrive not in the early 2030s but around 2028.</p>
+  </div>
+
+  <div class="brief-so-what">
+    <h2 class="brief-so-what-title">What that means for lawmakers.</h2>
+    <p>Urgency. There was a narrative last year that AI had hit a wall in capabilities. It was a plausible perspective at the time. It isn't anymore. After breakthroughs late last year, AI systems' ability to automate cyberattacks, pathogen design, misinformation, mass surveillance, and vast swaths of white-collar work is advancing faster than ever.</p>
+    <p>The world will soon change faster than the typical pace of policymaking. The only solution is to act with atypical speed: AI regulations, data center moratoriums, calling for a federal pause on AI development, worker displacement funds. Some of these ideas already have bills introduced this session. Others should be explored soon. Time is limited, so if you feel behind on AI, the sources below are a good place to start.</p>
+    
+  </div>
+
+  <div class="brief-next">
+    <h2 class="brief-next-title">Start here.</h2>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">USE</span>
+      <a href="https://claude.ai/cowork" target="_blank">Claude Cowork</a> · <a href="https://claude.ai/code" target="_blank">Claude Code</a>
+      <span class="brief-link-detail">The tools that built this page. Cowork handles research and writing. Code is the agent that runs tasks, spawns sub-agents, and makes decisions on its own. Spend thirty minutes with one of these on a real problem from your week. That will teach you more than any briefing.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR: Measuring AI Ability to Complete Long Tasks</a>
+      <span class="brief-link-detail">The source for the chart above. The METR trend is based on software tasks, but <a href="https://futuretech.mit.edu/publication/crashing-waves-vs-rising-tides-preliminary-findings-on-ai-automation-from-thousands-of-worker-evaluations-of-labor-market-tasks" target="_blank">MIT research on worker evaluations of labor market tasks</a> finds similar patterns across white-collar work broadly.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://aiindex.stanford.edu/report/" target="_blank">Stanford HAI AI Index 2025</a>
+      <span class="brief-link-detail">The most comprehensive annual report on AI capabilities, economics, and policy across all 50 states.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.imdb.com/title/tt39150120/" target="_blank">The AI Doc: Or How I Became an Apocaloptimist</a>
+      <span class="brief-link-detail">Daniel Roher's 2026 documentary, in theaters now. Roher interviews Amodei, Altman, Hassabis, and dozens more. If you see one thing on this list, see this.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.youtube.com/watch?v=xoVJKj8lcNQ" target="_blank">The A.I. Dilemma</a>
+      <span class="brief-link-detail">Center for Humane Technology. 60 min, free on YouTube. Made for people with institutional power who need to understand AI quickly.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">TRACK</span>
+      <a href="https://www.ncsl.org/technology-and-communication/artificial-intelligence" target="_blank">NCSL AI Legislation Tracker</a> · <a href="https://mn.gov/mnit/about-mnit/oit-programs/ai/" target="_blank">MN.IT AI Office</a>
+      <span class="brief-link-detail">Every AI bill in every state. Plus Minnesota's own AI program office. See where you stand relative to the field.</span>
+    </div>
+  </div>
+
+  <div class="brief-close">
+    <p class="brief-close-small">This project is not affiliated with any campaign, party, or organization.</p>
+    <button id="exit-brief-btn">← Back</button>
+  </div>
+
+</div><!-- /brief-content -->
+
+<style>
+.brief-content { display: none; }
+body.mode-brief .brief-content { display: block; }
+body.mode-brief .pro-content { display: none; }
+body.mode-brief .oppo-content { display: none; }
+body.mode-brief #flip-btn { display: none; }
+.brief-content { background: #0C0A08; color: #D4CCBE; font-family: 'Source Serif 4', Georgia, serif; font-size: 17px; line-height: 1.75; min-height: 100vh; }
+.brief-content a { color: #C0B49A; }
+.brief-content a:hover { color: #fff; }
+@keyframes glitch-seq { 0% { filter: saturate(0) brightness(0.5); } 10% { filter: hue-rotate(90deg) contrast(4) brightness(3); transform: skewX(4deg); } 12% { filter: brightness(0.1); transform: none; } 25% { filter: hue-rotate(200deg) invert(0.8); transform: translateX(6px); } 27% { filter: brightness(0.05); transform: none; } 40% { filter: blur(6px) brightness(0.02); } 44% { filter: brightness(6); } 46% { filter: none; transform: none; } 60% { filter: hue-rotate(300deg) contrast(3) saturate(8); transform: skewX(-3deg); } 62% { filter: none; transform: none; } 78% { filter: blur(16px) brightness(0.01); } 82% { filter: brightness(2); } 84% { filter: none; } 100% { filter: none; transform: none; } }
+body.glitching { animation: glitch-seq 1.2s ease-in-out forwards; pointer-events: none; }
+.machine-stamp { background: #050505; border-top: 1px solid #111; padding: 16px 40px; text-align: center; }
+.machine-stamp-text { font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 0.22em; color: #222; text-transform: uppercase; animation: stamp-pulse 3s ease-in-out infinite; }
+@keyframes stamp-pulse { 0%, 100% { color: #222; } 50% { color: #4A3A2A; } }
+.brief-opening { max-width: 640px; margin: 0 auto; padding: 100px 40px 64px; }
+.brief-made-by { font-size: 20px; line-height: 1.65; color: #B8AE9C; margin-bottom: 20px; }
+.brief-chart-section { max-width: 740px; margin: 0 auto; padding: 48px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-chart-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 32px; font-style: italic; }
+.brief-chart-frame { background: #fff; border-radius: 4px; padding: 12px; margin-bottom: 12px; }
+.brief-metr-img { width: 100%; height: auto; display: block; }
+.brief-chart-fallback { padding: 40px; text-align: center; color: #666; font-size: 14px; }
+.brief-chart-source { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #5A5040; line-height: 1.6; margin-bottom: 28px; }
+.brief-chart-source a { color: #7A6A54; text-decoration: none; }
+.brief-chart-read { font-size: 17px; color: #B8AE9C; margin-bottom: 16px; }
+.brief-so-what { max-width: 640px; margin: 0 auto; padding: 56px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-so-what-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 28px; font-style: italic; }
+.brief-so-what p { font-size: 17px; color: #B8AE9C; margin-bottom: 20px; }
+.brief-next { max-width: 640px; margin: 0 auto; padding: 56px 40px 48px; border-top: 1px solid #1E1A14; }
+.brief-next-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 14px; font-style: italic; }
+.brief-link-block { margin-bottom: 28px; line-height: 1.7; }
+.brief-link-tag { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.2em; color: #6A5A44; text-transform: uppercase; display: block; margin-bottom: 4px; }
+.brief-link-block a { font-weight: 600; color: #E0D6C4; text-decoration: underline; text-underline-offset: 3px; font-size: 16px; }
+.brief-link-block a:hover { color: #fff; }
+.brief-link-detail { display: block; font-size: 14px; color: #6A5E4C; margin-top: 2px; }
+.brief-close { max-width: 640px; margin: 0 auto; padding: 48px 40px 100px; border-top: 1px solid #1E1A14; }
+.brief-close p { font-family: 'Source Serif 4', Georgia, serif; font-size: 16px; color: #9A9080; margin-bottom: 32px; line-height: 1.7; }
+.brief-close-small { font-family: 'IBM Plex Mono', monospace !important; font-size: 11px !important; color: #3A3428 !important; letter-spacing: 0.04em; }
+#exit-brief-btn { background: none; border: 1px solid #2A2418; color: #5A5040; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; padding: 10px 20px; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
+#exit-brief-btn:hover { border-color: #8A7A64; color: #C0B49A; }
+@media (max-width: 900px) { .brief-opening, .brief-so-what, .brief-next, .brief-close { padding-left: 24px; padding-right: 24px; } .brief-chart-section { padding-left: 24px; padding-right: 24px; } .brief-made-by { font-size: 18px; } .brief-opening { padding-top: 64px; } .machine-stamp { padding: 14px 20px; } }
+</style>
+
+<script>
+(function() {
+  let briefTriggered = false;
+  function startBriefTransition() {
+    if (briefTriggered) return;
+    if (!document.body.classList.contains('mode-oppo')) return;
+    briefTriggered = true;
+    const body = document.body;
+    body.style.transition = 'filter 2.5s ease-in';
+    body.style.filter = 'saturate(0) brightness(0.3)';
+    setTimeout(() => {
+      const hed = document.querySelector('.oppo-content h1') || document.querySelector('.oppo-content h2');
+      if (hed) { const orig = hed.textContent; const chars = '█▓▒░■□0123456789'; let n = 0; const si = setInterval(() => { n++; hed.textContent = Array.from(orig).map(c => c === ' ' ? ' ' : chars[Math.floor(Math.random() * chars.length)]).join(''); if (n > 40) { clearInterval(si); hed.textContent = orig; } }, 40); }
+    }, 1200);
+    setTimeout(() => {
+      body.style.transition = ''; body.style.filter = ''; body.classList.add('glitching');
+      setTimeout(() => { body.classList.remove('glitching'); body.classList.add('mode-brief'); window.scrollTo({ top: 0, behavior: 'instant' }); }, 1500);
+    }, 2500);
+  }
+  const sentinel = document.getElementById('brief-sentinel');
+  if (sentinel && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => { entries.forEach(e => { if (e.isIntersecting) { io.disconnect(); setTimeout(startBriefTransition, 1200); } }); }, { threshold: 0.5 });
+    io.observe(sentinel);
+  }
+  const flipBtn = document.getElementById('flip-btn');
+  if (flipBtn) { flipBtn.addEventListener('click', () => { if (document.body.classList.contains('mode-oppo')) briefTriggered = false; }); }
+})();
+document.addEventListener('click', (e) => {
+  if (e.target && e.target.id === 'exit-brief-btn') {
+    const body = document.body; body.style.opacity = '0'; body.style.transition = 'opacity 0.3s';
+    setTimeout(() => { body.classList.remove('mode-brief'); body.classList.add('mode-oppo'); window.scrollTo({ top: 0, behavior: 'instant' }); body.style.opacity = '1'; }, 300);
+  }
+});
+</script>
+
+</body>
+</html>

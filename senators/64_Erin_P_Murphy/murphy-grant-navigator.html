@@ -1,0 +1,1896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Capitol Corridor Small Business Grant Readiness Navigator</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Three-step wizard — full-width sections, one visible at a time, vertical progression
+   2. Navigation: Large horizontal step indicators (1 — 2 — 3) with connecting brass lines, active step highlighted
+   3. Typography: Trebuchet MS for headers, Calibri for body, Lucida Console for data/numbers
+   4. Hero moment: Giant "X GRANTS MATCHED" brass count on marble background after Step 1 completion
+   5. Color strategy: #2 High contrast / two-tone — warm marble white (#f5f2ed) + polished brass (#b8860b) + charcoal (#333). Deep green for success.
+   6. Entry experience: Capitol dome SVG silhouette with brass highlights, then Step 1 slides up from below
+   Additional: No cards with single-side borders. No emoji icons. Environmental color — brass bands span full width. Dense data zones in cost estimator vs. spacious eligibility section.
+*/
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --marble: #f5f2ed;
+  --brass: #b8860b;
+  --brass-light: #d4a843;
+  --brass-dark: #8a6508;
+  --charcoal: #333333;
+  --green: #1b5e20;
+  --green-light: #e8f5e9;
+  --amber: #c4832a;
+  --red: #8b3a2a;
+  --stone: #6b6b6b;
+  --panel: #eae7e1;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: Calibri, 'Gill Sans', sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--charcoal);
+  background: var(--marble);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  font-family: 'Trebuchet MS', 'Lucida Grande', sans-serif;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* ── ENTRY EXPERIENCE ── */
+#entry-screen {
+  position: fixed; inset: 0;
+  background: var(--charcoal);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  z-index: 1000;
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+#entry-screen.fade-out {
+  opacity: 0;
+  transform: translateY(-40px);
+  pointer-events: none;
+}
+#entry-screen svg { width: 180px; height: 200px; }
+#entry-screen h1 {
+  color: var(--brass);
+  font-size: 28px;
+  margin-top: 24px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-align: center;
+}
+#entry-screen p {
+  color: #b0a999;
+  font-size: 15px;
+  margin-top: 12px;
+  max-width: 420px;
+  text-align: center;
+  line-height: 1.5;
+}
+#entry-begin {
+  margin-top: 32px;
+  background: var(--brass);
+  color: var(--charcoal);
+  border: none;
+  font-family: 'Trebuchet MS', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 14px 40px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+#entry-begin:hover { background: var(--brass-light); }
+
+/* ── MAIN APP ── */
+#app { display: none; }
+#app.visible { display: block; }
+
+/* ── STEP NAV ── */
+.step-nav {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--charcoal);
+  display: flex; align-items: center; justify-content: center;
+  padding: 18px 20px;
+  gap: 0;
+}
+.step-nav-item {
+  display: flex; align-items: center; gap: 0;
+  cursor: pointer;
+  user-select: none;
+}
+.step-circle {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  border: 3px solid var(--stone);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 20px; font-weight: 700;
+  color: var(--stone);
+  background: transparent;
+  transition: all 0.3s;
+}
+.step-label {
+  font-family: Calibri, sans-serif;
+  font-size: 13px;
+  color: var(--stone);
+  letter-spacing: 0.5px;
+  position: absolute;
+  margin-top: 62px;
+  white-space: nowrap;
+  transition: color 0.3s;
+}
+.step-nav-item.active .step-circle {
+  border-color: var(--brass);
+  color: var(--charcoal);
+  background: var(--brass);
+}
+.step-nav-item.active .step-label { color: var(--brass-light); }
+.step-nav-item.completed .step-circle {
+  border-color: var(--green);
+  color: #fff;
+  background: var(--green);
+}
+.step-nav-item.completed .step-label { color: var(--green); }
+.step-connector {
+  width: 80px; height: 3px;
+  background: var(--stone);
+  margin: 0 8px;
+  transition: background 0.3s;
+}
+.step-connector.done { background: var(--green); }
+
+@media (max-width: 600px) {
+  .step-label { display: none; }
+  .step-connector { width: 40px; }
+  .step-circle { width: 38px; height: 38px; font-size: 17px; }
+}
+
+/* ── STEP PANELS ── */
+.step-panel { display: none; }
+.step-panel.active { display: block; animation: slideUp 0.45s ease-out; }
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── HERO MOMENT (grant match count) ── */
+.hero-banner {
+  background: var(--charcoal);
+  text-align: center;
+  padding: 48px 20px;
+}
+.hero-banner .hero-number {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 72px;
+  font-weight: 700;
+  color: var(--brass);
+  line-height: 1;
+}
+.hero-banner .hero-label {
+  font-family: 'Trebuchet MS', sans-serif;
+  font-size: 18px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--brass-light);
+  margin-top: 8px;
+}
+@media (max-width: 600px) {
+  .hero-banner .hero-number { font-size: 48px; }
+  .hero-banner .hero-label { font-size: 14px; }
+}
+
+/* ── SECTION STYLING ── */
+.section-wrap {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 36px 24px 48px;
+}
+.section-title {
+  font-size: 26px;
+  color: var(--charcoal);
+  margin-bottom: 6px;
+}
+.section-subtitle {
+  font-size: 14px;
+  color: var(--stone);
+  margin-bottom: 28px;
+}
+
+/* ── BRASS BAND DIVIDERS ── */
+.brass-band {
+  height: 4px;
+  background: linear-gradient(90deg, var(--brass-dark), var(--brass), var(--brass-dark));
+}
+
+/* ── ELIGIBILITY CHECKLIST ── */
+.elig-group { margin-bottom: 28px; }
+.elig-group-title {
+  font-family: 'Trebuchet MS', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--brass-dark);
+  margin-bottom: 12px;
+}
+.elig-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #ddd8d0;
+}
+.elig-item:last-child { border-bottom: none; }
+.elig-item input[type="checkbox"] {
+  appearance: none; -webkit-appearance: none;
+  width: 22px; height: 22px; min-width: 22px;
+  border: 2px solid var(--stone);
+  border-radius: 3px;
+  cursor: pointer;
+  margin-top: 2px;
+  position: relative;
+  background: #fff;
+  transition: all 0.2s;
+}
+.elig-item input[type="checkbox"]:checked {
+  background: var(--green);
+  border-color: var(--green);
+}
+.elig-item input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 6px; top: 2px;
+  width: 6px; height: 12px;
+  border: solid #fff; border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+.elig-label { font-size: 15px; line-height: 1.45; }
+.elig-note {
+  font-size: 12px; color: var(--stone);
+  margin-top: 2px; line-height: 1.4;
+}
+
+/* Project type multi-select */
+.proj-type-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 8px 0 0;
+}
+@media (max-width: 500px) { .proj-type-grid { grid-template-columns: 1fr; } }
+.proj-type-opt {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px;
+  background: #fff;
+  border: 2px solid #ddd8d0;
+  cursor: pointer;
+  font-size: 14px;
+  transition: border-color 0.2s, background 0.2s;
+}
+.proj-type-opt.selected {
+  border-color: var(--brass);
+  background: #fdf8ef;
+}
+.proj-type-opt input { display: none; }
+.proj-type-marker {
+  width: 16px; height: 16px; min-width: 16px;
+  border: 2px solid var(--stone);
+  border-radius: 2px;
+  transition: all 0.2s;
+}
+.proj-type-opt.selected .proj-type-marker {
+  background: var(--brass);
+  border-color: var(--brass);
+}
+
+/* Eligibility Banner */
+.elig-banner {
+  padding: 16px 24px;
+  font-family: 'Trebuchet MS', sans-serif;
+  font-weight: 700;
+  font-size: 17px;
+  text-align: center;
+  margin: 24px 0;
+  display: none;
+}
+.elig-banner.show { display: block; }
+.elig-banner.green { background: var(--green); color: #fff; }
+.elig-banner.yellow { background: var(--amber); color: #fff; }
+.elig-banner.red { background: var(--red); color: #fff; }
+.elig-banner small {
+  display: block; font-weight: 400; font-size: 13px;
+  margin-top: 4px; opacity: 0.9;
+  font-family: Calibri, sans-serif;
+}
+
+/* ── COST ESTIMATOR ── */
+.cost-section {
+  background: var(--panel);
+  padding: 32px 24px;
+  margin-top: 12px;
+}
+.cost-section h3 {
+  font-size: 20px;
+  margin-bottom: 16px;
+}
+.line-items-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.line-items-table th {
+  font-family: 'Trebuchet MS', sans-serif;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--stone);
+  text-align: left;
+  padding: 6px 8px;
+  border-bottom: 2px solid var(--brass);
+}
+.line-items-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid #d5d0c8;
+  vertical-align: middle;
+}
+.line-items-table input[type="text"],
+.line-items-table input[type="number"] {
+  width: 100%;
+  border: 1px solid #c8c3ba;
+  background: #fff;
+  padding: 7px 8px;
+  font-family: Calibri, sans-serif;
+  font-size: 14px;
+  color: var(--charcoal);
+}
+.line-items-table input:focus,
+.line-items-table select:focus {
+  outline: 2px solid var(--brass);
+  outline-offset: -1px;
+}
+.line-items-table select {
+  border: 1px solid #c8c3ba;
+  background: #fff;
+  padding: 7px 4px;
+  font-family: Calibri, sans-serif;
+  font-size: 13px;
+  color: var(--charcoal);
+}
+.btn-remove-row {
+  background: none; border: none;
+  color: var(--red);
+  font-size: 18px; font-weight: 700;
+  cursor: pointer;
+  padding: 4px 8px;
+  line-height: 1;
+}
+.btn-remove-row:hover { color: #c0392b; }
+.btn-add-row {
+  background: var(--brass);
+  color: var(--charcoal);
+  border: none;
+  font-family: 'Trebuchet MS', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 10px 20px;
+  cursor: pointer;
+  margin-top: 12px;
+  transition: background 0.2s;
+}
+.btn-add-row:hover { background: var(--brass-light); }
+.btn-example {
+  background: transparent;
+  color: var(--brass-dark);
+  border: 2px solid var(--brass);
+  font-family: 'Trebuchet MS', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 10px 20px;
+  cursor: pointer;
+  margin-top: 12px;
+  margin-left: 12px;
+  transition: all 0.2s;
+}
+.btn-example:hover {
+  background: var(--brass);
+  color: var(--charcoal);
+}
+
+/* Cost Summary */
+.cost-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 24px;
+}
+@media (max-width: 500px) { .cost-summary { grid-template-columns: 1fr; } }
+.cost-stat {
+  text-align: center;
+  padding: 16px;
+}
+.cost-stat .val {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--charcoal);
+}
+.cost-stat .lbl {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--stone);
+  margin-top: 2px;
+}
+
+.cost-advisory {
+  background: var(--amber);
+  color: #fff;
+  padding: 12px 16px;
+  font-size: 14px;
+  margin-top: 16px;
+  line-height: 1.45;
+}
+.cost-advisory strong { font-family: 'Trebuchet MS', sans-serif; }
+
+.chart-wrap {
+  max-width: 600px;
+  margin: 24px auto 0;
+  height: 60px;
+}
+
+.btn-next-step {
+  display: block;
+  width: 100%;
+  max-width: 400px;
+  margin: 32px auto 0;
+  background: var(--brass);
+  color: var(--charcoal);
+  border: none;
+  font-family: 'Trebuchet MS', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-next-step:hover { background: var(--brass-light); }
+
+/* ── MODULE 2: DOCUMENT CHECKLIST ── */
+.doc-progress {
+  background: var(--charcoal);
+  padding: 24px;
+  text-align: center;
+}
+.doc-progress-bar-track {
+  max-width: 600px;
+  margin: 12px auto 0;
+  height: 12px;
+  background: #555;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.doc-progress-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--red), var(--amber));
+  border-radius: 6px;
+  transition: width 0.4s ease;
+}
+.doc-progress-text {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 22px;
+  color: var(--brass);
+}
+.doc-progress-sub {
+  font-size: 13px;
+  color: #aaa;
+  margin-top: 4px;
+}
+.doc-complete-msg {
+  display: none;
+  font-family: 'Trebuchet MS', sans-serif;
+  font-size: 15px;
+  color: var(--green);
+  margin-top: 8px;
+  font-weight: 700;
+}
+
+.doc-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin-top: 8px;
+}
+@media (max-width: 700px) { .doc-columns { grid-template-columns: 1fr; } }
+.doc-col-title {
+  font-family: 'Trebuchet MS', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--brass-dark);
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--brass);
+  margin-bottom: 12px;
+}
+.doc-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid #ddd8d0;
+  position: relative;
+}
+.doc-item:last-child { border-bottom: none; }
+.doc-item input[type="checkbox"] {
+  appearance: none; -webkit-appearance: none;
+  width: 20px; height: 20px; min-width: 20px;
+  border: 2px solid var(--stone);
+  border-radius: 3px;
+  cursor: pointer;
+  margin-top: 1px;
+  position: relative;
+  background: #fff;
+  transition: all 0.2s;
+}
+.doc-item input[type="checkbox"]:checked {
+  background: var(--green);
+  border-color: var(--green);
+}
+.doc-item input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 5px; top: 1px;
+  width: 6px; height: 11px;
+  border: solid #fff; border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+.doc-item-text { font-size: 14px; line-height: 1.4; }
+.doc-tip {
+  display: none;
+  font-size: 12px;
+  color: var(--stone);
+  margin-top: 3px;
+  line-height: 1.3;
+  padding-left: 30px;
+}
+.doc-item:hover .doc-tip,
+.doc-item:focus-within .doc-tip { display: block; }
+
+/* ── MODULE 3: NARRATIVE BUILDER ── */
+.narr-inputs {
+  background: var(--panel);
+  padding: 28px 24px;
+}
+.narr-field {
+  margin-bottom: 16px;
+}
+.narr-field label {
+  display: block;
+  font-family: 'Trebuchet MS', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--brass-dark);
+  margin-bottom: 4px;
+}
+.narr-field input,
+.narr-field textarea,
+.narr-field select {
+  width: 100%;
+  border: 1px solid #c8c3ba;
+  background: #fff;
+  padding: 10px 12px;
+  font-family: Calibri, sans-serif;
+  font-size: 15px;
+  color: var(--charcoal);
+}
+.narr-field textarea { resize: vertical; min-height: 72px; }
+.narr-field input:focus,
+.narr-field textarea:focus {
+  outline: 2px solid var(--brass);
+  outline-offset: -1px;
+}
+.narr-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 500px) { .narr-row { grid-template-columns: 1fr; } }
+
+.narr-preview {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 40px 24px;
+}
+.narr-preview h3 {
+  font-size: 22px;
+  text-align: center;
+  margin-bottom: 4px;
+}
+.narr-preview .narr-app-subtitle {
+  text-align: center;
+  font-size: 13px;
+  color: var(--stone);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 32px;
+}
+
+.narr-section-title {
+  font-family: 'Trebuchet MS', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--brass-dark);
+  margin-top: 28px;
+  margin-bottom: 8px;
+}
+.narr-editable {
+  background: #fdfcf9;
+  border: 1px dashed #c8c3ba;
+  padding: 12px 14px;
+  min-height: 48px;
+  font-size: 15px;
+  line-height: 1.55;
+  outline: none;
+}
+.narr-editable:focus {
+  border-color: var(--brass);
+  background: #fff;
+}
+
+.narr-fin-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+  font-size: 14px;
+}
+.narr-fin-table th {
+  text-align: left;
+  padding: 8px 12px;
+  background: var(--charcoal);
+  color: var(--brass-light);
+  font-family: 'Trebuchet MS', sans-serif;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.narr-fin-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #ddd8d0;
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 14px;
+}
+.narr-fin-table tr:nth-child(even) td { background: #f0ede7; }
+
+.narr-disclaimer {
+  font-size: 12px;
+  color: var(--stone);
+  margin-top: 28px;
+  line-height: 1.4;
+  padding-top: 16px;
+  border-top: 1px solid #d5d0c8;
+}
+
+.narr-actions {
+  display: flex; gap: 12px;
+  justify-content: center;
+  margin: 24px 0;
+  flex-wrap: wrap;
+}
+.btn-print, .btn-copy {
+  font-family: 'Trebuchet MS', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 12px 28px;
+  cursor: pointer;
+  border: none;
+  transition: background 0.2s;
+}
+.btn-print {
+  background: var(--charcoal);
+  color: var(--brass);
+}
+.btn-print:hover { background: #1a1a1a; }
+.btn-copy {
+  background: var(--brass);
+  color: var(--charcoal);
+}
+.btn-copy:hover { background: var(--brass-light); }
+
+/* ── FOOTER ── */
+.site-footer {
+  background: var(--charcoal);
+  padding: 24px;
+  text-align: center;
+}
+.site-footer p {
+  font-size: 12px;
+  color: #999;
+  line-height: 1.5;
+  max-width: 640px;
+  margin: 0 auto;
+}
+.btn-clear-data {
+  background: transparent;
+  border: 1px solid #666;
+  color: #999;
+  font-size: 11px;
+  padding: 6px 16px;
+  cursor: pointer;
+  margin-top: 12px;
+  font-family: Calibri, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.btn-clear-data:hover { border-color: var(--red); color: var(--red); }
+
+/* ── INFO SIDEBAR (Module 1) ── */
+.info-disclaimer {
+  font-size: 12px;
+  color: var(--stone);
+  line-height: 1.4;
+  margin-top: 20px;
+  padding: 12px 16px;
+  background: var(--charcoal);
+  color: #ccc;
+}
+.info-disclaimer strong {
+  color: var(--brass-light);
+  font-family: 'Trebuchet MS', sans-serif;
+}
+
+/* ── RESPONSIVE TABLE SCROLL ── */
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── PRINT STYLES ── */
+@media print {
+  body { background: #fff; font-size: 12pt; }
+  #entry-screen, .step-nav, .narr-inputs, .narr-actions,
+  .site-footer, .btn-next-step, .btn-add-row, .btn-example,
+  .hero-banner, .brass-band, .doc-progress { display: none !important; }
+  .step-panel { display: none !important; }
+  .step-panel.print-target { display: block !important; }
+  .narr-preview { padding: 0; max-width: 100%; }
+  .narr-editable {
+    border: none; background: none;
+    padding: 0; margin-bottom: 8pt;
+  }
+  .narr-section-title { margin-top: 16pt; }
+  .narr-fin-table th { background: #333; color: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .narr-disclaimer { margin-top: 20pt; }
+  @page { margin: 1in; }
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════ -->
+<!-- ENTRY SCREEN: Capitol Dome SVG          -->
+<!-- ════════════════════════════════════════ -->
+<div id="entry-screen">
+  <svg viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <!-- Dome base -->
+    <rect x="30" y="160" width="140" height="50" fill="#555" stroke="#b8860b" stroke-width="1"/>
+    <!-- Columns -->
+    <rect x="42" y="130" width="8" height="30" fill="#777" stroke="#b8860b" stroke-width="0.5"/>
+    <rect x="66" y="130" width="8" height="30" fill="#777" stroke="#b8860b" stroke-width="0.5"/>
+    <rect x="90" y="130" width="8" height="30" fill="#777" stroke="#b8860b" stroke-width="0.5"/>
+    <rect x="110" y="130" width="8" height="30" fill="#777" stroke="#b8860b" stroke-width="0.5"/>
+    <rect x="130" y="130" width="8" height="30" fill="#777" stroke="#b8860b" stroke-width="0.5"/>
+    <rect x="150" y="130" width="8" height="30" fill="#777" stroke="#b8860b" stroke-width="0.5"/>
+    <!-- Pediment -->
+    <polygon points="30,130 100,100 170,130" fill="#666" stroke="#b8860b" stroke-width="1"/>
+    <!-- Drum -->
+    <rect x="60" y="68" width="80" height="32" rx="2" fill="#666" stroke="#b8860b" stroke-width="1"/>
+    <!-- Dome -->
+    <ellipse cx="100" cy="68" rx="44" ry="34" fill="#555" stroke="#b8860b" stroke-width="1.5"/>
+    <!-- Lantern -->
+    <rect x="92" y="28" width="16" height="12" fill="#666" stroke="#b8860b" stroke-width="1"/>
+    <!-- Spire -->
+    <line x1="100" y1="28" x2="100" y2="10" stroke="#b8860b" stroke-width="2"/>
+    <!-- Brass highlights on dome -->
+    <ellipse cx="100" cy="60" rx="30" ry="8" fill="none" stroke="#b8860b" stroke-width="0.7" opacity="0.6"/>
+    <ellipse cx="100" cy="52" rx="20" ry="5" fill="none" stroke="#b8860b" stroke-width="0.5" opacity="0.4"/>
+    <!-- Steps -->
+    <rect x="20" y="210" width="160" height="6" fill="#444" stroke="#b8860b" stroke-width="0.5"/>
+    <rect x="10" y="216" width="180" height="4" fill="#3a3a3a"/>
+  </svg>
+  <h1>Grant Readiness Navigator</h1>
+  <p>A planning tool for St. Paul Capitol Corridor businesses preparing to apply for state economic development grants.</p>
+  <button id="entry-begin" aria-label="Begin using the tool">Begin</button>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- MAIN APPLICATION                        -->
+<!-- ════════════════════════════════════════ -->
+<div id="app">
+
+  <!-- Step Navigation -->
+  <nav class="step-nav" role="navigation" aria-label="Wizard steps">
+    <div class="step-nav-item active" data-step="1" tabindex="0" role="button" aria-label="Step 1: Business Profile">
+      <span class="step-circle">1</span>
+      <span class="step-label">Eligibility</span>
+    </div>
+    <div class="step-connector" id="conn-1-2"></div>
+    <div class="step-nav-item" data-step="2" tabindex="0" role="button" aria-label="Step 2: Document Checklist">
+      <span class="step-circle">2</span>
+      <span class="step-label">Documents</span>
+    </div>
+    <div class="step-connector" id="conn-2-3"></div>
+    <div class="step-nav-item" data-step="3" tabindex="0" role="button" aria-label="Step 3: Application Builder">
+      <span class="step-circle">3</span>
+      <span class="step-label">Application</span>
+    </div>
+  </nav>
+
+  <!-- ════════════════════════════════════ -->
+  <!-- STEP 1: ELIGIBILITY & PROJECT SCOPE -->
+  <!-- ════════════════════════════════════ -->
+  <div class="step-panel active" id="step-1">
+    <div class="section-wrap">
+      <h2 class="section-title">Can You Apply, and for How Much?</h2>
+      <p class="section-subtitle">Answer the questions below to check likely eligibility, then scope your project costs.</p>
+
+      <!-- Eligibility Checklist -->
+      <div class="elig-group">
+        <div class="elig-group-title">Business Location</div>
+        <div class="elig-item">
+          <input type="checkbox" id="elig-loc" data-elig="required">
+          <div>
+            <label for="elig-loc" class="elig-label">Is your business located in the Capitol Area?</label>
+            <div class="elig-note">Generally bounded by University Avenue, Interstate 94, Rice Street, and John Ireland Blvd. Confirm exact boundaries with the administering agency.</div>
+          </div>
+        </div>
+        <div class="elig-item">
+          <input type="checkbox" id="elig-comm" data-elig="required">
+          <div>
+            <label for="elig-comm" class="elig-label">Does your business operate in a commercial or mixed-use building?</label>
+          </div>
+        </div>
+        <div class="elig-item">
+          <input type="checkbox" id="elig-year" data-elig="required">
+          <div>
+            <label for="elig-year" class="elig-label">Has your business operated at this location for at least one year?</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="elig-group">
+        <div class="elig-group-title">Project Type (select all that apply)</div>
+        <div class="proj-type-grid">
+          <label class="proj-type-opt" tabindex="0">
+            <input type="checkbox" data-proj>
+            <span class="proj-type-marker"></span>
+            Equipment purchase
+          </label>
+          <label class="proj-type-opt" tabindex="0">
+            <input type="checkbox" data-proj>
+            <span class="proj-type-marker"></span>
+            Facade improvement
+          </label>
+          <label class="proj-type-opt" tabindex="0">
+            <input type="checkbox" data-proj>
+            <span class="proj-type-marker"></span>
+            Interior capital improvement
+          </label>
+          <label class="proj-type-opt" tabindex="0">
+            <input type="checkbox" data-proj>
+            <span class="proj-type-marker"></span>
+            Combination of the above
+          </label>
+        </div>
+      </div>
+
+      <div class="elig-group">
+        <div class="elig-group-title">Ownership</div>
+        <div class="elig-item">
+          <input type="checkbox" id="elig-indep" data-elig="required">
+          <div>
+            <label for="elig-indep" class="elig-label">Is the business independently owned (not a franchise or chain)?</label>
+          </div>
+        </div>
+        <div class="elig-item">
+          <input type="checkbox" id="elig-owner" data-elig="required">
+          <div>
+            <label for="elig-owner" class="elig-label">Does the owner hold at least 51% ownership?</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Eligibility Banner -->
+      <div class="elig-banner" id="elig-banner" role="status" aria-live="polite"></div>
+
+      <!-- Program Info -->
+      <!-- VERIFY: Program details from software brief — based on 2025 special session information -->
+      <div class="info-disclaimer">
+        <strong>About this program:</strong> The Capitol Area Economic Development Grant Program was established in the 2025 Minnesota special session capital package to support businesses in the St. Paul Capitol Area. Grants of $50,000 to $150,000 are available for equipment purchases, facade improvements, and other capital investments. For current program details, eligibility rules, and application deadlines, contact the administering state agency directly. This tool is a planning aid, not an official application portal.
+      </div>
+    </div>
+
+    <div class="brass-band"></div>
+
+    <!-- Cost Estimator -->
+    <div class="cost-section">
+      <div class="section-wrap" style="padding-top:0;padding-bottom:0;">
+        <h3>Project Cost Estimator</h3>
+        <p style="font-size:14px;color:var(--stone);margin-bottom:16px;">Add your planned project items. Totals and grant amount update automatically.</p>
+
+        <div class="table-scroll">
+          <table class="line-items-table" id="line-items">
+            <thead>
+              <tr>
+                <th style="width:35%">Item Description</th>
+                <th style="width:18%">Est. Cost ($)</th>
+                <th style="width:20%">Category</th>
+                <th style="width:20%">Quote Status</th>
+                <th style="width:7%"></th>
+              </tr>
+            </thead>
+            <tbody id="line-items-body"></tbody>
+          </table>
+        </div>
+
+        <div style="display:flex;flex-wrap:wrap;align-items:center;">
+          <button class="btn-add-row" id="btn-add-row" aria-label="Add a line item">+ Add Item</button>
+          <button class="btn-example" id="btn-load-example">Load Example: Rice Street Bakery</button>
+        </div>
+
+        <div class="cost-summary" id="cost-summary" style="display:none;">
+          <div class="cost-stat">
+            <div class="val" id="cs-total">$0</div>
+            <div class="lbl">Total Project Cost</div>
+          </div>
+          <div class="cost-stat">
+            <div class="val" id="cs-grant" style="color:var(--brass);">$0</div>
+            <div class="lbl">Grant Request</div>
+          </div>
+          <div class="cost-stat">
+            <div class="val" id="cs-owner">$0</div>
+            <div class="lbl">Owner Contribution</div>
+          </div>
+          <div class="cost-stat">
+            <div class="val" id="cs-pct">0%</div>
+            <div class="lbl">Owner Share</div>
+          </div>
+        </div>
+
+        <div class="cost-advisory" id="adv-low" style="display:none;">
+          <strong>Note:</strong> Your estimated project cost is below the typical minimum grant threshold of $50,000. Consider whether additional improvements could be included, or consult with the program administrator about smaller-project options.
+        </div>
+        <div class="cost-advisory" id="adv-zero-owner" style="display:none;">
+          <strong>Note:</strong> Your current plan shows $0 owner contribution. 100% grant coverage may require additional justification. Consider whether you can contribute to some project costs.
+        </div>
+
+        <div class="chart-wrap">
+          <canvas id="finance-chart" aria-label="Financing split chart"></canvas>
+        </div>
+        <div id="chart-fallback" style="display:none;text-align:center;font-size:14px;color:var(--stone);margin-top:16px;"></div>
+      </div>
+    </div>
+
+    <div class="section-wrap">
+      <button class="btn-next-step" onclick="goToStep(2)">Continue to Document Checklist &#9654;</button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════ -->
+  <!-- HERO BANNER (between steps)         -->
+  <!-- ════════════════════════════════════ -->
+  <div class="hero-banner" id="hero-banner" style="display:none;">
+    <div class="hero-number" id="hero-count">0</div>
+    <div class="hero-label">Eligibility Checks Passed</div>
+  </div>
+
+  <!-- ════════════════════════════════════ -->
+  <!-- STEP 2: DOCUMENT READINESS          -->
+  <!-- ════════════════════════════════════ -->
+  <div class="step-panel" id="step-2">
+    <div class="doc-progress">
+      <div class="doc-progress-text"><span id="doc-count">0</span> of <span id="doc-total">0</span> documents ready</div>
+      <div class="doc-progress-bar-track">
+        <div class="doc-progress-bar-fill" id="doc-fill"></div>
+      </div>
+      <div class="doc-progress-sub">Check items as you gather them. Your progress is saved automatically.</div>
+      <div class="doc-complete-msg" id="doc-complete-msg">Your application package looks complete. Review the narrative module before submitting.</div>
+    </div>
+
+    <div class="section-wrap">
+      <div class="doc-columns">
+        <!-- Business Documentation -->
+        <div>
+          <div class="doc-col-title">Business Documentation</div>
+
+          <div class="doc-item">
+            <input type="checkbox" id="doc-1" data-doc>
+            <div>
+              <label for="doc-1" class="doc-item-text">Business license or certificate of assumed name (current year)</label>
+              <div class="doc-tip">Proves your business is legally registered and operating. Reviewers use this to confirm legitimacy.</div>
+            </div>
+          </div>
+          <div class="doc-item">
+            <input type="checkbox" id="doc-2" data-doc>
+            <div>
+              <label for="doc-2" class="doc-item-text">Proof of business location (lease agreement or property deed)</label>
+              <div class="doc-tip">Confirms you operate in the eligible Capitol Area zone. Without it, geographic eligibility cannot be verified.</div>
+            </div>
+          </div>
+          <div class="doc-item">
+            <input type="checkbox" id="doc-3" data-doc>
+            <div>
+              <label for="doc-3" class="doc-item-text">Proof of at least one year of operation at current address</label>
+              <div class="doc-tip">Demonstrates stability. A utility bill, dated lease, or business license with address history works.</div>
+            </div>
+          </div>
+          <div class="doc-item">
+            <input type="checkbox" id="doc-4" data-doc>
+            <div>
+              <label for="doc-4" class="doc-item-text">Most recent two years of business tax returns or financial statements</label>
+              <div class="doc-tip">Shows financial viability. Reviewers want to see the business can sustain operations after the grant.</div>
+            </div>
+          </div>
+          <div class="doc-item">
+            <input type="checkbox" id="doc-5" data-doc>
+            <div>
+              <label for="doc-5" class="doc-item-text">Photo ID of primary owner(s)</label>
+              <div class="doc-tip">Standard identity verification for any government grant program.</div>
+            </div>
+          </div>
+          <div class="doc-item">
+            <input type="checkbox" id="doc-6" data-doc>
+            <div>
+              <label for="doc-6" class="doc-item-text">Evidence of ownership stake (articles of incorporation, operating agreement, or sole proprietor affidavit)</label>
+              <div class="doc-tip">Confirms the 51% ownership threshold. The type of document depends on your business structure.</div>
+            </div>
+          </div>
+
+          <!-- Narrative Materials -->
+          <div class="doc-col-title" style="margin-top:24px;">Narrative Materials</div>
+          <div class="doc-item">
+            <input type="checkbox" id="doc-13" data-doc>
+            <div>
+              <label for="doc-13" class="doc-item-text">Business description (2-3 sentences)</label>
+              <div class="doc-tip">What you do, who you serve, how long you have been in the neighborhood. Keep it concise and specific.</div>
+            </div>
+          </div>
+          <div class="doc-item">
+            <input type="checkbox" id="doc-14" data-doc>
+            <div>
+              <label for="doc-14" class="doc-item-text">Project description (3-5 sentences)</label>
+              <div class="doc-tip">What you are buying or improving and why. Connect the purchase to a real business need.</div>
+            </div>
+          </div>
+          <div class="doc-item">
+            <input type="checkbox" id="doc-15" data-doc>
+            <div>
+              <label for="doc-15" class="doc-item-text">Community impact statement</label>
+              <div class="doc-tip">How this project benefits your customers, employees, or the neighborhood. Reviewers prioritize community value.</div>
+            </div>
+          </div>
+          <div class="doc-item">
+            <input type="checkbox" id="doc-16" data-doc>
+            <div>
+              <label for="doc-16" class="doc-item-text">Owner background statement</label>
+              <div class="doc-tip">Your history with the business and the community. Personal connection strengthens applications.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Project Documentation -->
+        <div>
+          <div class="doc-col-title">Project Documentation</div>
+
+          <div class="doc-item">
+            <input type="checkbox" id="doc-7" data-doc>
+            <div>
+              <label for="doc-7" class="doc-item-text">At least two written vendor quotes for each major project item</label>
+              <div class="doc-tip">Equipment over $10,000 and facade work over $5,000 typically require competitive quotes.</div>
+            </div>
+          </div>
+          <div class="doc-item">
+            <input type="checkbox" id="doc-8" data-doc>
+            <div>
+              <label for="doc-8" class="doc-item-text">Contractor license numbers for any construction or renovation work</label>
+              <div class="doc-tip">Licensed contractors protect both you and the grant program. Unlicensed work is a disqualifier.</div>
+            </div>
+          </div>
+          <div class="doc-item">
+            <input type="checkbox" id="doc-9" data-doc>
+            <div>
+              <label for="doc-9" class="doc-item-text">Building permits obtained or application submitted (if applicable)</label>
+              <div class="doc-tip">Shows you have done due diligence on regulatory requirements before requesting funds.</div>
+            </div>
+          </div>
+          <div class="doc-item">
+            <input type="checkbox" id="doc-10" data-doc>
+            <div>
+              <label for="doc-10" class="doc-item-text">Landlord written consent (if leased and improvements are permanent)</label>
+              <div class="doc-tip">Structural or permanent improvements to a leased space need landlord approval. Without it, the project may stall.</div>
+            </div>
+          </div>
+          <div class="doc-item">
+            <input type="checkbox" id="doc-11" data-doc>
+            <div>
+              <label for="doc-11" class="doc-item-text">Before photographs of equipment or space to be improved</label>
+              <div class="doc-tip">Documents the baseline condition. Required for before-and-after accountability reporting.</div>
+            </div>
+          </div>
+          <div class="doc-item">
+            <input type="checkbox" id="doc-12" data-doc>
+            <div>
+              <label for="doc-12" class="doc-item-text">Project timeline showing start and completion dates</label>
+              <div class="doc-tip">Demonstrates planning and gives reviewers confidence the project will actually be completed on schedule.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-next-step" onclick="goToStep(3)">Continue to Application Builder &#9654;</button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════ -->
+  <!-- STEP 3: NARRATIVE BUILDER           -->
+  <!-- ════════════════════════════════════ -->
+  <div class="step-panel" id="step-3">
+    <div class="narr-inputs">
+      <div class="section-wrap" style="padding-top:0;padding-bottom:0;">
+        <h2 class="section-title" style="color:var(--charcoal);">Build Your Application Narrative</h2>
+        <p style="font-size:14px;color:var(--stone);margin-bottom:20px;">Fill in the fields below. The narrative preview updates as you type. You can edit the preview directly before printing.</p>
+
+        <div class="narr-row">
+          <div class="narr-field">
+            <label for="n-biz-name">Business Name</label>
+            <input type="text" id="n-biz-name" placeholder="e.g., Main Street Coffee">
+          </div>
+          <div class="narr-field">
+            <label for="n-biz-type">Business Type</label>
+            <input type="text" id="n-biz-type" placeholder="e.g., family-owned restaurant">
+          </div>
+        </div>
+        <div class="narr-row">
+          <div class="narr-field">
+            <label for="n-years">Years at Current Address</label>
+            <input type="number" id="n-years" min="0" placeholder="e.g., 8">
+          </div>
+          <div class="narr-field">
+            <label for="n-neighborhood">Neighborhood</label>
+            <select id="n-neighborhood">
+              <option value="">Select...</option>
+              <option>Rice Street</option>
+              <option>Frogtown</option>
+              <option>Dayton's Bluff</option>
+              <option>Summit-University</option>
+              <option>Capitol corridor (other)</option>
+            </select>
+          </div>
+        </div>
+        <div class="narr-row">
+          <div class="narr-field">
+            <label for="n-ft">Full-Time Employees</label>
+            <input type="number" id="n-ft" min="0" placeholder="e.g., 3">
+          </div>
+          <div class="narr-field">
+            <label for="n-pt">Part-Time Employees</label>
+            <input type="number" id="n-pt" min="0" placeholder="e.g., 4">
+          </div>
+        </div>
+        <div class="narr-field">
+          <label for="n-customers">Primary Customers Served</label>
+          <input type="text" id="n-customers" placeholder="e.g., neighborhood residents, state employees, families">
+        </div>
+        <div class="narr-field">
+          <label for="n-proj-desc">Project Description (plain English, 2-5 sentences)</label>
+          <textarea id="n-proj-desc" placeholder="Describe what you plan to buy, build, or improve and why it matters for your business."></textarea>
+        </div>
+        <div class="narr-field">
+          <label for="n-outcome">Expected Outcome</label>
+          <textarea id="n-outcome" placeholder="e.g., Updated equipment will allow us to serve 30% more customers per day."></textarea>
+        </div>
+        <div class="narr-field">
+          <label for="n-community">Additional Community Benefit</label>
+          <textarea id="n-community" placeholder="e.g., We plan to hire two additional employees. The facade improvement will bring our storefront into ADA compliance."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="brass-band"></div>
+
+    <!-- Narrative Preview -->
+    <div class="narr-preview" id="narr-preview">
+      <h3 id="narr-title">Grant Application Narrative</h3>
+      <div class="narr-app-subtitle">Capitol Area Economic Development Grant Program</div>
+
+      <div class="narr-section-title">Business Overview</div>
+      <div class="narr-editable" contenteditable="true" id="narr-biz" aria-label="Editable business overview"></div>
+
+      <div class="narr-section-title">Project Description</div>
+      <div class="narr-editable" contenteditable="true" id="narr-proj" aria-label="Editable project description"></div>
+
+      <div class="narr-section-title">Community Impact</div>
+      <div class="narr-editable" contenteditable="true" id="narr-impact" aria-label="Editable community impact"></div>
+
+      <div class="narr-section-title">Financial Summary</div>
+      <table class="narr-fin-table" id="narr-fin-table">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Amount</th>
+          </tr>
+        </thead>
+        <tbody id="narr-fin-body"></tbody>
+      </table>
+
+      <div class="narr-disclaimer">
+        This narrative was drafted with an AI-assisted planning tool. Review and edit all text to ensure it accurately reflects your business before submitting. Grant program details are based on publicly available 2025 special session information. Always confirm current program rules and deadlines with the administering agency before submitting an application.
+      </div>
+    </div>
+
+    <div class="narr-actions">
+      <button class="btn-print" onclick="printNarrative()">Print Narrative</button>
+      <button class="btn-copy" onclick="copyNarrative()">Copy to Clipboard</button>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <p>A planning resource for Capitol corridor businesses and District 64. Built with AI. Based on 2025 program information — always verify current rules with the administering agency before applying.</p>
+    <button class="btn-clear-data" onclick="clearAllData()">Clear All Saved Data</button>
+  </footer>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // ── STATE ──
+  let currentStep = 1;
+  let financeChart = null;
+  const chartAvailable = typeof Chart !== 'undefined';
+
+  // ── ENTRY SCREEN ──
+  const entryScreen = document.getElementById('entry-screen');
+  const app = document.getElementById('app');
+  document.getElementById('entry-begin').addEventListener('click', function() {
+    entryScreen.classList.add('fade-out');
+    setTimeout(function() {
+      entryScreen.style.display = 'none';
+      app.classList.add('visible');
+      restoreState();
+    }, 600);
+  });
+
+  // ── STEP NAVIGATION ──
+  const stepNavItems = document.querySelectorAll('.step-nav-item');
+  const stepPanels = document.querySelectorAll('.step-panel');
+
+  function goToStep(n) {
+    currentStep = n;
+    stepPanels.forEach(function(p) { p.classList.remove('active', 'print-target'); });
+    document.getElementById('step-' + n).classList.add('active');
+
+    stepNavItems.forEach(function(item) {
+      var s = parseInt(item.dataset.step);
+      item.classList.remove('active', 'completed');
+      if (s === n) item.classList.add('active');
+      else if (s < n) item.classList.add('completed');
+    });
+
+    // Connectors
+    document.getElementById('conn-1-2').classList.toggle('done', n >= 2);
+    document.getElementById('conn-2-3').classList.toggle('done', n >= 3);
+
+    // Hero banner between step 1 and 2
+    var hero = document.getElementById('hero-banner');
+    if (n >= 2) {
+      hero.style.display = 'block';
+      updateHero();
+    } else {
+      hero.style.display = 'none';
+    }
+
+    // Update narrative when entering step 3
+    if (n === 3) updateNarrative();
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  window.goToStep = goToStep;
+
+  stepNavItems.forEach(function(item) {
+    item.addEventListener('click', function() {
+      goToStep(parseInt(this.dataset.step));
+    });
+    item.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        goToStep(parseInt(this.dataset.step));
+      }
+    });
+  });
+
+  // ── HERO BANNER ──
+  function updateHero() {
+    var checks = document.querySelectorAll('[data-elig="required"]');
+    var passed = 0;
+    checks.forEach(function(c) { if (c.checked) passed++; });
+    var projChecks = document.querySelectorAll('[data-proj]');
+    var projPassed = 0;
+    projChecks.forEach(function(c) { if (c.checked) projPassed++; });
+    if (projPassed > 0) passed++;
+    document.getElementById('hero-count').textContent = passed;
+  }
+
+  // ── ELIGIBILITY CHECKLIST ──
+  var eligChecks = document.querySelectorAll('[data-elig="required"]');
+  var projChecks = document.querySelectorAll('[data-proj]');
+  var eligBanner = document.getElementById('elig-banner');
+
+  function updateEligibility() {
+    var required = document.querySelectorAll('[data-elig="required"]');
+    var total = required.length;
+    var yesCount = 0;
+    var answered = 0;
+    required.forEach(function(c) {
+      // We treat checked = yes, unchecked = not answered yet
+      if (c.checked) { yesCount++; answered++; }
+    });
+
+    var projAny = false;
+    document.querySelectorAll('[data-proj]').forEach(function(c) {
+      if (c.checked) projAny = true;
+    });
+
+    // Show banner once user has interacted
+    if (yesCount === 0 && !projAny) {
+      eligBanner.classList.remove('show');
+      return;
+    }
+
+    eligBanner.classList.add('show');
+
+    if (yesCount === total && projAny) {
+      eligBanner.className = 'elig-banner show green';
+      eligBanner.innerHTML = 'Likely Eligible<small>All core criteria met. Proceed to scope your project and gather documents.</small>';
+    } else if (yesCount >= total - 1 && projAny) {
+      eligBanner.className = 'elig-banner show yellow';
+      eligBanner.innerHTML = 'Verify Before Applying<small>One or more criteria need confirmation. Contact the administering agency to clarify before investing time in a full application.</small>';
+    } else {
+      eligBanner.className = 'elig-banner show red';
+      eligBanner.innerHTML = 'May Not Qualify<small>Several core criteria are not met. Review the requirements above or contact the program administrator about alternative options.</small>';
+    }
+  }
+
+  eligChecks.forEach(function(c) { c.addEventListener('change', updateEligibility); });
+  projChecks.forEach(function(c) {
+    c.addEventListener('change', function() {
+      this.closest('.proj-type-opt').classList.toggle('selected', this.checked);
+      updateEligibility();
+    });
+  });
+
+  // ── LINE ITEMS TABLE ──
+  var lineItemsBody = document.getElementById('line-items-body');
+  var rowId = 0;
+
+  function addLineItem(desc, cost, cat, status) {
+    rowId++;
+    var tr = document.createElement('tr');
+    tr.dataset.rowId = rowId;
+    tr.innerHTML =
+      '<td><input type="text" placeholder="Description" value="' + (desc || '') + '" aria-label="Item description"></td>' +
+      '<td><input type="number" min="0" step="100" placeholder="0" value="' + (cost || '') + '" aria-label="Estimated cost"></td>' +
+      '<td><select aria-label="Category">' +
+        '<option value="Equipment"' + (cat === 'Equipment' ? ' selected' : '') + '>Equipment</option>' +
+        '<option value="Facade"' + (cat === 'Facade' ? ' selected' : '') + '>Facade</option>' +
+        '<option value="Interior"' + (cat === 'Interior' ? ' selected' : '') + '>Interior</option>' +
+        '<option value="Other"' + (cat === 'Other' ? ' selected' : '') + '>Other</option>' +
+      '</select></td>' +
+      '<td><select aria-label="Quote status">' +
+        '<option value="Rough figure"' + (status === 'Rough figure' ? ' selected' : '') + '>Rough figure</option>' +
+        '<option value="Estimate"' + (status === 'Estimate' ? ' selected' : '') + '>Estimate</option>' +
+        '<option value="Written quote"' + (status === 'Written quote' ? ' selected' : '') + '>Written quote</option>' +
+      '</select></td>' +
+      '<td><button class="btn-remove-row" aria-label="Remove item">&times;</button></td>';
+
+    lineItemsBody.appendChild(tr);
+
+    tr.querySelector('.btn-remove-row').addEventListener('click', function() {
+      tr.remove();
+      updateCosts();
+    });
+
+    tr.querySelectorAll('input, select').forEach(function(el) {
+      el.addEventListener('input', updateCosts);
+      el.addEventListener('change', updateCosts);
+    });
+
+    updateCosts();
+  }
+
+  document.getElementById('btn-add-row').addEventListener('click', function() { addLineItem(); });
+
+  // Load example
+  document.getElementById('btn-load-example').addEventListener('click', function() {
+    // Clear existing rows
+    lineItemsBody.innerHTML = '';
+    addLineItem('Commercial deck oven replacement', 38000, 'Equipment', 'Estimate');
+    addLineItem('Display case and refrigerated counter', 14500, 'Equipment', 'Rough figure');
+    addLineItem('Front window replacement (energy-efficient, ADA-compliant)', 12000, 'Facade', 'Estimate');
+    addLineItem('New exterior signage', 6200, 'Facade', 'Written quote');
+
+    // Fill narrative fields with example data
+    document.getElementById('n-biz-name').value = 'Rice Street Family Bakery';
+    document.getElementById('n-biz-type').value = 'family-owned bakery and cafe';
+    document.getElementById('n-years').value = '8';
+    document.getElementById('n-neighborhood').value = 'Rice Street';
+    document.getElementById('n-ft').value = '3';
+    document.getElementById('n-pt').value = '4';
+    document.getElementById('n-customers').value = 'neighborhood residents, state employees, families';
+    document.getElementById('n-proj-desc').value = 'We need to replace our 15-year-old commercial deck oven, which has become unreliable and energy-inefficient. We also plan to upgrade our front display case, replace the storefront windows for energy efficiency and ADA compliance, and install new exterior signage.';
+    document.getElementById('n-outcome').value = 'Updated equipment will allow us to increase our daily baking capacity by approximately 40% and reduce energy costs.';
+    document.getElementById('n-community').value = 'The facade improvements will bring our storefront into ADA compliance and improve the visual appearance of our block on Rice Street.';
+
+    // Show example label
+    var existingLabel = document.getElementById('example-label');
+    if (!existingLabel) {
+      var label = document.createElement('div');
+      label.id = 'example-label';
+      label.style.cssText = 'background:var(--amber);color:#fff;text-align:center;padding:10px;font-family:Trebuchet MS,sans-serif;font-weight:700;font-size:14px;letter-spacing:1px;text-transform:uppercase;';
+      label.textContent = 'Example Data Loaded — Replace With Your Own Information';
+      document.getElementById('step-1').insertBefore(label, document.getElementById('step-1').firstChild);
+    }
+
+    updateCosts();
+    saveState();
+  });
+
+  function updateCosts() {
+    var rows = lineItemsBody.querySelectorAll('tr');
+    var total = 0;
+    var quoteCount = 0;
+
+    rows.forEach(function(tr) {
+      var costInput = tr.querySelectorAll('input')[1];
+      var val = parseFloat(costInput ? costInput.value : 0) || 0;
+      total += val;
+      var statusSel = tr.querySelectorAll('select')[1];
+      if (statusSel && statusSel.value === 'Written quote') quoteCount++;
+    });
+
+    var summaryDiv = document.getElementById('cost-summary');
+    if (rows.length === 0) {
+      summaryDiv.style.display = 'none';
+      document.getElementById('adv-low').style.display = 'none';
+      document.getElementById('adv-zero-owner').style.display = 'none';
+      updateChart(0, 0);
+      return;
+    }
+
+    summaryDiv.style.display = 'grid';
+
+    var grantAmt = Math.min(total, 150000);
+    var ownerAmt = Math.max(total - grantAmt, 0);
+    var ownerPct = total > 0 ? ((ownerAmt / total) * 100).toFixed(1) : 0;
+
+    document.getElementById('cs-total').textContent = '$' + total.toLocaleString();
+    document.getElementById('cs-grant').textContent = '$' + grantAmt.toLocaleString();
+    document.getElementById('cs-owner').textContent = '$' + ownerAmt.toLocaleString();
+    document.getElementById('cs-pct').textContent = ownerPct + '%';
+
+    // Advisories
+    document.getElementById('adv-low').style.display = (total > 0 && total < 50000) ? 'block' : 'none';
+    document.getElementById('adv-zero-owner').style.display = (total > 0 && ownerAmt === 0) ? 'block' : 'none';
+
+    updateChart(grantAmt, ownerAmt);
+
+    // Store for narrative
+    window._grantData = {
+      total: total,
+      grant: grantAmt,
+      owner: ownerAmt,
+      ownerPct: ownerPct,
+      quoteCount: quoteCount,
+      items: []
+    };
+    rows.forEach(function(tr) {
+      var inputs = tr.querySelectorAll('input');
+      var selects = tr.querySelectorAll('select');
+      if (inputs[0] && inputs[0].value.trim()) {
+        window._grantData.items.push({
+          desc: inputs[0].value.trim(),
+          cost: parseFloat(inputs[1].value) || 0,
+          cat: selects[0] ? selects[0].value : '',
+          status: selects[1] ? selects[1].value : ''
+        });
+      }
+    });
+
+    saveState();
+  }
+
+  function updateChart(grant, owner) {
+    var canvas = document.getElementById('finance-chart');
+    var fallback = document.getElementById('chart-fallback');
+
+    if (!chartAvailable) {
+      canvas.style.display = 'none';
+      if (grant > 0 || owner > 0) {
+        var total = grant + owner;
+        fallback.style.display = 'block';
+        fallback.textContent = 'Grant: $' + grant.toLocaleString() +
+          ' (' + ((grant / total) * 100).toFixed(0) + '%)' +
+          ' | Owner: $' + owner.toLocaleString() +
+          ' (' + ((owner / total) * 100).toFixed(0) + '%)';
+      } else {
+        fallback.style.display = 'none';
+      }
+      return;
+    }
+
+    if (financeChart) financeChart.destroy();
+
+    if (grant === 0 && owner === 0) return;
+
+    financeChart = new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: ['Financing Split'],
+        datasets: [
+          {
+            label: 'Grant Request',
+            data: [grant],
+            backgroundColor: '#b8860b',
+            borderWidth: 0
+          },
+          {
+            label: 'Owner Contribution',
+            data: [owner],
+            backgroundColor: '#6b6b6b',
+            borderWidth: 0
+          }
+        ]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              font: { family: 'Calibri', size: 13 },
+              color: '#333'
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: function(ctx) {
+                return ctx.dataset.label + ': $' + ctx.raw.toLocaleString();
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            stacked: true,
+            display: false
+          },
+          y: {
+            stacked: true,
+            display: false
+          }
+        }
+      }
+    });
+  }
+
+  // ── MODULE 2: DOCUMENT CHECKLIST ──
+  var docChecks = document.querySelectorAll('[data-doc]');
+  var docTotal = docChecks.length;
+  document.getElementById('doc-total').textContent = docTotal;
+
+  function updateDocProgress() {
+    var checked = 0;
+    docChecks.forEach(function(c) { if (c.checked) checked++; });
+    document.getElementById('doc-count').textContent = checked;
+    var pct = (checked / docTotal) * 100;
+    document.getElementById('doc-fill').style.width = pct + '%';
+
+    var completeMsg = document.getElementById('doc-complete-msg');
+    completeMsg.style.display = (checked === docTotal) ? 'block' : 'none';
+
+    saveState();
+  }
+
+  docChecks.forEach(function(c) {
+    c.addEventListener('change', updateDocProgress);
+  });
+
+  // ── MODULE 3: NARRATIVE ──
+  var narrFields = ['n-biz-name', 'n-biz-type', 'n-years', 'n-neighborhood',
+    'n-ft', 'n-pt', 'n-customers', 'n-proj-desc', 'n-outcome', 'n-community'];
+
+  narrFields.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('input', function() { updateNarrative(); saveState(); });
+      el.addEventListener('change', function() { updateNarrative(); saveState(); });
+    }
+  });
+
+  function val(id) {
+    var el = document.getElementById(id);
+    return el ? (el.value || '').trim() : '';
+  }
+
+  function updateNarrative() {
+    // Business Overview
+    var bizName = val('n-biz-name') || '[Business Name]';
+    var bizType = val('n-biz-type') || '[business type]';
+    var years = val('n-years') || '[X]';
+    var neighborhood = val('n-neighborhood') || '[neighborhood]';
+    var ft = val('n-ft') || '[X]';
+    var pt = val('n-pt') || '[X]';
+    var customers = val('n-customers') || '[primary customers]';
+
+    var bizText = bizName + ' is a ' + bizType + ' that has operated in St. Paul\'s ' +
+      neighborhood + ' for ' + years + ' years. The business employs ' + ft +
+      ' full-time and ' + pt + ' part-time workers and serves ' + customers + '.';
+
+    document.getElementById('narr-biz').textContent = bizText;
+
+    // Project Description
+    var gd = window._grantData || { items: [], grant: 0 };
+    var itemList = '';
+    if (gd.items && gd.items.length > 0) {
+      var descs = gd.items.map(function(it) { return it.desc; });
+      if (descs.length === 1) itemList = descs[0];
+      else if (descs.length === 2) itemList = descs[0] + ' and ' + descs[1];
+      else itemList = descs.slice(0, -1).join(', ') + ', and ' + descs[descs.length - 1];
+    }
+    var grantStr = gd.grant ? '$' + gd.grant.toLocaleString() : '$[amount]';
+    var projDesc = val('n-proj-desc') || '[Project description]';
+    var projText = 'This grant request of ' + grantStr + ' will fund ' +
+      (itemList || '[list of project items]') + '. ' + projDesc;
+
+    document.getElementById('narr-proj').textContent = projText;
+
+    // Community Impact
+    var outcome = val('n-outcome') || '[Expected outcome]';
+    var community = val('n-community') || '';
+    var impactText = outcome + (community ? ' ' + community : '');
+    document.getElementById('narr-impact').textContent = impactText;
+
+    // Financial Summary Table
+    var finBody = document.getElementById('narr-fin-body');
+    finBody.innerHTML = '';
+
+    function addFinRow(label, value) {
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td style="font-family:Calibri,sans-serif;">' + label + '</td><td>' + value + '</td>';
+      finBody.appendChild(tr);
+    }
+
+    var totalAmt = gd.total || 0;
+    var grantAmt = gd.grant || 0;
+    var ownerAmt = gd.owner || 0;
+    var ownerPct = gd.ownerPct || '0';
+    var quotes = gd.quoteCount || 0;
+
+    addFinRow('Total Project Cost', '$' + totalAmt.toLocaleString());
+    addFinRow('Grant Request', '$' + grantAmt.toLocaleString());
+    addFinRow('Owner Contribution', '$' + ownerAmt.toLocaleString());
+    addFinRow('Owner Contribution %', ownerPct + '%');
+    addFinRow('Vendor Quotes Obtained', quotes.toString());
+
+    // Title
+    document.getElementById('narr-title').textContent =
+      (val('n-biz-name') || 'Grant Application') + ' — Application Narrative';
+  }
+
+  // ── PRINT & COPY ──
+  function printNarrative() {
+    document.getElementById('step-3').classList.add('print-target');
+    window.print();
+    document.getElementById('step-3').classList.remove('print-target');
+  }
+  window.printNarrative = printNarrative;
+
+  function copyNarrative() {
+    var preview = document.getElementById('narr-preview');
+    var text = '';
+    text += document.getElementById('narr-title').textContent + '\n';
+    text += 'Capitol Area Economic Development Grant Program\n\n';
+    text += 'BUSINESS OVERVIEW\n';
+    text += document.getElementById('narr-biz').textContent + '\n\n';
+    text += 'PROJECT DESCRIPTION\n';
+    text += document.getElementById('narr-proj').textContent + '\n\n';
+    text += 'COMMUNITY IMPACT\n';
+    text += document.getElementById('narr-impact').textContent + '\n\n';
+    text += 'FINANCIAL SUMMARY\n';
+
+    var finRows = document.getElementById('narr-fin-body').querySelectorAll('tr');
+    finRows.forEach(function(tr) {
+      var cells = tr.querySelectorAll('td');
+      if (cells.length === 2) text += cells[0].textContent + ': ' + cells[1].textContent + '\n';
+    });
+
+    text += '\n---\nThis narrative was drafted with an AI-assisted planning tool. Review and edit all text to ensure it accurately reflects your business before submitting.';
+
+    navigator.clipboard.writeText(text).then(function() {
+      var btn = document.querySelector('.btn-copy');
+      var orig = btn.textContent;
+      btn.textContent = 'Copied!';
+      btn.style.background = '#1b5e20';
+      btn.style.color = '#fff';
+      setTimeout(function() {
+        btn.textContent = orig;
+        btn.style.background = '';
+        btn.style.color = '';
+      }, 2000);
+    }).catch(function() {
+      // Fallback
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    });
+  }
+  window.copyNarrative = copyNarrative;
+
+  // ── LOCALSTORAGE PERSISTENCE ──
+  var STORAGE_KEY = 'murphy-grant-nav';
+
+  function saveState() {
+    try {
+      var state = {};
+
+      // Eligibility checks
+      state.eligChecks = {};
+      document.querySelectorAll('[data-elig="required"]').forEach(function(c) {
+        state.eligChecks[c.id] = c.checked;
+      });
+
+      // Project type checks
+      state.projChecks = [];
+      document.querySelectorAll('[data-proj]').forEach(function(c, i) {
+        state.projChecks[i] = c.checked;
+      });
+
+      // Line items
+      state.lineItems = [];
+      lineItemsBody.querySelectorAll('tr').forEach(function(tr) {
+        var inputs = tr.querySelectorAll('input');
+        var selects = tr.querySelectorAll('select');
+        state.lineItems.push({
+          desc: inputs[0] ? inputs[0].value : '',
+          cost: inputs[1] ? inputs[1].value : '',
+          cat: selects[0] ? selects[0].value : '',
+          status: selects[1] ? selects[1].value : ''
+        });
+      });
+
+      // Doc checks
+      state.docChecks = {};
+      docChecks.forEach(function(c) {
+        state.docChecks[c.id] = c.checked;
+      });
+
+      // Narrative fields
+      state.narrative = {};
+      narrFields.forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) state.narrative[id] = el.value;
+      });
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch(e) { /* localStorage not available */ }
+  }
+
+  function restoreState() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) {
+        // Start with one empty row
+        addLineItem();
+        return;
+      }
+
+      var state = JSON.parse(raw);
+
+      // Eligibility
+      if (state.eligChecks) {
+        Object.keys(state.eligChecks).forEach(function(id) {
+          var el = document.getElementById(id);
+          if (el) el.checked = state.eligChecks[id];
+        });
+      }
+
+      // Project types
+      if (state.projChecks) {
+        document.querySelectorAll('[data-proj]').forEach(function(c, i) {
+          if (state.projChecks[i] !== undefined) {
+            c.checked = state.projChecks[i];
+            c.closest('.proj-type-opt').classList.toggle('selected', c.checked);
+          }
+        });
+      }
+
+      // Line items
+      if (state.lineItems && state.lineItems.length > 0) {
+        state.lineItems.forEach(function(item) {
+          addLineItem(item.desc, item.cost, item.cat, item.status);
+        });
+      } else {
+        addLineItem();
+      }
+
+      // Doc checks
+      if (state.docChecks) {
+        Object.keys(state.docChecks).forEach(function(id) {
+          var el = document.getElementById(id);
+          if (el) el.checked = state.docChecks[id];
+        });
+      }
+
+      // Narrative
+      if (state.narrative) {
+        Object.keys(state.narrative).forEach(function(id) {
+          var el = document.getElementById(id);
+          if (el) el.value = state.narrative[id];
+        });
+      }
+
+      updateEligibility();
+      updateDocProgress();
+      updateCosts();
+
+    } catch(e) {
+      addLineItem();
+    }
+  }
+
+  function clearAllData() {
+    if (confirm('Clear all saved data? This cannot be undone.')) {
+      try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
+      location.reload();
+    }
+  }
+  window.clearAllData = clearAllData;
+
+  // ── INIT ──
+  // Add one empty row if nothing restored
+  // (restoreState handles this on app reveal)
+
+})();
+</script>
+</body>
+</html>

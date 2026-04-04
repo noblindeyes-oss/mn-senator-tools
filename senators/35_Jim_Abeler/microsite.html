@@ -1,0 +1,1956 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jim Abeler — Senate District 35</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&family=Oswald:wght@300;400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ─── RESET ──────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    /* ─── MODE SWITCHING ─────────────────────────────────────── */
+    .pro-content  { display: block; }
+    .oppo-content { display: none; }
+    body.mode-oppo .pro-content  { display: none; }
+    body.mode-oppo .oppo-content { display: block; }
+    body { transition: opacity 0.22s ease; }
+    body.fading { opacity: 0; }
+
+    /* ─── FLIP BUTTON ────────────────────────────────────────── */
+    #flip-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      border: 2px solid currentColor;
+      cursor: pointer;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      padding: 11px 18px;
+      transition: transform 0.18s, box-shadow 0.18s;
+      line-height: 1;
+    }
+    body:not(.mode-oppo) #flip-btn {
+      background: #1C2B1A;
+      color: #E8B84B;
+      border-color: #E8B84B;
+    }
+    body.mode-oppo #flip-btn {
+      background: #E8B84B;
+      color: #1A1A1A;
+      border-color: #1A1A1A;
+    }
+    #flip-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+    }
+    .btn-pro-label, .btn-oppo-label { pointer-events: none; }
+    body:not(.mode-oppo) .btn-oppo-label { display: none; }
+    body.mode-oppo .btn-pro-label  { display: none; }
+
+
+    /* ═══════════════════════════════════════════════════════════
+       PRO SITE — "Care System Status Board"
+       Palette: road-salt gray #D6D2C4 · cedar green #2A4A2E
+                sodium amber #E8B84B · off-white #F4F1EB
+                dark slate #1C2B1A · ink #1A1A1A
+    ═══════════════════════════════════════════════════════════ */
+
+    /* ── PRO: BASE ─────────────────────────────────────────── */
+    .pro-content {
+      background: #F4F1EB;
+      font-family: 'DM Sans', sans-serif;
+      color: #1A1A1A;
+      min-width: 320px;
+    }
+
+    /* ── PRO: HEADER BAND ────────────────────────────────── */
+    .pro-header {
+      background: #1C2B1A;
+      padding: 0;
+      border-bottom: 4px solid #E8B84B;
+    }
+    .pro-header-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 32px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: stretch;
+      gap: 0;
+      min-height: 80px;
+    }
+    .pro-district-badge {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 16px 28px 16px 0;
+      border-right: 1px solid rgba(232,184,75,0.3);
+    }
+    .pro-district-num {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 38px;
+      font-weight: 700;
+      color: #E8B84B;
+      line-height: 1;
+    }
+    .pro-district-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(232,184,75,0.6);
+      margin-top: 3px;
+    }
+    .pro-header-name-block {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 16px 28px;
+    }
+    .pro-senator-name {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: #F4F1EB;
+      letter-spacing: -0.01em;
+      line-height: 1.1;
+    }
+    .pro-header-meta {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(244,241,235,0.45);
+      margin-top: 5px;
+    }
+    .pro-status-light {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 0 16px 28px;
+      border-left: 1px solid rgba(232,184,75,0.3);
+    }
+    .pro-status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #4CAF50;
+      box-shadow: 0 0 8px rgba(76,175,80,0.7);
+      animation: pulse-green 2.5s ease-in-out infinite;
+    }
+    @keyframes pulse-green {
+      0%, 100% { box-shadow: 0 0 8px rgba(76,175,80,0.7); }
+      50% { box-shadow: 0 0 18px rgba(76,175,80,1); }
+    }
+    .pro-status-text {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(244,241,235,0.55);
+    }
+
+    /* ── PRO: SYSTEM HERO ─────────────────────────────────── */
+    .pro-hero {
+      background: #2A4A2E;
+      position: relative;
+      overflow: hidden;
+    }
+    .pro-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        repeating-linear-gradient(0deg,
+          transparent, transparent 47px,
+          rgba(255,255,255,0.025) 47px, rgba(255,255,255,0.025) 48px),
+        repeating-linear-gradient(90deg,
+          transparent, transparent 47px,
+          rgba(255,255,255,0.025) 47px, rgba(255,255,255,0.025) 48px);
+      pointer-events: none;
+    }
+    .pro-hero-inner {
+      position: relative;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 64px 32px;
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 48px;
+      align-items: center;
+    }
+    .pro-hero-lede {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #E8B84B;
+      margin-bottom: 20px;
+    }
+    .pro-hero-hed {
+      font-family: 'DM Sans', sans-serif;
+      font-size: clamp(32px, 4vw, 52px);
+      font-weight: 700;
+      color: #F4F1EB;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      margin-bottom: 24px;
+    }
+    .pro-hero-hed em {
+      color: #E8B84B;
+      font-style: normal;
+    }
+    .pro-hero-body {
+      font-size: 17px;
+      line-height: 1.65;
+      color: rgba(244,241,235,0.78);
+      max-width: 520px;
+    }
+    .pro-hero-photo-wrap {
+      position: relative;
+    }
+    .pro-photo {
+      width: 100%;
+      aspect-ratio: 3/4;
+      object-fit: cover;
+      object-position: center 15%;
+      filter: sepia(0.15) contrast(1.05) brightness(1.02);
+      display: block;
+      border: 3px solid rgba(232,184,75,0.4);
+    }
+    .pro-photo-fallback {
+      width: 100%;
+      aspect-ratio: 3/4;
+      background: #1C2B1A;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      border: 3px solid rgba(232,184,75,0.4);
+    }
+    .pro-photo-fallback-inner {
+      text-align: center;
+    }
+    .pro-photo-initials {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 52px;
+      font-weight: 700;
+      color: #E8B84B;
+      line-height: 1;
+    }
+    .pro-photo-fallback-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(232,184,75,0.5);
+      margin-top: 8px;
+    }
+    .pro-photo-caption {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(232,184,75,0.5);
+      margin-top: 10px;
+      text-align: right;
+    }
+
+    /* ── PRO: STAT RAIL ───────────────────────────────────── */
+    .pro-stat-rail {
+      background: #F4F1EB;
+      border-bottom: 3px solid #2A4A2E;
+    }
+    .pro-stat-rail-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 32px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .pro-stat {
+      padding: 36px 32px;
+      border-right: 1px solid #D6D2C4;
+      position: relative;
+    }
+    .pro-stat:last-child { border-right: none; }
+    .pro-stat-num {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 48px;
+      font-weight: 700;
+      color: #2A4A2E;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+    .pro-stat-num span {
+      font-size: 28px;
+    }
+    .pro-stat-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #1A1A1A;
+      line-height: 1.3;
+      margin-bottom: 4px;
+    }
+    .pro-stat-sub {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #8A8878;
+    }
+    .pro-stat-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 3px;
+      background: #E8B84B;
+      width: 0%;
+      transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .pro-stat-bar.animated { width: var(--bar-w, 70%); }
+
+    /* ── PRO: MAIN CONTENT AREA ───────────────────────────── */
+    .pro-main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 56px 32px;
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 56px;
+      align-items: start;
+    }
+
+    /* ── PRO: PROGRAM PANEL ───────────────────────────────── */
+    .pro-panel-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #8A8878;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .pro-panel-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #D6D2C4;
+    }
+    .pro-program-card {
+      background: #fff;
+      border: 1px solid #D6D2C4;
+      border-left: 4px solid #2A4A2E;
+      padding: 28px 28px 24px;
+      margin-bottom: 20px;
+    }
+    .pro-program-tag {
+      display: inline-block;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #2A4A2E;
+      background: rgba(42,74,46,0.08);
+      padding: 4px 10px;
+      margin-bottom: 14px;
+    }
+    .pro-program-hed {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: #1A1A1A;
+      line-height: 1.2;
+      margin-bottom: 12px;
+    }
+    .pro-program-body {
+      font-size: 15px;
+      line-height: 1.7;
+      color: #3A3A3A;
+    }
+    .pro-program-body + .pro-program-body {
+      margin-top: 10px;
+    }
+    .pro-bill-ref {
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid #E8E4DC;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #8A8878;
+    }
+    .pro-bill-ref a {
+      color: #2A4A2E;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    /* ── PRO: STATUS INDICATORS ───────────────────────────── */
+    .pro-status-board {
+      background: #fff;
+      border: 1px solid #D6D2C4;
+      overflow: hidden;
+    }
+    .pro-status-board-header {
+      background: #1C2B1A;
+      padding: 14px 20px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(232,184,75,0.7);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .pro-status-board-header::before {
+      content: '';
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #4CAF50;
+      display: inline-block;
+    }
+    .pro-status-row {
+      padding: 16px 20px;
+      border-bottom: 1px solid #E8E4DC;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+    .pro-status-row:last-child { border-bottom: none; }
+    .pro-status-row-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: #1A1A1A;
+      line-height: 1.3;
+    }
+    .pro-status-row-sub {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #8A8878;
+      margin-top: 3px;
+    }
+    .pro-status-chip {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      white-space: nowrap;
+    }
+    .chip-active {
+      background: rgba(76,175,80,0.12);
+      color: #2E7D32;
+    }
+    .chip-passed {
+      background: rgba(42,74,46,0.1);
+      color: #2A4A2E;
+    }
+    .chip-filed {
+      background: rgba(232,184,75,0.15);
+      color: #9A6B00;
+    }
+
+    /* ── PRO: PULL QUOTE ──────────────────────────────────── */
+    .pro-pull-quote {
+      background: #2A4A2E;
+      padding: 48px 32px;
+      position: relative;
+    }
+    .pro-pull-quote-mark {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 80px;
+      color: rgba(232,184,75,0.2);
+      line-height: 0.6;
+      margin-bottom: 20px;
+      display: block;
+    }
+    .pro-pull-quote-text {
+      max-width: 800px;
+      margin: 0 auto;
+      font-family: 'DM Sans', sans-serif;
+      font-size: clamp(20px, 2.5vw, 28px);
+      font-weight: 600;
+      color: #F4F1EB;
+      line-height: 1.45;
+      text-align: center;
+    }
+    .pro-pull-quote-source {
+      text-align: center;
+      margin-top: 20px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(232,184,75,0.55);
+    }
+
+    /* ── PRO: DISTRICT SECTION ────────────────────────────── */
+    .pro-district-section {
+      background: #F4F1EB;
+      border-top: 3px solid #D6D2C4;
+    }
+    .pro-district-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 52px 32px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: start;
+    }
+    .pro-district-hed {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 26px;
+      font-weight: 700;
+      color: #1A1A1A;
+      line-height: 1.2;
+      margin-bottom: 16px;
+    }
+    .pro-district-body {
+      font-size: 15px;
+      line-height: 1.72;
+      color: #3A3A3A;
+    }
+    .pro-district-body + .pro-district-body {
+      margin-top: 12px;
+    }
+    .pro-tenure-list {
+      list-style: none;
+    }
+    .pro-tenure-item {
+      padding: 14px 0;
+      border-bottom: 1px solid #D6D2C4;
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 16px;
+      align-items: baseline;
+    }
+    .pro-tenure-year {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      color: #2A4A2E;
+      letter-spacing: 0.08em;
+    }
+    .pro-tenure-desc {
+      font-size: 14px;
+      color: #3A3A3A;
+      line-height: 1.45;
+    }
+
+    /* ── PRO: FOOTNOTES ───────────────────────────────────── */
+    .pro-footnotes {
+      background: #1C2B1A;
+      padding: 32px;
+      border-top: 4px solid #E8B84B;
+    }
+    .pro-footnotes-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .pro-footnotes-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(232,184,75,0.5);
+      margin-bottom: 16px;
+    }
+    .pro-footnote {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      line-height: 1.6;
+      color: rgba(244,241,235,0.45);
+      margin-bottom: 6px;
+    }
+    .pro-footnote a {
+      color: rgba(232,184,75,0.55);
+    }
+
+
+    /* ═══════════════════════════════════════════════════════════
+       OPPO SITE — "System Frozen: Case File 35-2297"
+       Palette: warning amber #E8B84B · concrete #C8C4B8
+                warning red #B84A2E · dark #141414
+                fog white #F0EDE6 · delay gray #707060
+    ═══════════════════════════════════════════════════════════ */
+
+    .oppo-content {
+      background: #141414;
+      font-family: 'DM Sans', sans-serif;
+      color: #F0EDE6;
+      min-width: 320px;
+    }
+
+    /* ── OPPO: HEADER ─────────────────────────────────────── */
+    .oppo-header {
+      background: #141414;
+      border-bottom: 3px solid #B84A2E;
+      padding: 0;
+    }
+    .oppo-header-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 32px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: stretch;
+      gap: 0;
+      min-height: 80px;
+    }
+    .oppo-case-badge {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 16px 28px 16px 0;
+      border-right: 1px solid rgba(184,74,46,0.35);
+    }
+    .oppo-case-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(184,74,46,0.7);
+    }
+    .oppo-case-num {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 24px;
+      font-weight: 700;
+      color: #B84A2E;
+      line-height: 1.1;
+      margin-top: 2px;
+    }
+    .oppo-header-name-block {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 16px 28px;
+    }
+    .oppo-senator-name {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 26px;
+      font-weight: 700;
+      color: #F0EDE6;
+      line-height: 1.1;
+    }
+    .oppo-header-sub {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(240,237,230,0.35);
+      margin-top: 4px;
+    }
+    .oppo-status-warn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 0 16px 28px;
+      border-left: 1px solid rgba(184,74,46,0.35);
+    }
+    .oppo-warn-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #B84A2E;
+      animation: pulse-red 1.8s ease-in-out infinite;
+    }
+    @keyframes pulse-red {
+      0%, 100% { box-shadow: 0 0 6px rgba(184,74,46,0.6); }
+      50% { box-shadow: 0 0 16px rgba(184,74,46,1); }
+    }
+    .oppo-warn-text {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(184,74,46,0.7);
+    }
+
+    /* ── OPPO: ACCUSATION HERO ────────────────────────────── */
+    .oppo-hero {
+      background: #1A1A1A;
+      border-bottom: 1px solid #2A2A2A;
+      position: relative;
+      overflow: hidden;
+    }
+    .oppo-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        90deg,
+        transparent 0px,
+        transparent 60px,
+        rgba(184,74,46,0.03) 60px,
+        rgba(184,74,46,0.03) 61px
+      );
+      pointer-events: none;
+    }
+    .oppo-hero-inner {
+      position: relative;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 56px 32px;
+      display: grid;
+      grid-template-columns: 1fr 260px;
+      gap: 48px;
+      align-items: center;
+    }
+    .oppo-charge-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(184,74,46,0.8);
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .oppo-charge-label-line {
+      height: 1px;
+      width: 40px;
+      background: rgba(184,74,46,0.5);
+      display: inline-block;
+    }
+    .oppo-hero-hed {
+      font-family: 'DM Sans', sans-serif;
+      font-size: clamp(28px, 3.5vw, 46px);
+      font-weight: 700;
+      color: #F0EDE6;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      margin-bottom: 22px;
+    }
+    .oppo-hero-hed em {
+      color: #E8B84B;
+      font-style: normal;
+    }
+    .oppo-hero-body {
+      font-size: 16px;
+      line-height: 1.68;
+      color: rgba(240,237,230,0.7);
+      max-width: 560px;
+    }
+    .oppo-photo-wrap {
+      position: relative;
+    }
+    .oppo-photo {
+      width: 100%;
+      aspect-ratio: 3/4;
+      object-fit: cover;
+      object-position: center 15%;
+      filter: grayscale(100%) contrast(1.3) brightness(0.75);
+      display: block;
+      border: 2px solid #2A2A2A;
+    }
+    .oppo-photo-fallback {
+      width: 100%;
+      aspect-ratio: 3/4;
+      background: #2A2A2A;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #3A3A3A;
+    }
+    .oppo-photo-initials {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 52px;
+      font-weight: 700;
+      color: #B84A2E;
+      line-height: 1;
+      text-align: center;
+    }
+    .oppo-photo-stamp {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-12deg);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(184,74,46,0.65);
+      border: 2px solid rgba(184,74,46,0.65);
+      padding: 6px 14px;
+      white-space: nowrap;
+      pointer-events: none;
+      animation: stamp-appear 0.4s ease 0.6s both;
+    }
+    @keyframes stamp-appear {
+      from { opacity: 0; transform: translate(-50%, -50%) rotate(-12deg) scale(1.4); }
+      to { opacity: 1; transform: translate(-50%, -50%) rotate(-12deg) scale(1); }
+    }
+
+    /* ── OPPO: SEQUENCE BAND ──────────────────────────────── */
+    .oppo-sequence {
+      background: #1E1E1E;
+      border-top: 1px solid #2A2A2A;
+      border-bottom: 1px solid #2A2A2A;
+    }
+    .oppo-sequence-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 48px 32px;
+    }
+    .oppo-sequence-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(240,237,230,0.3);
+      margin-bottom: 36px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .oppo-sequence-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #2A2A2A;
+    }
+    .oppo-timeline {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+    }
+    .oppo-timeline::before {
+      content: '';
+      position: absolute;
+      top: 22px;
+      left: 12.5%;
+      right: 12.5%;
+      height: 2px;
+      background: linear-gradient(90deg, #B84A2E, #E8B84B, #E8B84B, #B84A2E);
+    }
+    .oppo-tl-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 0 12px;
+      position: relative;
+    }
+    .oppo-tl-dot {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      position: relative;
+      z-index: 1;
+      margin-bottom: 18px;
+      flex-shrink: 0;
+    }
+    .dot-rate {
+      background: #2A4A2E;
+      color: #E8B84B;
+      border: 2px solid #4A7A4E;
+    }
+    .dot-abeler {
+      background: #B84A2E;
+      color: #F0EDE6;
+      border: 2px solid #D86A4E;
+    }
+    .dot-task {
+      background: #3A2A1A;
+      color: #E8B84B;
+      border: 2px solid #5A4A2A;
+    }
+    .dot-wait {
+      background: #2A2A2A;
+      color: #707060;
+      border: 2px dashed #505050;
+    }
+    .oppo-tl-date {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(240,237,230,0.4);
+      margin-bottom: 8px;
+    }
+    .oppo-tl-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #F0EDE6;
+      line-height: 1.3;
+      margin-bottom: 6px;
+    }
+    .oppo-tl-sub {
+      font-size: 12px;
+      line-height: 1.5;
+      color: rgba(240,237,230,0.5);
+    }
+
+    /* ── OPPO: EVIDENCE CARDS ─────────────────────────────── */
+    .oppo-evidence {
+      background: #141414;
+    }
+    .oppo-evidence-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 52px 32px;
+    }
+    .oppo-evidence-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(240,237,230,0.3);
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .oppo-evidence-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #2A2A2A;
+    }
+    .oppo-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .oppo-card {
+      background: #1E1E1E;
+      border: 1px solid #2A2A2A;
+      border-top: 3px solid #B84A2E;
+      padding: 28px 24px;
+      transition: border-color 0.2s, background 0.2s, transform 0.2s;
+      cursor: default;
+    }
+    .oppo-card:hover {
+      border-color: #B84A2E;
+      border-top-color: #E8B84B;
+      background: #242424;
+      transform: translateY(-3px);
+    }
+    .oppo-card-num {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(184,74,46,0.7);
+      margin-bottom: 14px;
+    }
+    .oppo-card-hed {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      color: #F0EDE6;
+      line-height: 1.25;
+      margin-bottom: 12px;
+    }
+    .oppo-card-body {
+      font-size: 13px;
+      line-height: 1.65;
+      color: rgba(240,237,230,0.62);
+    }
+    .oppo-card-ref {
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid #2A2A2A;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(240,237,230,0.25);
+    }
+
+    /* ── OPPO: PROOF BLOCK ────────────────────────────────── */
+    .oppo-proof {
+      background: #1A1A1A;
+      border-top: 1px solid #2A2A2A;
+    }
+    .oppo-proof-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 52px 32px;
+    }
+    .oppo-proof-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(240,237,230,0.3);
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .oppo-proof-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #2A2A2A;
+    }
+    .oppo-doc-block {
+      background: #0E0E0E;
+      border: 1px solid #2A2A2A;
+      border-left: 4px solid #B84A2E;
+      padding: 32px;
+      position: relative;
+    }
+    .oppo-doc-meta {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(184,74,46,0.7);
+      margin-bottom: 20px;
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .oppo-doc-title {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: #F0EDE6;
+      line-height: 1.25;
+      margin-bottom: 20px;
+    }
+    .oppo-doc-text {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      line-height: 1.75;
+      color: rgba(240,237,230,0.55);
+      border-left: 2px solid #2A2A2A;
+      padding-left: 20px;
+      margin-bottom: 16px;
+    }
+    .oppo-doc-highlight {
+      background: rgba(184,74,46,0.12);
+      color: rgba(240,237,230,0.85);
+      padding: 2px 0;
+    }
+    .oppo-doc-context {
+      font-size: 14px;
+      line-height: 1.68;
+      color: rgba(240,237,230,0.6);
+    }
+    .oppo-doc-context strong {
+      color: #E8B84B;
+      font-weight: 600;
+    }
+
+    /* ── OPPO: WHAT DELAY MEANS SECTION ───────────────────── */
+    .oppo-stakes {
+      background: #1E1E1E;
+      border-top: 1px solid #2A2A2A;
+    }
+    .oppo-stakes-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 52px 32px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: start;
+    }
+    .oppo-stakes-hed {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 26px;
+      font-weight: 700;
+      color: #F0EDE6;
+      line-height: 1.2;
+      margin-bottom: 18px;
+    }
+    .oppo-stakes-body {
+      font-size: 15px;
+      line-height: 1.72;
+      color: rgba(240,237,230,0.65);
+    }
+    .oppo-stakes-body + .oppo-stakes-body {
+      margin-top: 12px;
+    }
+    .oppo-data-list {
+      list-style: none;
+    }
+    .oppo-data-item {
+      padding: 18px 0;
+      border-bottom: 1px solid #2A2A2A;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+    .oppo-data-item:first-child { padding-top: 0; }
+    .oppo-data-icon {
+      width: 36px;
+      height: 36px;
+      background: rgba(184,74,46,0.12);
+      border: 1px solid rgba(184,74,46,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 14px;
+      color: #B84A2E;
+      flex-shrink: 0;
+    }
+    .oppo-data-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: #F0EDE6;
+      line-height: 1.3;
+      margin-bottom: 4px;
+    }
+    .oppo-data-sub {
+      font-size: 12px;
+      line-height: 1.5;
+      color: rgba(240,237,230,0.5);
+    }
+
+    /* ── OPPO: FOOTNOTES ──────────────────────────────────── */
+    .oppo-footnotes {
+      background: #0E0E0E;
+      padding: 32px;
+      border-top: 3px solid #B84A2E;
+    }
+    .oppo-footnotes-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .oppo-footnotes-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(184,74,46,0.4);
+      margin-bottom: 16px;
+    }
+    .oppo-footnote {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      line-height: 1.6;
+      color: rgba(240,237,230,0.3);
+      margin-bottom: 6px;
+    }
+    .oppo-footnote a {
+      color: rgba(184,74,46,0.55);
+    }
+
+    /* ── RESPONSIVE ───────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .pro-header-inner,
+      .oppo-header-inner {
+        grid-template-columns: auto 1fr;
+        min-height: auto;
+        padding: 16px 20px;
+        gap: 0;
+      }
+      .pro-status-light,
+      .oppo-status-warn { display: none; }
+
+      .pro-hero-inner,
+      .oppo-hero-inner {
+        grid-template-columns: 1fr;
+        padding: 40px 20px;
+      }
+      .pro-hero-photo-wrap,
+      .oppo-photo-wrap {
+        max-width: 240px;
+        margin: 0 auto;
+        order: -1;
+      }
+
+      .pro-stat-rail-inner {
+        grid-template-columns: 1fr;
+        padding: 0 20px;
+      }
+      .pro-stat { border-right: none; border-bottom: 1px solid #D6D2C4; }
+      .pro-stat:last-child { border-bottom: none; }
+
+      .pro-main { grid-template-columns: 1fr; gap: 32px; padding: 32px 20px; }
+      .pro-district-inner { grid-template-columns: 1fr; gap: 32px; padding: 36px 20px; }
+
+      .oppo-timeline {
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+      }
+      .oppo-timeline::before { display: none; }
+
+      .oppo-cards { grid-template-columns: 1fr; }
+      .oppo-stakes-inner { grid-template-columns: 1fr; gap: 32px; padding: 36px 20px; }
+
+      .oppo-evidence-inner,
+      .oppo-proof-inner,
+      .oppo-sequence-inner {
+        padding: 36px 20px;
+      }
+
+      #flip-btn {
+        top: auto;
+        bottom: 20px;
+        right: 16px;
+        font-size: 8px;
+        padding: 10px 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── FLIP BUTTON ──────────────────────────────────────── -->
+  <button id="flip-btn" aria-label="Switch between supporter and opposition views">
+    <span class="btn-oppo-label">Switch to Accountability View</span>
+    <span class="btn-pro-label">Switch to Supporter View</span>
+  </button>
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       PRO SITE
+  ═══════════════════════════════════════════════════════ -->
+  <div class="pro-content" aria-label="Supporter view">
+
+    <!-- HEADER -->
+    <header class="pro-header">
+      <div class="pro-header-inner">
+        <div class="pro-district-badge">
+          <div class="pro-district-num">35</div>
+          <div class="pro-district-label">MN Senate</div>
+        </div>
+        <div class="pro-header-name-block">
+          <div class="pro-senator-name">Jim Abeler</div>
+          <div class="pro-header-meta">Republican &nbsp;&bull;&nbsp; Anoka · Coon Rapids · Andover &nbsp;&bull;&nbsp; In Session 2025–26</div>
+        </div>
+        <div class="pro-status-light">
+          <div class="pro-status-dot"></div>
+          <div class="pro-status-text">Active — Session 94</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- HERO -->
+    <section class="pro-hero">
+      <div class="pro-hero-inner">
+        <div>
+          <div class="pro-hero-lede">// District 35 — Care Workforce Report</div>
+          <h1 class="pro-hero-hed">
+            When the care system runs short, <em>someone has to fix it.</em>
+          </h1>
+          <p class="pro-hero-body">
+            Jim Abeler has spent 27 years in the Minnesota Legislature focused on one unglamorous thing: making the health and human services system work. He is a chiropractor who stayed. He knows the paperwork, the funding streams, and the workforce gaps that policy slogans never mention.
+          </p>
+          <p class="pro-hero-body" style="margin-top:16px;">
+            District 35 -- Anoka, Coon Rapids, Andover -- is home to thousands of families navigating disability services, long-term care, and home health. Abeler's work on the direct-care workforce is not an abstraction here. It is a kitchen-table issue.
+          </p>
+        </div>
+        <div class="pro-hero-photo-wrap">
+          <img
+            class="pro-photo"
+            src="https://www.senate.mn/graphics/35Abeler.jpg"
+            alt="Senator Jim Abeler, District 35"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+          />
+          <div class="pro-photo-fallback">
+            <div class="pro-photo-fallback-inner">
+              <div class="pro-photo-initials">JA</div>
+              <div class="pro-photo-fallback-label">Sen. Abeler · District 35</div>
+            </div>
+          </div>
+          <div class="pro-photo-caption">Jim Abeler &mdash; Senate District 35</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STAT RAIL -->
+    <section class="pro-stat-rail">
+      <div class="pro-stat-rail-inner">
+        <div class="pro-stat">
+          <div class="pro-stat-num" data-target="27"><span>27</span></div>
+          <div class="pro-stat-label">Years in the Legislature</div>
+          <div class="pro-stat-sub">House 1998 &rarr; Senate 2016 &rarr; Present</div>
+          <div class="pro-stat-bar" style="--bar-w: 85%;"></div>
+        </div>
+        <div class="pro-stat">
+          <div class="pro-stat-num"><span>$1.3</span>B</div>
+          <div class="pro-stat-label">Human Services Budget Championed</div>
+          <div class="pro-stat-sub">Long-term care workforce &amp; disability waiver rates</div>
+          <div class="pro-stat-bar" style="--bar-w: 78%;"></div>
+        </div>
+        <div class="pro-stat">
+          <div class="pro-stat-num"><span>1</span></div>
+          <div class="pro-stat-label">New Certification Pilot — SF1062</div>
+          <div class="pro-stat-sub">Direct support professional workforce, filed Feb 2025</div>
+          <div class="pro-stat-bar" style="--bar-w: 55%;"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MAIN CONTENT -->
+    <section class="pro-main">
+      <div>
+        <div class="pro-panel-label">// Key Legislation — 94th Session</div>
+
+        <div class="pro-program-card">
+          <div class="pro-program-tag">SF1062 &mdash; Filed Feb 4, 2025</div>
+          <h2 class="pro-program-hed">A named pilot for the direct-care workforce</h2>
+          <p class="pro-program-body">
+            Direct support professionals are the workers who provide daily living assistance to Minnesotans with disabilities. They are chronically underpaid and hard to keep. Minnesota has a documented shortage.
+          </p>
+          <p class="pro-program-body">
+            SF1062 establishes a Direct Support Professional Certification Pilot Project. It creates a credentialing path for these workers -- something no generic "support caregivers" resolution does. It requires a report back to the Legislature so the pilot can be evaluated and scaled.
+          </p>
+          <p class="pro-program-body">
+            This is not symbolic legislation. It attaches a professional credential to a job class that has never had one in Minnesota. Workers gain a career ladder. Providers gain a retention tool. The report-back requirement keeps the Legislature accountable for following through.
+          </p>
+          <div class="pro-bill-ref">
+            SF1062 &mdash; 94th Legislature (2025&ndash;2026) &bull;
+            <a href="https://www.revisor.mn.gov/bills/bill.php?b=senate&f=SF1062&ssn=0&y=2025" target="_blank" rel="noopener">revisor.mn.gov</a>
+          </div>
+        </div>
+
+        <div class="pro-program-card">
+          <div class="pro-program-tag">$1.322 Billion — Long-Term Care Package</div>
+          <h2 class="pro-program-hed">The largest direct-care workforce investment in state history</h2>
+          <p class="pro-program-body">
+            Minnesota's $1.322 billion human services budget package addressed the long-term care workforce crisis directly. Wage increases for personal care assistants, direct support professionals, nursing home staff, and disability waiver rate providers.
+          </p>
+          <p class="pro-program-body">
+            For Anoka County families -- where aging parents and disabled residents rely on these workers -- the workforce shortage is not an abstract policy concern. It means canceled shifts, closed group homes, and families stepping in unprepared.
+          </p>
+          <p class="pro-program-body">
+            Abeler has worked on this system long enough to know where the pressure points are. That institutional knowledge does not transfer easily.
+          </p>
+          <div class="pro-bill-ref">
+            Source: Minnesota Senate Republicans budget summary &mdash;
+            <a href="https://www.mnsenaterepublicans.com/1-322-billion-human-services-budget-addresses-minnesotas-long-term-care-workforce-crisis/" target="_blank" rel="noopener">mnsenaterepublicans.com</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- STATUS BOARD SIDEBAR -->
+      <div>
+        <div class="pro-panel-label">// Program Status</div>
+        <div class="pro-status-board">
+          <div class="pro-status-board-header">Senate District 35 &mdash; Active Priorities</div>
+          <div class="pro-status-row">
+            <div>
+              <div class="pro-status-row-label">DSP Certification Pilot</div>
+              <div class="pro-status-row-sub">SF1062 &bull; Filed 02/04/25</div>
+            </div>
+            <div class="pro-status-chip chip-filed">Filed</div>
+          </div>
+          <div class="pro-status-row">
+            <div>
+              <div class="pro-status-row-label">Long-Term Care Workforce Package</div>
+              <div class="pro-status-row-sub">$1.322B &bull; Prior Session</div>
+            </div>
+            <div class="pro-status-chip chip-passed">Passed</div>
+          </div>
+          <div class="pro-status-row">
+            <div>
+              <div class="pro-status-row-label">Health &amp; Human Services Committee</div>
+              <div class="pro-status-row-sub">Finance &amp; Policy &bull; Current Member</div>
+            </div>
+            <div class="pro-status-chip chip-active">Active</div>
+          </div>
+          <div class="pro-status-row">
+            <div>
+              <div class="pro-status-row-label">Housing &amp; Homelessness Prevention</div>
+              <div class="pro-status-row-sub">Committee Member &bull; 94th Session</div>
+            </div>
+            <div class="pro-status-chip chip-active">Active</div>
+          </div>
+          <div class="pro-status-row">
+            <div>
+              <div class="pro-status-row-label">Education Policy Committee</div>
+              <div class="pro-status-row-sub">Committee Member &bull; 94th Session</div>
+            </div>
+            <div class="pro-status-chip chip-active">Active</div>
+          </div>
+        </div>
+
+        <div style="margin-top:24px;">
+          <div class="pro-panel-label">// District Profile</div>
+          <div class="pro-status-board">
+            <div class="pro-status-board-header" style="background:#2A4A2E;">Anoka County Communities</div>
+            <div class="pro-status-row">
+              <div>
+                <div class="pro-status-row-label">City of Anoka</div>
+                <div class="pro-status-row-sub">County seat &bull; Rum River corridor</div>
+              </div>
+            </div>
+            <div class="pro-status-row">
+              <div>
+                <div class="pro-status-row-label">Coon Rapids</div>
+                <div class="pro-status-row-sub">Largest city in district &bull; Anoka-Hennepin schools</div>
+              </div>
+            </div>
+            <div class="pro-status-row">
+              <div>
+                <div class="pro-status-row-label">Andover</div>
+                <div class="pro-status-row-sub">Outer-ring residential &bull; Elk River SD</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PULL QUOTE -->
+    <section class="pro-pull-quote">
+      <span class="pro-pull-quote-mark">&ldquo;</span>
+      <p class="pro-pull-quote-text">
+        A direct support worker who stays five years is a system asset. One who leaves after six months is a system cost. Certification changes that math.
+      </p>
+      <div class="pro-pull-quote-source">
+        The argument behind SF1062 &mdash; District 35, 2025
+      </div>
+    </section>
+
+    <!-- DISTRICT SECTION -->
+    <section class="pro-district-section">
+      <div class="pro-district-inner">
+        <div>
+          <h2 class="pro-district-hed">Why district experience matters in Anoka County</h2>
+          <p class="pro-district-body">
+            District 35 is outer-ring suburban Anoka County. Families here are not wealthy enough to private-pay for care and not poor enough to navigate the system easily. They depend on a care infrastructure that is publicly funded and privately operated, and they feel every workforce gap.
+          </p>
+          <p class="pro-district-body">
+            The direct-care workforce shortage hits this district with specific force. Group homes close. Day programs reduce capacity. Families become de facto caregivers. The Anoka County Human Services caseload is real and heavy.
+          </p>
+          <p class="pro-district-body">
+            Abeler is a chiropractor who has practiced in Anoka since 1979. He did not arrive at human services policy through ideology. He arrived through 46 years of treating patients in Anoka County and watching what happens when care systems fail.
+          </p>
+        </div>
+        <div>
+          <div class="pro-panel-label">// Legislative Record</div>
+          <ul class="pro-tenure-list">
+            <li class="pro-tenure-item">
+              <span class="pro-tenure-year">1998&ndash;2014</span>
+              <span class="pro-tenure-desc">Minnesota House of Representatives &mdash; eight consecutive terms</span>
+            </li>
+            <li class="pro-tenure-item">
+              <span class="pro-tenure-year">2016</span>
+              <span class="pro-tenure-desc">Special election to Minnesota Senate, District 35</span>
+            </li>
+            <li class="pro-tenure-item">
+              <span class="pro-tenure-year">2016 &rarr; 2022</span>
+              <span class="pro-tenure-desc">Three re-elections to Senate; current term is 4th Senate term</span>
+            </li>
+            <li class="pro-tenure-item">
+              <span class="pro-tenure-year">2025</span>
+              <span class="pro-tenure-desc">Filed SF1062 (DSP certification) and continues work on HHS Finance &amp; Policy</span>
+            </li>
+            <li class="pro-tenure-item">
+              <span class="pro-tenure-year">2026</span>
+              <span class="pro-tenure-desc">Announced re-election bid for Senate District 35</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRO FOOTNOTES -->
+    <footer class="pro-footnotes">
+      <div class="pro-footnotes-inner">
+        <div class="pro-footnotes-label">// Sources &amp; References</div>
+        <p class="pro-footnote">[1] SF1062, 94th Legislature (2025&ndash;2026), filed February 4, 2025 &mdash; <a href="https://www.revisor.mn.gov/bills/bill.php?b=senate&f=SF1062&ssn=0&y=2025" target="_blank">revisor.mn.gov</a></p>
+        <p class="pro-footnote">[2] "$1.322 billion human services budget addresses Minnesota's long-term care workforce crisis" &mdash; <a href="https://www.mnsenaterepublicans.com/1-322-billion-human-services-budget-addresses-minnesotas-long-term-care-workforce-crisis/" target="_blank">mnsenaterepublicans.com</a></p>
+        <p class="pro-footnote">[3] Jim Abeler legislative record &mdash; <a href="https://www.lrl.mn.gov/legdb/fulldetail?id=10002" target="_blank">lrl.mn.gov</a></p>
+        <p class="pro-footnote">[4] Senate District 35 member biography &mdash; <a href="https://www.senate.mn/members/member_bio.html?mem_id=1216" target="_blank">senate.mn</a></p>
+        <p class="pro-footnote">[5] Committee memberships: Health and Human Services Finance and Policy; Housing and Homelessness Prevention; Education Policy &mdash; senate.mn, 94th Session</p>
+        <p class="pro-footnote">[6] Jim Abeler 2026 re-election announcement &mdash; <a href="https://alphanews.org/republican-state-sen-jim-abeler-announces-2026-reelection-bid/" target="_blank">alphanews.org</a></p>
+        <p class="pro-footnote">[7] District composition: Anoka, Coon Rapids, Andover (Anoka County) &mdash; senate.mn district maps</p>
+      </div>
+    </footer>
+
+  </div><!-- /pro-content -->
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       OPPO SITE
+  ═══════════════════════════════════════════════════════ -->
+  <div class="oppo-content" aria-label="Accountability view">
+
+    <!-- HEADER -->
+    <header class="oppo-header">
+      <div class="oppo-header-inner">
+        <div class="oppo-case-badge">
+          <div class="oppo-case-label">Case File</div>
+          <div class="oppo-case-num">SF-2297</div>
+        </div>
+        <div class="oppo-header-name-block">
+          <div class="oppo-senator-name">Jim Abeler</div>
+          <div class="oppo-header-sub">Republican &nbsp;&bull;&nbsp; Senate District 35 &nbsp;&bull;&nbsp; 27 Years In Office</div>
+        </div>
+        <div class="oppo-status-warn">
+          <div class="oppo-warn-dot"></div>
+          <div class="oppo-warn-text">Rate Implementation: Frozen</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ACCUSATION HERO -->
+    <section class="oppo-hero">
+      <div class="oppo-hero-inner">
+        <div>
+          <div class="oppo-charge-label">
+            <span class="oppo-charge-label-line"></span>
+            Accountability Report &mdash; District 35
+          </div>
+          <h1 class="oppo-hero-hed">
+            Providers needed rate relief.<br>
+            Abeler filed <em>a delay bill</em><br>
+            and another task force.
+          </h1>
+          <p class="oppo-hero-body">
+            Minnesota's family residential service providers spent years waiting for new rate structures. The process moved. Implementation dates were set. Then, on March 6, 2025, Jim Abeler filed SF2297 to halt that implementation and create an Advisory Task Force.
+          </p>
+          <p class="oppo-hero-body" style="margin-top:14px;">
+            Abeler has served 27 years in the Legislature. He knows exactly what a task force means: more time before anything changes.
+          </p>
+        </div>
+        <div class="oppo-photo-wrap">
+          <img
+            class="oppo-photo"
+            src="https://www.senate.mn/graphics/35Abeler.jpg"
+            alt="Senator Jim Abeler"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+          />
+          <div class="oppo-photo-fallback">
+            <div class="oppo-photo-initials">JA</div>
+          </div>
+          <div class="oppo-photo-stamp">Rate Frozen</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SEQUENCE TIMELINE -->
+    <section class="oppo-sequence">
+      <div class="oppo-sequence-inner">
+        <div class="oppo-sequence-label">// Sequence of Events</div>
+        <div class="oppo-timeline">
+          <div class="oppo-tl-step">
+            <div class="oppo-tl-dot dot-rate">&#9654;</div>
+            <div class="oppo-tl-date">Prior Sessions</div>
+            <div class="oppo-tl-label">New Rates Authorized</div>
+            <div class="oppo-tl-sub">Legislature sets new tiered rate structure for family residential services providers</div>
+          </div>
+          <div class="oppo-tl-step">
+            <div class="oppo-tl-dot dot-rate">&#9654;</div>
+            <div class="oppo-tl-date">Late 2024</div>
+            <div class="oppo-tl-label">Implementation Imminent</div>
+            <div class="oppo-tl-sub">Providers prepare for new rates. Some face drastic changes. Process is moving.</div>
+          </div>
+          <div class="oppo-tl-step">
+            <div class="oppo-tl-dot dot-abeler">!</div>
+            <div class="oppo-tl-date">March 6, 2025</div>
+            <div class="oppo-tl-label">Abeler Files SF2297</div>
+            <div class="oppo-tl-sub">Bill halts implementation. Creates Advisory Task Force. Sends rate question back into study.</div>
+          </div>
+          <div class="oppo-tl-step">
+            <div class="oppo-tl-dot dot-wait">&#9646;</div>
+            <div class="oppo-tl-date">Aug 2026 Deadline</div>
+            <div class="oppo-tl-label">Task Force Reports</div>
+            <div class="oppo-tl-sub">Rate recommendations due. Providers wait. Nothing implemented. Families still in limbo.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- EVIDENCE CARDS -->
+    <section class="oppo-evidence">
+      <div class="oppo-evidence-inner">
+        <div class="oppo-evidence-label">// Three Evidence Records</div>
+        <div class="oppo-cards">
+
+          <div class="oppo-card">
+            <div class="oppo-card-num">Evidence 01 &mdash; The Bill</div>
+            <h3 class="oppo-card-hed">A delay bill with Abeler's name on it</h3>
+            <p class="oppo-card-body">
+              SF2297, filed March 6, 2025 by Jim Abeler, explicitly delays implementation of new rates for family residential services and life-sharing services. It does not fix the rates. It creates a task force to study the rates, with a report due August 2026. That is an 18-month pause on a process that was already moving.
+            </p>
+            <div class="oppo-card-ref">
+              SF2297 &bull; 94th Legislature &bull; revisor.mn.gov
+            </div>
+          </div>
+
+          <div class="oppo-card">
+            <div class="oppo-card-num">Evidence 02 &mdash; The Stakes</div>
+            <h3 class="oppo-card-hed">Providers said 70% could close</h3>
+            <p class="oppo-card-body">
+              Before the delay bill, family residential service providers warned that if the new tiered rate system moved forward unchanged, "70% of all family residential service providers will close their doors." That is a crisis requiring action. Abeler's answer was a task force, not a fix.
+            </p>
+            <div class="oppo-card-ref">
+              Source: Minnesota House Session Daily report on HF1894 / SF2297 companion
+            </div>
+          </div>
+
+          <div class="oppo-card">
+            <div class="oppo-card-num">Evidence 03 &mdash; The Pattern</div>
+            <h3 class="oppo-card-hed">27 years and another study group</h3>
+            <p class="oppo-card-body">
+              Abeler presents himself as the expert in the room on health and human services. After 27 years in the Legislature, filing a task force bill is a choice -- not a necessity. The families and providers in District 35 who depend on these care systems have been in a "study" phase long enough.
+            </p>
+            <div class="oppo-card-ref">
+              Abeler legislative record &bull; lrl.mn.gov &bull; SF2297 text
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- PROOF BLOCK -->
+    <section class="oppo-proof">
+      <div class="oppo-proof-inner">
+        <div class="oppo-proof-label">// Core Document</div>
+        <div class="oppo-doc-block">
+          <div class="oppo-doc-meta">
+            <span>Bill: SF2297</span>
+            <span>Filed: March 6, 2025</span>
+            <span>Author: Sen. Jim Abeler (R-35)</span>
+            <span>Session: 94th Legislature</span>
+          </div>
+          <div class="oppo-doc-title">
+            Family Residential Services and Life-Sharing Services New Rates Implementation Delaying Provision and Family Residential Services Advisory Task Force Establishment
+          </div>
+          <div class="oppo-doc-text">
+            ...provides for <span class="oppo-doc-highlight">delaying implementation of new rates for family residential services and life-sharing services</span>... establishes an <span class="oppo-doc-highlight">Advisory Task Force on Family Residential Services</span>... task force shall submit recommendations to the legislature by <span class="oppo-doc-highlight">August 1, 2026</span>...
+          </div>
+          <p class="oppo-doc-context">
+            The bill's full title is its own indictment. <strong>Delaying provision.</strong> Not a fix, not a redesign -- a delay. Minnesota's family residential service providers had already been told to prepare for new rates. The companion bill HF1894 moved in the House. Abeler's Senate version put the question back into a study process, with a deadline that is more than a year away from the bill's filing date.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- WHAT DELAY MEANS -->
+    <section class="oppo-stakes">
+      <div class="oppo-stakes-inner">
+        <div>
+          <h2 class="oppo-stakes-hed">What "study it more" costs families in District 35</h2>
+          <p class="oppo-stakes-body">
+            Family residential services include licensed adult family foster care -- small residential settings where Minnesotans with disabilities live with licensed families or providers. These settings keep people out of institutions and inside communities. They depend on sustainable rates.
+          </p>
+          <p class="oppo-stakes-body">
+            Every month a rate implementation is delayed is another month providers operate on terms they called unsustainable. For providers in Anoka County, that can mean closures, relocations, or exits from the system entirely.
+          </p>
+          <p class="oppo-stakes-body">
+            Abeler's bill does not hold anyone in the system harmless while the task force meets. It just postpones the reckoning -- and the relief.
+          </p>
+        </div>
+        <div>
+          <ul class="oppo-data-list">
+            <li class="oppo-data-item">
+              <div class="oppo-data-icon">70%</div>
+              <div>
+                <div class="oppo-data-label">Providers warned of potential closure</div>
+                <div class="oppo-data-sub">Industry estimate under new tiered rate structure without adjustment</div>
+              </div>
+            </li>
+            <li class="oppo-data-item">
+              <div class="oppo-data-icon">&#x23F3;</div>
+              <div>
+                <div class="oppo-data-label">18+ months of additional delay</div>
+                <div class="oppo-data-sub">Task force report deadline: August 2026. Bill filed: March 2025.</div>
+              </div>
+            </li>
+            <li class="oppo-data-item">
+              <div class="oppo-data-icon">#2</div>
+              <div>
+                <div class="oppo-data-label">Advisory body, not binding action</div>
+                <div class="oppo-data-sub">Task force recommends. Legislature still must act. Process resets.</div>
+              </div>
+            </li>
+            <li class="oppo-data-item">
+              <div class="oppo-data-icon">27</div>
+              <div>
+                <div class="oppo-data-label">Years in the Legislature</div>
+                <div class="oppo-data-sub">Long enough to know another task force buys time, not solutions.</div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- OPPO FOOTNOTES -->
+    <footer class="oppo-footnotes">
+      <div class="oppo-footnotes-inner">
+        <div class="oppo-footnotes-label">// Sources &amp; References</div>
+        <p class="oppo-footnote">[1] SF2297, 94th Legislature (2025&ndash;2026), filed March 6, 2025 by Sen. Jim Abeler &mdash; <a href="https://www.revisor.mn.gov/bills/bill.php?b=senate&f=SF2297&ssn=0&y=2025" target="_blank">revisor.mn.gov</a></p>
+        <p class="oppo-footnote">[2] SF2297 official status page and bill text &mdash; <a href="https://www.revisor.mn.gov/bills/94/2025/0/SF/2297/?body=senate" target="_blank">revisor.mn.gov</a></p>
+        <p class="oppo-footnote">[3] "Bill proposes change to family residential service rate in effort to maintain care" &mdash; <a href="https://www.house.mn.gov/SessionDaily/Story/18104" target="_blank">house.mn.gov (Session Daily)</a></p>
+        <p class="oppo-footnote">[4] 70% closure estimate from family residential service providers, cited in Session Daily coverage of HF1894 / SF2297 &mdash; house.mn.gov</p>
+        <p class="oppo-footnote">[5] Task force report deadline August 1, 2026 per SF2297 bill text &mdash; revisor.mn.gov</p>
+        <p class="oppo-footnote">[6] Jim Abeler legislative record (House 1998&ndash;2014; Senate 2016&ndash;present) &mdash; <a href="https://www.lrl.mn.gov/legdb/fulldetail?id=10002" target="_blank">lrl.mn.gov</a></p>
+        <p class="oppo-footnote">[7] Co-authors on SF2297 include DFL members, per the official Revisor author list; provider concerns about delay versus rate reform are described in House Session Daily coverage of HF1894 / SF2297.</p>
+      </div>
+    </footer>
+
+  <!-- Auto-transition sentinel — observed by IntersectionObserver -->
+  <div id="brief-sentinel" style="height:1px;width:100%;"></div>
+
+  <!-- Subtle stamp — visible as user nears the bottom -->
+  <div class="machine-stamp">
+    <span class="machine-stamp-text">AI-GENERATED &nbsp;·&nbsp; 67 SENATORS &nbsp;·&nbsp; 63 PARALLEL AGENTS &nbsp;·&nbsp; ~4 HRS &nbsp;·&nbsp; ~$47</span>
+  </div>
+
+  </div><!-- /oppo-content -->
+
+
+  <!-- ─── JAVASCRIPT ────────────────────────────────────────── -->
+  <script>
+    // ── FLIP TOGGLE ─────────────────────────────────────── //
+    const flipBtn = document.getElementById('flip-btn');
+    flipBtn.addEventListener('click', () => {
+      document.body.classList.add('fading');
+      setTimeout(() => {
+        document.body.classList.toggle('mode-oppo');
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        document.body.classList.remove('fading');
+      }, 220);
+    });
+
+    // ── STAT BAR ANIMATION ──────────────────────────────── //
+    const bars = document.querySelectorAll('.pro-stat-bar');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          setTimeout(() => entry.target.classList.add('animated'), 200);
+        }
+      });
+    }, { threshold: 0.3 });
+    bars.forEach(bar => observer.observe(bar));
+  </script>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     THE BRIEF — AI capabilities briefing
+═══════════════════════════════════════════════════════ -->
+<div class="brief-content">
+
+  <div class="brief-opening">
+    <p class="brief-made-by">Sixty-seven of these pages were made using one AI account in about thirty minutes. Six months ago an automated project like this would have been impossible.</p>
+  </div>
+
+  <div class="brief-chart-section">
+    <h2 class="brief-chart-title">This is the trend that made it possible.</h2>
+    <div class="brief-chart-frame">
+      <img
+        src="https://metr.org/assets/images/measuring-ai-ability-to-complete-long-tasks/length-of-tasks-log.png"
+        alt="METR chart: length of tasks AI agents can complete autonomously, doubling roughly every 7 months since 2019"
+        class="brief-metr-img"
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+      >
+      <div class="brief-chart-fallback" style="display:none;">
+        <p>Chart unavailable. See the original at <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">metr.org</a>.</p>
+      </div>
+    </div>
+    <p class="brief-chart-source">Source: <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR</a>, an independent AI evaluation lab.</p>
+    <p class="brief-chart-read">This chart tracks how long a task an AI agent can finish on its own. In 2019, the answer was about three seconds. By early 2023, it was six minutes. by mid 2025, over two hours. As of early 2026, Claude Opus 4.6 completes tasks that take a skilled human roughly twelve hours.</p>
+    <p class="brief-chart-read">The overall doubling time has been about seven months. But it is getting faster. <a href="https://metr.org/time-horizons/" target="_blank">When researchers fit only the most recent data</a>, the doubling time drops to four months. At that rate, AI agents capable of completing month-long autonomous projects arrive not in the early 2030s but around 2028.</p>
+  </div>
+
+  <div class="brief-so-what">
+    <h2 class="brief-so-what-title">What that means for lawmakers.</h2>
+    <p>Urgency. There was a narrative last year that AI had hit a wall in capabilities. It was a plausible perspective at the time. It isn't anymore. After breakthroughs late last year, AI systems' ability to automate cyberattacks, pathogen design, misinformation, mass surveillance, and vast swaths of white-collar work is advancing faster than ever.</p>
+    <p>The world will soon change faster than the typical pace of policymaking. The only solution is to act with atypical speed: AI regulations, data center moratoriums, calling for a federal pause on AI development, worker displacement funds. Some of these ideas already have bills introduced this session. Others should be explored soon. Time is limited, so if you feel behind on AI, the sources below are a good place to start.</p>
+    
+  </div>
+
+  <div class="brief-next">
+    <h2 class="brief-next-title">Start here.</h2>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">USE</span>
+      <a href="https://claude.ai/cowork" target="_blank">Claude Cowork</a> · <a href="https://claude.ai/code" target="_blank">Claude Code</a>
+      <span class="brief-link-detail">The tools that built this page. Cowork handles research and writing. Code is the agent that runs tasks, spawns sub-agents, and makes decisions on its own. Spend thirty minutes with one of these on a real problem from your week. That will teach you more than any briefing.</span>
+    </div>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR: Measuring AI Ability to Complete Long Tasks</a>
+      <span class="brief-link-detail">The source for the chart above. The METR trend is based on software tasks, but <a href="https://futuretech.mit.edu/publication/crashing-waves-vs-rising-tides-preliminary-findings-on-ai-automation-from-thousands-of-worker-evaluations-of-labor-market-tasks" target="_blank">MIT research on worker evaluations of labor market tasks</a> finds similar patterns across white-collar work broadly.</span>
+    </div>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://aiindex.stanford.edu/report/" target="_blank">Stanford HAI AI Index 2025</a>
+      <span class="brief-link-detail">The most comprehensive annual report on AI capabilities, economics, and policy across all 50 states.</span>
+    </div>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.imdb.com/title/tt39150120/" target="_blank">The AI Doc: Or How I Became an Apocaloptimist</a>
+      <span class="brief-link-detail">Daniel Roher's 2026 documentary, in theaters now. Roher interviews Amodei, Altman, Hassabis, and dozens more. If you see one thing on this list, see this.</span>
+    </div>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.youtube.com/watch?v=xoVJKj8lcNQ" target="_blank">The A.I. Dilemma</a>
+      <span class="brief-link-detail">Center for Humane Technology. 60 min, free on YouTube. Made for people with institutional power who need to understand AI quickly.</span>
+    </div>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">TRACK</span>
+      <a href="https://www.ncsl.org/technology-and-communication/artificial-intelligence" target="_blank">NCSL AI Legislation Tracker</a> ·
+      <a href="https://mn.gov/mnit/about-mnit/oit-programs/ai/" target="_blank">MN.IT AI Office</a>
+      <span class="brief-link-detail">Every AI bill in every state. Plus Minnesota's own AI program office. See where you stand relative to the field.</span>
+    </div>
+  </div>
+
+  <div class="brief-close">
+    <p class="brief-close-small">This project is not affiliated with any campaign, party, or organization.</p>
+    <button id="exit-brief-btn">← Back</button>
+  </div>
+
+</div><!-- /brief-content -->
+
+<style>
+.brief-content { display: none; }
+body.mode-brief .brief-content  { display: block; }
+body.mode-brief .pro-content    { display: none; }
+body.mode-brief .oppo-content   { display: none; }
+body.mode-brief #flip-btn       { display: none; }
+.brief-content { background: #0C0A08; color: #D4CCBE; font-family: 'Source Serif 4', Georgia, serif; font-size: 17px; line-height: 1.75; min-height: 100vh; }
+.brief-content a { color: #C0B49A; }
+.brief-content a:hover { color: #fff; }
+@keyframes glitch-seq {
+  0%   { filter: saturate(0) brightness(0.5); }
+  10%  { filter: hue-rotate(90deg) contrast(4) brightness(3); transform: skewX(4deg); }
+  12%  { filter: brightness(0.1); transform: none; }
+  25%  { filter: hue-rotate(200deg) invert(0.8); transform: translateX(6px); }
+  27%  { filter: brightness(0.05); transform: none; }
+  40%  { filter: blur(6px) brightness(0.02); }
+  44%  { filter: brightness(6); }
+  46%  { filter: none; transform: none; }
+  60%  { filter: hue-rotate(300deg) contrast(3) saturate(8); transform: skewX(-3deg); }
+  62%  { filter: none; transform: none; }
+  78%  { filter: blur(16px) brightness(0.01); }
+  82%  { filter: brightness(2); }
+  84%  { filter: none; }
+  100% { filter: none; transform: none; }
+}
+body.glitching { animation: glitch-seq 1.2s ease-in-out forwards; pointer-events: none; }
+.machine-stamp { background: #050505; border-top: 1px solid #111; padding: 16px 40px; text-align: center; }
+.machine-stamp-text { font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 0.22em; color: #222; text-transform: uppercase; animation: stamp-pulse 3s ease-in-out infinite; }
+@keyframes stamp-pulse { 0%, 100% { color: #222; } 50% { color: #4A3A2A; } }
+.brief-opening { max-width: 640px; margin: 0 auto; padding: 100px 40px 64px; }
+.brief-made-by { font-size: 20px; line-height: 1.65; color: #B8AE9C; margin-bottom: 20px; }
+.brief-made-by.last { color: #E8DED0; }
+.brief-chart-section { max-width: 740px; margin: 0 auto; padding: 48px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-chart-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 32px; font-style: italic; }
+.brief-chart-frame { background: #fff; border-radius: 4px; padding: 12px; margin-bottom: 12px; }
+.brief-metr-img { width: 100%; height: auto; display: block; }
+.brief-chart-fallback { padding: 40px; text-align: center; color: #666; font-size: 14px; }
+.brief-chart-fallback a { color: #888; }
+.brief-chart-source { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #5A5040; line-height: 1.6; margin-bottom: 28px; }
+.brief-chart-source a { color: #7A6A54; text-decoration: none; }
+.brief-chart-read { font-size: 17px; color: #B8AE9C; }
+.brief-so-what { max-width: 640px; margin: 0 auto; padding: 56px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-so-what-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 28px; font-style: italic; }
+.brief-so-what p { font-size: 17px; color: #B8AE9C; margin-bottom: 20px; }
+.brief-next { max-width: 640px; margin: 0 auto; padding: 56px 40px 48px; border-top: 1px solid #1E1A14; }
+.brief-next-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 14px; font-style: italic; }
+.brief-next-intro { font-size: 15px; color: #9A9080; margin-bottom: 36px; line-height: 1.65; }
+.brief-link-block { margin-bottom: 28px; line-height: 1.7; }
+.brief-link-tag { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.2em; color: #6A5A44; text-transform: uppercase; display: block; margin-bottom: 4px; }
+.brief-link-block a { font-weight: 600; color: #E0D6C4; text-decoration: underline; text-underline-offset: 3px; font-size: 16px; }
+.brief-link-block a:hover { color: #fff; }
+.brief-link-detail { display: block; font-size: 14px; color: #6A5E4C; margin-top: 2px; }
+.brief-close { max-width: 640px; margin: 0 auto; padding: 48px 40px 100px; border-top: 1px solid #1E1A14; }
+.brief-close p { font-family: 'Source Serif 4', Georgia, serif; font-size: 16px; color: #9A9080; margin-bottom: 32px; line-height: 1.7; }
+.brief-close-small { font-family: 'IBM Plex Mono', monospace !important; font-size: 11px !important; color: #3A3428 !important; letter-spacing: 0.04em; }
+#exit-brief-btn { background: none; border: 1px solid #2A2418; color: #5A5040; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; padding: 10px 20px; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
+#exit-brief-btn:hover { border-color: #8A7A64; color: #C0B49A; }
+@media (max-width: 900px) {
+  .brief-opening, .brief-so-what, .brief-next, .brief-close { padding-left: 24px; padding-right: 24px; }
+  .brief-chart-section { padding-left: 24px; padding-right: 24px; }
+  .brief-made-by { font-size: 18px; }
+  .brief-opening { padding-top: 64px; }
+  .machine-stamp { padding: 14px 20px; }
+}
+</style>
+
+<script>
+(function() {
+  let briefTriggered = false;
+  function startBriefTransition() {
+    if (briefTriggered) return;
+    if (!document.body.classList.contains('mode-oppo')) return;
+    briefTriggered = true;
+    const body = document.body;
+    body.style.transition = 'filter 2.5s ease-in';
+    body.style.filter = 'saturate(0) brightness(0.3)';
+    setTimeout(() => {
+      const hed = document.querySelector('.oppo-content h1') || document.querySelector('.oppo-content h2');
+      if (hed) {
+        const orig = hed.textContent;
+        const chars = '█▓▒░■□0123456789';
+        let n = 0;
+        const si = setInterval(() => {
+          n++;
+          hed.textContent = Array.from(orig).map(c => c === ' ' ? ' ' : chars[Math.floor(Math.random() * chars.length)]).join('');
+          if (n > 40) { clearInterval(si); hed.textContent = orig; }
+        }, 40);
+      }
+    }, 1200);
+    setTimeout(() => {
+      body.style.transition = '';
+      body.style.filter = '';
+      body.classList.add('glitching');
+      setTimeout(() => {
+        body.classList.remove('glitching');
+        body.classList.add('mode-brief');
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      }, 1500);
+    }, 2500);
+  }
+  const sentinel = document.getElementById('brief-sentinel');
+  if (sentinel && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) { io.disconnect(); setTimeout(startBriefTransition, 1200); }
+      });
+    }, { threshold: 0.5 });
+    io.observe(sentinel);
+  }
+  const flipBtn = document.getElementById('flip-btn');
+  if (flipBtn) { flipBtn.addEventListener('click', () => { if (document.body.classList.contains('mode-oppo')) briefTriggered = false; }); }
+})();
+document.addEventListener('click', (e) => {
+  if (e.target && e.target.id === 'exit-brief-btn') {
+    const body = document.body;
+    body.style.opacity = '0';
+    body.style.transition = 'opacity 0.3s';
+    setTimeout(() => { body.classList.remove('mode-brief'); body.classList.add('mode-oppo'); window.scrollTo({ top: 0, behavior: 'instant' }); body.style.opacity = '1'; }, 300);
+  }
+});
+</script>
+
+</body>
+</html>

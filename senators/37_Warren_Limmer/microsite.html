@@ -1,0 +1,2309 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sen. Warren Limmer — District 37</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Oswald:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* PRO palette — west metro fiscal calm */
+  --salt:        #F5F4F0;
+  --salt-deep:   #EAE8E2;
+  --cedar:       #2D5016;
+  --cedar-mid:   #3D6B1E;
+  --cedar-light: #5A8C32;
+  --amber:       #D4820A;
+  --amber-light: #E89C2A;
+  --slate:       #4A4A4A;
+  --slate-light: #6B6B6B;
+  --ink:         #1A1A1A;
+  --rule:        #C8C5BB;
+
+  /* OPPO palette — enforcement file */
+  --file-bg:     #F0EDE6;
+  --file-paper:  #FAF8F4;
+  --enforce-red: #7A1515;
+  --enforce-mid: #9B2020;
+  --stamped:     #B83030;
+  --ledger-gray: #3A3A3A;
+  --ledger-mid:  #5C5C5C;
+  --warning:     #C47A0A;
+  --ink-dark:    #111111;
+
+  --font-mono: 'IBM Plex Mono', monospace;
+  --font-display: 'Oswald', sans-serif;
+  --font-sans: 'IBM Plex Sans', sans-serif;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-mono);
+  background: var(--salt);
+  color: var(--ink);
+  min-width: 320px;
+  transition: opacity 0.22s ease;
+}
+
+body.fading { opacity: 0; }
+
+/* ============================================================
+   MODE SWITCHING
+   ============================================================ */
+.pro-content  { display: block; }
+.oppo-content { display: none; }
+
+body.mode-oppo .pro-content  { display: none; }
+body.mode-oppo .oppo-content { display: block; }
+body.mode-oppo { background: var(--file-bg); }
+
+/* ============================================================
+   TOGGLE BUTTON
+   ============================================================ */
+#toggle-btn {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 9999;
+  background: var(--cedar);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border: none;
+  padding: 14px 20px;
+  cursor: pointer;
+  border-radius: 2px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.28);
+  transition: background 0.2s, transform 0.1s;
+  line-height: 1.4;
+  text-align: center;
+  max-width: 160px;
+}
+#toggle-btn:hover { background: var(--cedar-mid); transform: translateY(-1px); }
+#toggle-btn:active { transform: translateY(0); }
+body.mode-oppo #toggle-btn { background: var(--enforce-red); }
+body.mode-oppo #toggle-btn:hover { background: var(--enforce-mid); }
+
+/* ============================================================
+   SHARED COMPONENTS
+   ============================================================ */
+.receipt-rule {
+  border: none;
+  border-top: 1px solid var(--rule);
+  margin: 0;
+}
+.receipt-rule-thick {
+  border: none;
+  border-top: 3px solid var(--cedar);
+  margin: 0;
+}
+.dashed-rule {
+  border: none;
+  border-top: 1px dashed var(--rule);
+  margin: 0;
+}
+
+/* ============================================================
+   PRO SITE
+   ============================================================ */
+.pro-header {
+  background: var(--cedar);
+  color: #fff;
+  padding: 0;
+}
+
+.pro-header-band {
+  background: var(--cedar);
+  padding: 18px 40px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  border-bottom: 3px solid var(--amber);
+}
+
+.pro-header-label {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.65);
+}
+
+.pro-header-tag {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--amber-light);
+  background: rgba(212,130,10,0.15);
+  padding: 4px 10px;
+  border: 1px solid rgba(212,130,10,0.4);
+}
+
+.pro-hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 480px;
+  background: var(--cedar);
+}
+
+.pro-hero-text {
+  padding: 60px 40px 60px 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.pro-receipt-no {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  color: rgba(255,255,255,0.45);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+.pro-hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.6rem, 4.5vw, 4.2rem);
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.0;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+.pro-hero h1 em {
+  color: var(--amber);
+  font-style: normal;
+}
+
+.pro-hero-sub {
+  font-family: var(--font-mono);
+  font-size: 0.92rem;
+  color: rgba(255,255,255,0.78);
+  line-height: 1.65;
+  max-width: 420px;
+  margin-bottom: 32px;
+  font-weight: 300;
+}
+
+.pro-senator-id {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pro-senator-id .id-line {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.5);
+}
+
+.pro-senator-id .id-value {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  color: rgba(255,255,255,0.9);
+}
+
+.pro-hero-photo {
+  position: relative;
+  overflow: hidden;
+  background: var(--cedar-mid);
+}
+
+.pro-hero-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 15%;
+  filter: sepia(0.1) contrast(1.05) brightness(0.95);
+  mix-blend-mode: multiply;
+}
+
+.pro-hero-photo-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(45,80,22,0.4) 0%, transparent 60%);
+}
+
+.photo-caption {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.6);
+  background: rgba(0,0,0,0.4);
+  padding: 4px 8px;
+}
+
+.photo-placeholder {
+  width: 100%;
+  height: 100%;
+  min-height: 340px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, #3D6B1E 0%, #2D5016 100%);
+  color: rgba(255,255,255,0.5);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  gap: 12px;
+}
+
+.photo-placeholder svg {
+  width: 64px;
+  height: 64px;
+  opacity: 0.3;
+}
+
+/* RECEIPT SECTION */
+.pro-receipt-section {
+  background: var(--salt);
+  padding: 0 40px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.receipt-header {
+  padding: 40px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.receipt-title {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--cedar);
+}
+
+.receipt-date {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  color: var(--slate-light);
+  text-transform: uppercase;
+}
+
+.receipt-block {
+  padding: 8px 0;
+}
+
+.receipt-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 11px 0;
+  gap: 20px;
+  border-bottom: 1px dashed var(--rule);
+}
+
+.receipt-row:last-child {
+  border-bottom: none;
+}
+
+.receipt-row-label {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--slate);
+  font-weight: 400;
+  flex: 1;
+  line-height: 1.4;
+}
+
+.receipt-row-label small {
+  display: block;
+  font-size: 0.68rem;
+  color: var(--slate-light);
+  margin-top: 2px;
+  letter-spacing: 0.04em;
+}
+
+.receipt-row-value {
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+  letter-spacing: 0.04em;
+}
+
+.receipt-row-value.cedar { color: var(--cedar); }
+.receipt-row-value.amber { color: var(--amber); }
+
+.receipt-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0 14px;
+  gap: 20px;
+  background: var(--cedar);
+  margin: 0 -40px;
+  padding: 20px 40px;
+}
+
+.receipt-total-label {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.receipt-total-value {
+  font-family: var(--font-mono);
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--amber);
+  letter-spacing: 0.06em;
+}
+
+/* PRO BODY */
+.pro-body {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+.pro-section-head {
+  padding: 50px 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.pro-section-head h2 {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--cedar);
+}
+
+.section-rule-number {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  color: var(--rule);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* STAT CARDS */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  margin-bottom: 48px;
+}
+
+.stat-card {
+  background: #fff;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stat-card-code {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  color: var(--slate-light);
+  text-transform: uppercase;
+}
+
+.stat-card-num {
+  font-family: var(--font-display);
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: var(--cedar);
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+
+.stat-card-num.amber { color: var(--amber); }
+
+.stat-card-desc {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--slate);
+  line-height: 1.55;
+}
+
+/* BILL DETAIL BLOCK */
+.bill-block {
+  background: #fff;
+  border: 1px solid var(--rule);
+  border-left: 4px solid var(--cedar);
+  padding: 32px;
+  margin-bottom: 48px;
+}
+
+.bill-block-label {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--cedar);
+  margin-bottom: 12px;
+}
+
+.bill-block h3 {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+  margin-bottom: 16px;
+  line-height: 1.25;
+}
+
+.bill-block p {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--slate);
+  line-height: 1.75;
+  margin-bottom: 12px;
+  font-weight: 300;
+}
+
+.bill-block p:last-child { margin-bottom: 0; }
+
+.bill-inline-code {
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  background: var(--salt-deep);
+  color: var(--cedar);
+  padding: 2px 6px;
+  border: 1px solid var(--rule);
+  letter-spacing: 0.06em;
+}
+
+/* PULL QUOTE */
+.pro-pull-quote {
+  background: var(--cedar);
+  color: #fff;
+  margin: 0 -40px;
+  padding: 48px 80px;
+  text-align: center;
+  position: relative;
+}
+
+.pro-pull-quote::before {
+  content: '"';
+  font-family: var(--font-display);
+  font-size: 8rem;
+  color: rgba(255,255,255,0.08);
+  position: absolute;
+  top: -20px;
+  left: 48px;
+  line-height: 1;
+}
+
+.pro-pull-quote blockquote {
+  font-family: var(--font-display);
+  font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #fff;
+  line-height: 1.45;
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.pro-pull-quote blockquote em {
+  color: var(--amber);
+  font-style: normal;
+}
+
+.pro-pull-cite {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.5);
+}
+
+/* DISTRICT SECTION */
+.district-band {
+  background: var(--salt-deep);
+  margin: 0 -40px;
+  padding: 48px 40px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
+.district-photo {
+  position: relative;
+  height: 280px;
+  overflow: hidden;
+  background: var(--rule);
+}
+
+.district-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 15%;
+  filter: sepia(0.12) contrast(1.05);
+}
+
+.district-photo-label {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.8);
+  background: rgba(0,0,0,0.5);
+  padding: 4px 8px;
+}
+
+.district-text h3 {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cedar);
+  margin-bottom: 16px;
+}
+
+.district-text p {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--slate);
+  line-height: 1.75;
+  margin-bottom: 14px;
+  font-weight: 300;
+}
+
+.district-fact-list {
+  list-style: none;
+  margin-top: 20px;
+}
+
+.district-fact-list li {
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  color: var(--slate);
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--rule);
+  display: flex;
+  gap: 12px;
+  line-height: 1.5;
+}
+
+.district-fact-list li::before {
+  content: '▸';
+  color: var(--cedar);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* RECORD SECTION */
+.record-rows {
+  margin-bottom: 48px;
+}
+
+.record-entry {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 24px;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--rule);
+  align-items: start;
+}
+
+.record-year {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  color: var(--slate-light);
+  text-transform: uppercase;
+  padding-top: 2px;
+}
+
+.record-desc {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--slate);
+  line-height: 1.65;
+  font-weight: 300;
+}
+
+.record-desc strong {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* FOOTNOTES */
+.pro-footnotes {
+  background: var(--salt-deep);
+  margin: 0 -40px;
+  padding: 36px 40px;
+  border-top: 2px solid var(--cedar);
+}
+
+.footnotes-label {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--slate-light);
+  margin-bottom: 16px;
+}
+
+.footnote-list {
+  list-style: none;
+  counter-reset: fn;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 32px;
+}
+
+.footnote-list li {
+  counter-increment: fn;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--slate-light);
+  line-height: 1.55;
+  display: flex;
+  gap: 8px;
+}
+
+.footnote-list li::before {
+  content: '[' counter(fn) ']';
+  color: var(--cedar);
+  flex-shrink: 0;
+  font-weight: 600;
+}
+
+.footnote-list a {
+  color: var(--cedar);
+  text-decoration: none;
+}
+
+.footnote-list a:hover { text-decoration: underline; }
+
+.pro-footer {
+  background: var(--cedar);
+  color: rgba(255,255,255,0.45);
+  padding: 20px 40px;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ============================================================
+   OPPO SITE
+   ============================================================ */
+.oppo-wrapper {
+  background: var(--file-bg);
+  min-height: 100vh;
+}
+
+/* OPPO HEADER - enforcement file top */
+.oppo-file-header {
+  background: var(--ledger-gray);
+  padding: 0;
+}
+
+.oppo-file-top {
+  background: var(--enforce-red);
+  padding: 10px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.oppo-file-agency {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.8);
+}
+
+.oppo-file-classification {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.6);
+  border: 1px solid rgba(255,255,255,0.3);
+  padding: 3px 10px;
+}
+
+.oppo-hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 480px;
+  background: var(--ledger-gray);
+}
+
+.oppo-hero-text {
+  padding: 60px 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.oppo-file-no {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  color: rgba(255,255,255,0.35);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+.oppo-hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3.5vw, 3rem);
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+.oppo-hero h1 em {
+  color: var(--stamped);
+  font-style: normal;
+  display: block;
+}
+
+.oppo-hero-deck {
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  color: rgba(255,255,255,0.65);
+  line-height: 1.7;
+  max-width: 400px;
+  margin-bottom: 28px;
+  font-weight: 300;
+}
+
+.oppo-accusation-box {
+  background: rgba(122,21,21,0.25);
+  border: 1px solid rgba(184,48,48,0.4);
+  border-left: 3px solid var(--stamped);
+  padding: 16px 20px;
+  max-width: 400px;
+}
+
+.oppo-accusation-box p {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.8);
+  line-height: 1.65;
+  font-weight: 300;
+}
+
+.oppo-accusation-box strong {
+  color: #fff;
+  font-weight: 600;
+}
+
+.oppo-hero-photo {
+  position: relative;
+  overflow: hidden;
+  background: #2A2A2A;
+}
+
+.oppo-hero-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 15%;
+  filter: grayscale(1) contrast(1.3) brightness(0.6);
+}
+
+.oppo-hero-photo-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(122,21,21,0.3) 0%, transparent 70%);
+}
+
+.stamp-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-18deg);
+  border: 4px solid rgba(184,48,48,0.55);
+  color: rgba(184,48,48,0.55);
+  font-family: var(--font-display);
+  font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 10px 20px;
+  white-space: nowrap;
+  animation: stamp-pulse 3s ease-in-out infinite;
+}
+
+@keyframes stamp-pulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 0.8; }
+}
+
+.oppo-photo-placeholder {
+  width: 100%;
+  height: 100%;
+  min-height: 340px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, #2A2A2A 0%, #1A1A1A 100%);
+  color: rgba(255,255,255,0.25);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  gap: 12px;
+}
+
+/* OPPO BODY */
+.oppo-body {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+.oppo-section-head {
+  padding: 50px 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.oppo-section-head h2 {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--enforce-red);
+}
+
+/* SEQUENCE — timeline of violations */
+.sequence-block {
+  border-left: 2px solid var(--rule);
+  margin-left: 16px;
+  margin-bottom: 48px;
+}
+
+.seq-entry {
+  position: relative;
+  padding: 0 0 36px 36px;
+}
+
+.seq-entry::before {
+  content: '';
+  position: absolute;
+  left: -7px;
+  top: 6px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--file-bg);
+  border: 2px solid var(--enforce-red);
+}
+
+.seq-entry.severe::before {
+  background: var(--enforce-red);
+}
+
+.seq-date {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+  color: var(--enforce-red);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.seq-entry h4 {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ledger-gray);
+  margin-bottom: 8px;
+}
+
+.seq-entry p {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--ledger-mid);
+  line-height: 1.7;
+  font-weight: 300;
+  max-width: 520px;
+}
+
+/* CORE DOCUMENT BLOCK */
+.document-block {
+  background: var(--file-paper);
+  border: 1px solid #D4CFC4;
+  border-top: 4px solid var(--enforce-red);
+  padding: 32px;
+  margin-bottom: 48px;
+  position: relative;
+}
+
+.doc-block-label {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--enforce-red);
+  margin-bottom: 16px;
+}
+
+.doc-block-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ledger-gray);
+  margin-bottom: 20px;
+}
+
+.doc-simulated {
+  background: #fff;
+  border: 1px solid #D4CFC4;
+  padding: 24px 28px;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  color: var(--ledger-gray);
+  line-height: 1.8;
+}
+
+.doc-simulated .doc-header {
+  text-align: center;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #D4CFC4;
+  padding-bottom: 16px;
+}
+
+.doc-simulated .doc-header strong {
+  display: block;
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.doc-simulated .doc-sub {
+  font-size: 0.68rem;
+  color: var(--ledger-mid);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.doc-finding {
+  margin-bottom: 12px;
+}
+
+.doc-finding strong {
+  font-weight: 700;
+  color: var(--ledger-gray);
+}
+
+.highlight-bar {
+  background: rgba(212,130,10,0.18);
+  border-left: 3px solid var(--warning);
+  padding: 10px 14px;
+  margin: 12px 0;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  color: var(--ledger-gray);
+  line-height: 1.6;
+}
+
+.redaction {
+  background: var(--ledger-gray);
+  color: transparent;
+  user-select: none;
+  padding: 0 2px;
+  border-radius: 1px;
+  transition: background 0.2s, color 0.2s;
+  cursor: default;
+}
+
+.redaction:hover {
+  background: var(--warning);
+  color: #fff;
+}
+
+/* EVIDENCE CARDS */
+.evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: #D4CFC4;
+  border: 1px solid #D4CFC4;
+  margin-bottom: 48px;
+}
+
+.evidence-card {
+  background: var(--file-paper);
+  padding: 28px 24px;
+  cursor: pointer;
+  transition: background 0.18s;
+  position: relative;
+}
+
+.evidence-card:hover {
+  background: #fff;
+}
+
+.evidence-card:hover .evidence-card-body {
+  color: var(--ledger-gray);
+}
+
+.evidence-card:hover .ec-reveal {
+  display: block;
+}
+
+.evidence-card-num {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.22em;
+  color: var(--enforce-red);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.evidence-card h4 {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ledger-gray);
+  margin-bottom: 10px;
+  line-height: 1.3;
+}
+
+.evidence-card-body {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--ledger-mid);
+  line-height: 1.7;
+  font-weight: 300;
+  transition: color 0.18s;
+}
+
+.ec-reveal {
+  display: none;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #D4CFC4;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--enforce-red);
+  letter-spacing: 0.06em;
+  line-height: 1.6;
+  font-weight: 600;
+}
+
+/* HYPOCRISY BLOCK */
+.hypocrisy-band {
+  background: var(--ledger-gray);
+  margin: 0 -40px;
+  padding: 48px 40px;
+}
+
+.hyp-label {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.35);
+  margin-bottom: 16px;
+}
+
+.hyp-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
+.hyp-col-label {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.hyp-col-label.says { color: rgba(255,255,255,0.5); }
+.hyp-col-label.does { color: var(--stamped); }
+
+.hyp-quote {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.hyp-quote.says { color: rgba(255,255,255,0.7); }
+.hyp-quote.does { color: var(--stamped); }
+
+.hyp-sub {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  line-height: 1.65;
+  font-weight: 300;
+}
+
+.hyp-sub.says { color: rgba(255,255,255,0.45); }
+.hyp-sub.does { color: rgba(184,48,48,0.7); }
+
+/* OPPO FOOTNOTES */
+.oppo-footnotes {
+  background: #E8E4DC;
+  margin: 0 -40px;
+  padding: 36px 40px;
+  border-top: 2px solid var(--enforce-red);
+}
+
+.oppo-footer {
+  background: var(--ledger-gray);
+  color: rgba(255,255,255,0.3);
+  padding: 20px 40px;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ============================================================
+   COUNTER ANIMATION
+   ============================================================ */
+.count-target { display: inline-block; }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 820px) {
+  .pro-hero,
+  .oppo-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .pro-hero-photo,
+  .oppo-hero-photo {
+    height: 280px;
+    order: -1;
+  }
+
+  .pro-hero-text,
+  .oppo-hero-text {
+    padding: 40px 24px;
+  }
+
+  .pro-receipt-section,
+  .pro-body,
+  .oppo-body {
+    padding: 0 24px;
+  }
+
+  .receipt-total-row {
+    margin: 0 -24px;
+    padding: 20px 24px;
+  }
+
+  .pro-pull-quote {
+    margin: 0 -24px;
+    padding: 40px 28px;
+  }
+
+  .pro-pull-quote::before {
+    left: 20px;
+  }
+
+  .district-band {
+    grid-template-columns: 1fr;
+    margin: 0 -24px;
+    padding: 40px 24px;
+  }
+
+  .stat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .evidence-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hyp-two-col {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .hypocrisy-band {
+    margin: 0 -24px;
+    padding: 40px 24px;
+  }
+
+  .pro-footnotes,
+  .oppo-footnotes {
+    margin: 0 -24px;
+    padding: 32px 24px;
+  }
+
+  .footnote-list {
+    grid-template-columns: 1fr;
+  }
+
+  .pro-header-band,
+  .oppo-file-top,
+  .pro-footer,
+  .oppo-footer {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  .pro-pull-quote blockquote {
+    font-size: 1.1rem;
+  }
+
+  .record-entry {
+    grid-template-columns: 72px 1fr;
+    gap: 14px;
+  }
+}
+
+@media (max-width: 540px) {
+  .pro-header-band {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .oppo-file-top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .receipt-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .pro-footer,
+  .oppo-footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  #toggle-btn {
+    bottom: 16px;
+    right: 16px;
+    padding: 12px 16px;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     TOGGLE BUTTON
+     ============================================================ -->
+<button id="toggle-btn" aria-label="Switch to opposition view">
+  SWITCH TO<br>OPPOSITION FILE
+</button>
+
+<!-- ============================================================
+     PRO SITE
+     ============================================================ -->
+<div class="pro-content">
+
+  <header class="pro-header">
+    <div class="pro-header-band">
+      <span class="pro-header-label">Minnesota Senate &bull; District 37 &bull; West Metro</span>
+      <span class="pro-header-tag">Republican</span>
+    </div>
+
+    <div class="pro-hero">
+      <div class="pro-hero-text">
+        <div class="pro-receipt-no">TAX RELIEF RECORD &bull; 2025 SESSION &bull; SF1239</div>
+        <h1>Stop Taxing<br><em>Their</em><br>Retirement.</h1>
+        <p class="pro-hero-sub">Senator Warren Limmer has filed legislation to eliminate Minnesota's income tax on Social Security benefits. For retirees in Maple Grove, Corcoran, and Medina, that is money back on the kitchen table.</p>
+        <div class="pro-senator-id">
+          <span class="id-line">Senator</span>
+          <span class="id-value">Warren Limmer &bull; District 37 &bull; 10th Senate Term</span>
+        </div>
+      </div>
+      <div class="pro-hero-photo">
+        <img
+          src="https://www.senate.mn/graphics/37Limmer.jpg"
+          alt="Senator Warren Limmer"
+          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+        >
+        <div class="pro-hero-photo-overlay"></div>
+        <span class="photo-caption">Sen. Warren Limmer &bull; District 37</span>
+        <div class="photo-placeholder" style="display:none;">
+          <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="32" cy="22" r="14" stroke="white" stroke-width="2"/>
+            <path d="M8 56c0-13.255 10.745-24 24-24s24 10.745 24 24" stroke="white" stroke-width="2"/>
+          </svg>
+          <span>Sen. Warren Limmer</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- RECEIPT -->
+  <div class="pro-receipt-section">
+    <div class="receipt-header">
+      <span class="receipt-title">Tax Break Itemized &bull; SF1239</span>
+      <span class="receipt-date">Posted Feb. 7, 2025 &bull; Introduced Feb. 10, 2025</span>
+    </div>
+    <hr class="receipt-rule-thick" style="border-color: var(--cedar); margin: 8px 0;">
+
+    <div class="receipt-block">
+      <div class="receipt-row">
+        <div class="receipt-row-label">
+          Minnesota seniors currently paying tax on Social Security income
+          <small>Approx. share of households receiving Social Security that still owe MN state income tax on benefits</small>
+        </div>
+        <div class="receipt-row-value cedar">~21%</div>
+      </div>
+      <div class="receipt-row">
+        <div class="receipt-row-label">
+          Returns that would benefit from unlimited subtraction (statewide)
+          <small>MN Dept. of Revenue, fiscal note for unlimited Social Security subtraction</small>
+        </div>
+        <div class="receipt-row-value"><span class="count-target" data-target="211700">211,700</span></div>
+      </div>
+      <div class="receipt-row">
+        <div class="receipt-row-label">
+          Average annual tax reduction per qualifying household
+          <small>MN Dept. of Revenue analysis of unlimited subtraction scenario</small>
+        </div>
+        <div class="receipt-row-value amber">$1,845</div>
+      </div>
+      <div class="receipt-row">
+        <div class="receipt-row-label">
+          Limmer's tenure on Senate Judiciary &amp; Public Safety — the institutional record behind this bill
+          <small>First elected to House 1988; special election to Senate 1995; 10th Senate term</small>
+        </div>
+        <div class="receipt-row-value">38 years</div>
+      </div>
+      <div class="receipt-row">
+        <div class="receipt-row-label">
+          Limmer's prior Social Security repeal bills — this is not a new idea for him
+          <small>He has filed variations on Social Security tax repeal in multiple sessions going back years</small>
+        </div>
+        <div class="receipt-row-value cedar">Multiple</div>
+      </div>
+    </div>
+
+    <hr class="receipt-rule-thick" style="margin: 0 0 0 0; border-color: var(--cedar);">
+    <div class="receipt-total-row">
+      <span class="receipt-total-label">General Fund Reduction Range, FY2026-FY2029</span>
+      <span class="receipt-total-value">$390.7M-$456.0M</span>
+    </div>
+  </div>
+
+  <!-- MAIN BODY -->
+  <div class="pro-body">
+
+    <div class="pro-section-head">
+      <span class="section-rule-number">01 &mdash;</span>
+      <h2>What SF1239 Does</h2>
+    </div>
+
+    <div class="bill-block">
+      <div class="bill-block-label">Senate File 1239 &bull; 94th Legislature &bull; Posted Feb. 7, 2025 &bull; First Reading Feb. 10, 2025</div>
+      <h3>Unlimited Income Tax Subtraction for Social Security Benefits</h3>
+      <p>Under current Minnesota law, a retiree's Social Security income becomes taxable once their adjusted gross income crosses a threshold. For 2025, that phase-out begins at <span class="bill-inline-code">$108,320</span> for joint filers and <span class="bill-inline-code">$84,490</span> for single filers. Many middle-income retirees in District 37 fall into the taxable zone.</p>
+      <p>SF1239 removes the subtraction limit entirely. Every dollar of Social Security income would be exempt from Minnesota income tax, regardless of total income. The bill applies beginning with tax year 2025.</p>
+      <p>Minnesota is one of only nine states that still taxes Social Security benefits at all. The Minnesota Department of Revenue's February 2025 analysis estimated General Fund reductions of $390.7 million in FY2026, $415.7 million in FY2027, $437.3 million in FY2028, and $456.0 million in FY2029 if the subtraction were made unlimited. Limmer and Senate Republicans argue that cost is justified because retirees already paid into the system.</p>
+    </div>
+
+    <div class="pro-section-head">
+      <span class="section-rule-number">02 &mdash;</span>
+      <h2>The Numbers</h2>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-card">
+        <span class="stat-card-code">MN Returns Affected</span>
+        <div class="stat-card-num"><span class="count-target" data-target="211700">211,700</span></div>
+        <div class="stat-card-desc">Households statewide that would see a tax reduction under an unlimited Social Security subtraction, per MN Dept. of Revenue analysis.</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card-code">Avg. Annual Savings</span>
+        <div class="stat-card-num amber">$1,845</div>
+        <div class="stat-card-desc">Average reduction in Minnesota income tax per qualifying return in the year the full subtraction takes effect.</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card-code">States Still Taxing SS</span>
+        <div class="stat-card-num">9</div>
+        <div class="stat-card-desc">Minnesota is among a shrinking minority of states that still levy income tax on Social Security benefits. Neighbors Wisconsin phased out, Iowa eliminated.</div>
+      </div>
+    </div>
+
+    <div class="pro-section-head">
+      <span class="section-rule-number">03 &mdash;</span>
+      <h2>Why District 37</h2>
+    </div>
+
+    <div class="district-band">
+      <div class="district-photo">
+        <img
+          src="https://images.unsplash.com/photo-1480074568708-e7b720bb3f09?w=800&q=80"
+          alt="Maple Grove suburban neighborhood"
+          onerror="this.style.display='none';"
+        >
+        <span class="district-photo-label">West Metro &bull; Hennepin County</span>
+      </div>
+      <div class="district-text">
+        <h3>Maple Grove. Corcoran. Medina. Independence.</h3>
+        <p>District 37 is a west-metro suburban district. These are homeowner communities built on steady employment and careful household budgets. Many residents are approaching or already in retirement after decades of work in the Twin Cities metro.</p>
+        <p>A $1,845 annual tax cut does not buy a boat. It covers property tax installments. It covers a winter energy bill. It stays in Maple Grove.</p>
+        <ul class="district-fact-list">
+          <li>Communities: Corcoran, Greenfield, Independence, Loretto, Maple Grove, Maple Plain, and Medina/Hamel</li>
+          <li>West Hennepin County — owner-occupied suburban housing stock, established neighborhoods</li>
+          <li>Pocketbook politics dominate: property tax, retirement income, and grocery costs track directly to votes</li>
+          <li>Minnesota has not fully exempted Social Security from income tax despite bipartisan pressure for years</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="pro-section-head">
+      <span class="section-rule-number">04 &mdash;</span>
+      <h2>The Record</h2>
+    </div>
+
+    <div class="record-rows">
+      <div class="record-entry">
+        <span class="record-year">2025</span>
+        <span class="record-desc"><strong>SF1239 filed</strong> — unlimited Social Security income tax subtraction, extending a long-running repeal push on taxing Social Security benefits.</span>
+      </div>
+      <div class="record-entry">
+        <span class="record-year">2023–24</span>
+        <span class="record-desc"><strong>Senate President Pro Tem.</strong> Limmer held the second-highest leadership post in the Minnesota Senate, serving as the senior institutional Republican voice in the chamber.</span>
+      </div>
+      <div class="record-entry">
+        <span class="record-year">2017–22</span>
+        <span class="record-desc"><strong>Chair, Senate Judiciary and Public Safety Finance and Policy Committee.</strong> Passed bipartisan public safety budgets. Negotiated the 2020 police reform agreement on chokeholds, warrior training, and intervention requirements.</span>
+      </div>
+      <div class="record-entry">
+        <span class="record-year">1995</span>
+        <span class="record-desc"><strong>Won special election to the Minnesota Senate,</strong> District 34 at the time. Has held the seat continuously through redistricting into District 37.</span>
+      </div>
+      <div class="record-entry">
+        <span class="record-year">1988</span>
+        <span class="record-desc"><strong>First elected to the Minnesota House of Representatives.</strong> Served through 1994 before moving to the Senate.</span>
+      </div>
+    </div>
+
+  </div><!-- /pro-body -->
+
+  <div class="pro-pull-quote">
+    <blockquote>
+      Minnesota retirees paid into Social Security their entire working lives.<br>
+      <em>Taxing that income twice is wrong.</em>
+    </blockquote>
+    <div class="pro-pull-cite">Sen. Warren Limmer &bull; MN Senate Republicans Press Release &bull; Feb. 2025</div>
+  </div>
+
+  <div class="pro-body">
+
+    <!-- FOOTNOTES -->
+    <div class="pro-footnotes" style="margin: 48px -40px 0;">
+      <div class="footnotes-label">Sources &amp; Footnotes</div>
+      <ol class="footnote-list">
+        <li>SF1239, Minnesota 94th Legislature, posted Feb. 7, 2025, introduced and first read Feb. 10, 2025. <a href="https://www.revisor.mn.gov/bills/bill.php?b=Senate&f=SF1239&ssn=0&y=2025" target="_blank">revisor.mn.gov</a></li>
+        <li>211,700 returns / $1,845 average savings: MN Dept. of Revenue fiscal analysis, unlimited Social Security subtraction. <a href="https://www.revenue.state.mn.us/sites/default/files/2025-02/hf0100-unlimited-social-security-subtraction.pdf" target="_blank">revenue.state.mn.us</a></li>
+        <li>~21% of Minnesota households receiving Social Security benefits pay state income tax on that income. MN House Research, 2025. <a href="https://www.house.mn.gov/hrd/issinfo/sstaxes.aspx" target="_blank">house.mn.gov</a></li>
+        <li>Department of Revenue fiscal analysis for unlimited subtraction scenario: General Fund reductions of $390.7M in FY2026, $415.7M in FY2027, $437.3M in FY2028, and $456.0M in FY2029. <a href="https://www.revenue.state.mn.us/sites/default/files/2025-02/hf0100-unlimited-social-security-subtraction.pdf" target="_blank">revenue.state.mn.us</a></li>
+        <li>Phase-out thresholds 2025: $108,320 joint; $84,490 single. MN Dept. of Revenue. <a href="https://www.revenue.state.mn.us/social-security-benefit-subtraction" target="_blank">revenue.state.mn.us</a></li>
+        <li>Limmer tenure: first elected MN House 1988; Senate special election 1995; 10th Senate term current. <a href="https://www.lrl.mn.gov/legdb/fulldetail?id=10376" target="_blank">lrl.mn.gov</a></li>
+        <li>District 37 communities: Corcoran, Greenfield, Independence, Loretto, Maple Grove, Maple Plain, Medina/Hamel. <a href="https://ballotpedia.org/Minnesota_State_Senate_District_37" target="_blank">ballotpedia.org</a></li>
+        <li>Limmer retirement announcement, Feb. 2026. <a href="https://www.mprnews.org/story/2026/02/02/republican-warren-limmer-to-retire-from-minnesota-senate-seat-after-this-year" target="_blank">mprnews.org</a></li>
+      </ol>
+    </div>
+
+  </div><!-- /pro-body -->
+
+  <footer class="pro-footer">
+    <span>Sen. Warren Limmer &bull; District 37 &bull; Minnesota Senate</span>
+    <span>Research microsite &bull; Not an official campaign communication</span>
+  </footer>
+
+</div><!-- /pro-content -->
+
+
+<!-- ============================================================
+     OPPO SITE
+     ============================================================ -->
+<div class="oppo-content">
+<div class="oppo-wrapper">
+
+  <header class="oppo-file-header">
+    <div class="oppo-file-top">
+      <span class="oppo-file-agency">Minnesota Campaign Finance and Public Disclosure Board &bull; Enforcement Record</span>
+      <span class="oppo-file-classification">Public Record</span>
+    </div>
+
+    <div class="oppo-hero">
+      <div class="oppo-hero-text">
+        <div class="oppo-file-no">FILE REF: LIMMER FOR SENATE &bull; DISTRICT 37 &bull; TWO CONCILIATION AGREEMENTS</div>
+        <h1>He Wrote the Rules.<br><em>He Broke Them Twice.</em></h1>
+        <p class="oppo-hero-deck">Warren Limmer spent decades as Senate Judiciary chairman demanding legal compliance from others. His own campaign committee entered formal conciliation agreements with the Minnesota Campaign Finance Board in 2013 and again in 2018 for special-source limit violations.</p>
+        <div class="oppo-accusation-box">
+          <p><strong>The charge is not a soft one.</strong> Special-source limit violations are not paperwork errors. They mean Limmer's committee accepted contributions from restricted sources at amounts exceeding what the law allows. The Board documented it twice. In writing. Over five years apart.</p>
+        </div>
+      </div>
+      <div class="oppo-hero-photo">
+        <img
+          src="https://www.senate.mn/graphics/37Limmer.jpg"
+          alt="Senator Warren Limmer"
+          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+        >
+        <div class="oppo-hero-photo-overlay"></div>
+        <div class="stamp-overlay">Conciliation Agreement</div>
+        <div class="oppo-photo-placeholder" style="display:none;">
+          <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="32" cy="22" r="14" stroke="white" stroke-width="2"/>
+            <path d="M8 56c0-13.255 10.745-24 24-24s24 10.745 24 24" stroke="white" stroke-width="2"/>
+          </svg>
+          <span>Sen. Warren Limmer</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- OPPO BODY -->
+  <div class="oppo-body">
+
+    <div class="oppo-section-head">
+      <span class="section-rule-number" style="color: var(--ledger-mid);">01 &mdash;</span>
+      <h2>Sequence of Events</h2>
+    </div>
+
+    <div class="sequence-block">
+      <div class="seq-entry">
+        <div class="seq-date">1995 – 2012</div>
+        <h4>Limmer Builds Judiciary Brand</h4>
+        <p>Warren Limmer enters the Senate on a law-and-order, institutional-conservative platform. He rises to chair the Senate Judiciary and Public Safety Committee. His brand rests on process, legal rigor, and holding institutions accountable under the rules. He is the man others answer to.</p>
+      </div>
+
+      <div class="seq-entry severe">
+        <div class="seq-date">2013</div>
+        <h4>First Conciliation Agreement — Special-Source Limit Violations</h4>
+        <p>The Minnesota Campaign Finance and Public Disclosure Board opens a proceeding against Limmer for Senate. The committee enters a conciliation agreement over aggregate special-source-limit violations. The 2013 agreement describes excess special-source contributions from large givers, registered lobbyists, and political committees or political funds. The agreement is a formal Board enforcement action — not a clerical correction.</p>
+      </div>
+
+      <div class="seq-entry">
+        <div class="seq-date">2013 – 2017</div>
+        <h4>Continues as Judiciary Chair</h4>
+        <p>Limmer continues chairing the committee that oversees campaign finance law enforcement in the Senate. He continues to be the face of legal discipline and institutional compliance at the Capitol.</p>
+      </div>
+
+      <div class="seq-entry severe">
+        <div class="seq-date">2018</div>
+        <h4>Second Conciliation Agreement — Pattern Confirmed</h4>
+        <p>The Campaign Finance Board moves against Limmer for Senate a second time. A second conciliation agreement over special-source limit violations is entered. Five years after the first agreement, the same campaign committee faced a second formal enforcement action over the same category of violation.</p>
+      </div>
+
+      <div class="seq-entry">
+        <div class="seq-date">2026</div>
+        <h4>Retires After 38 Years — No Accounting</h4>
+        <p>Limmer announces retirement in February 2026, citing 38 years of service. No public statement addresses the two enforcement actions. His legacy is presented as one of law, order, and institutional integrity.</p>
+      </div>
+    </div>
+
+    <div class="oppo-section-head">
+      <span class="section-rule-number" style="color: var(--ledger-mid);">02 &mdash;</span>
+      <h2>Core Document</h2>
+    </div>
+
+    <div class="document-block">
+      <div class="doc-block-label">Minnesota Campaign Finance and Public Disclosure Board &bull; Enforcement Record &bull; Public</div>
+      <div class="doc-block-title">What a Conciliation Agreement Means Under Minnesota Law</div>
+      <div class="doc-simulated">
+        <div class="doc-header">
+          <strong>State of Minnesota</strong>
+          <strong>Campaign Finance and Public Disclosure Board</strong>
+          <div class="doc-sub">Enforcement Action Classification</div>
+        </div>
+
+        <div class="doc-finding">
+          <strong>What the Board does:</strong> When a committee violates the Campaign Finance and Public Disclosure Act, the Board may issue a conciliation agreement — a formal enforcement document acknowledging the violation and establishing remediation terms. It is a public record.
+        </div>
+
+        <div class="highlight-bar">
+          <strong>Special-source limit:</strong> Minnesota law caps contributions from "special sources" such as registered lobbyists, political committees or political funds, and other capped sources to legislative candidate committees. Violating the aggregate limit means the committee accepted money it was not legally permitted to take. The conciliation agreement acknowledges this finding.
+        </div>
+
+        <div class="doc-finding">
+          <strong>What two agreements mean:</strong> A single conciliation agreement can be attributed to a compliance error. Two agreements, five years apart, for the same category of violation, indicate a pattern. The Board's enforcement record for Limmer for Senate shows <span class="redaction" title="hover to reveal">repeated conduct</span> across multiple election cycles, confirmed by formal action in both 2013 and 2018.
+        </div>
+
+        <div class="doc-finding">
+          <strong>Context:</strong> These are <span class="redaction" title="hover to reveal">not advisory opinions</span>. Conciliation agreements are the Board's formal mechanism for resolving documented violations. They require the committee to acknowledge the finding. They become permanent public records in the Board's enforcement database at <strong>cfb.mn.gov</strong>.
+        </div>
+
+        <div class="doc-finding" style="margin-top: 16px; font-size: 0.68rem; color: var(--ledger-mid);">
+          Note: Hover the redacted text above to reveal. Full Board enforcement records available at cfb.mn.gov under enforcement actions.
+        </div>
+      </div>
+    </div>
+
+    <div class="oppo-section-head">
+      <span class="section-rule-number" style="color: var(--ledger-mid);">03 &mdash;</span>
+      <h2>Evidence File</h2>
+    </div>
+
+    <div class="evidence-grid">
+      <div class="evidence-card">
+        <div class="evidence-card-num">Exhibit A</div>
+        <h4>Two Formal Enforcement Actions</h4>
+        <div class="evidence-card-body">The Campaign Finance Board entered conciliation agreements with Limmer for Senate in 2013 and again in 2018. Both cite special-source limit violations. Both are permanent public records at cfb.mn.gov.</div>
+        <div class="ec-reveal">This is not a disputed claim. Both agreements are indexed in the Board's enforcement action database. The Board's own records establish the pattern.</div>
+      </div>
+
+      <div class="evidence-card">
+        <div class="evidence-card-num">Exhibit B</div>
+        <h4>Jurisdiction: Limmer's Own Committee</h4>
+        <div class="evidence-card-body">During the years of the violations, Limmer served as chairman of the Senate Judiciary and Public Safety Committee — the committee that oversees the legal framework governing campaign finance law in Minnesota.</div>
+        <div class="ec-reveal">A man who policed legal compliance for others had his own committee cited twice. That is the definition of a hypocrisy attack. It does not require editorializing.</div>
+      </div>
+
+      <div class="evidence-card">
+        <div class="evidence-card-num">Exhibit C</div>
+        <h4>Five-Year Gap Between Violations</h4>
+        <div class="evidence-card-body">The 2013 and 2018 agreements are separated by five years. Whatever caused the first violation, the committee ran the same risk again and produced a second enforcement action half a decade later.</div>
+        <div class="ec-reveal">Pattern evidence is durable in political attacks because it removes the "honest mistake" defense. Two agreements, same category, five years apart: that is a choice, repeated.</div>
+      </div>
+    </div>
+
+    <div class="hypocrisy-band">
+      <div class="hyp-label">The Contradiction &bull; On Record</div>
+      <div class="hyp-two-col">
+        <div>
+          <div class="hyp-col-label says">What He Says</div>
+          <div class="hyp-quote says">"Funding constitutional requirements and keeping Minnesotans safe."</div>
+          <div class="hyp-sub says">Warren Limmer's framing of his own Judiciary and Public Safety budget, MN Senate Republicans press release. He ran as the man who enforced the rules.</div>
+        </div>
+        <div>
+          <div class="hyp-col-label does">What the Record Shows</div>
+          <div class="hyp-quote does">Two conciliation agreements. Two documented violations. Special-source limits exceeded. Official enforcement in 2013. Official enforcement in 2018.</div>
+          <div class="hyp-sub does">Minnesota Campaign Finance and Public Disclosure Board enforcement actions. Both public records. His committee. His responsibility.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="oppo-section-head" style="padding-top: 40px;">
+      <span class="section-rule-number" style="color: var(--ledger-mid);">04 &mdash;</span>
+      <h2>What This Is Not</h2>
+    </div>
+
+    <div class="bill-block" style="border-left-color: var(--enforce-red); margin-bottom: 48px;">
+      <div class="bill-block-label" style="color: var(--enforce-red);">Editorial Limit &bull; What the Record Supports</div>
+      <h3 style="color: var(--ledger-gray);">This is a Compliance Pattern, Not a Scandal</h3>
+      <p style="color: var(--ledger-mid);">Limmer has not been accused of corruption, self-dealing, or personal financial misconduct. The conciliation agreements address his campaign committee's handling of special-source contributions. The violations are real and documented. The hypocrisy is real and documentable. The attack ends there.</p>
+      <p style="color: var(--ledger-mid);">What makes this politically effective is not heat. It is precision. A senator who built a long brand on legal discipline had his own committee cited twice by the state's campaign finance enforcement body. The record does the work without embellishment.</p>
+      <p style="color: var(--ledger-mid);">Full enforcement records: <a href="https://cfb.mn.gov/citizen-resources/the-board/board-decisions/enforcement-actions/" target="_blank" style="color: var(--enforce-red);">cfb.mn.gov/citizen-resources/the-board/board-decisions/enforcement-actions/</a></p>
+    </div>
+
+    <!-- OPPO FOOTNOTES -->
+    <div class="oppo-footnotes" style="margin: 0 -40px;">
+      <div class="footnotes-label" style="color: var(--ledger-mid);">Sources &amp; Footnotes</div>
+      <ol class="footnote-list">
+        <li>2013 conciliation agreement, Limmer for Senate, special-source limit violations. Minnesota Campaign Finance and Public Disclosure Board. cfb.mn.gov enforcement records.</li>
+        <li>2018 conciliation agreement, Limmer for Senate, special-source limit violations. Minnesota Campaign Finance and Public Disclosure Board. cfb.mn.gov enforcement records.</li>
+        <li>Special-source contribution limits and Board overview of campaign-finance rules. <a href="https://cfb.mn.gov/citizen-resources/board-programs/overview/campaign-finance/" target="_blank">cfb.mn.gov</a> and <a href="https://cfb.mn.gov/pdf/bdactions/1283_Conciliation_Agreement.pdf" target="_blank">2013 conciliation agreement</a>.</li>
+        <li>Limmer as Judiciary and Public Safety Committee chair. <a href="https://www.mnsenaterepublicans.com/senator-limmer-passes-judiciary-and-public-safety-budget-funding-constitutional-requirements-and-keeping-minnesotans-safe/" target="_blank">mnsenaterepublicans.com</a></li>
+        <li>"Keeping Minnesotans safe" framing: MN Senate Republicans press releases, multiple sessions. <a href="https://www.mnsenaterepublicans.com/warren-limmer/" target="_blank">mnsenaterepublicans.com/warren-limmer</a></li>
+        <li>Limmer retirement announcement, Feb. 2026. <a href="https://www.mprnews.org/story/2026/02/02/republican-warren-limmer-to-retire-from-minnesota-senate-seat-after-this-year" target="_blank">mprnews.org</a></li>
+        <li>Starr Tribune: Limmer described as "chief obstacle to progress" by progressive allies post-Floyd. <a href="https://www.startribune.com/sen-warren-limmer-is-state-capitol-foil-for-progressive-law-enforcement-policies-in-minnesota/573490372" target="_blank">startribune.com</a></li>
+        <li>Board enforcement action index: <a href="https://cfb.mn.gov/citizen-resources/the-board/board-decisions/enforcement-actions/" target="_blank">cfb.mn.gov</a></li>
+      </ol>
+    </div>
+
+  </div><!-- /oppo-body -->
+
+  <footer class="oppo-footer">
+    <span>Accountability research &bull; Warren Limmer &bull; District 37 &bull; MN Senate</span>
+    <span>Not affiliated with any campaign &bull; All facts sourced from public records</span>
+  </footer>
+
+
+  <!-- Auto-transition sentinel — observed by IntersectionObserver -->
+  <div id="brief-sentinel" style="height:1px;width:100%;"></div>
+
+  <!-- Subtle stamp — visible as user nears the bottom -->
+  <div class="machine-stamp">
+    <span class="machine-stamp-text">AI-GENERATED &nbsp;·&nbsp; 67 SENATORS &nbsp;·&nbsp; 63 PARALLEL AGENTS &nbsp;·&nbsp; ~4 HRS &nbsp;·&nbsp; ~$47</span>
+  </div>
+
+</div>
+</div><!-- /oppo-content -->
+
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+<script>
+(function () {
+  'use strict';
+
+  /* ---- TOGGLE ---- */
+  var btn = document.getElementById('toggle-btn');
+  var body = document.body;
+  var isOppo = false;
+
+  btn.addEventListener('click', function () {
+    body.classList.add('fading');
+    setTimeout(function () {
+      isOppo = !isOppo;
+      if (isOppo) {
+        body.classList.add('mode-oppo');
+        btn.innerHTML = 'SWITCH TO<br>SUPPORTER VIEW';
+      } else {
+        body.classList.remove('mode-oppo');
+        btn.innerHTML = 'SWITCH TO<br>OPPOSITION FILE';
+      }
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      body.classList.remove('fading');
+    }, 220);
+  });
+
+  /* ---- NUMBER COUNTERS ---- */
+  function animateCounter(el) {
+    var target = parseInt(el.getAttribute('data-target'), 10);
+    var duration = 1600;
+    var start = null;
+    var startVal = 0;
+
+    function easeOut(t) {
+      return 1 - Math.pow(1 - t, 3);
+    }
+
+    function step(timestamp) {
+      if (!start) start = timestamp;
+      var progress = Math.min((timestamp - start) / duration, 1);
+      var current = Math.round(startVal + (target - startVal) * easeOut(progress));
+      el.textContent = current.toLocaleString('en-US');
+      if (progress < 1) requestAnimationFrame(step);
+    }
+
+    requestAnimationFrame(step);
+  }
+
+  /* Intersection Observer for counters */
+  var counters = document.querySelectorAll('.count-target');
+  if ('IntersectionObserver' in window) {
+    var obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting && !entry.target.dataset.animated) {
+          entry.target.dataset.animated = '1';
+          animateCounter(entry.target);
+        }
+      });
+    }, { threshold: 0.4 });
+    counters.forEach(function (el) { obs.observe(el); });
+  } else {
+    counters.forEach(function (el) {
+      el.textContent = parseInt(el.getAttribute('data-target'), 10).toLocaleString('en-US');
+    });
+  }
+
+  /* ---- REDACTION REVEAL (accessibility) ---- */
+  var redactions = document.querySelectorAll('.redaction');
+  redactions.forEach(function (el) {
+    el.setAttribute('role', 'button');
+    el.setAttribute('tabindex', '0');
+    el.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        el.style.background = 'var(--warning)';
+        el.style.color = '#fff';
+      }
+    });
+  });
+
+})();
+</script>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     THE BRIEF — AI capabilities briefing
+═══════════════════════════════════════════════════════ -->
+<div class="brief-content">
+
+  <div class="brief-opening">
+    <p class="brief-made-by">Sixty-seven of these pages were made using one AI account in about thirty minutes. Six months ago an automated project like this would have been impossible.</p>
+  </div>
+
+  <div class="brief-chart-section">
+    <h2 class="brief-chart-title">This is the trend that made it possible.</h2>
+    <div class="brief-chart-frame">
+      <img
+        src="https://metr.org/assets/images/measuring-ai-ability-to-complete-long-tasks/length-of-tasks-log.png"
+        alt="METR chart: length of tasks AI agents can complete autonomously, doubling roughly every 7 months since 2019"
+        class="brief-metr-img"
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+      >
+      <div class="brief-chart-fallback" style="display:none;">
+        <p>Chart unavailable. See the original at <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">metr.org</a>.</p>
+      </div>
+    </div>
+    <p class="brief-chart-source">Source: <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR</a>, an independent AI evaluation lab.</p>
+    <p class="brief-chart-read">This chart tracks how long a task an AI agent can finish on its own. In 2019, the answer was about three seconds. By early 2023, it was six minutes. by mid 2025, over two hours. As of early 2026, Claude Opus 4.6 completes tasks that take a skilled human roughly twelve hours.</p>
+    <p class="brief-chart-read">The overall doubling time has been about seven months. But it is getting faster. <a href="https://metr.org/time-horizons/" target="_blank">When researchers fit only the most recent data</a>, the doubling time drops to four months. At that rate, AI agents capable of completing month-long autonomous projects arrive not in the early 2030s but around 2028.</p>
+  </div>
+
+  <div class="brief-so-what">
+    <h2 class="brief-so-what-title">What that means for lawmakers.</h2>
+    <p>Urgency. There was a narrative last year that AI had hit a wall in capabilities. It was a plausible perspective at the time. It isn't anymore. After breakthroughs late last year, AI systems' ability to automate cyberattacks, pathogen design, misinformation, mass surveillance, and vast swaths of white-collar work is advancing faster than ever.</p>
+    <p>The world will soon change faster than the typical pace of policymaking. The only solution is to act with atypical speed: AI regulations, data center moratoriums, calling for a federal pause on AI development, worker displacement funds. Some of these ideas already have bills introduced this session. Others should be explored soon. Time is limited, so if you feel behind on AI, the sources below are a good place to start.</p>
+    
+  </div>
+
+  <div class="brief-next">
+    <h2 class="brief-next-title">Start here.</h2>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">USE</span>
+      <a href="https://claude.ai/cowork" target="_blank">Claude Cowork</a> · <a href="https://claude.ai/code" target="_blank">Claude Code</a>
+      <span class="brief-link-detail">The tools that built this page. Cowork handles research and writing. Code is the agent that runs tasks, spawns sub-agents, and makes decisions on its own. Spend thirty minutes with one of these on a real problem from your week. That will teach you more than any briefing.</span>
+    </div>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR: Measuring AI Ability to Complete Long Tasks</a>
+      <span class="brief-link-detail">The source for the chart above. The METR trend is based on software tasks, but <a href="https://futuretech.mit.edu/publication/crashing-waves-vs-rising-tides-preliminary-findings-on-ai-automation-from-thousands-of-worker-evaluations-of-labor-market-tasks" target="_blank">MIT research on worker evaluations of labor market tasks</a> finds similar patterns across white-collar work broadly.</span>
+    </div>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://aiindex.stanford.edu/report/" target="_blank">Stanford HAI AI Index 2025</a>
+      <span class="brief-link-detail">The most comprehensive annual report on AI capabilities, economics, and policy across all 50 states.</span>
+    </div>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.imdb.com/title/tt39150120/" target="_blank">The AI Doc: Or How I Became an Apocaloptimist</a>
+      <span class="brief-link-detail">Daniel Roher's 2026 documentary, in theaters now. Roher interviews Amodei, Altman, Hassabis, and dozens more. If you see one thing on this list, see this.</span>
+    </div>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.youtube.com/watch?v=xoVJKj8lcNQ" target="_blank">The A.I. Dilemma</a>
+      <span class="brief-link-detail">Center for Humane Technology. 60 min, free on YouTube. Made for people with institutional power who need to understand AI quickly.</span>
+    </div>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">TRACK</span>
+      <a href="https://www.ncsl.org/technology-and-communication/artificial-intelligence" target="_blank">NCSL AI Legislation Tracker</a> ·
+      <a href="https://mn.gov/mnit/about-mnit/oit-programs/ai/" target="_blank">MN.IT AI Office</a>
+      <span class="brief-link-detail">Every AI bill in every state. Plus Minnesota's own AI program office. See where you stand relative to the field.</span>
+    </div>
+  </div>
+
+  <div class="brief-close">
+    <p class="brief-close-small">This project is not affiliated with any campaign, party, or organization.</p>
+    <button id="exit-brief-btn">← Back</button>
+  </div>
+
+</div><!-- /brief-content -->
+
+<style>
+/* ═══════════════════════════════════════════════════════
+   THE BRIEF
+   Completely different register. Warm off-black. Serif body.
+   No grids. No cards. Just a page someone wrote.
+═══════════════════════════════════════════════════════ */
+.brief-content { display: none; }
+body.mode-brief .brief-content  { display: block; }
+body.mode-brief .pro-content    { display: none; }
+body.mode-brief .oppo-content   { display: none; }
+body.mode-brief #flip-btn       { display: none; }
+
+.brief-content {
+  background: #0C0A08;
+  color: #D4CCBE;
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 17px;
+  line-height: 1.75;
+  min-height: 100vh;
+}
+.brief-content a { color: #C0B49A; }
+.brief-content a:hover { color: #fff; }
+
+/* Glitch */
+@keyframes glitch-seq {
+  0%   { filter: saturate(0) brightness(0.5); }
+  10%  { filter: hue-rotate(90deg) contrast(4) brightness(3); transform: skewX(4deg); }
+  12%  { filter: brightness(0.1); transform: none; }
+  25%  { filter: hue-rotate(200deg) invert(0.8); transform: translateX(6px); }
+  27%  { filter: brightness(0.05); transform: none; }
+  40%  { filter: blur(6px) brightness(0.02); }
+  44%  { filter: brightness(6); }
+  46%  { filter: none; transform: none; }
+  60%  { filter: hue-rotate(300deg) contrast(3) saturate(8); transform: skewX(-3deg); }
+  62%  { filter: none; transform: none; }
+  78%  { filter: blur(16px) brightness(0.01); }
+  82%  { filter: brightness(2); }
+  84%  { filter: none; }
+  100% { filter: none; transform: none; }
+}
+body.glitching {
+  animation: glitch-seq 1.2s ease-in-out forwards;
+  pointer-events: none;
+}
+
+/* Machine stamp */
+.machine-stamp {
+  background: #050505;
+  border-top: 1px solid #111;
+  padding: 16px 40px;
+  text-align: center;
+}
+.machine-stamp-text {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 0.22em;
+  color: #222;
+  text-transform: uppercase;
+  animation: stamp-pulse 3s ease-in-out infinite;
+}
+@keyframes stamp-pulse {
+  0%, 100% { color: #222; }
+  50% { color: #4A3A2A; }
+}
+
+/* === CONTENT === */
+.brief-opening {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 100px 40px 64px;
+}
+.brief-made-by {
+  font-size: 20px;
+  line-height: 1.65;
+  color: #B8AE9C;
+  margin-bottom: 20px;
+}
+.brief-made-by.last { color: #E8DED0; }
+
+.brief-chart-section {
+  max-width: 740px;
+  margin: 0 auto;
+  padding: 48px 40px 64px;
+  border-top: 1px solid #1E1A14;
+}
+.brief-chart-title {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 24px;
+  font-weight: 600;
+  color: #E8DED0;
+  margin-bottom: 32px;
+  font-style: italic;
+}
+.brief-chart-frame {
+  background: #fff;
+  border-radius: 4px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+.brief-metr-img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.brief-chart-fallback {
+  padding: 40px;
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+}
+.brief-chart-fallback a { color: #888; }
+.brief-chart-source {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: #5A5040;
+  line-height: 1.6;
+  margin-bottom: 28px;
+}
+.brief-chart-source a { color: #7A6A54; text-decoration: none; }
+.brief-chart-read {
+  font-size: 17px;
+  color: #B8AE9C;
+}
+
+.brief-so-what {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 56px 40px 64px;
+  border-top: 1px solid #1E1A14;
+}
+.brief-so-what-title {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 24px;
+  font-weight: 600;
+  color: #E8DED0;
+  margin-bottom: 28px;
+  font-style: italic;
+}
+.brief-so-what p {
+  font-size: 17px;
+  color: #B8AE9C;
+  margin-bottom: 20px;
+}
+
+.brief-next {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 56px 40px 48px;
+  border-top: 1px solid #1E1A14;
+}
+.brief-next-title {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 24px;
+  font-weight: 600;
+  color: #E8DED0;
+  margin-bottom: 14px;
+  font-style: italic;
+}
+.brief-next-intro {
+  font-size: 15px;
+  color: #9A9080;
+  margin-bottom: 36px;
+  line-height: 1.65;
+}
+.brief-link-block {
+  margin-bottom: 28px;
+  line-height: 1.7;
+}
+.brief-link-tag {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: #6A5A44;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 4px;
+}
+.brief-link-block a {
+  font-weight: 600;
+  color: #E0D6C4;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-size: 16px;
+}
+.brief-link-block a:hover { color: #fff; }
+.brief-link-detail {
+  display: block;
+  font-size: 14px;
+  color: #6A5E4C;
+  margin-top: 2px;
+}
+
+.brief-close {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 48px 40px 100px;
+  border-top: 1px solid #1E1A14;
+}
+.brief-close p {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 16px;
+  color: #9A9080;
+  margin-bottom: 32px;
+  line-height: 1.7;
+}
+.brief-close-small {
+  font-family: 'IBM Plex Mono', monospace !important;
+  font-size: 11px !important;
+  color: #3A3428 !important;
+  letter-spacing: 0.04em;
+}
+#exit-brief-btn {
+  background: none;
+  border: 1px solid #2A2418;
+  color: #5A5040;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+#exit-brief-btn:hover { border-color: #8A7A64; color: #C0B49A; }
+
+@media (max-width: 900px) {
+  .brief-opening, .brief-so-what, .brief-next, .brief-close { padding-left: 24px; padding-right: 24px; }
+  .brief-chart-section { padding-left: 24px; padding-right: 24px; }
+  .brief-made-by { font-size: 18px; }
+  .brief-opening { padding-top: 64px; }
+  .machine-stamp { padding: 14px 20px; }
+}
+</style>
+
+<script>
+/* ─── AUTO-TRANSITION ─────────────────────────────────────────
+   Triggers when user scrolls to bottom of oppo.
+   Phase 1: 2.5s slow drain
+   Phase 2: 1.5s glitch
+   Phase 3: brief
+─────────────────────────────────────────────────────────────── */
+(function() {
+  let briefTriggered = false;
+
+  function startBriefTransition() {
+    if (briefTriggered) return;
+    if (!document.body.classList.contains('mode-oppo')) return;
+    briefTriggered = true;
+    const body = document.body;
+
+    /* Phase 1 — slow drain: 2.5 seconds */
+    body.style.transition = 'filter 2.5s ease-in';
+    body.style.filter = 'saturate(0) brightness(0.3)';
+
+    /* Scramble headline text during the drain */
+    setTimeout(() => {
+      const hed = document.querySelector('.oppo-content h1') || document.querySelector('.oppo-content h2');
+      if (hed) {
+        const orig = hed.textContent;
+        const chars = '█▓▒░■□0123456789';
+        let n = 0;
+        const si = setInterval(() => {
+          n++;
+          hed.textContent = Array.from(orig).map(c => c === ' ' ? ' ' : chars[Math.floor(Math.random() * chars.length)]).join('');
+          if (n > 40) { clearInterval(si); hed.textContent = orig; }
+        }, 40);
+      }
+    }, 1200);
+
+    setTimeout(() => {
+      /* Phase 2 — glitch burst */
+      body.style.transition = '';
+      body.style.filter = '';
+      body.classList.add('glitching');
+
+      setTimeout(() => {
+        /* Phase 3 — brief */
+        body.classList.remove('glitching');
+        body.classList.add('mode-brief');
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      }, 1500);
+    }, 2500);
+  }
+
+  /* Trigger on scroll to sentinel — short pause before starting */
+  const sentinel = document.getElementById('brief-sentinel');
+  if (sentinel && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          io.disconnect();
+          setTimeout(startBriefTransition, 1200);
+        }
+      });
+    }, { threshold: 0.5 });
+    io.observe(sentinel);
+  }
+
+  /* Reset if user flips back to pro */
+  const flipBtn = document.getElementById('flip-btn');
+  if (flipBtn) {
+    flipBtn.addEventListener('click', () => {
+      if (document.body.classList.contains('mode-oppo')) briefTriggered = false;
+    });
+  }
+})();
+
+/* ─── EXIT BRIEF ────────────────────────────────────────── */
+document.addEventListener('click', (e) => {
+  if (e.target && e.target.id === 'exit-brief-btn') {
+    const body = document.body;
+    body.style.opacity = '0';
+    body.style.transition = 'opacity 0.3s';
+    setTimeout(() => {
+      body.classList.remove('mode-brief');
+      body.classList.add('mode-oppo');
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      body.style.opacity = '1';
+    }, 300);
+  }
+});
+</script>
+
+</body>
+</html>

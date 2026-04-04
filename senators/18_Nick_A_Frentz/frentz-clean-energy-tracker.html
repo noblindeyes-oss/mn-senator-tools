@@ -1,0 +1,1639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minnesota's Clean Energy Progress Tracker — Sen. Frentz, SD-18</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Fixed narrow left sidebar (200px) with darkest slate background, wide main content area on lighter dark surface — deliberately asymmetric two-column dashboard layout, no centered max-width shell
+   2. Navigation: Vertical sidebar nav with styled text links, active state indicated by a left-inset copper bar and background shift — no rounded-top tabs anywhere
+   3. Typography: Georgia for panel headings and the pull-quote (policy-document gravitas); 'Arial Narrow', Arial, sans-serif for body/UI text — condensed, technical feel; no system-ui
+   4. Hero moment: Panel 1's progress bar is 48px tall with a full gradient fill dominating the viewport; Panel 4's SVG arc gauge is 280px wide and shifts color dynamically
+   5. Color commitment: Sidebar is full #1A202C dark slate; main body is #2D3748 surface; Panel 3 data-centers section uses a river-blue tinted full-width background (#2B6CB0 at 15%); fact strip uses alternating copper/slate column tints; gauge section background shifts with score
+*/
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  background: #2D3748;
+  color: #E2E8F0;
+  line-height: 1.5;
+  display: flex;
+  min-height: 100vh;
+}
+
+/* --- SIDEBAR --- */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 200px;
+  height: 100vh;
+  background: #1A202C;
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+  overflow-y: auto;
+}
+
+.sidebar-header {
+  padding: 28px 18px 20px;
+  border-bottom: 1px solid #4A5568;
+}
+
+.sidebar-header h1 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 17px;
+  color: #E2E8F0;
+  font-weight: 700;
+  line-height: 1.35;
+  margin-bottom: 10px;
+}
+
+.sidebar-header .subtitle {
+  font-size: 11px;
+  color: #A0AEC0;
+  line-height: 1.5;
+  letter-spacing: 0.3px;
+}
+
+.sidebar-header .subtitle strong {
+  color: #B7652A;
+  font-weight: 700;
+}
+
+.sidebar-nav {
+  padding: 16px 0;
+  flex: 1;
+}
+
+.sidebar-nav a {
+  display: block;
+  padding: 11px 18px 11px 22px;
+  color: #A0AEC0;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  position: relative;
+}
+
+.sidebar-nav a:hover {
+  color: #E2E8F0;
+  background: rgba(43,108,176,0.12);
+}
+
+.sidebar-nav a.active {
+  color: #E2E8F0;
+  background: rgba(43,108,176,0.18);
+  box-shadow: inset 3px 0 0 #B7652A;
+}
+
+.sidebar-nav a .nav-num {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  line-height: 18px;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 700;
+  background: #4A5568;
+  color: #E2E8F0;
+  border-radius: 50%;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.sidebar-nav a.active .nav-num {
+  background: #2B6CB0;
+}
+
+.sidebar-attribution {
+  padding: 16px 18px 24px;
+  border-top: 1px solid #4A5568;
+  font-size: 11px;
+  color: #718096;
+  line-height: 1.55;
+}
+
+/* --- MAIN CONTENT --- */
+.main {
+  margin-left: 200px;
+  flex: 1;
+  min-height: 100vh;
+}
+
+.panel {
+  padding: 48px 44px 56px;
+  border-bottom: 1px solid #4A5568;
+  min-height: 80vh;
+}
+
+.panel:last-of-type {
+  border-bottom: none;
+}
+
+.panel-title {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 30px;
+  font-weight: 700;
+  color: #E2E8F0;
+  margin-bottom: 6px;
+  line-height: 1.2;
+}
+
+.panel-subtitle {
+  font-size: 13px;
+  color: #A0AEC0;
+  margin-bottom: 36px;
+  letter-spacing: 0.3px;
+}
+
+/* --- PANEL 1: SCORECARD --- */
+.stat-row {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.stat-block {
+  flex: 1;
+  padding: 24px 20px;
+  background: #1A202C;
+  border-top: 3px solid #2B6CB0;
+  position: relative;
+}
+
+.stat-block.target-2030 {
+  border-top-color: #ECC94B;
+}
+
+.stat-block.target-2040 {
+  border-top-color: #48BB78;
+}
+
+.stat-block .stat-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #A0AEC0;
+  margin-bottom: 8px;
+}
+
+.stat-block .stat-value {
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 1;
+  color: #E2E8F0;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+}
+
+.stat-block .stat-value .unit {
+  font-size: 22px;
+  font-weight: 400;
+  color: #A0AEC0;
+}
+
+.stat-block .stat-note {
+  font-size: 11px;
+  color: #718096;
+  margin-top: 6px;
+}
+
+/* Progress Bar */
+.progress-section {
+  margin-bottom: 32px;
+}
+
+.progress-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #A0AEC0;
+  margin-bottom: 6px;
+  letter-spacing: 0.5px;
+}
+
+.progress-track {
+  position: relative;
+  height: 48px;
+  background: linear-gradient(90deg, #1A202C 0%, rgba(43,108,176,0.2) 100%);
+  border-radius: 4px;
+  overflow: visible;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #1A202C 0%, #2B6CB0 100%);
+  border-radius: 4px 0 0 4px;
+  width: 46%;
+  transition: width 0.6s ease;
+  position: relative;
+}
+
+.progress-marker {
+  position: absolute;
+  top: -6px;
+  height: 60px;
+  width: 2px;
+  z-index: 2;
+}
+
+.progress-marker .marker-line {
+  width: 2px;
+  height: 48px;
+  position: absolute;
+  top: 6px;
+}
+
+.progress-marker .marker-label {
+  position: absolute;
+  top: -16px;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  left: 1px;
+}
+
+.marker-current {
+  left: 46%;
+}
+.marker-current .marker-line {
+  background: #E2E8F0;
+}
+.marker-current .marker-label {
+  color: #E2E8F0;
+}
+
+.marker-2030 {
+  left: 80%;
+}
+.marker-2030 .marker-line {
+  background: #ECC94B;
+  border-left: 1px dashed #ECC94B;
+  width: 0;
+}
+.marker-2030 .marker-label {
+  color: #ECC94B;
+}
+
+.marker-2040 {
+  left: 100%;
+}
+.marker-2040 .marker-line {
+  background: #48BB78;
+}
+.marker-2040 .marker-label {
+  color: #48BB78;
+}
+
+.progress-bottom-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: #718096;
+  margin-top: 4px;
+}
+
+/* Callout text */
+.callout-text {
+  font-size: 14px;
+  color: #A0AEC0;
+  line-height: 1.7;
+  max-width: 780px;
+  margin: 28px 0 24px;
+}
+
+.callout-text strong {
+  color: #E2E8F0;
+}
+
+/* Details/Summary for sources */
+details.sources-toggle {
+  margin-top: 12px;
+}
+
+details.sources-toggle summary {
+  cursor: pointer;
+  font-size: 12px;
+  color: #B7652A;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  list-style: none;
+  padding: 6px 0;
+}
+
+details.sources-toggle summary::-webkit-details-marker { display: none; }
+
+details.sources-toggle summary::before {
+  content: "\25B8";
+  display: inline-block;
+  margin-right: 6px;
+  transition: transform 0.2s;
+}
+
+details.sources-toggle[open] summary::before {
+  transform: rotate(90deg);
+}
+
+details.sources-toggle .sources-body {
+  font-size: 11px;
+  color: #718096;
+  line-height: 1.6;
+  padding: 8px 0 0 16px;
+}
+
+/* --- PANEL 2: GENERATION MIX --- */
+.gen-mix-layout {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr;
+  gap: 36px;
+  margin-bottom: 32px;
+}
+
+.chart-container {
+  position: relative;
+  width: 100%;
+  max-width: 340px;
+  margin: 0 auto;
+}
+
+.chart-container canvas {
+  width: 100% !important;
+  height: auto !important;
+}
+
+.bar-chart-container {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+}
+
+.bar-chart-container canvas {
+  width: 100% !important;
+  height: auto !important;
+}
+
+.bar-chart-container h3 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 17px;
+  color: #E2E8F0;
+  margin-bottom: 12px;
+}
+
+.illustrative-badge {
+  display: inline-block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #ECC94B;
+  font-weight: 700;
+  padding: 2px 8px;
+  border: 1px solid #ECC94B;
+  border-radius: 2px;
+  margin-left: 10px;
+  vertical-align: middle;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  margin-top: 20px;
+}
+
+.data-table th {
+  text-align: left;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #A0AEC0;
+  padding: 8px 10px;
+  border-bottom: 2px solid #4A5568;
+  font-weight: 700;
+}
+
+.data-table td {
+  padding: 7px 10px;
+  color: #E2E8F0;
+  border-bottom: 1px solid rgba(74,85,104,0.4);
+}
+
+.data-table tr:hover td {
+  background: rgba(43,108,176,0.08);
+}
+
+.data-table .source-tag {
+  font-size: 9px;
+  color: #718096;
+  display: block;
+  margin-top: 1px;
+}
+
+.chart-fallback {
+  display: none;
+  padding: 20px;
+  background: #1A202C;
+  color: #FC8181;
+  font-size: 13px;
+  text-align: center;
+  border: 1px solid #4A5568;
+}
+
+/* --- PANEL 3: JOBS & DISTRICT --- */
+.two-col-facts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px 48px;
+  margin-bottom: 36px;
+}
+
+.fact-column h3 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 16px;
+  color: #E2E8F0;
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #4A5568;
+}
+
+.fact-column ul {
+  list-style: none;
+  padding: 0;
+}
+
+.fact-column li {
+  font-size: 13px;
+  color: #A0AEC0;
+  line-height: 1.6;
+  padding: 6px 0;
+  padding-left: 14px;
+  position: relative;
+}
+
+.fact-column li::before {
+  content: "\25AA";
+  position: absolute;
+  left: 0;
+  color: #2B6CB0;
+}
+
+.fact-column li strong {
+  color: #E2E8F0;
+  font-weight: 700;
+}
+
+.pull-quote {
+  text-align: center;
+  padding: 40px 24px 36px;
+  max-width: 680px;
+  margin: 0 auto 36px;
+}
+
+.pull-quote .quote-mark {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 64px;
+  line-height: 0.5;
+  color: #B7652A;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.pull-quote blockquote {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 21px;
+  font-style: italic;
+  color: #E2E8F0;
+  line-height: 1.55;
+  margin-bottom: 12px;
+}
+
+.pull-quote .quote-attr {
+  font-size: 11px;
+  color: #718096;
+  letter-spacing: 0.3px;
+}
+
+/* Data centers block */
+.datacenter-block {
+  background: rgba(43,108,176,0.12);
+  padding: 32px 36px;
+  margin-bottom: 36px;
+}
+
+.datacenter-block h3 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 18px;
+  color: #E2E8F0;
+  margin-bottom: 18px;
+}
+
+.dc-points {
+  counter-reset: dcpoint;
+  list-style: none;
+  padding: 0;
+}
+
+.dc-points li {
+  counter-increment: dcpoint;
+  position: relative;
+  padding-left: 36px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  color: #A0AEC0;
+  line-height: 1.65;
+}
+
+.dc-points li::before {
+  content: counter(dcpoint);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 22px;
+  height: 22px;
+  line-height: 22px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  background: #2B6CB0;
+  color: #E2E8F0;
+  border-radius: 50%;
+}
+
+/* Fact strip */
+.fact-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border: 1px solid #4A5568;
+}
+
+.fact-strip .fact-cell {
+  padding: 18px 14px;
+  font-size: 12px;
+  color: #A0AEC0;
+  line-height: 1.5;
+  border-right: 1px solid #4A5568;
+}
+
+.fact-strip .fact-cell:last-child {
+  border-right: none;
+}
+
+.fact-strip .fact-cell:nth-child(odd) {
+  background: rgba(183,101,42,0.08);
+}
+
+.fact-strip .fact-cell:nth-child(even) {
+  background: rgba(43,108,176,0.06);
+}
+
+.fact-strip .fact-cell strong {
+  display: block;
+  font-size: 14px;
+  color: #E2E8F0;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.fact-strip .fact-cell .fact-src {
+  font-size: 9px;
+  color: #718096;
+  display: block;
+  margin-top: 4px;
+}
+
+.section-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: #B7652A;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+/* --- PANEL 4: SCENARIO EXPLORER --- */
+.explorer-instructions {
+  font-size: 14px;
+  color: #A0AEC0;
+  line-height: 1.65;
+  max-width: 720px;
+  margin-bottom: 32px;
+}
+
+.explorer-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 40px;
+  align-items: start;
+}
+
+.slider-group {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.slider-item label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 12px;
+  color: #A0AEC0;
+  margin-bottom: 5px;
+  font-weight: 600;
+}
+
+.slider-item label .slider-val {
+  font-size: 14px;
+  color: #E2E8F0;
+  font-weight: 700;
+  min-width: 50px;
+  text-align: right;
+}
+
+.slider-item input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  background: #1A202C;
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+}
+
+.slider-item input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #2B6CB0;
+  border: 2px solid #E2E8F0;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.slider-item input[type="range"]::-webkit-slider-thumb:hover {
+  background: #B7652A;
+}
+
+.slider-item input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #2B6CB0;
+  border: 2px solid #E2E8F0;
+  cursor: pointer;
+}
+
+.slider-item input[type="range"]::-moz-range-thumb:hover {
+  background: #B7652A;
+}
+
+.slider-item .slider-tooltip {
+  font-size: 10px;
+  color: #718096;
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+.gauge-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 16px;
+  background: #1A202C;
+  border-radius: 4px;
+}
+
+.gauge-area .gauge-label {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 17px;
+  color: #E2E8F0;
+  margin-top: 10px;
+  text-align: center;
+}
+
+.gauge-area .gauge-sublabel {
+  font-size: 12px;
+  color: #A0AEC0;
+  margin-top: 4px;
+  text-align: center;
+}
+
+.summary-table {
+  width: 100%;
+  margin-top: 20px;
+  font-size: 12px;
+}
+
+.summary-table td {
+  padding: 5px 8px;
+}
+
+.summary-table td:first-child {
+  color: #A0AEC0;
+}
+
+.summary-table td:last-child {
+  color: #E2E8F0;
+  font-weight: 700;
+  text-align: right;
+}
+
+.reset-btn {
+  display: inline-block;
+  margin-top: 20px;
+  padding: 8px 20px;
+  background: #B7652A;
+  color: #E2E8F0;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.reset-btn:hover {
+  background: #9B5223;
+}
+
+.disclaimer {
+  font-size: 11px;
+  font-style: italic;
+  color: #718096;
+  line-height: 1.6;
+  margin-top: 28px;
+  max-width: 720px;
+}
+
+/* --- FOOTER --- */
+.site-footer {
+  padding: 28px 44px;
+  font-size: 11px;
+  color: #718096;
+  line-height: 1.6;
+  border-top: 1px solid #4A5568;
+}
+
+/* --- MOBILE --- */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    align-items: center;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  .sidebar-header {
+    display: none;
+  }
+  .sidebar-attribution {
+    display: none;
+  }
+  .sidebar-nav {
+    display: flex;
+    padding: 0;
+    flex: none;
+    width: 100%;
+  }
+  .sidebar-nav a {
+    padding: 12px 14px;
+    white-space: nowrap;
+    font-size: 12px;
+  }
+  .sidebar-nav a.active {
+    box-shadow: inset 0 -3px 0 #B7652A;
+  }
+  .sidebar-nav a .nav-num {
+    display: none;
+  }
+  .main {
+    margin-left: 0;
+    margin-top: 44px;
+  }
+  .panel {
+    padding: 28px 18px 36px;
+  }
+  .stat-row {
+    flex-direction: column;
+    gap: 14px;
+  }
+  .gen-mix-layout {
+    grid-template-columns: 1fr;
+  }
+  .two-col-facts {
+    grid-template-columns: 1fr;
+  }
+  .fact-strip {
+    grid-template-columns: 1fr 1fr;
+  }
+  .explorer-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --- PRINT --- */
+@media print {
+  .sidebar { display: none; }
+  .main { margin-left: 0; }
+  body { background: #fff; color: #222; }
+  .panel { border-bottom: 1px solid #ccc; padding: 24px 0; min-height: auto; }
+  .panel-title { color: #222; font-size: 22px; }
+  .stat-block { background: #f5f5f5; border-top-color: #333; }
+  .stat-block .stat-value { color: #111; }
+  .stat-block .stat-label { color: #555; }
+  .progress-track { background: #e0e0e0; }
+  .progress-fill { background: #333; }
+  .callout-text { color: #444; }
+  .data-table th, .data-table td { color: #222; border-bottom-color: #ccc; }
+  .datacenter-block { background: #f0f4f8; }
+  .fact-strip .fact-cell { background: #f9f9f9 !important; }
+  .fact-strip .fact-cell strong { color: #111; }
+  #panel-explorer { display: none; }
+  .pull-quote blockquote { color: #222; }
+  .pull-quote .quote-mark { color: #999; }
+}
+
+/* Nuclear tooltip */
+.nuclear-info {
+  position: relative;
+  cursor: help;
+  border-bottom: 1px dotted #A0AEC0;
+}
+
+.nuclear-info .nuc-tip {
+  display: none;
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1A202C;
+  color: #A0AEC0;
+  font-size: 11px;
+  padding: 8px 12px;
+  border: 1px solid #4A5568;
+  border-radius: 3px;
+  width: 260px;
+  z-index: 10;
+  line-height: 1.5;
+  pointer-events: none;
+}
+
+.nuclear-info:hover .nuc-tip,
+.nuclear-info:focus .nuc-tip {
+  display: block;
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <h1>Minnesota's Clean Energy Tracker</h1>
+    <div class="subtitle">
+      Built for <strong>Senate District 18</strong><br>
+      Chief author: SF 2 (2023) — Minnesota's 100% Clean Energy by 2040 Law
+    </div>
+  </div>
+  <nav class="sidebar-nav" role="navigation" aria-label="Main navigation">
+    <a href="#panel-scorecard" class="active" data-panel="panel-scorecard">
+      <span class="nav-num">1</span> Scorecard
+    </a>
+    <a href="#panel-genmix" data-panel="panel-genmix">
+      <span class="nav-num">2</span> Generation Mix
+    </a>
+    <a href="#panel-district" data-panel="panel-district">
+      <span class="nav-num">3</span> Jobs &amp; District
+    </a>
+    <a href="#panel-explorer" data-panel="panel-explorer">
+      <span class="nav-num">4</span> Scenario Explorer
+    </a>
+  </nav>
+  <div class="sidebar-attribution">
+    Senator Frentz's 100% clean energy law sets two hard deadlines for Minnesota: 80% carbon-free by 2030, 100% by 2040. This dashboard shows where the state stands, what the generation mix looks like, and what it would take to close the gap.
+  </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="main">
+
+  <!-- PANEL 1: SCORECARD -->
+  <section class="panel" id="panel-scorecard">
+    <h2 class="panel-title">Minnesota's 2040 Clean Energy Clock</h2>
+    <p class="panel-subtitle">How Far to 2040?</p>
+
+    <div class="stat-row">
+      <div class="stat-block">
+        <div class="stat-label">Current Clean Share</div>
+        <div class="stat-value">~46<span class="unit">%</span></div>
+        <div class="stat-note">Approximate, EIA 2023 data</div>
+      </div>
+      <div class="stat-block target-2030">
+        <div class="stat-label">2030 Statutory Target</div>
+        <div class="stat-value">80<span class="unit">%</span></div>
+        <div class="stat-note">Carbon-free electricity</div>
+      </div>
+      <div class="stat-block target-2040">
+        <div class="stat-label">2040 Statutory Target</div>
+        <div class="stat-value">100<span class="unit">%</span></div>
+        <div class="stat-note">Carbon-free electricity</div>
+      </div>
+    </div>
+
+    <div class="progress-section">
+      <div class="progress-labels">
+        <span>2016 baseline: ~30%</span>
+        <span>2040 goal: 100%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill"></div>
+        <div class="progress-marker marker-current">
+          <span class="marker-label">2023: ~46%</span>
+          <span class="marker-line"></span>
+        </div>
+        <div class="progress-marker marker-2030">
+          <span class="marker-label">2030: 80%</span>
+          <span class="marker-line"></span>
+        </div>
+        <div class="progress-marker marker-2040">
+          <span class="marker-label">2040: 100%</span>
+          <span class="marker-line"></span>
+        </div>
+      </div>
+      <div class="progress-bottom-labels">
+        <span>Policy drive began</span>
+        <span>Distance remaining</span>
+      </div>
+    </div>
+
+    <p class="callout-text">
+      <strong>Minnesota's clean energy law (2023)</strong> — chief-authored by Sen. Frentz — sets binding
+      targets: 80% carbon-free by 2030, 100% by 2040. That means utilities must add or
+      retire generation to close the gap shown above.
+    </p>
+
+    <details class="sources-toggle">
+      <summary>Sources and Methodology</summary>
+      <div class="sources-body">
+        EIA Electric Power Monthly data for Minnesota (2022-2023 reporting period).
+        2040 law targets from Minn. Stat. &sect; 216B.1691.
+        Employment figures from Clean Jobs Midwest 2024 report and Clean Energy Economy MN.
+        The "current clean share" of ~46% uses a narrower definition than the ~60% broadest definition
+        (which counts all nuclear generation as carbon-free). Statutory targets count nuclear as carbon-free.
+        All generation percentages are approximate.
+      </div>
+    </details>
+  </section>
+
+  <!-- PANEL 2: GENERATION MIX -->
+  <section class="panel" id="panel-genmix">
+    <h2 class="panel-title">What Powers Minnesota?</h2>
+    <p class="panel-subtitle">Approximate 2022-2023 electricity generation by source (EIA data)</p>
+
+    <div id="chartFallback" class="chart-fallback">
+      Charts require an internet connection to load Chart.js. Please connect and reload.
+    </div>
+
+    <div class="gen-mix-layout" id="chartsArea">
+      <div class="chart-container">
+        <canvas id="donutChart" aria-label="Minnesota electricity generation mix donut chart" role="img"></canvas>
+        <p style="text-align:center;font-size:11px;color:#718096;margin-top:10px;">
+          Outer ring: generation by source. Inner ring:
+          <span class="nuclear-info" tabindex="0">clean vs. carbon split
+            <span class="nuc-tip">Minnesota's 2040 law counts nuclear as carbon-free. The "clean" segment includes wind, nuclear, solar, and hydro/other. This is consistent with the statutory definition in Minn. Stat. &sect; 216B.1691.</span>
+          </span>
+        </p>
+      </div>
+      <div class="bar-chart-container">
+        <h3>Path to 2040 — What Has to Change? <span class="illustrative-badge">Illustrative</span></h3>
+        <canvas id="barChart" aria-label="Scenario comparison bar chart showing 2023 actual versus 2030 and 2040 illustrative targets" role="img"></canvas>
+      </div>
+    </div>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Source</th>
+          <th>2023 Actual</th>
+          <th>2030 Target (Illustrative)</th>
+          <th>2040 Target (Illustrative)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Wind</td>
+          <td>23%<span class="source-tag">EIA 2023</span></td>
+          <td>32%<span class="source-tag">Illustrative</span></td>
+          <td>40%<span class="source-tag">Illustrative</span></td>
+        </tr>
+        <tr>
+          <td>Nuclear</td>
+          <td>24%<span class="source-tag">EIA 2023</span></td>
+          <td>24%<span class="source-tag">Illustrative</span></td>
+          <td>22%<span class="source-tag">Illustrative</span></td>
+        </tr>
+        <tr>
+          <td>Solar</td>
+          <td>7%<span class="source-tag">EIA 2023</span></td>
+          <td>14%<span class="source-tag">Illustrative</span></td>
+          <td>24%<span class="source-tag">Illustrative</span></td>
+        </tr>
+        <tr>
+          <td>Hydro + Other</td>
+          <td>6%<span class="source-tag">EIA 2023</span></td>
+          <td>6%<span class="source-tag">Illustrative</span></td>
+          <td>6%<span class="source-tag">Illustrative</span></td>
+        </tr>
+        <tr>
+          <td>Natural Gas</td>
+          <td>24%<span class="source-tag">EIA 2023</span></td>
+          <td>16%<span class="source-tag">Illustrative</span></td>
+          <td>5%<span class="source-tag">Illustrative</span></td>
+        </tr>
+        <tr>
+          <td>Coal</td>
+          <td>16%<span class="source-tag">EIA 2023</span></td>
+          <td>8%<span class="source-tag">Illustrative</span></td>
+          <td>0%<span class="source-tag">Illustrative</span></td>
+        </tr>
+        <tr>
+          <td>Battery/Storage</td>
+          <td>0%<span class="source-tag">EIA 2023</span></td>
+          <td>0%<span class="source-tag">Illustrative</span></td>
+          <td>3%<span class="source-tag">Illustrative</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="font-size:10px;color:#718096;margin-top:8px;">
+      2030 and 2040 columns are illustrative scenarios — not utility resource plan forecasts.
+      They show one plausible pathway consistent with statutory targets.
+    </p>
+  </section>
+
+  <!-- PANEL 3: JOBS & DISTRICT 18 -->
+  <section class="panel" id="panel-district">
+    <h2 class="panel-title">Clean Energy and District 18</h2>
+    <p class="panel-subtitle">Grounding the statewide law in Frentz's home district</p>
+
+    <div class="section-label">Clean Energy Employment</div>
+    <div class="two-col-facts">
+      <div class="fact-column">
+        <h3>Statewide</h3>
+        <ul>
+          <li><strong>62,102</strong> Minnesotans employed in clean energy and clean vehicle sectors (Clean Jobs Midwest 2024)</li>
+          <li><strong>17,251</strong> of those jobs are in Greater Minnesota (30% of total)</li>
+          <li><strong>57,000+</strong> jobs in the clean energy sector specifically</li>
+        </ul>
+      </div>
+      <div class="fact-column">
+        <h3>Greater MN / Mankato Region</h3>
+        <ul>
+          <li>Clean energy job growth in Mankato exceeded <strong>10% year-over-year</strong> — more than double the statewide average (Clean Jobs Midwest data)</li>
+          <li>Over <strong>81%</strong> of MN clean energy employers report difficulty hiring — workforce pipeline is the binding constraint, not capital</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="pull-quote">
+      <span class="quote-mark" aria-hidden="true">&ldquo;</span>
+      <blockquote>
+        The jobs are growing faster in Mankato than almost anywhere else in the state.
+        The workforce pipeline hasn't caught up yet. That's the next chapter.
+      </blockquote>
+      <div class="quote-attr">Paraphrase of Clean Jobs Midwest workforce finding; editorial summary, not a direct quote from Sen. Frentz.</div>
+    </div>
+
+    <div class="section-label">Data Centers — New Demand, New Obligation</div>
+    <div class="datacenter-block">
+      <ol class="dc-points">
+        <li>Data centers are locating in Minnesota partly because of the state's clean, reliable grid — the very infrastructure Frentz's energy policy built. Minnesota's grid reliability and clean energy trajectory make it attractive to companies with net-zero commitments.</li>
+        <li>Frentz co-authored Minnesota's data center governance law requiring centers to invest in communities, guarantee high-wage jobs, and help meet the state's clean energy goals — not merely consume its benefits.</li>
+        <li>A single large hyperscale data center can draw 100-500 MW of electricity (industry figure). Without governance, that new demand could set back the 2040 timeline by years. With it, data centers can be required to procure clean power directly.</li>
+      </ol>
+    </div>
+
+    <div class="section-label">District 18 Context</div>
+    <div class="fact-strip">
+      <div class="fact-cell">
+        <strong>2,000+</strong>
+        Family farm operations in SD-18 (wind and solar siting potential)
+        <span class="fact-src">District agricultural data</span>
+      </div>
+      <div class="fact-cell">
+        <strong>$67M</strong>
+        BCA crime lab secured for Mankato (regional economic anchor investment)
+        <span class="fact-src">Frentz carried in Senate; signed</span>
+      </div>
+      <div class="fact-cell">
+        <strong>$1.03M</strong>
+        Nursing home stabilization payments to four District 18 facilities
+        <span class="fact-src">2023 law</span>
+      </div>
+      <div class="fact-cell">
+        <strong>MSU Mankato</strong>
+        Major regional employer; clean energy workforce pipeline partner
+        <span class="fact-src">Regional economic anchor</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- PANEL 4: SCENARIO EXPLORER -->
+  <section class="panel" id="panel-explorer">
+    <h2 class="panel-title">What Would It Take?</h2>
+    <p class="panel-subtitle">The 2040 Scenario Explorer</p>
+
+    <p class="explorer-instructions">
+      Adjust the sliders below to see how different combinations of new generation or
+      retirement could move Minnesota toward 100% by 2040. This is a simplified model —
+      it illustrates scale, not a utility resource plan.
+    </p>
+
+    <div class="explorer-layout">
+      <div class="slider-group">
+        <div class="slider-item">
+          <label>
+            Additional wind capacity (GW)
+            <span class="slider-val" id="windVal">4.0</span>
+          </label>
+          <input type="range" id="windSlider" min="0" max="15" step="0.5" value="4" aria-label="Additional wind capacity in gigawatts">
+        </div>
+
+        <div class="slider-item">
+          <label>
+            Additional utility solar (GW)
+            <span class="slider-val" id="solarVal">2.0</span>
+          </label>
+          <input type="range" id="solarSlider" min="0" max="10" step="0.5" value="2" aria-label="Additional utility solar capacity in gigawatts">
+        </div>
+
+        <div class="slider-item">
+          <label>
+            Distributed rooftop solar (GW)
+            <span class="slider-val" id="rooftopVal">0.5</span>
+          </label>
+          <input type="range" id="rooftopSlider" min="0" max="3" step="0.1" value="0.5" aria-label="Distributed rooftop solar capacity in gigawatts">
+        </div>
+
+        <div class="slider-item">
+          <label>
+            Long-duration battery storage (GWh)
+            <span class="slider-val" id="storageVal">2.0</span>
+          </label>
+          <input type="range" id="storageSlider" min="0" max="20" step="0.5" value="2" aria-label="Long-duration battery storage in gigawatt-hours">
+          <div class="slider-tooltip">Storage doesn't generate electricity but enables higher renewable penetration — modeled as up to +8 percentage points at 20 GWh.</div>
+        </div>
+
+        <div class="slider-item">
+          <label>
+            Coal retirement (% of current fleet)
+            <span class="slider-val" id="coalVal">50%</span>
+          </label>
+          <input type="range" id="coalSlider" min="0" max="100" step="5" value="50" aria-label="Percentage of current coal fleet retired">
+        </div>
+
+        <div class="slider-item">
+          <label>
+            Natural gas reduction (% of current fleet)
+            <span class="slider-val" id="gasVal">20%</span>
+          </label>
+          <input type="range" id="gasSlider" min="0" max="80" step="5" value="20" aria-label="Percentage of current natural gas fleet reduced">
+          <div class="slider-tooltip">Some gas retained for reliability/peaking. Reduced gas generation is replaced by new clean sources above; residual gas for peaking is assumed to use carbon offsets or efficiency credits under the 2040 framework.</div>
+        </div>
+
+        <button class="reset-btn" id="resetBtn" aria-label="Reset all sliders to default values">Reset to Defaults</button>
+      </div>
+
+      <div class="gauge-area">
+        <svg id="gaugeArc" width="280" height="180" viewBox="0 0 280 180" aria-label="Clean energy percentage gauge" role="img">
+          <!-- background arc -->
+          <path d="M 20 160 A 120 120 0 0 1 260 160" fill="none" stroke="#4A5568" stroke-width="18" stroke-linecap="round"/>
+          <!-- fill arc -->
+          <path id="gaugeFill" d="M 20 160 A 120 120 0 0 1 260 160" fill="none" stroke="#2B6CB0" stroke-width="18" stroke-linecap="round" stroke-dasharray="0 377"/>
+          <!-- 80% marker (dashed) -->
+          <line id="marker80" x1="0" y1="0" x2="0" y2="0" stroke="#ECC94B" stroke-width="2" stroke-dasharray="4 3"/>
+          <text id="marker80Label" x="0" y="0" fill="#ECC94B" font-size="9" font-family="Arial Narrow, Arial, sans-serif" text-anchor="middle">2030: 80%</text>
+          <!-- 100% marker (solid) -->
+          <line id="marker100" x1="260" y1="143" x2="260" y2="160" stroke="#48BB78" stroke-width="2"/>
+          <text x="260" y="138" fill="#48BB78" font-size="9" font-family="Arial Narrow, Arial, sans-serif" text-anchor="end">2040: 100%</text>
+          <!-- center value -->
+          <text id="gaugeValue" x="140" y="130" fill="#E2E8F0" font-size="52" font-weight="700" font-family="Arial Narrow, Arial, sans-serif" text-anchor="middle">68%</text>
+        </svg>
+        <div class="gauge-label" id="gaugeLabel">Your scenario: 68% carbon-free</div>
+        <div class="gauge-sublabel">electricity</div>
+        <table class="summary-table">
+          <tr><td>New clean GWh added</td><td id="sumCleanAdded">--</td></tr>
+          <tr><td>Carbon GWh removed</td><td id="sumCarbonRemoved">--</td></tr>
+          <tr><td>Net clean share</td><td id="sumNetClean">--</td></tr>
+          <tr><td>2030 target gap</td><td id="sum2030Gap">--</td></tr>
+          <tr><td>2040 target gap</td><td id="sum2040Gap">--</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <p class="disclaimer">
+      This model uses approximate EIA generation data and simplified capacity factors.
+      It is an educational illustration, not a utility-grade forecast. Actual grid
+      reliability, transmission constraints, and seasonal variability are not modeled.
+    </p>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    Data: EIA Electric Power Monthly (2022-23); Clean Jobs Midwest 2024; Minn. Stat. &sect; 216B.1691.
+    Projections in Panel 4 are illustrative only. Built with AI.
+    A resource for District 18 and the 2040 clean energy transition.
+  </footer>
+
+</main>
+
+<script>
+(function() {
+  'use strict';
+
+  // ===== NAVIGATION =====
+  var navLinks = document.querySelectorAll('.sidebar-nav a');
+  var panels = document.querySelectorAll('.panel');
+
+  function updateActiveNav() {
+    var scrollTop = document.querySelector('.main').scrollTop || window.scrollY;
+    var current = '';
+    panels.forEach(function(panel) {
+      var rect = panel.getBoundingClientRect();
+      if (rect.top <= 120) {
+        current = panel.id;
+      }
+    });
+    navLinks.forEach(function(link) {
+      link.classList.toggle('active', link.getAttribute('data-panel') === current);
+    });
+  }
+
+  window.addEventListener('scroll', updateActiveNav);
+  navLinks.forEach(function(link) {
+    link.addEventListener('click', function(e) {
+      navLinks.forEach(function(l) { l.classList.remove('active'); });
+      this.classList.add('active');
+    });
+  });
+
+  // ===== CHART.JS CHECK =====
+  if (typeof Chart === 'undefined') {
+    document.getElementById('chartFallback').style.display = 'block';
+    document.getElementById('chartsArea').style.display = 'none';
+  } else {
+    initCharts();
+  }
+
+  function initCharts() {
+    // --- DONUT CHART ---
+    var donutCtx = document.getElementById('donutChart').getContext('2d');
+    new Chart(donutCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Wind', 'Nuclear', 'Natural Gas', 'Coal', 'Solar', 'Hydro + Other'],
+        datasets: [
+          {
+            label: 'Generation Mix',
+            data: [23, 24, 24, 16, 7, 6],
+            backgroundColor: [
+              '#2B6CB0', '#48BB78', '#A0AEC0', '#718096', '#ECC94B', '#4299E1'
+            ],
+            borderColor: '#2D3748',
+            borderWidth: 2
+          },
+          {
+            label: 'Clean vs Carbon',
+            data: [60, 40],
+            backgroundColor: ['#2B6CB0', '#718096'],
+            borderColor: '#2D3748',
+            borderWidth: 2
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        cutout: '40%',
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              color: '#A0AEC0',
+              font: { family: "'Arial Narrow', Arial, sans-serif", size: 11 },
+              padding: 12,
+              generateLabels: function(chart) {
+                var ds = chart.data.datasets[0];
+                return chart.data.labels.map(function(label, i) {
+                  return {
+                    text: label + ' (' + ds.data[i] + '%)',
+                    fillStyle: ds.backgroundColor[i],
+                    strokeStyle: '#2D3748',
+                    lineWidth: 1,
+                    hidden: false,
+                    index: i
+                  };
+                });
+              }
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: function(ctx) {
+                if (ctx.datasetIndex === 0) {
+                  return ctx.label + ': ' + ctx.raw + '% (approximate, EIA 2022-23)';
+                }
+                return (ctx.dataIndex === 0 ? 'Clean/Carbon-free' : 'Carbon-emitting') + ': ' + ctx.raw + '%';
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // --- BAR CHART ---
+    var barCtx = document.getElementById('barChart').getContext('2d');
+    var scenarioTooltips = {
+      'Wind': {
+        '2030': 'Wind adds ~4 GW per current utility plans; reaching ~32% of mix',
+        '2040': 'Wind capacity roughly doubles from 2023 levels to ~40% share'
+      },
+      'Nuclear': {
+        '2030': 'Existing nuclear fleet maintained; Prairie Island + Monticello',
+        '2040': 'Slight decrease as some capacity reaches end-of-life; relicensing possible'
+      },
+      'Solar': {
+        '2030': 'Solar roughly doubles to ~14% with utility-scale + distributed growth',
+        '2040': 'Solar triples from 2023 to ~24% with aggressive deployment'
+      },
+      'Hydro/Other': {
+        '2030': 'Hydro and other renewables remain stable at ~6%',
+        '2040': 'Hydro remains stable; limited new capacity expected'
+      },
+      'Natural Gas': {
+        '2030': 'Gas reduced to ~16% as peaking resource; base-load gas retires',
+        '2040': 'Gas reduced to ~5% for emergency peaking only'
+      },
+      'Coal': {
+        '2030': 'Coal plants retire per current utility resource plans; down to ~8%',
+        '2040': 'All remaining coal plants retired by 2040'
+      },
+      'Storage': {
+        '2030': 'Battery storage still nascent; not yet significant share',
+        '2040': 'Long-duration storage enables ~3% of generation dispatch'
+      }
+    };
+
+    new Chart(barCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Wind', 'Nuclear', 'Solar', 'Hydro/Other', 'Natural Gas', 'Coal', 'Storage'],
+        datasets: [
+          {
+            label: '2023 Actual',
+            data: [23, 24, 7, 6, 24, 16, 0],
+            backgroundColor: '#4A5568'
+          },
+          {
+            label: '2030 Target',
+            data: [32, 24, 14, 6, 16, 8, 0],
+            backgroundColor: '#2B6CB0'
+          },
+          {
+            label: '2040 Target',
+            data: [40, 22, 24, 6, 5, 0, 3],
+            backgroundColor: '#48BB78'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          x: {
+            ticks: { color: '#A0AEC0', font: { family: "'Arial Narrow', Arial, sans-serif", size: 11 } },
+            grid: { color: 'rgba(74,85,104,0.3)' }
+          },
+          y: {
+            ticks: {
+              color: '#A0AEC0',
+              font: { family: "'Arial Narrow', Arial, sans-serif", size: 11 },
+              callback: function(val) { return val + '%'; }
+            },
+            grid: { color: 'rgba(74,85,104,0.3)' },
+            max: 45
+          }
+        },
+        plugins: {
+          legend: {
+            labels: {
+              color: '#A0AEC0',
+              font: { family: "'Arial Narrow', Arial, sans-serif", size: 11 },
+              padding: 14
+            }
+          },
+          tooltip: {
+            callbacks: {
+              afterLabel: function(ctx) {
+                var source = ctx.label;
+                var scenarios = scenarioTooltips[source];
+                if (!scenarios) return '';
+                if (ctx.datasetIndex === 0) return 'Source: EIA 2023';
+                if (ctx.datasetIndex === 1) return scenarios['2030'] || '';
+                if (ctx.datasetIndex === 2) return scenarios['2040'] || '';
+                return '';
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // ===== PANEL 4: SCENARIO EXPLORER =====
+  var BASELINE_TOTAL = 70000; // GWh/year
+  var CURRENT_CLEAN_FRAC = 0.46;
+  var CURRENT_CLEAN = BASELINE_TOTAL * CURRENT_CLEAN_FRAC;
+  var COAL_GWH = 0.16 * BASELINE_TOTAL; // 11200
+  var GAS_GWH = 0.24 * BASELINE_TOTAL;  // 16800
+
+  var WIND_CF = 2500;   // GWh per GW
+  var SOLAR_CF = 1600;
+  var ROOFTOP_CF = 1300;
+  var STORAGE_MAX_BONUS = 8; // percentage points at 20 GWh
+
+  var sliders = {
+    wind:    document.getElementById('windSlider'),
+    solar:   document.getElementById('solarSlider'),
+    rooftop: document.getElementById('rooftopSlider'),
+    storage: document.getElementById('storageSlider'),
+    coal:    document.getElementById('coalSlider'),
+    gas:     document.getElementById('gasSlider')
+  };
+
+  var displays = {
+    wind:    document.getElementById('windVal'),
+    solar:   document.getElementById('solarVal'),
+    rooftop: document.getElementById('rooftopVal'),
+    storage: document.getElementById('storageVal'),
+    coal:    document.getElementById('coalVal'),
+    gas:     document.getElementById('gasVal')
+  };
+
+  var defaults = {
+    wind: '4', solar: '2', rooftop: '0.5', storage: '2', coal: '50', gas: '20'
+  };
+
+  // Restore from localStorage
+  Object.keys(sliders).forEach(function(key) {
+    var saved = localStorage.getItem('frentz_' + key);
+    if (saved !== null) {
+      sliders[key].value = saved;
+    }
+  });
+
+  function calculate() {
+    var windGW = parseFloat(sliders.wind.value);
+    var solarGW = parseFloat(sliders.solar.value);
+    var rooftopGW = parseFloat(sliders.rooftop.value);
+    var storageGWh = parseFloat(sliders.storage.value);
+    var coalRetire = parseFloat(sliders.coal.value) / 100;
+    var gasReduce = parseFloat(sliders.gas.value) / 100;
+
+    // Display values
+    displays.wind.textContent = windGW.toFixed(1);
+    displays.solar.textContent = solarGW.toFixed(1);
+    displays.rooftop.textContent = rooftopGW.toFixed(1);
+    displays.storage.textContent = storageGWh.toFixed(1);
+    displays.coal.textContent = Math.round(coalRetire * 100) + '%';
+    displays.gas.textContent = Math.round(gasReduce * 100) + '%';
+
+    // Save to localStorage
+    Object.keys(sliders).forEach(function(key) {
+      localStorage.setItem('frentz_' + key, sliders[key].value);
+    });
+
+    // Calculate new clean GWh
+    var newCleanGWh = (windGW * WIND_CF) + (solarGW * SOLAR_CF) + (rooftopGW * ROOFTOP_CF);
+    // Calculate carbon GWh removed
+    var coalRemoved = COAL_GWH * coalRetire;
+    var gasRemoved = GAS_GWH * gasReduce;
+    var carbonRemoved = coalRemoved + gasRemoved;
+
+    // New total generation (assuming replaced by clean)
+    var totalGen = BASELINE_TOTAL; // total stays approximately the same
+    var newCleanTotal = CURRENT_CLEAN + newCleanGWh;
+    var newDirty = (BASELINE_TOTAL - CURRENT_CLEAN) - carbonRemoved;
+    if (newDirty < 0) newDirty = 0;
+    var effectiveTotal = newCleanTotal + newDirty;
+
+    var cleanPct = (newCleanTotal / effectiveTotal) * 100;
+
+    // Storage bonus
+    var storageBonus = (storageGWh / 20) * STORAGE_MAX_BONUS;
+    cleanPct += storageBonus;
+
+    if (cleanPct > 100) cleanPct = 100;
+    if (cleanPct < 0) cleanPct = 0;
+
+    var gap2030 = cleanPct - 80;
+    var gap2040 = cleanPct - 100;
+
+    // Update display
+    document.getElementById('sumCleanAdded').textContent = Math.round(newCleanGWh).toLocaleString() + ' GWh';
+    document.getElementById('sumCarbonRemoved').textContent = Math.round(carbonRemoved).toLocaleString() + ' GWh';
+    document.getElementById('sumNetClean').textContent = cleanPct.toFixed(1) + '%';
+    document.getElementById('sum2030Gap').textContent = (gap2030 >= 0 ? '+' : '') + gap2030.toFixed(1) + ' pp ' + (gap2030 >= 0 ? 'above' : 'below') + ' 80%';
+    document.getElementById('sum2040Gap').textContent = (gap2040 >= 0 ? '+' : '') + gap2040.toFixed(1) + ' pp ' + (gap2040 >= 0 ? 'above' : 'below') + ' 100%';
+
+    // Color for gap text
+    var gap2030El = document.getElementById('sum2030Gap');
+    var gap2040El = document.getElementById('sum2040Gap');
+    gap2030El.style.color = gap2030 >= 0 ? '#48BB78' : '#FC8181';
+    gap2040El.style.color = gap2040 >= 0 ? '#48BB78' : '#FC8181';
+
+    // Update gauge
+    requestAnimationFrame(function() {
+      updateGauge(cleanPct);
+    });
+
+    document.getElementById('gaugeLabel').textContent = 'Your scenario: ' + cleanPct.toFixed(1) + '% carbon-free';
+  }
+
+  function updateGauge(pct) {
+    // Arc is a semicircle: total arc length for r=120, from 180deg to 0deg
+    // Arc length = pi * r = pi * 120 = 376.99
+    var totalArc = Math.PI * 120;
+    var fillLength = (pct / 100) * totalArc;
+    var gaugeFill = document.getElementById('gaugeFill');
+    gaugeFill.setAttribute('stroke-dasharray', fillLength + ' ' + totalArc);
+
+    // Color based on percentage
+    var color;
+    if (pct < 60) color = '#FC8181';
+    else if (pct < 80) color = '#ECC94B';
+    else if (pct < 100) color = '#48BB78';
+    else color = '#2F855A'; // bold green at 100
+    gaugeFill.setAttribute('stroke', color);
+
+    // Update center text
+    document.getElementById('gaugeValue').textContent = pct.toFixed(0) + '%';
+
+    // Update 80% marker position
+    // 80% along the semicircle arc
+    var angle80 = Math.PI - (0.80 * Math.PI); // angle from positive x-axis
+    var cx = 140, cy = 160, r = 120;
+    var innerR = r - 14;
+    var outerR = r + 14;
+    var x80inner = cx + innerR * Math.cos(angle80);
+    var y80inner = cy - innerR * Math.sin(angle80);
+    var x80outer = cx + outerR * Math.cos(angle80);
+    var y80outer = cy - outerR * Math.sin(angle80);
+    var marker80 = document.getElementById('marker80');
+    marker80.setAttribute('x1', x80inner);
+    marker80.setAttribute('y1', y80inner);
+    marker80.setAttribute('x2', x80outer);
+    marker80.setAttribute('y2', y80outer);
+    var label80 = document.getElementById('marker80Label');
+    var lx80 = cx + (outerR + 12) * Math.cos(angle80);
+    var ly80 = cy - (outerR + 12) * Math.sin(angle80);
+    label80.setAttribute('x', lx80);
+    label80.setAttribute('y', ly80);
+  }
+
+  // Attach slider events
+  Object.keys(sliders).forEach(function(key) {
+    sliders[key].addEventListener('input', calculate);
+  });
+
+  // Reset button
+  document.getElementById('resetBtn').addEventListener('click', function() {
+    Object.keys(defaults).forEach(function(key) {
+      sliders[key].value = defaults[key];
+      localStorage.removeItem('frentz_' + key);
+    });
+    calculate();
+  });
+
+  // Initial calculation
+  calculate();
+
+})();
+</script>
+</body>
+</html>

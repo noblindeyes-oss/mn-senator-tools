@@ -1,0 +1,1979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pavement Management & Capital Planning Tool — District 45</title>
+<!-- Chart.js CDN — requires internet; offline users will see a fallback message -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Full dashboard — fixed dark sidebar + CSS Grid main area. NOT a centered max-width column.
+   2. Navigation: Vertical sidebar with icon-anchored labels, active state in amber. NOT rounded-top tabs.
+   3. Typography: 'Arial Narrow' / condensed sans-serif for all data/headers; Georgia serif for narrative text.
+   Additional: Dark slate sidebar + cool-white content area — no parchment, no white cards with 1px borders.
+              Stats shown as large standalone numbers over thin cedar-green rules — no result-card-grid.
+              Condition shown as colored text badge in table rows — no left-border accent cards.
+              Alternating table rows use two lightest palette shades — no card stack.
+*/
+
+/* ═══ RESET & BASE ═══ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --gray:    #6B7280;
+  --cedar:   #3D6B45;
+  --amber:   #D4820A;
+  --slate:   #1E2530;
+  --cool:    #F0F4F7;
+  --text:    #1A1A1A;
+  --red:     #C0392B;
+  --orange:  #E67E22;
+  --yellow:  #F1C40F;
+  --green:   #27AE60;
+  --slate2:  #2A3444;
+  --border:  #3A4555;
+  --row-alt: #E8EEF3;
+  --sidebar-w: 220px;
+}
+
+html, body {
+  height: 100%;
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 14px;
+  background: var(--cool);
+  color: var(--text);
+}
+
+/* ═══ LAYOUT SHELL ═══ */
+#app {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ═══ SIDEBAR ═══ */
+#sidebar {
+  width: var(--sidebar-w);
+  background: var(--slate);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+#sidebar-brand {
+  padding: 18px 16px 14px;
+  border-bottom: 1px solid var(--border);
+}
+#sidebar-brand .tool-name {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--amber);
+  font-weight: 700;
+  line-height: 1.3;
+}
+#sidebar-brand .district-label {
+  font-size: 11px;
+  color: #8899aa;
+  margin-top: 4px;
+  letter-spacing: 0.5px;
+}
+
+#city-name-wrap {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+#city-name-wrap label {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #8899aa;
+  margin-bottom: 4px;
+}
+#cityName {
+  width: 100%;
+  background: var(--slate2);
+  border: 1px solid var(--border);
+  color: #e0e8f0;
+  padding: 5px 8px;
+  font-size: 13px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+}
+#cityName:focus { outline: 2px solid var(--amber); border-color: var(--amber); }
+
+#sidebar-nav {
+  flex: 1;
+  padding: 8px 0;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 16px;
+  cursor: pointer;
+  color: #aabbcc;
+  font-size: 13px;
+  letter-spacing: 0.3px;
+  border-left: 3px solid transparent;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  user-select: none;
+}
+.nav-item:hover { background: var(--slate2); color: #ddeeff; }
+.nav-item.active {
+  background: var(--slate2);
+  color: var(--amber);
+  border-left-color: var(--amber);
+  font-weight: 700;
+}
+.nav-icon {
+  font-size: 15px;
+  width: 18px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+#sidebar-footer {
+  padding: 12px 14px;
+  border-top: 1px solid var(--border);
+  font-size: 10px;
+  color: #667788;
+  line-height: 1.5;
+}
+
+/* ═══ MAIN CONTENT ═══ */
+#main {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+#main-header {
+  background: var(--slate2);
+  border-bottom: 2px solid var(--cedar);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+#main-header .page-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ddeeff;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+#main-header .header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Hamburger (mobile) */
+#hamburger {
+  display: none;
+  background: none;
+  border: none;
+  color: #ddeeff;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+/* ═══ STAT SUMMARY ROW ═══ */
+#stat-row {
+  display: flex;
+  gap: 0;
+  background: #fff;
+  border-bottom: 1px solid #d0dae4;
+  flex-shrink: 0;
+}
+.stat-cell {
+  flex: 1;
+  padding: 14px 18px;
+  border-right: 1px solid #d0dae4;
+  min-width: 0;
+}
+.stat-cell:last-child { border-right: none; }
+.stat-num {
+  font-size: 26px;
+  font-weight: 700;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  color: var(--slate);
+  line-height: 1;
+}
+.stat-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--gray);
+  margin-top: 3px;
+}
+.stat-rule {
+  height: 2px;
+  background: var(--cedar);
+  margin-top: 6px;
+  width: 40px;
+}
+
+/* ═══ CONTENT PANELS ═══ */
+#content-area {
+  flex: 1;
+  padding: 0;
+  overflow-y: auto;
+}
+
+.module-panel {
+  display: none;
+  padding: 18px 20px 30px;
+}
+.module-panel.active { display: block; }
+
+.module-intro {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 13px;
+  color: #445566;
+  line-height: 1.65;
+  background: #e8f0e8;
+  border-top: 3px solid var(--cedar);
+  padding: 12px 16px;
+  margin-bottom: 18px;
+  max-width: 760px;
+}
+
+/* ═══ SECTION HEADERS ═══ */
+.section-head {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--cedar);
+  font-weight: 700;
+  padding: 0 0 4px;
+  border-bottom: 1px solid #c0d0c8;
+  margin-bottom: 12px;
+}
+
+/* ═══ BUTTONS ═══ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  letter-spacing: 0.3px;
+  transition: opacity 0.15s, background 0.15s;
+}
+.btn:hover { opacity: 0.85; }
+.btn-primary { background: var(--cedar); color: #fff; }
+.btn-amber   { background: var(--amber); color: #fff; }
+.btn-slate   { background: var(--slate); color: #ddeeff; }
+.btn-danger  { background: var(--red);   color: #fff; }
+.btn-sm { padding: 4px 8px; font-size: 12px; }
+
+/* ═══ DATA TABLES ═══ */
+.data-table-wrap {
+  overflow-x: auto;
+  margin-bottom: 16px;
+}
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+.data-table th {
+  background: var(--slate);
+  color: #aabbcc;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 7px 10px;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+.data-table th:hover { background: var(--slate2); color: var(--amber); }
+.data-table th.sorted-asc::after  { content: ' ▲'; font-size: 9px; }
+.data-table th.sorted-desc::after { content: ' ▼'; font-size: 9px; }
+.data-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid #d0dae4;
+  white-space: nowrap;
+}
+.data-table tr:nth-child(odd) td  { background: #fff; }
+.data-table tr:nth-child(even) td { background: var(--row-alt); }
+.data-table tr:hover td { background: #d0e8f4 !important; cursor: pointer; }
+
+/* Condition badges */
+.cond-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 5px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+}
+.cond-failed      { color: var(--red);    background: #fde8e6; }
+.cond-serious     { color: #a93226;       background: #fde8e6; }
+.cond-verypoor    { color: var(--orange); background: #fef3e2; }
+.cond-poor        { color: #c0711a;       background: #fef3e2; }
+.cond-fair        { color: #9a8000;       background: #fffce0; }
+.cond-satisf      { color: var(--cedar);  background: #e8f4ea; }
+.cond-good        { color: #1e7e4e;       background: #e2f6eb; }
+
+/* ═══ FORM PANEL ═══ */
+#form-panel {
+  background: #fff;
+  border-top: 3px solid var(--amber);
+  padding: 16px 18px;
+  margin-bottom: 16px;
+  display: none;
+}
+#form-panel.visible { display: block; }
+#form-panel h3 {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--slate);
+  margin-bottom: 14px;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.form-group { display: flex; flex-direction: column; gap: 3px; }
+.form-group label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--gray);
+}
+.form-group input,
+.form-group select,
+.form-group textarea {
+  border: 1px solid #b0bec8;
+  padding: 5px 8px;
+  font-size: 13px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  background: var(--cool);
+  color: var(--text);
+}
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: 2px solid var(--amber);
+  border-color: var(--amber);
+  background: #fff;
+}
+.form-group.wide { grid-column: 1 / -1; }
+.form-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* PCI Scale */
+.pci-scale {
+  display: flex;
+  height: 10px;
+  margin-top: 4px;
+  border: 1px solid #b0bec8;
+}
+.pci-seg {
+  flex: 1;
+  position: relative;
+}
+.pci-indicator {
+  position: absolute;
+  top: -3px;
+  width: 2px;
+  height: 16px;
+  background: var(--slate);
+  pointer-events: none;
+  transition: left 0.1s;
+}
+
+/* ═══ INVENTORY TOTALS ═══ */
+#inventory-totals {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  background: var(--slate);
+  padding: 12px 16px;
+  margin-bottom: 16px;
+}
+.tot-item { color: #aabbcc; font-size: 12px; }
+.tot-item strong { color: #ddeeff; font-size: 15px; display: block; }
+
+/* Mini condition bar */
+#cond-mini-bars { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.mini-bar-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #aabbcc;
+}
+.mini-bar-fill {
+  height: 10px;
+  min-width: 4px;
+  transition: width 0.3s;
+}
+
+/* ═══ CSV IMPORT ═══ */
+#csv-section {
+  margin-top: 16px;
+  padding: 12px 14px;
+  background: #f4f8fb;
+  border-top: 2px solid var(--gray);
+}
+#csv-section h4 { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--slate); margin-bottom: 6px; }
+#csvPaste {
+  width: 100%;
+  height: 70px;
+  font-family: monospace;
+  font-size: 11px;
+  border: 1px solid #b0bec8;
+  padding: 6px;
+  background: #fff;
+  resize: vertical;
+}
+
+/* ═══ MODULE 2 — PRIORITIZATION ═══ */
+#cost-assumptions {
+  background: #fff8e0;
+  border-top: 2px solid var(--amber);
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  font-size: 12px;
+}
+#cost-assumptions strong { color: var(--amber); }
+.cost-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 6px;
+  margin-top: 8px;
+}
+.cost-item { display: flex; flex-direction: column; gap: 2px; }
+.cost-item label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.7px; color: var(--gray); }
+.cost-item input {
+  border: 1px solid #b0bec8;
+  padding: 4px 7px;
+  font-size: 13px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  width: 100px;
+}
+
+#weight-sliders {
+  background: var(--slate2);
+  padding: 12px 16px;
+  margin-bottom: 14px;
+}
+#weight-sliders h4 { color: #aabbcc; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+.slider-row { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; }
+.slider-row label { color: #aabbcc; font-size: 12px; min-width: 100px; }
+.slider-row input[type=range] { flex: 1; accent-color: var(--amber); }
+.slider-val { color: var(--amber); font-size: 12px; font-weight: 700; min-width: 30px; }
+
+#budget-section {
+  background: #fff;
+  border-top: 3px solid var(--cedar);
+  padding: 12px 16px;
+  margin-bottom: 14px;
+}
+#budget-section h4 { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--cedar); margin-bottom: 10px; }
+.budget-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; }
+.budget-item { display: flex; flex-direction: column; gap: 3px; }
+.budget-item label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.7px; color: var(--gray); }
+.budget-item input {
+  border: 1px solid #b0bec8;
+  padding: 5px 8px;
+  font-size: 13px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+}
+.budget-item input:focus { outline: 2px solid var(--cedar); }
+.budget-total { color: var(--cedar); font-weight: 700; font-size: 14px; padding: 6px 0; }
+
+/* 5-year plan table */
+#plan-table-wrap .data-table td.year-cell {
+  font-weight: 700;
+  color: var(--cedar);
+  text-align: center;
+}
+tr.dragging { opacity: 0.4; }
+tr.drag-over td { border-top: 2px solid var(--amber) !important; }
+
+/* Plan summary */
+#plan-summary {
+  display: flex;
+  gap: 0;
+  flex-wrap: wrap;
+  border: 1px solid #c0d0c8;
+  margin-bottom: 14px;
+}
+.psumm-cell {
+  flex: 1;
+  min-width: 140px;
+  padding: 12px 16px;
+  border-right: 1px solid #c0d0c8;
+}
+.psumm-cell:last-child { border-right: none; }
+.psumm-num { font-size: 22px; font-weight: 700; color: var(--slate); }
+.psumm-num.gap { color: var(--red); }
+.psumm-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--gray); margin-top: 2px; }
+.psumm-rule { height: 2px; background: var(--cedar); width: 32px; margin-top: 5px; }
+.psumm-rule.amber { background: var(--amber); }
+.psumm-rule.red   { background: var(--red); }
+
+#chart-container {
+  background: #fff;
+  padding: 14px;
+  border: 1px solid #c0d0c8;
+  margin-bottom: 14px;
+  max-width: 700px;
+}
+
+/* ═══ MODULE 3 — MSAS ═══ */
+#msas-narrative-wrap {
+  background: #fff;
+  border-top: 3px solid var(--cedar);
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+#msas-narrative-wrap h4 { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--cedar); margin-bottom: 10px; }
+#msasNarrative {
+  width: 100%;
+  min-height: 200px;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 13.5px;
+  line-height: 1.7;
+  border: 1px solid #b0bec8;
+  padding: 10px 12px;
+  background: var(--cool);
+  color: var(--text);
+  resize: vertical;
+}
+#msasNarrative:focus { outline: 2px solid var(--cedar); }
+
+.msas-flag { color: var(--amber); font-weight: 700; font-size: 11px; }
+.msas-warn { color: var(--orange); font-weight: 700; font-size: 11px; }
+
+/* ═══ PRINT CSS ═══ */
+@media print {
+  #sidebar, #main-header, #weight-sliders, #cost-assumptions .cost-grid,
+  #csv-section, #form-panel, .btn, #budget-section, #chart-container,
+  .module-intro, .nav-item, #hamburger, #stat-row { display: none !important; }
+
+  #app { display: block; height: auto; overflow: visible; }
+  #main { overflow: visible; }
+  #content-area { padding: 0; }
+  .module-panel { display: block !important; padding: 0; }
+  body { font-family: Georgia, serif; font-size: 11pt; color: #000; }
+  #print-header { display: block !important; }
+  #plan-table-wrap, #msas-narrative-wrap, #inventory-totals { page-break-inside: avoid; }
+  .data-table { font-size: 9pt; }
+  .data-table th { background: #333 !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .data-table tr:nth-child(odd) td  { background: #fff !important; }
+  .data-table tr:nth-child(even) td { background: #f0f0f0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  #msasNarrative { border: none; background: none; font-size: 11pt; }
+  .print-disclaimer { display: block !important; font-size: 9pt; font-style: italic; color: #555; border-top: 1px solid #999; padding-top: 8pt; margin-top: 16pt; }
+  .print-assumptions { display: block !important; font-size: 9pt; margin-top: 8pt; }
+}
+#print-header  { display: none; }
+.print-disclaimer { display: none; }
+.print-assumptions { display: none; }
+
+/* ═══ MOBILE ═══ */
+@media (max-width: 768px) {
+  #sidebar {
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    transform: translateX(-100%);
+    transition: transform 0.25s;
+    z-index: 200;
+  }
+  #sidebar.open { transform: translateX(0); }
+  #hamburger { display: block; }
+  #app { display: block; }
+  #main { height: 100vh; }
+  .form-grid { grid-template-columns: 1fr 1fr; }
+  #stat-row { flex-wrap: wrap; }
+  .stat-cell { min-width: 120px; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <aside id="sidebar">
+    <div id="sidebar-brand">
+      <div class="tool-name">Pavement Management<br>&amp; Capital Planning</div>
+      <div class="district-label">District 45 — West Metro</div>
+    </div>
+    <div id="city-name-wrap">
+      <label for="cityName">City Name</label>
+      <input type="text" id="cityName" placeholder="e.g., City of Minnetonka" maxlength="60">
+    </div>
+    <nav id="sidebar-nav">
+      <div class="nav-item active" data-module="inventory" onclick="switchModule('inventory')">
+        <span class="nav-icon">&#9776;</span> Street Inventory
+      </div>
+      <div class="nav-item" data-module="prioritization" onclick="switchModule('prioritization')">
+        <span class="nav-icon">&#9650;</span> Prioritization &amp; 5-Year Plan
+      </div>
+      <div class="nav-item" data-module="msas" onclick="switchModule('msas')">
+        <span class="nav-icon">&#9633;</span> MSAS Eligibility &amp; Submission
+      </div>
+    </nav>
+    <div id="sidebar-footer">
+      A resource for District 45 communities and Minnesota cities. Built with AI.<br><br>
+      MSAS program details reflect MnDOT guidelines as of 2025. Consult your MnDOT district engineer for current allocation figures.
+    </div>
+  </aside>
+
+  <!-- ═══ MAIN AREA ═══ -->
+  <div id="main">
+    <div id="main-header">
+      <button id="hamburger" onclick="toggleSidebar()" aria-label="Toggle navigation">&#9776;</button>
+      <div class="page-title" id="module-title">Street Inventory &amp; Condition Input</div>
+      <div class="header-actions">
+        <button class="btn btn-slate btn-sm" onclick="loadDemo()">Load Example: Hypothetical West Metro City</button>
+        <button class="btn btn-amber btn-sm" onclick="window.print()">&#128438; Print Capital Plan</button>
+      </div>
+    </div>
+
+    <!-- Stat Summary Row -->
+    <div id="stat-row">
+      <div class="stat-cell">
+        <div class="stat-num" id="stat-pci">—</div>
+        <div class="stat-label">Network Avg. PCI</div>
+        <div class="stat-rule"></div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-num" id="stat-miles">—</div>
+        <div class="stat-label">Total Network (mi)</div>
+        <div class="stat-rule"></div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-num" id="stat-segments">0</div>
+        <div class="stat-label">Street Segments</div>
+        <div class="stat-rule"></div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-num" id="stat-need">—</div>
+        <div class="stat-label">Est. Total Need ($)</div>
+        <div class="stat-rule" style="background:var(--amber)"></div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-num" id="stat-gap" style="color:var(--red)">—</div>
+        <div class="stat-label">5-Year Funding Gap</div>
+        <div class="stat-rule" style="background:var(--red)"></div>
+      </div>
+    </div>
+
+    <div id="content-area">
+
+      <!-- ═══ MODULE 1: INVENTORY ═══ -->
+      <div id="panel-inventory" class="module-panel active">
+
+        <!-- Print header (hidden on screen) -->
+        <div id="print-header">
+          <h1 style="font-family:'Arial Narrow',Arial,sans-serif;font-size:18pt;margin-bottom:4pt;" id="print-city-name"></h1>
+          <div style="font-size:10pt;color:#555;margin-bottom:2pt;">Pavement Management Capital Plan</div>
+          <div style="font-size:10pt;color:#555;margin-bottom:12pt;">Prepared: <span id="print-date"></span> &nbsp;|&nbsp; Preparer: <input type="text" id="preparerName" placeholder="Engineer name / title" style="border:none;border-bottom:1px solid #999;font-size:10pt;width:200px;"></div>
+        </div>
+
+        <div class="module-intro">
+          Sen. Ann Johnson Stewart's SF3623 fixed a rule about school-bus lights. The next infrastructure challenge is harder: hundreds of west metro lane-miles approaching the end of their service life, and a capital budget that can't address all of them at once. This tool helps city engineers prioritize what to fix, when, and with what funding.
+        </div>
+
+        <div class="section-head">Street Inventory</div>
+
+        <!-- Add/Edit Form -->
+        <div id="form-panel">
+          <h3 id="form-title">Add Street Segment</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="f-name">Street Name / Segment ID</label>
+              <input type="text" id="f-name" placeholder="e.g., Lakeview Drive">
+            </div>
+            <div class="form-group">
+              <label for="f-length">Length</label>
+              <div style="display:flex;gap:4px;align-items:center;">
+                <input type="number" id="f-length" placeholder="1850" min="1" step="any" style="flex:1">
+                <select id="f-unit" style="border:1px solid #b0bec8;padding:5px 4px;font-size:12px;background:var(--cool);">
+                  <option value="ft">ft</option>
+                  <option value="mi">mi</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="f-width">Lane Width (ft)</label>
+              <input type="number" id="f-width" placeholder="24" min="8" max="80">
+            </div>
+            <div class="form-group">
+              <label for="f-surface">Surface Type</label>
+              <select id="f-surface">
+                <option>Asphalt</option>
+                <option>Concrete</option>
+                <option>Chip Seal</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="f-built">Year Constructed / Last Reconstructed</label>
+              <input type="number" id="f-built" placeholder="1982" min="1900" max="2030">
+            </div>
+            <div class="form-group">
+              <label for="f-pci">Pavement Condition Index (0–100)</label>
+              <input type="number" id="f-pci" placeholder="55" min="0" max="100" oninput="updatePciScale()">
+              <div class="pci-scale" title="Failed | Serious | Very Poor | Poor | Fair | Satisfactory | Good">
+                <div class="pci-seg" style="background:var(--red);flex:10"></div>
+                <div class="pci-seg" style="background:#e05050;flex:15"></div>
+                <div class="pci-seg" style="background:var(--orange);flex:15"></div>
+                <div class="pci-seg" style="background:#d4a020;flex:15"></div>
+                <div class="pci-seg" style="background:var(--yellow);flex:15"></div>
+                <div class="pci-seg" style="background:#78b878;flex:15"></div>
+                <div class="pci-seg" style="background:var(--green);flex:15"></div>
+                <div class="pci-indicator" id="pci-indicator"></div>
+              </div>
+              <div style="font-size:10px;color:var(--gray);margin-top:2px;" id="pci-band-label">Enter PCI to see condition band</div>
+            </div>
+            <div class="form-group">
+              <label for="f-lastaction">Last Maintenance Action</label>
+              <select id="f-lastaction">
+                <option>None</option>
+                <option>Crack Seal</option>
+                <option>Seal Coat</option>
+                <option>Mill &amp; Overlay</option>
+                <option>Patching</option>
+                <option>Full Reconstruction</option>
+                <option>Unknown</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="f-lastyear">Year of Last Maintenance</label>
+              <input type="number" id="f-lastyear" placeholder="2015" min="1970" max="2030">
+            </div>
+            <div class="form-group">
+              <label for="f-adt">Avg. Daily Traffic (vehicles/day)</label>
+              <input type="number" id="f-adt" placeholder="850" min="0">
+            </div>
+            <div class="form-group">
+              <label for="f-class">Functional Class</label>
+              <select id="f-class">
+                <option>Local</option>
+                <option>Collector</option>
+                <option>Arterial</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="f-msas">MSAS Eligible?</label>
+              <select id="f-msas">
+                <option value="No">No</option>
+                <option value="Yes">Yes</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group wide" style="margin-bottom:10px;">
+            <label for="f-notes">Notes</label>
+            <textarea id="f-notes" rows="2" style="width:100%;font-family:'Arial Narrow',Arial,sans-serif;font-size:13px;border:1px solid #b0bec8;padding:5px 8px;"></textarea>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-primary" onclick="saveSegment()">Save Segment</button>
+            <button class="btn btn-slate" onclick="cancelForm()">Cancel</button>
+            <button class="btn btn-danger" id="delete-btn" onclick="deleteSegment()" style="display:none;">Delete Segment</button>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px;">
+          <div></div>
+          <button class="btn btn-primary btn-sm" onclick="openAddForm()">+ Add Segment</button>
+        </div>
+
+        <div class="data-table-wrap">
+          <table class="data-table" id="inventory-table">
+            <thead>
+              <tr>
+                <th onclick="sortTable('name')">Street / ID</th>
+                <th onclick="sortTable('pci')">PCI</th>
+                <th onclick="sortTable('condition')">Condition</th>
+                <th onclick="sortTable('lengthFt')">Length (ft)</th>
+                <th onclick="sortTable('sqYards')">SY Area</th>
+                <th onclick="sortTable('surface')">Surface</th>
+                <th onclick="sortTable('yearBuilt')">Yr Built</th>
+                <th onclick="sortTable('adt')">ADT</th>
+                <th onclick="sortTable('funcClass')">Class</th>
+                <th onclick="sortTable('msas')">MSAS</th>
+                <th onclick="sortTable('lastAction')">Last Action</th>
+              </tr>
+            </thead>
+            <tbody id="inventory-tbody">
+              <tr><td colspan="11" style="text-align:center;color:var(--gray);padding:20px;">No segments yet. Click "+ Add Segment" or load the example dataset.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div id="inventory-totals">
+          <div class="tot-item"><strong id="tot-miles">—</strong>Total Miles</div>
+          <div class="tot-item"><strong id="tot-sy">—</strong>Total Sq Yards</div>
+          <div class="tot-item"><strong id="tot-pci">—</strong>Weighted Avg PCI</div>
+          <div class="tot-item" style="flex:2">
+            <span style="font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:#8899aa;display:block;margin-bottom:4px;">Segments by Condition</span>
+            <div id="cond-mini-bars"></div>
+          </div>
+        </div>
+
+        <!-- CSV Import -->
+        <div id="csv-section">
+          <h4>CSV Import</h4>
+          <p style="font-size:11px;color:var(--gray);margin-bottom:6px;">
+            Paste comma-separated data. Column order:
+            <code style="background:#e0e8f0;padding:1px 4px;font-size:11px;">StreetName, LengthFt, WidthFt, SurfaceType, YearBuilt, PCI, LastAction, LastActionYear, ADT, FunctionalClass, MSASEligible, Notes</code>
+            <button class="btn btn-slate btn-sm" style="margin-left:6px;" onclick="downloadTemplate()">Download Template</button>
+          </p>
+          <textarea id="csvPaste" placeholder="Paste CSV rows here, one segment per line..."></textarea>
+          <div style="margin-top:6px;display:flex;gap:8px;">
+            <button class="btn btn-slate btn-sm" onclick="importCSV()">Import CSV</button>
+            <span id="csv-status" style="font-size:12px;color:var(--cedar);align-self:center;"></span>
+          </div>
+        </div>
+
+        <!-- Print assumptions block -->
+        <div class="print-assumptions">
+          <strong>Unit Cost Assumptions (illustrative 2024 Hennepin County estimates):</strong><br>
+          Full Reconstruction: $85/SY &nbsp;|&nbsp; Mill &amp; Overlay (3"): $22/SY &nbsp;|&nbsp;
+          Crack Seal + Seal Coat: $4/SY &nbsp;|&nbsp; Crack Seal only: $1.50/SY &nbsp;|&nbsp; Routine Maintenance: $0.75/SY
+        </div>
+        <div class="print-disclaimer">
+          Costs are estimates. This plan does not substitute for professional engineering judgment. Consult your city engineer before committing to a project schedule.
+        </div>
+      </div>
+
+      <!-- ═══ MODULE 2: PRIORITIZATION ═══ -->
+      <div id="panel-prioritization" class="module-panel">
+        <div class="section-head">Priority Score Formula</div>
+        <div id="cost-assumptions">
+          <strong>Unit Costs</strong> — illustrative 2024 Hennepin County estimates. Replace with your engineer's actual project costs.
+          <div class="cost-grid">
+            <div class="cost-item">
+              <label>Full Reconstruction ($/SY)</label>
+              <input type="number" id="cost-recon" value="85" min="0" step="0.01" onchange="recalcAll()">
+            </div>
+            <div class="cost-item">
+              <label>Mill &amp; Overlay 3" ($/SY)</label>
+              <input type="number" id="cost-mo" value="22" min="0" step="0.01" onchange="recalcAll()">
+            </div>
+            <div class="cost-item">
+              <label>Crack Seal + Seal Coat ($/SY)</label>
+              <input type="number" id="cost-cssc" value="4" min="0" step="0.01" onchange="recalcAll()">
+            </div>
+            <div class="cost-item">
+              <label>Crack Seal Only ($/SY)</label>
+              <input type="number" id="cost-cs" value="1.50" min="0" step="0.01" onchange="recalcAll()">
+            </div>
+            <div class="cost-item">
+              <label>Routine Maintenance ($/SY)</label>
+              <input type="number" id="cost-rm" value="0.75" min="0" step="0.01" onchange="recalcAll()">
+            </div>
+          </div>
+        </div>
+
+        <div id="weight-sliders">
+          <h4>Formula Weight Adjustments — The formula is a starting point, not a mandate.</h4>
+          <div class="slider-row">
+            <label>Condition Weight</label>
+            <input type="range" id="w-condition" min="0.5" max="2.0" step="0.05" value="1.0" oninput="updateSlider(this,'wc-val');recalcAll()">
+            <span class="slider-val" id="wc-val">1.0×</span>
+          </div>
+          <div class="slider-row">
+            <label>Traffic (ADT) Weight</label>
+            <input type="range" id="w-traffic" min="0.5" max="2.0" step="0.05" value="1.0" oninput="updateSlider(this,'wt-val');recalcAll()">
+            <span class="slider-val" id="wt-val">1.0×</span>
+          </div>
+          <div class="slider-row">
+            <label>Age Factor Weight</label>
+            <input type="range" id="w-age" min="0.5" max="2.0" step="0.05" value="1.0" oninput="updateSlider(this,'wa-val');recalcAll()">
+            <span class="slider-val" id="wa-val">1.0×</span>
+          </div>
+        </div>
+
+        <div class="section-head">Prioritized Street Segments</div>
+        <div class="data-table-wrap" id="priority-table-wrap">
+          <table class="data-table" id="priority-table">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Street / ID</th>
+                <th>PCI</th>
+                <th>Condition</th>
+                <th>Priority Score</th>
+                <th>Rec. Action</th>
+                <th>Est. Cost</th>
+                <th>SY Area</th>
+                <th>ADT</th>
+                <th>MSAS</th>
+              </tr>
+            </thead>
+            <tbody id="priority-tbody"></tbody>
+          </table>
+        </div>
+
+        <div id="budget-section">
+          <h4>Annual Budget Inputs</h4>
+          <div class="budget-grid">
+            <div class="budget-item">
+              <label>City Capital Budget ($/yr)</label>
+              <input type="number" id="budget-city" value="350000" min="0" onchange="recalcAll()">
+            </div>
+            <div class="budget-item">
+              <label>MSAS Allocation ($/yr)</label>
+              <input type="number" id="budget-msas" value="300000" min="0" onchange="recalcAll()">
+            </div>
+            <div class="budget-item">
+              <label>Other Funding ($/yr)</label>
+              <input type="number" id="budget-other" value="0" min="0" onchange="recalcAll()">
+            </div>
+            <div class="budget-item">
+              <label>Total Annual Available</label>
+              <div class="budget-total" id="budget-total">$650,000</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-head">5-Year Capital Improvement Plan</div>
+        <div id="plan-summary">
+          <div class="psumm-cell">
+            <div class="psumm-num" id="ps-pct">—</div>
+            <div class="psumm-label">% Network Addressed</div>
+            <div class="psumm-rule"></div>
+          </div>
+          <div class="psumm-cell">
+            <div class="psumm-num" id="ps-pci-after">—</div>
+            <div class="psumm-label">Projected Avg PCI After</div>
+            <div class="psumm-rule"></div>
+          </div>
+          <div class="psumm-cell">
+            <div class="psumm-num" id="ps-total-cost">—</div>
+            <div class="psumm-label">Total Est. Cost (5 yr)</div>
+            <div class="psumm-rule amber"></div>
+          </div>
+          <div class="psumm-cell">
+            <div class="psumm-num" id="ps-total-fund">—</div>
+            <div class="psumm-label">Total Funding (5 yr)</div>
+            <div class="psumm-rule"></div>
+          </div>
+          <div class="psumm-cell">
+            <div class="psumm-num gap" id="ps-gap">—</div>
+            <div class="psumm-label">Funding Gap</div>
+            <div class="psumm-rule red"></div>
+          </div>
+        </div>
+
+        <div style="font-size:11px;color:var(--gray);margin-bottom:8px;">
+          Drag rows between years to manually reassign segments. Click a year cell to force assignment.
+        </div>
+        <div class="data-table-wrap" id="plan-table-wrap">
+          <table class="data-table" id="plan-table">
+            <thead>
+              <tr>
+                <th>Year</th>
+                <th>Street / ID</th>
+                <th>Rec. Action</th>
+                <th>Est. Cost</th>
+                <th>Funding Source</th>
+                <th>SY Area</th>
+                <th>PCI</th>
+              </tr>
+            </thead>
+            <tbody id="plan-tbody"></tbody>
+          </table>
+        </div>
+
+        <div id="chart-container">
+          <canvas id="spending-chart" height="180"></canvas>
+        </div>
+      </div>
+
+      <!-- ═══ MODULE 3: MSAS ═══ -->
+      <div id="panel-msas" class="module-panel">
+        <div class="module-intro">
+          The Minnesota Municipal State Aid Street (MSAS) program allocates funding to cities with populations over 5,000 based on population, city street mileage, and construction needs. Cities submit a needs assessment through MnDOT's SANEEDS3 system. This module displays your MSAS-eligible segments and generates a plain-language narrative for submission.
+        </div>
+
+        <div class="section-head">MSAS-Eligible Segments</div>
+        <div class="data-table-wrap">
+          <table class="data-table" id="msas-table">
+            <thead>
+              <tr>
+                <th>Street / ID</th>
+                <th>Length (ft)</th>
+                <th>ADT</th>
+                <th>Func. Class</th>
+                <th>PCI</th>
+                <th>Condition</th>
+                <th>Rec. Action</th>
+                <th>Est. Cost</th>
+                <th>In 5-Year Plan?</th>
+                <th>Notes / Flags</th>
+              </tr>
+            </thead>
+            <tbody id="msas-tbody"></tbody>
+          </table>
+        </div>
+
+        <div class="section-head" style="margin-top:18px;">MSAS Needs Assessment Narrative</div>
+        <div id="msas-narrative-wrap">
+          <h4>Auto-Generated Narrative — Edit inline before printing</h4>
+          <div style="margin-bottom:8px;">
+            <button class="btn btn-cedar btn-sm btn-primary" onclick="generateNarrative()">&#8635; Regenerate Narrative</button>
+          </div>
+          <textarea id="msasNarrative" rows="14"></textarea>
+        </div>
+
+        <div style="margin-top:12px;">
+          <button class="btn btn-amber" onclick="window.print()">&#128438; Print Capital Plan + Narrative</button>
+        </div>
+
+        <div class="print-disclaimer" style="display:block;margin-top:20px;font-family:Georgia,serif;font-size:12px;color:#555;border-top:1px solid #ccc;padding-top:10px;">
+          Costs are estimates. This plan does not substitute for professional engineering judgment. Consult your city engineer before committing to a project schedule. MSAS program details reflect MnDOT guidelines as of 2025.
+        </div>
+      </div>
+
+    </div><!-- /content-area -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<script>
+'use strict';
+
+// ═══════════════════════════════════════════════════
+// DATA MODEL
+// ═══════════════════════════════════════════════════
+
+const CURRENT_YEAR = new Date().getFullYear();
+
+let segments = [];
+let editingId = null;
+let sortField = null;
+let sortDir = 1;
+let planAssignments = {}; // id -> year (1-5), manual overrides
+
+// Unit costs ($/SY) — user-editable
+const costs = () => ({
+  recon: parseFloat(document.getElementById('cost-recon').value) || 85,
+  mo:    parseFloat(document.getElementById('cost-mo').value)    || 22,
+  cssc:  parseFloat(document.getElementById('cost-cssc').value)  || 4,
+  cs:    parseFloat(document.getElementById('cost-cs').value)    || 1.50,
+  rm:    parseFloat(document.getElementById('cost-rm').value)    || 0.75,
+});
+
+// Weight multipliers
+const weights = () => ({
+  condition: parseFloat(document.getElementById('w-condition').value) || 1.0,
+  traffic:   parseFloat(document.getElementById('w-traffic').value)   || 1.0,
+  age:       parseFloat(document.getElementById('w-age').value)       || 1.0,
+});
+
+// ═══════════════════════════════════════════════════
+// DEMO DATA
+// ═══════════════════════════════════════════════════
+
+const DEMO_DATA = [
+  { name:'Lakeview Drive',      lengthFt:1850, widthFt:24, surface:'Asphalt', yearBuilt:1974, pci:28, lastAction:'Crack Seal',      lastYear:2015, adt:850,  funcClass:'Collector', msas:'Yes', notes:'' },
+  { name:'Cedar Ridge Road',    lengthFt:2100, widthFt:22, surface:'Asphalt', yearBuilt:1982, pci:44, lastAction:'Seal Coat',        lastYear:2019, adt:220,  funcClass:'Local',     msas:'No',  notes:'' },
+  { name:'Shoreline Boulevard', lengthFt:3200, widthFt:28, surface:'Asphalt', yearBuilt:1991, pci:61, lastAction:'Mill & Overlay',   lastYear:2011, adt:1450, funcClass:'Arterial',  msas:'Yes', notes:'' },
+  { name:'Birchwood Court',     lengthFt:780,  widthFt:20, surface:'Asphalt', yearBuilt:1978, pci:18, lastAction:'Patching',         lastYear:2018, adt:95,   funcClass:'Local',     msas:'No',  notes:'' },
+  { name:'Elm Street',          lengthFt:1240, widthFt:26, surface:'Asphalt', yearBuilt:1988, pci:55, lastAction:'Crack Seal',       lastYear:2021, adt:380,  funcClass:'Collector', msas:'No',  notes:'' },
+  { name:'Industrial Park Road',lengthFt:2600, widthFt:30, surface:'Asphalt', yearBuilt:1995, pci:72, lastAction:'Mill & Overlay',   lastYear:2016, adt:3200, funcClass:'Arterial',  msas:'Yes', notes:'' },
+  { name:'Pine Valley Lane',    lengthFt:650,  widthFt:20, surface:'Asphalt', yearBuilt:2001, pci:84, lastAction:'None',             lastYear:null, adt:130,  funcClass:'Local',     msas:'No',  notes:'' },
+  { name:'Commerce Drive',      lengthFt:1900, widthFt:28, surface:'Asphalt', yearBuilt:1969, pci:12, lastAction:'Patching',         lastYear:2022, adt:670,  funcClass:'Collector', msas:'Yes', notes:'' },
+];
+
+function loadDemo() {
+  if (segments.length > 0 && !confirm('Replace current inventory with demo data?')) return;
+  segments = DEMO_DATA.map((d, i) => ({ ...d, id: 'demo-' + i }));
+  planAssignments = {};
+  document.getElementById('cityName').value = 'Hypothetical West Metro City';
+  document.getElementById('budget-city').value = 350000;
+  document.getElementById('budget-msas').value = 300000;
+  document.getElementById('budget-other').value = 0;
+  saveState();
+  recalcAll();
+  renderInventory();
+}
+
+// ═══════════════════════════════════════════════════
+// CALCULATIONS
+// ═══════════════════════════════════════════════════
+
+function sqYards(seg) {
+  return Math.round((seg.lengthFt * seg.widthFt) / 9);
+}
+
+function conditionBand(pci) {
+  if (pci <= 10)  return { label:'Failed',       cls:'cond-failed',   order:0 };
+  if (pci <= 25)  return { label:'Serious',      cls:'cond-serious',  order:1 };
+  if (pci <= 40)  return { label:'Very Poor',    cls:'cond-verypoor', order:2 };
+  if (pci <= 55)  return { label:'Poor',         cls:'cond-poor',     order:3 };
+  if (pci <= 70)  return { label:'Fair',         cls:'cond-fair',     order:4 };
+  if (pci <= 85)  return { label:'Satisfactory', cls:'cond-satisf',   order:5 };
+  return                  { label:'Good',        cls:'cond-good',     order:6 };
+}
+
+function condWeight(pci) {
+  if (pci <= 25) return 2.0;
+  if (pci <= 40) return 1.8;
+  if (pci <= 55) return 1.5;
+  if (pci <= 70) return 1.2;
+  if (pci <= 85) return 0.7;
+  return 0.3;
+}
+
+function priorityScore(seg, w) {
+  const condW = condWeight(seg.pci);
+  const condScore = (100 - seg.pci) * condW * w.condition;
+  const adtFactor = Math.log10((seg.adt || 1) + 1) * 5 * w.traffic;
+  const ageFactor = Math.max(0, (CURRENT_YEAR - seg.yearBuilt - 20) / 2) * w.age;
+  const msasBonus = seg.msas === 'Yes' ? 15 : 0;
+  return condScore + adtFactor + ageFactor + msasBonus;
+}
+
+function recommendedAction(seg) {
+  const age = CURRENT_YEAR - seg.yearBuilt;
+  const pci = seg.pci;
+  if (pci <= 25 && age > 15) return 'Full Reconstruction';
+  if (pci <= 25)             return 'Mill & Overlay (eval subbase)';
+  if (pci <= 40)             return 'Mill & Overlay';
+  if (pci <= 55 && age > 20) return 'Mill & Overlay (preventive)';
+  if (pci <= 55)             return 'Crack Seal + Seal Coat';
+  if (pci <= 70)             return 'Crack Seal';
+  if (pci <= 85)             return 'Routine Maintenance';
+  return 'No action required';
+}
+
+function actionCost(action, sy, c) {
+  if (action.startsWith('Full Reconstruction'))    return sy * c.recon;
+  if (action.startsWith('Mill & Overlay'))         return sy * c.mo;
+  if (action === 'Crack Seal + Seal Coat')         return sy * c.cssc;
+  if (action === 'Crack Seal')                     return sy * c.cs;
+  if (action === 'Routine Maintenance')            return sy * c.rm;
+  return 0;
+}
+
+function weightedAvgPCI(segs) {
+  if (!segs.length) return null;
+  const totalArea = segs.reduce((s, seg) => s + sqYards(seg), 0);
+  if (!totalArea) return null;
+  const weighted = segs.reduce((s, seg) => s + seg.pci * sqYards(seg), 0);
+  return weighted / totalArea;
+}
+
+function build5YearPlan() {
+  if (!segments.length) return [];
+
+  const c = costs();
+  const w = weights();
+  const annualBudget = totalBudget();
+
+  // Sort by priority score desc
+  const ranked = segments
+    .map(seg => ({
+      seg,
+      score: priorityScore(seg, w),
+      action: recommendedAction(seg),
+      sy: sqYards(seg),
+      cost: 0,
+    }))
+    .map(r => { r.cost = actionCost(r.action, r.sy, c); return r; })
+    .sort((a, b) => b.score - a.score);
+
+  // Greedy budget allocation — respect manual overrides
+  const yearBudgetUsed = [0, 0, 0, 0, 0, 0]; // index 1-5
+  const plan = [];
+
+  for (const r of ranked) {
+    if (r.action === 'No action required') continue;
+    const manualYear = planAssignments[r.seg.id];
+    if (manualYear) {
+      yearBudgetUsed[manualYear] += r.cost;
+      plan.push({ ...r, year: manualYear });
+    } else {
+      let assigned = false;
+      for (let y = 1; y <= 5; y++) {
+        if (yearBudgetUsed[y] + r.cost <= annualBudget) {
+          yearBudgetUsed[y] += r.cost;
+          plan.push({ ...r, year: y });
+          assigned = true;
+          break;
+        }
+      }
+      if (!assigned) {
+        plan.push({ ...r, year: 6 }); // unfunded / beyond 5 years
+      }
+    }
+  }
+  plan.sort((a, b) => a.year - b.year || b.score - a.score);
+  return plan;
+}
+
+function totalBudget() {
+  const city  = parseFloat(document.getElementById('budget-city').value)  || 0;
+  const msas  = parseFloat(document.getElementById('budget-msas').value)  || 0;
+  const other = parseFloat(document.getElementById('budget-other').value) || 0;
+  return city + msas + other;
+}
+
+function fundingSource(seg) {
+  if (seg.msas === 'Yes') return 'MSAS + City';
+  return 'City Capital';
+}
+
+// ═══════════════════════════════════════════════════
+// RENDER FUNCTIONS
+// ═══════════════════════════════════════════════════
+
+function fmt$( n ) { return '$' + Math.round(n).toLocaleString(); }
+function fmtNum(n, d=1) { return n == null ? '—' : n.toFixed(d); }
+
+function renderInventory() {
+  const tbody = document.getElementById('inventory-tbody');
+  if (!segments.length) {
+    tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;color:var(--gray);padding:20px;">No segments. Click "+ Add Segment" or load the example dataset.</td></tr>';
+    renderTotals();
+    return;
+  }
+  let data = [...segments];
+  if (sortField) {
+    data.sort((a, b) => {
+      let av = a[sortField], bv = b[sortField];
+      if (sortField === 'sqYards') { av = sqYards(a); bv = sqYards(b); }
+      if (sortField === 'condition') { av = conditionBand(a.pci).order; bv = conditionBand(b.pci).order; }
+      if (typeof av === 'string') return av.localeCompare(bv) * sortDir;
+      return ((av || 0) - (bv || 0)) * sortDir;
+    });
+  }
+  tbody.innerHTML = data.map(seg => {
+    const band = conditionBand(seg.pci);
+    const sy = sqYards(seg);
+    return `<tr onclick="openEditForm('${seg.id}')">
+      <td><strong>${esc(seg.name)}</strong></td>
+      <td>${seg.pci}</td>
+      <td><span class="cond-badge ${band.cls}">${band.label}</span></td>
+      <td>${seg.lengthFt.toLocaleString()}</td>
+      <td>${sy.toLocaleString()}</td>
+      <td>${esc(seg.surface)}</td>
+      <td>${seg.yearBuilt}</td>
+      <td>${(seg.adt||0).toLocaleString()}</td>
+      <td>${esc(seg.funcClass)}</td>
+      <td>${seg.msas === 'Yes' ? '<span style="color:var(--cedar);font-weight:700;">YES</span>' : 'No'}</td>
+      <td>${esc(seg.lastAction)}</td>
+    </tr>`;
+  }).join('');
+  renderTotals();
+}
+
+function renderTotals() {
+  const totalFt = segments.reduce((s, seg) => s + seg.lengthFt, 0);
+  const totalMi = totalFt / 5280;
+  const totalSY = segments.reduce((s, seg) => s + sqYards(seg), 0);
+  const avgPCI  = weightedAvgPCI(segments);
+
+  document.getElementById('tot-miles').textContent = totalMi > 0 ? fmtNum(totalMi, 2) + ' mi' : '—';
+  document.getElementById('tot-sy').textContent    = totalSY > 0 ? totalSY.toLocaleString() + ' SY' : '—';
+  document.getElementById('tot-pci').textContent   = avgPCI != null ? fmtNum(avgPCI, 1) : '—';
+
+  // Mini bars
+  const bands = ['Failed','Serious','Very Poor','Poor','Fair','Satisfactory','Good'];
+  const bandColors = [
+    'var(--red)','#e05050','var(--orange)','#d4a020','var(--yellow)','#78b878','var(--green)'
+  ];
+  const counts = {};
+  bands.forEach(b => counts[b] = 0);
+  segments.forEach(seg => { counts[conditionBand(seg.pci).label]++; });
+  const maxCount = Math.max(1, ...Object.values(counts));
+  const barsEl = document.getElementById('cond-mini-bars');
+  barsEl.innerHTML = bands.map((b, i) =>
+    counts[b] > 0 ? `<div class="mini-bar-item">
+      <div class="mini-bar-fill" style="background:${bandColors[i]};width:${Math.max(6, counts[b]/maxCount*60)}px;"></div>
+      <span>${b}: <strong style="color:#ddeeff">${counts[b]}</strong></span>
+    </div>` : ''
+  ).join('');
+
+  // Stat row
+  document.getElementById('stat-segments').textContent = segments.length;
+  document.getElementById('stat-miles').textContent    = totalMi > 0 ? fmtNum(totalMi, 2) : '—';
+  document.getElementById('stat-pci').textContent      = avgPCI != null ? fmtNum(avgPCI, 1) : '—';
+
+  // Estimate total need
+  if (segments.length) {
+    const c = costs();
+    const totalNeed = segments.reduce((s, seg) => {
+      const act = recommendedAction(seg);
+      return s + actionCost(act, sqYards(seg), c);
+    }, 0);
+    document.getElementById('stat-need').textContent = totalNeed > 0 ? '$' + (totalNeed/1e6).toFixed(2) + 'M' : '$0';
+  } else {
+    document.getElementById('stat-need').textContent = '—';
+  }
+}
+
+function renderPriorityTable() {
+  const tbody = document.getElementById('priority-tbody');
+  if (!segments.length) {
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--gray);padding:20px;">No segments in inventory.</td></tr>';
+    return;
+  }
+  const c = costs();
+  const w = weights();
+  const ranked = segments
+    .map(seg => ({
+      seg,
+      score: priorityScore(seg, w),
+      action: recommendedAction(seg),
+      sy: sqYards(seg),
+    }))
+    .map(r => ({ ...r, cost: actionCost(r.action, r.sy, c) }))
+    .sort((a, b) => b.score - a.score);
+
+  tbody.innerHTML = ranked.map((r, i) => {
+    const band = conditionBand(r.seg.pci);
+    return `<tr>
+      <td>${i + 1}</td>
+      <td><strong>${esc(r.seg.name)}</strong></td>
+      <td>${r.seg.pci}</td>
+      <td><span class="cond-badge ${band.cls}">${band.label}</span></td>
+      <td style="font-weight:700;color:var(--amber)">${r.score.toFixed(1)}</td>
+      <td>${esc(r.action)}</td>
+      <td>${fmt$(r.cost)}</td>
+      <td>${r.sy.toLocaleString()}</td>
+      <td>${(r.seg.adt||0).toLocaleString()}</td>
+      <td>${r.seg.msas === 'Yes' ? '<span style="color:var(--cedar);font-weight:700;">YES</span>' : 'No'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderPlan() {
+  const plan = build5YearPlan();
+  const tbody = document.getElementById('plan-tbody');
+
+  if (!plan.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--gray);padding:20px;">No segments prioritized yet.</td></tr>';
+    clearChart();
+    return;
+  }
+
+  const annualBudget = totalBudget();
+  const inPlan = plan.filter(r => r.year <= 5);
+  const totalCost5 = inPlan.reduce((s, r) => s + r.cost, 0);
+  const totalFund5 = annualBudget * 5;
+  const gap = Math.max(0, totalCost5 - totalFund5);
+  const pctAddressed = segments.length ? Math.round(inPlan.length / segments.length * 100) : 0;
+
+  // Project PCI after — rough estimate: treated segments improve by PCI band
+  const treatedIds = new Set(inPlan.map(r => r.seg.id));
+  const projSegs = segments.map(seg => {
+    if (!treatedIds.has(seg.id)) return seg;
+    const action = recommendedAction(seg);
+    let newPCI = seg.pci;
+    if (action.startsWith('Full Reconstruction'))    newPCI = 90;
+    else if (action.startsWith('Mill & Overlay'))    newPCI = Math.min(seg.pci + 35, 85);
+    else if (action === 'Crack Seal + Seal Coat')    newPCI = Math.min(seg.pci + 15, 72);
+    else if (action === 'Crack Seal')                newPCI = Math.min(seg.pci + 8, 72);
+    return { ...seg, pci: newPCI };
+  });
+  const projPCI = weightedAvgPCI(projSegs);
+
+  document.getElementById('ps-pct').textContent       = pctAddressed + '%';
+  document.getElementById('ps-pci-after').textContent  = projPCI != null ? fmtNum(projPCI, 1) : '—';
+  document.getElementById('ps-total-cost').textContent = totalCost5 > 0 ? '$' + (totalCost5/1e6).toFixed(2) + 'M' : '$0';
+  document.getElementById('ps-total-fund').textContent = '$' + (totalFund5/1e6).toFixed(2) + 'M';
+  document.getElementById('ps-gap').textContent        = gap > 0 ? '$' + (gap/1e6).toFixed(2) + 'M' : '$0';
+  document.getElementById('stat-gap').textContent      = gap > 0 ? '$' + (gap/1e6).toFixed(2) + 'M' : '$0';
+
+  // Render plan table with drag-and-drop
+  let currentYear = 0;
+  tbody.innerHTML = plan.map((r, idx) => {
+    const yearLabel = r.year <= 5 ? `Year ${r.year}` : 'Unfunded / >5yr';
+    const yearChange = r.year !== currentYear;
+    if (yearChange) currentYear = r.year;
+    const band = conditionBand(r.seg.pci);
+    return `<tr draggable="true"
+      data-id="${r.seg.id}"
+      data-idx="${idx}"
+      ondragstart="onDragStart(event)"
+      ondragover="onDragOver(event)"
+      ondrop="onDrop(event)"
+      ondragleave="onDragLeave(event)">
+      <td class="year-cell" style="cursor:pointer;" onclick="forceYear('${r.seg.id}')">${yearLabel}</td>
+      <td><strong>${esc(r.seg.name)}</strong></td>
+      <td>${esc(r.action)}</td>
+      <td>${fmt$(r.cost)}</td>
+      <td>${fundingSource(r.seg)}</td>
+      <td>${r.sy.toLocaleString()}</td>
+      <td><span class="cond-badge ${band.cls}">${r.seg.pci} ${band.label}</span></td>
+    </tr>`;
+  }).join('');
+
+  renderChart(plan);
+  // Budget total display
+  document.getElementById('budget-total').textContent = fmt$(annualBudget);
+}
+
+// ═══════════════════════════════════════════════════
+// CHART
+// ═══════════════════════════════════════════════════
+
+let spendingChart = null;
+function renderChart(plan) {
+  const ctx = document.getElementById('spending-chart');
+  if (!ctx) return;
+  if (typeof Chart === 'undefined') {
+    ctx.parentElement.innerHTML = '<p style="color:var(--gray);font-size:12px;padding:10px;">Chart.js not loaded (offline mode). Year-by-year spending breakdown unavailable.</p>';
+    return;
+  }
+
+  const labels = ['Year 1','Year 2','Year 3','Year 4','Year 5'];
+  const reconData = [0,0,0,0,0];
+  const moData    = [0,0,0,0,0];
+  const prevData  = [0,0,0,0,0];
+  const routData  = [0,0,0,0,0];
+
+  for (const r of plan) {
+    if (r.year < 1 || r.year > 5) continue;
+    const y = r.year - 1;
+    if (r.action.startsWith('Full Reconstruction'))    reconData[y] += r.cost;
+    else if (r.action.startsWith('Mill & Overlay'))    moData[y]    += r.cost;
+    else if (r.action.includes('Crack Seal'))          prevData[y]  += r.cost;
+    else                                               routData[y]  += r.cost;
+  }
+
+  const fmt = v => '$' + (v/1000).toFixed(0) + 'K';
+
+  if (spendingChart) spendingChart.destroy();
+  spendingChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Full Reconstruction', data: reconData, backgroundColor: '#C0392B' },
+        { label: 'Mill & Overlay',      data: moData,    backgroundColor: '#D4820A' },
+        { label: 'Preventive Maint.',   data: prevData,  backgroundColor: '#3D6B45' },
+        { label: 'Routine',             data: routData,  backgroundColor: '#6B7280' },
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'top', labels: { font: { family: 'Arial Narrow, Arial, sans-serif', size: 11 } } },
+        title:  { display: true, text: '5-Year Spending by Action Type', font: { family: 'Arial Narrow, Arial, sans-serif', size: 13 } },
+        tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + fmt(ctx.raw) } }
+      },
+      scales: {
+        x: { stacked: true, ticks: { font: { family: 'Arial Narrow, Arial, sans-serif' } } },
+        y: { stacked: true, ticks: { callback: v => '$' + (v/1000).toFixed(0) + 'K', font: { family: 'Arial Narrow, Arial, sans-serif' } } }
+      }
+    }
+  });
+}
+function clearChart() {
+  if (spendingChart) { spendingChart.destroy(); spendingChart = null; }
+}
+
+// ═══════════════════════════════════════════════════
+// DRAG & DROP
+// ═══════════════════════════════════════════════════
+
+let dragId = null;
+function onDragStart(e) {
+  dragId = e.currentTarget.dataset.id;
+  e.currentTarget.classList.add('dragging');
+}
+function onDragOver(e) {
+  e.preventDefault();
+  e.currentTarget.classList.add('drag-over');
+}
+function onDragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
+function onDrop(e) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  const dropId = e.currentTarget.dataset.id;
+  if (!dragId || dragId === dropId) return;
+  // Find the year of the dropped-on row
+  const plan = build5YearPlan();
+  const targetRow = plan.find(r => r.seg.id === dropId);
+  if (targetRow) {
+    planAssignments[dragId] = targetRow.year;
+    saveState();
+    recalcAll();
+  }
+  dragId = null;
+}
+function forceYear(id) {
+  const y = prompt('Assign to which year? (1–5, or 0 to remove override)', planAssignments[id] || '');
+  if (y === null) return;
+  const yn = parseInt(y);
+  if (yn >= 1 && yn <= 5) {
+    planAssignments[id] = yn;
+  } else {
+    delete planAssignments[id];
+  }
+  saveState();
+  recalcAll();
+}
+
+// ═══════════════════════════════════════════════════
+// MSAS MODULE
+// ═══════════════════════════════════════════════════
+
+function renderMSAS() {
+  const plan = build5YearPlan();
+  const inPlanIds = new Set(plan.filter(r => r.year <= 5).map(r => r.seg.id));
+  const msasSegs = segments.filter(s => s.msas === 'Yes');
+  const tbody = document.getElementById('msas-tbody');
+  const c = costs();
+
+  if (!msasSegs.length) {
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--gray);padding:16px;">No MSAS-eligible segments in inventory.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = msasSegs.map(seg => {
+    const band = conditionBand(seg.pci);
+    const action = recommendedAction(seg);
+    const sy = sqYards(seg);
+    const cost = actionCost(action, sy, c);
+    const inPlan = inPlanIds.has(seg.id);
+    const adtWarn = seg.funcClass === 'Collector' && (seg.adt || 0) < 100;
+    let flags = '';
+    if (inPlan)  flags += '<span class="msas-flag">&#9654; In 5-yr plan</span> ';
+    if (adtWarn) flags += '<span class="msas-warn">&#9888; ADT &lt;100 — may not qualify</span>';
+    return `<tr>
+      <td><strong>${esc(seg.name)}</strong></td>
+      <td>${seg.lengthFt.toLocaleString()}</td>
+      <td>${(seg.adt||0).toLocaleString()}</td>
+      <td>${esc(seg.funcClass)}</td>
+      <td>${seg.pci}</td>
+      <td><span class="cond-badge ${band.cls}">${band.label}</span></td>
+      <td>${esc(action)}</td>
+      <td>${fmt$(cost)}</td>
+      <td>${inPlan ? '<strong style="color:var(--cedar)">YES</strong>' : '—'}</td>
+      <td>${flags || '—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function generateNarrative() {
+  const cityName = document.getElementById('cityName').value.trim() || 'The City';
+  const msasSegs = segments.filter(s => s.msas === 'Yes');
+  if (!msasSegs.length) {
+    document.getElementById('msasNarrative').value = 'No MSAS-eligible segments in inventory. Add segments and mark them MSAS-eligible to generate this narrative.';
+    return;
+  }
+
+  const plan = build5YearPlan();
+  const c = costs();
+  const inPlanIds = new Set(plan.filter(r => r.year <= 5).map(r => r.seg.id));
+
+  const totalMsasMi = msasSegs.reduce((s, seg) => s + seg.lengthFt, 0) / 5280;
+  const avgPCIMsas = weightedAvgPCI(msasSegs);
+  const lowPCI = msasSegs.filter(s => s.pci <= 40);
+  const lowPct = msasSegs.length ? Math.round(lowPCI.length / msasSegs.length * 100) : 0;
+
+  const msasPlanCost = plan
+    .filter(r => r.year <= 5 && r.seg.msas === 'Yes')
+    .reduce((s, r) => s + r.cost, 0);
+
+  const topThree = [...msasSegs]
+    .sort((a, b) => {
+      const w = weights();
+      return priorityScore(b, w) - priorityScore(a, w);
+    })
+    .slice(0, 3);
+
+  const yr = CURRENT_YEAR;
+  const topDesc = topThree.map((seg, i) => {
+    const band = conditionBand(seg.pci);
+    const action = recommendedAction(seg);
+    return `  ${i+1}. ${seg.name}: PCI ${seg.pci} (${band.label}), recommended action — ${action}.`;
+  }).join('\n');
+
+  const narrative = `MSAS NEEDS ASSESSMENT NARRATIVE
+${cityName}
+Prepared: ${new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' })}
+
+The ${cityName} MSAS system includes ${fmtNum(totalMsasMi, 2)} miles of designated streets. As of ${yr}, ${lowPCI.length} segment${lowPCI.length !== 1 ? 's' : ''} ${lowPCI.length !== 1 ? 'have' : 'has'} a Pavement Condition Index below 40, representing ${lowPct}% of the MSAS network. The area-weighted average PCI across all MSAS-designated segments is ${avgPCIMsas != null ? fmtNum(avgPCIMsas, 1) : 'N/A'}.
+
+Deferred reconstruction of these segments risks accelerating deterioration and increasing long-term costs. The city requests MSAS construction funding of ${fmt$(msasPlanCost)} over FY ${yr}–${yr + 4} to address the highest-priority segments identified in the attached 5-year capital improvement plan.
+
+TOP PRIORITY MSAS SEGMENTS:
+${topDesc}
+
+NETWORK CONDITION SUMMARY:
+Total MSAS-eligible segments: ${msasSegs.length}
+Segments in poor or failed condition (PCI ≤ 40): ${lowPCI.length} (${lowPct}%)
+Estimated total MSAS project cost over 5 years: ${fmt$(msasPlanCost)}
+
+The city's 5-year capital improvement plan prioritizes MSAS segments for state aid funding, with local capital funds addressing non-designated streets. All projects are consistent with MnDOT SANEEDS3 documentation requirements. Pavement condition data was collected using the standard Pavement Condition Index (ASTM D6433) methodology.`;
+
+  document.getElementById('msasNarrative').value = narrative;
+}
+
+// ═══════════════════════════════════════════════════
+// FORM MANAGEMENT
+// ═══════════════════════════════════════════════════
+
+function openAddForm() {
+  editingId = null;
+  clearForm();
+  document.getElementById('form-title').textContent = 'Add Street Segment';
+  document.getElementById('delete-btn').style.display = 'none';
+  showForm();
+}
+
+function openEditForm(id) {
+  const seg = segments.find(s => s.id === id);
+  if (!seg) return;
+  editingId = id;
+  document.getElementById('f-name').value       = seg.name;
+  document.getElementById('f-length').value     = seg.lengthFt;
+  document.getElementById('f-unit').value       = 'ft';
+  document.getElementById('f-width').value      = seg.widthFt;
+  document.getElementById('f-surface').value    = seg.surface;
+  document.getElementById('f-built').value      = seg.yearBuilt;
+  document.getElementById('f-pci').value        = seg.pci;
+  document.getElementById('f-lastaction').value = seg.lastAction;
+  document.getElementById('f-lastyear').value   = seg.lastYear || '';
+  document.getElementById('f-adt').value        = seg.adt;
+  document.getElementById('f-class').value      = seg.funcClass;
+  document.getElementById('f-msas').value       = seg.msas;
+  document.getElementById('f-notes').value      = seg.notes || '';
+  document.getElementById('form-title').textContent = 'Edit: ' + seg.name;
+  document.getElementById('delete-btn').style.display = '';
+  updatePciScale();
+  showForm();
+}
+
+function showForm() {
+  const fp = document.getElementById('form-panel');
+  fp.classList.add('visible');
+  fp.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+function clearForm() {
+  ['f-name','f-length','f-width','f-built','f-pci','f-lastyear','f-adt','f-notes'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('f-unit').value       = 'ft';
+  document.getElementById('f-surface').value    = 'Asphalt';
+  document.getElementById('f-lastaction').value = 'None';
+  document.getElementById('f-class').value      = 'Local';
+  document.getElementById('f-msas').value       = 'No';
+  document.getElementById('pci-band-label').textContent = 'Enter PCI to see condition band';
+  document.getElementById('pci-indicator').style.left = '0';
+}
+
+function cancelForm() {
+  document.getElementById('form-panel').classList.remove('visible');
+  editingId = null;
+}
+
+function saveSegment() {
+  const name   = document.getElementById('f-name').value.trim();
+  const rawLen = parseFloat(document.getElementById('f-length').value);
+  const unit   = document.getElementById('f-unit').value;
+  const width  = parseFloat(document.getElementById('f-width').value);
+  const pci    = parseInt(document.getElementById('f-pci').value);
+  const built  = parseInt(document.getElementById('f-built').value);
+  const adt    = parseInt(document.getElementById('f-adt').value) || 0;
+
+  if (!name)                       { alert('Street name is required.'); return; }
+  if (isNaN(rawLen) || rawLen <= 0){ alert('Valid length is required.'); return; }
+  if (isNaN(width)  || width <= 0) { alert('Valid width is required.'); return; }
+  if (isNaN(pci) || pci < 0 || pci > 100) { alert('PCI must be 0–100.'); return; }
+  if (isNaN(built))                { alert('Year constructed is required.'); return; }
+
+  const lengthFt = unit === 'mi' ? rawLen * 5280 : rawLen;
+
+  const seg = {
+    id:          editingId || ('seg-' + Date.now()),
+    name,
+    lengthFt:    Math.round(lengthFt),
+    widthFt:     width,
+    surface:     document.getElementById('f-surface').value,
+    yearBuilt:   built,
+    pci,
+    lastAction:  document.getElementById('f-lastaction').value,
+    lastYear:    parseInt(document.getElementById('f-lastyear').value) || null,
+    adt,
+    funcClass:   document.getElementById('f-class').value,
+    msas:        document.getElementById('f-msas').value,
+    notes:       document.getElementById('f-notes').value.trim(),
+  };
+
+  if (editingId) {
+    const idx = segments.findIndex(s => s.id === editingId);
+    if (idx >= 0) segments[idx] = seg;
+  } else {
+    segments.push(seg);
+  }
+
+  cancelForm();
+  saveState();
+  recalcAll();
+  renderInventory();
+}
+
+function deleteSegment() {
+  if (!editingId || !confirm('Delete this segment?')) return;
+  segments = segments.filter(s => s.id !== editingId);
+  delete planAssignments[editingId];
+  cancelForm();
+  saveState();
+  recalcAll();
+  renderInventory();
+}
+
+// ═══════════════════════════════════════════════════
+// PCI SCALE VISUAL
+// ═══════════════════════════════════════════════════
+
+function updatePciScale() {
+  const val = parseInt(document.getElementById('f-pci').value);
+  const indicator = document.getElementById('pci-indicator');
+  const label     = document.getElementById('pci-band-label');
+  if (isNaN(val) || val < 0 || val > 100) {
+    indicator.style.left = '0';
+    label.textContent = 'Enter PCI to see condition band';
+    return;
+  }
+  indicator.style.left = `calc(${val}% - 1px)`;
+  const band = conditionBand(val);
+  label.textContent = `PCI ${val} — ${band.label}`;
+  label.style.color = 'var(--text)';
+}
+
+// ═══════════════════════════════════════════════════
+// SORT TABLE
+// ═══════════════════════════════════════════════════
+
+function sortTable(field) {
+  if (sortField === field) { sortDir *= -1; }
+  else { sortField = field; sortDir = 1; }
+  document.querySelectorAll('#inventory-table th').forEach(th => {
+    th.classList.remove('sorted-asc','sorted-desc');
+  });
+  // mark sorted column header
+  const cols = ['name','pci','condition','lengthFt','sqYards','surface','yearBuilt','adt','funcClass','msas','lastAction'];
+  const idx  = cols.indexOf(field);
+  if (idx >= 0) {
+    const ths = document.querySelectorAll('#inventory-table th');
+    if (ths[idx]) ths[idx].classList.add(sortDir === 1 ? 'sorted-asc' : 'sorted-desc');
+  }
+  renderInventory();
+}
+
+// ═══════════════════════════════════════════════════
+// CSV IMPORT
+// ═══════════════════════════════════════════════════
+
+function importCSV() {
+  const text = document.getElementById('csvPaste').value.trim();
+  if (!text) return;
+  const lines = text.split('\n').filter(l => l.trim() && !l.trim().startsWith('Street'));
+  let imported = 0, errors = 0;
+  for (const line of lines) {
+    const parts = line.split(',').map(p => p.trim().replace(/^"|"$/g,''));
+    if (parts.length < 10) { errors++; continue; }
+    const [ sName, sLenFt, sWid, sSurf, sYrBuilt, sPCI, sLastAct, sLastYr, sADT, sFClass, sMSAS, ...noteParts ] = parts;
+    const pci = parseInt(sPCI);
+    const len = parseFloat(sLenFt);
+    const wid = parseFloat(sWid);
+    const yr  = parseInt(sYrBuilt);
+    if (!sName || isNaN(pci) || isNaN(len) || isNaN(wid) || isNaN(yr)) { errors++; continue; }
+    segments.push({
+      id:        'csv-' + Date.now() + '-' + imported,
+      name:       sName,
+      lengthFt:   Math.round(len),
+      widthFt:    wid,
+      surface:    sSurf || 'Asphalt',
+      yearBuilt:  yr,
+      pci:        Math.min(100, Math.max(0, pci)),
+      lastAction: sLastAct || 'None',
+      lastYear:   parseInt(sLastYr) || null,
+      adt:        parseInt(sADT) || 0,
+      funcClass:  sFClass || 'Local',
+      msas:       (sMSAS || '').toLowerCase() === 'yes' ? 'Yes' : 'No',
+      notes:      noteParts.join(',') || '',
+    });
+    imported++;
+  }
+  document.getElementById('csvPaste').value = '';
+  document.getElementById('csv-status').textContent =
+    `Imported ${imported} segment${imported !== 1 ? 's' : ''}` + (errors ? `, ${errors} row${errors!==1?'s':''} skipped.` : '.');
+  saveState();
+  recalcAll();
+  renderInventory();
+}
+
+function downloadTemplate() {
+  const header = 'StreetName,LengthFt,WidthFt,SurfaceType,YearBuilt,PCI,LastAction,LastActionYear,ADT,FunctionalClass,MSASEligible,Notes\n';
+  const example = 'Example Street,1500,24,Asphalt,1985,45,Crack Seal,2018,500,Collector,Yes,Example notes here\n';
+  const blob = new Blob([header + example], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'pavement-import-template.csv';
+  a.click();
+}
+
+// ═══════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════
+
+const MODULE_TITLES = {
+  inventory:      'Street Inventory & Condition Input',
+  prioritization: 'Prioritization & 5-Year Capital Plan',
+  msas:           'MSAS Eligibility & Submission Notes',
+};
+
+function switchModule(id) {
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.querySelector(`[data-module="${id}"]`).classList.add('active');
+  document.querySelectorAll('.module-panel').forEach(el => el.classList.remove('active'));
+  document.getElementById(`panel-${id}`).classList.add('active');
+  document.getElementById('module-title').textContent = MODULE_TITLES[id];
+  // Render on demand
+  if (id === 'prioritization') { recalcAll(); }
+  if (id === 'msas')           { renderMSAS(); generateNarrative(); }
+  // Close sidebar on mobile
+  document.getElementById('sidebar').classList.remove('open');
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// ═══════════════════════════════════════════════════
+// SLIDER UTIL
+// ═══════════════════════════════════════════════════
+
+function updateSlider(el, labelId) {
+  document.getElementById(labelId).textContent = parseFloat(el.value).toFixed(2) + '×';
+}
+
+// ═══════════════════════════════════════════════════
+// RECALC ALL (called whenever data changes)
+// ═══════════════════════════════════════════════════
+
+function recalcAll() {
+  renderInventory();
+  renderPriorityTable();
+  renderPlan();
+  const budgetTotal = totalBudget();
+  document.getElementById('budget-total').textContent = fmt$(budgetTotal);
+  saveBudgetState();
+}
+
+// ═══════════════════════════════════════════════════
+// LOCALSTORAGE
+// ═══════════════════════════════════════════════════
+
+function saveState() {
+  try {
+    localStorage.setItem('pmt-segments', JSON.stringify(segments));
+    localStorage.setItem('pmt-plan-overrides', JSON.stringify(planAssignments));
+    localStorage.setItem('pmt-city', document.getElementById('cityName').value);
+  } catch(e) {}
+}
+
+function saveBudgetState() {
+  try {
+    localStorage.setItem('pmt-budget-city',  document.getElementById('budget-city').value);
+    localStorage.setItem('pmt-budget-msas',  document.getElementById('budget-msas').value);
+    localStorage.setItem('pmt-budget-other', document.getElementById('budget-other').value);
+    localStorage.setItem('pmt-w-condition',  document.getElementById('w-condition').value);
+    localStorage.setItem('pmt-w-traffic',    document.getElementById('w-traffic').value);
+    localStorage.setItem('pmt-w-age',        document.getElementById('w-age').value);
+  } catch(e) {}
+}
+
+function loadState() {
+  try {
+    const segs = localStorage.getItem('pmt-segments');
+    if (segs) segments = JSON.parse(segs);
+    const overrides = localStorage.getItem('pmt-plan-overrides');
+    if (overrides) planAssignments = JSON.parse(overrides);
+    const city = localStorage.getItem('pmt-city');
+    if (city) document.getElementById('cityName').value = city;
+    // Budget
+    const bc = localStorage.getItem('pmt-budget-city');
+    if (bc) document.getElementById('budget-city').value = bc;
+    const bm = localStorage.getItem('pmt-budget-msas');
+    if (bm) document.getElementById('budget-msas').value = bm;
+    const bo = localStorage.getItem('pmt-budget-other');
+    if (bo) document.getElementById('budget-other').value = bo;
+    // Sliders
+    const wc = localStorage.getItem('pmt-w-condition');
+    if (wc) { document.getElementById('w-condition').value = wc; document.getElementById('wc-val').textContent = parseFloat(wc).toFixed(2) + '×'; }
+    const wt = localStorage.getItem('pmt-w-traffic');
+    if (wt) { document.getElementById('w-traffic').value = wt;   document.getElementById('wt-val').textContent = parseFloat(wt).toFixed(2) + '×'; }
+    const wa = localStorage.getItem('pmt-w-age');
+    if (wa) { document.getElementById('w-age').value = wa;       document.getElementById('wa-val').textContent = parseFloat(wa).toFixed(2) + '×'; }
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════════════════════
+// PRINT SETUP
+// ═══════════════════════════════════════════════════
+
+window.addEventListener('beforeprint', () => {
+  document.getElementById('print-city-name').textContent = document.getElementById('cityName').value || 'City Pavement Management Report';
+  document.getElementById('print-date').textContent = new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+  // Make all modules visible for print
+  document.querySelectorAll('.module-panel').forEach(el => el.style.display = 'block');
+});
+window.addEventListener('afterprint', () => {
+  document.querySelectorAll('.module-panel').forEach(el => el.style.display = '');
+  document.querySelector('.module-panel.active').style.display = 'block';
+});
+
+// ═══════════════════════════════════════════════════
+// UTILITY
+// ═══════════════════════════════════════════════════
+
+function esc(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+// Budget input listeners
+['budget-city','budget-msas','budget-other'].forEach(id => {
+  document.getElementById(id).addEventListener('input', recalcAll);
+});
+
+// City name save
+document.getElementById('cityName').addEventListener('input', saveState);
+
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+
+loadState();
+recalcAll();
+
+</script>
+</body>
+</html>

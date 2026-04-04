@@ -1,0 +1,1819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minnesota New Worker Rights Field Guide — Senate District 8</title>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Two-column reference manual — sticky 220px sidebar + scrolling main; NOT centered single-column
+   2. Navigation: Sidebar anchor links with IntersectionObserver active highlighting; NOT rounded-top tabs
+   3. Typography: Georgia serif for headers/law names, Courier New monospace for citations, Arial Narrow condensed for body prose
+   Additional: Dark charcoal base (#1C2026) with palette-saturated section headers; top-border accents NOT left-border; Red Flag rows use colored row backgrounds not result cards; definition-list style for Rights Summary
+*/
+
+/* ─── RESET & BASE ─────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --red:       #8B2020;
+  --green:     #2D5A27;
+  --blue:      #3A5F8A;
+  --bg:        #1C2026;
+  --surface:   #272D35;
+  --text:      #E8E4DC;
+  --muted:     #9A9590;
+  --alert-red: #C1121F;
+  --alert-yel: #D4A017;
+  --alert-grn: #3A8C4A;
+  --border:    #3A3F48;
+  --sidebar-w: 220px;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Arial Narrow', 'Helvetica Neue Condensed', Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.55;
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ─── SIDEBAR ───────────────────────────────────────────────── */
+#sidebar {
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.sidebar-brand {
+  background: var(--red);
+  padding: 14px 12px 10px;
+  border-bottom: 3px solid #6B1818;
+}
+
+.sidebar-brand h1 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 13px;
+  font-weight: bold;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 1.3;
+}
+
+.sidebar-brand .district {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 11px;
+  color: rgba(255,255,255,0.75);
+  margin-top: 4px;
+}
+
+.sidebar-nav {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebar-nav a {
+  display: block;
+  padding: 7px 14px;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 12.5px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-left: 3px solid transparent;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.sidebar-nav a:hover {
+  color: var(--text);
+  background: rgba(255,255,255,0.04);
+}
+
+.sidebar-nav a.active {
+  color: #fff;
+  border-left-color: var(--red);
+  background: rgba(139,32,32,0.15);
+}
+
+.sidebar-nav .nav-num {
+  display: inline-block;
+  width: 16px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 10px;
+  color: var(--muted);
+  margin-right: 4px;
+}
+
+/* Rights-at-a-glance strip */
+#rights-strip {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 11.5px;
+}
+
+#rights-strip .strip-label {
+  font-family: Georgia, serif;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+#rights-strip .strip-item {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 3px 0;
+  border-bottom: 1px dotted var(--border);
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+#rights-strip .strip-item:last-child { border-bottom: none; }
+
+#rights-strip .strip-item .si-key {
+  color: var(--text);
+  font-weight: bold;
+  min-width: 64px;
+}
+
+#rights-strip .si-val-grn { color: var(--alert-grn); }
+#rights-strip .si-val-red { color: var(--alert-red); }
+#rights-strip .si-val-yel { color: var(--alert-yel); }
+#rights-strip .si-val-mut { color: var(--muted); font-style: italic; }
+
+.sidebar-disclaimer {
+  margin-top: auto;
+  padding: 10px 12px;
+  font-size: 10.5px;
+  color: var(--muted);
+  line-height: 1.4;
+  border-top: 1px solid var(--border);
+}
+
+.sidebar-disclaimer strong {
+  display: block;
+  color: var(--alert-yel);
+  text-transform: uppercase;
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+}
+
+/* ─── MAIN CONTENT ──────────────────────────────────────────── */
+#main {
+  flex: 1;
+  overflow-x: hidden;
+}
+
+/* Section wrapper */
+.content-section {
+  padding: 0;
+}
+
+/* Full-bleed section headers */
+.section-header {
+  background: var(--red);
+  padding: 14px 28px 12px;
+  border-bottom: 3px solid #6B1818;
+}
+
+.section-header.sh-green  { background: var(--green); border-bottom-color: #1D3D1A; }
+.section-header.sh-blue   { background: var(--blue);  border-bottom-color: #274566; }
+.section-header.sh-dark   { background: #1A3A1A;      border-bottom-color: #0f2010; }
+
+.section-header h2 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 18px;
+  font-weight: bold;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.section-header .sh-sub {
+  font-size: 12px;
+  color: rgba(255,255,255,0.75);
+  margin-top: 2px;
+  font-style: italic;
+}
+
+.section-header .sh-num {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 4px;
+  letter-spacing: 0.1em;
+}
+
+/* Section body */
+.section-body {
+  padding: 20px 28px;
+  background: var(--bg);
+}
+
+/* ─── INTRO BLOCK ───────────────────────────────────────────── */
+#intro {
+  background: var(--surface);
+  border-top: 4px solid var(--red);
+  padding: 20px 28px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+#intro .intro-lead {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+
+#intro .intro-credit {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 11px;
+  color: var(--muted);
+  padding-top: 8px;
+  border-top: 1px dotted var(--border);
+}
+
+/* ─── QUESTIONNAIRE ─────────────────────────────────────────── */
+.q-group {
+  margin-bottom: 16px;
+}
+
+.q-label {
+  font-family: Georgia, serif;
+  font-size: 13px;
+  color: var(--text);
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+
+.q-label span {
+  font-family: 'Courier New', Courier, monospace;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: normal;
+  margin-right: 6px;
+}
+
+.q-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.q-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 5px 12px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 12.5px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.q-btn:hover {
+  background: rgba(139,32,32,0.2);
+  border-color: var(--red);
+  color: var(--text);
+}
+
+.q-btn.selected {
+  background: var(--red);
+  border-color: var(--red);
+  color: #fff;
+  font-weight: bold;
+}
+
+.q-actions {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.btn-primary {
+  background: var(--red);
+  color: #fff;
+  border: none;
+  padding: 8px 20px;
+  font-family: Georgia, serif;
+  font-size: 13px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+.btn-primary:hover { background: #a02828; }
+
+.btn-secondary {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  padding: 7px 14px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+.btn-secondary:hover { color: var(--text); border-color: var(--muted); }
+
+/* Rights Summary Card */
+#rights-summary {
+  display: none;
+  margin-top: 20px;
+  background: var(--surface);
+  border-top: 4px solid var(--green);
+}
+
+#rights-summary.visible { display: block; }
+
+.rs-header {
+  background: var(--green);
+  padding: 10px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.rs-header h3 {
+  font-family: Georgia, serif;
+  font-size: 14px;
+  font-weight: bold;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.rs-print-btn {
+  background: rgba(255,255,255,0.2);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.4);
+  padding: 4px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  border-radius: 2px;
+}
+
+.rs-print-btn:hover { background: rgba(255,255,255,0.35); }
+
+#rs-content {
+  padding: 14px 16px;
+}
+
+/* Definition list style for Rights Summary */
+dl.rights-dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  row-gap: 0;
+}
+
+dl.rights-dl dt {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 8px 14px 8px 0;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  vertical-align: top;
+  align-self: start;
+  padding-top: 10px;
+}
+
+dl.rights-dl dd {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+dl.rights-dl dt:last-of-type,
+dl.rights-dl dd:last-of-type {
+  border-bottom: none;
+}
+
+.rs-flag-red  { color: var(--alert-red); font-weight: bold; }
+.rs-flag-yel  { color: var(--alert-yel); font-weight: bold; }
+.rs-flag-grn  { color: var(--alert-grn); font-weight: bold; }
+
+.rs-note {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--muted);
+  font-style: italic;
+}
+
+.rs-resources {
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: rgba(58,95,138,0.15);
+  border-top: 2px solid var(--blue);
+  font-size: 12px;
+}
+
+.rs-resources a {
+  color: #6FA8D8;
+  text-decoration: none;
+}
+
+.rs-resources a:hover { text-decoration: underline; }
+
+/* ─── LAW REFERENCE ─────────────────────────────────────────── */
+.law-entry {
+  background: var(--surface);
+  margin-bottom: 12px;
+  border-top: 3px solid var(--blue);
+}
+
+.law-title-bar {
+  padding: 10px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.law-title-bar h3 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 14.5px;
+  font-weight: bold;
+  color: var(--text);
+}
+
+.law-cite {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.law-plain {
+  padding: 0 16px 12px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--text);
+  border-bottom: 1px dotted var(--border);
+}
+
+.law-toggle-row {
+  padding: 6px 16px;
+  display: flex;
+  gap: 16px;
+}
+
+.law-toggle {
+  background: none;
+  border: none;
+  color: #6FA8D8;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.law-toggle:hover { color: var(--text); }
+
+.law-expandable {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.law-expandable.open { max-height: 800px; }
+
+.law-expandable-inner {
+  padding: 10px 16px 12px;
+  border-top: 1px dotted var(--border);
+}
+
+.law-expandable-inner h4 {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.law-expandable-inner ul {
+  list-style: none;
+  padding: 0;
+}
+
+.law-expandable-inner ul li {
+  padding: 4px 0 4px 16px;
+  position: relative;
+  font-size: 13px;
+  border-bottom: 1px dotted var(--border);
+  line-height: 1.5;
+}
+
+.law-expandable-inner ul li:last-child { border-bottom: none; }
+
+.law-expandable-inner ul li::before {
+  content: '›';
+  position: absolute;
+  left: 0;
+  color: var(--blue);
+  font-weight: bold;
+}
+
+.law-local-note {
+  margin: 8px 0 0;
+  padding: 6px 10px;
+  background: rgba(45,90,39,0.2);
+  border-top: 2px solid var(--green);
+  font-size: 12px;
+  font-family: 'Courier New', Courier, monospace;
+  color: #85C47A;
+}
+
+/* ─── RED FLAG CHECKER ──────────────────────────────────────── */
+.flag-summary-bar {
+  background: var(--surface);
+  padding: 10px 16px;
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.flag-summary-bar .fs-item {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 12px;
+}
+
+.fs-red  { color: var(--alert-red); }
+.fs-yel  { color: var(--alert-yel); }
+.fs-grn  { color: var(--alert-grn); }
+
+.flag-category-head {
+  padding: 8px 16px 6px;
+  font-family: Georgia, serif;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  background: rgba(255,255,255,0.03);
+  border-bottom: 1px solid var(--border);
+  margin-top: 4px;
+}
+
+/* Scenario row table */
+.scenario-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.scenario-row {
+  border-bottom: 1px solid var(--border);
+  transition: background 0.12s;
+}
+
+.scenario-row:hover { background: rgba(255,255,255,0.02); }
+
+/* Color indicator column */
+.sc-indicator {
+  width: 6px;
+  min-width: 6px;
+}
+
+.sc-indicator.ind-none  { background: var(--border); }
+.sc-indicator.ind-red   { background: var(--alert-red); }
+.sc-indicator.ind-yel   { background: var(--alert-yel); }
+.sc-indicator.ind-grn   { background: var(--alert-grn); }
+
+/* Row tints after answer */
+.scenario-row.row-red   { background: rgba(193,18,31,0.08); }
+.scenario-row.row-yel   { background: rgba(212,160,23,0.08); }
+.scenario-row.row-grn   { background: rgba(58,140,74,0.08); }
+
+.sc-text {
+  padding: 9px 12px 9px 10px;
+  font-size: 13px;
+  line-height: 1.45;
+  vertical-align: top;
+}
+
+.sc-controls {
+  padding: 8px 12px;
+  white-space: nowrap;
+  vertical-align: top;
+}
+
+.sc-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 3px 8px;
+  font-size: 11.5px;
+  cursor: pointer;
+  border-radius: 2px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  margin-left: 4px;
+}
+
+.sc-btn:hover { border-color: var(--muted); color: var(--text); }
+.sc-btn.sc-yes.sel  { background: #C1121F; border-color: #C1121F; color: #fff; }
+.sc-btn.sc-no.sel   { background: var(--alert-grn); border-color: var(--alert-grn); color: #fff; }
+.sc-btn.sc-ns.sel   { background: var(--alert-yel); border-color: var(--alert-yel); color: #000; }
+
+.sc-result {
+  padding: 0 12px 8px 10px;
+  font-size: 12px;
+  line-height: 1.45;
+  display: none;
+}
+
+.sc-result.visible { display: block; }
+
+.sc-flag-label {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-right: 6px;
+}
+
+.flag-red  .sc-flag-label { color: var(--alert-red); }
+.flag-yel  .sc-flag-label { color: var(--alert-yel); }
+.flag-grn  .sc-flag-label { color: var(--alert-grn); }
+.flag-ns   .sc-flag-label { color: var(--muted); }
+
+/* ─── RESOURCES ─────────────────────────────────────────────── */
+.resource-group {
+  margin-bottom: 16px;
+  background: var(--surface);
+  border-top: 3px solid var(--green);
+}
+
+.rg-head {
+  padding: 8px 16px;
+  background: rgba(45,90,39,0.25);
+  font-family: Georgia, serif;
+  font-size: 13px;
+  font-weight: bold;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border);
+}
+
+.resource-item {
+  padding: 10px 16px;
+  border-bottom: 1px dotted var(--border);
+}
+
+.resource-item:last-child { border-bottom: none; }
+
+.ri-name {
+  font-family: Georgia, serif;
+  font-size: 13.5px;
+  font-weight: bold;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+
+.ri-link {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 11px;
+  color: #6FA8D8;
+  text-decoration: none;
+  display: inline-block;
+  margin-bottom: 4px;
+}
+
+.ri-link:hover { text-decoration: underline; }
+
+.ri-desc {
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.ri-phone {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 11.5px;
+  color: var(--text);
+  margin-top: 2px;
+}
+
+.what-to-bring {
+  margin-top: 6px;
+  padding: 5px 10px;
+  background: rgba(58,95,138,0.15);
+  border-left: 2px solid var(--blue);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.what-to-bring strong {
+  color: var(--text);
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+/* ─── MOBILE ────────────────────────────────────────────────── */
+@media (max-width: 680px) {
+  body { flex-direction: column; }
+
+  #sidebar {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    position: static;
+    border-right: none;
+    border-bottom: 2px solid var(--red);
+  }
+
+  .sidebar-brand { padding: 10px 12px 8px; }
+  .sidebar-brand h1 { font-size: 12px; }
+
+  .sidebar-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    padding: 4px 6px;
+  }
+
+  .sidebar-nav a {
+    padding: 5px 9px;
+    font-size: 11px;
+    border-left: none;
+    border-bottom: 2px solid transparent;
+  }
+
+  .sidebar-nav a.active {
+    border-left-color: transparent;
+    border-bottom-color: var(--red);
+    background: rgba(139,32,32,0.12);
+  }
+
+  #rights-strip { display: none; }
+  .sidebar-disclaimer { display: none; }
+  .section-body { padding: 14px 16px; }
+  .section-header { padding: 10px 16px 9px; }
+  #intro { padding: 14px 16px 12px; }
+}
+
+/* ─── PRINT ─────────────────────────────────────────────────── */
+@media print {
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  body {
+    background: #fff !important;
+    color: #111 !important;
+    font-family: Georgia, serif !important;
+    font-size: 11pt !important;
+    display: block;
+  }
+
+  #sidebar { display: none !important; }
+
+  #main { width: 100%; }
+
+  /* Hide everything except Rights Summary and Red Flag results */
+  #intro            { display: none !important; }
+  #section-snapshot .section-header { display: block !important; }
+  #section-snapshot .section-body > p,
+  #section-snapshot #q-form        { display: none !important; }
+  #section-law      { display: none !important; }
+  #section-resources{ display: none !important; }
+
+  .section-header {
+    background: #111 !important;
+    color: #fff !important;
+    padding: 8pt 12pt !important;
+    page-break-after: avoid;
+  }
+
+  .section-header h2 { font-size: 14pt !important; }
+  .section-header .sh-sub { font-size: 9pt !important; }
+
+  #rights-summary.visible {
+    display: block !important;
+    border: 2pt solid #111 !important;
+    background: #fff !important;
+  }
+
+  .rs-header { background: #111 !important; padding: 6pt 10pt !important; }
+  .rs-print-btn { display: none !important; }
+
+  dl.rights-dl dt { color: #555 !important; border-bottom-color: #ccc !important; }
+  dl.rights-dl dd { border-bottom-color: #ccc !important; color: #111 !important; }
+
+  .rs-flag-red { color: #8B0000 !important; }
+  .rs-flag-yel { color: #7A5800 !important; }
+  .rs-flag-grn { color: #1A5C1A !important; }
+
+  .scenario-row.row-red { background: #FFF0F0 !important; }
+  .scenario-row.row-yel { background: #FFFBF0 !important; }
+  .scenario-row.row-grn { background: #F0FFF0 !important; }
+
+  .sc-controls { display: none !important; }
+  .sc-result { display: block !important; }
+
+  .flag-summary-bar { background: #f4f4f4 !important; }
+
+  a[href]::after { content: none !important; }
+
+  .print-disclaimer {
+    margin-top: 16pt;
+    padding: 8pt;
+    border: 1pt solid #999;
+    font-size: 9pt;
+    color: #555;
+  }
+}
+
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════ SIDEBAR ═══════════════════════════════ -->
+<nav id="sidebar" role="navigation" aria-label="Section navigation">
+  <div class="sidebar-brand">
+    <h1>MN New Worker Rights<br>Field Guide</h1>
+    <div class="district">SD-8 · Duluth / St. Louis County</div>
+  </div>
+
+  <div class="sidebar-nav">
+    <a href="#section-snapshot" id="nav-1" aria-label="Section 1: My Rights Snapshot">
+      <span class="nav-num">01</span>My Rights Snapshot
+    </a>
+    <a href="#section-law" id="nav-2" aria-label="Section 2: Law Reference">
+      <span class="nav-num">02</span>Law Reference
+    </a>
+    <a href="#section-flags" id="nav-3" aria-label="Section 3: Red Flag Checker">
+      <span class="nav-num">03</span>Red Flag Checker
+    </a>
+    <a href="#section-resources" id="nav-4" aria-label="Section 4: Next Steps">
+      <span class="nav-num">04</span>Next Steps
+    </a>
+  </div>
+
+  <div id="rights-strip">
+    <div class="strip-label">Your Rights at a Glance</div>
+    <div class="strip-item">
+      <span class="si-key">ESST</span>
+      <span id="strip-esst" class="si-val-mut">Complete Snapshot →</span>
+    </div>
+    <div class="strip-item">
+      <span class="si-key">Non-compete</span>
+      <span id="strip-nc" class="si-val-mut">—</span>
+    </div>
+    <div class="strip-item">
+      <span class="si-key">Captive Mtg</span>
+      <span id="strip-cap" class="si-val-mut">—</span>
+    </div>
+  </div>
+
+  <div class="sidebar-disclaimer">
+    <strong>Not Legal Advice</strong>
+    This tool provides general information about Minnesota law. It is not legal advice. For advice about your specific situation, consult an attorney or the organizations in Section 4.
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════ MAIN ═══════════════════════════════════ -->
+<main id="main">
+
+  <!-- Intro -->
+  <div id="intro">
+    <p class="intro-lead">Minnesota's 2023 labor session was the most consequential for workers in a generation. Every Minnesota worker — full-time, part-time, gig — now has the right to earned sick and safe time. Non-compete clauses signed after July 1, 2023 are void. Employers can no longer force workers to sit through anti-union meetings. These rights exist. This tool helps you use them.</p>
+    <div class="intro-credit">The Minnesota Legislature's 2023 labor session — led in the Senate by Jennifer McEwen (SD-8) — gave every Minnesota worker the right to earned sick and safe time, voided non-compete agreements, and banned captive audience anti-union meetings. This tool was built to help workers in Senate District 8 and across Minnesota actually use those rights.</div>
+  </div>
+
+  <!-- ───────────────────── SECTION 1: SNAPSHOT ───────────────────── -->
+  <section class="content-section" id="section-snapshot">
+    <div class="section-header">
+      <div class="sh-num">SECTION 01</div>
+      <h2>My Rights Snapshot</h2>
+      <div class="sh-sub">Answer 6 questions — get a personalized summary of your rights under Minnesota's 2023 labor laws</div>
+    </div>
+    <div class="section-body">
+
+      <div id="q-form">
+        <!-- Q1 -->
+        <div class="q-group" id="qg-1">
+          <div class="q-label"><span>Q1</span>What type of worker are you?</div>
+          <div class="q-options">
+            <button class="q-btn" data-q="workerType" data-v="fulltime">Full-time employee</button>
+            <button class="q-btn" data-q="workerType" data-v="parttime">Part-time employee</button>
+            <button class="q-btn" data-q="workerType" data-v="temp">Temporary / seasonal</button>
+            <button class="q-btn" data-q="workerType" data-v="contractor">Independent contractor (1099)</button>
+            <button class="q-btn" data-q="workerType" data-v="gig">Gig / app-based</button>
+            <button class="q-btn" data-q="workerType" data-v="union">Unionized</button>
+          </div>
+        </div>
+
+        <!-- Q2 -->
+        <div class="q-group" id="qg-2">
+          <div class="q-label"><span>Q2</span>How many employees does your employer have?</div>
+          <div class="q-options">
+            <button class="q-btn" data-q="employerSize" data-v="1to5">1–5</button>
+            <button class="q-btn" data-q="employerSize" data-v="6to19">6–19</button>
+            <button class="q-btn" data-q="employerSize" data-v="20to99">20–99</button>
+            <button class="q-btn" data-q="employerSize" data-v="100plus">100+</button>
+            <button class="q-btn" data-q="employerSize" data-v="unknown">I don't know</button>
+          </div>
+        </div>
+
+        <!-- Q3 -->
+        <div class="q-group" id="qg-3">
+          <div class="q-label"><span>Q3</span>When did you start your current job?</div>
+          <div class="q-options">
+            <button class="q-btn" data-q="startDate" data-v="before2024">Before Jan 1, 2024</button>
+            <button class="q-btn" data-q="startDate" data-v="after2024">On or after Jan 1, 2024</button>
+          </div>
+        </div>
+
+        <!-- Q4 -->
+        <div class="q-group" id="qg-4">
+          <div class="q-label"><span>Q4</span>Does your employer have a non-compete agreement in your contract or offer letter?</div>
+          <div class="q-options">
+            <button class="q-btn" data-q="nonCompete" data-v="before_july2023">Yes, signed before July 1, 2023</button>
+            <button class="q-btn" data-q="nonCompete" data-v="after_july2023">Yes, signed on or after July 1, 2023</button>
+            <button class="q-btn" data-q="nonCompete" data-v="none">No</button>
+            <button class="q-btn" data-q="nonCompete" data-v="unsure">I'm not sure</button>
+          </div>
+        </div>
+
+        <!-- Q5 -->
+        <div class="q-group" id="qg-5">
+          <div class="q-label"><span>Q5</span>Has your employer ever held a required meeting about unions or union organizing?</div>
+          <div class="q-options">
+            <button class="q-btn" data-q="captiveAudience" data-v="yes">Yes</button>
+            <button class="q-btn" data-q="captiveAudience" data-v="no">No</button>
+            <button class="q-btn" data-q="captiveAudience" data-v="unsure">Not sure</button>
+          </div>
+        </div>
+
+        <!-- Q6 -->
+        <div class="q-group" id="qg-6">
+          <div class="q-label"><span>Q6</span>What industry do you work in?</div>
+          <div class="q-options">
+            <button class="q-btn" data-q="industry" data-v="healthcare">Healthcare / hospital</button>
+            <button class="q-btn" data-q="industry" data-v="education">Education / school</button>
+            <button class="q-btn" data-q="industry" data-v="trades">Trades / construction</button>
+            <button class="q-btn" data-q="industry" data-v="food">Restaurant / food service</button>
+            <button class="q-btn" data-q="industry" data-v="retail">Retail</button>
+            <button class="q-btn" data-q="industry" data-v="transport">Trucking / port / shipping</button>
+            <button class="q-btn" data-q="industry" data-v="govt">Government / public sector</button>
+            <button class="q-btn" data-q="industry" data-v="tech">Technology / professional services</button>
+            <button class="q-btn" data-q="industry" data-v="other">Other</button>
+          </div>
+        </div>
+
+        <div class="q-actions">
+          <button class="btn-primary" onclick="submitSnapshot()">Generate My Rights Summary</button>
+          <button class="btn-secondary" onclick="resetSnapshot()">Reset / Start Over</button>
+        </div>
+      </div><!-- /#q-form -->
+
+      <!-- Rights Summary Card (generated) -->
+      <div id="rights-summary">
+        <div class="rs-header">
+          <h3>Your Rights Summary Card</h3>
+          <button class="rs-print-btn" onclick="window.print()">Print This Summary</button>
+        </div>
+        <div id="rs-content"></div>
+        <div class="rs-resources">
+          <strong>Need help?</strong> See <a href="#section-resources">Section 4 — Next Steps &amp; Resources</a> for organizations that can assist with complaints, legal questions, and union rights.
+        </div>
+      </div>
+
+    </div><!-- /.section-body -->
+  </section>
+
+  <!-- ───────────────────── SECTION 2: LAW REFERENCE ───────────────────── -->
+  <section class="content-section" id="section-law">
+    <div class="section-header sh-blue">
+      <div class="sh-num">SECTION 02</div>
+      <h2>Law Reference</h2>
+      <div class="sh-sub">What the law actually says — plain language summaries with expandable key rules and exceptions</div>
+    </div>
+    <div class="section-body">
+
+      <!-- Law 1: ESST -->
+      <div class="law-entry" id="law-esst">
+        <div class="law-title-bar">
+          <h3>Earned Sick and Safe Time (ESST)</h3>
+          <span class="law-cite">Minn. Stat. § 181.9445–181.9448</span>
+        </div>
+        <div class="law-plain">
+          Starting January 1, 2024, every employee working in Minnesota — full-time, part-time, or seasonal — earns paid sick and safe leave automatically. For every 30 hours you work, you earn 1 hour of paid leave, up to 48 hours per year. You can use this time when you're sick, when a family member is sick, or when you need safety-related leave (such as for domestic violence or stalking situations). Your employer cannot punish you for using it.
+        </div>
+        <div class="law-toggle-row">
+          <button class="law-toggle" onclick="toggleLaw('esst-details', this)" aria-expanded="false" aria-controls="esst-details">Show key rules</button>
+          <button class="law-toggle" onclick="toggleLaw('esst-exceptions', this)" aria-expanded="false" aria-controls="esst-exceptions">Show exceptions &amp; fine print</button>
+        </div>
+        <div class="law-expandable" id="esst-details">
+          <div class="law-expandable-inner">
+            <h4>Key Rules</h4>
+            <ul>
+              <li><strong>Coverage:</strong> All employees working in Minnesota for any employer with 1 or more employees. This includes full-time, part-time, and temporary workers.</li>
+              <li><strong>Accrual rate:</strong> 1 hour of ESST for every 30 hours worked. Accrual begins from your first day of work — not after any waiting period.</li>
+              <li><strong>Annual cap:</strong> Employers may cap accrual at 48 hours per year.</li>
+              <li><strong>Carryover:</strong> Up to 80 hours of unused ESST may carry over to the next year. Employers may cap use at 48 hours in a calendar year.</li>
+              <li><strong>90-day rule (use only):</strong> Employers may require new employees to wait up to 90 days before they can first USE accrued ESST. Accrual still begins on day one — the waiting period only affects when you can take the leave.</li>
+              <li><strong>Permitted uses:</strong> Your own illness, injury, or health condition; care for a family member's illness; domestic violence, sexual assault, or stalking (safety leave); school or childcare closures due to public health emergency.</li>
+              <li><strong>Notice requirement:</strong> Employer may require up to 7 days advance notice for foreseeable leave; "reasonable" notice for unforeseeable leave (e.g., sudden illness). Employer cannot require more than this.</li>
+              <li><strong>Balance visibility:</strong> Employers must provide access to your ESST balance — typically on your pay stub or via an online portal.</li>
+              <li><strong>Retaliation protection:</strong> It is illegal for your employer to discipline, discharge, dock pay, or otherwise penalize you for using ESST.</li>
+              <li><strong>Enforcement:</strong> Complaints filed with the Minnesota Department of Labor and Industry (DLI). Workers may also have a private right of action.</li>
+            </ul>
+            <div class="law-local-note">DULUTH NOTE: Duluth enacted its own earned sick and safe time ordinance in 2016 — one of the first cities in Minnesota to do so. If you work within Duluth city limits, you are covered by both the state law and the city ordinance. You get whichever provides more generous protections. Contact the Duluth Human Rights Office for city-ordinance complaints.</div>
+          </div>
+        </div>
+        <div class="law-expandable" id="esst-exceptions">
+          <div class="law-expandable-inner">
+            <h4>Exceptions &amp; Edge Cases</h4>
+            <ul>
+              <li><strong>Independent contractors:</strong> The ESST law covers employees, not true independent contractors. However, worker misclassification is a widespread practice — if you work like an employee (set schedule, employer direction, single employer) but are paid as a 1099 contractor, you may actually be entitled to ESST. This is a gray area worth discussing with an attorney or DLI.</li>
+              <li><strong>Existing PTO policies:</strong> If your employer has an existing paid time off (PTO) policy that meets or exceeds the ESST requirements, it may satisfy the law — but only if the accrual, usage, and retaliation protections are equivalent.</li>
+              <li><strong>Collective bargaining:</strong> Certain provisions can be waived by a collective bargaining agreement (CBA) if the waiver is explicit and the CBA provides equivalent protections.</li>
+              <li><strong>Employer notice posting:</strong> Employers are required to post notice of ESST rights. If your workplace has no posting, that itself may be worth reporting to DLI.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Law 2: Non-Compete -->
+      <div class="law-entry" id="law-nc">
+        <div class="law-title-bar">
+          <h3>Non-Compete Agreement Ban</h3>
+          <span class="law-cite">Minn. Stat. § 181.988</span>
+        </div>
+        <div class="law-plain">
+          Effective July 1, 2023, any non-compete agreement signed on or after that date is void and unenforceable in Minnesota. If you were asked to sign something saying you can't work for a competitor or start a competing business after leaving your job, and you signed it on or after July 1, 2023, that agreement cannot be used against you. It is legally null.
+        </div>
+        <div class="law-toggle-row">
+          <button class="law-toggle" onclick="toggleLaw('nc-details', this)" aria-expanded="false" aria-controls="nc-details">Show key rules</button>
+          <button class="law-toggle" onclick="toggleLaw('nc-exceptions', this)" aria-expanded="false" aria-controls="nc-exceptions">Show exceptions &amp; fine print</button>
+        </div>
+        <div class="law-expandable" id="nc-details">
+          <div class="law-expandable-inner">
+            <h4>Key Rules</h4>
+            <ul>
+              <li><strong>Controlling date:</strong> July 1, 2023. Non-compete agreements signed ON OR AFTER this date are void. Agreements signed before this date are not automatically void.</li>
+              <li><strong>What is banned:</strong> Covenants not to compete — agreements that restrict an employee from working for a competitor or starting a competing business after leaving the employer.</li>
+              <li><strong>Legal consequence:</strong> A void agreement is unenforceable from the start. An employer cannot sue you based on a void non-compete. If they threaten to, that threat has no legal foundation under Minnesota law.</li>
+              <li><strong>Employer can still present one:</strong> An employer can still hand you a non-compete to sign — but if you sign it today, it is immediately void. You cannot be bound by it.</li>
+              <li><strong>Remedy:</strong> If an employer attempts to enforce a void non-compete, the employee may seek relief including attorneys' fees.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="law-expandable" id="nc-exceptions">
+          <div class="law-expandable-inner">
+            <h4>Exceptions &amp; Fine Print</h4>
+            <ul>
+              <li><strong>NDAs still valid:</strong> Non-disclosure agreements (NDAs) that protect trade secrets and confidential information remain enforceable. The ban is specific to non-compete clauses restricting future employment or business competition.</li>
+              <li><strong>Non-solicitation of customers:</strong> Certain non-solicitation clauses (prohibiting you from poaching employer customers after leaving) may still be enforceable in some circumstances — this is a gray area. Consult an attorney if your agreement includes one.</li>
+              <li><strong>Trade secret protections:</strong> Federal and state trade secret laws remain in effect. Leaving an employer does not entitle you to take proprietary information.</li>
+              <li><strong>Pre-July 2023 agreements:</strong> Non-competes signed before July 1, 2023 are still potentially enforceable, subject to a reasonableness analysis: courts examine the duration, geographic scope, and whether the employer has a legitimate business interest to protect. Many pre-2023 non-competes have been found unreasonable. Consult an attorney if you are being threatened with enforcement of an older agreement.</li>
+              <li><strong>Sale of business exception:</strong> Non-compete agreements entered into in connection with the sale of a business may be treated differently. Consult an attorney.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Law 3: Captive Audience -->
+      <div class="law-entry" id="law-cap">
+        <div class="law-title-bar">
+          <h3>Captive Audience Meeting Ban</h3>
+          <span class="law-cite">Minn. Stat. § 179.30</span>
+        </div>
+        <div class="law-plain">
+          Effective May 24, 2023, Minnesota employers cannot require you to attend meetings where they express their views on unions, union organizing, political matters, or religion. If attendance is mandatory and the employer is pushing an anti-union message, that is now likely illegal. You cannot be disciplined or threatened for refusing to attend or for walking out.
+        </div>
+        <div class="law-toggle-row">
+          <button class="law-toggle" onclick="toggleLaw('cap-details', this)" aria-expanded="false" aria-controls="cap-details">Show key rules</button>
+          <button class="law-toggle" onclick="toggleLaw('cap-exceptions', this)" aria-expanded="false" aria-controls="cap-exceptions">Show exceptions &amp; fine print</button>
+        </div>
+        <div class="law-expandable" id="cap-details">
+          <div class="law-expandable-inner">
+            <h4>Key Rules</h4>
+            <ul>
+              <li><strong>What is prohibited:</strong> Employers may not require employees to attend any meeting at which the employer communicates the employer's views on political or religious matters, or on matters relating to union organizing.</li>
+              <li><strong>No retaliation for refusal:</strong> An employer cannot discipline, discharge, threaten, or penalize an employee for refusing to attend, for leaving, or for failing to participate in such a meeting.</li>
+              <li><strong>Private right of action:</strong> Employees may file a civil lawsuit against an employer for violations. Remedies include compensatory damages and attorneys' fees.</li>
+              <li><strong>Documentation matters:</strong> If you believe a meeting violated this law, document everything — the date, who called the meeting, what was said, and who attended.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="law-expandable" id="cap-exceptions">
+          <div class="law-expandable-inner">
+            <h4>Exceptions &amp; Fine Print</h4>
+            <ul>
+              <li><strong>Voluntary meetings:</strong> Meetings that are genuinely voluntary — where there is truly no negative consequence for not attending — are not prohibited. The issue is when attendance is coerced through scheduling, supervisor pressure, or threat of adverse action.</li>
+              <li><strong>Informational / operational meetings:</strong> Meetings that are genuinely educational or informational about operations, benefits, or workplace policies are not banned — even if they touch on related subjects — provided they do not include the employer's views on union organizing or political/religious matters.</li>
+              <li><strong>"Optional" with pressure:</strong> If a meeting is labeled optional but supervisors track attendance, or if there is an implicit expectation, courts may still find it constitutes a captive audience situation. Context matters.</li>
+              <li><strong>Contested provision:</strong> This was among the most heavily contested parts of the 2023 labor package and drew significant employer opposition. Expect that employers aware of the law will carefully label meetings as "voluntary" — the substance and context determine compliance, not just the label.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Law 4: Union Rights -->
+      <div class="law-entry" id="law-union">
+        <div class="law-title-bar">
+          <h3>Union Organizing Rights</h3>
+          <span class="law-cite">NLRA + 2023 MN Enhancements</span>
+        </div>
+        <div class="law-plain">
+          The right to organize, join, and form unions is primarily protected by the federal National Labor Relations Act (NLRA). Minnesota's 2023 labor package strengthened state-level protections in several areas — making it easier to join and form unions, and protecting workers during organizing campaigns. Major Duluth employers like Essentia Health, St. Luke's, UMD, and the Twin Ports trades operate in heavily unionized sectors with robust protections.
+        </div>
+        <div class="law-toggle-row">
+          <button class="law-toggle" onclick="toggleLaw('union-details', this)" aria-expanded="false" aria-controls="union-details">Show key rules</button>
+          <button class="law-toggle" onclick="toggleLaw('union-exceptions', this)" aria-expanded="false" aria-controls="union-exceptions">Show sector notes</button>
+        </div>
+        <div class="law-expandable" id="union-details">
+          <div class="law-expandable-inner">
+            <h4>Key Rules (Federal NLRA Framework)</h4>
+            <ul>
+              <li><strong>Right to organize:</strong> Private-sector employees have the right to form, join, or assist labor unions and to engage in collective bargaining through representatives of their own choosing.</li>
+              <li><strong>Right to concerted activity:</strong> Workers have the right to act together for mutual aid or protection — including discussing wages, working conditions, and grievances — even outside of a formal union context.</li>
+              <li><strong>Protection from interference:</strong> Employers may not interfere with, restrain, or coerce employees exercising these rights. This includes threatening job loss, cutting hours, or making promises to discourage organizing.</li>
+              <li><strong>2023 MN enhancements:</strong> The 2023 package expanded state-level organizing rights and protections in several areas. For specifics about how these apply in your sector, contact the Minnesota AFL-CIO, your union if you have one, or consult a labor attorney. (This tool does not cite specific 2023 MN statute numbers for provisions not independently verifiable.)</li>
+              <li><strong>Public sector:</strong> Most state and local government employees are covered by Minnesota's Public Employment Labor Relations Act (PELRA) rather than the NLRA — similar framework, different agency.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="law-expandable" id="union-exceptions">
+          <div class="law-expandable-inner">
+            <h4>Duluth Sector Notes</h4>
+            <ul>
+              <li><strong>Healthcare (Essentia, St. Luke's):</strong> SEIU and other healthcare unions are active in Duluth's hospital sector. NLRA applies to most private hospital employees.</li>
+              <li><strong>Trades / Ports (USW, Teamsters, Building Trades):</strong> Strong historical union presence in Twin Ports shipping, steelworking, and construction. Collective bargaining agreements govern most working conditions.</li>
+              <li><strong>Education (DPS, UMD):</strong> Public school teachers and UMD employees are covered by PELRA. AFSCME is active in public sector Duluth employment.</li>
+              <li><strong>Gig/app-based workers:</strong> Current federal law generally does not extend NLRA protections to independent contractors. The misclassification question (are you really an employee?) is critical here.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Law 5: Duluth Ordinance -->
+      <div class="law-entry" id="law-duluth">
+        <div class="law-title-bar">
+          <h3>Duluth Local Sick Leave Ordinance</h3>
+          <span class="law-cite">Duluth City Code (2016)</span>
+        </div>
+        <div class="law-plain">
+          Duluth adopted its own earned sick and safe time ordinance in 2016 — one of the earliest in Minnesota, predating the state law by years. If you work within Duluth city limits, you are covered by both the state ESST law and the Duluth ordinance. You receive whichever set of protections is more generous.
+        </div>
+        <div class="law-toggle-row">
+          <button class="law-toggle" onclick="toggleLaw('duluth-details', this)" aria-expanded="false" aria-controls="duluth-details">Show details</button>
+        </div>
+        <div class="law-expandable" id="duluth-details">
+          <div class="law-expandable-inner">
+            <h4>Key Details</h4>
+            <ul>
+              <li><strong>Coverage:</strong> Employees working within Duluth city limits, for employers with 5 or more employees (smaller threshold considerations may apply — check with the Human Rights Office).</li>
+              <li><strong>Consistency with state law:</strong> The Duluth ordinance is broadly consistent with the 2024 state ESST law. In most cases the state law now provides at least as generous protections — but the city ordinance may offer additional local enforcement mechanisms.</li>
+              <li><strong>Local enforcement:</strong> Complaints about violations of the Duluth ordinance can be filed with the Duluth Human Rights Office. This is separate from DLI's state enforcement.</li>
+              <li><strong>"More generous" rule:</strong> If you are covered by both, you receive the benefit of whichever protection is broader in any given area. You do not lose city protections because a state law now exists.</li>
+            </ul>
+            <div class="law-local-note">CONTACT: Duluth Human Rights Office — duluthmn.gov/human-rights-office</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ───────────────────── SECTION 3: RED FLAG CHECKER ───────────────────── -->
+  <section class="content-section" id="section-flags">
+    <div class="section-header">
+      <div class="sh-num">SECTION 03</div>
+      <h2>Red Flag Checker</h2>
+      <div class="sh-sub">Select YES / NO / NOT SURE for each scenario to see if your employer may be breaking the law</div>
+    </div>
+    <div class="section-body" style="padding: 0;">
+
+      <div class="flag-summary-bar">
+        <span class="fs-item fs-red" id="count-red">0 red flags</span>
+        <span class="fs-item fs-yel" id="count-yel">0 yellow flags</span>
+        <span class="fs-item fs-grn" id="count-grn">0 green flags</span>
+        <span class="fs-item" style="color:var(--muted); font-size:11px; margin-left:auto;">Answer scenarios below to update counts</span>
+      </div>
+
+      <table class="scenario-table" id="scenario-table" role="table" aria-label="Red Flag Checker scenarios">
+        <tbody id="scenario-tbody"></tbody>
+      </table>
+
+    </div>
+  </section>
+
+  <!-- ───────────────────── SECTION 4: RESOURCES ───────────────────── -->
+  <section class="content-section" id="section-resources">
+    <div class="section-header sh-green">
+      <div class="sh-num">SECTION 04</div>
+      <h2>Next Steps &amp; Resources</h2>
+      <div class="sh-sub">Real organizations that can help — grouped by issue type</div>
+    </div>
+    <div class="section-body">
+
+      <!-- ESST Complaints -->
+      <div class="resource-group">
+        <div class="rg-head">Earned Sick and Safe Time Complaints</div>
+
+        <div class="resource-item">
+          <div class="ri-name">Minnesota Department of Labor and Industry (DLI)</div>
+          <a class="ri-link" href="https://www.dli.mn.gov" target="_blank" rel="noopener">dli.mn.gov</a>
+          <div class="ri-phone">Phone: 651-284-5005</div>
+          <div class="ri-desc">The state agency that enforces the ESST law. You can file a complaint online or by phone. DLI investigates claims that an employer failed to provide ESST, retaliated against a worker for using ESST, or failed to track and disclose balances.</div>
+          <div class="what-to-bring"><strong>Bring to complaint:</strong> Your pay stubs showing hours worked, any written communication from your employer about sick leave, dates you were denied leave or disciplined, and the name and address of your employer.</div>
+        </div>
+
+        <div class="resource-item">
+          <div class="ri-name">City of Duluth Human Rights Office</div>
+          <a class="ri-link" href="https://duluthmn.gov/human-rights-office" target="_blank" rel="noopener">duluthmn.gov/human-rights-office</a>
+          <div class="ri-desc">Enforces Duluth's local earned sick and safe time ordinance for employers operating within Duluth city limits. For workers in Duluth, this is a parallel enforcement option — you may file with the city office, DLI, or both.</div>
+          <div class="what-to-bring"><strong>Bring to complaint:</strong> Same as DLI — pay stubs, communications from employer, dates and specifics of the violation.</div>
+        </div>
+      </div>
+
+      <!-- Non-Compete & Labor Standards -->
+      <div class="resource-group">
+        <div class="rg-head">Non-Compete and Labor Law Issues</div>
+
+        <div class="resource-item">
+          <div class="ri-name">Minnesota Department of Labor and Industry — Labor Standards</div>
+          <a class="ri-link" href="https://www.dli.mn.gov/business/employment-practices/labor-standards" target="_blank" rel="noopener">dli.mn.gov/business/employment-practices/labor-standards</a>
+          <div class="ri-desc">DLI's Labor Standards division handles a broad range of employment law questions including wage theft, misclassification, and general compliance. For non-compete questions, they can provide guidance on the 2023 law even if formal complaint mechanisms differ.</div>
+        </div>
+
+        <div class="resource-item">
+          <div class="ri-name">Legal Aid Service of Northeastern Minnesota</div>
+          <a class="ri-link" href="https://www.legalaidmn.org" target="_blank" rel="noopener">legalaidmn.org</a>
+          <div class="ri-desc">Serves Duluth and St. Louis County. Provides free civil legal assistance to income-qualifying workers. Can help with non-compete questions, wage theft, wrongful termination, and related employment law issues. This is the first call for a Duluth worker who needs an attorney but cannot afford one.</div>
+          <div class="what-to-bring"><strong>Bring to intake:</strong> Your employment contract or offer letter, the non-compete agreement if you have one, any communications from your employer about the agreement, and documentation of any threats or legal action.</div>
+        </div>
+      </div>
+
+      <!-- Union & Organizing -->
+      <div class="resource-group">
+        <div class="rg-head">Union and Organizing Questions</div>
+
+        <div class="resource-item">
+          <div class="ri-name">Minnesota AFL-CIO</div>
+          <a class="ri-link" href="https://www.mnaflcio.org" target="_blank" rel="noopener">mnaflcio.org</a>
+          <div class="ri-desc">The state federation of labor unions. Can connect workers with organizing resources, refer to appropriate affiliated unions, and provide information about worker rights under the 2023 labor package. Active in labor education statewide.</div>
+        </div>
+
+        <div class="resource-item">
+          <div class="ri-name">NLRB Region 18 — Minneapolis</div>
+          <a class="ri-link" href="https://www.nlrb.gov/about-nlrb/who-we-are/regional-offices/region-18" target="_blank" rel="noopener">nlrb.gov — Region 18</a>
+          <div class="ri-desc">The regional office of the National Labor Relations Board covering Minnesota. Handles charges related to unfair labor practices under federal law — including employer interference with organizing, retaliation for union activity, and refusal to bargain. For captive audience meeting violations that may also implicate federal law, this is a parallel avenue to the state statute.</div>
+          <div class="what-to-bring"><strong>Bring to complaint:</strong> Dates and details of the alleged unfair labor practice, names of witnesses, any written communications, and your employer's legal name and address.</div>
+        </div>
+      </div>
+
+      <!-- General Worker Rights -->
+      <div class="resource-group">
+        <div class="rg-head">General Worker Rights</div>
+
+        <div class="resource-item">
+          <div class="ri-name">Minnesota Attorney General's Office — Wage Theft Unit</div>
+          <a class="ri-link" href="https://www.ag.state.mn.us/Consumer/WorkplaceRights" target="_blank" rel="noopener">ag.state.mn.us/Consumer/WorkplaceRights</a>
+          <div class="ri-desc">The MN AG's office has authority over wage theft and worker exploitation. If your employer has been withholding earned wages, misclassifying workers, or engaging in systematic violation of labor laws, this office can investigate and take action on behalf of affected workers — not just individuals.</div>
+        </div>
+
+        <div class="resource-item">
+          <div class="ri-name">TakeAction Minnesota</div>
+          <a class="ri-link" href="https://www.takeactionminnesota.org" target="_blank" rel="noopener">takeactionminnesota.org</a>
+          <div class="ri-desc">A community organizing and civic power-building organization active statewide. Engages workers on labor rights, economic justice, and civic engagement. Can connect workers to community organizing efforts and advocacy resources beyond formal legal channels.</div>
+        </div>
+
+        <div class="resource-item">
+          <div class="ri-name">OutFront Minnesota</div>
+          <a class="ri-link" href="https://www.outfront.org" target="_blank" rel="noopener">outfront.org</a>
+          <div class="ri-desc">Statewide LGBTQ+ advocacy organization. Relevant for workers navigating intersecting issues — workplace discrimination alongside labor rights questions. Can connect workers to LGBTQ+-competent legal resources.</div>
+        </div>
+      </div>
+
+      <div style="padding: 14px; background: var(--surface); border-top: 2px solid var(--alert-yel); font-size: 12px; color: var(--muted); line-height: 1.6;">
+        <strong style="color: var(--alert-yel); font-family: 'Courier New', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;">Legal Disclaimer</strong><br>
+        This tool provides general information about Minnesota law as of its publication date. It is not legal advice. Laws change and individual situations vary significantly. For advice about your specific situation, consult a licensed attorney or contact the organizations listed above. Nothing in this tool creates an attorney-client relationship.
+      </div>
+
+      <div class="print-disclaimer" style="display:none;">
+        This tool provides general information about Minnesota law. It is not legal advice. For advice about your specific situation, consult an attorney or contact the organizations listed in Section 4. — Minnesota New Worker Rights Field Guide, Senate District 8
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<script>
+/* ════════════════════════════════════════════════════════════════
+   DATA DEFINITIONS
+   ════════════════════════════════════════════════════════════════ */
+
+const SCENARIOS = [
+  // ── SICK TIME ──────────────────────────────────────────────────
+  {
+    id: 'sc1', category: 'Sick Time — Earned Sick and Safe Time (ESST)',
+    text: 'My employer told me I cannot use earned sick time during my first 90 days of work.',
+    flagLevel: 'RED',
+    explanation: 'Employees accrue ESST from day one of employment. An employer <em>may</em> require new employees to wait up to 90 days before their first use of accrued ESST — but this is a use delay, not an accrual delay. If your employer is saying you have <em>zero</em> ESST hours or cannot use <em>any</em> accrued hours before day 90, and is doing so beyond what the law allows, that is a likely violation. Document the denial and contact DLI.'
+  },
+  {
+    id: 'sc2', category: 'Sick Time — Earned Sick and Safe Time (ESST)',
+    text: 'My employer requires me to find my own replacement before I can use sick time.',
+    flagLevel: 'RED',
+    explanation: 'Under Minnesota ESST law (Minn. Stat. § 181.9445 et seq.), an employer cannot condition your use of earned sick and safe time on finding your own replacement. This is a prohibited restriction on your right to take leave. Document the policy (in writing if possible) and file a complaint with DLI.'
+  },
+  {
+    id: 'sc3', category: 'Sick Time — Earned Sick and Safe Time (ESST)',
+    text: 'My employer said sick time doesn\'t apply to me because I work part-time (less than 20 hours per week).',
+    flagLevel: 'RED',
+    explanation: 'Part-time status does not exempt a worker from ESST coverage. The law covers all employees working in Minnesota for an employer with one or more employees — full-time, part-time, and temporary. Your accrual will be proportionally lower (since it's based on hours worked), but you still earn and can use ESST. This employer statement is incorrect and likely a violation if acted upon.'
+  },
+  {
+    id: 'sc4', category: 'Sick Time — Earned Sick and Safe Time (ESST)',
+    text: 'My employer docks my pay or gives me a "point" when I call in sick, even though I have ESST hours available.',
+    flagLevel: 'RED',
+    explanation: 'Retaliation or discipline for using earned sick and safe time is explicitly prohibited under Minn. Stat. § 181.9448. Docking pay and point-based attendance systems that penalize ESST use are both likely violations. If this happens, document every instance — date, how many ESST hours you had, the discipline issued — and file a complaint with DLI.'
+  },
+  {
+    id: 'sc5', category: 'Sick Time — Earned Sick and Safe Time (ESST)',
+    text: 'My employer uses a PTO bank but never tells me how many hours I\'ve earned.',
+    flagLevel: 'YELLOW',
+    explanation: 'Employers are required to provide employees with access to their ESST balance information. This may be satisfied via your pay stub, an online portal, or a similar system. If you have genuinely no way to check your balance, that is a compliance gap worth raising with your employer and, if unresolved, reporting to DLI. It may not be a clear-cut violation depending on exactly how the information is made available, but you have the right to know your balance.'
+  },
+  // ── NON-COMPETE ───────────────────────────────────────────────
+  {
+    id: 'sc6', category: 'Non-Compete Agreements',
+    text: 'I was asked to sign a non-compete agreement when I started my current job (after July 1, 2023).',
+    flagLevel: 'RED',
+    explanation: 'Any non-compete agreement signed on or after July 1, 2023 is void and unenforceable under Minnesota law (Minn. Stat. § 181.988). You cannot be legally bound by it. However, your contract may also include an NDA or non-solicitation clause that <em>is</em> enforceable — do not disregard the entire document. Consult an attorney to distinguish which parts of your agreement remain valid and which are void.'
+  },
+  {
+    id: 'sc7', category: 'Non-Compete Agreements',
+    text: 'My employer is threatening to sue me for violating a non-compete I signed in 2024 or later.',
+    flagLevel: 'RED',
+    explanation: 'A non-compete signed on or after July 1, 2023 is void under Minnesota law. A threat to sue based on a legally void agreement is legally baseless under Minnesota law. This does not mean the threat is not stressful or that you should ignore it — some employers issue these threats knowing the agreement is void, hoping workers don\'t know their rights. Contact Legal Aid Service of Northeastern Minnesota (for Duluth-area workers) or another attorney immediately.'
+  },
+  {
+    id: 'sc8', category: 'Non-Compete Agreements',
+    text: 'My employer is threatening to sue me for violating a non-compete I signed in 2020 or earlier.',
+    flagLevel: 'YELLOW',
+    explanation: 'Non-compete agreements signed before July 1, 2023 are not automatically void in Minnesota. They remain potentially enforceable, subject to a reasonableness analysis by a court — which considers duration, geographic scope, and whether the employer has a legitimate business interest to protect. Many pre-2023 non-competes are found unreasonable, but this is a legal determination, not an automatic one. Consult a labor or employment attorney before taking any action.'
+  },
+  // ── CAPTIVE AUDIENCE ──────────────────────────────────────────
+  {
+    id: 'sc9', category: 'Captive Audience Meetings',
+    text: 'My employer required me to attend a meeting where managers spoke against joining a union.',
+    flagLevel: 'RED',
+    explanation: 'If attendance was mandatory (or if refusing would have resulted in discipline or other negative consequence), this is likely a captive audience violation under Minn. Stat. § 179.30. Employers may not require employees to attend meetings where the employer communicates views on union organizing. You have a private right of action — you may sue the employer and seek damages and attorneys\' fees. Document the date, what was said, who was present, and that attendance was required.'
+  },
+  {
+    id: 'sc10', category: 'Captive Audience Meetings',
+    text: 'I was told attendance at an anti-union meeting was "optional," but my supervisor is tracking who shows up.',
+    flagLevel: 'YELLOW',
+    explanation: 'A meeting labeled "optional" with supervisor tracking of attendance may still constitute a captive audience violation — especially if workers reasonably believe there will be consequences for not attending. Minnesota courts and agencies look at the full context, not just the label. Document everything: that it was called "optional," that your supervisor was recording attendance, who attended and who did not, and whether any difference in treatment followed. This warrants legal consultation, particularly if it recurs.'
+  }
+];
+
+/* ════════════════════════════════════════════════════════════════
+   STATE
+   ════════════════════════════════════════════════════════════════ */
+
+const ANSWERS_KEY = 'mcewen_snapshot_v1';
+
+let answers = {
+  workerType: null,
+  employerSize: null,
+  startDate: null,
+  nonCompete: null,
+  captiveAudience: null,
+  industry: null
+};
+
+// Load from localStorage
+(function loadSaved() {
+  try {
+    const saved = localStorage.getItem(ANSWERS_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      Object.assign(answers, parsed);
+      // Restore button selections
+      Object.keys(answers).forEach(q => {
+        if (answers[q]) {
+          const btn = document.querySelector(`.q-btn[data-q="${q}"][data-v="${answers[q]}"]`);
+          if (btn) btn.classList.add('selected');
+        }
+      });
+    }
+  } catch(e) { /* ignore */ }
+})();
+
+/* ════════════════════════════════════════════════════════════════
+   QUESTIONNAIRE LOGIC
+   ════════════════════════════════════════════════════════════════ */
+
+document.querySelectorAll('.q-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const q = this.dataset.q;
+    // Deselect siblings
+    document.querySelectorAll(`.q-btn[data-q="${q}"]`).forEach(b => b.classList.remove('selected'));
+    this.classList.add('selected');
+    answers[q] = this.dataset.v;
+    try { localStorage.setItem(ANSWERS_KEY, JSON.stringify(answers)); } catch(e) {}
+  });
+});
+
+function submitSnapshot() {
+  const missing = Object.keys(answers).find(k => !answers[k]);
+  if (missing) {
+    // Highlight unanswered
+    const qMap = {workerType:1, employerSize:2, startDate:3, nonCompete:4, captiveAudience:5, industry:6};
+    if (qMap[missing]) {
+      const el = document.getElementById(`qg-${qMap[missing]}`);
+      if (el) {
+        el.scrollIntoView({behavior:'smooth', block:'center'});
+        el.style.outline = '2px solid var(--alert-red)';
+        setTimeout(() => el.style.outline = '', 2000);
+      }
+    }
+    return;
+  }
+  const html = generateRightsSummary(answers);
+  document.getElementById('rs-content').innerHTML = html;
+  const card = document.getElementById('rights-summary');
+  card.classList.add('visible');
+  card.scrollIntoView({behavior:'smooth', block:'start'});
+  updateSidebarStrip(answers);
+}
+
+function resetSnapshot() {
+  Object.keys(answers).forEach(k => answers[k] = null);
+  document.querySelectorAll('.q-btn.selected').forEach(b => b.classList.remove('selected'));
+  document.getElementById('rights-summary').classList.remove('visible');
+  try { localStorage.removeItem(ANSWERS_KEY); } catch(e) {}
+  updateSidebarStrip(null);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   RIGHTS SUMMARY GENERATOR
+   ════════════════════════════════════════════════════════════════ */
+
+function generateRightsSummary(a) {
+  let parts = [];
+
+  // ── ESST ──────────────────────────────────────────────────────
+  let esstStatus, esstClass, esstNote;
+  if (a.workerType === 'contractor') {
+    esstStatus = 'LIKELY NOT COVERED (contractor)';
+    esstClass = 'rs-flag-yel';
+    esstNote = 'The ESST law covers employees, not independent contractors. However, worker misclassification is common. If you work set hours at a single employer's direction, you may actually be an employee entitled to ESST protections. This is worth discussing with an attorney or DLI.';
+  } else if (a.workerType === 'gig') {
+    esstStatus = 'GRAY AREA (gig/app-based)';
+    esstClass = 'rs-flag-yel';
+    esstNote = 'Gig workers classified as independent contractors are generally not covered by ESST. If your app-based work involves employer control over when and how you work, you may be misclassified. Legal Aid or a labor attorney can help assess your situation.';
+  } else {
+    esstStatus = 'COVERED ✓';
+    esstClass = 'rs-flag-grn';
+    // Calculate illustrative accrual
+    let hoursContext = '';
+    if (a.workerType === 'fulltime') hoursContext = 'Working full-time (~40 hrs/week), you accrue ~1.3 hours/week — up to 48 hours per year.';
+    else if (a.workerType === 'parttime') hoursContext = 'Part-time status does not exempt you. You accrue 1 hour per 30 hours worked, proportional to your actual hours.';
+    else if (a.workerType === 'temp') hoursContext = 'Temporary and seasonal workers are covered. You accrue 1 hour per 30 hours worked from day one.';
+    else if (a.workerType === 'union') hoursContext = 'Unionized workers are covered by ESST, though your CBA may include equivalent or superior leave provisions — check your contract.';
+    esstNote = hoursContext + (a.startDate === 'after2024'
+      ? ' You started after Jan 1, 2024, so ESST has applied to you since your first day of work.'
+      : ' You started before the law\'s effective date (Jan 1, 2024). ESST coverage applies to all qualifying workers from that date forward.');
+  }
+
+  parts.push(`<dt>Sick &amp; Safe Time (ESST)</dt><dd><span class="${esstClass}">${esstStatus}</span>${esstNote ? `<div class="rs-note">${esstNote}</div>` : ''}</dd>`);
+
+  // Duluth note
+  if (['healthcare','education','trades','food','retail','transport','govt','other'].includes(a.industry)) {
+    parts.push(`<dt>Duluth Ordinance</dt><dd><span class="rs-flag-grn">ALSO COVERED ✓</span><div class="rs-note">If you work within Duluth city limits, the city's 2016 sick leave ordinance also applies. You receive whichever protections are more generous. File city complaints with the Duluth Human Rights Office.</div></dd>`);
+  }
+
+  // ── NON-COMPETE ───────────────────────────────────────────────
+  let ncStatus, ncClass, ncNote;
+  if (a.nonCompete === 'after_july2023') {
+    ncStatus = 'VOID ⚠ — Unenforceable';
+    ncClass = 'rs-flag-red';
+    ncNote = 'Any non-compete you signed on or after July 1, 2023 is void under Minn. Stat. § 181.988. Your employer cannot legally enforce it. However, your contract may also include an NDA or non-solicitation clause — consult an attorney before assuming the entire agreement is unenforceable.';
+  } else if (a.nonCompete === 'before_july2023') {
+    ncStatus = 'POTENTIALLY VALID — Consult an attorney';
+    ncClass = 'rs-flag-yel';
+    ncNote = 'Non-competes signed before July 1, 2023 are not automatically void. They may be enforceable if they meet a reasonableness standard (duration, geography, legitimate business interest). Many are still challenged and found unreasonable. Get legal advice before changing jobs if you have one of these.';
+  } else if (a.nonCompete === 'none') {
+    ncStatus = 'NO NON-COMPETE';
+    ncClass = 'rs-flag-grn';
+    ncNote = 'You have no reported non-compete restriction. If you are unsure whether your offer letter or employment contract contains one, review it before accepting any other employment — and note that any new non-compete presented to you today would be void under Minnesota law.';
+  } else {
+    ncStatus = 'UNSURE — Review your contract';
+    ncClass = 'rs-flag-yel';
+    ncNote = 'Check your offer letter and any employment agreements you signed. Look for language like "covenant not to compete," "non-competition," or restrictions on working for competitors after leaving. If you find one, the controlling question is: what date did you sign it?';
+  }
+
+  parts.push(`<dt>Non-Compete Agreement</dt><dd><span class="${ncClass}">${ncStatus}</span><div class="rs-note">${ncNote}</div></dd>`);
+
+  // ── CAPTIVE AUDIENCE ──────────────────────────────────────────
+  let capStatus, capClass, capNote;
+  if (a.captiveAudience === 'yes') {
+    capStatus = 'POTENTIAL VIOLATION — Review';
+    capClass = 'rs-flag-red';
+    capNote = 'If you were required to attend a meeting where your employer expressed views against union organizing, that is likely a violation of Minn. Stat. § 179.30 (effective May 24, 2023). Document the date, content, who called it, and whether attendance was mandatory. You have a private right of action. See Section 4 for NLRB Region 18 and Legal Aid contacts.';
+  } else if (a.captiveAudience === 'unsure') {
+    capStatus = 'UNCERTAIN — Check the details';
+    capClass = 'rs-flag-yel';
+    capNote = 'Think about whether: (1) a meeting was called by management, (2) the topic included union organizing or political/religious matters, and (3) attendance was required or there were consequences for not attending. If all three apply, it may have been a captive audience violation.';
+  } else {
+    capStatus = 'NO ISSUE REPORTED';
+    capClass = 'rs-flag-grn';
+    capNote = 'No captive audience meeting reported. Be aware: if your employer calls a mandatory meeting in the future that includes anti-union messaging, you have the right to leave without penalty under Minnesota law.';
+  }
+
+  parts.push(`<dt>Captive Audience Mtgs</dt><dd><span class="${capClass}">${capStatus}</span><div class="rs-note">${capNote}</div></dd>`);
+
+  // ── UNION SECTOR FLAG ─────────────────────────────────────────
+  const strongUnionSectors = ['healthcare','education','trades','transport','govt'];
+  if (strongUnionSectors.includes(a.industry)) {
+    const sectorNames = {
+      healthcare: 'healthcare (Essentia Health, St. Luke\'s)',
+      education: 'education (Duluth Public Schools, UMD)',
+      trades: 'trades and construction (Building Trades Councils, USW)',
+      transport: 'trucking, port, and shipping (Teamsters, USW)',
+      govt: 'government / public sector (AFSCME, SEIU)'
+    };
+    parts.push(`<dt>Union Rights</dt><dd><span class="rs-flag-grn">ACTIVE UNION SECTOR ✓</span><div class="rs-note">You work in ${sectorNames[a.industry] || a.industry} — a sector with a strong union presence in the Duluth area. Organizing rights and collective bargaining protections apply. Contact the Minnesota AFL-CIO or your sector's relevant union for specifics.</div></dd>`);
+  }
+
+  // ── EMPLOYER SIZE NOTE ────────────────────────────────────────
+  if (a.employerSize === '1to5') {
+    parts.push(`<dt>Employer Size Note</dt><dd><span class="rs-flag-yel">VERY SMALL EMPLOYER</span><div class="rs-note">You have a very small employer (1–5 employees). ESST still covers you — the law applies to any employer with 1 or more employees. However, small employers may have less awareness of compliance requirements. The DLI's compliance resources for small businesses may be relevant for your employer.</div></dd>`);
+  }
+
+  return `<dl class="rights-dl">${parts.join('')}</dl>`;
+}
+
+function updateSidebarStrip(a) {
+  const esstEl = document.getElementById('strip-esst');
+  const ncEl   = document.getElementById('strip-nc');
+  const capEl  = document.getElementById('strip-cap');
+
+  if (!a) {
+    esstEl.textContent = 'Complete Snapshot →';
+    esstEl.className = 'si-val-mut';
+    ncEl.textContent = '—';
+    ncEl.className = 'si-val-mut';
+    capEl.textContent = '—';
+    capEl.className = 'si-val-mut';
+    return;
+  }
+
+  // ESST
+  if (a.workerType === 'contractor' || a.workerType === 'gig') {
+    esstEl.textContent = 'Gray area';
+    esstEl.className = 'si-val-yel';
+  } else {
+    esstEl.textContent = 'Covered ✓';
+    esstEl.className = 'si-val-grn';
+  }
+
+  // Non-compete
+  if (a.nonCompete === 'after_july2023') {
+    ncEl.textContent = 'VOID ⚠';
+    ncEl.className = 'si-val-red';
+  } else if (a.nonCompete === 'before_july2023') {
+    ncEl.textContent = 'Review';
+    ncEl.className = 'si-val-yel';
+  } else if (a.nonCompete === 'none') {
+    ncEl.textContent = 'None';
+    ncEl.className = 'si-val-grn';
+  } else {
+    ncEl.textContent = 'Unsure';
+    ncEl.className = 'si-val-yel';
+  }
+
+  // Captive audience
+  if (a.captiveAudience === 'yes') {
+    capEl.textContent = 'Review ⚠';
+    capEl.className = 'si-val-red';
+  } else if (a.captiveAudience === 'unsure') {
+    capEl.textContent = 'Uncertain';
+    capEl.className = 'si-val-yel';
+  } else {
+    capEl.textContent = 'Clear';
+    capEl.className = 'si-val-grn';
+  }
+}
+
+// Restore sidebar strip if answers saved
+if (Object.values(answers).some(v => v !== null)) {
+  updateSidebarStrip(answers);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   RED FLAG CHECKER — RENDER
+   ════════════════════════════════════════════════════════════════ */
+
+const scenarioState = {};
+
+function renderScenarios() {
+  const tbody = document.getElementById('scenario-tbody');
+  let html = '';
+  let currentCategory = null;
+
+  SCENARIOS.forEach(sc => {
+    if (sc.category !== currentCategory) {
+      currentCategory = sc.category;
+      html += `<tr><td colspan="3"><div class="flag-category-head">${sc.category}</div></td></tr>`;
+    }
+    html += `
+      <tr class="scenario-row" id="row-${sc.id}" role="row">
+        <td class="sc-indicator ind-none" id="ind-${sc.id}" aria-hidden="true"></td>
+        <td class="sc-text">
+          <div>${sc.text}</div>
+          <div class="sc-result" id="result-${sc.id}" aria-live="polite"></div>
+        </td>
+        <td class="sc-controls" aria-label="Answer for: ${sc.text}">
+          <button class="sc-btn sc-yes" data-id="${sc.id}" data-ans="yes" aria-pressed="false" onclick="answerScenario('${sc.id}','yes',this)">YES</button>
+          <button class="sc-btn sc-no"  data-id="${sc.id}" data-ans="no"  aria-pressed="false" onclick="answerScenario('${sc.id}','no',this)">NO</button>
+          <button class="sc-btn sc-ns"  data-id="${sc.id}" data-ans="ns"  aria-pressed="false" onclick="answerScenario('${sc.id}','ns',this)">NOT SURE</button>
+        </td>
+      </tr>`;
+  });
+
+  tbody.innerHTML = html;
+}
+
+function answerScenario(id, ans, btn) {
+  const sc = SCENARIOS.find(s => s.id === id);
+  if (!sc) return;
+
+  // Toggle: clicking same button again clears
+  const wasSame = scenarioState[id] && scenarioState[id].ans === ans;
+  scenarioState[id] = wasSame ? null : { ans };
+
+  // Update button styles
+  const row = document.getElementById(`row-${id}`);
+  row.querySelectorAll('.sc-btn').forEach(b => {
+    b.classList.remove('sel');
+    b.setAttribute('aria-pressed', 'false');
+  });
+
+  if (!wasSame) {
+    btn.classList.add('sel');
+    btn.setAttribute('aria-pressed', 'true');
+  }
+
+  // Determine display
+  const resultEl = document.getElementById(`result-${id}`);
+  const indEl    = document.getElementById(`ind-${id}`);
+  const state    = scenarioState[id];
+
+  row.className = 'scenario-row';
+  indEl.className = 'sc-indicator ind-none';
+  resultEl.className = 'sc-result';
+  resultEl.innerHTML = '';
+
+  if (state && state.ans === 'yes') {
+    // Show the flag
+    const level = sc.flagLevel;
+    const cls   = level === 'RED' ? 'flag-red' : level === 'YELLOW' ? 'flag-yel' : 'flag-grn';
+    const rowCls = level === 'RED' ? 'row-red' : level === 'YELLOW' ? 'row-yel' : 'row-grn';
+    const indCls = level === 'RED' ? 'ind-red' : level === 'YELLOW' ? 'ind-yel' : 'ind-grn';
+    row.className = `scenario-row ${rowCls}`;
+    indEl.className = `sc-indicator ${indCls}`;
+    resultEl.className = `sc-result visible ${cls}`;
+    resultEl.innerHTML = `<span class="sc-flag-label">${level} FLAG</span>${sc.explanation}`;
+  } else if (state && state.ans === 'no') {
+    row.className = 'scenario-row row-grn';
+    indEl.className = 'sc-indicator ind-grn';
+    resultEl.className = 'sc-result visible flag-grn';
+    resultEl.innerHTML = `<span class="sc-flag-label">GREEN</span>Your employer appears to be in compliance on this point.`;
+  } else if (state && state.ans === 'ns') {
+    resultEl.className = 'sc-result visible flag-ns';
+    resultEl.innerHTML = `<span class="sc-flag-label">NOT SURE</span>If you're uncertain, try to find out. Check your employment contract, ask HR in writing (so there's a record), or contact DLI for guidance. See Section 4 for resources.`;
+  }
+
+  updateFlagCounts();
+}
+
+function updateFlagCounts() {
+  let red = 0, yel = 0, grn = 0;
+
+  SCENARIOS.forEach(sc => {
+    const state = scenarioState[sc.id];
+    if (!state) return;
+    if (state.ans === 'no') { grn++; return; }
+    if (state.ans === 'ns') return;
+    // ans === 'yes'
+    if (sc.flagLevel === 'RED') red++;
+    else if (sc.flagLevel === 'YELLOW') yel++;
+    else grn++;
+  });
+
+  document.getElementById('count-red').textContent = `${red} red flag${red !== 1 ? 's' : ''}`;
+  document.getElementById('count-yel').textContent = `${yel} yellow flag${yel !== 1 ? 's' : ''}`;
+  document.getElementById('count-grn').textContent = `${grn} green flag${grn !== 1 ? 's' : ''}`;
+}
+
+renderScenarios();
+
+/* ════════════════════════════════════════════════════════════════
+   ACCORDION (Law Reference)
+   ════════════════════════════════════════════════════════════════ */
+
+function toggleLaw(panelId, btn) {
+  const panel = document.getElementById(panelId);
+  if (!panel) return;
+  const isOpen = panel.classList.contains('open');
+  panel.classList.toggle('open', !isOpen);
+  btn.setAttribute('aria-expanded', String(!isOpen));
+  // Update button text
+  if (btn.textContent.startsWith('Show')) {
+    btn.textContent = btn.textContent.replace('Show', 'Hide');
+  } else {
+    btn.textContent = btn.textContent.replace('Hide', 'Show');
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   INTERSECTION OBSERVER — Sidebar active nav
+   ════════════════════════════════════════════════════════════════ */
+
+const sections = ['section-snapshot', 'section-law', 'section-flags', 'section-resources'];
+const navLinks = {
+  'section-snapshot':  document.getElementById('nav-1'),
+  'section-law':       document.getElementById('nav-2'),
+  'section-flags':     document.getElementById('nav-3'),
+  'section-resources': document.getElementById('nav-4')
+};
+
+if ('IntersectionObserver' in window) {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        // Remove all active states
+        Object.values(navLinks).forEach(a => a && a.classList.remove('active'));
+        const link = navLinks[entry.target.id];
+        if (link) link.classList.add('active');
+      }
+    });
+  }, {
+    rootMargin: '-20% 0px -75% 0px',
+    threshold: 0
+  });
+
+  sections.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) observer.observe(el);
+  });
+} else {
+  // Graceful degradation: no active state tracking
+  document.getElementById('nav-1') && document.getElementById('nav-1').classList.add('active');
+}
+
+/* ════════════════════════════════════════════════════════════════
+   KEYBOARD ACCESSIBILITY
+   ════════════════════════════════════════════════════════════════ */
+
+document.querySelectorAll('.q-btn, .sc-btn, .law-toggle, .btn-primary, .btn-secondary, .rs-print-btn').forEach(el => {
+  if (el.tagName === 'BUTTON') return; // already keyboard navigable
+});
+
+// Make sidebar disclaimer visible in print only
+// (handled via CSS .print-disclaimer display:none / block)
+
+</script>
+</body>
+</html>

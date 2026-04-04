@@ -1,0 +1,1773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Supportive Housing Services Sustainability Calculator — Senator Port SF2976</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Asymmetric two-column — narrow input panel (320px) on left, wide output panel on right. Module 3 goes full-width. On mobile, single column. Not the banned centered max-width shell.
+   2. Navigation: Vertical step indicators on a sticky left rail — numbered circles connected by a line (stepper/wizard pattern). Not rounded-top tabs.
+   3. Typography: Georgia serif for all headings (research-publication feel), Arial Narrow condensed for labels and data, standard Arial for body. Not system-ui sans-serif.
+   4. Hero moment: The funding gap stacked bar chart rendered at 380px height with bold segment colors and dollar labels — dominates the viewport and makes the invisible funding gap visible at a glance.
+   5. Color commitment: Cedar green (#3D6B52) used as full background on the header and stepper rail; brick red (#8B3A2F) used as full background on risk-warning banners; amber (#C4922A) on uncertain-funding highlights. The page is NOT white-cards-on-parchment.
+*/
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --cedar: #3D6B52;
+  --cedar-light: #4d8266;
+  --cedar-dark: #2c5040;
+  --brick: #8B3A2F;
+  --brick-light: #a8564a;
+  --salt: #7A7E83;
+  --bg: #F5F3F0;
+  --text: #1C1C1C;
+  --funded: #2D6A4F;
+  --warn: #C4922A;
+  --alert: #8B3A2F;
+  --border: #D1CEC9;
+  --input-bg: #EDEAE6;
+}
+
+html { font-size: 15px; scroll-behavior: smooth; }
+
+body {
+  font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  line-height: 1.55;
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4 {
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+/* ─── HEADER ─── */
+.site-header {
+  background: var(--cedar-dark);
+  color: #fff;
+  padding: 0;
+}
+
+.header-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  align-items: stretch;
+}
+
+.header-brand {
+  background: var(--cedar);
+  padding: 28px 32px;
+  flex: 0 0 320px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.header-brand h1 {
+  font-size: 1.15rem;
+  letter-spacing: 0.03em;
+  margin-bottom: 4px;
+}
+
+.header-brand .subtitle {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.header-intro {
+  padding: 24px 36px;
+  flex: 1;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: rgba(255,255,255,0.92);
+  display: flex;
+  align-items: center;
+}
+
+.header-intro p { max-width: 680px; }
+
+/* ─── STEPPER NAV ─── */
+.stepper-nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--cedar-dark);
+  border-bottom: 3px solid var(--cedar);
+}
+
+.stepper-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+}
+
+.step-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.6);
+  cursor: pointer;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: color 0.2s, background 0.2s;
+  position: relative;
+  white-space: nowrap;
+}
+
+.step-btn:hover { color: #fff; background: rgba(255,255,255,0.08); }
+
+.step-btn.active {
+  color: #fff;
+  background: var(--cedar);
+}
+
+.step-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #fff;
+}
+
+.step-num {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+.step-btn.active .step-num {
+  background: #fff;
+  color: var(--cedar-dark);
+  border-color: #fff;
+}
+
+.step-connector {
+  width: 32px;
+  height: 2px;
+  background: rgba(255,255,255,0.25);
+  flex-shrink: 0;
+}
+
+.demo-btn {
+  margin-left: auto;
+  padding: 8px 18px;
+  background: var(--warn);
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 700;
+  transition: background 0.2s;
+}
+
+.demo-btn:hover { background: #d4a22f; }
+
+/* ─── MAIN LAYOUT ─── */
+.main-area {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.module { display: none; }
+.module.active { display: block; }
+
+/* Two-column layout for modules 1 & 2 */
+.two-col {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  min-height: calc(100vh - 200px);
+}
+
+.input-panel {
+  background: #fff;
+  border-right: 1px solid var(--border);
+  padding: 28px 24px;
+  overflow-y: auto;
+}
+
+.output-panel {
+  padding: 32px 36px;
+  background: var(--bg);
+  overflow-y: auto;
+}
+
+/* ─── FORM STYLING ─── */
+.field-group {
+  margin-bottom: 18px;
+}
+
+.field-group label {
+  display: block;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.76rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--salt);
+  margin-bottom: 5px;
+  font-weight: 700;
+}
+
+.field-group input[type="text"],
+.field-group input[type="number"],
+.field-group select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid var(--border);
+  border-radius: 3px;
+  background: var(--input-bg);
+  font-family: Arial, sans-serif;
+  font-size: 0.92rem;
+  color: var(--text);
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.field-group input:focus,
+.field-group select:focus {
+  outline: none;
+  border-color: var(--cedar);
+  background: #fff;
+}
+
+.field-group input[readonly] {
+  background: var(--cedar);
+  color: #fff;
+  font-weight: 700;
+  border-color: var(--cedar-dark);
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.section-head {
+  font-size: 1rem;
+  color: var(--cedar-dark);
+  margin: 24px 0 12px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--cedar);
+}
+
+.section-head:first-child { margin-top: 0; }
+
+.hint {
+  font-size: 0.72rem;
+  color: var(--salt);
+  margin-top: 3px;
+  line-height: 1.4;
+}
+
+/* ─── OUTPUT CARDS (not the banned pattern — top-border accent, no white-on-parchment) ─── */
+.output-block {
+  margin-bottom: 24px;
+}
+
+.output-block h3 {
+  font-size: 0.95rem;
+  color: var(--cedar-dark);
+  margin-bottom: 10px;
+}
+
+.stat-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.stat-item {
+  flex: 1 1 140px;
+  padding: 14px 16px;
+  background: var(--cedar-dark);
+  color: #fff;
+  border-radius: 2px;
+}
+
+.stat-item .stat-val {
+  font-family: Georgia, serif;
+  font-size: 1.65rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.stat-item .stat-label {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.8;
+  margin-top: 4px;
+}
+
+.stat-item.warn-bg {
+  background: var(--warn);
+}
+
+.stat-item.alert-bg {
+  background: var(--brick);
+}
+
+/* Benchmark table */
+.bench-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  margin-top: 8px;
+}
+
+.bench-table th {
+  text-align: left;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--salt);
+  padding: 6px 10px;
+  border-bottom: 2px solid var(--cedar);
+}
+
+.bench-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.bench-table tr.highlight td {
+  background: rgba(61,107,82,0.08);
+  font-weight: 700;
+}
+
+.bench-note {
+  font-size: 0.7rem;
+  color: var(--salt);
+  margin-top: 6px;
+  font-style: italic;
+}
+
+/* ─── FUNDING TABLE (Module 2) ─── */
+.funding-table-wrap {
+  margin-bottom: 16px;
+}
+
+.funding-row {
+  display: grid;
+  grid-template-columns: 1fr 140px 110px 120px 36px;
+  gap: 6px;
+  margin-bottom: 6px;
+  align-items: end;
+}
+
+.funding-row.header-row {
+  margin-bottom: 8px;
+}
+
+.funding-row.header-row span {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--salt);
+  font-weight: 700;
+  padding-bottom: 4px;
+  border-bottom: 2px solid var(--cedar);
+}
+
+.funding-row input,
+.funding-row select {
+  padding: 8px 8px;
+  border: 2px solid var(--border);
+  border-radius: 3px;
+  background: var(--input-bg);
+  font-family: Arial, sans-serif;
+  font-size: 0.82rem;
+  color: var(--text);
+  transition: border-color 0.2s;
+}
+
+.funding-row input:focus,
+.funding-row select:focus {
+  outline: none;
+  border-color: var(--cedar);
+  background: #fff;
+}
+
+.remove-btn {
+  width: 32px;
+  height: 32px;
+  border: 2px solid var(--brick);
+  background: none;
+  color: var(--brick);
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, color 0.2s;
+  line-height: 1;
+}
+
+.remove-btn:hover {
+  background: var(--brick);
+  color: #fff;
+}
+
+.add-source-btn {
+  padding: 8px 16px;
+  background: none;
+  border: 2px dashed var(--cedar);
+  color: var(--cedar);
+  cursor: pointer;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 700;
+  border-radius: 3px;
+  transition: background 0.2s, color 0.2s;
+  margin-top: 4px;
+}
+
+.add-source-btn:hover {
+  background: var(--cedar);
+  color: #fff;
+}
+
+/* ─── CHART AREA ─── */
+.chart-wrap {
+  background: #fff;
+  border-top: 4px solid var(--cedar);
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.chart-container {
+  position: relative;
+  height: 380px;
+  margin: 0 auto;
+  max-width: 600px;
+}
+
+/* ─── RISK WARNING ─── */
+.risk-banner {
+  padding: 16px 20px;
+  background: var(--brick);
+  color: #fff;
+  border-radius: 2px;
+  margin-bottom: 16px;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  display: none;
+}
+
+.risk-banner .risk-icon {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  background: #fff;
+  color: var(--brick);
+  border-radius: 50%;
+  text-align: center;
+  line-height: 22px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.gap-note {
+  padding: 14px 18px;
+  background: rgba(139,58,47,0.08);
+  border-top: 3px solid var(--brick);
+  font-size: 0.85rem;
+  margin-bottom: 16px;
+  display: none;
+}
+
+.portfolio-input {
+  display: inline-block;
+  width: 60px;
+  padding: 4px 6px;
+  border: 2px solid var(--border);
+  border-radius: 3px;
+  background: var(--input-bg);
+  font-size: 0.85rem;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.portfolio-input:focus {
+  border-color: var(--cedar);
+  background: #fff;
+  outline: none;
+}
+
+/* ─── MODULE 3 (full-width) ─── */
+.full-width-module {
+  padding: 36px;
+}
+
+.m3-grid {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 36px;
+  align-items: start;
+}
+
+.scenario-explainer {
+  background: var(--cedar-dark);
+  color: rgba(255,255,255,0.92);
+  padding: 24px 28px;
+  font-size: 0.88rem;
+  line-height: 1.65;
+  margin-bottom: 28px;
+  border-radius: 2px;
+}
+
+.scenario-explainer strong { color: #fff; }
+
+/* Sustainability score */
+.score-display {
+  text-align: center;
+  padding: 28px;
+  margin-bottom: 20px;
+}
+
+.score-ring {
+  width: 140px;
+  height: 140px;
+  margin: 0 auto 12px;
+  position: relative;
+}
+
+.score-ring svg { width: 100%; height: 100%; }
+
+.score-number {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: Georgia, serif;
+  font-size: 2.6rem;
+  font-weight: 700;
+}
+
+.score-label {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--salt);
+}
+
+.score-finding {
+  padding: 16px 20px;
+  background: rgba(61,107,82,0.06);
+  border-top: 3px solid var(--cedar);
+  font-size: 0.88rem;
+  line-height: 1.55;
+  margin-top: 16px;
+}
+
+/* Print button */
+.print-btn {
+  padding: 12px 28px;
+  background: var(--cedar);
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 700;
+  transition: background 0.2s;
+  margin-top: 20px;
+}
+
+.print-btn:hover { background: var(--cedar-light); }
+
+/* ─── PRINT SUMMARY ─── */
+.print-summary {
+  display: none;
+  font-family: Georgia, 'Times New Roman', serif;
+  max-width: 740px;
+  margin: 0 auto;
+  padding: 40px;
+}
+
+.print-summary h2 {
+  font-size: 1.4rem;
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.print-summary .print-subtitle {
+  text-align: center;
+  font-family: Arial, sans-serif;
+  font-size: 0.82rem;
+  color: var(--salt);
+  margin-bottom: 28px;
+}
+
+.print-summary table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-family: Arial, sans-serif;
+  font-size: 0.85rem;
+}
+
+.print-summary th {
+  text-align: left;
+  padding: 6px 10px;
+  border-bottom: 2px solid var(--text);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.print-summary td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.print-summary .finding-box {
+  padding: 16px 20px;
+  border: 2px solid var(--cedar);
+  margin: 20px 0;
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.print-summary .print-footer {
+  font-family: Arial, sans-serif;
+  font-size: 0.7rem;
+  color: var(--salt);
+  text-align: center;
+  margin-top: 32px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+/* ─── FOOTER ─── */
+.site-footer {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 20px 36px;
+  font-size: 0.72rem;
+  color: var(--salt);
+  border-top: 1px solid var(--border);
+}
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 900px) {
+  .header-inner { flex-direction: column; }
+  .header-brand { flex: none; }
+  .two-col { grid-template-columns: 1fr; }
+  .m3-grid { grid-template-columns: 1fr; }
+  .funding-row { grid-template-columns: 1fr 1fr; }
+  .funding-row.header-row { display: none; }
+  .stepper-inner { flex-wrap: wrap; }
+  .step-connector { display: none; }
+}
+
+@media (max-width: 600px) {
+  .stat-row { flex-direction: column; }
+  .field-row { grid-template-columns: 1fr; }
+  .full-width-module { padding: 20px; }
+}
+
+/* ─── PRINT CSS ─── */
+@media print {
+  body { background: #fff; }
+  .site-header, .stepper-nav, .module, .site-footer { display: none !important; }
+  .print-summary {
+    display: block !important;
+    padding: 0;
+  }
+  .print-summary .finding-box { border-width: 1px; }
+  @page { margin: 1in; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══ -->
+<header class="site-header">
+  <div class="header-inner">
+    <div class="header-brand">
+      <h1>Services Sustainability Calculator</h1>
+      <div class="subtitle">"Are the Services Funded?" &mdash; A Gap Modeling Tool</div>
+    </div>
+    <div class="header-intro">
+      <p>Supportive housing works when residents have both a stable unit AND stable services. In Minnesota, the funding that built supportive housing properties comes from construction and finance programs &mdash; but the case managers and coordinators who keep residents housed depend on a separate, more fragile patchwork of grants and contracts. This tool helps housing providers model their services funding gap and understand what policy changes &mdash; like Senator Port's SF2976 &mdash; could mean for their property.</p>
+    </div>
+  </div>
+</header>
+
+<!-- ═══ STEPPER NAV ═══ -->
+<nav class="stepper-nav">
+  <div class="stepper-inner">
+    <button class="step-btn active" data-module="1" aria-label="Module 1: Property Profile">
+      <span class="step-num">1</span>
+      Property Profile &amp; Costs
+    </button>
+    <div class="step-connector"></div>
+    <button class="step-btn" data-module="2" aria-label="Module 2: Funding Gap">
+      <span class="step-num">2</span>
+      Funding Gap Visualizer
+    </button>
+    <div class="step-connector"></div>
+    <button class="step-btn" data-module="3" aria-label="Module 3: SF2976 Scenario">
+      <span class="step-num">3</span>
+      SF2976 Scenario Modeler
+    </button>
+    <button class="demo-btn" id="loadDemoBtn">Load Example: Burnsville Supportive Housing</button>
+  </div>
+</nav>
+
+<!-- ═══ MAIN CONTENT ═══ -->
+<main class="main-area">
+
+<!-- ───── MODULE 1 ───── -->
+<section class="module active" id="module1">
+  <div class="two-col">
+    <div class="input-panel">
+      <h3 class="section-head" style="margin-top:0;">Property Basics</h3>
+      <div class="field-group">
+        <label for="propName">Property Name</label>
+        <input type="text" id="propName" placeholder="e.g. Cedarview Commons">
+      </div>
+      <div class="field-row">
+        <div class="field-group">
+          <label for="totalUnits">Total Units</label>
+          <input type="number" id="totalUnits" min="1" placeholder="36">
+        </div>
+        <div class="field-group">
+          <label for="suppUnits">Supportive Units</label>
+          <input type="number" id="suppUnits" min="1" placeholder="36">
+        </div>
+      </div>
+      <div class="field-group">
+        <label for="popServed">Primary Population Served</label>
+        <select id="popServed">
+          <option value="">-- Select --</option>
+          <option value="Chronically homeless individuals">Chronically homeless individuals</option>
+          <option value="Individuals with serious mental illness">Individuals with serious mental illness</option>
+          <option value="Individuals with substance use disorder">Individuals with substance use disorder</option>
+          <option value="Families exiting homelessness">Families exiting homelessness</option>
+          <option value="Transition-age youth (18-24)">Transition-age youth (18-24)</option>
+          <option value="Mixed/multiple populations">Mixed/multiple populations</option>
+        </select>
+      </div>
+      <div class="field-row">
+        <div class="field-group">
+          <label for="yearOpened">Year Opened</label>
+          <input type="number" id="yearOpened" min="1980" max="2026" placeholder="2018">
+        </div>
+        <div class="field-group">
+          <label for="county">County</label>
+          <select id="county">
+            <option value="">-- Select --</option>
+            <option value="Aitkin">Aitkin</option><option value="Anoka">Anoka</option>
+            <option value="Becker">Becker</option><option value="Beltrami">Beltrami</option>
+            <option value="Benton">Benton</option><option value="Big Stone">Big Stone</option>
+            <option value="Blue Earth">Blue Earth</option><option value="Brown">Brown</option>
+            <option value="Carlton">Carlton</option><option value="Carver">Carver</option>
+            <option value="Cass">Cass</option><option value="Chippewa">Chippewa</option>
+            <option value="Chisago">Chisago</option><option value="Clay">Clay</option>
+            <option value="Clearwater">Clearwater</option><option value="Cook">Cook</option>
+            <option value="Cottonwood">Cottonwood</option><option value="Crow Wing">Crow Wing</option>
+            <option value="Dakota">Dakota</option><option value="Dodge">Dodge</option>
+            <option value="Douglas">Douglas</option><option value="Faribault">Faribault</option>
+            <option value="Fillmore">Fillmore</option><option value="Freeborn">Freeborn</option>
+            <option value="Goodhue">Goodhue</option><option value="Grant">Grant</option>
+            <option value="Hennepin">Hennepin</option><option value="Houston">Houston</option>
+            <option value="Hubbard">Hubbard</option><option value="Isanti">Isanti</option>
+            <option value="Itasca">Itasca</option><option value="Jackson">Jackson</option>
+            <option value="Kanabec">Kanabec</option><option value="Kandiyohi">Kandiyohi</option>
+            <option value="Kittson">Kittson</option><option value="Koochiching">Koochiching</option>
+            <option value="Lac qui Parle">Lac qui Parle</option><option value="Lake">Lake</option>
+            <option value="Lake of the Woods">Lake of the Woods</option><option value="Le Sueur">Le Sueur</option>
+            <option value="Lincoln">Lincoln</option><option value="Lyon">Lyon</option>
+            <option value="Mahnomen">Mahnomen</option><option value="Marshall">Marshall</option>
+            <option value="Martin">Martin</option><option value="McLeod">McLeod</option>
+            <option value="Meeker">Meeker</option><option value="Mille Lacs">Mille Lacs</option>
+            <option value="Morrison">Morrison</option><option value="Mower">Mower</option>
+            <option value="Murray">Murray</option><option value="Nicollet">Nicollet</option>
+            <option value="Nobles">Nobles</option><option value="Norman">Norman</option>
+            <option value="Olmsted">Olmsted</option><option value="Otter Tail">Otter Tail</option>
+            <option value="Pennington">Pennington</option><option value="Pine">Pine</option>
+            <option value="Pipestone">Pipestone</option><option value="Polk">Polk</option>
+            <option value="Pope">Pope</option><option value="Ramsey">Ramsey</option>
+            <option value="Red Lake">Red Lake</option><option value="Redwood">Redwood</option>
+            <option value="Renville">Renville</option><option value="Rice">Rice</option>
+            <option value="Rock">Rock</option><option value="Roseau">Roseau</option>
+            <option value="Scott">Scott</option><option value="Sherburne">Sherburne</option>
+            <option value="Sibley">Sibley</option><option value="St. Louis">St. Louis</option>
+            <option value="Stearns">Stearns</option><option value="Steele">Steele</option>
+            <option value="Stevens">Stevens</option><option value="Swift">Swift</option>
+            <option value="Todd">Todd</option><option value="Traverse">Traverse</option>
+            <option value="Wabasha">Wabasha</option><option value="Wadena">Wadena</option>
+            <option value="Waseca">Waseca</option><option value="Washington">Washington</option>
+            <option value="Watonwan">Watonwan</option><option value="Wilkin">Wilkin</option>
+            <option value="Winona">Winona</option><option value="Wright">Wright</option>
+            <option value="Yellow Medicine">Yellow Medicine</option>
+          </select>
+        </div>
+      </div>
+
+      <h3 class="section-head">Annual Services Cost</h3>
+      <div class="field-group">
+        <label for="fteCt">Case Management / Service Coordination FTEs</label>
+        <input type="number" id="fteCt" min="0" step="0.1" placeholder="2.5">
+      </div>
+      <div class="field-group">
+        <label for="fteCost">Average Annual Cost per FTE ($)</label>
+        <input type="number" id="fteCost" min="0" step="1000" value="65000">
+        <div class="hint">Include salary, benefits, and employer taxes</div>
+      </div>
+      <div class="field-group">
+        <label for="otherDirect">Other Direct Services Cost ($/year)</label>
+        <input type="number" id="otherDirect" min="0" step="1000" placeholder="0">
+        <div class="hint">Mental health, employment services, childcare, etc.</div>
+      </div>
+      <div class="field-group">
+        <label for="overhead">Administrative Overhead (%)</label>
+        <input type="number" id="overhead" min="0" max="100" value="15">
+      </div>
+      <div class="field-group">
+        <label for="totalCost">Total Annual Services Cost ($)</label>
+        <input type="number" id="totalCost" readonly>
+        <div class="hint">Auto-calculated. Clear to enter a manual override.</div>
+      </div>
+      <div class="field-group">
+        <label for="opBudget">Total Property Operating Budget ($/year, optional)</label>
+        <input type="number" id="opBudget" min="0" step="1000" placeholder="Optional">
+      </div>
+    </div>
+
+    <div class="output-panel" id="m1Output">
+      <div class="output-block">
+        <h3>Cost Summary</h3>
+        <div class="stat-row" id="costStats">
+          <div class="stat-item">
+            <div class="stat-val" id="costPerUnit">--</div>
+            <div class="stat-label">Cost / Supportive Unit / Year</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-val" id="costPerRes">--</div>
+            <div class="stat-label">Cost / Resident / Year</div>
+          </div>
+          <div class="stat-item" id="costPctWrap" style="display:none;">
+            <div class="stat-val" id="costPct">--</div>
+            <div class="stat-label">% of Operating Budget</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="output-block">
+        <h3>Benchmark Comparison</h3>
+        <table class="bench-table">
+          <thead>
+            <tr><th>Intensity Level</th><th>Range ($/unit/year)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Low-intensity support</td><td>$2,000 &ndash; $3,500</td></tr>
+            <tr><td>Moderate-intensity support</td><td>$3,500 &ndash; $6,000</td></tr>
+            <tr><td>High-intensity support (SMI, chronic homelessness)</td><td>$6,000 &ndash; $12,000</td></tr>
+            <tr id="benchHighlight" class="highlight" style="display:none;"><td id="benchLabel">Your property</td><td id="benchVal">--</td></tr>
+          </tbody>
+        </table>
+        <div class="bench-note">Ranges reflect published supportive housing cost studies; actual costs vary by population, staffing model, and local wage rates.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───── MODULE 2 ───── -->
+<section class="module" id="module2">
+  <div class="two-col">
+    <div class="input-panel">
+      <h3 class="section-head" style="margin-top:0;">Current Funding Sources</h3>
+      <div class="hint" style="margin-bottom:12px;">Enter each source currently funding services at this property.</div>
+      <div class="funding-table-wrap">
+        <div class="funding-row header-row">
+          <span>Source Name</span>
+          <span>Type</span>
+          <span>Amount ($)</span>
+          <span>Certainty</span>
+          <span></span>
+        </div>
+        <div id="fundingRows"></div>
+      </div>
+      <button class="add-source-btn" id="addSourceBtn">+ Add Funding Source</button>
+    </div>
+
+    <div class="output-panel" id="m2Output">
+      <div class="chart-wrap">
+        <h3 style="margin-bottom:12px; font-size:1.1rem; color:var(--cedar-dark);">Funding Stack vs. Services Cost</h3>
+        <div class="chart-container">
+          <canvas id="gapChart"></canvas>
+        </div>
+      </div>
+
+      <div class="stat-row" id="m2Stats">
+        <div class="stat-item">
+          <div class="stat-val" id="stablePct">--</div>
+          <div class="stat-label">Stable Coverage</div>
+        </div>
+        <div class="stat-item warn-bg">
+          <div class="stat-val" id="maxPct">--</div>
+          <div class="stat-label">Maximum Coverage</div>
+        </div>
+        <div class="stat-item alert-bg">
+          <div class="stat-val" id="annualGap">--</div>
+          <div class="stat-label">Annual Gap</div>
+        </div>
+        <div class="stat-item alert-bg">
+          <div class="stat-val" id="atRiskGap">--</div>
+          <div class="stat-label">At-Risk Scenario Gap</div>
+        </div>
+      </div>
+
+      <div class="risk-banner" id="riskBanner">
+        <span class="risk-icon">!</span>
+        <span id="riskText"></span>
+      </div>
+
+      <div class="gap-note" id="gapNote">
+        <span id="gapNoteText"></span>
+        <br>Portfolio multiplier: <input type="number" class="portfolio-input" id="portfolioMult" value="1" min="1" step="1">
+        properties &mdash; <strong id="portfolioGap"></strong> estimated statewide gap.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───── MODULE 3 ───── -->
+<section class="module" id="module3">
+  <div class="full-width-module">
+    <div class="scenario-explainer">
+      Minnesota statute 462A.40 established the Housing Tax Credit Contribution Account to fund construction and financing for affordable housing. <strong>SF2976 (Port, 2025)</strong> would expand allowable uses to include supportive services in existing supportive housing &mdash; allowing the same fund that built these properties to help keep them functioning. This module models what that expansion could mean for your property.
+    </div>
+
+    <div class="m3-grid">
+      <div>
+        <div class="input-panel" style="border-right:none; padding:24px;">
+          <h3 class="section-head" style="margin-top:0;">SF2976 Scenario Inputs</h3>
+          <div class="field-group">
+            <label for="scenarioAvail">Estimated Annual MN Housing Disbursement for Services ($)</label>
+            <input type="number" id="scenarioAvail" min="0" step="1000" placeholder="e.g. 500000">
+            <div class="hint">The account size varies by year. Enter the amount your organization might reasonably request for services funding in a given cycle.</div>
+          </div>
+          <div class="field-group">
+            <label for="scenarioReq">Requested Services Funding ($)</label>
+            <input type="number" id="scenarioReq" min="0" step="1000" placeholder="e.g. 40000">
+          </div>
+          <div class="field-group">
+            <label for="matchPct">Anticipated Match Requirement (%)</label>
+            <input type="number" id="matchPct" min="0" max="100" value="25">
+            <div class="hint">Match requirements are set by MHFA at time of award; 25% is used here as a planning assumption.</div>
+          </div>
+
+          <h3 class="section-head">Scenario Results</h3>
+          <div class="stat-row" style="flex-direction:column; gap:10px;">
+            <div class="stat-item">
+              <div class="stat-val" id="reqMatch">--</div>
+              <div class="stat-label">Required Local/Other Match</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-val" id="postGap">--</div>
+              <div class="stat-label">Remaining Gap After Award + Match</div>
+            </div>
+          </div>
+
+          <div class="score-finding" id="scenarioFinding" style="display:none;"></div>
+
+          <button class="print-btn" onclick="window.print()">Print Services Sustainability Summary</button>
+        </div>
+      </div>
+
+      <div>
+        <div class="chart-wrap">
+          <h3 style="margin-bottom:12px; font-size:1.1rem; color:var(--cedar-dark);">Before &amp; After SF2976: Funding Stack Comparison</h3>
+          <div class="chart-container">
+            <canvas id="scenarioChart"></canvas>
+          </div>
+        </div>
+
+        <div class="score-display" id="scoreWrap">
+          <h3 style="margin-bottom:12px; font-size:1rem; color:var(--cedar-dark);">Sustainability Score</h3>
+          <div style="display:flex; justify-content:center; gap:48px; flex-wrap:wrap;">
+            <div>
+              <div class="score-ring" id="scoreBefore">
+                <svg viewBox="0 0 140 140">
+                  <circle cx="70" cy="70" r="60" fill="none" stroke="#e0ddd8" stroke-width="10"/>
+                  <circle id="ringBefore" cx="70" cy="70" r="60" fill="none" stroke="var(--salt)" stroke-width="10"
+                    stroke-dasharray="377" stroke-dashoffset="377" stroke-linecap="round"
+                    transform="rotate(-90 70 70)" style="transition:stroke-dashoffset 0.6s;"/>
+                </svg>
+                <div class="score-number" id="scoreValBefore">--</div>
+              </div>
+              <div class="score-label">Current</div>
+            </div>
+            <div>
+              <div class="score-ring" id="scoreAfter">
+                <svg viewBox="0 0 140 140">
+                  <circle cx="70" cy="70" r="60" fill="none" stroke="#e0ddd8" stroke-width="10"/>
+                  <circle id="ringAfter" cx="70" cy="70" r="60" fill="none" stroke="var(--cedar)" stroke-width="10"
+                    stroke-dasharray="377" stroke-dashoffset="377" stroke-linecap="round"
+                    transform="rotate(-90 70 70)" style="transition:stroke-dashoffset 0.6s;"/>
+                </svg>
+                <div class="score-number" id="scoreValAfter">--</div>
+              </div>
+              <div class="score-label">With SF2976</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="site-footer">
+  A resource for supportive housing providers and housing policy advocates in Minnesota. Built with AI. Benchmark data reflects published supportive housing cost research as of 2025. Individual property costs will vary.
+</footer>
+
+<!-- ═══ PRINT SUMMARY ═══ -->
+<div class="print-summary" id="printSummary">
+  <h2>Services Sustainability Summary</h2>
+  <div class="print-subtitle" id="printSubtitle"></div>
+
+  <h4 style="margin-top:24px;">Property Profile</h4>
+  <table id="printProfile"></table>
+
+  <h4 style="margin-top:24px;">Annual Services Cost</h4>
+  <table id="printCost"></table>
+
+  <h4 style="margin-top:24px;">Current Funding Stack</h4>
+  <table id="printFunding"></table>
+
+  <h4 style="margin-top:24px;">Gap Analysis</h4>
+  <table id="printGap"></table>
+
+  <h4 style="margin-top:24px;">SF2976 Scenario</h4>
+  <table id="printScenario"></table>
+
+  <div class="finding-box" id="printFinding"></div>
+
+  <div class="print-footer">
+    Generated using the Supportive Housing Services Sustainability Calculator &mdash; a tool built with AI to support Senator Port's SF2976 legislative effort. Data entered by the user; benchmark ranges are approximate. Fictional example property unless otherwise noted.
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // ─── STATE ───
+  let fundingSources = [];
+  let autoCalcCost = true;
+  let gapChartInstance = null;
+  let scenarioChartInstance = null;
+
+  // ─── DOM REFS ───
+  const $ = id => document.getElementById(id);
+
+  // Inputs - Module 1
+  const propName = $('propName'), totalUnits = $('totalUnits'), suppUnits = $('suppUnits'),
+        popServed = $('popServed'), yearOpened = $('yearOpened'), county = $('county'),
+        fteCt = $('fteCt'), fteCost = $('fteCost'), otherDirect = $('otherDirect'),
+        overhead = $('overhead'), totalCost = $('totalCost'), opBudget = $('opBudget');
+
+  // Inputs - Module 3
+  const scenarioAvail = $('scenarioAvail'), scenarioReq = $('scenarioReq'), matchPct = $('matchPct');
+
+  // ─── NAV ───
+  const stepBtns = document.querySelectorAll('.step-btn');
+  const modules = document.querySelectorAll('.module');
+
+  stepBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const m = btn.dataset.module;
+      stepBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      modules.forEach(mod => mod.classList.remove('active'));
+      $('module' + m).classList.add('active');
+    });
+  });
+
+  // ─── MODULE 1 CALCULATIONS ───
+  function calcTotalCost() {
+    const fte = parseFloat(fteCt.value) || 0;
+    const cost = parseFloat(fteCost.value) || 0;
+    const other = parseFloat(otherDirect.value) || 0;
+    const oh = parseFloat(overhead.value) || 0;
+    return (fte * cost * (1 + oh / 100)) + other;
+  }
+
+  function updateM1() {
+    if (autoCalcCost) {
+      const tc = calcTotalCost();
+      totalCost.value = tc > 0 ? Math.round(tc) : '';
+    }
+    const tc = parseFloat(totalCost.value) || 0;
+    const su = parseInt(suppUnits.value) || 0;
+
+    if (tc > 0 && su > 0) {
+      const perUnit = tc / su;
+      const perRes = tc / (su * 1.1);
+      $('costPerUnit').textContent = '$' + Math.round(perUnit).toLocaleString();
+      $('costPerRes').textContent = '$' + Math.round(perRes).toLocaleString();
+
+      // Benchmark highlight
+      $('benchHighlight').style.display = '';
+      $('benchVal').textContent = '$' + Math.round(perUnit).toLocaleString();
+      const name = propName.value || 'Your property';
+      $('benchLabel').textContent = name;
+    } else {
+      $('costPerUnit').textContent = '--';
+      $('costPerRes').textContent = '--';
+      $('benchHighlight').style.display = 'none';
+    }
+
+    const ob = parseFloat(opBudget.value) || 0;
+    if (tc > 0 && ob > 0) {
+      $('costPctWrap').style.display = '';
+      $('costPct').textContent = (tc / ob * 100).toFixed(1) + '%';
+    } else {
+      $('costPctWrap').style.display = 'none';
+    }
+
+    updateM2();
+    updateM3();
+    saveState();
+  }
+
+  // Allow manual override of total cost
+  totalCost.addEventListener('dblclick', () => {
+    autoCalcCost = false;
+    totalCost.removeAttribute('readonly');
+    totalCost.style.background = 'var(--input-bg)';
+    totalCost.style.color = 'var(--text)';
+    totalCost.style.borderColor = 'var(--border)';
+    totalCost.focus();
+  });
+
+  [fteCt, fteCost, otherDirect, overhead].forEach(el => {
+    el.addEventListener('input', () => {
+      autoCalcCost = true;
+      totalCost.setAttribute('readonly', '');
+      totalCost.style.background = '';
+      totalCost.style.color = '';
+      totalCost.style.borderColor = '';
+      updateM1();
+    });
+  });
+
+  [propName, totalUnits, suppUnits, popServed, yearOpened, county, totalCost, opBudget].forEach(el => {
+    el.addEventListener('input', updateM1);
+  });
+
+  // ─── MODULE 2 FUNDING SOURCES ───
+  const sourceTypes = [
+    'County contract',
+    'Medicaid / MA waiver (CADI, BI, DD, SBS)',
+    'Federal grant (SAMHSA PATH, HUD CoC, HOME-ARP)',
+    'State grant (MN Housing, DHS)',
+    'Philanthropic / foundation grant',
+    'Other'
+  ];
+
+  const certLevels = ['Stable', 'Uncertain', 'At risk'];
+
+  function renderFundingRows() {
+    const container = $('fundingRows');
+    container.innerHTML = '';
+    fundingSources.forEach((src, i) => {
+      const row = document.createElement('div');
+      row.className = 'funding-row';
+      row.innerHTML =
+        '<input type="text" value="' + escHtml(src.name) + '" placeholder="Source name" data-idx="' + i + '" data-field="name">' +
+        '<select data-idx="' + i + '" data-field="type">' +
+          sourceTypes.map(t => '<option' + (t === src.type ? ' selected' : '') + '>' + t + '</option>').join('') +
+        '</select>' +
+        '<input type="number" value="' + (src.amount || '') + '" placeholder="0" min="0" step="1000" data-idx="' + i + '" data-field="amount">' +
+        '<select data-idx="' + i + '" data-field="certainty">' +
+          certLevels.map(c => '<option' + (c === src.certainty ? ' selected' : '') + '>' + c + '</option>').join('') +
+        '</select>' +
+        '<button class="remove-btn" data-idx="' + i + '" aria-label="Remove source">&times;</button>';
+      container.appendChild(row);
+    });
+
+    // Bind events
+    container.querySelectorAll('input, select').forEach(el => {
+      el.addEventListener('input', () => {
+        const idx = parseInt(el.dataset.idx);
+        const field = el.dataset.field;
+        if (field === 'amount') {
+          fundingSources[idx][field] = parseFloat(el.value) || 0;
+        } else {
+          fundingSources[idx][field] = el.value;
+        }
+        updateM2();
+        updateM3();
+        saveState();
+      });
+    });
+
+    container.querySelectorAll('.remove-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        fundingSources.splice(parseInt(btn.dataset.idx), 1);
+        renderFundingRows();
+        updateM2();
+        updateM3();
+        saveState();
+      });
+    });
+  }
+
+  $('addSourceBtn').addEventListener('click', () => {
+    fundingSources.push({ name: '', type: sourceTypes[0], amount: 0, certainty: 'Stable' });
+    renderFundingRows();
+  });
+
+  function escHtml(s) {
+    return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  // ─── MODULE 2 CALCULATIONS & CHART ───
+  function getFundingTotals() {
+    let stable = 0, uncertain = 0, atRisk = 0;
+    fundingSources.forEach(s => {
+      const a = s.amount || 0;
+      if (s.certainty === 'Stable') stable += a;
+      else if (s.certainty === 'Uncertain') uncertain += a;
+      else atRisk += a;
+    });
+    return { stable, uncertain, atRisk, total: stable + uncertain + atRisk };
+  }
+
+  function updateM2() {
+    const tc = parseFloat(totalCost.value) || 0;
+    const f = getFundingTotals();
+
+    const stablePctVal = tc > 0 ? (f.stable / tc * 100) : 0;
+    const maxPctVal = tc > 0 ? (f.total / tc * 100) : 0;
+    const gap = Math.max(0, tc - f.total);
+    const atRiskGapVal = Math.max(0, tc - f.stable);
+
+    $('stablePct').textContent = stablePctVal > 0 ? stablePctVal.toFixed(1) + '%' : '--';
+    $('maxPct').textContent = maxPctVal > 0 ? maxPctVal.toFixed(1) + '%' : '--';
+    $('annualGap').textContent = gap > 0 ? '$' + Math.round(gap).toLocaleString() : (tc > 0 ? '$0' : '--');
+    $('atRiskGap').textContent = atRiskGapVal > 0 ? '$' + Math.round(atRiskGapVal).toLocaleString() : (tc > 0 ? '$0' : '--');
+
+    // Risk banner
+    if (tc > 0 && stablePctVal < 60) {
+      $('riskBanner').style.display = 'block';
+      $('riskText').textContent = 'Fewer than 60% of services costs are covered by stable funding. This property is at meaningful risk of service reduction or staff loss in any given budget cycle.';
+    } else {
+      $('riskBanner').style.display = 'none';
+    }
+
+    // Gap note
+    if (gap > 0) {
+      $('gapNote').style.display = 'block';
+      $('gapNoteText').textContent = 'The annual services gap at this property is $' + Math.round(gap).toLocaleString() + '.';
+      updatePortfolio();
+    } else {
+      $('gapNote').style.display = 'none';
+    }
+
+    // Chart
+    renderGapChart(tc, f);
+  }
+
+  $('portfolioMult').addEventListener('input', updatePortfolio);
+
+  function updatePortfolio() {
+    const tc = parseFloat(totalCost.value) || 0;
+    const f = getFundingTotals();
+    const gap = Math.max(0, tc - f.total);
+    const mult = parseInt($('portfolioMult').value) || 1;
+    $('portfolioGap').textContent = '$' + Math.round(gap * mult).toLocaleString();
+  }
+
+  function renderGapChart(tc, f) {
+    const ctx = $('gapChart').getContext('2d');
+    const gap = Math.max(0, tc - f.total);
+
+    if (gapChartInstance) gapChartInstance.destroy();
+
+    if (tc <= 0) {
+      gapChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: { labels: ['Current'], datasets: [] },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+      return;
+    }
+
+    gapChartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Current Funding Stack'],
+        datasets: [
+          {
+            label: 'Stable Funding',
+            data: [f.stable],
+            backgroundColor: '#2D6A4F',
+            borderColor: '#245a42',
+            borderWidth: 1
+          },
+          {
+            label: 'Uncertain Funding',
+            data: [f.uncertain],
+            backgroundColor: '#C4922A',
+            borderColor: '#a67d24',
+            borderWidth: 1
+          },
+          {
+            label: 'At-Risk Funding',
+            data: [f.atRisk],
+            backgroundColor: '#8B3A2F',
+            borderColor: '#733028',
+            borderWidth: 1
+          },
+          {
+            label: 'Unfunded Gap',
+            data: [gap],
+            backgroundColor: createHatchPattern(ctx),
+            borderColor: '#555',
+            borderWidth: 1
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: 'y',
+        scales: {
+          x: {
+            stacked: true,
+            max: tc * 1.05,
+            ticks: {
+              callback: v => '$' + (v / 1000).toFixed(0) + 'k',
+              font: { family: 'Arial Narrow, Arial, sans-serif', size: 11 }
+            },
+            grid: { color: 'rgba(0,0,0,0.06)' }
+          },
+          y: {
+            stacked: true,
+            ticks: { font: { family: 'Georgia, serif', size: 13 } },
+            grid: { display: false }
+          }
+        },
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              font: { family: 'Arial Narrow, Arial, sans-serif', size: 11 },
+              padding: 16,
+              usePointStyle: true,
+              pointStyleWidth: 16
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: ctx2 => ctx2.dataset.label + ': $' + Math.round(ctx2.raw).toLocaleString()
+            }
+          }
+        }
+      },
+      plugins: [{
+        afterDatasetsDraw: function(chart) {
+          const meta0 = chart.getDatasetMeta(0);
+          const meta1 = chart.getDatasetMeta(1);
+          const meta2 = chart.getDatasetMeta(2);
+          const meta3 = chart.getDatasetMeta(3);
+          const ctx2 = chart.ctx;
+          ctx2.save();
+          ctx2.font = 'bold 12px "Arial Narrow", Arial, sans-serif';
+          ctx2.textAlign = 'center';
+          ctx2.textBaseline = 'middle';
+
+          [meta0, meta1, meta2, meta3].forEach((meta, idx) => {
+            if (!meta.data[0]) return;
+            const bar = meta.data[0];
+            const w = bar.width;
+            if (w < 40) return;
+            const val = chart.data.datasets[idx].data[0];
+            if (val <= 0) return;
+            ctx2.fillStyle = '#fff';
+            ctx2.fillText('$' + Math.round(val / 1000) + 'k', bar.x - w / 2 + w / 2, bar.y);
+          });
+          ctx2.restore();
+        }
+      }]
+    });
+  }
+
+  function createHatchPattern(ctx) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 10;
+    canvas.height = 10;
+    const pctx = canvas.getContext('2d');
+    pctx.fillStyle = '#888';
+    pctx.fillRect(0, 0, 10, 10);
+    pctx.strokeStyle = '#666';
+    pctx.lineWidth = 2;
+    pctx.beginPath();
+    pctx.moveTo(0, 10);
+    pctx.lineTo(10, 0);
+    pctx.stroke();
+    pctx.beginPath();
+    pctx.moveTo(-2, 2);
+    pctx.lineTo(2, -2);
+    pctx.stroke();
+    pctx.beginPath();
+    pctx.moveTo(8, 12);
+    pctx.lineTo(12, 8);
+    pctx.stroke();
+    return ctx.createPattern(canvas, 'repeat');
+  }
+
+  // ─── MODULE 3 CALCULATIONS ───
+  [scenarioAvail, scenarioReq, matchPct].forEach(el => {
+    el.addEventListener('input', () => { updateM3(); saveState(); });
+  });
+
+  function updateM3() {
+    const tc = parseFloat(totalCost.value) || 0;
+    const f = getFundingTotals();
+    const gap = Math.max(0, tc - f.total);
+    const req = parseFloat(scenarioReq.value) || 0;
+    const mp = parseFloat(matchPct.value) || 0;
+    const matchDollars = req * (mp / 100);
+    const postGapVal = Math.max(0, gap - req);
+
+    $('reqMatch').textContent = req > 0 ? '$' + Math.round(matchDollars).toLocaleString() : '--';
+    $('postGap').textContent = req > 0 ? '$' + Math.round(postGapVal).toLocaleString() : '--';
+
+    // Sustainability scores
+    const stablePctVal = tc > 0 ? f.stable / tc : 0;
+    const scoreBefore = tc > 0 ? Math.min(100, Math.round(stablePctVal * 60 + 0)) : 0;
+    const gapClosed = gap - postGapVal;
+    const scoreAfter = tc > 0 ? Math.min(100, Math.round(stablePctVal * 60 + (gapClosed / tc) * 40)) : 0;
+
+    setScore('Before', scoreBefore);
+    setScore('After', scoreAfter);
+
+    // Finding
+    if (tc > 0 && req > 0) {
+      const name = propName.value || 'This property';
+      const finding = name + ' currently has a $' + Math.round(gap).toLocaleString() +
+        ' annual services funding gap. With SF2976 funding of $' + Math.round(req).toLocaleString() +
+        ', the gap would be reduced to $' + Math.round(postGapVal).toLocaleString() + '.';
+      $('scenarioFinding').style.display = 'block';
+      $('scenarioFinding').textContent = finding;
+    } else {
+      $('scenarioFinding').style.display = 'none';
+    }
+
+    // Scenario chart
+    renderScenarioChart(tc, f, req);
+    updatePrintSummary();
+  }
+
+  function setScore(which, val) {
+    const ring = $('ring' + which);
+    const num = $('scoreVal' + which);
+    const circumference = 2 * Math.PI * 60; // r=60
+    const offset = circumference - (val / 100) * circumference;
+    ring.style.strokeDashoffset = offset;
+
+    let color;
+    if (val < 40) color = 'var(--brick)';
+    else if (val < 70) color = 'var(--warn)';
+    else color = 'var(--cedar)';
+    ring.style.stroke = color;
+    num.textContent = val;
+    num.style.color = color;
+  }
+
+  function renderScenarioChart(tc, f, req) {
+    const ctx = $('scenarioChart').getContext('2d');
+    const gap = Math.max(0, tc - f.total);
+    const sf2976Fill = Math.min(req, gap);
+    const postGap = Math.max(0, gap - req);
+
+    if (scenarioChartInstance) scenarioChartInstance.destroy();
+
+    if (tc <= 0) {
+      scenarioChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: { labels: ['Current', 'With SF2976'], datasets: [] },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+      return;
+    }
+
+    scenarioChartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Current', 'With SF2976'],
+        datasets: [
+          {
+            label: 'Stable Funding',
+            data: [f.stable, f.stable],
+            backgroundColor: '#2D6A4F'
+          },
+          {
+            label: 'Uncertain Funding',
+            data: [f.uncertain, f.uncertain],
+            backgroundColor: '#C4922A'
+          },
+          {
+            label: 'At-Risk Funding',
+            data: [f.atRisk, f.atRisk],
+            backgroundColor: '#8B3A2F'
+          },
+          {
+            label: 'SF2976 Award',
+            data: [0, sf2976Fill],
+            backgroundColor: '#5ca37d'
+          },
+          {
+            label: 'Remaining Gap',
+            data: [gap, postGap],
+            backgroundColor: '#888'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            stacked: true,
+            ticks: { font: { family: 'Georgia, serif', size: 13 } },
+            grid: { display: false }
+          },
+          y: {
+            stacked: true,
+            max: tc * 1.05,
+            ticks: {
+              callback: v => '$' + (v / 1000).toFixed(0) + 'k',
+              font: { family: 'Arial Narrow, Arial, sans-serif', size: 11 }
+            },
+            grid: { color: 'rgba(0,0,0,0.06)' }
+          }
+        },
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              font: { family: 'Arial Narrow, Arial, sans-serif', size: 11 },
+              padding: 14,
+              usePointStyle: true,
+              pointStyleWidth: 16
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: ctx2 => ctx2.dataset.label + ': $' + Math.round(ctx2.raw).toLocaleString()
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // ─── PRINT SUMMARY ───
+  function updatePrintSummary() {
+    const tc = parseFloat(totalCost.value) || 0;
+    const su = parseInt(suppUnits.value) || 0;
+    const f = getFundingTotals();
+    const gap = Math.max(0, tc - f.total);
+    const req = parseFloat(scenarioReq.value) || 0;
+    const postGap = Math.max(0, gap - req);
+    const name = propName.value || '(Not entered)';
+
+    $('printSubtitle').textContent = name + ' | ' + (county.value || '--') + ' County | Generated ' + new Date().toLocaleDateString();
+
+    $('printProfile').innerHTML =
+      '<tr><th>Field</th><th>Value</th></tr>' +
+      '<tr><td>Property Name</td><td>' + escHtml(name) + '</td></tr>' +
+      '<tr><td>Total / Supportive Units</td><td>' + (totalUnits.value || '--') + ' / ' + (suppUnits.value || '--') + '</td></tr>' +
+      '<tr><td>Population Served</td><td>' + (popServed.value || '--') + '</td></tr>' +
+      '<tr><td>Year Opened</td><td>' + (yearOpened.value || '--') + '</td></tr>' +
+      '<tr><td>County</td><td>' + (county.value || '--') + '</td></tr>';
+
+    $('printCost').innerHTML =
+      '<tr><th>Item</th><th>Amount</th></tr>' +
+      '<tr><td>Total Annual Services Cost</td><td>$' + Math.round(tc).toLocaleString() + '</td></tr>' +
+      '<tr><td>Cost per Supportive Unit</td><td>$' + (su > 0 ? Math.round(tc / su).toLocaleString() : '--') + '</td></tr>' +
+      '<tr><td>Cost per Resident (est.)</td><td>$' + (su > 0 ? Math.round(tc / (su * 1.1)).toLocaleString() : '--') + '</td></tr>';
+
+    let fundingHtml = '<tr><th>Source</th><th>Type</th><th>Amount</th><th>Certainty</th></tr>';
+    fundingSources.forEach(s => {
+      fundingHtml += '<tr><td>' + escHtml(s.name) + '</td><td>' + escHtml(s.type) + '</td><td>$' + Math.round(s.amount || 0).toLocaleString() + '</td><td>' + s.certainty + '</td></tr>';
+    });
+    fundingHtml += '<tr style="font-weight:700;"><td>Total Funded</td><td></td><td>$' + Math.round(f.total).toLocaleString() + '</td><td></td></tr>';
+    $('printFunding').innerHTML = fundingHtml;
+
+    const stablePctVal = tc > 0 ? (f.stable / tc * 100).toFixed(1) : '0';
+    $('printGap').innerHTML =
+      '<tr><th>Metric</th><th>Value</th></tr>' +
+      '<tr><td>Annual Services Gap</td><td>$' + Math.round(gap).toLocaleString() + '</td></tr>' +
+      '<tr><td>Stable Coverage</td><td>' + stablePctVal + '%</td></tr>' +
+      '<tr><td>At-Risk Scenario Gap (stable funding only)</td><td>$' + Math.round(Math.max(0, tc - f.stable)).toLocaleString() + '</td></tr>';
+
+    $('printScenario').innerHTML =
+      '<tr><th>Item</th><th>Value</th></tr>' +
+      '<tr><td>Requested SF2976 Award</td><td>$' + Math.round(req).toLocaleString() + '</td></tr>' +
+      '<tr><td>Required Match (' + (matchPct.value || 25) + '%)</td><td>$' + Math.round(req * ((parseFloat(matchPct.value) || 25) / 100)).toLocaleString() + '</td></tr>' +
+      '<tr><td>Remaining Gap After Award</td><td>$' + Math.round(postGap).toLocaleString() + '</td></tr>';
+
+    const findingText = name + ' currently has a $' + Math.round(gap).toLocaleString() +
+      ' annual services funding gap. With SF2976 funding of $' + Math.round(req).toLocaleString() +
+      ', the gap would be reduced to $' + Math.round(postGap).toLocaleString() + '.';
+    $('printFinding').textContent = findingText;
+  }
+
+  // ─── DEMO DATA ───
+  $('loadDemoBtn').addEventListener('click', loadDemo);
+
+  function loadDemo() {
+    propName.value = 'Cedarview Commons';
+    totalUnits.value = 36;
+    suppUnits.value = 36;
+    popServed.value = 'Individuals with serious mental illness';
+    yearOpened.value = 2018;
+    county.value = 'Dakota';
+    fteCt.value = 2.5;
+    fteCost.value = 68000;
+    otherDirect.value = 28000;
+    overhead.value = 15;
+    autoCalcCost = true;
+    totalCost.setAttribute('readonly', '');
+    totalCost.style.background = '';
+    totalCost.style.color = '';
+    totalCost.style.borderColor = '';
+
+    fundingSources = [
+      { name: 'Dakota County Adult Mental Health Initiative', type: 'County contract', amount: 95000, certainty: 'Stable' },
+      { name: 'HUD CoC Supportive Services', type: 'Federal grant (SAMHSA PATH, HUD CoC, HOME-ARP)', amount: 55000, certainty: 'Uncertain' },
+      { name: 'MN DHS SBS Waiver Billings', type: 'Medicaid / MA waiver (CADI, BI, DD, SBS)', amount: 22000, certainty: 'Stable' },
+      { name: 'Otto Bremer Trust Grant', type: 'Philanthropic / foundation grant', amount: 18000, certainty: 'At risk' }
+    ];
+    renderFundingRows();
+
+    scenarioAvail.value = 500000;
+    scenarioReq.value = 40000;
+    matchPct.value = 25;
+
+    updateM1();
+  }
+
+  // ─── LOCALSTORAGE ───
+  function saveState() {
+    try {
+      const state = {
+        propName: propName.value,
+        totalUnits: totalUnits.value,
+        suppUnits: suppUnits.value,
+        popServed: popServed.value,
+        yearOpened: yearOpened.value,
+        county: county.value,
+        fteCt: fteCt.value,
+        fteCost: fteCost.value,
+        otherDirect: otherDirect.value,
+        overhead: overhead.value,
+        totalCost: totalCost.value,
+        autoCalcCost: autoCalcCost,
+        opBudget: opBudget.value,
+        fundingSources: fundingSources,
+        scenarioAvail: scenarioAvail.value,
+        scenarioReq: scenarioReq.value,
+        matchPct: matchPct.value
+      };
+      localStorage.setItem('port_shsc_state', JSON.stringify(state));
+    } catch (e) { /* silent */ }
+  }
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem('port_shsc_state');
+      if (!raw) return false;
+      const s = JSON.parse(raw);
+      propName.value = s.propName || '';
+      totalUnits.value = s.totalUnits || '';
+      suppUnits.value = s.suppUnits || '';
+      popServed.value = s.popServed || '';
+      yearOpened.value = s.yearOpened || '';
+      county.value = s.county || '';
+      fteCt.value = s.fteCt || '';
+      fteCost.value = s.fteCost || 65000;
+      otherDirect.value = s.otherDirect || '';
+      overhead.value = s.overhead || 15;
+      totalCost.value = s.totalCost || '';
+      autoCalcCost = s.autoCalcCost !== false;
+      if (!autoCalcCost) {
+        totalCost.removeAttribute('readonly');
+        totalCost.style.background = 'var(--input-bg)';
+        totalCost.style.color = 'var(--text)';
+        totalCost.style.borderColor = 'var(--border)';
+      }
+      opBudget.value = s.opBudget || '';
+      fundingSources = s.fundingSources || [];
+      scenarioAvail.value = s.scenarioAvail || '';
+      scenarioReq.value = s.scenarioReq || '';
+      matchPct.value = s.matchPct || 25;
+      return true;
+    } catch (e) { return false; }
+  }
+
+  // ─── INIT ───
+  const hasState = loadState();
+  renderFundingRows();
+  updateM1();
+
+})();
+</script>
+</body>
+</html>

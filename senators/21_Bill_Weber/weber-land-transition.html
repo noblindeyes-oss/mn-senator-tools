@@ -1,0 +1,1495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Southwest Minnesota Farm Land Transition Navigator — Sen. Bill Weber (SD-21)</title>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Guided questionnaire flow — vertical scroll reveals one section at a time, long-form legal worksheet feel. Full-width sections, no centered narrow column.
+   2. Navigation: Vertical progress tracker on RIGHT margin (~180px) showing section titles like a legal document table of contents.
+   3. Typography: Palatino Linotype (body serif), Franklin Gothic Medium (headers/labels), Consolas (data/numbers) — none from the banned default trios.
+   4. Hero moment: Oversized "160 ACRES" figure in land-patent serif style, 96px+, establishing scale.
+   5. Color strategy: #1 Monochromatic — prairie gold palette from deepest (#3d2e0a) to lightest (#fdf8e8), wheat/ochre midtones. No blue, no green, no cool colors.
+   6. Entry experience: Horizon line SVG — flat prairie with farmstead silhouette — content rises from below.
+   Additional: No cards, no bordered callout boxes. Typographic hierarchy + horizontal rules + table rows only. Environmental color — large sections use gold/ochre backgrounds.
+*/
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --gold-deepest: #3d2e0a;
+  --gold-dark: #5c4416;
+  --gold-mid: #8b6914;
+  --gold-primary: #C8A84B;
+  --gold-light: #dbc47a;
+  --gold-lighter: #ecdba3;
+  --gold-pale: #f5ecd0;
+  --gold-faintest: #fdf8e8;
+  --soil: #7A5C3A;
+  --text: #1E1E1E;
+  --text-light: #4a3f2e;
+  --warning: #B8860B;
+  --alert: #9B2335;
+  --success: #5c6b1a;
+  --white: #FFFFFF;
+}
+
+html { scroll-behavior: smooth; font-size: 16px; }
+
+body {
+  font-family: 'Palatino Linotype', Palatino, 'Book Antiqua', serif;
+  color: var(--text);
+  background: var(--gold-faintest);
+  line-height: 1.65;
+  overflow-x: hidden;
+}
+
+/* ── RIGHT-MARGIN PROGRESS TRACKER ── */
+.progress-tracker {
+  position: fixed;
+  right: 0;
+  top: 0;
+  width: 180px;
+  height: 100vh;
+  background: var(--gold-deepest);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 0;
+  overflow-y: auto;
+}
+
+.progress-tracker .tracker-title {
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', sans-serif;
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold-primary);
+  padding: 0 16px 16px;
+  border-bottom: 1px solid var(--gold-dark);
+  margin-bottom: 8px;
+}
+
+.progress-tracker a {
+  display: block;
+  padding: 10px 16px;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  color: var(--gold-lighter);
+  text-decoration: none;
+  border-left: 3px solid transparent;
+  transition: all 0.3s ease;
+  line-height: 1.3;
+}
+
+.progress-tracker a:hover {
+  color: var(--gold-primary);
+  background: rgba(200, 168, 75, 0.08);
+}
+
+.progress-tracker a.active {
+  color: var(--gold-faintest);
+  background: var(--gold-dark);
+  border-left-color: var(--gold-primary);
+  font-weight: bold;
+}
+
+.progress-tracker .section-num {
+  display: inline-block;
+  width: 18px;
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 10px;
+  color: var(--gold-mid);
+}
+
+/* ── MAIN CONTENT AREA ── */
+.main-content {
+  margin-right: 180px;
+  min-height: 100vh;
+}
+
+/* ── ENTRY EXPERIENCE: HORIZON SVG ── */
+.entry-horizon {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  background: linear-gradient(180deg,
+    var(--gold-faintest) 0%,
+    var(--gold-pale) 35%,
+    var(--gold-lighter) 55%,
+    var(--gold-primary) 75%,
+    var(--gold-mid) 90%,
+    var(--gold-dark) 100%
+  );
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  overflow: hidden;
+}
+
+.entry-horizon svg {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+}
+
+.hero-text {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding: 0 40px 180px;
+  animation: riseUp 1.8s ease-out forwards;
+  opacity: 0;
+  transform: translateY(60px);
+}
+
+@keyframes riseUp {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hero-acreage {
+  font-family: 'Palatino Linotype', Palatino, serif;
+  font-size: 108px;
+  font-weight: bold;
+  color: var(--gold-deepest);
+  letter-spacing: 8px;
+  line-height: 1;
+  text-shadow: 2px 2px 0 var(--gold-lighter);
+}
+
+.hero-acreage-label {
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', sans-serif;
+  font-size: 18px;
+  letter-spacing: 12px;
+  text-transform: uppercase;
+  color: var(--gold-dark);
+  margin-top: 8px;
+}
+
+.hero-subtitle {
+  font-family: 'Palatino Linotype', Palatino, serif;
+  font-size: 20px;
+  font-style: italic;
+  color: var(--gold-deepest);
+  margin-top: 32px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.5;
+}
+
+.scroll-cue {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  animation: pulse 2s ease-in-out infinite;
+  color: var(--gold-deepest);
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.scroll-cue .arrow {
+  display: block;
+  margin-top: 6px;
+  font-size: 20px;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* ── SECTION STYLING ── */
+.section {
+  min-height: 100vh;
+  padding: 80px 60px 80px 80px;
+  position: relative;
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.section.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.section-intro {
+  background: var(--gold-deepest);
+  color: var(--gold-faintest);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 60vh;
+}
+
+.section-intro .intro-body {
+  max-width: 750px;
+  font-size: 18px;
+  line-height: 1.75;
+}
+
+.section-gold {
+  background: var(--gold-pale);
+}
+
+.section-white {
+  background: var(--white);
+}
+
+.section-deep {
+  background: var(--gold-dark);
+  color: var(--gold-faintest);
+}
+
+.section-number {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--gold-mid);
+  margin-bottom: 12px;
+}
+
+.section-deep .section-number { color: var(--gold-lighter); }
+.section-intro .section-number { color: var(--gold-primary); }
+
+h2 {
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', sans-serif;
+  font-size: 32px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold-deepest);
+  margin-bottom: 32px;
+  line-height: 1.2;
+}
+
+.section-deep h2,
+.section-intro h2 { color: var(--gold-faintest); }
+
+h3 {
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', sans-serif;
+  font-size: 18px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--gold-dark);
+  margin: 36px 0 12px;
+}
+
+.section-deep h3 { color: var(--gold-light); }
+
+hr.section-rule {
+  border: none;
+  height: 2px;
+  background: var(--gold-primary);
+  margin: 48px 0;
+}
+
+.section-deep hr.section-rule { background: var(--gold-mid); }
+
+/* ── PATH STYLING (Section 1) ── */
+.path-block {
+  margin-bottom: 48px;
+  padding-bottom: 48px;
+  border-bottom: 1px solid var(--gold-lighter);
+}
+
+.path-block:last-child { border-bottom: none; }
+
+.path-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  margin-bottom: 20px;
+}
+
+.path-letter {
+  font-family: 'Palatino Linotype', Palatino, serif;
+  font-size: 80px;
+  font-weight: bold;
+  line-height: 1;
+  color: var(--gold-primary);
+  min-width: 70px;
+  text-align: center;
+}
+
+.path-title-group { flex: 1; padding-top: 12px; }
+
+.path-title {
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', sans-serif;
+  font-size: 22px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold-deepest);
+  margin-bottom: 10px;
+}
+
+.path-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pill {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 11px;
+  padding: 3px 10px;
+  background: var(--gold-deepest);
+  color: var(--gold-lighter);
+  letter-spacing: 0.5px;
+}
+
+.path-body {
+  margin-left: 94px;
+  max-width: 680px;
+}
+
+.path-body p { margin-bottom: 12px; }
+
+.path-body strong { color: var(--gold-dark); }
+
+.who-assists {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--gold-mid);
+  margin-top: 16px;
+}
+
+/* ── TABLE STYLING ── */
+table.ref-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  margin: 24px 0;
+}
+
+table.ref-table th {
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', sans-serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  background: var(--gold-deepest);
+  color: var(--gold-faintest);
+  padding: 10px 12px;
+  text-align: left;
+}
+
+table.ref-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--gold-lighter);
+  vertical-align: top;
+  line-height: 1.5;
+}
+
+table.ref-table tr:nth-child(even) td {
+  background: var(--gold-pale);
+}
+
+table.ref-table td:first-child {
+  font-weight: bold;
+  color: var(--gold-dark);
+  white-space: nowrap;
+}
+
+/* ── CALCULATOR STYLING ── */
+.calc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  margin-top: 32px;
+}
+
+.calc-inputs {
+  grid-column: 1 / -1;
+}
+
+.input-group {
+  margin-bottom: 20px;
+}
+
+.input-group label {
+  display: block;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', sans-serif;
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold-deepest);
+  margin-bottom: 6px;
+}
+
+.input-group .help-text {
+  font-size: 12px;
+  color: var(--text-light);
+  font-style: italic;
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+
+.input-group input,
+.input-group select {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 16px;
+  padding: 10px 14px;
+  border: 2px solid var(--gold-lighter);
+  background: var(--white);
+  color: var(--gold-deepest);
+  width: 100%;
+  max-width: 320px;
+  transition: border-color 0.2s;
+}
+
+.input-group input:focus,
+.input-group select:focus {
+  outline: none;
+  border-color: var(--gold-primary);
+  background: var(--gold-faintest);
+}
+
+.input-group select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M0 0l6 8 6-8z' fill='%238b6914'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+.calc-btn {
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', sans-serif;
+  font-size: 14px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  background: var(--gold-deepest);
+  color: var(--gold-faintest);
+  border: none;
+  padding: 14px 36px;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-top: 8px;
+}
+
+.calc-btn:hover { background: var(--gold-dark); }
+.calc-btn:active { background: var(--gold-mid); }
+
+.results-col h3 {
+  font-size: 16px;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--gold-primary);
+}
+
+.results-col.sf2253 h3 {
+  border-bottom-color: var(--success);
+}
+
+table.calc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+table.calc-table th {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-align: left;
+  padding: 8px 10px;
+  background: var(--gold-pale);
+  color: var(--gold-dark);
+}
+
+table.calc-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--gold-lighter);
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 14px;
+}
+
+table.calc-table tr.highlight td {
+  background: var(--gold-primary);
+  color: var(--gold-deepest);
+  font-weight: bold;
+  font-size: 16px;
+}
+
+table.calc-table td.label-cell {
+  font-family: 'Palatino Linotype', Palatino, serif;
+  font-size: 13px;
+  color: var(--text-light);
+}
+
+.delta-box {
+  margin-top: 32px;
+  padding: 24px;
+  background: var(--gold-deepest);
+  color: var(--gold-faintest);
+  text-align: center;
+}
+
+.delta-label {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 12px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold-primary);
+  margin-bottom: 8px;
+}
+
+.delta-amount {
+  font-family: Consolas, monospace;
+  font-size: 42px;
+  font-weight: bold;
+  color: var(--gold-light);
+}
+
+.delta-note {
+  font-size: 12px;
+  color: var(--gold-lighter);
+  margin-top: 8px;
+  font-style: italic;
+}
+
+.warning-flag {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 13px;
+  padding: 12px 16px;
+  background: var(--gold-dark);
+  color: var(--gold-faintest);
+  margin-top: 16px;
+  line-height: 1.5;
+}
+
+.warning-flag strong { color: var(--warning); }
+
+.disclaimer-text {
+  font-size: 12px;
+  font-style: italic;
+  color: var(--text-light);
+  line-height: 1.5;
+  max-width: 700px;
+  margin-top: 32px;
+}
+
+/* ── COUNTY DIRECTORY ── */
+.county-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  background: var(--gold-lighter);
+  margin-top: 24px;
+}
+
+.county-card {
+  background: var(--white);
+  padding: 20px 24px;
+}
+
+.county-name {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 16px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--gold-deepest);
+  margin-bottom: 2px;
+}
+
+.county-seat {
+  font-size: 13px;
+  color: var(--gold-mid);
+  font-style: italic;
+  margin-bottom: 10px;
+}
+
+.county-detail {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-light);
+}
+
+.county-detail dt {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold-mid);
+  margin-top: 8px;
+}
+
+.county-detail dd { margin-left: 0; }
+
+/* ── FOOTER ── */
+.site-footer {
+  background: var(--gold-deepest);
+  color: var(--gold-lighter);
+  padding: 40px 80px;
+  margin-right: 0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.site-footer .footer-attr {
+  font-family: 'Franklin Gothic Medium', sans-serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold-mid);
+  margin-bottom: 8px;
+}
+
+/* ── PRINT STYLES ── */
+@media print {
+  .progress-tracker, .entry-horizon, .scroll-cue { display: none; }
+  .main-content { margin-right: 0; }
+  .section {
+    opacity: 1 !important;
+    transform: none !important;
+    min-height: auto;
+    padding: 24px 40px;
+    page-break-inside: avoid;
+  }
+  body { background: white; font-size: 12px; }
+  h2 { font-size: 20px; }
+  .path-letter { font-size: 48px; }
+  .calc-grid { grid-template-columns: 1fr 1fr; gap: 20px; }
+  .county-grid { grid-template-columns: 1fr 1fr; }
+  .delta-box { background: #eee; color: #111; }
+  .site-footer { background: #eee; color: #333; }
+}
+
+/* ── MOBILE ── */
+@media (max-width: 768px) {
+  .progress-tracker {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 8px 0;
+  }
+  .progress-tracker .tracker-title { display: none; }
+  .progress-tracker a {
+    white-space: nowrap;
+    padding: 6px 12px;
+    font-size: 10px;
+    border-left: none;
+    border-bottom: 2px solid transparent;
+  }
+  .progress-tracker a.active {
+    border-bottom-color: var(--gold-primary);
+    border-left: none;
+  }
+  .main-content { margin-right: 0; margin-top: 44px; }
+  .section { padding: 40px 20px; }
+  .hero-acreage { font-size: 56px; letter-spacing: 4px; }
+  .hero-subtitle { font-size: 16px; }
+  .path-header { flex-direction: column; gap: 8px; }
+  .path-letter { font-size: 48px; }
+  .path-body { margin-left: 0; }
+  .calc-grid { grid-template-columns: 1fr; }
+  .county-grid { grid-template-columns: 1fr; }
+  .site-footer { padding: 24px 20px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ RIGHT-MARGIN PROGRESS TRACKER ══ -->
+<nav class="progress-tracker" aria-label="Section navigation">
+  <div class="tracker-title">Sections</div>
+  <a href="#intro" class="active"><span class="section-num">--</span> Introduction</a>
+  <a href="#paths"><span class="section-num">01</span> The Five Paths</a>
+  <a href="#programs"><span class="section-num">02</span> MN Programs</a>
+  <a href="#calculator"><span class="section-num">03</span> Estate Tax Calc</a>
+  <a href="#directory"><span class="section-num">04</span> County Directory</a>
+</nav>
+
+<!-- ══ MAIN CONTENT ══ -->
+<div class="main-content">
+
+<!-- ── ENTRY: HORIZON SVG ── -->
+<div class="entry-horizon" id="entry">
+  <div class="hero-text">
+    <div class="hero-acreage">160 ACRES</div>
+    <div class="hero-acreage-label">What Happens to the Land?</div>
+    <div class="hero-subtitle">
+      A decision guide for southwest Minnesota farm families, beginning farmers, and rural landowners in Senate District 21.
+    </div>
+  </div>
+  <svg viewBox="0 0 1440 220" preserveAspectRatio="none" style="height:180px;" aria-hidden="true">
+    <!-- sky gradient band -->
+    <rect x="0" y="0" width="1440" height="120" fill="var(--gold-lighter)" opacity="0.3"/>
+    <!-- horizon line -->
+    <line x1="0" y1="140" x2="1440" y2="140" stroke="var(--gold-dark)" stroke-width="2"/>
+    <!-- prairie ground -->
+    <rect x="0" y="140" width="1440" height="80" fill="var(--gold-dark)"/>
+    <!-- farmstead silhouette: barn -->
+    <rect x="620" y="95" width="50" height="45" fill="var(--gold-deepest)"/>
+    <polygon points="615,95 670,95 645,70" fill="var(--gold-deepest)"/>
+    <!-- silo -->
+    <rect x="672" y="80" width="16" height="60" fill="var(--gold-deepest)"/>
+    <ellipse cx="680" cy="80" rx="8" ry="4" fill="var(--gold-deepest)"/>
+    <!-- house -->
+    <rect x="560" y="105" width="40" height="35" fill="var(--gold-deepest)"/>
+    <polygon points="555,105 605,105 580,88" fill="var(--gold-deepest)"/>
+    <!-- fence posts -->
+    <rect x="500" y="128" width="2" height="12" fill="var(--gold-deepest)"/>
+    <rect x="520" y="128" width="2" height="12" fill="var(--gold-deepest)"/>
+    <rect x="540" y="128" width="2" height="12" fill="var(--gold-deepest)"/>
+    <line x1="500" y1="132" x2="555" y2="132" stroke="var(--gold-deepest)" stroke-width="1"/>
+    <!-- fence on right -->
+    <rect x="700" y="128" width="2" height="12" fill="var(--gold-deepest)"/>
+    <rect x="720" y="128" width="2" height="12" fill="var(--gold-deepest)"/>
+    <rect x="740" y="128" width="2" height="12" fill="var(--gold-deepest)"/>
+    <line x1="692" y1="132" x2="745" y2="132" stroke="var(--gold-deepest)" stroke-width="1"/>
+    <!-- wind turbines in distance -->
+    <line x1="300" y1="130" x2="300" y2="100" stroke="var(--gold-mid)" stroke-width="1.5"/>
+    <line x1="300" y1="100" x2="290" y2="108" stroke="var(--gold-mid)" stroke-width="1"/>
+    <line x1="300" y1="100" x2="310" y2="108" stroke="var(--gold-mid)" stroke-width="1"/>
+    <line x1="300" y1="100" x2="300" y2="110" stroke="var(--gold-mid)" stroke-width="1"/>
+    <line x1="1100" y1="132" x2="1100" y2="105" stroke="var(--gold-mid)" stroke-width="1.5"/>
+    <line x1="1100" y1="105" x2="1090" y2="112" stroke="var(--gold-mid)" stroke-width="1"/>
+    <line x1="1100" y1="105" x2="1110" y2="112" stroke="var(--gold-mid)" stroke-width="1"/>
+    <line x1="1100" y1="105" x2="1100" y2="115" stroke="var(--gold-mid)" stroke-width="1"/>
+    <!-- distant treeline -->
+    <ellipse cx="180" cy="138" rx="30" ry="8" fill="var(--gold-mid)" opacity="0.5"/>
+    <ellipse cx="850" cy="137" rx="40" ry="7" fill="var(--gold-mid)" opacity="0.4"/>
+    <ellipse cx="1250" cy="138" rx="25" ry="6" fill="var(--gold-mid)" opacity="0.5"/>
+  </svg>
+  <div class="scroll-cue">
+    Begin<span class="arrow">&#9661;</span>
+  </div>
+</div>
+
+<!-- ── INTRODUCTION ── -->
+<section class="section section-intro" id="intro">
+  <div class="section-number">Southwest Minnesota Farm Land Transition Navigator</div>
+  <h2>Built for District 21</h2>
+  <div class="intro-body">
+    <p>Southwest Minnesota's farm families face the same question every generation: what happens to the land? With farmland averaging $7,000 an acre, the decision to sell, lease, conserve, or transfer a farm is not just a family matter &mdash; it shapes the housing supply, the beginning farmer pipeline, and the tax base of every small town in the region.</p>
+    <p style="margin-top:16px;">This guide was built for District 21 landowners navigating those choices &mdash; covering Cottonwood, Jackson, Lincoln, Lyon, Murray, Nobles, Pipestone, Redwood, Rock, and Watonwan counties.</p>
+    <p style="margin-top:24px;font-size:14px;color:var(--gold-light);">Built to support the work of Sen. Bill Weber (SD-21), Agriculture, Rural Development &amp; Housing Policy Committee Chair. 14 years in the Minnesota Senate. Licensed real estate broker and certified appraiser.</p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- SECTION 1: THE FIVE PATHS                 -->
+<!-- ══════════════════════════════════════════ -->
+<section class="section section-white" id="paths">
+  <div class="section-number">Section 01</div>
+  <h2>The Five Paths &mdash; Farmland Transition Options</h2>
+
+  <!-- PATH A -->
+  <div class="path-block">
+    <div class="path-header">
+      <div class="path-letter">A</div>
+      <div class="path-title-group">
+        <div class="path-title">Outright Sale</div>
+        <div class="path-pills">
+          <span class="pill">Capital Gains Tax</span>
+          <span class="pill">Beginning Farmer Credit Eligible</span>
+          <span class="pill">Complexity: Moderate</span>
+        </div>
+      </div>
+    </div>
+    <div class="path-body">
+      <p><strong>Capital gains exposure.</strong> Selling farmland during life triggers federal and Minnesota state capital gains tax on the difference between the sale price and the owner's adjusted basis. The step-up in basis available at death (Path E) is forfeited if the land is sold during life &mdash; this is the single largest tax distinction between selling now and transferring at death.</p>
+      <p><strong>Minnesota Beginning Farmer Tax Credit.</strong> Asset owners who sell to a qualified beginning farmer can claim a Minnesota state tax credit of 5% of the sale price, up to a maximum credit of $50,000. This is a direct dollar-for-dollar tax credit, not a deduction.</p>
+      <p><strong>Installment sale alternative.</strong> Spreading the sale over multiple years through an installment agreement allows the seller to recognize gain over time, potentially keeping taxable income in a lower bracket each year.</p>
+      <p class="who-assists">Who regulates/assists: MN Dept. of Agriculture (beginning farmer credit) &#8226; County assessor (current estimated market value) &#8226; FSA (transition assistance)</p>
+    </div>
+  </div>
+
+  <!-- PATH B -->
+  <div class="path-block">
+    <div class="path-header">
+      <div class="path-letter">B</div>
+      <div class="path-title-group">
+        <div class="path-title">Cash Rent Lease</div>
+        <div class="path-pills">
+          <span class="pill">Ordinary Income</span>
+          <span class="pill">Green Acres Eligible</span>
+          <span class="pill">Complexity: Low</span>
+        </div>
+      </div>
+    </div>
+    <div class="path-body">
+      <p><strong>Income treatment.</strong> Cash rent income is taxed as ordinary income, not capital gains. The landowner retains ownership and the land remains in agricultural use.</p>
+      <p><strong>Green Acres and Rural Preserve.</strong> Land under a cash lease to an active farmer can maintain its Green Acres classification, deferring development-pressured valuation and protecting against property tax spikes. Rural Preserve offers similar protection for qualifying rural property without an agricultural income requirement.</p>
+      <p><strong>Beginning Farmer Tax Credit.</strong> Landlords who rent to a qualified beginning farmer can claim a Minnesota state tax credit of 5% of cash rent, up to $7,000 per year.</p>
+      <!-- VERIFY: Cash rent figures are illustrative ranges from USDA NASS, not current official data -->
+      <p><strong>Illustrative cash rent range.</strong> Southwest Minnesota cash rent rates vary by county and soil quality. Recent USDA NASS county averages have ranged roughly $185&ndash;$200/acre for top-tier cropland in this region (illustrative &mdash; verify current rates through your county FSA office or the MN Farm Business Management program).</p>
+      <p class="who-assists">Who regulates/assists: MN Dept. of Agriculture &#8226; County FSA office &#8226; MN Farm Business Management program</p>
+    </div>
+  </div>
+
+  <!-- PATH C -->
+  <div class="path-block">
+    <div class="path-header">
+      <div class="path-letter">C</div>
+      <div class="path-title-group">
+        <div class="path-title">Conservation Easement</div>
+        <div class="path-pills">
+          <span class="pill">Federal Tax Deduction</span>
+          <span class="pill">Permanent Restriction</span>
+          <span class="pill">Complexity: High</span>
+        </div>
+      </div>
+    </div>
+    <div class="path-body">
+      <p><strong>How it works.</strong> A conservation easement permanently restricts development on the land in exchange for a payment and/or tax benefits. The federal income tax deduction equals the "bargain" value &mdash; the difference between unrestricted fair market value and restricted value (subject to AGI limits under IRC &sect;170(h)).</p>
+      <p><strong>Property tax impact.</strong> Land under a perpetual agricultural easement may qualify for Green Acres valuation, reducing ongoing property tax burden.</p>
+      <p><strong>Relevant programs.</strong> USDA NRCS Agricultural Conservation Easement Program &ndash; Agricultural Land Easement (ACEP-ALE) pays landowners for perpetual easements restricting non-agricultural development. MN Board of Water &amp; Soil Resources (BWSR) Reinvest in Minnesota (RIM) easements address wetland and buffer areas.</p>
+      <p><strong>Wind lease conflict.</strong> Southwest Minnesota has active wind energy lease pressure. Conservation easements and wind turbine leases can conflict &mdash; a perpetual conservation restriction may prohibit turbine placement, and vice versa. Landowners considering both options should consult legal counsel before committing to either.</p>
+      <p class="who-assists">Who regulates/assists: NRCS &#8226; BWSR &#8226; Land Trust Alliance &#8226; County assessor</p>
+    </div>
+  </div>
+
+  <!-- PATH D -->
+  <div class="path-block">
+    <div class="path-header">
+      <div class="path-letter">D</div>
+      <div class="path-title-group">
+        <div class="path-title">Wind Energy Lease</div>
+        <div class="path-pills">
+          <span class="pill">Ordinary Income</span>
+          <span class="pill">25&ndash;40 Year Term</span>
+          <span class="pill">Complexity: Moderate</span>
+        </div>
+      </div>
+    </div>
+    <div class="path-body">
+      <p><strong>Why it matters here.</strong> Southwest Minnesota is one of the highest-density wind corridors in the state. Wind energy leases are a real and growing option for District 21 landowners.</p>
+      <!-- VERIFY: Wind lease income is illustrative range, not current contract pricing -->
+      <p><strong>Illustrative lease income.</strong> Wind lease payments typically range $4,000&ndash;$8,000 per turbine per year (illustrative &mdash; actual terms depend on the individual energy company contract). This income is taxed as ordinary income.</p>
+      <p><strong>Agricultural classification.</strong> Wind leases do not remove land from agricultural classification for Green Acres purposes if farming continues on the remaining acreage.</p>
+      <p><strong>Policy context.</strong> Sen. Weber's Natural Gas Innovation Act (SF421, signed June 26, 2021) expanded the policy environment for renewable energy integration, allowing Minnesota natural gas utilities to offer customers renewable natural gas, biogas, hydrogen, and ammonia alternatives.</p>
+      <p><strong>Estate planning consideration.</strong> Wind leases typically run 25&ndash;40 years and encumber the title. This long commitment can complicate estate transfer, sale, and easement options. Plan accordingly.</p>
+      <p class="who-assists">Who regulates/assists: MN Public Utilities Commission &#8226; County planning/zoning &#8226; Individual energy company contracts</p>
+    </div>
+  </div>
+
+  <!-- PATH E -->
+  <div class="path-block">
+    <div class="path-header">
+      <div class="path-letter">E</div>
+      <div class="path-title-group">
+        <div class="path-title">Estate Transfer / Inheritance</div>
+        <div class="path-pills">
+          <span class="pill">Step-Up in Basis</span>
+          <span class="pill">MN Estate Tax Applies</span>
+          <span class="pill">Complexity: High</span>
+        </div>
+      </div>
+    </div>
+    <div class="path-body">
+      <p><strong>Federal estate tax.</strong> The federal estate tax exemption is $13.61 million per individual (2024 level). <strong style="color:var(--alert);">Action required:</strong> this exemption is scheduled to drop to approximately $7 million in 2026 under current federal law unless Congress acts. Estates between $7M and $13.61M face a planning deadline.</p>
+      <p><strong>Minnesota estate tax.</strong> Minnesota imposes its own estate tax with a $3 million exemption &mdash; far lower than the federal threshold. Rates range from 13% to 16% on amounts above the exemption (see the calculator in Section 3).</p>
+      <p><strong>Weber's SF2253 (2025).</strong> This bill would increase the Minnesota estate tax general subtraction and raise the combined cap on qualified farm property and qualified small business property subtractions to $5,000,000 (current cap: $2,000,000). This change could significantly reduce or eliminate Minnesota estate tax for many farm families. Use the calculator below to see the difference for your situation.</p>
+      <p><strong>Step-up in basis.</strong> Heirs who inherit land receive a stepped-up basis equal to fair market value at date of death. This is why timing matters: a $7,000/acre farm purchased decades ago at $1,000/acre would owe capital gains on $6,000/acre if sold during life, but the gain resets to zero at inheritance.</p>
+      <p><strong>Green Acres trap.</strong> Deferred taxes under the Green Acres program become due and payable upon transfer if the land exits agricultural use within the three-year look-back period. Heirs who plan to develop or sell inherited farmland for non-agricultural purposes should account for this recapture.</p>
+      <p><strong>Conservation easements before death.</strong> Placing a conservation easement on land before death reduces the estate's taxable value, potentially bringing it below the MN exemption threshold.</p>
+      <p class="who-assists">Who regulates/assists: MN Dept. of Revenue &#8226; Estate attorney &#8226; Certified appraiser</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- SECTION 2: MINNESOTA PROGRAMS REFERENCE   -->
+<!-- ══════════════════════════════════════════ -->
+<section class="section section-gold" id="programs">
+  <div class="section-number">Section 02</div>
+  <h2>Minnesota Programs Reference</h2>
+
+  <h3>State of Minnesota</h3>
+  <table class="ref-table">
+    <thead>
+      <tr>
+        <th scope="col">Program</th>
+        <th scope="col">Purpose</th>
+        <th scope="col">Who Qualifies</th>
+        <th scope="col">Benefit</th>
+        <th scope="col">Where to Apply</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Green Acres (MS 273.111)</td>
+        <td>Agricultural property valued at ag-use value rather than development-influenced market value</td>
+        <td>Agricultural property owners with land in active farm use</td>
+        <td>Deferred property tax on development-pressured value; taxes recaptured on transfer if land exits ag use (3-year look-back)</td>
+        <td>County assessor (annual application)</td>
+      </tr>
+      <tr>
+        <td>Rural Preserve (MS 273.114)</td>
+        <td>Similar to Green Acres for non-farm rural property</td>
+        <td>Rural property owners; no agricultural income requirement</td>
+        <td>Ag-use valuation for qualifying rural property</td>
+        <td>County assessor</td>
+      </tr>
+      <tr>
+        <td>Beginning Farmer Tax Credit</td>
+        <td>Incentivize sales and rentals to beginning farmers</td>
+        <td>Asset owners who sell or rent to a qualified beginning farmer</td>
+        <td>5% credit on cash rent (max $7,000/yr); 5% credit on sale price (max $50,000)</td>
+        <td>MN Dept. of Agriculture</td>
+      </tr>
+      <tr>
+        <td>Beginning Farmer Loan Program (Rural Finance Authority)</td>
+        <td>Below-market rate loans for beginning farmers</td>
+        <td>Beginning farmers purchasing or improving land/equipment</td>
+        <td>Below-market interest rates on qualifying loans</td>
+        <td>MN Rural Finance Authority</td>
+      </tr>
+      <tr>
+        <td>MN Estate Tax Farm Property Subtraction (MS 291.03, subd. 10)</td>
+        <td>Reduce MN taxable estate for farm/business property</td>
+        <td>Estates with qualified farm or small business property</td>
+        <td>Current combined cap: $2,000,000. Weber's SF2253 proposes expanding to $5,000,000</td>
+        <td>Estate attorney / MN Dept. of Revenue</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Federal (USDA / IRS)</h3>
+  <table class="ref-table">
+    <thead>
+      <tr>
+        <th scope="col">Program</th>
+        <th scope="col">Purpose</th>
+        <th scope="col">Who Qualifies</th>
+        <th scope="col">Benefit</th>
+        <th scope="col">Where to Apply</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>FSA Beginning Farmer Down Payment Loan</td>
+        <td>Help beginning farmers purchase land</td>
+        <td>Beginning farmers who meet FSA eligibility</td>
+        <td>Lower down payment requirements</td>
+        <td>Local FSA Service Center</td>
+      </tr>
+      <tr>
+        <td>NRCS ACEP-ALE (Agricultural Land Easement)</td>
+        <td>Perpetual easements restricting non-agricultural development</td>
+        <td>Landowners with eligible agricultural land</td>
+        <td>Payment for permanent easement</td>
+        <td>Local NRCS office</td>
+      </tr>
+      <tr>
+        <td>NRCS Wetlands Reserve Easement (WRE, under ACEP)</td>
+        <td>Conservation of wetland areas</td>
+        <td>Landowners with eligible wetland areas</td>
+        <td>Payment for wetland conservation easement</td>
+        <td>Local NRCS office</td>
+      </tr>
+      <tr>
+        <td>IRC &sect;1231 Beginning Farmer Capital Gains</td>
+        <td>Favorable treatment for installment sales to beginning farmers</td>
+        <td>Sellers using installment sales to qualified beginning farmers</td>
+        <td>Potential favorable capital gains treatment (consult tax advisor)</td>
+        <td>Tax advisor / CPA</td>
+      </tr>
+      <tr>
+        <td>IRS Qualified Conservation Contribution (IRC &sect;170(h))</td>
+        <td>Federal income tax deduction for donated conservation easements</td>
+        <td>Landowners donating qualifying easements</td>
+        <td>Federal income tax deduction (subject to AGI limits and post-2023 anti-abuse rules)</td>
+        <td>Tax advisor / qualified land trust</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p style="margin-top:32px;font-size:14px;color:var(--text-light);max-width:700px;">
+    <strong>Where to start:</strong> The MN Department of Agriculture's AgriGrowth Council and the Southwest Minnesota Farm Business Management Association (Southwest Minnesota State University, Marshall, MN) both maintain current program listings and can match landowners to assistance.
+  </p>
+</section>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- SECTION 3: ESTATE TAX CALCULATOR          -->
+<!-- ══════════════════════════════════════════ -->
+<section class="section section-white" id="calculator">
+  <div class="section-number">Section 03</div>
+  <h2>Estate Tax Calculator</h2>
+  <p style="max-width:680px;margin-bottom:32px;">Does your estate face Minnesota estate tax &mdash; and what does SF2253 change? Enter your numbers below.</p>
+
+  <div class="calc-grid">
+    <div class="calc-inputs">
+      <div class="input-group">
+        <label for="acres">Farmland Acres</label>
+        <input type="number" id="acres" value="160" min="0" step="1">
+      </div>
+      <div class="input-group">
+        <label for="perAcre">Estimated Value per Acre ($)</label>
+        <!-- VERIFY: $7,000 prefill is based on 2025 MN statewide average from USDA report -->
+        <div class="help-text">Prefilled at $7,000 (2025 MN statewide average &mdash; illustrative starting point; your county may differ)</div>
+        <input type="number" id="perAcre" value="7000" min="0" step="100">
+      </div>
+      <div class="input-group">
+        <label for="businessVal">Qualified Small Business Property Value ($)</label>
+        <input type="number" id="businessVal" value="0" min="0" step="1000">
+      </div>
+      <div class="input-group">
+        <label for="otherAssets">Other Assets ($)</label>
+        <div class="help-text">Equipment, accounts, structures, non-farm property, etc.</div>
+        <input type="number" id="otherAssets" value="0" min="0" step="1000">
+      </div>
+      <div class="input-group">
+        <label for="spouse">Surviving Spouse?</label>
+        <div class="help-text">If yes, federal and MN marital deductions generally apply, deferring tax until the second death.</div>
+        <select id="spouse">
+          <option value="no">No</option>
+          <option value="yes">Yes &mdash; marital deduction applies</option>
+        </select>
+      </div>
+      <button class="calc-btn" onclick="calculate()">Calculate</button>
+    </div>
+
+    <!-- Results Column A: Current Law -->
+    <div class="results-col" id="resultsA" style="display:none;">
+      <h3>Current MN Law</h3>
+      <table class="calc-table">
+        <tbody>
+          <tr><td class="label-cell">Gross estate</td><td id="rA-gross">--</td></tr>
+          <tr><td class="label-cell">MN exemption</td><td id="rA-exempt">$3,000,000</td></tr>
+          <tr><td class="label-cell">Farm property subtraction (current cap: $2M)</td><td id="rA-farmSub">--</td></tr>
+          <tr><td class="label-cell">Business property subtraction</td><td id="rA-bizSub">--</td></tr>
+          <tr><td class="label-cell">MN taxable estate</td><td id="rA-taxable">--</td></tr>
+          <tr class="highlight"><td class="label-cell">MN estate tax owed</td><td id="rA-tax">--</td></tr>
+          <tr><td class="label-cell">Net estate after MN tax</td><td id="rA-net">--</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Results Column B: SF2253 -->
+    <div class="results-col sf2253" id="resultsB" style="display:none;">
+      <h3>If SF2253 Passes (Weber's Bill)</h3>
+      <table class="calc-table">
+        <tbody>
+          <tr><td class="label-cell">Gross estate</td><td id="rB-gross">--</td></tr>
+          <tr><td class="label-cell">MN exemption</td><td id="rB-exempt">$3,000,000</td></tr>
+          <tr><td class="label-cell">Farm + business subtraction (proposed cap: $5M)</td><td id="rB-combinedSub">--</td></tr>
+          <tr><td class="label-cell">MN taxable estate</td><td id="rB-taxable">--</td></tr>
+          <tr class="highlight"><td class="label-cell">MN estate tax owed</td><td id="rB-tax">--</td></tr>
+          <tr><td class="label-cell">Net estate after MN tax</td><td id="rB-net">--</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Delta display -->
+  <div class="delta-box" id="deltaBox" style="display:none;">
+    <div class="delta-label">Potential Savings if SF2253 Becomes Law</div>
+    <div class="delta-amount" id="deltaAmount">--</div>
+    <div class="delta-note">Difference in Minnesota estate tax owed</div>
+  </div>
+
+  <!-- Warning flags -->
+  <div id="warningFlags"></div>
+
+  <!-- Disclaimer -->
+  <p class="disclaimer-text">This calculator is for planning discussion only. It does not constitute tax or legal advice. MN estate tax law is complex; rates and subtractions interact with federal law. Consult a licensed Minnesota attorney and CPA before making estate or transfer decisions. MN estate tax rates used: 13% on the first $7.1M of taxable estate, 13.6% on $7.1M&ndash;$8.1M, 14.4% on $8.1M&ndash;$9.1M, 15.2% on $9.1M&ndash;$10.1M, 16% above $10.1M (per MN Dept. of Revenue schedule; verify current rates).</p>
+</section>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- SECTION 4: COUNTY RESOURCE DIRECTORY      -->
+<!-- ══════════════════════════════════════════ -->
+<section class="section section-deep" id="directory">
+  <div class="section-number">Section 04</div>
+  <h2>County Resource Directory &mdash; District 21</h2>
+  <p style="margin-bottom:24px;max-width:680px;">For each county: the county assessor office and the local USDA FSA/NRCS service center. Contact your county website or the USDA Service Center Locator (usda.gov/service-center-locator) for current phone numbers and staff names.</p>
+
+  <div class="county-grid">
+    <!-- Cottonwood -->
+    <div class="county-card">
+      <div class="county-name">Cottonwood County</div>
+      <div class="county-seat">County Seat: Windom</div>
+      <dl class="county-detail">
+        <dt>County Assessor</dt>
+        <!-- VERIFY: Office reference only; individual names change -->
+        <dd>Cottonwood County Assessor's Office, Windom, MN</dd>
+        <dt>FSA Service Center</dt>
+        <dd>Windom, MN (USDA Service Center)</dd>
+        <dt>Extension</dt>
+        <dd>University of Minnesota Extension &mdash; Cottonwood County</dd>
+      </dl>
+    </div>
+    <!-- Jackson -->
+    <div class="county-card">
+      <div class="county-name">Jackson County</div>
+      <div class="county-seat">County Seat: Jackson</div>
+      <dl class="county-detail">
+        <dt>County Assessor</dt>
+        <dd>Jackson County Assessor's Office, Jackson, MN</dd>
+        <dt>FSA Service Center</dt>
+        <dd>Jackson, MN (USDA Service Center)</dd>
+        <dt>Extension</dt>
+        <dd>University of Minnesota Extension &mdash; Jackson County</dd>
+      </dl>
+    </div>
+    <!-- Lincoln -->
+    <div class="county-card">
+      <div class="county-name">Lincoln County</div>
+      <div class="county-seat">County Seat: Ivanhoe</div>
+      <dl class="county-detail">
+        <dt>County Assessor</dt>
+        <dd>Lincoln County Assessor's Office, Ivanhoe, MN</dd>
+        <dt>FSA Service Center</dt>
+        <dd>Ivanhoe, MN (USDA Service Center)</dd>
+        <dt>Extension</dt>
+        <dd>University of Minnesota Extension &mdash; Lincoln County</dd>
+      </dl>
+    </div>
+    <!-- Lyon -->
+    <div class="county-card">
+      <div class="county-name">Lyon County</div>
+      <div class="county-seat">County Seat: Marshall</div>
+      <dl class="county-detail">
+        <dt>County Assessor</dt>
+        <dd>Lyon County Assessor's Office, Marshall, MN</dd>
+        <dt>FSA Service Center</dt>
+        <dd>Marshall, MN (USDA Service Center)</dd>
+        <dt>Extension</dt>
+        <dd>University of Minnesota Extension &mdash; Lyon County</dd>
+      </dl>
+    </div>
+    <!-- Murray -->
+    <div class="county-card">
+      <div class="county-name">Murray County</div>
+      <div class="county-seat">County Seat: Slayton</div>
+      <dl class="county-detail">
+        <dt>County Assessor</dt>
+        <dd>Murray County Assessor's Office, Slayton, MN</dd>
+        <dt>FSA Service Center</dt>
+        <dd>Slayton, MN (USDA Service Center)</dd>
+        <dt>Extension</dt>
+        <dd>University of Minnesota Extension &mdash; Murray County</dd>
+      </dl>
+    </div>
+    <!-- Nobles -->
+    <div class="county-card">
+      <div class="county-name">Nobles County</div>
+      <div class="county-seat">County Seat: Worthington</div>
+      <dl class="county-detail">
+        <dt>County Assessor</dt>
+        <dd>Nobles County Assessor's Office, Worthington, MN</dd>
+        <dt>FSA Service Center</dt>
+        <dd>Worthington, MN (USDA Service Center)</dd>
+        <dt>Extension</dt>
+        <dd>University of Minnesota Extension &mdash; Nobles County</dd>
+      </dl>
+    </div>
+    <!-- Pipestone -->
+    <div class="county-card">
+      <div class="county-name">Pipestone County</div>
+      <div class="county-seat">County Seat: Pipestone</div>
+      <dl class="county-detail">
+        <dt>County Assessor</dt>
+        <dd>Pipestone County Assessor's Office, Pipestone, MN</dd>
+        <dt>FSA Service Center</dt>
+        <dd>Pipestone, MN (USDA Service Center)</dd>
+        <dt>Extension</dt>
+        <dd>University of Minnesota Extension &mdash; Pipestone County</dd>
+      </dl>
+    </div>
+    <!-- Redwood -->
+    <div class="county-card">
+      <div class="county-name">Redwood County</div>
+      <div class="county-seat">County Seat: Redwood Falls</div>
+      <dl class="county-detail">
+        <dt>County Assessor</dt>
+        <dd>Redwood County Assessor's Office, Redwood Falls, MN</dd>
+        <dt>FSA Service Center</dt>
+        <dd>Redwood Falls, MN (USDA Service Center)</dd>
+        <dt>Extension</dt>
+        <dd>University of Minnesota Extension &mdash; Redwood County</dd>
+      </dl>
+    </div>
+    <!-- Rock -->
+    <div class="county-card">
+      <div class="county-name">Rock County</div>
+      <div class="county-seat">County Seat: Luverne</div>
+      <dl class="county-detail">
+        <dt>County Assessor</dt>
+        <dd>Rock County Assessor's Office, Luverne, MN</dd>
+        <dt>FSA Service Center</dt>
+        <dd>Luverne, MN (USDA Service Center)</dd>
+        <dt>Extension</dt>
+        <dd>University of Minnesota Extension &mdash; Rock County</dd>
+      </dl>
+    </div>
+    <!-- Watonwan -->
+    <div class="county-card">
+      <div class="county-name">Watonwan County</div>
+      <div class="county-seat">County Seat: St. James</div>
+      <dl class="county-detail">
+        <dt>County Assessor</dt>
+        <dd>Watonwan County Assessor's Office, St. James, MN</dd>
+        <dt>FSA Service Center</dt>
+        <dd>St. James, MN (USDA Service Center)</dd>
+        <dt>Extension</dt>
+        <dd>University of Minnesota Extension &mdash; Watonwan County</dd>
+      </dl>
+    </div>
+  </div>
+
+  <p style="margin-top:24px;font-size:12px;color:var(--gold-lighter);font-style:italic;">
+    Contact information current as of 2025. Verify with usda.gov/service-center-locator.
+  </p>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer class="site-footer">
+  <div class="footer-attr">Southwest Minnesota Farm Land Transition Navigator</div>
+  <p>A resource for southwest Minnesota landowners and rural communities. Built with AI. Program information reflects Minnesota law as of 2025. Not legal or tax advice.</p>
+  <p style="margin-top:12px;font-size:11px;color:var(--gold-mid);">
+    Sen. Bill Weber (SD-21) &mdash; 14 years in the Minnesota Senate, 30 years in elected office.
+    Agriculture, Rural Development &amp; Housing Policy Committee Chair.
+    Licensed real estate broker and certified appraiser.
+  </p>
+</footer>
+
+</div><!-- end main-content -->
+
+<script>
+(function() {
+  'use strict';
+
+  // ── INTERSECTION OBSERVER: Section visibility + progress tracker ──
+  const sections = document.querySelectorAll('.section');
+  const navLinks = document.querySelectorAll('.progress-tracker a');
+  const entryHorizon = document.querySelector('.entry-horizon');
+
+  // Reveal sections as they scroll into view
+  const revealObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.08 });
+
+  sections.forEach(function(s) { revealObserver.observe(s); });
+
+  // Highlight active section in progress tracker
+  const navObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        var id = entry.target.id;
+        navLinks.forEach(function(link) {
+          link.classList.toggle('active', link.getAttribute('href') === '#' + id);
+        });
+      }
+    });
+  }, { threshold: 0.2, rootMargin: '-10% 0px -70% 0px' });
+
+  sections.forEach(function(s) { navObserver.observe(s); });
+
+  // Also track the entry horizon for the intro link
+  if (entryHorizon) {
+    var entryObs = new IntersectionObserver(function(entries) {
+      if (entries[0].isIntersecting) {
+        navLinks.forEach(function(link) {
+          link.classList.toggle('active', link.getAttribute('href') === '#intro');
+        });
+      }
+    }, { threshold: 0.5 });
+    entryObs.observe(entryHorizon);
+  }
+
+  // Smooth scroll for nav links
+  navLinks.forEach(function(link) {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      var target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+
+  // ── LOCAL STORAGE: persist calculator inputs ──
+  var inputIds = ['acres', 'perAcre', 'businessVal', 'otherAssets', 'spouse'];
+
+  function saveInputs() {
+    var data = {};
+    inputIds.forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) data[id] = el.value;
+    });
+    try { localStorage.setItem('weber-calc', JSON.stringify(data)); } catch(e) {}
+  }
+
+  function loadInputs() {
+    try {
+      var raw = localStorage.getItem('weber-calc');
+      if (!raw) return;
+      var data = JSON.parse(raw);
+      inputIds.forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el && data[id] !== undefined) el.value = data[id];
+      });
+    } catch(e) {}
+  }
+
+  loadInputs();
+
+  inputIds.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('change', saveInputs);
+  });
+
+  // ── MN ESTATE TAX RATE TABLE ──
+  // Source: MN Dept. of Revenue / SmartAsset verified schedule
+  // Taxable estate = gross estate - $3M exemption - subtractions
+  // Brackets applied to MN taxable estate:
+  //   $0 - $7,100,000: 13%  (base: $0)
+  //   $7,100,000 - $8,100,000: 13.6%  (base: $923,000)
+  //   $8,100,000 - $9,100,000: 14.4%  (base: $1,059,000)
+  //   $9,100,000 - $10,100,000: 15.2% (base: $1,203,000)
+  //   Over $10,100,000: 16%  (base: $1,355,000)
+  // VERIFY: These rates are from the MN Dept. of Revenue estate tax schedule.
+
+  var MN_EXEMPTION = 3000000;
+  var CURRENT_FARM_BIZ_CAP = 2000000;
+  var SF2253_FARM_BIZ_CAP = 5000000;
+  var FEDERAL_EXEMPTION = 13610000;
+  var FEDERAL_SUNSET = 7000000;
+
+  var brackets = [
+    { floor: 0,        ceiling: 7100000,  rate: 0.13,  base: 0 },
+    { floor: 7100000,  ceiling: 8100000,  rate: 0.136, base: 923000 },
+    { floor: 8100000,  ceiling: 9100000,  rate: 0.144, base: 1059000 },
+    { floor: 9100000,  ceiling: 10100000, rate: 0.152, base: 1203000 },
+    { floor: 10100000, ceiling: Infinity,  rate: 0.16,  base: 1355000 }
+  ];
+
+  function calcMNTax(taxableEstate) {
+    if (taxableEstate <= 0) return 0;
+    for (var i = brackets.length - 1; i >= 0; i--) {
+      if (taxableEstate > brackets[i].floor) {
+        return brackets[i].base + (taxableEstate - brackets[i].floor) * brackets[i].rate;
+      }
+    }
+    return 0;
+  }
+
+  function fmt(n) {
+    if (n < 0) n = 0;
+    return '$' + Math.round(n).toLocaleString('en-US');
+  }
+
+  window.calculate = function() {
+    var acres = parseFloat(document.getElementById('acres').value) || 0;
+    var perAcre = parseFloat(document.getElementById('perAcre').value) || 0;
+    var bizVal = parseFloat(document.getElementById('businessVal').value) || 0;
+    var otherVal = parseFloat(document.getElementById('otherAssets').value) || 0;
+    var hasSpouse = document.getElementById('spouse').value === 'yes';
+
+    var farmVal = acres * perAcre;
+    var grossEstate = farmVal + bizVal + otherVal;
+
+    saveInputs();
+
+    // If surviving spouse, marital deduction defers most/all tax
+    if (hasSpouse) {
+      document.getElementById('resultsA').style.display = 'block';
+      document.getElementById('resultsB').style.display = 'block';
+      document.getElementById('deltaBox').style.display = 'block';
+
+      document.getElementById('rA-gross').textContent = fmt(grossEstate);
+      document.getElementById('rA-farmSub').textContent = '--';
+      document.getElementById('rA-bizSub').textContent = '--';
+      document.getElementById('rA-taxable').textContent = '$0 (marital deduction)';
+      document.getElementById('rA-tax').textContent = '$0 (deferred)';
+      document.getElementById('rA-net').textContent = fmt(grossEstate);
+
+      document.getElementById('rB-gross').textContent = fmt(grossEstate);
+      document.getElementById('rB-combinedSub').textContent = '--';
+      document.getElementById('rB-taxable').textContent = '$0 (marital deduction)';
+      document.getElementById('rB-tax').textContent = '$0 (deferred)';
+      document.getElementById('rB-net').textContent = fmt(grossEstate);
+
+      document.getElementById('deltaAmount').textContent = '$0';
+
+      var warnHtml = '<div class="warning-flag" style="margin-top:20px;">' +
+        '<strong>Note:</strong> With a surviving spouse, the unlimited marital deduction generally defers Minnesota and federal estate tax until the second spouse\'s death. The estate tax exposure will apply at that time — re-run this calculator without the spouse option to estimate the eventual tax.' +
+        '</div>';
+      showWarnings(grossEstate, warnHtml);
+      return;
+    }
+
+    // ── Column A: Current Law ──
+    var farmSubA = Math.min(farmVal, CURRENT_FARM_BIZ_CAP);
+    var bizSubA = Math.min(bizVal, Math.max(0, CURRENT_FARM_BIZ_CAP - farmSubA));
+    var totalSubA = farmSubA + bizSubA;
+    var taxableA = Math.max(0, grossEstate - MN_EXEMPTION - totalSubA);
+    var taxA = calcMNTax(taxableA);
+    var netA = grossEstate - taxA;
+
+    document.getElementById('rA-gross').textContent = fmt(grossEstate);
+    document.getElementById('rA-farmSub').textContent = fmt(farmSubA);
+    document.getElementById('rA-bizSub').textContent = fmt(bizSubA);
+    document.getElementById('rA-taxable').textContent = fmt(taxableA);
+    document.getElementById('rA-tax').textContent = fmt(taxA);
+    document.getElementById('rA-net').textContent = fmt(netA);
+
+    // ── Column B: SF2253 ──
+    var combinedSubB = Math.min(farmVal + bizVal, SF2253_FARM_BIZ_CAP);
+    var taxableB = Math.max(0, grossEstate - MN_EXEMPTION - combinedSubB);
+    var taxB = calcMNTax(taxableB);
+    var netB = grossEstate - taxB;
+
+    document.getElementById('rB-gross').textContent = fmt(grossEstate);
+    document.getElementById('rB-combinedSub').textContent = fmt(combinedSubB);
+    document.getElementById('rB-taxable').textContent = fmt(taxableB);
+    document.getElementById('rB-tax').textContent = fmt(taxB);
+    document.getElementById('rB-net').textContent = fmt(netB);
+
+    // Delta
+    var delta = taxA - taxB;
+    document.getElementById('deltaAmount').textContent = fmt(delta);
+
+    // Show results
+    document.getElementById('resultsA').style.display = 'block';
+    document.getElementById('resultsB').style.display = 'block';
+    document.getElementById('deltaBox').style.display = 'block';
+
+    showWarnings(grossEstate, '');
+  };
+
+  function showWarnings(grossEstate, extraHtml) {
+    var html = extraHtml || '';
+
+    if (grossEstate > FEDERAL_EXEMPTION) {
+      html += '<div class="warning-flag" style="margin-top:12px;">' +
+        '<strong>Federal estate tax:</strong> This estate exceeds the current federal exemption of $13.61 million. Federal estate tax may also apply. Consult an estate attorney.' +
+        '</div>';
+    }
+
+    if (grossEstate > FEDERAL_SUNSET && grossEstate <= FEDERAL_EXEMPTION) {
+      html += '<div class="warning-flag" style="margin-top:12px;">' +
+        '<strong style="color:var(--alert);">Action:</strong> Federal estate tax exemption is scheduled to decrease to approximately $7 million in 2026 under current law. This estate (' + fmt(grossEstate) + ') falls between $7M and $13.61M. Consult an estate attorney before year-end.' +
+        '</div>';
+    }
+
+    document.getElementById('warningFlags').innerHTML = html;
+  }
+
+})();
+</script>
+</body>
+</html>

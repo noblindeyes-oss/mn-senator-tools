@@ -1,0 +1,1669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MN Disability Waiver Reassessment Readiness Tracker — SD-34</title>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Full-width app shell with top header bar + underline tab nav; Module 1 uses
+      explicit two-column CSS Grid (inputs left, result right) — not a centered single column.
+   2. Navigation: Underline tabs — text labels with an active bottom border indicator,
+      no boxes, no rounded corners, no tab "cards". Tab strip is flush with a cedar-green
+      header band.
+   3. Typography: 'Arial Narrow', Arial, sans-serif for headers and labels (condensed,
+      utilitarian, DHS-publication feel); standard Arial for body/inputs. No system-ui.
+   Additional: Status panels use full-background color fills with icon+text (not left-border
+   accent cards). Caseload table uses alternating row stripes (no white cards).
+   Disclaimer uses sodium amber background band — not buried in footer.
+*/
+
+/* ─── RESET & BASE ─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --gray:       #8A9199;
+  --green:      #3D6B4F;
+  --amber:      #C4872A;
+  --bg:         #F5F2ED;
+  --text:       #1C1C1C;
+  --green-dark: #2D6A4F;
+  --green-bg:   #EAF4EF;
+  --yellow-dark:#B8860B;
+  --yellow-bg:  #FEF9E7;
+  --red-dark:   #B71C1C;
+  --red-bg:     #FDECEA;
+  --border:     #C2C8CE;
+  --stripe:     #EDEDEA;
+  --white:      #FFFFFF;
+}
+
+html { font-size: 15px; }
+
+body {
+  font-family: Arial, 'Helvetica Neue', sans-serif;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: var(--bg);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* ─── APP SHELL ────────────────────────────────────────────────── */
+#app-header {
+  background: var(--green);
+  color: var(--white);
+  padding: 0;
+}
+
+.header-top {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  padding: 14px 24px 0;
+}
+
+.header-title {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.header-sub {
+  font-size: 0.8rem;
+  opacity: 0.82;
+  white-space: nowrap;
+}
+
+/* ─── TAB NAV (underline style) ────────────────────────────────── */
+#tab-nav {
+  display: flex;
+  padding: 0 24px;
+  margin-top: 10px;
+  border-bottom: 2px solid rgba(255,255,255,0.2);
+  gap: 0;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: rgba(255,255,255,0.7);
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 8px 20px 9px;
+  cursor: pointer;
+  margin-bottom: -2px;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.tab-btn:hover { color: var(--white); }
+
+.tab-btn.active {
+  color: var(--white);
+  border-bottom-color: var(--amber);
+}
+
+/* ─── INTRO BAND ───────────────────────────────────────────────── */
+#intro-band {
+  background: var(--white);
+  border-bottom: 2px solid var(--border);
+  padding: 12px 24px;
+  font-size: 0.85rem;
+  color: #3a3a3a;
+  line-height: 1.55;
+}
+
+#intro-band strong { color: var(--green-dark); }
+
+/* ─── DISCLAIMER BAND ──────────────────────────────────────────── */
+#disclaimer-band {
+  background: #FEF3E0;
+  border-bottom: 2px solid var(--amber);
+  padding: 8px 24px;
+  font-size: 0.8rem;
+  color: #5A3A00;
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+}
+
+#disclaimer-band .disc-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ─── MAIN CONTENT AREA ────────────────────────────────────────── */
+#content-area {
+  padding: 0;
+}
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ─── MODULE 1: PATHWAY CHECK ──────────────────────────────────── */
+#panel-pathway {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  grid-template-rows: auto 1fr;
+  gap: 0;
+  min-height: calc(100vh - 180px);
+}
+
+.pathway-inputs {
+  grid-column: 1;
+  border-right: 2px solid var(--border);
+  background: var(--white);
+  padding: 20px 22px;
+  overflow-y: auto;
+}
+
+.pathway-result {
+  grid-column: 2;
+  background: var(--bg);
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Section headers in the form */
+.form-section-hdr {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gray);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 5px;
+  margin: 18px 0 12px;
+}
+
+.form-section-hdr:first-child { margin-top: 0; }
+
+.form-row {
+  margin-bottom: 13px;
+}
+
+.form-row label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.form-row .hint {
+  font-size: 0.75rem;
+  color: #666;
+  margin-bottom: 4px;
+  font-style: italic;
+}
+
+.form-row input,
+.form-row select {
+  width: 100%;
+  padding: 6px 9px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  font-size: 0.87rem;
+  font-family: Arial, sans-serif;
+  background: var(--white);
+  color: var(--text);
+}
+
+.form-row input:focus,
+.form-row select:focus {
+  outline: 2px solid var(--green);
+  outline-offset: 0;
+}
+
+/* Radio rows */
+.radio-group {
+  display: flex;
+  gap: 18px;
+}
+
+.radio-group label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.radio-group input[type="radio"] { width: auto; }
+
+/* Form actions */
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.btn-primary {
+  background: var(--green);
+  color: var(--white);
+  border: none;
+  padding: 8px 20px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-primary:hover { background: #2f5540; }
+
+.btn-secondary {
+  background: none;
+  color: var(--green);
+  border: 1px solid var(--green);
+  padding: 8px 16px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.btn-secondary:hover {
+  background: var(--green);
+  color: var(--white);
+}
+
+.btn-example {
+  background: none;
+  color: var(--amber);
+  border: 1px solid var(--amber);
+  padding: 8px 16px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.btn-example:hover {
+  background: var(--amber);
+  color: var(--white);
+}
+
+/* ─── RESULT PANEL ─────────────────────────────────────────────── */
+.result-placeholder {
+  background: var(--white);
+  border: 2px dashed var(--border);
+  border-radius: 4px;
+  padding: 40px 24px;
+  text-align: center;
+  color: var(--gray);
+  font-size: 0.88rem;
+}
+
+.result-placeholder .pl-icon {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 10px;
+  opacity: 0.5;
+}
+
+.result-box {
+  border-radius: 4px;
+  padding: 20px 22px;
+  border: none;
+}
+
+.result-box.green {
+  background: var(--green-bg);
+  border-top: 5px solid var(--green-dark);
+}
+
+.result-box.yellow {
+  background: var(--yellow-bg);
+  border-top: 5px solid var(--yellow-dark);
+}
+
+.result-box.red {
+  background: var(--red-bg);
+  border-top: 5px solid var(--red-dark);
+}
+
+.result-heading {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.result-box.green .result-heading { color: var(--green-dark); }
+.result-box.yellow .result-heading { color: var(--yellow-dark); }
+.result-box.red .result-heading { color: var(--red-dark); }
+
+.result-body {
+  font-size: 0.88rem;
+  line-height: 1.55;
+  margin-bottom: 14px;
+}
+
+.criteria-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.84rem;
+}
+
+.criteria-list li {
+  padding: 5px 0;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+
+.criteria-list li:last-child { border-bottom: none; }
+
+.crit-icon { flex-shrink: 0; font-size: 1rem; line-height: 1.4; }
+
+.crit-text { flex: 1; }
+
+.crit-cite {
+  display: block;
+  font-size: 0.75rem;
+  color: #555;
+  margin-top: 2px;
+  font-style: italic;
+}
+
+/* Next steps block */
+.next-steps {
+  background: rgba(255,255,255,0.55);
+  border-radius: 3px;
+  padding: 12px 14px;
+  margin-top: 12px;
+}
+
+.next-steps-hdr {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #555;
+  margin-bottom: 7px;
+}
+
+.next-steps ul {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 0.82rem;
+  color: #333;
+}
+
+.next-steps ul li { margin-bottom: 4px; }
+
+/* Result panel header label */
+.result-panel-hdr {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gray);
+  margin-bottom: 10px;
+}
+
+/* ─── MODULE 2: CASELOAD TABLE ─────────────────────────────────── */
+#panel-caseload {
+  padding: 20px 24px;
+}
+
+.caseload-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.caseload-title {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text);
+}
+
+.caseload-summary {
+  background: var(--green);
+  color: var(--white);
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 12px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.caseload-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+/* Caseload table */
+.caseload-table-wrap {
+  overflow-x: auto;
+}
+
+table.caseload-tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+  background: var(--white);
+  border: 1px solid var(--border);
+}
+
+table.caseload-tbl thead tr {
+  background: var(--green);
+  color: var(--white);
+}
+
+table.caseload-tbl thead th {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 9px 12px;
+  text-align: left;
+  white-space: nowrap;
+  border-right: 1px solid rgba(255,255,255,0.15);
+}
+
+table.caseload-tbl thead th:last-child { border-right: none; }
+
+table.caseload-tbl tbody tr:nth-child(even) { background: var(--stripe); }
+table.caseload-tbl tbody tr:nth-child(odd)  { background: var(--white); }
+
+table.caseload-tbl tbody tr.status-red    { background: #FFF0F0; }
+table.caseload-tbl tbody tr.status-yellow { background: #FFFAE8; }
+table.caseload-tbl tbody tr.status-green  { background: #F0FAF4; }
+
+table.caseload-tbl tbody td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+table.caseload-tbl tbody td input,
+table.caseload-tbl tbody td select {
+  width: 100%;
+  padding: 4px 7px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  font-size: 0.83rem;
+  font-family: Arial, sans-serif;
+  background: var(--white);
+}
+
+table.caseload-tbl tbody td input[type="date"] { min-width: 130px; }
+table.caseload-tbl tbody td input[type="number"] { width: 60px; }
+
+.status-badge {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.status-badge.green  { background: var(--green-bg);  color: var(--green-dark); }
+.status-badge.yellow { background: var(--yellow-bg); color: var(--yellow-dark); }
+.status-badge.red    { background: var(--red-bg);    color: var(--red-dark); }
+
+.pathway-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #444;
+  white-space: nowrap;
+}
+
+.pathway-badge.abbreviated { color: var(--green-dark); }
+.pathway-badge.full        { color: var(--red-dark); }
+.pathway-badge.review      { color: var(--yellow-dark); }
+
+.btn-icon {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 3px 8px;
+  font-size: 0.8rem;
+  border-radius: 2px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-icon:hover { background: var(--border); }
+
+.btn-del {
+  background: none;
+  border: 1px solid #dba0a0;
+  color: var(--red-dark);
+  padding: 3px 8px;
+  font-size: 0.8rem;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.btn-del:hover { background: var(--red-bg); }
+
+/* Checklist expand */
+.checklist-wrap {
+  margin-top: 6px;
+  font-size: 0.78rem;
+}
+
+.checklist-toggle {
+  background: none;
+  border: none;
+  color: var(--green);
+  font-size: 0.78rem;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  font-family: Arial, sans-serif;
+}
+
+.checklist-items {
+  display: none;
+  padding: 6px 0 2px 2px;
+}
+
+.checklist-items.open { display: block; }
+
+.checklist-items label {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-bottom: 4px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  color: #333;
+  line-height: 1.4;
+}
+
+.checklist-items input[type="checkbox"] {
+  width: auto;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* ─── MODULE 3: REFERENCE ──────────────────────────────────────── */
+#panel-reference {
+  padding: 20px 24px;
+  max-width: 860px;
+}
+
+.ref-title {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  margin-bottom: 16px;
+  border-bottom: 2px solid var(--green);
+  padding-bottom: 8px;
+}
+
+/* Accordion */
+.accordion-item {
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  margin-bottom: 8px;
+  background: var(--white);
+}
+
+.accordion-hdr {
+  width: 100%;
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 11px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.02em;
+  transition: background 0.12s;
+}
+
+.accordion-hdr:hover { background: var(--stripe); }
+
+.accordion-hdr .acc-arrow {
+  margin-left: auto;
+  color: var(--gray);
+  font-size: 0.85rem;
+  transition: transform 0.2s;
+}
+
+.accordion-hdr.open .acc-arrow { transform: rotate(180deg); }
+
+.accordion-hdr .acc-tag {
+  font-size: 0.7rem;
+  background: var(--green);
+  color: var(--white);
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.accordion-hdr .acc-tag.amber { background: var(--amber); }
+
+.accordion-body {
+  display: none;
+  padding: 13px 16px 14px;
+  border-top: 1px solid var(--border);
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: #2a2a2a;
+}
+
+.accordion-body.open { display: block; }
+
+.acc-quote {
+  background: var(--stripe);
+  border-left: 4px solid var(--green);
+  padding: 10px 14px;
+  margin: 8px 0;
+  font-style: italic;
+  font-size: 0.84rem;
+  color: #333;
+  border-radius: 0 3px 3px 0;
+}
+
+.acc-cite {
+  font-size: 0.75rem;
+  color: var(--gray);
+  font-style: normal;
+  margin-top: 6px;
+  display: block;
+}
+
+/* DHS Links */
+.ref-links-section {
+  margin-top: 22px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 14px 16px;
+}
+
+.ref-links-hdr {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gray);
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 6px;
+}
+
+.ref-links-list {
+  list-style: none;
+  padding: 0;
+}
+
+.ref-links-list li {
+  padding: 5px 0;
+  border-bottom: 1px solid var(--stripe);
+  font-size: 0.84rem;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.ref-links-list li:last-child { border-bottom: none; }
+
+.ref-links-list a {
+  color: var(--green);
+  text-decoration: none;
+}
+
+.ref-links-list a:hover { text-decoration: underline; }
+
+.ref-links-list .link-label {
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  min-width: 200px;
+  font-size: 0.82rem;
+}
+
+/* ─── FOOTER ───────────────────────────────────────────────────── */
+#app-footer {
+  background: var(--green);
+  color: rgba(255,255,255,0.75);
+  font-size: 0.75rem;
+  padding: 10px 24px;
+  margin-top: 0;
+  text-align: center;
+  letter-spacing: 0.02em;
+  border-top: 3px solid var(--amber);
+}
+
+/* ─── PRINT CSS ────────────────────────────────────────────────── */
+@media print {
+  #app-header, #intro-band, #disclaimer-band, #tab-nav,
+  #panel-pathway, #panel-reference, #app-footer,
+  .caseload-header-row .caseload-actions,
+  .caseload-actions,
+  .btn-del, .btn-icon, .btn-primary, .btn-secondary, .btn-example,
+  .checklist-toggle
+  { display: none !important; }
+
+  body { background: #fff; font-size: 11pt; color: #000; }
+
+  #panel-caseload { display: block !important; padding: 0; }
+
+  .tab-panel { display: none !important; }
+  #panel-caseload { display: block !important; }
+
+  .caseload-header-row { display: block !important; }
+  .caseload-title { display: block !important; font-size: 14pt; margin-bottom: 4pt; }
+  .caseload-summary { display: inline-block !important; font-size: 10pt; background: none; color: #000; padding: 0; border-radius: 0; }
+
+  table.caseload-tbl { font-size: 9pt; border: 1pt solid #000; }
+  table.caseload-tbl thead tr { background: #e0e0e0 !important; color: #000 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  table.caseload-tbl thead th { color: #000; }
+  table.caseload-tbl tbody tr.status-red    { background: #fff0f0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  table.caseload-tbl tbody tr.status-yellow { background: #fffae8 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  table.caseload-tbl tbody tr.status-green  { background: #f0faf4 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  table.caseload-tbl tbody td input,
+  table.caseload-tbl tbody td select { border: none; padding: 0; background: transparent; font-size: 9pt; }
+  .checklist-items { display: block !important; }
+
+  .print-date { display: block !important; font-size: 9pt; color: #555; margin-bottom: 6pt; }
+}
+
+.print-date { display: none; }
+
+/* ─── RESPONSIVE ───────────────────────────────────────────────── */
+@media (max-width: 760px) {
+  #panel-pathway {
+    grid-template-columns: 1fr;
+  }
+
+  .pathway-inputs {
+    border-right: none;
+    border-bottom: 2px solid var(--border);
+  }
+
+  .header-top { flex-direction: column; gap: 4px; }
+
+  .tab-btn { padding: 8px 12px 9px; font-size: 0.82rem; }
+
+  #panel-caseload { padding: 14px 12px; }
+  #panel-reference { padding: 14px 12px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ─── HEADER ──────────────────────────────────────────────────── -->
+<div id="app-header">
+  <div class="header-top">
+    <div class="header-title">MN Disability Waiver Reassessment Readiness Tracker</div>
+    <div class="header-sub">Senate District 34 &nbsp;·&nbsp; Minn. Stat. § 256B.0911 &nbsp;·&nbsp; SF2598 (2025)</div>
+  </div>
+  <nav id="tab-nav" role="tablist" aria-label="Tool sections">
+    <button class="tab-btn active" role="tab" aria-selected="true"  aria-controls="panel-pathway"   id="tab-pathway"   onclick="showTab('pathway')">Pathway Check</button>
+    <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="panel-caseload"  id="tab-caseload"  onclick="showTab('caseload')">My Caseload</button>
+    <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="panel-reference" id="tab-reference" onclick="showTab('reference')">Reference</button>
+  </nav>
+</div>
+
+<!-- ─── INTRO BAND ───────────────────────────────────────────────── -->
+<div id="intro-band">
+  <strong>Senator Hoffman's SF2598 created a new pathway for abbreviated annual reassessments for Minnesotans with stable disability waiver service needs</strong> — reducing repetitive paperwork for families and case managers alike.
+  This tool helps county case managers and care coordinators in <strong>Senate District 34</strong> determine whether an annual disability waiver reassessment qualifies for the abbreviated pathway or requires a full in-person MnCHOICES visit.
+  SD-34 includes communities in Anoka and Hennepin counties — Champlin, Brooklyn Park, Coon Rapids, Dayton, and Rogers — where county case managers coordinate waiver services for hundreds of individuals with disabilities. Anoka County is a primary partner for MnCHOICES assessments in this district.
+</div>
+
+<!-- ─── DISCLAIMER BAND ──────────────────────────────────────────── -->
+<div id="disclaimer-band" role="note" aria-label="Disclaimer">
+  <span class="disc-icon" aria-hidden="true">⚠</span>
+  <span><strong>Administrative reference tool only.</strong> This tool reflects the legislative framework of SF2598 (2025) and 2025 session changes to Minn. Stat. § 256B.0911. Case managers should confirm current DHS guidance and county policy before completing any reassessment determination. Not an official DHS system.</span>
+</div>
+
+<!-- ─── CONTENT AREA ─────────────────────────────────────────────── -->
+<div id="content-area">
+
+  <!-- MODULE 1: PATHWAY CHECK -->
+  <section class="tab-panel active" id="panel-pathway" role="tabpanel" aria-labelledby="tab-pathway">
+    <!-- Left: Inputs -->
+    <div class="pathway-inputs">
+      <div class="form-section-hdr">Person Profile</div>
+
+      <div class="form-row">
+        <label for="waiver-type">Waiver / Program Type</label>
+        <select id="waiver-type" aria-required="true">
+          <option value="">— Select —</option>
+          <option value="DD">Developmental Disabilities (DD) — § 256B.092</option>
+          <option value="CAC">Community Alternative Care (CAC) — § 256B.49</option>
+          <option value="CADI">Community Access for Disability Inclusion (CADI) — § 256B.49</option>
+          <option value="BI">Brain Injury (BI) — § 256B.49</option>
+          <option value="CFSS">Community First Services and Supports (CFSS) — non-waiver</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label for="age-input">Age at Time of Reassessment</label>
+        <input type="number" id="age-input" min="0" max="120" placeholder="e.g. 34" aria-required="true">
+      </div>
+
+      <div class="form-row">
+        <label for="last-full-date">Date of Most Recent Full In-Person MnCHOICES Assessment</label>
+        <input type="date" id="last-full-date" aria-required="true">
+      </div>
+
+      <div class="form-row">
+        <label for="consec-abbreviated">Consecutive Abbreviated Reassessments Since Last Full Assessment</label>
+        <div class="hint">Enter 0 if last completed reassessment was a full in-person visit.</div>
+        <input type="number" id="consec-abbreviated" min="0" max="10" value="0" style="width:80px" aria-required="true">
+      </div>
+
+      <div class="form-row">
+        <label for="service-setting">Current Service Setting</label>
+        <select id="service-setting" aria-required="true">
+          <option value="">— Select —</option>
+          <option value="home">Own home / family home</option>
+          <option value="residential">Licensed residential facility (e.g., corporate foster care)</option>
+          <option value="sls">Supported living / semi-independent</option>
+          <option value="other">Other / unknown</option>
+        </select>
+      </div>
+
+      <div class="form-section-hdr">Eligibility Criteria</div>
+
+      <div class="form-row">
+        <label>Has the person verbally confirmed unchanged needs at last contact?</label>
+        <div class="radio-group" role="radiogroup" aria-required="true">
+          <label><input type="radio" name="verbal-confirm" id="verbal-yes" value="yes"> Yes</label>
+          <label><input type="radio" name="verbal-confirm" id="verbal-no"  value="no">  No</label>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label>Has the person or their legal representative requested an in-person visit?</label>
+        <div class="radio-group" role="radiogroup" aria-required="true">
+          <label><input type="radio" name="inperson-req" id="inperson-yes" value="yes"> Yes</label>
+          <label><input type="radio" name="inperson-req" id="inperson-no"  value="no">  No</label>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label>Has a significant change in condition been documented in the past 12 months?</label>
+        <div class="hint">Includes: hospitalization, new diagnosis, new behavioral support plan, loss of primary caregiver, change in living situation.</div>
+        <div class="radio-group" role="radiogroup" aria-required="true">
+          <label><input type="radio" name="sig-change" id="change-yes" value="yes"> Yes</label>
+          <label><input type="radio" name="sig-change" id="change-no"  value="no">  No</label>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label>Is the certified assessor required to assess alternative housing preferences for this person?</label>
+        <div class="hint">Required by statute for persons in residential service settings. <em>§ 256B.0911, subd. 3a.</em></div>
+        <div class="radio-group" role="radiogroup" aria-required="true">
+          <label><input type="radio" name="housing-review" id="housing-yes" value="yes"> Yes</label>
+          <label><input type="radio" name="housing-review" id="housing-no"  value="no">  No</label>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-primary" onclick="runPathwayCheck()">Check Pathway</button>
+        <button class="btn-example" onclick="loadExample()">Load Example</button>
+        <button class="btn-secondary" onclick="clearPathway()">Clear</button>
+      </div>
+    </div>
+
+    <!-- Right: Result -->
+    <div class="pathway-result">
+      <div class="result-panel-hdr">Pathway Determination</div>
+      <div id="result-display">
+        <div class="result-placeholder">
+          <span class="pl-icon" aria-hidden="true">📋</span>
+          Complete the person profile and click <strong>Check Pathway</strong> to determine reassessment eligibility.<br><br>
+          Click <strong>Load Example</strong> to see a worked CADI waiver scenario from SD-34.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODULE 2: CASELOAD TIMELINE -->
+  <section class="tab-panel" id="panel-caseload" role="tabpanel" aria-labelledby="tab-caseload">
+    <div class="caseload-header-row">
+      <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+        <span class="caseload-title">Caseload Reassessment Timeline</span>
+        <span class="caseload-summary" id="caseload-summary">Loading…</span>
+      </div>
+      <span class="print-date" id="print-date"></span>
+    </div>
+
+    <div class="caseload-actions">
+      <button class="btn-primary" onclick="addCaseloadRow()">+ Add Person</button>
+      <button class="btn-secondary" onclick="window.print()">Print Caseload Sheet</button>
+      <button class="btn-secondary" onclick="saveCaseload()">Save</button>
+    </div>
+
+    <div class="caseload-table-wrap">
+      <table class="caseload-tbl" id="caseload-tbl" aria-label="Caseload reassessment status">
+        <thead>
+          <tr>
+            <th style="width:90px">Identifier</th>
+            <th style="width:160px">Waiver Type</th>
+            <th style="width:140px">Last Assessment</th>
+            <th style="width:80px">Last Type</th>
+            <th style="width:60px">Consec. Abbrev.</th>
+            <th style="width:120px">Next Due</th>
+            <th style="width:90px">Days Until Due</th>
+            <th style="width:90px">Status</th>
+            <th style="width:110px">Pathway</th>
+            <th>Prep Checklist</th>
+            <th style="width:50px"></th>
+          </tr>
+        </thead>
+        <tbody id="caseload-tbody">
+          <!-- Rows rendered by JS -->
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- MODULE 3: REFERENCE -->
+  <section class="tab-panel" id="panel-reference" role="tabpanel" aria-labelledby="tab-reference">
+    <div class="ref-title">Statute &amp; Policy Reference</div>
+
+    <!-- Entry 1 -->
+    <div class="accordion-item">
+      <button class="accordion-hdr" onclick="toggleAcc(this)" aria-expanded="false">
+        <span class="acc-tag">Statute</span>
+        Minn. Stat. § 256B.0911 — Long-Term Care Consultation Services
+        <span class="acc-arrow" aria-hidden="true">▾</span>
+      </button>
+      <div class="accordion-body">
+        <p>Section 256B.0911 governs long-term care consultation services in Minnesota, including the MnCHOICES assessment process used to determine eligibility for and planning of disability waiver services.</p>
+        <div class="acc-quote">
+          "At the time of reassessment, persons receiving waiver residential supports and services must be assessed to determine whether they would prefer alternative housing and service options through a person-centered planning process."
+        </div>
+        <span class="acc-cite">Cite: Minn. Stat. § 256B.0911, subd. 3a (or applicable subdivision). This housing-preference assessment component cannot be abbreviated — it must be conducted in person for persons in residential settings.</span>
+      </div>
+    </div>
+
+    <!-- Entry 2 -->
+    <div class="accordion-item">
+      <button class="accordion-hdr" onclick="toggleAcc(this)" aria-expanded="false">
+        <span class="acc-tag amber">2025 Session</span>
+        SF2598 — Abbreviated Reassessment Pathway (2025 Legislative Change)
+        <span class="acc-arrow" aria-hidden="true">▾</span>
+      </button>
+      <div class="accordion-body">
+        <p>SF2598, filed March 13, 2025 by Senator John Hoffman (SD-34), amends Minn. Stat. § 256B.0911 to authorize abbreviated annual reassessments for qualifying individuals enrolled in disability waiver programs.</p>
+        <div class="acc-quote">
+          "Persons age 21 or older and under 65 may attest to unchanged needs for up to two consecutive reassessments, allowing abbreviated reassessments rather than requiring a full in-person MnCHOICES visit each year."
+        </div>
+        <span class="acc-cite">Cite: 2025 Minn. Laws, SF2598, amending § 256B.0911. This provision reduces the annual in-person burden for individuals with stable, well-documented disability service needs.</span>
+        <p style="margin-top:10px; font-size:0.82rem;">The bill applies to persons enrolled in the DD, CAC, CADI, and BI waiver programs. CFSS (Community First Services and Supports) is a non-waiver program and uses a different authorization framework.</p>
+      </div>
+    </div>
+
+    <!-- Entry 3 -->
+    <div class="accordion-item">
+      <button class="accordion-hdr" onclick="toggleAcc(this)" aria-expanded="false">
+        <span class="acc-tag">Statute</span>
+        MnCHOICES Remote Reassessment Option (Existing Rule)
+        <span class="acc-arrow" aria-hidden="true">▾</span>
+      </button>
+      <div class="accordion-body">
+        <p>Separate from the new abbreviated pathway, Minnesota statute already provides a remote reassessment option for certain waiver enrollees.</p>
+        <div class="acc-quote">
+          "Remote reassessments may be substituted for four consecutive reassessments if followed by an in-person reassessment, for persons on DD, CADI, CAC, and BI waivers."
+        </div>
+        <span class="acc-cite">Cite: Minn. Stat. § 256B.0911, as of 2025. Note: the remote option and the abbreviated pathway are separate provisions. The abbreviated pathway (SF2598) applies to the scope of the assessment; the remote option applies to the modality of delivery.</span>
+      </div>
+    </div>
+
+    <!-- Entry 4 -->
+    <div class="accordion-item">
+      <button class="accordion-hdr" onclick="toggleAcc(this)" aria-expanded="false">
+        <span class="acc-tag amber">2025 Session</span>
+        Verbal Confirmation at Reassessment (2025 Session Addition)
+        <span class="acc-arrow" aria-hidden="true">▾</span>
+      </button>
+      <div class="accordion-body">
+        <p>The 2025 legislative session added a verbal confirmation option that simplifies the signature requirement at reassessment.</p>
+        <div class="acc-quote">
+          "At reassessment, instead of a written signature, individuals may verbally confirm agreement with the assessment."
+        </div>
+        <span class="acc-cite">Cite: 2025 session legislative update; see also Minnesota Council on Disability guidance. This provision is relevant to the abbreviated pathway eligibility check — the person (or their legal representative) must be able to provide verbal confirmation of unchanged needs.</span>
+      </div>
+    </div>
+
+    <!-- Entry 5 -->
+    <div class="accordion-item">
+      <button class="accordion-hdr" onclick="toggleAcc(this)" aria-expanded="false">
+        <span class="acc-tag">Context</span>
+        Waiver Reimagine — Background and Timeline
+        <span class="acc-arrow" aria-hidden="true">▾</span>
+      </button>
+      <div class="accordion-body">
+        <p>SF2598 exists within a broader waiver reform effort under the Waiver Reimagine initiative.</p>
+        <div class="acc-quote">
+          "The Waiver Reimagine Advisory Task Force was created in 2025 to provide stakeholder input on further changes to Minnesota's four disability waiver programs (DD, CAC, CADI, BI). Full implementation of Waiver Reimagine is delayed until January 1, 2027."
+        </div>
+        <span class="acc-cite">Cite: 2025 Minn. Laws; DHS Waiver Reimagine page (mn.gov/dhs). SF2598 and the co-authored Waiver Reimagine framework (SF3757, Senator Hoffman and Rep. Hicks) are among the near-term changes ahead of broader 2027 implementation.</span>
+      </div>
+    </div>
+
+    <!-- Entry 6 -->
+    <div class="accordion-item">
+      <button class="accordion-hdr" onclick="toggleAcc(this)" aria-expanded="false">
+        <span class="acc-tag">District Note</span>
+        Anoka County — MnCHOICES Administration in SD-34
+        <span class="acc-arrow" aria-hidden="true">▾</span>
+      </button>
+      <div class="accordion-body">
+        <p>Senate District 34 spans communities in both Anoka and Hennepin counties. Anoka County is the primary county partner for waiver case management in this district.</p>
+        <div class="acc-quote">
+          "Anoka County is one of SD-34's primary county partners for waiver case management. Case managers in Anoka County are certified assessors or work alongside certified assessors to complete MnCHOICES assessments for waiver-enrolled individuals."
+        </div>
+        <span class="acc-cite">Informational note — not statutory. For Anoka County-specific policy and procedures, contact Anoka County Human Services or visit the county website. Brooklyn Park and portions of Champlin also involve Hennepin County Human Services.</span>
+      </div>
+    </div>
+
+    <!-- DHS Resource Links -->
+    <div class="ref-links-section">
+      <div class="ref-links-hdr">DHS &amp; External Resources</div>
+      <ul class="ref-links-list">
+        <li>
+          <span class="link-label">DHS Waiver Reimagine Page</span>
+          <a href="https://mn.gov/dhs/partners-and-providers/policies-procedures/long-term-services-and-supports/waiver-reimagine/" target="_blank" rel="noopener">mn.gov/dhs/…/waiver-reimagine/</a>
+        </li>
+        <li>
+          <span class="link-label">MnCHOICES Overview</span>
+          <a href="https://mn.gov/dhs/partners-and-providers/policies-procedures/long-term-services-and-supports/mnchoices.jsp" target="_blank" rel="noopener">mn.gov/dhs/…/mnchoices.jsp</a>
+        </li>
+        <li>
+          <span class="link-label">Minnesota Revisor § 256B.0911</span>
+          <a href="https://www.revisor.mn.gov/statutes/cite/256b.0911" target="_blank" rel="noopener">revisor.mn.gov/statutes/cite/256b.0911</a>
+        </li>
+        <li>
+          <span class="link-label">Arc Minnesota MnCHOICES Guide</span>
+          <a href="https://arcminnesota.org/resource/arc-guide-to-mnchoices-assessment/" target="_blank" rel="noopener">arcminnesota.org/resource/arc-guide-to-mnchoices-assessment/</a>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+</div><!-- /content-area -->
+
+<!-- ─── FOOTER ───────────────────────────────────────────────────── -->
+<footer id="app-footer">
+  A resource for SD-34 communities and Minnesota disability services. Built with AI.
+  Reflects Minnesota waiver law as of the 2025 legislative session.
+</footer>
+
+<script>
+// ─── TAB NAVIGATION ─────────────────────────────────────────────────────────
+function showTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.remove('active');
+    b.setAttribute('aria-selected', 'false');
+  });
+  document.getElementById('panel-' + name).classList.add('active');
+  const btn = document.getElementById('tab-' + name);
+  btn.classList.add('active');
+  btn.setAttribute('aria-selected', 'true');
+}
+
+// ─── ACCORDION (Reference) ───────────────────────────────────────────────────
+function toggleAcc(btn) {
+  const body = btn.nextElementSibling;
+  const open = body.classList.contains('open');
+  // Close all
+  document.querySelectorAll('.accordion-body').forEach(b => b.classList.remove('open'));
+  document.querySelectorAll('.accordion-hdr').forEach(b => {
+    b.classList.remove('open');
+    b.setAttribute('aria-expanded', 'false');
+  });
+  if (!open) {
+    body.classList.add('open');
+    btn.classList.add('open');
+    btn.setAttribute('aria-expanded', 'true');
+  }
+}
+
+// ─── PATHWAY LOGIC ──────────────────────────────────────────────────────────
+const CRITERIA_DEFS = {
+  age:      { label: 'Person is age 21 or older and under 65', cite: 'Minn. Stat. § 256B.0911 as amended by SF2598 (2025)' },
+  waiver:   { label: 'Enrolled in DD, CAC, CADI, or BI waiver program', cite: 'SF2598 (2025) applies to DD, CAC, CADI, BI waivers; not CFSS' },
+  consec:   { label: 'Fewer than two consecutive abbreviated reassessments completed since last full assessment', cite: '2025 session allows up to two consecutive abbreviated reassessments; Minn. Stat. § 256B.0911' },
+  noChange: { label: 'No significant change in condition documented in the past 12 months', cite: 'Significant change requires full in-person reassessment; § 256B.0911' },
+  noRequest:{ label: 'Person and legal representative have not requested an in-person visit', cite: 'Statutory right to request full in-person must be honored; § 256B.0911' },
+  verbal:   { label: 'Person has verbally confirmed unchanged needs', cite: '2025 session: verbal confirmation may substitute for written signature at reassessment' },
+  housing:  { label: 'Housing preference assessment (residential settings) — flag for review', cite: '§ 256B.0911, subd. 3a: persons in residential settings must be assessed for alternative housing preferences; this component cannot be abbreviated' },
+  cfss:     { label: 'CFSS is a non-waiver program — abbreviated pathway does not apply', cite: 'SF2598 applies to DD, CAC, CADI, BI waivers only; CFSS uses a different authorization framework' },
+};
+
+function evaluatePathway(inputs) {
+  const met = [], failed = [], flagged = [];
+
+  // 1. Age check
+  const age = parseInt(inputs.age, 10);
+  if (isNaN(age) || age < 21 || age >= 65) {
+    failed.push({ ...CRITERIA_DEFS.age, reason: age < 21 ? 'Person is under 21' : 'Person is 65 or older' });
+  } else {
+    met.push(CRITERIA_DEFS.age);
+  }
+
+  // 2. Waiver type
+  const waiverOk = ['DD', 'CAC', 'CADI', 'BI'].includes(inputs.waiverType);
+  if (inputs.waiverType === 'CFSS') {
+    failed.push({ ...CRITERIA_DEFS.cfss, reason: 'CFSS is not a waiver program covered by SF2598' });
+  } else if (!waiverOk || !inputs.waiverType) {
+    failed.push({ ...CRITERIA_DEFS.waiver, reason: 'No waiver type selected or waiver not covered' });
+  } else {
+    met.push(CRITERIA_DEFS.waiver);
+  }
+
+  // 3. Consecutive abbreviated limit
+  const consec = parseInt(inputs.consecAbbreviated, 10) || 0;
+  if (consec >= 2) {
+    failed.push({ ...CRITERIA_DEFS.consec, reason: `${consec} consecutive abbreviated reassessments already completed (limit is 2)` });
+  } else {
+    met.push({ ...CRITERIA_DEFS.consec });
+  }
+
+  // 4. Significant change
+  if (inputs.significantChange === 'yes') {
+    failed.push({ ...CRITERIA_DEFS.noChange, reason: 'Significant change in condition documented in past 12 months' });
+  } else if (inputs.significantChange === 'no') {
+    met.push(CRITERIA_DEFS.noChange);
+  }
+
+  // 5. In-person request
+  if (inputs.inPersonRequest === 'yes') {
+    failed.push({ ...CRITERIA_DEFS.noRequest, reason: 'Person or legal representative has requested in-person visit' });
+  } else if (inputs.inPersonRequest === 'no') {
+    met.push(CRITERIA_DEFS.noRequest);
+  }
+
+  // 6. Verbal confirmation
+  if (inputs.verbalConfirmation === 'no') {
+    flagged.push({ ...CRITERIA_DEFS.verbal, reason: 'Verbal confirmation of unchanged needs not obtained — obtain before proceeding' });
+  } else if (inputs.verbalConfirmation === 'yes') {
+    met.push(CRITERIA_DEFS.verbal);
+  }
+
+  // 7. Housing preference review (residential setting)
+  if (inputs.housingReviewRequired === 'yes') {
+    flagged.push({ ...CRITERIA_DEFS.housing, reason: 'Housing preference review required in residential setting — this component must be conducted in person; remainder of reassessment may still qualify for abbreviated pathway pending supervisor review' });
+  }
+
+  // Determine status
+  let status;
+  if (failed.length > 0) {
+    status = 'red';
+  } else if (flagged.length > 0) {
+    status = 'yellow';
+  } else if (met.length >= 5) {
+    status = 'green';
+  } else {
+    status = 'yellow'; // incomplete inputs
+  }
+
+  return { status, met, failed, flagged };
+}
+
+function getPathwayInputs() {
+  return {
+    waiverType:           document.getElementById('waiver-type').value,
+    age:                  document.getElementById('age-input').value,
+    lastFullDate:         document.getElementById('last-full-date').value,
+    consecAbbreviated:    document.getElementById('consec-abbreviated').value,
+    serviceSetting:       document.getElementById('service-setting').value,
+    verbalConfirmation:   document.querySelector('input[name="verbal-confirm"]:checked')?.value || '',
+    inPersonRequest:      document.querySelector('input[name="inperson-req"]:checked')?.value || '',
+    significantChange:    document.querySelector('input[name="sig-change"]:checked')?.value || '',
+    housingReviewRequired:document.querySelector('input[name="housing-review"]:checked')?.value || '',
+  };
+}
+
+function runPathwayCheck() {
+  const inputs = getPathwayInputs();
+  const result = evaluatePathway(inputs);
+  renderResult(result, inputs);
+  savePathwayInputs(inputs);
+}
+
+function renderResult(result, inputs) {
+  const { status, met, failed, flagged } = result;
+
+  const statusConfig = {
+    green:  { heading: '✓ Abbreviated Reassessment Eligible',                      icon: '✓', label: 'Met' },
+    yellow: { heading: '⚠ Review Required Before Determining Pathway',             icon: '⚠', label: 'Flagged' },
+    red:    { heading: '✕ Full In-Person Reassessment Required',                   icon: '✕', label: 'Disqualifying' },
+  };
+
+  const cfg = statusConfig[status];
+
+  const bodyText = {
+    green:  'Based on the information entered, this person appears eligible for an abbreviated annual reassessment under Minn. Stat. § 256B.0911. A full in-person MnCHOICES visit is not required at this time.',
+    yellow: 'One or more responses indicate this person may need additional review before confirming abbreviated pathway eligibility. See items flagged below.',
+    red:    'Based on the information entered, a full in-person MnCHOICES reassessment is required. Abbreviated reassessment is not available at this time.',
+  };
+
+  let criteriaHtml = '';
+
+  if (met.length > 0) {
+    criteriaHtml += `<div style="margin-bottom:10px"><strong style="font-size:0.78rem;text-transform:uppercase;letter-spacing:0.05em;color:#2D6A4F;">Criteria Met</strong>
+      <ul class="criteria-list">`;
+    met.forEach(c => {
+      criteriaHtml += `<li><span class="crit-icon" aria-hidden="true">✓</span><span class="crit-text">${c.label}<span class="crit-cite">${c.cite}</span></span></li>`;
+    });
+    criteriaHtml += `</ul></div>`;
+  }
+
+  if (flagged.length > 0) {
+    criteriaHtml += `<div style="margin-bottom:10px"><strong style="font-size:0.78rem;text-transform:uppercase;letter-spacing:0.05em;color:#B8860B;">Flagged for Review</strong>
+      <ul class="criteria-list">`;
+    flagged.forEach(c => {
+      criteriaHtml += `<li><span class="crit-icon" aria-hidden="true">⚠</span><span class="crit-text">${c.reason}<span class="crit-cite">${c.cite}</span></span></li>`;
+    });
+    criteriaHtml += `</ul></div>`;
+  }
+
+  if (failed.length > 0) {
+    criteriaHtml += `<div style="margin-bottom:10px"><strong style="font-size:0.78rem;text-transform:uppercase;letter-spacing:0.05em;color:#B71C1C;">Disqualifying Criteria</strong>
+      <ul class="criteria-list">`;
+    failed.forEach(c => {
+      criteriaHtml += `<li><span class="crit-icon" aria-hidden="true">✕</span><span class="crit-text">${c.reason}<span class="crit-cite">${c.cite}</span></span></li>`;
+    });
+    criteriaHtml += `</ul></div>`;
+  }
+
+  let nextStepsHtml = '';
+  if (status === 'yellow') {
+    nextStepsHtml = `<div class="next-steps">
+      <div class="next-steps-hdr">Suggested Next Steps</div>
+      <ul>
+        <li>Consult with your supervisor before making a pathway determination.</li>
+        <li>Review current DHS guidance documents on § 256B.0911 and SF2598 (2025).</li>
+        <li>Contact the person's legal representative if verbal confirmation has not been obtained.</li>
+        <li>If a residential housing preference review is required, coordinate in-person assessor visit for that component.</li>
+      </ul>
+    </div>`;
+  } else if (status === 'red') {
+    nextStepsHtml = `<div class="next-steps">
+      <div class="next-steps-hdr">Next Steps</div>
+      <ul>
+        <li>Schedule a full in-person MnCHOICES assessment with a certified assessor.</li>
+        <li>Notify the person and their legal representative of the requirement and timeline.</li>
+        <li>Document the disqualifying reason in the person's record.</li>
+        <li>After the full reassessment is completed, the consecutive abbreviated counter resets to zero.</li>
+      </ul>
+    </div>`;
+  } else if (status === 'green') {
+    nextStepsHtml = `<div class="next-steps">
+      <div class="next-steps-hdr">Completing the Abbreviated Reassessment</div>
+      <ul>
+        <li>Complete the abbreviated reassessment form and obtain verbal confirmation from the person (or legal rep).</li>
+        <li>Update consecutive abbreviated reassessment count in MnCHOICES record (now: ${(parseInt(inputs.consecAbbreviated,10)||0)+1}).</li>
+        <li>If this will be the second consecutive abbreviated reassessment, schedule the next cycle as full in-person.</li>
+        <li>Confirm current DHS guidance before finalizing — this tool is a reference aid, not an official DHS determination.</li>
+      </ul>
+    </div>`;
+  }
+
+  document.getElementById('result-display').innerHTML = `
+    <div class="result-box ${status}" role="region" aria-label="Pathway determination: ${cfg.heading}">
+      <div class="result-heading">${cfg.heading}</div>
+      <div class="result-body">${bodyText[status]}</div>
+      ${criteriaHtml}
+      ${nextStepsHtml}
+    </div>
+  `;
+}
+
+function clearPathway() {
+  document.getElementById('waiver-type').value = '';
+  document.getElementById('age-input').value = '';
+  document.getElementById('last-full-date').value = '';
+  document.getElementById('consec-abbreviated').value = '0';
+  document.getElementById('service-setting').value = '';
+  ['verbal-confirm','inperson-req','sig-change','housing-review'].forEach(name => {
+    document.querySelectorAll(`input[name="${name}"]`).forEach(r => r.checked = false);
+  });
+  document.getElementById('result-display').innerHTML = `
+    <div class="result-placeholder">
+      <span class="pl-icon" aria-hidden="true">📋</span>
+      Complete the person profile and click <strong>Check Pathway</strong> to determine reassessment eligibility.
+    </div>`;
+}
+
+// Load the worked example (CADI, 34yo, 14 months ago, 0 consec, home, all-green criteria)
+function loadExample() {
+  const today = new Date();
+  const d14 = new Date(today);
+  d14.setMonth(d14.getMonth() - 14);
+  const dateStr = d14.toISOString().split('T')[0];
+
+  document.getElementById('waiver-type').value = 'CADI';
+  document.getElementById('age-input').value = '34';
+  document.getElementById('last-full-date').value = dateStr;
+  document.getElementById('consec-abbreviated').value = '0';
+  document.getElementById('service-setting').value = 'home';
+
+  document.querySelector('input[name="verbal-confirm"][value="yes"]').checked = true;
+  document.querySelector('input[name="inperson-req"][value="no"]').checked = true;
+  document.querySelector('input[name="sig-change"][value="no"]').checked = true;
+  document.querySelector('input[name="housing-review"][value="no"]').checked = true;
+
+  runPathwayCheck();
+}
+
+// ─── LOCAL STORAGE — PATHWAY ─────────────────────────────────────────────────
+function savePathwayInputs(inputs) {
+  try { localStorage.setItem('hoffman_pathway_inputs', JSON.stringify(inputs)); } catch(e) {}
+}
+
+function restorePathwayInputs() {
+  try {
+    const raw = localStorage.getItem('hoffman_pathway_inputs');
+    if (!raw) return;
+    const inputs = JSON.parse(raw);
+    if (inputs.waiverType)      document.getElementById('waiver-type').value = inputs.waiverType;
+    if (inputs.age)             document.getElementById('age-input').value = inputs.age;
+    if (inputs.lastFullDate)    document.getElementById('last-full-date').value = inputs.lastFullDate;
+    if (inputs.consecAbbreviated !== undefined)
+                                document.getElementById('consec-abbreviated').value = inputs.consecAbbreviated;
+    if (inputs.serviceSetting)  document.getElementById('service-setting').value = inputs.serviceSetting;
+    const radioMap = {
+      'verbal-confirm': inputs.verbalConfirmation,
+      'inperson-req':   inputs.inPersonRequest,
+      'sig-change':     inputs.significantChange,
+      'housing-review': inputs.housingReviewRequired,
+    };
+    Object.entries(radioMap).forEach(([name, val]) => {
+      if (val) {
+        const r = document.querySelector(`input[name="${name}"][value="${val}"]`);
+        if (r) r.checked = true;
+      }
+    });
+  } catch(e) {}
+}
+
+// ─── CASELOAD MODULE ─────────────────────────────────────────────────────────
+let caseloadData = [];
+
+const DEFAULT_CASELOAD = [
+  {
+    id: 'Person A',
+    waiverType: 'CADI',
+    lastDate: offsetDate(-200),
+    lastType: 'full',
+    consecAbbreviated: 0,
+  },
+  {
+    id: 'Person B',
+    waiverType: 'DD',
+    lastDate: offsetDate(-335),
+    lastType: 'abbreviated',
+    consecAbbreviated: 1,
+  },
+  {
+    id: 'Person C',
+    waiverType: 'BI',
+    lastDate: offsetDate(-380),
+    lastType: 'abbreviated',
+    consecAbbreviated: 2,
+  },
+];
+
+function offsetDate(days) {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toISOString().split('T')[0];
+}
+
+function addCaseloadRow(data) {
+  const entry = data || {
+    id: 'Person ' + String.fromCharCode(65 + caseloadData.length),
+    waiverType: '',
+    lastDate: '',
+    lastType: 'full',
+    consecAbbreviated: 0,
+  };
+  caseloadData.push(entry);
+  renderCaseload();
+}
+
+function removeCaseloadRow(idx) {
+  caseloadData.splice(idx, 1);
+  renderCaseload();
+}
+
+function toggleChecklist(btn) {
+  const items = btn.nextElementSibling;
+  items.classList.toggle('open');
+  btn.textContent = items.classList.contains('open') ? 'Hide checklist ▲' : 'Prep checklist ▼';
+}
+
+function calcDueDate(lastDateStr) {
+  if (!lastDateStr) return null;
+  const d = new Date(lastDateStr);
+  d.setFullYear(d.getFullYear() + 1);
+  return d;
+}
+
+function daysUntil(dueDate) {
+  if (!dueDate) return null;
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  return Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+}
+
+function caseloadStatus(days) {
+  if (days === null) return 'unknown';
+  if (days > 60)  return 'green';
+  if (days > 30)  return 'yellow';
+  return 'red';
+}
+
+// Simplified pathway for caseload (age/change/request unknown — use waiver+consec only)
+function caseloadPathway(entry) {
+  if (!['DD','CAC','CADI','BI'].includes(entry.waiverType)) return 'unknown';
+  const c = parseInt(entry.consecAbbreviated, 10) || 0;
+  if (c >= 2) return 'full';
+  return 'abbreviated';
+}
+
+function renderCaseload() {
+  const tbody = document.getElementById('caseload-tbody');
+  let html = '';
+  let dueSoon = 0;
+  const total = caseloadData.length;
+
+  caseloadData.forEach((entry, idx) => {
+    const dueDate = calcDueDate(entry.lastDate);
+    const days = daysUntil(dueDate);
+    const statusKey = caseloadStatus(days);
+    const pathway = caseloadPathway(entry);
+    if (days !== null && days <= 60) dueSoon++;
+
+    const dueDateStr = dueDate ? dueDate.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : '—';
+    const daysLabel = days === null ? '—'
+      : days < 0 ? `Overdue (${Math.abs(days)}d)`
+      : `${days} days`;
+
+    const statusBadge = statusKey === 'green'
+      ? `<span class="status-badge green" aria-label="On track">On Track</span>`
+      : statusKey === 'yellow'
+      ? `<span class="status-badge yellow" aria-label="Approaching">Approaching</span>`
+      : statusKey === 'red'
+      ? `<span class="status-badge red" aria-label="Due soon or overdue">Due / Overdue</span>`
+      : `<span class="status-badge" style="background:#eee;color:#666">Unknown</span>`;
+
+    const pathwayBadge = pathway === 'abbreviated'
+      ? `<span class="pathway-badge abbreviated">Abbreviated</span>`
+      : pathway === 'full'
+      ? `<span class="pathway-badge full">Full In-Person</span>`
+      : `<span class="pathway-badge review" style="color:#B8860B">Review Needed</span>`;
+
+    const waiverOptions = ['DD','CAC','CADI','BI','CFSS'].map(w =>
+      `<option value="${w}" ${entry.waiverType===w?'selected':''}>${w}</option>`
+    ).join('');
+
+    const checklistId = `checklist-${idx}`;
+
+    html += `<tr class="status-${statusKey}" data-idx="${idx}">
+      <td><input type="text" value="${escHtml(entry.id)}" aria-label="Person identifier" onchange="updateEntry(${idx},'id',this.value)"></td>
+      <td><select aria-label="Waiver type" onchange="updateEntry(${idx},'waiverType',this.value)">
+        <option value="">—</option>${waiverOptions}
+      </select></td>
+      <td><input type="date" value="${entry.lastDate||''}" aria-label="Last assessment date" onchange="updateEntry(${idx},'lastDate',this.value)"></td>
+      <td><select aria-label="Last assessment type" onchange="updateEntry(${idx},'lastType',this.value)">
+        <option value="full" ${entry.lastType==='full'?'selected':''}>Full</option>
+        <option value="abbreviated" ${entry.lastType==='abbreviated'?'selected':''}>Abbreviated</option>
+      </select></td>
+      <td><input type="number" min="0" max="10" value="${entry.consecAbbreviated||0}" aria-label="Consecutive abbreviated count" onchange="updateEntry(${idx},'consecAbbreviated',this.value)" style="width:55px"></td>
+      <td>${dueDateStr}</td>
+      <td>${daysLabel}</td>
+      <td>${statusBadge}</td>
+      <td>${pathwayBadge}</td>
+      <td>
+        <div class="checklist-wrap">
+          <button class="checklist-toggle" onclick="toggleChecklist(this)" aria-expanded="false" aria-controls="${checklistId}">Prep checklist ▼</button>
+          <div class="checklist-items" id="${checklistId}" role="list">
+            ${checklistItems(idx)}
+          </div>
+        </div>
+      </td>
+      <td><button class="btn-del" onclick="removeCaseloadRow(${idx})" aria-label="Remove ${escHtml(entry.id)}">✕</button></td>
+    </tr>`;
+  });
+
+  tbody.innerHTML = html || `<tr><td colspan="11" style="text-align:center;padding:20px;color:#888;font-style:italic;">No caseload entries. Click "+ Add Person" to begin.</td></tr>`;
+
+  // Summary badge
+  document.getElementById('caseload-summary').textContent =
+    total === 0 ? 'No entries'
+    : `${dueSoon} of ${total} due within 60 days`;
+
+  // Print date
+  document.getElementById('print-date').textContent =
+    'Printed: ' + new Date().toLocaleDateString('en-US', {month:'long',day:'numeric',year:'numeric'});
+}
+
+function checklistItems(idx) {
+  const items = [
+    'Review last CSSP for documented needs',
+    'Contact person (or legal representative) for verbal confirmation of unchanged needs',
+    'Check for hospitalizations, new diagnoses, or living situation changes in past 12 months',
+    'Confirm housing preference review not required (residential settings)',
+    'Complete abbreviated reassessment form / schedule full visit as indicated',
+    'Update MnCHOICES record',
+  ];
+  return items.map((item, i) =>
+    `<label><input type="checkbox" id="chk-${idx}-${i}" aria-label="${item}"> ${item}</label>`
+  ).join('');
+}
+
+function updateEntry(idx, field, value) {
+  caseloadData[idx][field] = value;
+  renderCaseload();
+}
+
+function escHtml(str) {
+  return (str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function saveCaseload() {
+  try { localStorage.setItem('hoffman_caseload_entries', JSON.stringify(caseloadData)); } catch(e) {}
+  const btn = event.target;
+  const orig = btn.textContent;
+  btn.textContent = 'Saved ✓';
+  setTimeout(() => btn.textContent = orig, 1800);
+}
+
+function loadCaseload() {
+  try {
+    const raw = localStorage.getItem('hoffman_caseload_entries');
+    if (raw) {
+      caseloadData = JSON.parse(raw);
+      renderCaseload();
+      return;
+    }
+  } catch(e) {}
+  // Load defaults
+  caseloadData = [...DEFAULT_CASELOAD];
+  renderCaseload();
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  restorePathwayInputs();
+  loadCaseload();
+
+  // Print date for print stylesheet
+  document.getElementById('print-date').textContent =
+    'Printed: ' + new Date().toLocaleDateString('en-US', {month:'long',day:'numeric',year:'numeric'});
+});
+</script>
+
+</body>
+</html>

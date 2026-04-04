@@ -1,0 +1,1664 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Senator John Marty | District 40</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,300;1,8..60,400&family=Barlow+Condensed:wght@400;600;700;800&display=swap&family=Oswald:wght@300;400;500;600;700" rel="stylesheet">
+
+<style>
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* PRO palette — brick red, institutional gray, parchment */
+  --pro-brick:    #8B1A1A;
+  --pro-brick-lt: #A52424;
+  --pro-slate:    #2C3E50;
+  --pro-concrete: #5A5F66;
+  --pro-rule:     #C8B89A;
+  --pro-paper:    #F5F0E8;
+  --pro-offwhite: #EDE8DF;
+  --pro-ink:      #1A1A1A;
+
+  /* OPPO palette — highway yellow, bureaucratic gray, warning red */
+  --op-yellow:    #F5C518;
+  --op-yell-dk:   #C49B00;
+  --op-charcoal:  #1C1C1E;
+  --op-midgray:   #3A3A3C;
+  --op-lightgray: #8A8A8E;
+  --op-paper:     #E8E4DC;
+  --op-red:       #C0392B;
+  --op-rust:      #922B21;
+
+  --transition: 220ms ease;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Source Serif 4', Georgia, serif;
+  background: var(--pro-paper);
+  color: var(--pro-ink);
+  transition: background var(--transition), color var(--transition);
+  min-width: 320px;
+}
+
+body.mode-oppo {
+  background: var(--op-charcoal);
+  color: var(--op-paper);
+}
+
+/* ============================================================
+   CONTENT VISIBILITY
+   ============================================================ */
+.pro-content  { display: block; opacity: 1; transition: opacity var(--transition); }
+.oppo-content { display: none;  opacity: 0; transition: opacity var(--transition); }
+
+body.mode-oppo .pro-content  { display: none;  opacity: 0; }
+body.mode-oppo .oppo-content { display: block; opacity: 1; }
+
+/* ============================================================
+   TOGGLE BUTTON
+   ============================================================ */
+#flip-toggle {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 9999;
+  border: none;
+  cursor: pointer;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 14px 20px;
+  border-radius: 2px;
+  transition: background var(--transition), color var(--transition), box-shadow var(--transition);
+  line-height: 1.3;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+#flip-toggle.pro-mode {
+  background: var(--pro-brick);
+  color: #fff;
+}
+#flip-toggle.pro-mode:hover {
+  background: var(--pro-brick-lt);
+  box-shadow: 0 6px 24px rgba(139,26,26,0.5);
+}
+#flip-toggle.oppo-mode {
+  background: var(--op-yellow);
+  color: var(--op-charcoal);
+}
+#flip-toggle.oppo-mode:hover {
+  background: #FFD740;
+  box-shadow: 0 6px 24px rgba(245,197,24,0.5);
+}
+
+/* ============================================================
+   SHARED UTILITIES
+   ============================================================ */
+.mono  { font-family: 'IBM Plex Mono', monospace; }
+.cond  { font-family: 'Barlow Condensed', sans-serif; }
+.rule-heavy { border-top: 4px solid var(--pro-brick); }
+.rule-thin  { border-top: 1px solid currentColor; opacity: 0.2; }
+
+/* ============================================================
+   ██████  PRO SITE
+   ============================================================ */
+
+/* NAV / IDENTITY BAR */
+.pro-masthead {
+  background: var(--pro-brick);
+  color: #fff;
+  padding: 0 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 56px;
+  border-bottom: 3px solid #6B1010;
+}
+.pro-masthead .district-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+.pro-masthead .caucus-tag {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: rgba(255,255,255,0.15);
+  padding: 4px 10px;
+  border-radius: 2px;
+}
+
+/* HERO */
+.pro-hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 580px;
+  overflow: hidden;
+}
+.pro-hero-text {
+  background: var(--pro-offwhite);
+  padding: 72px 56px 72px 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  border-right: 1px solid rgba(139,26,26,0.15);
+}
+.pro-hero-text::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 5px;
+  height: 100%;
+  background: var(--pro-brick);
+}
+.pro-tenure-badge {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pro-brick);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.pro-tenure-badge::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--pro-brick);
+  opacity: 0.3;
+  max-width: 60px;
+}
+.pro-hero-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: clamp(56px, 8vw, 96px);
+  font-weight: 800;
+  line-height: 0.92;
+  color: var(--pro-ink);
+  letter-spacing: -0.01em;
+  margin-bottom: 24px;
+}
+.pro-hero-name span {
+  display: block;
+  color: var(--pro-brick);
+}
+.pro-hero-argument {
+  font-size: 19px;
+  line-height: 1.55;
+  color: var(--pro-concrete);
+  max-width: 420px;
+  font-weight: 400;
+  margin-bottom: 36px;
+}
+.pro-hero-argument strong {
+  color: var(--pro-ink);
+  font-weight: 600;
+}
+.pro-stat-trio {
+  display: flex;
+  gap: 32px;
+  padding-top: 28px;
+  border-top: 1px solid rgba(139,26,26,0.2);
+}
+.pro-stat-item { }
+.pro-stat-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 44px;
+  font-weight: 800;
+  color: var(--pro-brick);
+  line-height: 1;
+  display: block;
+}
+.pro-stat-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--pro-concrete);
+  margin-top: 4px;
+  display: block;
+}
+
+/* HERO IMAGE PANEL */
+.pro-hero-image {
+  position: relative;
+  background: var(--pro-slate);
+  overflow: hidden;
+}
+.pro-hero-image img.senator-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 15%;
+  filter: sepia(15%) contrast(105%) brightness(0.95);
+  display: block;
+}
+.pro-hero-image .photo-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(160deg, #2C3E50 0%, #1A252F 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,0.4);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  display: none;
+}
+.pro-photo-caption {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: linear-gradient(transparent, rgba(26,26,26,0.85));
+  color: #fff;
+  padding: 48px 28px 24px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* MAIN CONTENT AREA */
+.pro-body {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+/* LEDGER DIVIDER */
+.ledger-rule {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 48px 0 0;
+  margin-bottom: 48px;
+  border-top: 4px solid var(--pro-brick);
+}
+.ledger-rule .rule-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--pro-brick);
+  white-space: nowrap;
+}
+.ledger-rule::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--pro-rule);
+}
+
+/* MAIN BILL BLOCK */
+.pro-bill-block {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 64px;
+  margin-bottom: 72px;
+  align-items: start;
+}
+.pro-bill-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--pro-brick);
+  margin-bottom: 12px;
+}
+.pro-bill-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: clamp(32px, 4vw, 52px);
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--pro-ink);
+  margin-bottom: 24px;
+  letter-spacing: -0.01em;
+}
+.pro-bill-body p {
+  font-size: 17px;
+  line-height: 1.65;
+  color: var(--pro-concrete);
+  margin-bottom: 18px;
+}
+.pro-bill-body p strong {
+  color: var(--pro-ink);
+}
+
+/* BILL METADATA PANEL */
+.pro-bill-meta {
+  background: var(--pro-offwhite);
+  border: 1px solid rgba(139,26,26,0.15);
+  border-top: 4px solid var(--pro-brick);
+  padding: 32px;
+}
+.meta-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+.meta-row:last-child { border-bottom: none; }
+.meta-key {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pro-concrete);
+}
+.meta-val {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--pro-ink);
+  line-height: 1.3;
+}
+
+/* PULL QUOTE */
+.pro-pull-quote {
+  background: var(--pro-brick);
+  color: #fff;
+  padding: 52px 60px;
+  margin: 0 -40px 72px;
+  position: relative;
+  overflow: hidden;
+}
+.pro-pull-quote::before {
+  content: '\201C';
+  position: absolute;
+  top: -20px;
+  left: 32px;
+  font-family: 'Source Serif 4', serif;
+  font-size: 200px;
+  opacity: 0.08;
+  line-height: 1;
+  color: #fff;
+  pointer-events: none;
+}
+.pro-pull-quote blockquote {
+  font-size: clamp(22px, 3vw, 32px);
+  font-weight: 300;
+  font-style: italic;
+  line-height: 1.45;
+  max-width: 760px;
+  position: relative;
+  z-index: 1;
+}
+.pro-pull-quote cite {
+  display: block;
+  font-style: normal;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.75;
+  margin-top: 20px;
+}
+
+/* RECORD SECTION */
+.pro-record-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  margin-bottom: 72px;
+  background: rgba(139,26,26,0.12);
+}
+.pro-record-card {
+  background: var(--pro-paper);
+  padding: 32px 28px;
+  transition: background 180ms ease;
+}
+.pro-record-card:hover {
+  background: var(--pro-offwhite);
+}
+.record-card-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 48px;
+  font-weight: 800;
+  color: var(--pro-brick);
+  line-height: 1;
+  margin-bottom: 8px;
+  display: block;
+}
+.record-card-head {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--pro-ink);
+  margin-bottom: 10px;
+}
+.record-card-body {
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--pro-concrete);
+}
+
+/* DISTRICT BAND */
+.pro-district-band {
+  background: var(--pro-slate);
+  color: #fff;
+  padding: 60px 40px;
+  margin: 0 -40px 72px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: center;
+}
+.pro-district-band h3 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--pro-rule);
+  margin-bottom: 16px;
+}
+.pro-district-band p {
+  font-size: 16px;
+  line-height: 1.65;
+  color: rgba(255,255,255,0.8);
+}
+.pro-district-communities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+}
+.community-tag {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.85);
+  padding: 6px 12px;
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
+/* FOOTER */
+.pro-footer {
+  background: var(--pro-offwhite);
+  border-top: 4px solid var(--pro-brick);
+  padding: 48px 40px 40px;
+  margin: 0 -40px;
+}
+.footnotes-head {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--pro-brick);
+  margin-bottom: 20px;
+}
+.footnotes-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.footnotes-list li {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--pro-concrete);
+  line-height: 1.55;
+  padding-left: 24px;
+  position: relative;
+}
+.footnotes-list li::before {
+  content: attr(data-num);
+  position: absolute;
+  left: 0;
+  color: var(--pro-brick);
+  font-weight: 700;
+}
+.footnotes-list a {
+  color: var(--pro-brick);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(139,26,26,0.3);
+}
+.footnotes-list a:hover {
+  border-color: var(--pro-brick);
+}
+
+
+/* ============================================================
+   ██████  OPPO SITE
+   ============================================================ */
+
+/* CASE FILE HEADER */
+.op-header {
+  background: var(--op-charcoal);
+  border-bottom: 3px solid var(--op-yellow);
+  padding: 0 40px;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.op-case-id {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--op-yellow);
+}
+.op-status-tag {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--op-charcoal);
+  background: var(--op-yellow);
+  padding: 4px 12px;
+  font-weight: 700;
+}
+
+/* OPPO HERO */
+.op-hero {
+  background: var(--op-charcoal);
+  padding: 0 40px 0;
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 540px;
+}
+.op-hero::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: repeating-linear-gradient(90deg, var(--op-yellow) 0 40px, transparent 40px 50px);
+}
+.op-hero-text {
+  padding: 64px 48px 64px 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+}
+.op-file-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--op-yellow);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.op-file-label::before {
+  content: '';
+  width: 28px;
+  height: 3px;
+  background: var(--op-yellow);
+  display: inline-block;
+}
+.op-hero-headline {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: clamp(40px, 6vw, 78px);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.01em;
+  color: #fff;
+  margin-bottom: 28px;
+}
+.op-hero-headline .accent {
+  color: var(--op-yellow);
+  display: block;
+}
+.op-hero-deck {
+  font-size: 17px;
+  line-height: 1.6;
+  color: rgba(255,255,255,0.72);
+  max-width: 440px;
+}
+.op-hero-deck strong {
+  color: #fff;
+}
+
+/* OPPO PHOTO PANEL */
+.op-hero-image {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.op-hero-image img.senator-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 15%;
+  filter: grayscale(100%) contrast(130%) brightness(0.7);
+  display: block;
+}
+.op-hero-image .photo-placeholder {
+  width: 100%;
+  height: 100%;
+  background: var(--op-midgray);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,0.3);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  display: none;
+}
+.op-hero-image::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, var(--op-charcoal) 0%, transparent 30%);
+  pointer-events: none;
+}
+.op-hero-stamp {
+  position: absolute;
+  bottom: 30px;
+  right: 20px;
+  z-index: 2;
+  border: 4px solid var(--op-red);
+  color: var(--op-red);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 8px 16px;
+  transform: rotate(-8deg);
+  opacity: 0.88;
+}
+
+/* OPPO BODY */
+.op-body {
+  background: var(--op-charcoal);
+  padding: 0 40px;
+}
+.op-body-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* OPPO SECTION RULE */
+.op-rule {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-top: 56px;
+  margin-bottom: 48px;
+  border-top: 3px solid var(--op-yellow);
+}
+.op-rule .rule-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--op-yellow);
+  white-space: nowrap;
+}
+.op-rule::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255,255,255,0.1);
+}
+
+/* EVIDENCE SEQUENCE */
+.op-sequence {
+  margin-bottom: 72px;
+}
+.op-sequence-intro {
+  font-size: 17px;
+  line-height: 1.65;
+  color: rgba(255,255,255,0.75);
+  max-width: 680px;
+  margin-bottom: 48px;
+}
+.op-sequence-intro strong {
+  color: #fff;
+}
+
+/* TIMELINE */
+.op-timeline {
+  position: relative;
+  padding-left: 48px;
+}
+.op-timeline::before {
+  content: '';
+  position: absolute;
+  left: 16px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--op-yellow), rgba(245,197,24,0.15));
+}
+.op-event {
+  position: relative;
+  margin-bottom: 44px;
+  padding: 24px 28px;
+  background: var(--op-midgray);
+  border-left: 3px solid rgba(245,197,24,0.3);
+  transition: border-color 180ms ease, background 180ms ease;
+}
+.op-event:hover {
+  border-left-color: var(--op-yellow);
+  background: #2D2D30;
+}
+.op-event::before {
+  content: '';
+  position: absolute;
+  left: -40px;
+  top: 24px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--op-yellow);
+  border: 3px solid var(--op-charcoal);
+}
+.op-event-year {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--op-yellow);
+  margin-bottom: 8px;
+}
+.op-event-head {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 10px;
+  letter-spacing: 0.01em;
+}
+.op-event-body {
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgba(255,255,255,0.65);
+}
+.op-event-body strong { color: rgba(255,255,255,0.9); }
+
+/* CORE PROOF BLOCK */
+.op-proof-block {
+  background: var(--op-midgray);
+  border: 1px solid rgba(245,197,24,0.25);
+  border-top: 4px solid var(--op-yellow);
+  padding: 40px;
+  margin-bottom: 72px;
+}
+.op-proof-block-head {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--op-yellow);
+  margin-bottom: 20px;
+}
+.op-proof-text {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13.5px;
+  line-height: 1.75;
+  color: rgba(255,255,255,0.82);
+  padding: 24px;
+  background: rgba(0,0,0,0.3);
+  border-left: 3px solid var(--op-yellow);
+  margin-bottom: 24px;
+}
+.op-proof-text .highlight {
+  background: rgba(245,197,24,0.2);
+  color: var(--op-yellow);
+  padding: 0 4px;
+}
+.op-proof-source {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.4);
+  text-transform: uppercase;
+}
+
+/* EVIDENCE CARDS */
+.op-evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px;
+  margin-bottom: 72px;
+  background: rgba(245,197,24,0.08);
+}
+.op-evidence-card {
+  background: var(--op-midgray);
+  padding: 32px 28px;
+  cursor: default;
+  transition: background 180ms ease;
+  position: relative;
+  overflow: hidden;
+}
+.op-evidence-card:hover {
+  background: #2D2D30;
+}
+.op-evidence-card:hover .card-hostile {
+  opacity: 1;
+  transform: translateY(0);
+}
+.op-evidence-card:hover .card-normal {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+.card-normal, .card-hostile {
+  transition: opacity 200ms ease, transform 200ms ease;
+}
+.card-hostile {
+  position: absolute;
+  inset: 32px 28px;
+  opacity: 0;
+  transform: translateY(8px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.op-card-icon {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 48px;
+  font-weight: 800;
+  color: var(--op-yellow);
+  line-height: 1;
+  margin-bottom: 12px;
+}
+.op-card-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--op-lightgray);
+  margin-bottom: 10px;
+}
+.op-card-head {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 19px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 10px;
+  line-height: 1.2;
+}
+.op-card-body {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: rgba(255,255,255,0.6);
+}
+.hostile-text {
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgba(255,255,255,0.85);
+  font-weight: 400;
+}
+.hostile-verdict {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--op-yellow);
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(245,197,24,0.3);
+}
+
+/* COUNTER SECTION */
+.op-counter-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  background: rgba(245,197,24,0.08);
+  margin-bottom: 72px;
+}
+.op-counter-cell {
+  background: var(--op-midgray);
+  padding: 36px 28px;
+  text-align: center;
+}
+.op-counter-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 64px;
+  font-weight: 800;
+  color: var(--op-yellow);
+  line-height: 1;
+  display: block;
+}
+.op-counter-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.5);
+  margin-top: 8px;
+  display: block;
+}
+
+/* OPPO FOOTER */
+.op-footer {
+  background: #111;
+  border-top: 3px solid var(--op-yellow);
+  padding: 48px 40px 40px;
+  margin: 0 -40px;
+}
+.op-footnotes-head {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--op-yellow);
+  margin-bottom: 20px;
+}
+.op-footnotes-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.op-footnotes-list li {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: rgba(255,255,255,0.45);
+  line-height: 1.55;
+  padding-left: 24px;
+  position: relative;
+}
+.op-footnotes-list li::before {
+  content: attr(data-num);
+  position: absolute;
+  left: 0;
+  color: var(--op-yellow);
+  font-weight: 700;
+}
+.op-footnotes-list a {
+  color: rgba(245,197,24,0.7);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(245,197,24,0.2);
+}
+.op-footnotes-list a:hover {
+  color: var(--op-yellow);
+  border-color: var(--op-yellow);
+}
+
+/* ============================================================
+   COUNTER ANIMATION
+   ============================================================ */
+.count-target { display: inline-block; }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 900px) {
+  .pro-hero { grid-template-columns: 1fr; }
+  .pro-hero-image { min-height: 320px; }
+  .pro-hero-text { padding: 48px 32px; }
+  .pro-bill-block { grid-template-columns: 1fr; gap: 40px; }
+  .pro-record-grid { grid-template-columns: 1fr; gap: 2px; }
+  .pro-district-band { grid-template-columns: 1fr; gap: 32px; padding: 48px 32px; }
+  .pro-pull-quote { padding: 40px 32px; margin: 0 -32px 56px; }
+  .pro-body { padding: 0 24px; }
+  .pro-footer { padding: 40px 24px; margin: 0 -24px; }
+  .pro-stat-trio { gap: 20px; flex-wrap: wrap; }
+  .pro-masthead { padding: 12px 24px; flex-wrap: wrap; gap: 8px; }
+
+  .op-hero { grid-template-columns: 1fr; }
+  .op-hero-image { min-height: 280px; }
+  .op-hero-text { padding: 48px 24px 48px; }
+  .op-evidence-grid { grid-template-columns: 1fr; }
+  .op-counter-row { grid-template-columns: 1fr; }
+  .op-body { padding: 0 24px; }
+  .op-footer { padding: 40px 24px; margin: 0 -24px; }
+  .op-timeline { padding-left: 36px; }
+  .op-header { padding: 12px 24px; flex-wrap: wrap; gap: 8px; }
+  .op-proof-block { padding: 28px 20px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     FLIP TOGGLE
+     ============================================================ -->
+<button id="flip-toggle" class="pro-mode" aria-label="Switch to opposition view">
+  View Accountability<br>File &#8594;
+</button>
+
+<!-- ============================================================
+     PRO SITE
+     ============================================================ -->
+<div class="pro-content">
+
+  <header class="pro-masthead">
+    <span class="district-label">Minnesota Senate &bull; District 40 &bull; Ramsey County</span>
+    <span class="caucus-tag">DFL</span>
+  </header>
+
+  <section class="pro-hero">
+    <div class="pro-hero-text">
+      <div class="pro-tenure-badge">12th Term &bull; In Office Since 1987</div>
+      <h1 class="pro-hero-name">
+        John
+        <span>Marty.</span>
+      </h1>
+      <p class="pro-hero-argument">
+        Four decades in the Minnesota Senate. <strong>Still fighting the system from inside it.</strong> His newest bill would prohibit legislators from collecting per diem during regular session while they are already doing the job they were elected to do.
+      </p>
+      <div class="pro-stat-trio">
+        <div class="pro-stat-item">
+          <span class="pro-stat-num count-target" data-target="39">0</span>
+          <span class="pro-stat-label">Years in office</span>
+        </div>
+        <div class="pro-stat-item">
+          <span class="pro-stat-num count-target" data-target="12">0</span>
+          <span class="pro-stat-label">Senate terms</span>
+        </div>
+        <div class="pro-stat-item">
+          <span class="pro-stat-num">$0</span>
+          <span class="pro-stat-label">Special interest money accepted</span>
+        </div>
+      </div>
+    </div>
+    <div class="pro-hero-image">
+      <img
+        class="senator-photo"
+        src="https://www.senate.mn/graphics/40Marty.jpg"
+        alt="Senator John Marty"
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+      >
+      <div class="photo-placeholder">Photo unavailable</div>
+      <div class="pro-photo-caption">Sen. John Marty &mdash; Roseville, Minnesota</div>
+    </div>
+  </section>
+
+  <div class="pro-body">
+
+    <div class="ledger-rule">
+      <span class="rule-label">Key Legislation &bull; 2025 Session</span>
+    </div>
+
+    <div class="pro-bill-block">
+      <div>
+        <div class="pro-bill-label">SF 1316 &bull; Filed February 11, 2025</div>
+        <h2 class="pro-bill-title">Stop Paying Legislators Extra to Show Up for Work</h2>
+        <div class="pro-bill-body">
+          <p>
+            Minnesota legislators currently receive <strong>a daily per diem payment</strong> on top of their salary when the legislature is in regular session. SF 1316 would end that practice if enacted. During session, legislators are performing their primary job. Per diem is a supplemental payment. SF 1316 says those two things should not run at the same time.
+          </p>
+          <p>
+            The bill amends Minnesota Statutes section 3.099, subdivision 1, and adds a new subdivision. It does not eliminate per diem entirely. Legislators would still receive it when meeting outside regular session, when travel and accommodation expenses are genuinely incurred.
+          </p>
+          <p>
+            Marty kept filing on the issue anyway. That persistence is the point.
+          </p>
+        </div>
+      </div>
+      <div class="pro-bill-meta">
+        <div class="meta-row">
+          <span class="meta-key">Bill Number</span>
+          <span class="meta-val">SF 1316</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-key">Filed</span>
+          <span class="meta-val">February 11, 2025</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-key">Legislature</span>
+          <span class="meta-val">94th Minnesota Legislature</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-key">Statute Amended</span>
+          <span class="meta-val">M.S. 3.099, Subd. 1</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-key">Effect</span>
+          <span class="meta-val">Prohibits per diem during regular session</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-key">Who Benefits</span>
+          <span class="meta-val">Minnesota taxpayers</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="pro-pull-quote">
+      <blockquote>
+        "Minnesota is known for its natural beauty and for the tourism it generates."
+      </blockquote>
+      <cite>SF 485 findings section &bull; 94th Legislature &bull; January 2025</cite>
+    </div>
+
+    <div class="ledger-rule">
+      <span class="rule-label">The Record &bull; 39 Years</span>
+    </div>
+
+    <div class="pro-record-grid">
+      <div class="pro-record-card">
+        <span class="record-card-num">1987</span>
+        <div class="record-card-head">First Session</div>
+        <p class="record-card-body">
+          Elected from District 63 in November 1986. Immediately set himself apart as a reform-minded independent voice willing to challenge institutional norms from his first session.
+        </p>
+      </div>
+      <div class="pro-record-card">
+        <span class="record-card-num">Hg ban</span>
+        <div class="record-card-head">Mercury in Products</div>
+        <p class="record-card-body">
+          Authored the Minnesota ban on mercury in consumer products. Led renewable energy legislation that created community solar and expanded solar capacity statewide. Real environmental results.
+        </p>
+      </div>
+      <div class="pro-record-card">
+        <span class="record-card-num">MHP</span>
+        <div class="record-card-head">Minnesota Health Plan</div>
+        <p class="record-card-body">
+          Author of the Minnesota Health Plan, a comprehensive single-payer healthcare proposal (SF 1643). Advocates universal coverage with no co-pays, deductibles, or barriers to care. Wrote a book making the case.
+        </p>
+      </div>
+    </div>
+
+    <div class="ledger-rule">
+      <span class="rule-label">District 40 &bull; Who He Represents</span>
+    </div>
+
+    <div class="pro-district-band">
+      <div>
+        <h3>Northern Inner Ring</h3>
+        <p>
+          District 40 sits in Ramsey County's northern suburban core: communities that grew up alongside the Twin Cities, share its lake-dense geography, and now form a civic-minded electorate that rewards substance over spectacle.
+        </p>
+        <p style="margin-top:16px">
+          Shoreview has 11 lakes and more than 1,400 acres of parkland. Arden Hills anchors the district's employment base. Roseville, where Marty lives, anchors its civic identity.
+        </p>
+      </div>
+      <div>
+        <h3>Communities in the District</h3>
+        <div class="pro-district-communities">
+          <span class="community-tag">Roseville</span>
+          <span class="community-tag">Shoreview</span>
+          <span class="community-tag">Arden Hills</span>
+          <span class="community-tag">Mounds View</span>
+          <span class="community-tag">New Brighton</span>
+          <span class="community-tag">Ramsey County</span>
+        </div>
+        <p style="margin-top: 24px; font-size: 15px; color: rgba(255,255,255,0.7); line-height: 1.6;">
+          Median household income in Shoreview: $95,776. These are not disengaged voters. They track their legislators. Marty is now serving his 12th Senate term.
+        </p>
+      </div>
+    </div>
+
+  </div><!-- /pro-body -->
+
+  <footer class="pro-footer">
+    <div style="max-width:1100px; margin:0 auto;">
+      <div class="footnotes-head">Sources &amp; Notes</div>
+      <ul class="footnotes-list">
+        <li data-num="1.">SF 1316 as introduced, 94th Minnesota Legislature, February 11, 2025. <a href="https://www.revisor.mn.gov/bills/text.php?number=SF1316&version=0&session=LS94" target="_blank">revisor.mn.gov</a></li>
+        <li data-num="2.">Minnesota Legislative Reference Library, Compensation of Minnesota Legislators. <a href="https://www.lrl.mn.gov/history/salary" target="_blank">lrl.mn.gov</a></li>
+        <li data-num="3.">John Marty biography and legislative history. <a href="https://ballotpedia.org/John_Marty" target="_blank">Ballotpedia</a>; <a href="https://en.wikipedia.org/wiki/John_Marty" target="_blank">Wikipedia</a></li>
+        <li data-num="4.">Mercury ban, community solar, and public benefit corporation legislation: Minnesota Senate member biography. <a href="https://www.senate.mn/members/member_bio.html?mem_id=1035" target="_blank">senate.mn</a></li>
+        <li data-num="5.">Minnesota Health Plan (SF 1643). <a href="https://www.johnmarty.org/post/healthcare" target="_blank">johnmarty.org</a></li>
+        <li data-num="6.">District 40 communities: Ramsey County. Minnesota Secretary of State district map. Census Bureau QuickFacts: Shoreview, MN.</li>
+        <li data-num="7.">Marty has accepted no special interest money since entering office. Cited on johnmarty.org and in multiple press profiles.</li>
+      </ul>
+    </div>
+  </footer>
+
+</div>
+<!-- /pro-content -->
+
+
+<!-- ============================================================
+     OPPO SITE
+     ============================================================ -->
+<div class="oppo-content">
+
+  <header class="op-header">
+    <span class="op-case-id">Accountability File &bull; MN-S40 &bull; John J. Marty</span>
+    <span class="op-status-tag">Pattern Identified</span>
+  </header>
+
+  <section class="op-hero">
+    <div class="op-hero-text">
+      <div class="op-file-label">SF 485 &bull; 94th Legislature</div>
+      <h1 class="op-hero-headline">
+        He's Tried to
+        <span class="accent">Ban Billboards</span>
+        Five Times in 36 Years.
+      </h1>
+      <p class="op-hero-deck">
+        Senator John Marty has filed statewide billboard-restriction bills repeatedly since 1989. The current bill, SF 485, had not become law as of April 3, 2026. The clean record is simple: he keeps returning to the same statewide restriction.
+      </p>
+    </div>
+    <div class="op-hero-image">
+      <img
+        class="senator-photo"
+        src="https://www.senate.mn/graphics/40Marty.jpg"
+        alt="Senator John Marty"
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+      >
+      <div class="photo-placeholder">Photo unavailable</div>
+      <div class="op-hero-stamp">Recurring Bill</div>
+    </div>
+  </section>
+
+  <div class="op-body">
+    <div class="op-body-inner">
+
+      <div class="op-rule">
+        <span class="rule-label">The Pattern &bull; 36-Year Record</span>
+      </div>
+
+      <div class="op-sequence">
+        <p class="op-sequence-intro">
+          SF 485 is not an outlier. It is a pattern. Marty has pursued the same statewide billboard restriction across decades and across multiple sessions. <strong>He keeps filing it.</strong> The record below shows what that persistence looks like.
+        </p>
+
+        <div class="op-timeline">
+          <div class="op-event">
+            <div class="op-event-year">1989 &bull; First Attempt</div>
+            <h3 class="op-event-head">First Billboard Prohibition Filed</h3>
+            <p class="op-event-body">Marty files his first statewide billboard moratorium in his second term. It did not become law. The opposition then, as now, centered on property rights, business advertising, and the breadth of a statewide ban.</p>
+          </div>
+          <div class="op-event">
+            <div class="op-event-year">2007 &bull; Second Attempt</div>
+            <h3 class="op-event-head">Returns with Another Moratorium Bill</h3>
+            <p class="op-event-body">Eighteen years after the first attempt, Marty tries again. That version did not become law either. The same opposition returns: property rights, business advertising, and the cost to companies that legally rely on billboard space for commercial speech.</p>
+          </div>
+          <div class="op-event">
+            <div class="op-event-year">2009 &bull; Third Attempt</div>
+            <h3 class="op-event-head">Third Filing in Three Sessions</h3>
+            <p class="op-event-body">Two years later, Marty refiles. No significant coalition-building appears in the public record between attempts. No modified approach. The same bill in a new session, and again it did not become law.</p>
+          </div>
+          <div class="op-event">
+            <div class="op-event-year">2021 &bull; Fourth Attempt</div>
+            <h3 class="op-event-head">Twelve-Year Gap, Same Bill</h3>
+            <p class="op-event-body">After a decade away, Marty returns with the billboard moratorium. The 2021 version did not become law. Billboard companies and business groups remained opposed.</p>
+          </div>
+          <div class="op-event">
+            <div class="op-event-year">January 21, 2025 &bull; Fifth Attempt</div>
+            <h3 class="op-event-head">SF 485: The Fifth Try in 36 Years</h3>
+            <p class="op-event-body">Marty introduces SF 485 to establish a statewide moratorium on all new billboards and <strong>declare covered existing billboards in Minnesota a nonconforming use</strong>. The bill was introduced and referred to Transportation on January 21, 2025, then reported out as amended and re-referred to State and Local Government on April 3, 2025. MPR News covered the filing. So did FOX 9. Both noted it would make Minnesota only the fifth state with such a law.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="op-rule">
+        <span class="rule-label">Core Document &bull; SF 485 Text</span>
+      </div>
+
+      <div class="op-proof-block">
+        <div class="op-proof-block-head">Bill Language &bull; SF 485, 94th Legislature &bull; Posted Jan. 17, 2025 &bull; Introduced Jan. 21, 2025</div>
+        <div class="op-proof-text">
+          "The legislature finds that <span class="highlight">Minnesota is known for its natural beauty and for the tourism it generates</span>... The legislature finds that <span class="highlight">billboards significantly undermine that beauty</span>... it is in the public interest to <span class="highlight">establish a moratorium on new billboards</span>... <span class="highlight">existing outdoor advertising signs that do not conform to this section are nonconforming uses</span> and shall not be expanded..."
+        </div>
+        <div class="op-proof-source">
+          Source: SF 485, 1st Engrossment, 94th Legislature (2025&ndash;2026) &bull; revisor.mn.gov &bull; Re-referred to State and Local Government, Apr. 3, 2025
+        </div>
+      </div>
+
+      <div class="op-rule">
+        <span class="rule-label">Evidence &bull; Three Lines of Attack</span>
+      </div>
+
+      <div class="op-evidence-grid">
+        <div class="op-evidence-card">
+          <div class="card-normal">
+            <div class="op-card-icon">5x</div>
+            <div class="op-card-label">Failure count</div>
+            <h4 class="op-card-head">Five Filings. No Enactment.</h4>
+            <p class="op-card-body">The same bill filed across 36 years of service. The current version had not become law as of April 3, 2026. The official record shows a repeated filing pattern, not a legislative breakthrough.</p>
+          </div>
+          <div class="card-hostile">
+            <p class="hostile-text">After five attempts and three decades of failure, Marty re-files with no new coalition, no modified bill, no changed approach. The outcome is predetermined. The purpose is ideological signaling, not legislation.</p>
+            <div class="hostile-verdict">Verdict: Performative Prohibition</div>
+          </div>
+        </div>
+
+        <div class="op-evidence-card">
+          <div class="card-normal">
+            <div class="op-card-icon">Sec. 1</div>
+            <div class="op-card-label">Bill text effect</div>
+            <h4 class="op-card-head">Every Existing Sign Made Nonconforming</h4>
+            <p class="op-card-body">SF 485 does not just stop new billboards. It reclassifies every existing billboard in Minnesota as a nonconforming use under state law.</p>
+          </div>
+          <div class="card-hostile">
+            <p class="hostile-text">Nonconforming use designation is how governments phase out things they want gone. Marty's bill applies that designation to covered billboards already operating in the state. Whether that becomes a regulatory taking is a legal argument, but the phaseout intent is written into the bill.</p>
+            <div class="hostile-verdict">Verdict: Sweeping State Overreach</div>
+          </div>
+        </div>
+
+        <div class="op-evidence-card">
+          <div class="card-normal">
+            <div class="op-card-icon">1A</div>
+            <div class="op-card-label">Speech / Property Rights</div>
+            <h4 class="op-card-head">Commercial Speech Suppression</h4>
+            <p class="op-card-body">Billboard companies and business groups oppose the bill as a statewide restriction on commercial speech and property use.</p>
+          </div>
+          <div class="card-hostile">
+            <p class="hostile-text">Marty champions campaign finance reform as a free speech issue when it suits him. Then he proposes a statewide ban on one of the most visible forms of commercial speech in the state. The principle does not hold when the speech belongs to someone he disagrees with.</p>
+            <div class="hostile-verdict">Verdict: Selective Free Speech</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="op-rule">
+        <span class="rule-label">The Numbers</span>
+      </div>
+
+      <div class="op-counter-row">
+        <div class="op-counter-cell">
+          <span class="op-counter-num count-target" data-target="5">0</span>
+          <span class="op-counter-label">Billboard ban attempts<br>since 1989</span>
+        </div>
+        <div class="op-counter-cell">
+          <span class="op-counter-num count-target" data-target="36">0</span>
+          <span class="op-counter-label">Years pursuing<br>the same failed bill</span>
+        </div>
+        <div class="op-counter-cell">
+          <span class="op-counter-num count-target" data-target="4">0</span>
+          <span class="op-counter-label">States with statewide<br>billboard bans (not MN)</span>
+        </div>
+      </div>
+
+    </div><!-- /op-body-inner -->
+  </div><!-- /op-body -->
+
+  <footer class="op-footer">
+    <div style="max-width:1100px; margin:0 auto;">
+      <div class="op-footnotes-head">Sources &amp; Notes</div>
+      <ul class="op-footnotes-list">
+        <li data-num="1.">SF 485, 94th Legislature, posted January 17, 2025; introduced and referred to Transportation January 21, 2025; reported out as amended and re-referred to State and Local Government April 3, 2025. <a href="https://www.revisor.mn.gov/bills/bill.php?b=Senate&f=SF0485&ssn=0&y=2025&view=chrono" target="_blank">revisor.mn.gov</a></li>
+        <li data-num="2.">MPR News: "Minnesota lawmaker wants statewide ban on new billboard signs," February 13, 2025. <a href="https://www.mprnews.org/story/2025/02/13/bill-to-ban-new-billboard-signs-minnesota" target="_blank">mprnews.org</a></li>
+        <li data-num="3.">FOX 9: "View to a bill: Minnesota billboard moratorium." <a href="https://www.fox9.com/news/view-bill-minnesota-billboard-moratorium" target="_blank">fox9.com</a></li>
+        <li data-num="4.">Scenic America: "Minnesota Introduces Legislation to Ban New Billboards Statewide," January 21, 2025. Notes prior filings in 2021, 2009, 2007, 1989. <a href="https://www.scenic.org/2025/01/21/minnesota-introduces-legislation-to-ban-new-billboards-statewide/" target="_blank">scenic.org</a></li>
+        <li data-num="5.">"Nonconforming use" designation: SF 485 bill text, Sec. 1, referencing outdoor advertising signs existing before enactment. revisor.mn.gov.</li>
+        <li data-num="6.">Billboard companies cite First Amendment concerns: MPR News, February 2025; First Amendment Encyclopedia on billboard commercial speech regulation. <a href="https://firstamendment.mtsu.edu/article/billboards/" target="_blank">firstamendment.mtsu.edu</a></li>
+        <li data-num="7.">Only Vermont, Maine, Hawaii, and Alaska have statewide billboard bans. MPR News, February 2025.</li>
+        <li data-num="8.">John Marty elected November 1986, sworn in January 1987. LRL.mn.gov biographical record.</li>
+      </ul>
+    </div>
+  </footer>
+
+
+  <!-- Auto-transition sentinel — observed by IntersectionObserver -->
+  <div id="brief-sentinel" style="height:1px;width:100%;"></div>
+
+  <!-- Subtle stamp — visible as user nears the bottom -->
+  <div class="machine-stamp">
+    <span class="machine-stamp-text">AI-GENERATED &nbsp;·&nbsp; 67 SENATORS &nbsp;·&nbsp; 63 PARALLEL AGENTS &nbsp;·&nbsp; ~4 HRS &nbsp;·&nbsp; ~$47</span>
+  </div>
+
+</div>
+<!-- /oppo-content -->
+
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+<script>
+(function () {
+  'use strict';
+
+  /* ----------------------------------------------------------
+     FLIP TOGGLE
+     ---------------------------------------------------------- */
+  const body   = document.body;
+  const toggle = document.getElementById('flip-toggle');
+
+  function setMode(oppo) {
+    if (oppo) {
+      body.classList.add('mode-oppo');
+      toggle.classList.remove('pro-mode');
+      toggle.classList.add('oppo-mode');
+      toggle.innerHTML = 'View Supporter<br>Profile &#8592;';
+    } else {
+      body.classList.remove('mode-oppo');
+      toggle.classList.remove('oppo-mode');
+      toggle.classList.add('pro-mode');
+      toggle.innerHTML = 'View Accountability<br>File &#8594;';
+    }
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
+
+  toggle.addEventListener('click', function () {
+    setMode(!body.classList.contains('mode-oppo'));
+  });
+
+  /* ----------------------------------------------------------
+     SCROLL-TRIGGERED COUNTERS
+     ---------------------------------------------------------- */
+  function animateCounter(el) {
+    const target = parseInt(el.getAttribute('data-target'), 10);
+    if (isNaN(target)) return;
+    const duration = 900;
+    const start = performance.now();
+    function tick(now) {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      // ease out quad
+      const eased = 1 - Math.pow(1 - progress, 2);
+      el.textContent = Math.round(eased * target);
+      if (progress < 1) requestAnimationFrame(tick);
+      else el.textContent = target;
+    }
+    requestAnimationFrame(tick);
+  }
+
+  const counted = new Set();
+  const observer = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (entry.isIntersecting && !counted.has(entry.target)) {
+        counted.add(entry.target);
+        animateCounter(entry.target);
+      }
+    });
+  }, { threshold: 0.4 });
+
+  document.querySelectorAll('.count-target').forEach(function (el) {
+    observer.observe(el);
+  });
+
+})();
+</script>
+
+
+<!-- \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+     THE BRIEF \u2014 AI capabilities briefing
+\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 -->
+<div class="brief-content">
+
+  <div class="brief-opening">
+    <p class="brief-made-by">Sixty-seven of these pages were made using one AI account in about thirty minutes. Six months ago an automated project like this would have been impossible.</p>
+  </div>
+
+  <div class="brief-chart-section">
+    <h2 class="brief-chart-title">This is the trend that made it possible.</h2>
+    <div class="brief-chart-frame">
+      <img
+        src="https://metr.org/assets/images/measuring-ai-ability-to-complete-long-tasks/length-of-tasks-log.png"
+        alt="METR chart: length of tasks AI agents can complete autonomously, doubling roughly every 7 months since 2019"
+        class="brief-metr-img"
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+      >
+      <div class="brief-chart-fallback" style="display:none;">
+        <p>Chart unavailable. See the original at <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">metr.org</a>.</p>
+      </div>
+    </div>
+    <p class="brief-chart-source">Source: <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR</a>, an independent AI evaluation lab.</p>
+    <p class="brief-chart-read">This chart tracks how long a task an AI agent can finish on its own. In 2019, the answer was about three seconds. By early 2023, it was six minutes. by mid 2025, over two hours. As of early 2026, Claude Opus 4.6 completes tasks that take a skilled human roughly twelve hours.</p>
+    <p class="brief-chart-read">The overall doubling time has been about seven months. But it is getting faster. <a href="https://metr.org/time-horizons/" target="_blank">When researchers fit only the most recent data</a>, the doubling time drops to four months. At that rate, AI agents capable of completing month-long autonomous projects arrive not in the early 2030s but around 2028.</p>
+  </div>
+
+  <div class="brief-so-what">
+    <h2 class="brief-so-what-title">What that means for lawmakers.</h2>
+    <p>Urgency. There was a narrative last year that AI had hit a wall in capabilities. It was a plausible perspective at the time. It isn&#x2019;t anymore. After breakthroughs late last year, AI systems&#x2019; ability to automate cyberattacks, pathogen design, misinformation, mass surveillance, and vast swaths of white-collar work is advancing faster than ever.</p>
+    <p>The world will soon change faster than the typical pace of policymaking. The only solution is to act with atypical speed: AI regulations, data center moratoriums, calling for a federal pause on AI development, worker displacement funds. Some of these ideas already have bills introduced this session. Others should be explored soon. Time is limited, so if you feel behind on AI, the sources below are a good place to start.</p>
+    
+  </div>
+
+  <div class="brief-next">
+    <h2 class="brief-next-title">Start here.</h2>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">USE</span>
+      <a href="https://claude.ai/cowork" target="_blank">Claude Cowork</a> &middot; <a href="https://claude.ai/code" target="_blank">Claude Code</a>
+      <span class="brief-link-detail">The tools that built this page. Cowork handles research and writing. Code is the agent that runs tasks, spawns sub-agents, and makes decisions on its own. Spend thirty minutes with one of these on a real problem from your week. That will teach you more than any briefing.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR: Measuring AI Ability to Complete Long Tasks</a>
+      <span class="brief-link-detail">The source for the chart above. The METR trend is based on software tasks, but <a href="https://futuretech.mit.edu/publication/crashing-waves-vs-rising-tides-preliminary-findings-on-ai-automation-from-thousands-of-worker-evaluations-of-labor-market-tasks" target="_blank">MIT research on worker evaluations of labor market tasks</a> finds similar patterns across white-collar work broadly.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://aiindex.stanford.edu/report/" target="_blank">Stanford HAI AI Index 2025</a>
+      <span class="brief-link-detail">The most comprehensive annual report on AI capabilities, economics, and policy across all 50 states.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.imdb.com/title/tt39150120/" target="_blank">The AI Doc: Or How I Became an Apocaloptimist</a>
+      <span class="brief-link-detail">Daniel Roher&#x2019;s 2026 documentary, in theaters now. Roher interviews Amodei, Altman, Hassabis, and dozens more. If you see one thing on this list, see this.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.youtube.com/watch?v=xoVJKj8lcNQ" target="_blank">The A.I. Dilemma</a>
+      <span class="brief-link-detail">Center for Humane Technology. 60 min, free on YouTube. Made for people with institutional power who need to understand AI quickly.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">TRACK</span>
+      <a href="https://www.ncsl.org/technology-and-communication/artificial-intelligence" target="_blank">NCSL AI Legislation Tracker</a> &middot;
+      <a href="https://mn.gov/mnit/about-mnit/oit-programs/ai/" target="_blank">MN.IT AI Office</a>
+      <span class="brief-link-detail">Every AI bill in every state. Plus Minnesota&#x2019;s own AI program office. See where you stand relative to the field.</span>
+    </div>
+  </div>
+
+  <div class="brief-close">
+    <p class="brief-close-small">This project is not affiliated with any campaign, party, or organization.</p>
+    <button id="exit-brief-btn">\u2190 Back</button>
+  </div>
+
+</div><!-- /brief-content -->
+
+<style>
+.brief-content { display: none; }
+body.mode-brief .brief-content  { display: block; }
+body.mode-brief .pro-content    { display: none; }
+body.mode-brief .oppo-content   { display: none; }
+body.mode-brief #flip-btn       { display: none; }
+.brief-content { background: #0C0A08; color: #D4CCBE; font-family: 'Source Serif 4', Georgia, serif; font-size: 17px; line-height: 1.75; min-height: 100vh; }
+.brief-content a { color: #C0B49A; }
+.brief-content a:hover { color: #fff; }
+@keyframes glitch-seq {
+  0%   { filter: saturate(0) brightness(0.5); }
+  10%  { filter: hue-rotate(90deg) contrast(4) brightness(3); transform: skewX(4deg); }
+  12%  { filter: brightness(0.1); transform: none; }
+  25%  { filter: hue-rotate(200deg) invert(0.8); transform: translateX(6px); }
+  27%  { filter: brightness(0.05); transform: none; }
+  40%  { filter: blur(6px) brightness(0.02); }
+  44%  { filter: brightness(6); }
+  46%  { filter: none; transform: none; }
+  60%  { filter: hue-rotate(300deg) contrast(3) saturate(8); transform: skewX(-3deg); }
+  62%  { filter: none; transform: none; }
+  78%  { filter: blur(16px) brightness(0.01); }
+  82%  { filter: brightness(2); }
+  84%  { filter: none; }
+  100% { filter: none; transform: none; }
+}
+body.glitching { animation: glitch-seq 1.2s ease-in-out forwards; pointer-events: none; }
+.machine-stamp { background: #050505; border-top: 1px solid #111; padding: 16px 40px; text-align: center; }
+.machine-stamp-text { font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 0.22em; color: #222; text-transform: uppercase; animation: stamp-pulse 3s ease-in-out infinite; }
+@keyframes stamp-pulse { 0%, 100% { color: #222; } 50% { color: #4A3A2A; } }
+.brief-opening { max-width: 640px; margin: 0 auto; padding: 100px 40px 64px; }
+.brief-made-by { font-size: 20px; line-height: 1.65; color: #B8AE9C; margin-bottom: 20px; }
+.brief-chart-section { max-width: 740px; margin: 0 auto; padding: 48px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-chart-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 32px; font-style: italic; }
+.brief-chart-frame { background: #fff; border-radius: 4px; padding: 12px; margin-bottom: 12px; }
+.brief-metr-img { width: 100%; height: auto; display: block; }
+.brief-chart-fallback { padding: 40px; text-align: center; color: #666; font-size: 14px; }
+.brief-chart-source { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #5A5040; line-height: 1.6; margin-bottom: 28px; }
+.brief-chart-source a { color: #7A6A54; text-decoration: none; }
+.brief-chart-read { font-size: 17px; color: #B8AE9C; }
+.brief-so-what { max-width: 640px; margin: 0 auto; padding: 56px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-so-what-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 28px; font-style: italic; }
+.brief-so-what p { font-size: 17px; color: #B8AE9C; margin-bottom: 20px; }
+.brief-next { max-width: 640px; margin: 0 auto; padding: 56px 40px 48px; border-top: 1px solid #1E1A14; }
+.brief-next-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 14px; font-style: italic; }
+.brief-link-block { margin-bottom: 28px; line-height: 1.7; }
+.brief-link-tag { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.2em; color: #6A5A44; text-transform: uppercase; display: block; margin-bottom: 4px; }
+.brief-link-block a { font-weight: 600; color: #E0D6C4; text-decoration: underline; text-underline-offset: 3px; font-size: 16px; }
+.brief-link-block a:hover { color: #fff; }
+.brief-link-detail { display: block; font-size: 14px; color: #6A5E4C; margin-top: 2px; }
+.brief-close { max-width: 640px; margin: 0 auto; padding: 48px 40px 100px; border-top: 1px solid #1E1A14; }
+.brief-close p { font-family: 'Source Serif 4', Georgia, serif; font-size: 16px; color: #9A9080; margin-bottom: 32px; line-height: 1.7; }
+.brief-close-small { font-family: 'IBM Plex Mono', monospace !important; font-size: 11px !important; color: #3A3428 !important; letter-spacing: 0.04em; }
+#exit-brief-btn { background: none; border: 1px solid #2A2418; color: #5A5040; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; padding: 10px 20px; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
+#exit-brief-btn:hover { border-color: #8A7A64; color: #C0B49A; }
+@media (max-width: 900px) {
+  .brief-opening, .brief-so-what, .brief-next, .brief-close { padding-left: 24px; padding-right: 24px; }
+  .brief-chart-section { padding-left: 24px; padding-right: 24px; }
+  .brief-made-by { font-size: 18px; }
+  .brief-opening { padding-top: 64px; }
+  .machine-stamp { padding: 14px 20px; }
+}
+</style>
+
+<script>
+(function() {
+  let briefTriggered = false;
+  function startBriefTransition() {
+    if (briefTriggered) return;
+    if (!document.body.classList.contains('mode-oppo')) return;
+    briefTriggered = true;
+    const body = document.body;
+    body.style.transition = 'filter 2.5s ease-in';
+    body.style.filter = 'saturate(0) brightness(0.3)';
+    setTimeout(() => {
+      const hed = document.querySelector('.oppo-content h1') || document.querySelector('.oppo-content h2');
+      if (hed) {
+        const orig = hed.textContent; const chars = '\u2588\u2593\u2592\u2591\u25a0\u25a10123456789'; let n = 0;
+        const si = setInterval(() => { n++; hed.textContent = Array.from(orig).map(c => c === ' ' ? ' ' : chars[Math.floor(Math.random() * chars.length)]).join(''); if (n > 40) { clearInterval(si); hed.textContent = orig; } }, 40);
+      }
+    }, 1200);
+    setTimeout(() => {
+      body.style.transition = ''; body.style.filter = ''; body.classList.add('glitching');
+      setTimeout(() => { body.classList.remove('glitching'); body.classList.add('mode-brief'); window.scrollTo({ top: 0, behavior: 'instant' }); }, 1500);
+    }, 2500);
+  }
+  const sentinel = document.getElementById('brief-sentinel');
+  if (sentinel && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) { io.disconnect(); setTimeout(startBriefTransition, 1200); } }); }, { threshold: 0.5 });
+    io.observe(sentinel);
+  }
+  const flipBtn = document.getElementById('flip-btn');
+  if (flipBtn) { flipBtn.addEventListener('click', () => { if (document.body.classList.contains('mode-oppo')) briefTriggered = false; }); }
+})();
+document.addEventListener('click', (e) => {
+  if (e.target && e.target.id === 'exit-brief-btn') {
+    const body = document.body; body.style.opacity = '0'; body.style.transition = 'opacity 0.3s';
+    setTimeout(() => { body.classList.remove('mode-brief'); body.classList.add('mode-oppo'); window.scrollTo({ top: 0, behavior: 'instant' }); body.style.opacity = '1'; }, 300);
+  }
+});
+</script>
+
+</body>
+</html>

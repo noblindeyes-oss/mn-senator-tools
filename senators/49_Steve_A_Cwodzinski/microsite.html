@@ -1,0 +1,1707 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Steve Cwodzinski — Senate District 49</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;700&family=IBM+Plex+Mono:wght@400;500;600&family=Oswald:wght@400;500;600;700&display=swap&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400" rel="stylesheet" />
+  <style>
+    /* ─── RESET ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; overflow-x: hidden; }
+    img { display: block; max-width: 100%; }
+
+    /* ─── MODE SWITCHING ─────────────────────────────────────── */
+    .pro-content  { display: block; }
+    .oppo-content { display: none;  }
+    body.mode-oppo .pro-content  { display: none;  }
+    body.mode-oppo .oppo-content { display: block; }
+
+    body {
+      opacity: 1;
+      transition: opacity 0.22s ease;
+    }
+    body.fading { opacity: 0; }
+
+    /* ─── FLIP BUTTON ────────────────────────────────────────── */
+    #flip-btn {
+      position: fixed;
+      top: 22px; right: 22px;
+      z-index: 9999;
+      border: 2px solid currentColor;
+      cursor: pointer;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9.5px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 11px 18px;
+      transition: transform 0.18s, box-shadow 0.18s;
+    }
+    body:not(.mode-oppo) #flip-btn {
+      background: #2A1F0E;
+      color: #F2E8D0;
+      border-color: #F2E8D0;
+    }
+    body.mode-oppo #flip-btn {
+      background: #E8E4DE;
+      color: #1C1C1C;
+      border-color: #1C1C1C;
+    }
+    #flip-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 18px rgba(0,0,0,0.28);
+    }
+    body:not(.mode-oppo) .btn-oppo-label { display: none; }
+    body.mode-oppo     .btn-pro-label  { display: none; }
+
+    /* ═══════════════════════════════════════════════════════════
+       PRO SITE — "The Civic Record"
+       Palette: cedar green #3B5E3A · sodium amber #C07C2B
+                chalk cream #F7F2E8 · classroom brown #2A1F0E
+                cedar light #E8F0E1
+    ═══════════════════════════════════════════════════════════ */
+    .pro-content {
+      background: #F7F2E8;
+      font-family: 'DM Sans', sans-serif;
+      color: #2A1F0E;
+    }
+
+    /* PRO HERO ─────────────────────────────────────────────── */
+    .pro-hero {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 100vh;
+    }
+
+    .pro-hero-left {
+      background: #3B5E3A;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 72px 56px 64px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .pro-hero-left::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 6px;
+      background: #C07C2B;
+    }
+
+    .pro-district-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #A8C99E;
+      margin-bottom: 28px;
+    }
+
+    .pro-hero-name {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(42px, 5.5vw, 72px);
+      font-weight: 900;
+      line-height: 1.0;
+      color: #F7F2E8;
+      margin-bottom: 24px;
+    }
+
+    .pro-hero-name em {
+      font-style: italic;
+      color: #C07C2B;
+    }
+
+    .pro-hero-thesis {
+      font-size: 17px;
+      font-weight: 400;
+      line-height: 1.6;
+      color: #D4E8C8;
+      max-width: 380px;
+      border-left: 3px solid #C07C2B;
+      padding-left: 18px;
+      margin-top: 8px;
+    }
+
+    .pro-hero-right {
+      position: relative;
+      overflow: hidden;
+      background: #2A1F0E;
+    }
+
+    .pro-senator-photo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 15%;
+      filter: sepia(20%) brightness(0.9) saturate(1.1);
+      mix-blend-mode: luminosity;
+    }
+
+    .pro-photo-placeholder {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(160deg, #3B5E3A 0%, #2A1F0E 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #A8C99E;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      letter-spacing: 0.1em;
+    }
+
+    .pro-hero-overlay {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: linear-gradient(to top, rgba(42,31,14,0.88) 0%, transparent 100%);
+      padding: 36px 40px;
+    }
+
+    .pro-photo-caption {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      color: #C07C2B;
+      text-transform: uppercase;
+    }
+
+    /* SEAL CREDENTIAL BAND ──────────────────────────────────── */
+    .pro-credential-band {
+      background: #C07C2B;
+      padding: 20px 60px;
+      display: flex;
+      align-items: center;
+      gap: 40px;
+      flex-wrap: wrap;
+    }
+
+    .pro-credential-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #F7F2E8;
+      white-space: nowrap;
+    }
+
+    .pro-credential-ticker {
+      font-family: 'Oswald', sans-serif;
+      font-size: 18px;
+      font-weight: 600;
+      color: #F7F2E8;
+      letter-spacing: 0.04em;
+    }
+
+    .pro-credential-divider {
+      width: 1px;
+      height: 28px;
+      background: rgba(247,242,232,0.35);
+    }
+
+    /* STAT CARDS ────────────────────────────────────────────── */
+    .pro-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-bottom: 2px solid #2A1F0E;
+    }
+
+    .pro-stat-card {
+      padding: 52px 48px;
+      border-right: 2px solid #2A1F0E;
+    }
+    .pro-stat-card:last-child { border-right: none; }
+
+    .pro-stat-number {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(48px, 5vw, 72px);
+      font-weight: 900;
+      line-height: 1;
+      color: #3B5E3A;
+      margin-bottom: 10px;
+    }
+    .pro-stat-number.amber { color: #C07C2B; }
+
+    .pro-stat-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #7A6A4E;
+      margin-bottom: 14px;
+    }
+
+    .pro-stat-desc {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #4A3E2A;
+    }
+
+    /* MAIN NARRATIVE ────────────────────────────────────────── */
+    .pro-main {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-bottom: 2px solid #2A1F0E;
+    }
+
+    .pro-story {
+      padding: 72px 60px;
+      border-right: 2px solid #2A1F0E;
+    }
+
+    .pro-section-tag {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #C07C2B;
+      margin-bottom: 22px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .pro-section-tag::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #C07C2B;
+      opacity: 0.4;
+    }
+
+    .pro-story h2 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(28px, 3vw, 40px);
+      font-weight: 700;
+      line-height: 1.2;
+      color: #2A1F0E;
+      margin-bottom: 28px;
+    }
+
+    .pro-story p {
+      font-size: 16px;
+      line-height: 1.72;
+      color: #4A3E2A;
+      margin-bottom: 18px;
+    }
+
+    /* CIVICS SEAL REQUIREMENTS ──────────────────────────────── */
+    .pro-seal-panel {
+      padding: 72px 56px;
+      background: #E8F0E1;
+    }
+
+    .seal-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 26px;
+      font-weight: 700;
+      color: #2A1F0E;
+      margin-bottom: 8px;
+    }
+
+    .seal-subtitle {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #7A6A4E;
+      margin-bottom: 36px;
+    }
+
+    .seal-requirement {
+      display: flex;
+      gap: 18px;
+      margin-bottom: 22px;
+      padding-bottom: 22px;
+      border-bottom: 1px solid rgba(42,31,14,0.12);
+    }
+    .seal-requirement:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+    .seal-req-number {
+      font-family: 'Oswald', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: #C07C2B;
+      line-height: 1;
+      min-width: 36px;
+    }
+
+    .seal-req-body {}
+
+    .seal-req-title {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: #2A1F0E;
+      letter-spacing: 0.04em;
+      margin-bottom: 4px;
+    }
+
+    .seal-req-desc {
+      font-size: 13px;
+      line-height: 1.6;
+      color: #5A4D35;
+    }
+
+    /* PULLQUOTE ─────────────────────────────────────────────── */
+    .pro-pullquote {
+      background: #3B5E3A;
+      padding: 72px 80px;
+      border-bottom: 2px solid #2A1F0E;
+    }
+
+    .pro-pullquote blockquote {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(22px, 2.8vw, 34px);
+      font-style: italic;
+      font-weight: 700;
+      line-height: 1.4;
+      color: #F7F2E8;
+      max-width: 820px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .pro-pullquote cite {
+      display: block;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      font-style: normal;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #A8C99E;
+      margin-top: 28px;
+      text-align: center;
+    }
+
+    /* DISTRICT FEATURE ──────────────────────────────────────── */
+    .pro-district {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-bottom: 2px solid #2A1F0E;
+    }
+
+    .pro-district-img {
+      position: relative;
+      overflow: hidden;
+      min-height: 420px;
+    }
+
+    .pro-district-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: sepia(10%) saturate(0.9);
+    }
+
+    .pro-district-text {
+      padding: 64px 56px;
+    }
+
+    .pro-district-text h3 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(24px, 2.5vw, 32px);
+      font-weight: 700;
+      line-height: 1.25;
+      color: #2A1F0E;
+      margin-bottom: 24px;
+    }
+
+    .pro-district-text p {
+      font-size: 15px;
+      line-height: 1.72;
+      color: #4A3E2A;
+      margin-bottom: 16px;
+    }
+
+    /* TEACHER BIOGRAPHY ─────────────────────────────────────── */
+    .pro-bio {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      border-bottom: 2px solid #2A1F0E;
+    }
+
+    .pro-bio-text {
+      padding: 64px 60px;
+      border-right: 2px solid #2A1F0E;
+    }
+
+    .pro-bio-text h3 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: #2A1F0E;
+      margin-bottom: 24px;
+    }
+
+    .pro-bio-text p {
+      font-size: 15px;
+      line-height: 1.72;
+      color: #4A3E2A;
+      margin-bottom: 16px;
+    }
+
+    .pro-bio-sidebar {
+      padding: 64px 44px;
+      background: #2A1F0E;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    .pro-bio-stat {
+      border-bottom: 1px solid rgba(247,242,232,0.15);
+      padding-bottom: 32px;
+    }
+    .pro-bio-stat:last-child { border-bottom: none; padding-bottom: 0; }
+
+    .pro-bio-stat-num {
+      font-family: 'Oswald', sans-serif;
+      font-size: 38px;
+      font-weight: 700;
+      color: #C07C2B;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .pro-bio-stat-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #A8C99E;
+      margin-bottom: 8px;
+    }
+
+    .pro-bio-stat-note {
+      font-size: 12px;
+      line-height: 1.5;
+      color: #8A7A5E;
+    }
+
+    /* FOOTNOTES ─────────────────────────────────────────────── */
+    .pro-footnotes {
+      background: #2A1F0E;
+      padding: 48px 60px;
+    }
+
+    .pro-footnotes h4 {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #C07C2B;
+      margin-bottom: 24px;
+    }
+
+    .pro-footnotes ol {
+      list-style: decimal inside;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .pro-footnotes li {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      line-height: 1.6;
+      color: #8A7A5E;
+    }
+
+    .pro-footnotes a {
+      color: #A8C99E;
+      text-decoration: none;
+    }
+    .pro-footnotes a:hover { text-decoration: underline; }
+
+    /* COUNTER ANIMATION ────────────────────────────────────── */
+    .count-up { display: inline-block; }
+
+    /* ═══════════════════════════════════════════════════════════
+       OPPO SITE — "Compliance Ledger"
+       Palette: road-salt gray #D6D2CC · concrete #B0AAA0
+                document white #F4F2EE · ink black #1C1C1C
+                caution amber #B85C1A · file buff #EAE6DC
+    ═══════════════════════════════════════════════════════════ */
+    .oppo-content {
+      background: #F4F2EE;
+      font-family: 'DM Sans', sans-serif;
+      color: #1C1C1C;
+    }
+
+    /* OPPO HEADER ───────────────────────────────────────────── */
+    .oppo-header {
+      background: #1C1C1C;
+      padding: 0;
+      border-bottom: 4px solid #B85C1A;
+    }
+
+    .oppo-header-inner {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      align-items: stretch;
+    }
+
+    .oppo-file-tab {
+      background: #B85C1A;
+      padding: 28px 44px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border-right: none;
+    }
+
+    .oppo-file-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(244,242,238,0.7);
+      margin-bottom: 4px;
+    }
+
+    .oppo-file-id {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 18px;
+      font-weight: 600;
+      color: #F4F2EE;
+      letter-spacing: 0.05em;
+    }
+
+    .oppo-header-text {
+      padding: 32px 52px;
+    }
+
+    .oppo-subject-line {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #6A6A6A;
+      margin-bottom: 10px;
+    }
+
+    .oppo-header-headline {
+      font-family: 'Oswald', sans-serif;
+      font-size: clamp(22px, 3vw, 36px);
+      font-weight: 700;
+      line-height: 1.15;
+      color: #F4F2EE;
+      letter-spacing: 0.01em;
+    }
+
+    /* OPPO ACCUSATION ───────────────────────────────────────── */
+    .oppo-accusation {
+      background: #EAE6DC;
+      border-bottom: 2px solid #1C1C1C;
+      padding: 56px 60px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+
+    .oppo-accusation-main {}
+
+    .oppo-acc-tag {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #B85C1A;
+      margin-bottom: 18px;
+    }
+
+    .oppo-accusation-main h2 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(24px, 2.8vw, 36px);
+      font-weight: 700;
+      line-height: 1.25;
+      color: #1C1C1C;
+      margin-bottom: 20px;
+    }
+
+    .oppo-accusation-main p {
+      font-size: 15px;
+      line-height: 1.7;
+      color: #3A3A3A;
+    }
+
+    .oppo-senator-mugshot {
+      position: relative;
+      max-width: 320px;
+      margin-left: auto;
+    }
+
+    .oppo-senator-mugshot img {
+      width: 100%;
+      filter: grayscale(100%) contrast(1.15) brightness(0.9);
+      display: block;
+    }
+
+    .oppo-mugshot-placeholder {
+      width: 100%;
+      aspect-ratio: 3 / 4;
+      background: #B0AAA0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #6A6A6A;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 0.1em;
+    }
+
+    .oppo-mugshot-caption {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #6A6A6A;
+      margin-top: 10px;
+    }
+
+    /* SEQUENCE TIMELINE ─────────────────────────────────────── */
+    .oppo-sequence {
+      padding: 64px 60px;
+      border-bottom: 2px solid #1C1C1C;
+    }
+
+    .oppo-seq-header {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #B85C1A;
+      margin-bottom: 40px;
+    }
+
+    .oppo-seq-track {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      position: relative;
+    }
+
+    .oppo-seq-track::before {
+      content: '';
+      position: absolute;
+      left: 18px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: #D6D2CC;
+    }
+
+    .oppo-seq-item {
+      display: grid;
+      grid-template-columns: 40px 1fr;
+      gap: 28px;
+      padding-bottom: 40px;
+      position: relative;
+    }
+    .oppo-seq-item:last-child { padding-bottom: 0; }
+
+    .oppo-seq-dot {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #1C1C1C;
+      border: 3px solid #F4F2EE;
+      box-shadow: 0 0 0 2px #1C1C1C;
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      color: #F4F2EE;
+      flex-shrink: 0;
+    }
+    .oppo-seq-dot.amber {
+      background: #B85C1A;
+      box-shadow: 0 0 0 2px #B85C1A;
+    }
+
+    .oppo-seq-body {
+      padding-top: 6px;
+    }
+
+    .oppo-seq-date {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #8A8A8A;
+      margin-bottom: 6px;
+    }
+
+    .oppo-seq-title {
+      font-family: 'Oswald', sans-serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: #1C1C1C;
+      margin-bottom: 8px;
+      letter-spacing: 0.01em;
+    }
+
+    .oppo-seq-desc {
+      font-size: 14px;
+      line-height: 1.68;
+      color: #4A4A4A;
+    }
+
+    /* CORE DOCUMENT BLOCK ───────────────────────────────────── */
+    .oppo-doc-block {
+      background: #1C1C1C;
+      padding: 60px;
+      border-bottom: 2px solid #B85C1A;
+    }
+
+    .oppo-doc-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #B85C1A;
+      margin-bottom: 20px;
+    }
+
+    .oppo-doc-inner {
+      background: #F4F2EE;
+      border: 1px solid #6A6A6A;
+      padding: 40px 44px;
+      max-width: 780px;
+      position: relative;
+    }
+
+    .oppo-doc-inner::before {
+      content: 'SF 1311 — 93RD LEGISLATURE';
+      position: absolute;
+      top: -11px;
+      left: 24px;
+      background: #F4F2EE;
+      padding: 0 8px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      color: #6A6A6A;
+    }
+
+    .oppo-doc-body {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      color: #2A2A2A;
+    }
+
+    .oppo-doc-body strong {
+      color: #B85C1A;
+    }
+
+    .oppo-doc-caption {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #A8A8A8;
+      margin-top: 28px;
+      max-width: 680px;
+    }
+
+    /* EVIDENCE CARDS ────────────────────────────────────────── */
+    .oppo-evidence {
+      padding: 64px 60px;
+      border-bottom: 2px solid #1C1C1C;
+    }
+
+    .oppo-evidence-header {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #B85C1A;
+      margin-bottom: 36px;
+    }
+
+    .oppo-evidence-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      background: #1C1C1C;
+      border: 2px solid #1C1C1C;
+    }
+
+    .oppo-ev-card {
+      background: #F4F2EE;
+      padding: 36px 32px;
+      transition: background 0.2s, color 0.2s;
+      cursor: default;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .oppo-ev-card::after {
+      content: attr(data-hostile);
+      position: absolute;
+      inset: 0;
+      background: #1C1C1C;
+      color: #B85C1A;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      line-height: 1.6;
+      padding: 28px 24px;
+      display: flex;
+      align-items: center;
+      opacity: 0;
+      transition: opacity 0.22s;
+      white-space: pre-line;
+    }
+
+    .oppo-ev-card:hover::after {
+      opacity: 1;
+    }
+
+    .oppo-ev-eyebrow {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #B85C1A;
+      margin-bottom: 12px;
+    }
+
+    .oppo-ev-headline {
+      font-family: 'Oswald', sans-serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: #1C1C1C;
+      line-height: 1.25;
+      margin-bottom: 12px;
+    }
+
+    .oppo-ev-body {
+      font-size: 13px;
+      line-height: 1.65;
+      color: #4A4A4A;
+    }
+
+    /* CONTRADICTION BLOCK ───────────────────────────────────── */
+    .oppo-contradiction {
+      background: #EAE6DC;
+      padding: 64px 60px;
+      border-bottom: 2px solid #1C1C1C;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 56px;
+    }
+
+    .oppo-contra-col {}
+
+    .oppo-contra-tag {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #3B5E3A;
+      margin-bottom: 16px;
+    }
+    .oppo-contra-tag.hostile { color: #B85C1A; }
+
+    .oppo-contra-col h3 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1.3;
+      color: #1C1C1C;
+      margin-bottom: 16px;
+    }
+
+    .oppo-contra-col p {
+      font-size: 14px;
+      line-height: 1.7;
+      color: #3A3A3A;
+    }
+
+    .oppo-contra-divider {
+      width: 1px;
+      background: #B0AAA0;
+      position: absolute;
+      left: 50%;
+      top: 64px;
+      bottom: 64px;
+    }
+
+    /* OPPO FOOTNOTES ────────────────────────────────────────── */
+    .oppo-footnotes {
+      background: #1C1C1C;
+      padding: 48px 60px;
+    }
+
+    .oppo-footnotes h4 {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #B85C1A;
+      margin-bottom: 24px;
+    }
+
+    .oppo-footnotes ol {
+      list-style: decimal inside;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .oppo-footnotes li {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      line-height: 1.6;
+      color: #6A6A6A;
+    }
+
+    .oppo-footnotes a {
+      color: #B85C1A;
+      text-decoration: none;
+    }
+    .oppo-footnotes a:hover { text-decoration: underline; }
+
+    /* ─── RESPONSIVE ─────────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .pro-hero,
+      .pro-main,
+      .pro-district,
+      .pro-bio,
+      .oppo-accusation,
+      .oppo-contradiction {
+        grid-template-columns: 1fr;
+      }
+
+      .pro-hero-right { min-height: 380px; }
+
+      .pro-stats {
+        grid-template-columns: 1fr;
+      }
+      .pro-stat-card { border-right: none; border-bottom: 2px solid #2A1F0E; }
+      .pro-stat-card:last-child { border-bottom: none; }
+
+      .pro-stat-card,
+      .pro-story,
+      .pro-seal-panel,
+      .pro-bio-text { padding: 48px 28px; }
+
+      .pro-district-text { padding: 48px 28px; }
+
+      .pro-pullquote { padding: 52px 28px; }
+
+      .pro-bio-sidebar { padding: 48px 28px; }
+
+      .pro-credential-band { padding: 18px 28px; gap: 16px; }
+
+      .oppo-header-inner { grid-template-columns: 1fr; }
+      .oppo-header-text { padding: 24px 28px; }
+      .oppo-file-tab { padding: 20px 28px; }
+
+      .oppo-accusation { padding: 44px 28px; gap: 36px; }
+      .oppo-senator-mugshot { margin-left: 0; max-width: 240px; }
+
+      .oppo-sequence,
+      .oppo-evidence,
+      .oppo-doc-block { padding: 48px 28px; }
+
+      .oppo-evidence-grid { grid-template-columns: 1fr; }
+
+      .oppo-contradiction { padding: 48px 28px; gap: 36px; }
+
+      .oppo-footnotes,
+      .pro-footnotes { padding: 40px 28px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ─── FLIP BUTTON ──────────────────────────────────────────── -->
+<button id="flip-btn" aria-label="Switch between supporter and opposition views">
+  <span class="btn-oppo-label">View Accountability Site</span>
+  <span class="btn-pro-label">View Supporter Site</span>
+</button>
+
+<!-- ═══════════════════════════════════════════════════════════
+     PRO SITE
+════════════════════════════════════════════════════════════════ -->
+<div class="pro-content">
+
+  <!-- HERO -->
+  <section class="pro-hero">
+    <div class="pro-hero-left">
+      <div class="pro-district-label">Minnesota Senate &bull; District 49 &bull; Eden Prairie</div>
+      <h1 class="pro-hero-name">
+        Steve<br>
+        <em>Cwodzinski</em>
+      </h1>
+      <p class="pro-hero-thesis">
+        Thirty-three years in a classroom. A decade shaping education law. Now writing civics into the diploma itself.
+      </p>
+    </div>
+    <div class="pro-hero-right">
+      <img
+        class="pro-senator-photo"
+        src="https://www.senate.mn/graphics/49Cwodzinski.jpg"
+        alt="Senator Steve Cwodzinski"
+        onerror="this.style.display='none'; document.getElementById('pro-photo-fallback').style.display='flex';"
+      />
+      <div id="pro-photo-fallback" class="pro-photo-placeholder" style="display:none;">
+        SENATOR CWODZINSKI<br>DISTRICT 49
+      </div>
+      <div class="pro-hero-overlay">
+        <div class="pro-photo-caption">Sen. Steve A. Cwodzinski &mdash; DFL, District 49</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CREDENTIAL TICKER BAND -->
+  <div class="pro-credential-band">
+    <div class="pro-credential-label">Legislature</div>
+    <div class="pro-credential-ticker">Minnesota Senate &bull; 94th Session</div>
+    <div class="pro-credential-divider"></div>
+    <div class="pro-credential-label">Role</div>
+    <div class="pro-credential-ticker">Chair, Education Policy Committee</div>
+    <div class="pro-credential-divider"></div>
+    <div class="pro-credential-label">Bill</div>
+    <div class="pro-credential-ticker">SF 2565 &mdash; Minnesota Civic Seal</div>
+    <div class="pro-credential-divider"></div>
+    <div class="pro-credential-label">District</div>
+    <div class="pro-credential-ticker">Eden Prairie &bull; Chanhassen &bull; Minnetonka</div>
+  </div>
+
+  <!-- STAT CARDS -->
+  <section class="pro-stats">
+    <div class="pro-stat-card">
+      <div class="pro-stat-label">Years in the Classroom</div>
+      <div class="pro-stat-number"><span class="count-up" data-target="33">0</span></div>
+      <div class="pro-stat-desc">
+        Cwodzinski taught U.S. Government and History at Eden Prairie High School from 1983 to 2016. He retired directly into his first Senate campaign.
+      </div>
+    </div>
+    <div class="pro-stat-card">
+      <div class="pro-stat-label">Students Taught</div>
+      <div class="pro-stat-number amber"><span class="count-up" data-target="12000">0</span>+</div>
+      <div class="pro-stat-desc">
+        Over three decades, he put civics in front of more than 12,000 Eden Prairie students. SF&nbsp;2565 is an attempt to formalize what he did in his classroom for every student in the state.<sup style="font-size:10px;color:#C07C2B;">[1]</sup>
+      </div>
+    </div>
+    <div class="pro-stat-card">
+      <div class="pro-stat-label">Credential Requirements</div>
+      <div class="pro-stat-number"><span class="count-up" data-target="5">0</span></div>
+      <div class="pro-stat-desc">
+        The Civic Seal requires demonstrated competency across five areas: civics coursework, a project-based civic assessment, community engagement, media literacy, and a written self-reflection.<sup style="font-size:10px;color:#C07C2B;">[2]</sup>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAIN NARRATIVE + SEAL REQUIREMENTS -->
+  <section class="pro-main">
+    <div class="pro-story">
+      <div class="pro-section-tag">The Proposal</div>
+      <h2>A diploma that proves a student can function in a democracy</h2>
+      <p>
+        SF 2565 creates the Minnesota Civic Seal, a voluntary graduation credential for high school students. The bill ties the seal to civics coursework, community engagement, media-literacy work, and a reflection process, with detailed implementation standards left to the program structure created in the bill.
+      </p>
+      <p>
+        The seal attaches to the student's diploma and appears on their official transcript. It is not a separate certificate. It is a verified entry in the document that follows them to college and into the workforce.
+      </p>
+      <p>
+        The program is voluntary for school districts and charter schools. No district is compelled to offer it. But any district that opts in must publish the opportunity to every secondary student and maintain records of who earns it.
+      </p>
+      <p>
+        The bill received a hearing in the Senate Education Policy Committee in March 2026. Cwodzinski noted bipartisan interest. Students themselves testified in support, arguing the seal would stand out in college applications in a way a standard civic education requirement does not.<sup>[3]</sup>
+      </p>
+    </div>
+
+    <div class="pro-seal-panel">
+      <div class="seal-title">Minnesota Civic Seal</div>
+      <div class="seal-subtitle">SF 2565 &mdash; Five Minimum Requirements</div>
+
+      <div class="seal-requirement">
+        <div class="seal-req-number">01</div>
+        <div class="seal-req-body">
+          <div class="seal-req-title">Civics Coursework</div>
+          <div class="seal-req-desc">Complete coursework in civics, government, or a related subject meeting or exceeding state academic standards.</div>
+        </div>
+      </div>
+
+      <div class="seal-requirement">
+        <div class="seal-req-number">02</div>
+        <div class="seal-req-body">
+          <div class="seal-req-title">Project-Based Assessment</div>
+          <div class="seal-req-desc">Complete a civics project with measurable community impact and a written self-reflection on personal growth and civic learning.</div>
+        </div>
+      </div>
+
+      <div class="seal-requirement">
+        <div class="seal-req-number">03</div>
+        <div class="seal-req-body">
+          <div class="seal-req-title">Civic Engagement Outside School</div>
+          <div class="seal-req-desc">Complete a documented civic-engagement activity outside class, such as community service, advocacy, or another approved public-participation project.</div>
+        </div>
+      </div>
+
+      <div class="seal-requirement">
+        <div class="seal-req-number">04</div>
+        <div class="seal-req-body">
+          <div class="seal-req-title">Media Literacy</div>
+          <div class="seal-req-desc">Demonstrate ability to evaluate sources, identify misinformation, and apply critical analysis to public information.</div>
+        </div>
+      </div>
+
+      <div class="seal-requirement">
+        <div class="seal-req-number">05</div>
+        <div class="seal-req-body">
+          <div class="seal-req-title">Civic Dispositions</div>
+          <div class="seal-req-desc">Demonstrate civil discourse, respect for diverse perspectives, and a sustained commitment to democratic participation.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PULLQUOTE -->
+  <div class="pro-pullquote">
+    <blockquote>
+      "Democracy has to be taught. It has to be practiced. And it has to be recorded."
+    </blockquote>
+    <cite>Sen. Steve Cwodzinski &mdash; paraphrased from Senate Education Policy Committee remarks, March 2026</cite>
+  </div>
+
+  <!-- DISTRICT FEATURE -->
+  <section class="pro-district">
+    <div class="pro-district-img">
+      <img
+        src="https://images.unsplash.com/photo-1543269865-cbf427effbad?w=900&q=80"
+        alt="Young adults engaged in collaborative civic discussion"
+        onerror="this.style.background='#3B5E3A';"
+      />
+    </div>
+    <div class="pro-district-text">
+      <div class="pro-section-tag">District 49</div>
+      <h3>A district where the civic argument lands</h3>
+      <p>
+        Eden Prairie, Chanhassen, and the eastern corner of Minnetonka are not swing districts on most issues. They are professional commuter suburbs with high rates of school engagement, active PTAs, and voters who follow education policy closely.
+      </p>
+      <p>
+        In this district, the civic seal argument does not need to be abstract. Eden Prairie High School already has a culture of civic participation built over decades of committed social studies teaching. Cwodzinski taught there. He knows what a motivated seventeen-year-old looks like when given a serious assignment.
+      </p>
+      <p>
+        The seal is designed for every district in Minnesota, but it is rooted in the culture of the district that produced the senator writing it.
+      </p>
+    </div>
+  </section>
+
+  <!-- BIOGRAPHY -->
+  <section class="pro-bio">
+    <div class="pro-bio-text">
+      <div class="pro-section-tag">The Record</div>
+      <h3>From classroom to committee chair</h3>
+      <p>
+        Cwodzinski graduated from the University of Minnesota with a bachelor's degree in education and later earned a master's in education from the same institution. He began teaching at Eden Prairie High School in 1983 and retired in 2016 after 33 years in the classroom.
+      </p>
+      <p>
+        He was elected to the Senate in 2016, the same year he retired from teaching. He won re-election in 2020 and 2022. Since 2022 he has chaired the Senate Education Policy Committee, where he steered the 2023-2024 education omnibus bills and authored SF 1311 to require charter school financial transparency.
+      </p>
+      <p>
+        In 2025, the Minnesota Association of Charter Schools awarded him its Charter Champion designation, recognizing his approach to oversight as strengthening the charter sector rather than punishing it. He has authored legislation on student phone bans, the READ Act, menstrual equity in school bathrooms, teacher preparation pathways, and student mental health programs.<sup>[4]</sup>
+      </p>
+      <p>
+        In November 2025, Cwodzinski announced he will not seek re-election in 2026. He cited a desire to spend more time with his grandchildren in Minnetonka. He will have served ten years in the Senate when he leaves office.
+      </p>
+    </div>
+    <div class="pro-bio-sidebar">
+      <div class="pro-bio-stat">
+        <div class="pro-bio-stat-num">2016</div>
+        <div class="pro-bio-stat-label">First Elected</div>
+        <div class="pro-bio-stat-note">Won the open seat in District 49 the same year he retired from Eden Prairie High School.</div>
+      </div>
+      <div class="pro-bio-stat">
+        <div class="pro-bio-stat-num">3rd</div>
+        <div class="pro-bio-stat-label">Current Term</div>
+        <div class="pro-bio-stat-note">Returned to the Senate in 2020 and 2022. Not seeking re-election in 2026.</div>
+      </div>
+      <div class="pro-bio-stat">
+        <div class="pro-bio-stat-num">&#x2605; 2025</div>
+        <div class="pro-bio-stat-label">Charter Champion</div>
+        <div class="pro-bio-stat-note">Recognized by the MN Association of Charter Schools for balanced oversight legislation.</div>
+      </div>
+      <div class="pro-bio-stat">
+        <div class="pro-bio-stat-num">43</div>
+        <div class="pro-bio-stat-label">Years Public Service</div>
+        <div class="pro-bio-stat-note">Thirty-three years teaching, ten years in the Senate.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRO FOOTNOTES -->
+  <div class="pro-footnotes">
+    <h4>Sources</h4>
+    <ol>
+      <li>Cwodzinski teaching biography: <a href="https://cwodforsenate.com/about" target="_blank">cwodforsenate.com/about</a>; Wikipedia; Eden Prairie Local News, Oct. 14, 2022.</li>
+      <li>SF 2565 bill text (94th Legislature, 2025-2026): <a href="https://www.revisor.mn.gov/bills/text.php?number=SF2565&version=0&session=ls94" target="_blank">revisor.mn.gov</a>; mncivicseal.org.</li>
+      <li>Eden Prairie Local News: "Cwodzinski bill would create civic seal for Minnesota students," Mar. 9, 2026. MinnPost, Mar. 2026.</li>
+      <li>MN Association of Charter Schools, 2025 Charter Champion award: <a href="https://mncharterschools.org/media/articles-detail.php?ID=11558" target="_blank">mncharterschools.org</a>. Cwodzinski retirement announcement: Eden Prairie Local News, Nov. 17-18, 2025; CBS Minnesota, Nov. 2025.</li>
+    </ol>
+  </div>
+
+</div><!-- /pro-content -->
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     OPPO SITE
+════════════════════════════════════════════════════════════════ -->
+<div class="oppo-content">
+
+  <!-- OPPO HEADER -->
+  <header class="oppo-header">
+    <div class="oppo-header-inner">
+      <div class="oppo-file-tab">
+        <div class="oppo-file-label">Accountability File</div>
+        <div class="oppo-file-id">SD&nbsp;49&nbsp;//&nbsp;MN-S</div>
+      </div>
+      <div class="oppo-header-text">
+        <div class="oppo-subject-line">Subject &mdash; State Senator Steve A. Cwodzinski &bull; District 49 &bull; DFL</div>
+        <div class="oppo-header-headline">He built his career teaching students how democracy works.<br>Then he used his chairmanship to layer new mandates on the schools he claimed to champion.</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ACCUSATION -->
+  <section class="oppo-accusation">
+    <div class="oppo-accusation-main">
+      <div class="oppo-acc-tag">The Case</div>
+      <h2>A civics teacher turned regulator&mdash;and charter schools paid the price</h2>
+      <p>
+        Cwodzinski spent 33 years teaching government. His Senate identity rests on that credential. But as Education Policy Committee chair, he authored and steered legislation requiring charter schools to publish budgets and tax filings and to follow more explicit governance and procurement expectations. He framed it as transparency. Charter school operators called it a compliance burden that punished well-run schools for the misconduct of bad actors.
+      </p>
+      <p style="margin-top:16px;">
+        The same charter school sector he regulated awarded him their 2025 Charter Champion honor. That contradiction is the question: did Cwodzinski protect students, or did he protect the traditional public school establishment from competition?
+      </p>
+    </div>
+    <div class="oppo-senator-mugshot">
+      <img
+        src="https://www.senate.mn/graphics/49Cwodzinski.jpg"
+        alt="Senator Steve Cwodzinski"
+        onerror="this.style.display='none'; document.getElementById('oppo-photo-fallback').style.display='flex';"
+      />
+      <div id="oppo-photo-fallback" class="oppo-mugshot-placeholder" style="display:none;">CWODZINSKI</div>
+      <div class="oppo-mugshot-caption">Sen. Steve A. Cwodzinski &mdash; Chair, Senate Education Policy</div>
+    </div>
+  </section>
+
+  <!-- SEQUENCE OF EVENTS -->
+  <section class="oppo-sequence">
+    <div class="oppo-seq-header">Sequence of Events</div>
+    <div class="oppo-seq-track">
+
+      <div class="oppo-seq-item">
+        <div class="oppo-seq-dot">1</div>
+        <div class="oppo-seq-body">
+          <div class="oppo-seq-date">2023 &mdash; 93rd Legislature</div>
+          <div class="oppo-seq-title">SF 1311 Introduced: Charter Schools Must Publish Budgets and Tax Filings</div>
+          <div class="oppo-seq-desc">
+            Cwodzinski authors SF 1311, requiring charter schools and their authorizers to post annual state and federal tax filings publicly on their websites. The bill also mandates budget publication. Traditional districts already operate under statewide open-meeting and contracting laws, but this bill targeted charter disclosures more explicitly.
+          </div>
+        </div>
+      </div>
+
+      <div class="oppo-seq-item">
+        <div class="oppo-seq-dot">2</div>
+        <div class="oppo-seq-body">
+          <div class="oppo-seq-date">2023&ndash;2024 &mdash; Education Omnibus</div>
+          <div class="oppo-seq-title">Charter School Regulations Expand: Public Posting, Procurement Rules, Bidding</div>
+          <div class="oppo-seq-desc">
+            Through the education omnibus bills he steered as committee chair, Cwodzinski backed charter-specific requirements to post key financial documents online, develop formal procurement policies, and conduct competitive bidding on contracts over $25,000. The point is not that districts face no rules. It is that this package imposed a charter-specific compliance layer on the sector.<sup>[1]</sup>
+          </div>
+        </div>
+      </div>
+
+      <div class="oppo-seq-item">
+        <div class="oppo-seq-dot amber">!</div>
+        <div class="oppo-seq-body">
+          <div class="oppo-seq-date">Spring 2024 &mdash; Star Tribune</div>
+          <div class="oppo-seq-title">Cwodzinski's Separate Public Records Bill Stalls</div>
+          <div class="oppo-seq-desc">
+            Cwodzinski introduces SF 3567, which would require all charter authorizers to comply with state public records law. The bill does not advance and is not included in the omnibus. Critics note that the charter sector's most significant transparency gap&mdash;the authorizer level&mdash;was left unaddressed while compliance burdens on individual schools continued to grow.<sup>[2]</sup>
+          </div>
+        </div>
+      </div>
+
+      <div class="oppo-seq-item">
+        <div class="oppo-seq-dot">3</div>
+        <div class="oppo-seq-body">
+          <div class="oppo-seq-date">2025 &mdash; MN Association of Charter Schools</div>
+          <div class="oppo-seq-title">Charter Sector Awards Cwodzinski "Charter Champion"</div>
+          <div class="oppo-seq-desc">
+            The Minnesota Association of Charter Schools presents Cwodzinski its 2025 Charter Champion designation. The award acknowledges him for "balanced" oversight and engagement with the sector. The award does not answer whether well-run schools absorbed compliance costs that better-targeted enforcement would have avoided.<sup>[3]</sup>
+          </div>
+        </div>
+      </div>
+
+      <div class="oppo-seq-item">
+        <div class="oppo-seq-dot">4</div>
+        <div class="oppo-seq-body">
+          <div class="oppo-seq-date">November 2025</div>
+          <div class="oppo-seq-title">Cwodzinski Announces Retirement &mdash; No Further Accountability</div>
+          <div class="oppo-seq-desc">
+            Cwodzinski announces he will not seek re-election in 2026. He will leave office without a comprehensive audit of whether his charter school compliance laws reduced fraud or simply increased administrative costs across the sector. The authorizer public-records gap he identified remains unresolved.<sup>[4]</sup>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- CORE DOCUMENT BLOCK -->
+  <div class="oppo-doc-block">
+    <div class="oppo-doc-label">Core Document &mdash; Legislative Record</div>
+    <div class="oppo-doc-inner">
+      <div class="oppo-doc-body">
+<strong>SF 1311 &mdash; Chief Author: Sen. Steve A. Cwodzinski</strong>
+93rd Legislature (2023-2024) &bull; Co-Authors: Kunesh, Gustafson, Westlin, Boldon
+
+Requires a charter school and its authorizer to post on their public websites:
+  (a) annual state tax return (Form M4 or equivalent)
+  (b) annual federal tax return (Form 990 or equivalent)
+  (c) operating budget for the current fiscal year
+
+Requires charter schools to:
+  &bull; establish written procurement policies
+  &bull; conduct competitive bidding on contracts exceeding $25,000
+  &bull; comply with charter-specific website disclosure requirements added in the education package
+
+<strong>Scope of comparable requirement on traditional school districts:</strong> None.
+Traditional public school districts governed by Minn. Stat. ch. 123B
+are not subject to equivalent posting or video-recording mandates
+under the bills Cwodzinski steered through the Education Policy Committee.
+      </div>
+    </div>
+    <div class="oppo-doc-caption">
+      Source: SF 1311, 93rd Legislature bill text (revisor.mn.gov); Senate DFL press release, "Cwodzinski Guides Education Policy Package to Senate Passage"; Star Tribune charter school coverage, 2023-2024.
+    </div>
+  </div>
+
+  <!-- EVIDENCE CARDS -->
+  <section class="oppo-evidence">
+    <div class="oppo-evidence-header">Three Evidence Points</div>
+    <div class="oppo-evidence-grid">
+
+      <div class="oppo-ev-card"
+           data-hostile="HOVER FINDING:&#10;&#10;SF 1311 imposed posting and video requirements on charter schools. No equivalent mandate was placed on traditional public school districts. Cwodzinski chaired the committee that passed both.">
+        <div class="oppo-ev-eyebrow">Asymmetric Regulation</div>
+        <div class="oppo-ev-headline">Charter schools face rules district schools do not</div>
+        <div class="oppo-ev-body">
+          SF 1311 and the subsequent omnibus bills impose budget publication, tax filing posting, board meeting video recording, and procurement bidding requirements on charter schools. Traditional public districts face no equivalent mandate. Hover for the finding.
+        </div>
+      </div>
+
+      <div class="oppo-ev-card"
+           data-hostile="HOVER FINDING:&#10;&#10;Cwodzinski introduced SF 3567 to require authorizer compliance with public records law. The bill did not advance. The authorizer level — where documented fraud oversight failures occurred — was left unaddressed while school-level compliance grew.">
+        <div class="oppo-ev-eyebrow">The Gap That Remained</div>
+        <div class="oppo-ev-headline">Authorizer transparency bill stalled under his own chairmanship</div>
+        <div class="oppo-ev-body">
+          Cwodzinski introduced SF 3567 to require authorizers to follow public records law. It did not advance. Critics noted that authorizers&mdash;the entities responsible for charter oversight&mdash;were shielded while individual schools faced growing compliance lists.
+        </div>
+      </div>
+
+      <div class="oppo-ev-card"
+           data-hostile="HOVER FINDING:&#10;&#10;The MACS 2025 Charter Champion award cites 'balanced' oversight and 'stakeholder engagement.' It does not quantify the compliance cost absorbed by charter schools under laws Cwodzinski authored. The award is a political accommodation, not an audit.">
+        <div class="oppo-ev-eyebrow">The Award That Doesn't Answer the Question</div>
+        <div class="oppo-ev-headline">Charter Champion designation leaves cost question open</div>
+        <div class="oppo-ev-body">
+          The Minnesota Association of Charter Schools awarded Cwodzinski its 2025 Charter Champion honor. The award cites engagement and intent. It does not measure whether the compliance requirements he authored increased administrative costs for schools that committed no fraud.
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- CONTRADICTION BLOCK -->
+  <div class="oppo-contradiction">
+    <div class="oppo-contra-col">
+      <div class="oppo-contra-tag">The Brand</div>
+      <h3>Educator who respects school innovation and community autonomy</h3>
+      <p>
+        Cwodzinski's political identity rests on 33 years teaching government in a public school. He presents himself as someone who understands how schools actually work. His civic seal proposal is voluntary for school districts. His campaign has consistently emphasized district flexibility and community-level decision-making.
+      </p>
+    </div>
+    <div class="oppo-contra-col">
+      <div class="oppo-contra-tag hostile">The Record</div>
+      <h3>Committee chair who added compliance layers faster than fraud could be documented</h3>
+      <p>
+        As Education Policy Committee chair, Cwodzinski authored and steered multiple bills adding reporting and compliance requirements to the charter sector. The authorizer public-records bill&mdash;aimed at the level where fraud oversight actually broke down&mdash;stalled in his own committee. Well-run schools absorbed the compliance costs of rules written in response to bad actors.
+      </p>
+    </div>
+  </div>
+
+  <!-- OPPO FOOTNOTES -->
+  <div class="oppo-footnotes">
+    <h4>Sources</h4>
+    <ol>
+      <li>SF 1311, 93rd Legislature: <a href="https://www.revisor.mn.gov/bills/text.php?number=SF1311&version=latest&session=ls93" target="_blank">revisor.mn.gov</a>. Senate DFL: <a href="https://senatedfl.mn/senator-steve-cwodzinski-guides-education-policy-package-to-senate-passage/" target="_blank">senatedfl.mn</a>. Bemidji Pioneer / InForum on phone bans and charter school regulations in omnibus bill.</li>
+      <li>Star Tribune: "MN lawmakers propose reforms to boost charter school accountability," 2023. SF 3567 non-advancement noted in Star Tribune coverage. Sahan Journal: "Minnesota charter schools face new rules on spending."</li>
+      <li>MN Association of Charter Schools, 2025 Charter Champion: <a href="https://mncharterschools.org/media/articles-detail.php?ID=11558" target="_blank">mncharterschools.org</a>.</li>
+      <li>Cwodzinski retirement: Eden Prairie Local News, Nov. 17-18, 2025; <a href="https://www.cbsnews.com/minnesota/news/state-senators-rich-draheim-steve-cwodzinski-leaving-minnesota-legislature/" target="_blank">CBS Minnesota</a>; FOX 9 Minneapolis, Nov. 2025.</li>
+    </ol>
+  </div>
+
+
+  <!-- Auto-transition sentinel — observed by IntersectionObserver -->
+  <div id="brief-sentinel" style="height:1px;width:100%;"></div>
+
+  <!-- Subtle stamp — visible as user nears the bottom -->
+  <div class="machine-stamp">
+    <span class="machine-stamp-text">AI-GENERATED &nbsp;·&nbsp; 67 SENATORS &nbsp;·&nbsp; 63 PARALLEL AGENTS &nbsp;·&nbsp; ~4 HRS &nbsp;·&nbsp; ~$47</span>
+  </div>
+
+</div><!-- /oppo-content -->
+
+<script>
+  /* ── COUNTER ANIMATION ──────────────────────────────────── */
+  function animateCounters() {
+    document.querySelectorAll('.count-up').forEach(el => {
+      const target = parseInt(el.dataset.target, 10);
+      const duration = 1400;
+      const step = target / (duration / 16);
+      let current = 0;
+      const interval = setInterval(() => {
+        current = Math.min(current + step, target);
+        el.textContent = Math.floor(current).toLocaleString();
+        if (current >= target) clearInterval(interval);
+      }, 16);
+    });
+  }
+
+  /* Run counters when pro-content enters the viewport (or on load) */
+  const proContent = document.querySelector('.pro-content');
+  const observer = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting) {
+      animateCounters();
+      observer.disconnect();
+    }
+  }, { threshold: 0.1 });
+  observer.observe(proContent);
+
+  /* ── FLIP TOGGLE ────────────────────────────────────────── */
+  const flipBtn = document.getElementById('flip-btn');
+  flipBtn.addEventListener('click', () => {
+    document.body.classList.add('fading');
+    setTimeout(() => {
+      document.body.classList.toggle('mode-oppo');
+      window.scrollTo(0, 0);
+      document.body.classList.remove('fading');
+
+      /* Re-run counters if switching back to pro */
+      if (!document.body.classList.contains('mode-oppo')) {
+        animateCounters();
+      }
+    }, 220);
+  });
+</script>
+
+<!-- \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+     THE BRIEF \u2014 AI capabilities briefing
+\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 -->
+<div class="brief-content">
+
+  <div class="brief-opening">
+    <p class="brief-made-by">Sixty-seven of these pages were made using one AI account in about thirty minutes. Six months ago an automated project like this would have been impossible.</p>
+  </div>
+
+  <div class="brief-chart-section">
+    <h2 class="brief-chart-title">This is the trend that made it possible.</h2>
+    <div class="brief-chart-frame">
+      <img
+        src="https://metr.org/assets/images/measuring-ai-ability-to-complete-long-tasks/length-of-tasks-log.png"
+        alt="METR chart: length of tasks AI agents can complete autonomously, doubling roughly every 7 months since 2019"
+        class="brief-metr-img"
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+      >
+      <div class="brief-chart-fallback" style="display:none;">
+        <p>Chart unavailable. See the original at <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">metr.org</a>.</p>
+      </div>
+    </div>
+    <p class="brief-chart-source">Source: <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR</a>, an independent AI evaluation lab.</p>
+    <p class="brief-chart-read">This chart tracks how long a task an AI agent can finish on its own. In 2019, the answer was about three seconds. By early 2023, it was six minutes. by mid 2025, over two hours. As of early 2026, Claude Opus 4.6 completes tasks that take a skilled human roughly twelve hours.</p>
+    <p class="brief-chart-read">The overall doubling time has been about seven months. But it is getting faster. <a href="https://metr.org/time-horizons/" target="_blank">When researchers fit only the most recent data</a>, the doubling time drops to four months. At that rate, AI agents capable of completing month-long autonomous projects arrive not in the early 2030s but around 2028.</p>
+  </div>
+
+  <div class="brief-so-what">
+    <h2 class="brief-so-what-title">What that means for lawmakers.</h2>
+    <p>Urgency. There was a narrative last year that AI had hit a wall in capabilities. It was a plausible perspective at the time. It isn&#x2019;t anymore. After breakthroughs late last year, AI systems&#x2019; ability to automate cyberattacks, pathogen design, misinformation, mass surveillance, and vast swaths of white-collar work is advancing faster than ever.</p>
+    <p>The world will soon change faster than the typical pace of policymaking. The only solution is to act with atypical speed: AI regulations, data center moratoriums, calling for a federal pause on AI development, worker displacement funds. Some of these ideas already have bills introduced this session. Others should be explored soon. Time is limited, so if you feel behind on AI, the sources below are a good place to start.</p>
+    
+  </div>
+
+  <div class="brief-next">
+    <h2 class="brief-next-title">Start here.</h2>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">USE</span>
+      <a href="https://claude.ai/cowork" target="_blank">Claude Cowork</a> &middot; <a href="https://claude.ai/code" target="_blank">Claude Code</a>
+      <span class="brief-link-detail">The tools that built this page. Cowork handles research and writing. Code is the agent that runs tasks, spawns sub-agents, and makes decisions on its own. Spend thirty minutes with one of these on a real problem from your week. That will teach you more than any briefing.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR: Measuring AI Ability to Complete Long Tasks</a>
+      <span class="brief-link-detail">The source for the chart above. The METR trend is based on software tasks, but <a href="https://futuretech.mit.edu/publication/crashing-waves-vs-rising-tides-preliminary-findings-on-ai-automation-from-thousands-of-worker-evaluations-of-labor-market-tasks" target="_blank">MIT research on worker evaluations of labor market tasks</a> finds similar patterns across white-collar work broadly.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://aiindex.stanford.edu/report/" target="_blank">Stanford HAI AI Index 2025</a>
+      <span class="brief-link-detail">The most comprehensive annual report on AI capabilities, economics, and policy across all 50 states.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.imdb.com/title/tt39150120/" target="_blank">The AI Doc: Or How I Became an Apocaloptimist</a>
+      <span class="brief-link-detail">Daniel Roher&#x2019;s 2026 documentary, in theaters now. Roher interviews Amodei, Altman, Hassabis, and dozens more. If you see one thing on this list, see this.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.youtube.com/watch?v=xoVJKj8lcNQ" target="_blank">The A.I. Dilemma</a>
+      <span class="brief-link-detail">Center for Humane Technology. 60 min, free on YouTube. Made for people with institutional power who need to understand AI quickly.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">TRACK</span>
+      <a href="https://www.ncsl.org/technology-and-communication/artificial-intelligence" target="_blank">NCSL AI Legislation Tracker</a> &middot;
+      <a href="https://mn.gov/mnit/about-mnit/oit-programs/ai/" target="_blank">MN.IT AI Office</a>
+      <span class="brief-link-detail">Every AI bill in every state. Plus Minnesota&#x2019;s own AI program office. See where you stand relative to the field.</span>
+    </div>
+  </div>
+
+  <div class="brief-close">
+    <p class="brief-close-small">This project is not affiliated with any campaign, party, or organization.</p>
+    <button id="exit-brief-btn">\u2190 Back</button>
+  </div>
+
+</div><!-- /brief-content -->
+
+<style>
+.brief-content { display: none; }
+body.mode-brief .brief-content  { display: block; }
+body.mode-brief .pro-content    { display: none; }
+body.mode-brief .oppo-content   { display: none; }
+body.mode-brief #flip-btn       { display: none; }
+.brief-content { background: #0C0A08; color: #D4CCBE; font-family: 'Source Serif 4', Georgia, serif; font-size: 17px; line-height: 1.75; min-height: 100vh; }
+.brief-content a { color: #C0B49A; }
+.brief-content a:hover { color: #fff; }
+@keyframes glitch-seq {
+  0%   { filter: saturate(0) brightness(0.5); }
+  10%  { filter: hue-rotate(90deg) contrast(4) brightness(3); transform: skewX(4deg); }
+  12%  { filter: brightness(0.1); transform: none; }
+  25%  { filter: hue-rotate(200deg) invert(0.8); transform: translateX(6px); }
+  27%  { filter: brightness(0.05); transform: none; }
+  40%  { filter: blur(6px) brightness(0.02); }
+  44%  { filter: brightness(6); }
+  46%  { filter: none; transform: none; }
+  60%  { filter: hue-rotate(300deg) contrast(3) saturate(8); transform: skewX(-3deg); }
+  62%  { filter: none; transform: none; }
+  78%  { filter: blur(16px) brightness(0.01); }
+  82%  { filter: brightness(2); }
+  84%  { filter: none; }
+  100% { filter: none; transform: none; }
+}
+body.glitching { animation: glitch-seq 1.2s ease-in-out forwards; pointer-events: none; }
+.machine-stamp { background: #050505; border-top: 1px solid #111; padding: 16px 40px; text-align: center; }
+.machine-stamp-text { font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 0.22em; color: #222; text-transform: uppercase; animation: stamp-pulse 3s ease-in-out infinite; }
+@keyframes stamp-pulse { 0%, 100% { color: #222; } 50% { color: #4A3A2A; } }
+.brief-opening { max-width: 640px; margin: 0 auto; padding: 100px 40px 64px; }
+.brief-made-by { font-size: 20px; line-height: 1.65; color: #B8AE9C; margin-bottom: 20px; }
+.brief-chart-section { max-width: 740px; margin: 0 auto; padding: 48px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-chart-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 32px; font-style: italic; }
+.brief-chart-frame { background: #fff; border-radius: 4px; padding: 12px; margin-bottom: 12px; }
+.brief-metr-img { width: 100%; height: auto; display: block; }
+.brief-chart-fallback { padding: 40px; text-align: center; color: #666; font-size: 14px; }
+.brief-chart-source { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #5A5040; line-height: 1.6; margin-bottom: 28px; }
+.brief-chart-source a { color: #7A6A54; text-decoration: none; }
+.brief-chart-read { font-size: 17px; color: #B8AE9C; }
+.brief-so-what { max-width: 640px; margin: 0 auto; padding: 56px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-so-what-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 28px; font-style: italic; }
+.brief-so-what p { font-size: 17px; color: #B8AE9C; margin-bottom: 20px; }
+.brief-next { max-width: 640px; margin: 0 auto; padding: 56px 40px 48px; border-top: 1px solid #1E1A14; }
+.brief-next-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 14px; font-style: italic; }
+.brief-link-block { margin-bottom: 28px; line-height: 1.7; }
+.brief-link-tag { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.2em; color: #6A5A44; text-transform: uppercase; display: block; margin-bottom: 4px; }
+.brief-link-block a { font-weight: 600; color: #E0D6C4; text-decoration: underline; text-underline-offset: 3px; font-size: 16px; }
+.brief-link-block a:hover { color: #fff; }
+.brief-link-detail { display: block; font-size: 14px; color: #6A5E4C; margin-top: 2px; }
+.brief-close { max-width: 640px; margin: 0 auto; padding: 48px 40px 100px; border-top: 1px solid #1E1A14; }
+.brief-close p { font-family: 'Source Serif 4', Georgia, serif; font-size: 16px; color: #9A9080; margin-bottom: 32px; line-height: 1.7; }
+.brief-close-small { font-family: 'IBM Plex Mono', monospace !important; font-size: 11px !important; color: #3A3428 !important; letter-spacing: 0.04em; }
+#exit-brief-btn { background: none; border: 1px solid #2A2418; color: #5A5040; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; padding: 10px 20px; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
+#exit-brief-btn:hover { border-color: #8A7A64; color: #C0B49A; }
+@media (max-width: 900px) {
+  .brief-opening, .brief-so-what, .brief-next, .brief-close { padding-left: 24px; padding-right: 24px; }
+  .brief-chart-section { padding-left: 24px; padding-right: 24px; }
+  .brief-made-by { font-size: 18px; }
+  .brief-opening { padding-top: 64px; }
+  .machine-stamp { padding: 14px 20px; }
+}
+</style>
+
+<script>
+(function() {
+  let briefTriggered = false;
+  function startBriefTransition() {
+    if (briefTriggered) return;
+    if (!document.body.classList.contains('mode-oppo')) return;
+    briefTriggered = true;
+    const body = document.body;
+    body.style.transition = 'filter 2.5s ease-in';
+    body.style.filter = 'saturate(0) brightness(0.3)';
+    setTimeout(() => {
+      const hed = document.querySelector('.oppo-content h1') || document.querySelector('.oppo-content h2');
+      if (hed) {
+        const orig = hed.textContent; const chars = '\u2588\u2593\u2592\u2591\u25a0\u25a10123456789'; let n = 0;
+        const si = setInterval(() => { n++; hed.textContent = Array.from(orig).map(c => c === ' ' ? ' ' : chars[Math.floor(Math.random() * chars.length)]).join(''); if (n > 40) { clearInterval(si); hed.textContent = orig; } }, 40);
+      }
+    }, 1200);
+    setTimeout(() => {
+      body.style.transition = ''; body.style.filter = ''; body.classList.add('glitching');
+      setTimeout(() => { body.classList.remove('glitching'); body.classList.add('mode-brief'); window.scrollTo({ top: 0, behavior: 'instant' }); }, 1500);
+    }, 2500);
+  }
+  const sentinel = document.getElementById('brief-sentinel');
+  if (sentinel && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) { io.disconnect(); setTimeout(startBriefTransition, 1200); } }); }, { threshold: 0.5 });
+    io.observe(sentinel);
+  }
+  const flipBtn = document.getElementById('flip-btn');
+  if (flipBtn) { flipBtn.addEventListener('click', () => { if (document.body.classList.contains('mode-oppo')) briefTriggered = false; }); }
+})();
+document.addEventListener('click', (e) => {
+  if (e.target && e.target.id === 'exit-brief-btn') {
+    const body = document.body; body.style.opacity = '0'; body.style.transition = 'opacity 0.3s';
+    setTimeout(() => { body.classList.remove('mode-brief'); body.classList.add('mode-oppo'); window.scrollTo({ top: 0, behavior: 'instant' }); body.style.opacity = '1'; }, 300);
+  }
+});
+</script>
+
+</body>
+</html>

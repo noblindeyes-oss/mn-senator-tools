@@ -1,0 +1,1484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Highway 212 Corridor Safety &amp; Infrastructure Scorecard — SD-17</title>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Infographic scroll — one continuous vertical narrative, full-width bands, no modules/tabs
+   2. Navigation: None visible — scroll only. Small floating "Back to top" arrow after first screen
+   3. Typography: Tahoma (body), Century Gothic (headers), Lucida Console (data/numbers)
+   4. Hero moment: Stark crash statistics callout — large red number on dark background
+   5. Color strategy: #7 (inverted) — light text on dark backgrounds as default. Primary #333333,
+      text #f0ece4, dividers highway-yellow #ffd700, danger #cc0000
+   6. Entry experience: SVG cross-section of Highway 212 showing lanes, shoulders, interchange problem
+   Additional: No cards, no bordered callouts. Data via tables, inline stats, typographic hierarchy.
+*/
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: #333333;
+  color: #f0ece4;
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+h1, h2, h3, h4 {
+  font-family: 'Century Gothic', 'Apple Gothic', sans-serif;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.data-num {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-weight: 700;
+}
+
+/* --- BACK TO TOP --- */
+#back-to-top {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  width: 44px;
+  height: 44px;
+  background: #ffd700;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#back-to-top.visible { opacity: 1; pointer-events: auto; }
+#back-to-top svg { width: 20px; height: 20px; }
+
+/* --- FULL-WIDTH BAND SECTIONS --- */
+.band {
+  width: 100%;
+  padding: 56px 24px;
+  position: relative;
+}
+.band-inner {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+/* --- BAND: ENTRY (cross-section SVG) --- */
+.band-entry {
+  background: #1a1a1a;
+  padding: 40px 24px 32px;
+  text-align: center;
+}
+.band-entry h1 {
+  font-size: 13px;
+  color: #ffd700;
+  letter-spacing: 4px;
+  margin-bottom: 4px;
+}
+.band-entry .subtitle {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 12px;
+  color: #999;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 28px;
+}
+#cross-section-svg {
+  width: 100%;
+  max-width: 900px;
+  height: auto;
+}
+.cross-section-caption {
+  font-size: 11px;
+  color: #888;
+  margin-top: 12px;
+  font-family: 'Lucida Console', Monaco, monospace;
+}
+
+/* --- BAND: OPENING STATEMENT --- */
+.band-opening {
+  background: #292929;
+  padding: 44px 24px;
+  border-top: 3px solid #ffd700;
+  border-bottom: 3px solid #ffd700;
+}
+.band-opening p {
+  max-width: 780px;
+  margin: 0 auto;
+  font-size: 17px;
+  line-height: 1.75;
+  color: #f0ece4;
+  text-align: center;
+}
+.band-opening strong {
+  color: #ffd700;
+}
+
+/* --- BAND: HERO CRASH STAT --- */
+.band-hero {
+  background: #1a1a1a;
+  padding: 72px 24px;
+  text-align: center;
+}
+.hero-number {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 96px;
+  font-weight: 900;
+  color: #cc0000;
+  line-height: 1;
+  text-shadow: 0 0 40px rgba(204, 0, 0, 0.35);
+}
+.hero-label {
+  font-family: 'Century Gothic', 'Apple Gothic', sans-serif;
+  font-size: 14px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #f0ece4;
+  margin-top: 16px;
+}
+.hero-sub {
+  font-size: 13px;
+  color: #999;
+  margin-top: 10px;
+  max-width: 560px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* --- BAND: CORRIDOR MAP --- */
+.band-corridor {
+  background: #2a2a2a;
+  padding: 48px 24px;
+}
+.band-corridor h2 {
+  color: #ffd700;
+  font-size: 16px;
+  letter-spacing: 3px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+.map-controls {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.toggle-btn {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 11px;
+  padding: 6px 16px;
+  border: 1px solid #666;
+  background: transparent;
+  color: #ccc;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.2s;
+}
+.toggle-btn:hover { border-color: #ffd700; color: #ffd700; }
+.toggle-btn.active {
+  background: #ffd700;
+  color: #1a1a1a;
+  border-color: #ffd700;
+}
+#corridor-svg {
+  width: 100%;
+  max-width: 900px;
+  display: block;
+  margin: 0 auto;
+  height: auto;
+  overflow: visible;
+}
+.overlay-hidden { display: none; }
+
+/* Callout panel */
+#callout-panel {
+  display: none;
+  background: #1a1a1a;
+  border: 2px solid #ffd700;
+  padding: 20px 24px;
+  max-width: 640px;
+  margin: 20px auto 0;
+  font-size: 13px;
+  line-height: 1.65;
+}
+#callout-panel.visible { display: block; }
+#callout-panel h3 {
+  font-size: 13px;
+  color: #ffd700;
+  letter-spacing: 2px;
+  margin-bottom: 10px;
+}
+#callout-panel .cp-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+#callout-panel .cp-label {
+  color: #999;
+  min-width: 130px;
+  flex-shrink: 0;
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+#callout-panel .cp-val {
+  color: #f0ece4;
+}
+.status-badge {
+  display: inline-block;
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 10px;
+  padding: 2px 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-radius: 2px;
+}
+.status-badge.authored { background: #4A7A3A; color: #f0ece4; }
+.status-badge.committee { background: #F5A623; color: #1a1a1a; }
+
+/* Drive the corridor bar */
+.drive-bar-section {
+  max-width: 800px;
+  margin: 28px auto 0;
+}
+.drive-bar-section h4 {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: #999;
+  margin-bottom: 10px;
+}
+.drive-bar {
+  position: relative;
+  height: 24px;
+  background: #444;
+  border-radius: 2px;
+  overflow: visible;
+}
+.drive-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4A7A3A 0%, #555 50%, #F5A623 80%, #cc0000 85%, #F5A623 90%, #555 100%);
+  border-radius: 2px;
+  width: 100%;
+}
+.drive-bar-label {
+  position: absolute;
+  top: -18px;
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 10px;
+  color: #ccc;
+}
+.drive-bar-label.left { left: 0; }
+.drive-bar-label.right { right: 0; }
+.drive-bar-tick {
+  position: absolute;
+  top: 0;
+  width: 3px;
+  height: 100%;
+  background: #cc0000;
+}
+.drive-bar-tick-label {
+  position: absolute;
+  top: 30px;
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 10px;
+  color: #cc0000;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+/* --- BAND: NUMBERS --- */
+.band-numbers {
+  background: #333333;
+  padding: 56px 24px;
+}
+.band-numbers h2 {
+  color: #ffd700;
+  font-size: 16px;
+  letter-spacing: 3px;
+  margin-bottom: 32px;
+  text-align: center;
+}
+.stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+.stat-block {
+  text-align: center;
+  padding: 28px 16px;
+  border-bottom: 2px solid #444;
+}
+.stat-block .big-num {
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 52px;
+  font-weight: 900;
+  color: #ffd700;
+  line-height: 1.1;
+}
+.stat-block .big-num.danger { color: #cc0000; }
+.stat-block .big-num.green { color: #4A7A3A; }
+.stat-block .stat-label {
+  font-family: 'Century Gothic', 'Apple Gothic', sans-serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #999;
+  margin-top: 8px;
+}
+.stat-block .stat-context {
+  font-size: 12px;
+  color: #bbb;
+  margin-top: 8px;
+  line-height: 1.4;
+}
+.stat-bar-wrap {
+  margin-top: 12px;
+  height: 8px;
+  background: #444;
+  border-radius: 1px;
+  overflow: hidden;
+}
+.stat-bar-fill {
+  height: 100%;
+  border-radius: 1px;
+  transition: width 1s ease;
+}
+
+/* Truck bar visual */
+.truck-bar {
+  margin-top: 12px;
+  display: flex;
+  gap: 3px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.truck-icon {
+  width: 14px;
+  height: 10px;
+}
+
+/* Gauge visual */
+.gauge-wrap {
+  margin-top: 12px;
+  display: flex;
+  justify-content: center;
+}
+
+/* --- DIVIDER BAND --- */
+.band-divider {
+  background: #ffd700;
+  height: 4px;
+  width: 100%;
+}
+
+/* --- BAND: COST-BENEFIT --- */
+.band-costbenefit {
+  background: #262626;
+  padding: 56px 24px;
+}
+.band-costbenefit h2 {
+  color: #ffd700;
+  font-size: 16px;
+  letter-spacing: 3px;
+  margin-bottom: 32px;
+  text-align: center;
+}
+.compare-wrap {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  max-width: 820px;
+  margin: 0 auto;
+}
+.compare-col {
+  padding: 28px 24px;
+}
+.compare-col.without {
+  background: #1e1e1e;
+  border-right: 2px solid #ffd700;
+}
+.compare-col.with {
+  background: #2d3a28;
+}
+.compare-col h3 {
+  font-size: 12px;
+  letter-spacing: 2px;
+  margin-bottom: 16px;
+}
+.compare-col.without h3 { color: #cc0000; }
+.compare-col.with h3 { color: #4A7A3A; }
+.compare-col ul {
+  list-style: none;
+  padding: 0;
+}
+.compare-col li {
+  font-size: 13px;
+  line-height: 1.55;
+  margin-bottom: 10px;
+  padding-left: 16px;
+  position: relative;
+  color: #ccc;
+}
+.compare-col.without li::before {
+  content: "■";
+  position: absolute;
+  left: 0;
+  color: #cc0000;
+  font-size: 8px;
+  top: 3px;
+}
+.compare-col.with li::before {
+  content: "■";
+  position: absolute;
+  left: 0;
+  color: #4A7A3A;
+  font-size: 8px;
+  top: 3px;
+}
+.cost-math {
+  max-width: 720px;
+  margin: 32px auto 0;
+  background: #1a1a1a;
+  padding: 24px;
+  font-size: 13px;
+  line-height: 1.65;
+  color: #ccc;
+  text-align: center;
+}
+.cost-math strong { color: #ffd700; }
+.cost-math .source-note {
+  font-size: 10px;
+  color: #777;
+  margin-top: 8px;
+  font-family: 'Lucida Console', Monaco, monospace;
+}
+
+/* --- BAND: SF165 TRACKER --- */
+.band-tracker {
+  background: #333333;
+  padding: 56px 24px;
+}
+.band-tracker h2 {
+  color: #ffd700;
+  font-size: 16px;
+  letter-spacing: 3px;
+  margin-bottom: 36px;
+  text-align: center;
+}
+
+/* Timeline */
+.timeline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  max-width: 820px;
+  margin: 0 auto;
+  position: relative;
+}
+.tl-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  flex: 1;
+}
+.tl-connector {
+  position: absolute;
+  top: 17px;
+  left: 50%;
+  width: 100%;
+  height: 2px;
+  background: #555;
+  z-index: 0;
+}
+.tl-step:last-child .tl-connector { display: none; }
+.tl-diamond {
+  width: 22px;
+  height: 22px;
+  transform: rotate(45deg);
+  border: 2px solid #555;
+  background: #333;
+  z-index: 1;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.tl-diamond.done {
+  background: #4A7A3A;
+  border-color: #4A7A3A;
+}
+.tl-diamond.current {
+  background: #F5A623;
+  border-color: #F5A623;
+  animation: pulse-amber 1.5s infinite;
+}
+.tl-diamond.future {
+  background: transparent;
+  border-color: #555;
+}
+@keyframes pulse-amber {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 166, 35, 0.5); }
+  50% { box-shadow: 0 0 0 8px rgba(245, 166, 35, 0); }
+}
+.tl-label {
+  margin-top: 14px;
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #999;
+  text-align: center;
+  max-width: 90px;
+}
+.tl-diamond.done + .tl-label,
+.tl-diamond.current + .tl-label { color: #f0ece4; }
+
+/* Accordion */
+.accordion-wrap {
+  max-width: 720px;
+  margin: 36px auto 0;
+}
+.accordion-item {
+  border-bottom: 1px solid #444;
+}
+.accordion-header {
+  display: flex;
+  align-items: center;
+  padding: 14px 0;
+  cursor: pointer;
+  gap: 10px;
+  font-family: 'Century Gothic', 'Apple Gothic', sans-serif;
+  font-size: 13px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #ccc;
+  transition: color 0.2s;
+}
+.accordion-header:hover { color: #ffd700; }
+.accordion-arrow {
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+.accordion-item.open .accordion-arrow {
+  transform: rotate(45deg);
+}
+.accordion-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+.accordion-body-inner {
+  padding: 0 0 16px 20px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #bbb;
+}
+
+/* --- BAND: DISTRICT SNAPSHOT --- */
+.band-district {
+  background: #262626;
+  padding: 56px 24px;
+}
+.band-district h2 {
+  color: #ffd700;
+  font-size: 16px;
+  letter-spacing: 3px;
+  margin-bottom: 28px;
+  text-align: center;
+}
+.district-table {
+  width: 100%;
+  max-width: 860px;
+  margin: 0 auto;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.district-table th {
+  font-family: 'Century Gothic', 'Apple Gothic', sans-serif;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #ffd700;
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 2px solid #ffd700;
+}
+.district-table td {
+  padding: 12px;
+  border-bottom: 1px solid #444;
+  color: #ccc;
+  vertical-align: top;
+}
+.district-table tr:hover td { background: rgba(255, 215, 0, 0.04); }
+.spine-explainer {
+  max-width: 740px;
+  margin: 32px auto 0;
+  font-size: 14px;
+  line-height: 1.7;
+  color: #bbb;
+}
+.spine-explainer strong { color: #f0ece4; }
+
+/* --- BAND: PRINT BRIEF --- */
+.band-print {
+  background: #1a1a1a;
+  padding: 40px 24px;
+  text-align: center;
+}
+#print-btn {
+  font-family: 'Century Gothic', 'Apple Gothic', sans-serif;
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 12px 32px;
+  background: transparent;
+  border: 2px solid #ffd700;
+  color: #ffd700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+#print-btn:hover {
+  background: #ffd700;
+  color: #1a1a1a;
+}
+
+/* --- FOOTER --- */
+.band-footer {
+  background: #1a1a1a;
+  padding: 28px 24px;
+  text-align: center;
+  font-size: 11px;
+  color: #666;
+  line-height: 1.5;
+}
+
+/* --- PRINT STYLES --- */
+@media print {
+  body { background: #fff; color: #000; font-size: 12px; }
+  .band { display: none !important; }
+  .band-print { display: none !important; }
+  #back-to-top { display: none !important; }
+  #print-brief { display: block !important; }
+}
+#print-brief {
+  display: none;
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 40px;
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 12px;
+  color: #000;
+  line-height: 1.6;
+}
+#print-brief h1 {
+  font-family: 'Century Gothic', 'Apple Gothic', sans-serif;
+  font-size: 18px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  border-bottom: 2px solid #000;
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+  color: #000;
+}
+#print-brief h2 {
+  font-size: 12px;
+  letter-spacing: 1px;
+  margin-top: 20px;
+  margin-bottom: 6px;
+  color: #000;
+}
+#print-brief p, #print-brief li {
+  margin-bottom: 4px;
+}
+#print-brief ul { padding-left: 20px; }
+#print-brief .pb-footer {
+  margin-top: 28px;
+  padding-top: 12px;
+  border-top: 1px solid #999;
+  font-size: 10px;
+  color: #666;
+}
+
+/* --- ROUTE SHIELDS --- */
+.shield-us {
+  display: inline-block;
+  position: relative;
+}
+.shield-county {
+  display: inline-block;
+}
+
+/* --- SVG ANIMATIONS --- */
+@keyframes dash-move {
+  to { stroke-dashoffset: -24; }
+}
+@keyframes pulse-ring {
+  0%, 100% { r: 14; opacity: 0.7; }
+  50% { r: 22; opacity: 0; }
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 700px) {
+  .stat-grid { grid-template-columns: 1fr; }
+  .compare-wrap { grid-template-columns: 1fr; }
+  .compare-col.without { border-right: none; border-bottom: 2px solid #ffd700; }
+  .hero-number { font-size: 64px; }
+  .stat-block .big-num { font-size: 40px; }
+  .timeline { flex-wrap: wrap; gap: 8px; }
+  .tl-connector { display: none; }
+  .band { padding: 36px 16px; }
+  .tl-label { font-size: 8px; }
+}
+</style>
+</head>
+<body>
+
+<!-- BACK TO TOP -->
+<button id="back-to-top" aria-label="Back to top">
+  <svg viewBox="0 0 20 20" fill="none" stroke="#1a1a1a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="4,13 10,6 16,13"/>
+  </svg>
+</button>
+
+<!-- ============================================================ -->
+<!-- BAND: ENTRY — Highway 212 Cross-Section SVG                  -->
+<!-- ============================================================ -->
+<section class="band band-entry" id="top">
+  <div class="band-inner">
+    <h1>Highway 212 Corridor Safety Scorecard</h1>
+    <div class="subtitle">Senate District 17 &mdash; Carver &bull; McLeod &bull; Meeker &bull; Sibley</div>
+
+    <svg id="cross-section-svg" viewBox="0 0 900 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Cross-section of Highway 212 showing lanes, shoulders, and the interchange problem at CSAH 51">
+      <!-- Sky / background -->
+      <rect x="0" y="0" width="900" height="320" fill="#1a1a1a"/>
+
+      <!-- Ground level -->
+      <rect x="0" y="200" width="900" height="120" fill="#2a2a2a"/>
+
+      <!-- Shoulder left -->
+      <rect x="60" y="160" width="120" height="40" fill="#555" rx="2"/>
+      <text x="120" y="155" fill="#777" font-size="9" text-anchor="middle" font-family="Lucida Console, monospace" letter-spacing="1">SHOULDER</text>
+
+      <!-- Eastbound lanes -->
+      <rect x="180" y="150" width="220" height="50" fill="#3D3D3D" rx="2"/>
+      <text x="290" y="143" fill="#aaa" font-size="10" text-anchor="middle" font-family="Century Gothic, sans-serif" letter-spacing="2">EASTBOUND</text>
+      <!-- Lane markings -->
+      <line x1="290" y1="152" x2="290" y2="198" stroke="#ffd700" stroke-width="1.5" stroke-dasharray="8 6"/>
+      <!-- Arrow -->
+      <polygon points="365,175 345,168 345,182" fill="#f0ece4" opacity="0.4"/>
+      <polygon points="340,175 320,168 320,182" fill="#f0ece4" opacity="0.25"/>
+
+      <!-- Median -->
+      <rect x="400" y="155" width="100" height="40" fill="#2a2a2a" rx="2" stroke="#ffd700" stroke-width="1" stroke-dasharray="4 3"/>
+      <text x="450" y="179" fill="#ffd700" font-size="8" text-anchor="middle" font-family="Lucida Console, monospace" letter-spacing="1">MEDIAN</text>
+
+      <!-- Westbound lanes -->
+      <rect x="500" y="150" width="220" height="50" fill="#3D3D3D" rx="2"/>
+      <text x="610" y="143" fill="#aaa" font-size="10" text-anchor="middle" font-family="Century Gothic, sans-serif" letter-spacing="2">WESTBOUND</text>
+      <line x1="610" y1="152" x2="610" y2="198" stroke="#ffd700" stroke-width="1.5" stroke-dasharray="8 6"/>
+      <polygon points="535,175 555,168 555,182" fill="#f0ece4" opacity="0.4"/>
+      <polygon points="560,175 580,168 580,182" fill="#f0ece4" opacity="0.25"/>
+
+      <!-- Shoulder right -->
+      <rect x="720" y="160" width="120" height="40" fill="#555" rx="2"/>
+      <text x="780" y="155" fill="#777" font-size="9" text-anchor="middle" font-family="Lucida Console, monospace" letter-spacing="1">SHOULDER</text>
+
+      <!-- CSAH 51 at-grade crossing — the problem -->
+      <rect x="430" y="90" width="40" height="110" fill="#cc0000" opacity="0.25" rx="2"/>
+      <line x1="450" y1="90" x2="450" y2="200" stroke="#cc0000" stroke-width="2" stroke-dasharray="6 4"/>
+      <text x="450" y="82" fill="#cc0000" font-size="11" text-anchor="middle" font-family="Century Gothic, sans-serif" font-weight="700" letter-spacing="1">CSAH 51</text>
+      <text x="450" y="70" fill="#cc0000" font-size="8" text-anchor="middle" font-family="Lucida Console, monospace" letter-spacing="1">AT-GRADE CONFLICT</text>
+
+      <!-- Conflict X marks -->
+      <g opacity="0.7">
+        <line x1="440" y1="165" x2="460" y2="185" stroke="#cc0000" stroke-width="2"/>
+        <line x1="460" y1="165" x2="440" y2="185" stroke="#cc0000" stroke-width="2"/>
+      </g>
+
+      <!-- Traffic count annotations -->
+      <text x="290" y="215" fill="#f0ece4" font-size="10" text-anchor="middle" font-family="Lucida Console, monospace">
+        <tspan font-weight="700">12,500</tspan> vehicles/day
+      </text>
+      <text x="610" y="215" fill="#F5A623" font-size="10" text-anchor="middle" font-family="Lucida Console, monospace">
+        <tspan font-weight="700">1,900+</tspan> trucks/day
+      </text>
+
+      <!-- Grade-separated solution hint -->
+      <path d="M420,50 Q450,25 480,50" fill="none" stroke="#4A7A3A" stroke-width="2" stroke-dasharray="4 3"/>
+      <text x="450" y="44" fill="#4A7A3A" font-size="8" text-anchor="middle" font-family="Century Gothic, sans-serif" letter-spacing="1">SF165: BRIDGE OVER</text>
+
+      <!-- US-212 route shield -->
+      <g transform="translate(50, 10)">
+        <path d="M0,18 L8,0 L32,0 L40,18 L32,30 L8,30 Z" fill="#f0ece4" stroke="#1a1a1a" stroke-width="1"/>
+        <text x="20" y="20" fill="#1a1a1a" font-size="12" text-anchor="middle" font-family="Century Gothic, sans-serif" font-weight="700">212</text>
+      </g>
+
+      <!-- CSAH 51 county shield -->
+      <g transform="translate(810, 10)">
+        <rect x="0" y="0" width="46" height="30" rx="3" fill="#f0ece4" stroke="#1a1a1a" stroke-width="1"/>
+        <text x="23" y="13" fill="#1a1a1a" font-size="7" text-anchor="middle" font-family="Lucida Console, monospace" letter-spacing="0.5">CSAH</text>
+        <text x="23" y="25" fill="#1a1a1a" font-size="11" text-anchor="middle" font-family="Century Gothic, sans-serif" font-weight="700">51</text>
+      </g>
+
+      <!-- Legend -->
+      <g transform="translate(60, 260)">
+        <rect x="0" y="0" width="10" height="10" fill="#cc0000" opacity="0.5"/>
+        <text x="16" y="9" fill="#999" font-size="9" font-family="Lucida Console, monospace">At-grade conflict zone</text>
+        <path d="M200,5 Q215,-8 230,5" fill="none" stroke="#4A7A3A" stroke-width="1.5" stroke-dasharray="3 2"/>
+        <text x="238" y="9" fill="#999" font-size="9" font-family="Lucida Console, monospace">SF165 grade separation</text>
+        <rect x="450" y="0" width="10" height="10" fill="#3D3D3D"/>
+        <text x="466" y="9" fill="#999" font-size="9" font-family="Lucida Console, monospace">Travel lanes</text>
+      </g>
+    </svg>
+
+    <div class="cross-section-caption">
+      SCHEMATIC &mdash; NOT TO SCALE. U.S. Highway 212 cross-section at CSAH 51, Benton Township, Carver County.
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- BAND: OPENING STATEMENT                                      -->
+<!-- ============================================================ -->
+<section class="band band-opening">
+  <p>
+    Highway 212 carries more daily truck traffic than the total traffic volume on 40% of Minnesota highways. At U.S. 212 and CSAH 51 in Carver County, that traffic collides at an at-grade intersection with a <strong>crash rate above the state average</strong>.
+    Senator Gruenhagen's SF165 proposes <strong>$6 million</strong> to fix it. Here is the data.
+  </p>
+</section>
+
+<!-- ============================================================ -->
+<!-- BAND: HERO — CRASH STAT                                      -->
+<!-- ============================================================ -->
+<section class="band band-hero">
+  <div class="hero-number">ABOVE AVG</div>
+  <div class="hero-label">Crash Rate at CSAH 51 / Hwy 212</div>
+  <div class="hero-sub">
+    MnDOT and Carver County Public Works designation: critical crash rate at the CSAH 51 intersection exceeds the statewide average. The nearby County Road 43 intersection also rates above average.
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- BAND: CORRIDOR MAP                                           -->
+<!-- ============================================================ -->
+<section class="band band-corridor">
+  <div class="band-inner">
+    <h2>The Corridor</h2>
+
+    <div class="map-controls">
+      <button class="toggle-btn" data-layer="freight" aria-label="Toggle freight routes overlay">Freight Routes</button>
+      <button class="toggle-btn" data-layer="commuter" aria-label="Toggle commuter volume overlay">Commuter Volume</button>
+      <button class="toggle-btn" data-layer="growth" aria-label="Toggle growth projection overlay">Growth Projection</button>
+    </div>
+
+    <svg id="corridor-svg" viewBox="0 0 900 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Schematic corridor map of Highway 212 from Hutchinson to Chaska/Chanhassen">
+      <!-- Background: countryside -->
+      <rect x="0" y="0" width="900" height="360" fill="#232823"/>
+
+      <!-- County boundaries -->
+      <line x1="340" y1="40" x2="340" y2="320" stroke="#555" stroke-width="1" stroke-dasharray="6 4"/>
+      <text x="170" y="55" fill="#777" font-size="10" text-anchor="middle" font-family="Century Gothic, sans-serif" letter-spacing="2">McLEOD COUNTY</text>
+      <text x="620" y="55" fill="#777" font-size="10" text-anchor="middle" font-family="Century Gothic, sans-serif" letter-spacing="2">CARVER COUNTY</text>
+
+      <!-- Highway 212 road band -->
+      <rect x="20" y="155" width="860" height="42" fill="#3D3D3D" rx="3"/>
+
+      <!-- White dashed centerline (animated) -->
+      <line x1="25" y1="176" x2="875" y2="176" stroke="#f0ece4" stroke-width="1.5" stroke-dasharray="16 8">
+        <animate attributeName="stroke-dashoffset" values="0;-24" dur="1s" repeatCount="indefinite"/>
+      </line>
+
+      <!-- Town nodes (west to east) -->
+      <!-- Hutchinson -->
+      <circle cx="80" cy="176" r="8" fill="#4A7A3A" stroke="#f0ece4" stroke-width="1.5"/>
+      <text x="80" y="145" fill="#f0ece4" font-size="11" text-anchor="middle" font-family="Century Gothic, sans-serif" font-weight="700" letter-spacing="1">HUTCHINSON</text>
+      <text x="80" y="134" fill="#999" font-size="8" text-anchor="middle" font-family="Lucida Console, monospace">pop. ~14,500</text>
+      <text x="80" y="210" fill="#F5A623" font-size="8" text-anchor="middle" font-family="Lucida Console, monospace">3M PLANT</text>
+
+      <!-- Glencoe -->
+      <circle cx="240" cy="176" r="8" fill="#4A7A3A" stroke="#f0ece4" stroke-width="1.5"/>
+      <text x="240" y="145" fill="#f0ece4" font-size="11" text-anchor="middle" font-family="Century Gothic, sans-serif" font-weight="700" letter-spacing="1">GLENCOE</text>
+      <text x="240" y="134" fill="#999" font-size="8" text-anchor="middle" font-family="Lucida Console, monospace">pop. ~5,500</text>
+
+      <!-- Norwood Young America -->
+      <circle cx="420" cy="176" r="7" fill="#4A7A3A" stroke="#f0ece4" stroke-width="1.5"/>
+      <text x="420" y="145" fill="#f0ece4" font-size="10" text-anchor="middle" font-family="Century Gothic, sans-serif" font-weight="700" letter-spacing="1">NORWOOD Y.A.</text>
+      <text x="420" y="134" fill="#999" font-size="8" text-anchor="middle" font-family="Lucida Console, monospace">pop. ~3,700</text>
+
+      <!-- Cologne -->
+      <circle cx="540" cy="176" r="6" fill="#4A7A3A" stroke="#f0ece4" stroke-width="1.5"/>
+      <text x="540" y="145" fill="#f0ece4" font-size="10" text-anchor="middle" font-family="Century Gothic, sans-serif" font-weight="700" letter-spacing="1">COLOGNE</text>
+
+      <!-- CSAH 51 INTERSECTION — THE FOCAL POINT -->
+      <circle cx="640" cy="176" r="14" fill="#F5A623" stroke="#ffd700" stroke-width="2" id="csah51-node" style="cursor:pointer"/>
+      <circle cx="640" cy="176" r="14" fill="none" stroke="#F5A623" stroke-width="2" opacity="0.6">
+        <animate attributeName="r" values="14;26" dur="1.5s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.6;0" dur="1.5s" repeatCount="indefinite"/>
+      </circle>
+      <text x="640" y="148" fill="#cc0000" font-size="10" text-anchor="middle" font-family="Century Gothic, sans-serif" font-weight="700" letter-spacing="1">CSAH 51</text>
+      <text x="640" y="138" fill="#cc0000" font-size="8" text-anchor="middle" font-family="Lucida Console, monospace" letter-spacing="1">&#9888; HAZARD</text>
+      <text x="640" y="213" fill="#cc0000" font-size="8" text-anchor="middle" font-family="Lucida Console, monospace">ABOVE-AVG CRASH RATE</text>
+
+      <!-- Chaska / Chanhassen -->
+      <circle cx="800" cy="176" r="8" fill="#4A7A3A" stroke="#f0ece4" stroke-width="1.5"/>
+      <text x="800" y="145" fill="#f0ece4" font-size="10" text-anchor="middle" font-family="Century Gothic, sans-serif" font-weight="700" letter-spacing="1">CHASKA</text>
+      <text x="800" y="134" fill="#999" font-size="8" text-anchor="middle" font-family="Lucida Console, monospace">CHANHASSEN</text>
+
+      <!-- US-212 shield -->
+      <g transform="translate(15, 230)">
+        <path d="M0,18 L8,0 L32,0 L40,18 L32,30 L8,30 Z" fill="#f0ece4" stroke="#333" stroke-width="1"/>
+        <text x="20" y="20" fill="#1a1a1a" font-size="12" text-anchor="middle" font-family="Century Gothic, sans-serif" font-weight="700">212</text>
+      </g>
+      <text x="65" y="250" fill="#999" font-size="9" font-family="Lucida Console, monospace">U.S. HIGHWAY 212</text>
+
+      <!-- OVERLAY: Freight Routes -->
+      <g id="freight-overlay" class="overlay-hidden" aria-label="Freight route overlay showing McLeod County freight flow">
+        <path d="M80,176 Q160,140 240,176 Q330,210 420,176 Q530,140 640,176 Q720,200 800,176" fill="none" stroke="#F5A623" stroke-width="3" stroke-dasharray="8 4" opacity="0.8"/>
+        <text x="160" y="240" fill="#F5A623" font-size="10" font-family="Lucida Console, monospace" font-weight="700">~20% OF HWY 212 FREIGHT</text>
+        <text x="160" y="253" fill="#F5A623" font-size="10" font-family="Lucida Console, monospace">ORIGINATES IN McLEOD CO.</text>
+        <text x="80" y="270" fill="#F5A623" font-size="9" font-family="Lucida Console, monospace">3M HUTCHINSON &#8594; METRO</text>
+        <!-- Truck arrows -->
+        <polygon points="300,168 280,162 280,174" fill="#F5A623" opacity="0.6"/>
+        <polygon points="500,168 480,162 480,174" fill="#F5A623" opacity="0.6"/>
+        <polygon points="700,168 680,162 680,174" fill="#F5A623" opacity="0.6"/>
+      </g>
+
+      <!-- OVERLAY: Commuter Volume -->
+      <g id="commuter-overlay" class="overlay-hidden" aria-label="Commuter volume overlay showing density increasing toward metro">
+        <rect x="420" y="155" width="120" height="42" fill="#2C5F8A" opacity="0.15"/>
+        <rect x="540" y="155" width="100" height="42" fill="#2C5F8A" opacity="0.25"/>
+        <rect x="640" y="155" width="160" height="42" fill="#2C5F8A" opacity="0.4"/>
+        <rect x="800" y="155" width="80" height="42" fill="#2C5F8A" opacity="0.55"/>
+        <text x="700" y="245" fill="#6aaddf" font-size="10" font-family="Lucida Console, monospace" font-weight="700">COMMUTER DENSITY INCREASES &#8594;</text>
+        <text x="700" y="258" fill="#6aaddf" font-size="9" font-family="Lucida Console, monospace">TWIN CITIES COMMUTER SPINE</text>
+      </g>
+
+      <!-- OVERLAY: Growth Projection -->
+      <g id="growth-overlay" class="overlay-hidden" aria-label="Growth projection overlay showing 2040 traffic forecast">
+        <line x1="500" y1="110" x2="800" y2="110" stroke="#cc0000" stroke-width="1.5" stroke-dasharray="6 4"/>
+        <text x="650" y="105" fill="#cc0000" font-size="11" text-anchor="middle" font-family="Lucida Console, monospace" font-weight="700">17,000+ VEHICLES/DAY (2040)</text>
+        <line x1="500" y1="120" x2="800" y2="120" stroke="#f0ece4" stroke-width="1" opacity="0.4"/>
+        <text x="650" y="295" fill="#f0ece4" font-size="10" text-anchor="middle" font-family="Lucida Console, monospace" opacity="0.6">12,500 VEHICLES/DAY (CURRENT)</text>
+        <!-- Gap label -->
+        <text x="830" y="115" fill="#cc0000" font-size="14" font-family="Lucida Console, monospace" font-weight="900">+36%</text>
+      </g>
+    </svg>
+
+    <!-- Callout panel (appears on CSAH 51 click) -->
+    <div id="callout-panel" role="region" aria-label="CSAH 51 intersection details">
+      <h3>CSAH 51 / U.S. 212 Intersection &mdash; Benton Township, Carver County</h3>
+      <div class="cp-row"><span class="cp-label">Condition</span><span class="cp-val">At-grade signalized intersection</span></div>
+      <div class="cp-row"><span class="cp-label">Crash Rate</span><span class="cp-val" style="color:#cc0000;">Above MnDOT state average (Carver County Public Works designation)</span></div>
+      <div class="cp-row"><span class="cp-label">Daily Traffic</span><span class="cp-val">~12,500 vehicles/day on Hwy 212 (growing)</span></div>
+      <div class="cp-row"><span class="cp-label">Freight</span><span class="cp-val">1,900+ trucks/day on Hwy 212 west of Chaska</span></div>
+      <div class="cp-row"><span class="cp-label">SF165 Project</span><span class="cp-val">Grade-separated quadrant interchange; Hwy 51 shifted east; new bridge carries 51 over 212</span></div>
+      <div class="cp-row"><span class="cp-label">Bond Amount</span><span class="cp-val" style="color:#ffd700;">$6,000,000 (state bond, Sen. Gruenhagen, 2025)</span></div>
+      <div class="cp-row"><span class="cp-label">Status</span><span class="cp-val"><span class="status-badge authored">Authored</span> <span class="status-badge committee">In Committee</span></span></div>
+    </div>
+
+    <!-- Drive the Corridor bar -->
+    <div class="drive-bar-section">
+      <h4>Drive the Corridor: Hutchinson to Chaska</h4>
+      <div class="drive-bar">
+        <span class="drive-bar-label left">Hutchinson</span>
+        <span class="drive-bar-label right">Chaska</span>
+        <div class="drive-bar-fill"></div>
+        <div class="drive-bar-tick" style="left: 72%;" aria-label="CSAH 51 delay hotspot"></div>
+        <div class="drive-bar-tick-label" style="left: 72%;">CSAH 51: Avg. 2&ndash;4 min delay at peak hour (estimate)</div>
+      </div>
+      <div style="text-align:right; margin-top:40px; font-family:'Lucida Console',monospace; font-size:10px; color:#777;">
+        APPROXIMATE DRIVE TIME: ~55 MIN
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- DIVIDER                                                       -->
+<!-- ============================================================ -->
+<div class="band-divider"></div>
+
+<!-- ============================================================ -->
+<!-- BAND: THE NUMBERS                                            -->
+<!-- ============================================================ -->
+<section class="band band-numbers">
+  <div class="band-inner">
+    <h2>The Numbers</h2>
+    <div class="stat-grid">
+
+      <!-- DAILY TRAFFIC -->
+      <div class="stat-block">
+        <div class="big-num data-num">12,500</div>
+        <div class="stat-label">Vehicles / Day on Hwy 212</div>
+        <div class="stat-context">Carver County segment. Projected to exceed 17,000/day by 2040.</div>
+        <div class="stat-bar-wrap">
+          <div class="stat-bar-fill" style="width:73%; background: linear-gradient(90deg, #4A7A3A, #F5A623);" aria-label="Current traffic: 12,500 of projected 17,000"></div>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:9px; color:#777; margin-top:4px; font-family:'Lucida Console',monospace;">
+          <span>TODAY</span><span>2040: 17,000+</span>
+        </div>
+      </div>
+
+      <!-- FREIGHT -->
+      <div class="stat-block">
+        <div class="big-num data-num" style="color:#F5A623;">1,900+</div>
+        <div class="stat-label">Trucks / Day West of Chaska</div>
+        <div class="stat-context">More daily trucks than total traffic volume on 40% of MN highways.</div>
+        <div class="truck-bar" aria-label="Truck density visualization">
+          <svg class="truck-icon" viewBox="0 0 14 10"><rect x="0" y="3" width="9" height="7" fill="#F5A623" rx="1"/><rect x="9" y="5" width="5" height="5" fill="#F5A623" rx="1"/><circle cx="3" cy="10" r="1.5" fill="#1a1a1a"/><circle cx="12" cy="10" r="1.5" fill="#1a1a1a"/></svg>
+          <svg class="truck-icon" viewBox="0 0 14 10"><rect x="0" y="3" width="9" height="7" fill="#F5A623" rx="1"/><rect x="9" y="5" width="5" height="5" fill="#F5A623" rx="1"/><circle cx="3" cy="10" r="1.5" fill="#1a1a1a"/><circle cx="12" cy="10" r="1.5" fill="#1a1a1a"/></svg>
+          <svg class="truck-icon" viewBox="0 0 14 10"><rect x="0" y="3" width="9" height="7" fill="#F5A623" rx="1"/><rect x="9" y="5" width="5" height="5" fill="#F5A623" rx="1"/><circle cx="3" cy="10" r="1.5" fill="#1a1a1a"/><circle cx="12" cy="10" r="1.5" fill="#1a1a1a"/></svg>
+          <svg class="truck-icon" viewBox="0 0 14 10"><rect x="0" y="3" width="9" height="7" fill="#F5A623" rx="1"/><rect x="9" y="5" width="5" height="5" fill="#F5A623" rx="1"/><circle cx="3" cy="10" r="1.5" fill="#1a1a1a"/><circle cx="12" cy="10" r="1.5" fill="#1a1a1a"/></svg>
+          <svg class="truck-icon" viewBox="0 0 14 10"><rect x="0" y="3" width="9" height="7" fill="#F5A623" rx="1"/><rect x="9" y="5" width="5" height="5" fill="#F5A623" rx="1"/><circle cx="3" cy="10" r="1.5" fill="#1a1a1a"/><circle cx="12" cy="10" r="1.5" fill="#1a1a1a"/></svg>
+          <svg class="truck-icon" viewBox="0 0 14 10"><rect x="0" y="3" width="9" height="7" fill="#F5A623" rx="1"/><rect x="9" y="5" width="5" height="5" fill="#F5A623" rx="1"/><circle cx="3" cy="10" r="1.5" fill="#1a1a1a"/><circle cx="12" cy="10" r="1.5" fill="#1a1a1a"/></svg>
+          <svg class="truck-icon" viewBox="0 0 14 10"><rect x="0" y="3" width="9" height="7" fill="#F5A623" rx="1"/><rect x="9" y="5" width="5" height="5" fill="#F5A623" rx="1"/><circle cx="3" cy="10" r="1.5" fill="#1a1a1a"/><circle cx="12" cy="10" r="1.5" fill="#1a1a1a"/></svg>
+          <svg class="truck-icon" viewBox="0 0 14 10"><rect x="0" y="3" width="9" height="7" fill="#F5A623" rx="1"/><rect x="9" y="5" width="5" height="5" fill="#F5A623" rx="1"/><circle cx="3" cy="10" r="1.5" fill="#1a1a1a"/><circle cx="12" cy="10" r="1.5" fill="#1a1a1a"/></svg>
+          <svg class="truck-icon" viewBox="0 0 14 10"><rect x="0" y="3" width="9" height="7" fill="#F5A623" rx="1"/><rect x="9" y="5" width="5" height="5" fill="#F5A623" rx="1"/><circle cx="3" cy="10" r="1.5" fill="#1a1a1a"/><circle cx="12" cy="10" r="1.5" fill="#1a1a1a"/></svg>
+          <svg class="truck-icon" viewBox="0 0 14 10"><rect x="0" y="3" width="9" height="7" fill="#F5A623" rx="1"/><rect x="9" y="5" width="5" height="5" fill="#F5A623" rx="1"/><circle cx="3" cy="10" r="1.5" fill="#1a1a1a"/><circle cx="12" cy="10" r="1.5" fill="#1a1a1a"/></svg>
+        </div>
+      </div>
+
+      <!-- CRASH RATE -->
+      <div class="stat-block">
+        <div class="big-num danger" style="font-size:38px;">ABOVE AVG</div>
+        <div class="stat-label">Crash Rate at CSAH 51 / Hwy 212</div>
+        <div class="stat-context">MnDOT-rated above state average. Nearby CR 43 intersection also above average.</div>
+        <div class="gauge-wrap">
+          <svg width="120" height="70" viewBox="0 0 120 70" aria-label="Gauge showing above-average crash rate">
+            <path d="M10,65 A50,50 0 0,1 110,65" fill="none" stroke="#444" stroke-width="8" stroke-linecap="round"/>
+            <path d="M10,65 A50,50 0 0,1 95,30" fill="none" stroke="#cc0000" stroke-width="8" stroke-linecap="round"/>
+            <text x="60" y="60" fill="#cc0000" font-size="9" text-anchor="middle" font-family="Lucida Console, monospace" font-weight="700">HIGH</text>
+          </svg>
+        </div>
+      </div>
+
+      <!-- BOND REQUEST -->
+      <div class="stat-block">
+        <div class="big-num green data-num">$6M</div>
+        <div class="stat-label">SF165 State Bond Request</div>
+        <div class="stat-context">Sen. Gruenhagen, 2025. Grade-separated interchange at CSAH 51 / Hwy 212, Carver County.</div>
+        <div style="margin-top:12px;">
+          <svg width="48" height="48" viewBox="0 0 48 48" aria-label="Construction icon">
+            <rect x="8" y="28" width="32" height="16" fill="#4A7A3A" rx="2" opacity="0.6"/>
+            <rect x="14" y="18" width="20" height="12" fill="#4A7A3A" rx="1"/>
+            <polygon points="24,6 12,18 36,18" fill="#ffd700" opacity="0.7"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- DIVIDER                                                       -->
+<!-- ============================================================ -->
+<div class="band-divider"></div>
+
+<!-- ============================================================ -->
+<!-- BAND: COST-BENEFIT                                           -->
+<!-- ============================================================ -->
+<section class="band band-costbenefit">
+  <div class="band-inner">
+    <h2>With vs. Without the Interchange</h2>
+
+    <div class="compare-wrap">
+      <div class="compare-col without">
+        <h3>Without the Interchange</h3>
+        <ul>
+          <li>At-grade signal intersection continues</li>
+          <li>Above-average crash rate continues</li>
+          <li>1,900+ trucks/day crossing at grade</li>
+          <li>17,000+ vehicles/day by 2040 through the same signal</li>
+          <li>Increasing delay costs for McLeod County freight</li>
+          <li>Continued above-average injury and crash risk</li>
+        </ul>
+      </div>
+      <div class="compare-col with">
+        <h3>With the SF165 Interchange</h3>
+        <ul>
+          <li>Grade-separated: vehicles never cross paths</li>
+          <li>Eliminates the at-grade conflict point driving the crash rate</li>
+          <li>Freight flow uninterrupted &mdash; no signal delay</li>
+          <li>Carver County construction plan already designed; project-ready</li>
+          <li>$6M state investment in a 12,500+/day corridor</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="cost-math">
+      <strong>$6 million</strong> for a grade-separated interchange serving <strong>12,500+ vehicles/day</strong> works out to less than <strong>$1.35 per daily user per year</strong> over a 20-year infrastructure lifespan. One traffic fatality costs Minnesota an estimated <strong>$1.6 million</strong> in economic loss alone.
+      <div class="source-note">
+        <!-- VERIFY: $1.6M fatality cost is FHWA human capital method, approximate figure -->
+        FATALITY COST: FHWA HUMAN CAPITAL METHOD, APPROXIMATE. PER-USER MATH: $6M &divide; 12,500 USERS &divide; 20 YEARS &asymp; $24/USER OVER LIFESPAN (&lt;$1.35/YEAR).
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- DIVIDER                                                       -->
+<!-- ============================================================ -->
+<div class="band-divider"></div>
+
+<!-- ============================================================ -->
+<!-- BAND: SF165 BILL TRACKER                                     -->
+<!-- ============================================================ -->
+<section class="band band-tracker">
+  <div class="band-inner">
+    <h2>SF165 Project Status</h2>
+
+    <div class="timeline" role="list" aria-label="SF165 bill progress timeline">
+      <div class="tl-step" role="listitem">
+        <div class="tl-connector" style="background:#4A7A3A;"></div>
+        <div class="tl-diamond done" aria-label="Authored: complete"></div>
+        <div class="tl-label">Authored</div>
+      </div>
+      <div class="tl-step" role="listitem">
+        <div class="tl-connector" style="background:#4A7A3A;"></div>
+        <div class="tl-diamond done" aria-label="Introduced: complete"></div>
+        <div class="tl-label">Introduced</div>
+      </div>
+      <div class="tl-step" role="listitem">
+        <div class="tl-connector"></div>
+        <div class="tl-diamond current" aria-label="Committee: current stage"></div>
+        <div class="tl-label">Committee</div>
+      </div>
+      <div class="tl-step" role="listitem">
+        <div class="tl-connector"></div>
+        <div class="tl-diamond future" aria-label="Floor vote: pending"></div>
+        <div class="tl-label">Floor Vote</div>
+      </div>
+      <div class="tl-step" role="listitem">
+        <div class="tl-connector"></div>
+        <div class="tl-diamond future" aria-label="Signed: pending"></div>
+        <div class="tl-label">Signed</div>
+      </div>
+      <div class="tl-step" role="listitem">
+        <div class="tl-diamond future" aria-label="Construction: pending"></div>
+        <div class="tl-label">Construction</div>
+      </div>
+    </div>
+
+    <!-- What Happens Next accordion -->
+    <div class="accordion-wrap">
+      <div class="accordion-item">
+        <div class="accordion-header" tabindex="0" role="button" aria-expanded="false">
+          <div class="accordion-arrow"></div>
+          Authored &mdash; Complete
+        </div>
+        <div class="accordion-body">
+          <div class="accordion-body-inner">
+            Senator Glenn H. Gruenhagen (SD-17) is the chief author of SF165. <!-- VERIFY: Co-author Coleman name from secondary sources; verify against revisor.mn.gov --> The bill was filed for the 94th Legislature, 2025 session. Authoring a bonding bill means the senator has formally submitted the request and taken public ownership of the project.
+          </div>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <div class="accordion-header" tabindex="0" role="button" aria-expanded="false">
+          <div class="accordion-arrow"></div>
+          Introduced &mdash; Complete
+        </div>
+        <div class="accordion-body">
+          <div class="accordion-body-inner">
+            SF165 was introduced in the 2025 session. Introduction means the bill has been read on the Senate floor and assigned to committee. It is now part of the official legislative record and can proceed through the committee process.
+          </div>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <div class="accordion-header" tabindex="0" role="button" aria-expanded="false">
+          <div class="accordion-arrow"></div>
+          Committee &mdash; Pending
+        </div>
+        <div class="accordion-body">
+          <div class="accordion-body-inner">
+            SF165 has been referred to the Energy, Utilities, Environment, and Climate Committee and the Capital Investment Committee. In committee, the bill will be reviewed, debated, and potentially amended before a vote to recommend it to the full Senate. Bonding bills must pass through the Capital Investment Committee to be included in the state bonding package.
+          </div>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <div class="accordion-header" tabindex="0" role="button" aria-expanded="false">
+          <div class="accordion-arrow"></div>
+          Floor Vote &mdash; Pending
+        </div>
+        <div class="accordion-body">
+          <div class="accordion-body-inner">
+            If the bill passes committee, it goes to the full Senate for a floor vote. Bonding bills in Minnesota require a three-fifths supermajority (40 of 67 senators) because they authorize the state to issue debt. This higher threshold means bonding projects typically need bipartisan support.
+          </div>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <div class="accordion-header" tabindex="0" role="button" aria-expanded="false">
+          <div class="accordion-arrow"></div>
+          Governor Signature &mdash; Pending
+        </div>
+        <div class="accordion-body">
+          <div class="accordion-body-inner">
+            After passing both chambers, the bonding bill goes to the Governor for signature. If signed, the $6 million appropriation from state bond proceeds is authorized and funds can flow to Carver County for the interchange project.
+          </div>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <div class="accordion-header" tabindex="0" role="button" aria-expanded="false">
+          <div class="accordion-arrow"></div>
+          Construction &mdash; Project-Ready
+        </div>
+        <div class="accordion-body">
+          <div class="accordion-body-inner">
+            Carver County Public Works has existing engineering design for the grade-separated quadrant interchange. The project shifts Highway 51 east, builds a new bridge carrying 51 over 212, and adds loop ramps for turning movements. Once funded, the county can proceed to construction without a lengthy design phase. This is a shovel-ready project.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- DIVIDER                                                       -->
+<!-- ============================================================ -->
+<div class="band-divider"></div>
+
+<!-- ============================================================ -->
+<!-- BAND: DISTRICT 17 INFRASTRUCTURE SNAPSHOT                    -->
+<!-- ============================================================ -->
+<section class="band band-district">
+  <div class="band-inner">
+    <h2>District 17 Infrastructure Snapshot</h2>
+
+    <table class="district-table" aria-label="District 17 county infrastructure summary">
+      <thead>
+        <tr>
+          <th>County</th>
+          <th>Type</th>
+          <th>Infrastructure Character</th>
+          <th>Key Pressure</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong style="color:#f0ece4;">Carver</strong></td>
+          <td>Outer-metro growth</td>
+          <td>Rapid population growth; road capacity strain; commuter-dependent</td>
+          <td>Hwy 212 and CSAH 61 most congested corridors</td>
+        </tr>
+        <tr>
+          <td><strong style="color:#f0ece4;">McLeod</strong></td>
+          <td>Rural industrial</td>
+          <td>Heavy freight; 3M Hutchinson; agricultural haul routes</td>
+          <td>Aging county roads carrying increasing freight loads</td>
+        </tr>
+        <tr>
+          <td><strong style="color:#f0ece4;">Meeker</strong></td>
+          <td>Rural agricultural</td>
+          <td>County roads serving grain, livestock, equipment</td>
+          <td>Lower population but long haul distances for farm-to-market routes</td>
+        </tr>
+        <tr>
+          <td><strong style="color:#f0ece4;">Sibley</strong></td>
+          <td>Rural agricultural</td>
+          <td>Small towns; county road network for ag and commute</td>
+          <td>State highway access critical for economic participation</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="spine-explainer">
+      <strong>Highway 212 is the spine.</strong> East of Norwood Young America, it carries Twin Cities commuters who moved to Carver County for affordable housing and now navigate a road network built for a fraction of today's population. West of Norwood, it carries 3M freight from Hutchinson, grain from McLeod and Meeker County farms, and the working population of small towns with no interstate alternative. The CSAH 51 intersection sits at the fault line between those two traffic worlds.
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- BAND: PRINT BRIEF                                            -->
+<!-- ============================================================ -->
+<section class="band band-print">
+  <button id="print-btn" aria-label="Print project brief">Print Project Brief</button>
+  <div style="font-size:11px; color:#666; margin-top:10px;">
+    Generates a clean one-page SF165 summary for sharing.
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- FOOTER                                                        -->
+<!-- ============================================================ -->
+<footer class="band-footer">
+  Traffic and safety data from Carver County Public Works, MnDOT, and the Southwest Corridor Transportation Coalition. Bill data from revisor.mn.gov (SF165, 94th Legislature, 2025). Built as an AI demonstration for SD-17. Data reflects sources as of 2025.
+</footer>
+
+<!-- ============================================================ -->
+<!-- PRINT BRIEF (hidden; displayed only in print view)           -->
+<!-- ============================================================ -->
+<div id="print-brief">
+  <h1>SF165 &mdash; Highway 212 / CSAH 51 Interchange</h1>
+  <p><strong>Project:</strong> Carver County State-Aid Highway 51 and U.S. Highway 212 intersection safety improvements</p>
+  <p><strong>Location:</strong> Benton Township, Carver County, Minnesota</p>
+  <p><strong>Bond Amount:</strong> $6,000,000 from state bond proceeds</p>
+  <p><strong>Chief Author:</strong> Senator Glenn H. Gruenhagen (SD-17)</p>
+  <p><strong>Session:</strong> 94th Legislature, 2025&ndash;2026</p>
+
+  <h2>Project Description</h2>
+  <p>Construction of a grade-separated quadrant interchange at the intersection of Carver County State-Aid Highway 51 and U.S. Highway 212. Highway 51 is shifted east, a new bridge carries 51 over 212, and loop ramps handle turning movements. This eliminates the at-grade conflict point that drives the crash problem at this location.</p>
+
+  <h2>Key Data Points</h2>
+  <ul>
+    <li><strong>Daily Traffic:</strong> ~12,500 vehicles/day on Hwy 212 (Carver County segment); projected to exceed 17,000/day by 2040</li>
+    <li><strong>Freight Volume:</strong> 1,900+ trucks/day on Hwy 212 west of Chaska</li>
+    <li><strong>Crash Rate:</strong> CSAH 51 / Hwy 212 intersection crash rate rated above state average by MnDOT and Carver County Public Works</li>
+    <li><strong>Nearby:</strong> County Road 43 intersection crash rate also above state average</li>
+    <li><strong>McLeod Freight:</strong> ~20% of Hwy 212 freight trips originate in McLeod County (3M Hutchinson)</li>
+  </ul>
+
+  <h2>Current Status</h2>
+  <p>Authored and introduced. Referred to Energy, Utilities, Environment, and Climate Committee and Capital Investment Committee. Carver County has existing engineering design; project is construction-ready upon funding.</p>
+
+  <div class="pb-footer">
+    Sources: Carver County Public Works, MnDOT, Southwest Corridor Transportation Coalition, revisor.mn.gov. Data as of 2025.
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- JAVASCRIPT                                                    -->
+<!-- ============================================================ -->
+<script>
+(function() {
+  'use strict';
+
+  // --- BACK TO TOP ---
+  var backBtn = document.getElementById('back-to-top');
+  var scrollThreshold = window.innerHeight;
+
+  function checkScroll() {
+    if (window.scrollY > scrollThreshold) {
+      backBtn.classList.add('visible');
+    } else {
+      backBtn.classList.remove('visible');
+    }
+  }
+  window.addEventListener('scroll', checkScroll, { passive: true });
+  checkScroll();
+
+  backBtn.addEventListener('click', function() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  // --- CORRIDOR MAP TOGGLES ---
+  var toggleBtns = document.querySelectorAll('.toggle-btn[data-layer]');
+  var overlays = {
+    freight: document.getElementById('freight-overlay'),
+    commuter: document.getElementById('commuter-overlay'),
+    growth: document.getElementById('growth-overlay')
+  };
+
+  toggleBtns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var layer = this.getAttribute('data-layer');
+      var overlay = overlays[layer];
+      if (!overlay) return;
+
+      var isActive = this.classList.contains('active');
+      if (isActive) {
+        this.classList.remove('active');
+        overlay.classList.add('overlay-hidden');
+      } else {
+        this.classList.add('active');
+        overlay.classList.remove('overlay-hidden');
+      }
+    });
+  });
+
+  // --- CSAH 51 NODE CLICK -> CALLOUT ---
+  var csahNode = document.getElementById('csah51-node');
+  var calloutPanel = document.getElementById('callout-panel');
+
+  if (csahNode && calloutPanel) {
+    csahNode.addEventListener('click', function() {
+      calloutPanel.classList.toggle('visible');
+    });
+  }
+
+  // --- ACCORDION ---
+  var accordionHeaders = document.querySelectorAll('.accordion-header');
+  accordionHeaders.forEach(function(header) {
+    header.addEventListener('click', function() {
+      var item = this.parentElement;
+      var body = item.querySelector('.accordion-body');
+      var inner = body.querySelector('.accordion-body-inner');
+      var isOpen = item.classList.contains('open');
+
+      if (isOpen) {
+        body.style.maxHeight = '0';
+        item.classList.remove('open');
+        this.setAttribute('aria-expanded', 'false');
+      } else {
+        body.style.maxHeight = inner.scrollHeight + 'px';
+        item.classList.add('open');
+        this.setAttribute('aria-expanded', 'true');
+      }
+    });
+
+    header.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        this.click();
+      }
+    });
+  });
+
+  // --- PRINT BRIEF ---
+  var printBtn = document.getElementById('print-btn');
+  if (printBtn) {
+    printBtn.addEventListener('click', function() {
+      window.print();
+    });
+  }
+
+  // --- ANIMATE STAT BARS ON SCROLL ---
+  var statBars = document.querySelectorAll('.stat-bar-fill');
+  var observed = false;
+
+  function animateBars() {
+    if (observed) return;
+    var numbersSection = document.querySelector('.band-numbers');
+    if (!numbersSection) return;
+
+    var rect = numbersSection.getBoundingClientRect();
+    if (rect.top < window.innerHeight && rect.bottom > 0) {
+      observed = true;
+      statBars.forEach(function(bar) {
+        var w = bar.style.width;
+        bar.style.width = '0';
+        requestAnimationFrame(function() {
+          requestAnimationFrame(function() {
+            bar.style.width = w;
+          });
+        });
+      });
+    }
+  }
+
+  window.addEventListener('scroll', animateBars, { passive: true });
+  animateBars();
+
+})();
+</script>
+
+</body>
+</html>

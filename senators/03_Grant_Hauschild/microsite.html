@@ -1,0 +1,1613 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grant Hauschild — Senate District 3</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Lora:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;700&family=Oswald:wght@300;400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── RESET ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+
+    /* ── MODE SYSTEM ────────────────────────────────────── */
+    .pro-content  { display: block; }
+    .oppo-content { display: none; }
+    body.mode-oppo .pro-content  { display: none; }
+    body.mode-oppo .oppo-content { display: block; }
+
+    /* ── FLIP TRANSITION ────────────────────────────────── */
+    .site-wrap {
+      transition: opacity 0.22s ease;
+    }
+    .site-wrap.fading { opacity: 0; }
+
+    /* ── FLIP BUTTON ────────────────────────────────────── */
+    #flip-btn {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      z-index: 9999;
+      border: 2px solid currentColor;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 12px 20px;
+      transition: background 0.18s, color 0.18s, box-shadow 0.18s, transform 0.15s;
+      line-height: 1;
+    }
+    body:not(.mode-oppo) #flip-btn {
+      background: #1C1C1C;
+      color: #E8DFC8;
+      border-color: #E8DFC8;
+    }
+    body.mode-oppo #flip-btn {
+      background: #E8DFC8;
+      color: #1C1C1C;
+      border-color: #1C1C1C;
+    }
+    #flip-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+    }
+    .btn-pro-label  { display: inline; }
+    .btn-oppo-label { display: none; }
+    body.mode-oppo .btn-pro-label  { display: none; }
+    body.mode-oppo .btn-oppo-label { display: inline; }
+
+    /* ══════════════════════════════════════════════════════
+       PRO SITE
+       Palette:
+         birch-white   #F0EAD6
+         taconite-dark #1C1C1C
+         iron-amber    #C17A2A
+         spruce-slate  #3A5A4A
+         warm-stone    #7D6E58
+    ══════════════════════════════════════════════════════ */
+
+    .pro-content {
+      background: #F0EAD6;
+      color: #1C1C1C;
+      font-family: 'Lora', Georgia, serif;
+    }
+
+    /* ── PRO: MASTHEAD ──────────────────────────────────── */
+    .pro-masthead {
+      background: #1C1C1C;
+      color: #F0EAD6;
+      padding: 0 0 0 0;
+      border-bottom: 5px solid #C17A2A;
+    }
+    .pro-masthead-inner {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 18px 40px 14px;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .pro-district-flag {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #C17A2A;
+    }
+    .pro-dateline {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.1em;
+      color: rgba(240,234,214,0.45);
+      text-transform: uppercase;
+    }
+
+    /* ── PRO: HERO ──────────────────────────────────────── */
+    .pro-hero {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 64px 40px 0;
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      gap: 60px;
+      align-items: start;
+    }
+    .pro-hero-text { padding-bottom: 48px; }
+
+    .pro-kicker {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #C17A2A;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .pro-kicker::after {
+      content: '';
+      display: block;
+      flex: 1;
+      height: 1px;
+      background: #C17A2A;
+      max-width: 80px;
+    }
+
+    .pro-headline {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(64px, 8vw, 110px);
+      line-height: 0.92;
+      letter-spacing: 0.01em;
+      color: #1C1C1C;
+      margin-bottom: 28px;
+    }
+    .pro-headline span {
+      color: #3A5A4A;
+    }
+
+    .pro-deck {
+      font-size: 1.15rem;
+      line-height: 1.65;
+      color: #3D3424;
+      max-width: 480px;
+      border-left: 4px solid #C17A2A;
+      padding-left: 20px;
+      margin-bottom: 36px;
+    }
+
+    .pro-byline {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #7D6E58;
+    }
+
+    /* ── PRO: PHOTO COLUMN ──────────────────────────────── */
+    .pro-photo-col {
+      position: relative;
+    }
+    .pro-photo-frame {
+      position: relative;
+      background: #3A5A4A;
+    }
+    .pro-photo-frame::before {
+      content: '';
+      position: absolute;
+      top: 12px; left: 12px;
+      right: -12px; bottom: -12px;
+      border: 2px solid #C17A2A;
+      z-index: 0;
+    }
+    .pro-photo-frame img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 3/4;
+      object-fit: cover;
+      object-position: center 15%;
+      position: relative;
+      z-index: 1;
+      filter: sepia(12%) saturate(85%) brightness(1.04);
+    }
+    .pro-photo-caption {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      color: #7D6E58;
+      text-transform: uppercase;
+      margin-top: 18px;
+      padding-left: 2px;
+    }
+
+    /* ── PRO: RULE DIVIDER ──────────────────────────────── */
+    .pro-rule {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 0 40px;
+    }
+    .pro-rule hr {
+      border: none;
+      border-top: 3px solid #1C1C1C;
+      margin: 48px 0 0;
+    }
+
+    /* ── PRO: STAT STRIP ────────────────────────────────── */
+    .pro-stats {
+      background: #1C1C1C;
+      color: #F0EAD6;
+      margin-top: 0;
+    }
+    .pro-stats-inner {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 40px 40px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+    }
+    .pro-stat {
+      padding: 0 32px 0 0;
+      border-right: 1px solid rgba(240,234,214,0.15);
+      margin-right: 32px;
+    }
+    .pro-stat:last-child {
+      border-right: none;
+      margin-right: 0;
+    }
+    .pro-stat-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 64px;
+      line-height: 1;
+      color: #C17A2A;
+      letter-spacing: 0.02em;
+    }
+    .pro-stat-num sup {
+      font-size: 0.45em;
+      vertical-align: super;
+      line-height: 0;
+    }
+    .pro-stat-label {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(240,234,214,0.6);
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+    .pro-stat-source {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 9px;
+      color: rgba(240,234,214,0.3);
+      margin-top: 8px;
+      letter-spacing: 0.06em;
+    }
+
+    /* ── PRO: BILL SECTION ──────────────────────────────── */
+    .pro-bill-section {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 72px 40px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 72px;
+      align-items: start;
+      border-bottom: 1px solid rgba(28,28,28,0.12);
+    }
+
+    .pro-bill-label {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #C17A2A;
+      margin-bottom: 16px;
+    }
+
+    .pro-bill-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 52px;
+      line-height: 0.95;
+      letter-spacing: 0.01em;
+      color: #1C1C1C;
+      margin-bottom: 24px;
+    }
+
+    .pro-bill-body {
+      font-size: 1.05rem;
+      line-height: 1.72;
+      color: #3D3424;
+    }
+    .pro-bill-body p { margin-bottom: 1em; }
+    .pro-bill-body p:last-child { margin-bottom: 0; }
+
+    /* ── PRO: WHAT IT FUNDS ─────────────────────────────── */
+    .pro-items-col {}
+    .pro-items-label {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #3A5A4A;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .pro-items-label::after {
+      content: '';
+      display: block;
+      flex: 1;
+      height: 1px;
+      background: #3A5A4A;
+    }
+
+    .pro-item {
+      display: grid;
+      grid-template-columns: 3px 1fr;
+      gap: 0 16px;
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(28,28,28,0.08);
+      align-items: center;
+    }
+    .pro-item:first-of-type { border-top: 1px solid rgba(28,28,28,0.08); }
+    .pro-item-bar {
+      background: #C17A2A;
+      height: 100%;
+      min-height: 36px;
+      border-radius: 2px;
+    }
+    .pro-item-text {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13.5px;
+      font-weight: 400;
+      color: #2A2420;
+      line-height: 1.4;
+    }
+
+    /* ── PRO: LANDSCAPE BAND ────────────────────────────── */
+    .pro-landscape {
+      width: 100%;
+      position: relative;
+      overflow: hidden;
+      height: 380px;
+    }
+    .pro-landscape img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 40%;
+      display: block;
+      filter: sepia(10%) saturate(90%) brightness(0.92);
+    }
+    .pro-landscape-caption-bar {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: linear-gradient(transparent, rgba(28,28,28,0.75));
+      padding: 32px 40px 20px;
+    }
+    .pro-landscape-caption {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(240,234,214,0.75);
+    }
+
+    /* ── PRO: PULL QUOTE ────────────────────────────────── */
+    .pro-quote-band {
+      background: #3A5A4A;
+      color: #F0EAD6;
+    }
+    .pro-quote-inner {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 72px 40px;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 40px;
+      align-items: start;
+    }
+    .pro-quote-mark {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 120px;
+      line-height: 0.7;
+      color: rgba(193,122,42,0.5);
+      user-select: none;
+    }
+    .pro-quote-text {
+      font-family: 'Lora', Georgia, serif;
+      font-size: clamp(1.3rem, 2.2vw, 1.7rem);
+      font-style: italic;
+      line-height: 1.55;
+      color: #F0EAD6;
+      margin-bottom: 20px;
+    }
+    .pro-quote-attr {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #C17A2A;
+    }
+
+    /* ── PRO: WHY IT MATTERS ────────────────────────────── */
+    .pro-context {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 72px 40px;
+    }
+    .pro-context-head {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 44px;
+      letter-spacing: 0.02em;
+      color: #1C1C1C;
+      margin-bottom: 28px;
+      border-bottom: 3px solid #C17A2A;
+      padding-bottom: 16px;
+    }
+    .pro-context-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+    }
+    .pro-context-body {
+      font-size: 1.05rem;
+      line-height: 1.72;
+      color: #3D3424;
+    }
+    .pro-context-body p { margin-bottom: 1em; }
+
+    /* ── PRO: FOOTNOTES ─────────────────────────────────── */
+    .pro-footnotes {
+      background: #1C1C1C;
+      color: #F0EAD6;
+    }
+    .pro-footnotes-inner {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 48px 40px;
+      border-top: 2px solid #C17A2A;
+    }
+    .fn-head {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #C17A2A;
+      margin-bottom: 20px;
+    }
+    .fn-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .fn-list li {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 11px;
+      color: rgba(240,234,214,0.5);
+      line-height: 1.5;
+      padding-left: 20px;
+      position: relative;
+    }
+    .fn-list li::before {
+      content: attr(data-n);
+      position: absolute;
+      left: 0;
+      color: #C17A2A;
+      font-weight: 700;
+    }
+    .fn-list a {
+      color: rgba(240,234,214,0.4);
+      text-decoration: none;
+    }
+    .fn-list a:hover { color: #C17A2A; }
+
+
+    /* ══════════════════════════════════════════════════════
+       OPPO SITE
+       Palette:
+         case-white   #EDEAE2
+         ink-black    #111111
+         caution-rust #B03A1A
+         redact-gray  #3A3A3A
+         muted-slate  #5A6370
+    ══════════════════════════════════════════════════════ */
+
+    .oppo-content {
+      background: #EDEAE2;
+      color: #111111;
+      font-family: 'Lora', Georgia, serif;
+    }
+
+    /* ── OPPO: FILE BAR ─────────────────────────────────── */
+    .oppo-filebar {
+      background: #111111;
+      color: #EDEAE2;
+      padding: 0;
+      border-bottom: 4px solid #B03A1A;
+    }
+    .oppo-filebar-inner {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 14px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .oppo-file-ref {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #B03A1A;
+    }
+    .oppo-file-meta {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      color: rgba(237,234,226,0.4);
+      text-transform: uppercase;
+    }
+
+    /* ── OPPO: HERO ─────────────────────────────────────── */
+    .oppo-hero {
+      background: #111111;
+      color: #EDEAE2;
+      padding-bottom: 0;
+    }
+    .oppo-hero-inner {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 60px 40px 0;
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 60px;
+      align-items: end;
+    }
+
+    .oppo-charge-label {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #B03A1A;
+      margin-bottom: 20px;
+    }
+
+    .oppo-headline {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(56px, 7.5vw, 104px);
+      line-height: 0.9;
+      letter-spacing: 0.01em;
+      color: #EDEAE2;
+      margin-bottom: 28px;
+    }
+    .oppo-headline em {
+      color: #B03A1A;
+      font-style: normal;
+    }
+
+    .oppo-hero-deck {
+      font-size: 1.05rem;
+      line-height: 1.65;
+      color: rgba(237,234,226,0.7);
+      max-width: 520px;
+      margin-bottom: 0;
+    }
+
+    /* ── OPPO: PHOTO ────────────────────────────────────── */
+    .oppo-photo-wrap {
+      align-self: end;
+      position: relative;
+    }
+    .oppo-photo-wrap img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 3/4;
+      object-fit: cover;
+      object-position: center 15%;
+      filter: grayscale(100%) contrast(1.15) brightness(0.82);
+    }
+    .oppo-photo-stamp {
+      position: absolute;
+      top: 16px; right: -8px;
+      background: #B03A1A;
+      color: #EDEAE2;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      padding: 6px 10px;
+      transform: rotate(2.5deg);
+    }
+
+    /* ── OPPO: SEQUENCE SECTION ─────────────────────────── */
+    .oppo-sequence {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 72px 40px;
+    }
+    .oppo-section-label {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #B03A1A;
+      margin-bottom: 32px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .oppo-section-label::after {
+      content: '';
+      display: block;
+      flex: 1;
+      height: 1px;
+      background: #B03A1A;
+    }
+
+    .oppo-sequence-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0;
+      border: 1.5px solid #111111;
+    }
+    .oppo-seq-step {
+      padding: 32px 28px;
+      border-right: 1.5px solid #111111;
+      position: relative;
+    }
+    .oppo-seq-step:last-child { border-right: none; }
+
+    .oppo-seq-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 72px;
+      line-height: 1;
+      color: rgba(176,58,26,0.12);
+      position: absolute;
+      top: 12px; right: 20px;
+      user-select: none;
+    }
+    .oppo-seq-head {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #B03A1A;
+      margin-bottom: 12px;
+      position: relative;
+    }
+    .oppo-seq-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 28px;
+      line-height: 1.1;
+      color: #111111;
+      margin-bottom: 12px;
+      position: relative;
+    }
+    .oppo-seq-body {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      line-height: 1.65;
+      color: #3A3A3A;
+      position: relative;
+    }
+
+    /* ── OPPO: DOCUMENT BLOCK ───────────────────────────── */
+    .oppo-doc-section {
+      background: #111111;
+    }
+    .oppo-doc-inner {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 64px 40px;
+    }
+    .oppo-doc-label {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #B03A1A;
+      margin-bottom: 28px;
+    }
+    .oppo-doc-card {
+      background: #1C1C1C;
+      border: 1px solid #3A3A3A;
+      border-left: 4px solid #B03A1A;
+      padding: 36px 36px 36px;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .oppo-doc-title {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(237,234,226,0.4);
+      margin-bottom: 24px;
+    }
+    .oppo-doc-excerpt {
+      font-family: 'Lora', Georgia, serif;
+      font-size: 1.05rem;
+      line-height: 1.75;
+      color: #EDEAE2;
+      margin-bottom: 24px;
+    }
+    .oppo-redact {
+      display: inline-block;
+      background: #B03A1A;
+      color: transparent;
+      user-select: none;
+      border-radius: 2px;
+      font-size: inherit;
+      line-height: inherit;
+      min-width: 2em;
+      cursor: default;
+      transition: background 0.25s, color 0.25s;
+      position: relative;
+    }
+    .oppo-redact:hover {
+      background: #EDEAE2;
+      color: #B03A1A;
+      font-weight: 700;
+    }
+    .oppo-redact::after {
+      content: attr(data-reveal);
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: inherit;
+      white-space: nowrap;
+    }
+    .oppo-doc-gap {
+      background: rgba(176,58,26,0.12);
+      border: 1px dashed rgba(176,58,26,0.4);
+      padding: 16px 20px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      color: rgba(237,234,226,0.55);
+      line-height: 1.5;
+      letter-spacing: 0.04em;
+    }
+
+    /* ── OPPO: EVIDENCE CARDS ───────────────────────────── */
+    .oppo-evidence {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 72px 40px;
+    }
+    .oppo-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-top: 32px;
+    }
+    .oppo-card {
+      background: #EDEAE2;
+      border: 1.5px solid #111111;
+      padding: 28px 24px;
+      position: relative;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+      cursor: default;
+    }
+    .oppo-card::before {
+      content: '';
+      position: absolute;
+      top: -1.5px; left: -1.5px;
+      width: 32px; height: 3px;
+      background: #B03A1A;
+    }
+    .oppo-card:hover {
+      background: #111111;
+      color: #EDEAE2;
+      border-color: #B03A1A;
+    }
+    .oppo-card:hover .oppo-card-label { color: rgba(237,234,226,0.5); }
+    .oppo-card:hover .oppo-card-title { color: #B03A1A; }
+    .oppo-card:hover .oppo-card-body { color: rgba(237,234,226,0.7); }
+    .oppo-card:hover .oppo-card-cite { color: rgba(237,234,226,0.35); }
+
+    .oppo-card-label {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #B03A1A;
+      margin-bottom: 12px;
+      transition: color 0.2s;
+    }
+    .oppo-card-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 26px;
+      line-height: 1.05;
+      color: #111111;
+      margin-bottom: 12px;
+      transition: color 0.2s;
+    }
+    .oppo-card-body {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #3A3A3A;
+      margin-bottom: 14px;
+      transition: color 0.2s;
+    }
+    .oppo-card-cite {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #7D7065;
+      transition: color 0.2s;
+    }
+
+    /* ── OPPO: CONTEXT BAND ─────────────────────────────── */
+    .oppo-context {
+      background: #1C1C1C;
+      color: #EDEAE2;
+    }
+    .oppo-context-inner {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 64px 40px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: start;
+    }
+    .oppo-context-head {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 52px;
+      line-height: 0.95;
+      letter-spacing: 0.01em;
+      color: #EDEAE2;
+      margin-bottom: 24px;
+    }
+    .oppo-context-head em {
+      color: #B03A1A;
+      font-style: normal;
+    }
+    .oppo-context-body {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      line-height: 1.7;
+      color: rgba(237,234,226,0.65);
+    }
+    .oppo-context-body p { margin-bottom: 0.9em; }
+
+    .oppo-context-right {}
+    .oppo-pull {
+      border-left: 3px solid #B03A1A;
+      padding: 20px 0 20px 24px;
+      margin-bottom: 28px;
+    }
+    .oppo-pull-text {
+      font-family: 'Lora', Georgia, serif;
+      font-size: 1.25rem;
+      font-style: italic;
+      line-height: 1.55;
+      color: #EDEAE2;
+    }
+    .oppo-pull-source {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(237,234,226,0.35);
+      margin-top: 12px;
+    }
+    .oppo-gap-box {
+      background: rgba(176,58,26,0.1);
+      border: 1px solid rgba(176,58,26,0.3);
+      padding: 20px 24px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      line-height: 1.6;
+      color: rgba(237,234,226,0.6);
+    }
+    .oppo-gap-box strong { color: #EDEAE2; }
+
+    /* ── OPPO: FOOTNOTES ────────────────────────────────── */
+    .oppo-footnotes {
+      background: #111111;
+      border-top: 3px solid #B03A1A;
+    }
+    .oppo-footnotes-inner {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 40px 40px;
+    }
+
+    /* ── RESPONSIVE ─────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .pro-hero { grid-template-columns: 1fr; gap: 40px; }
+      .pro-photo-col { order: -1; max-width: 300px; }
+      .pro-photo-frame::before { display: none; }
+      .pro-stats-inner { grid-template-columns: 1fr; gap: 28px; }
+      .pro-stat { border-right: none; border-bottom: 1px solid rgba(240,234,214,0.12); padding: 0 0 24px; margin-right: 0; }
+      .pro-stat:last-child { border-bottom: none; }
+      .pro-bill-section { grid-template-columns: 1fr; gap: 40px; }
+      .pro-context-cols { grid-template-columns: 1fr; gap: 24px; }
+      .pro-quote-inner { grid-template-columns: auto 1fr; gap: 20px; }
+
+      .oppo-hero-inner { grid-template-columns: 1fr; gap: 32px; }
+      .oppo-photo-wrap { max-width: 260px; }
+      .oppo-sequence-grid { grid-template-columns: 1fr; }
+      .oppo-seq-step { border-right: none; border-bottom: 1.5px solid #111111; }
+      .oppo-seq-step:last-child { border-bottom: none; }
+      .oppo-cards { grid-template-columns: 1fr; }
+      .oppo-context-inner { grid-template-columns: 1fr; gap: 36px; }
+
+      .pro-masthead-inner, .pro-rule, .pro-stats-inner, .pro-bill-section,
+      .pro-landscape-caption-bar, .pro-quote-inner, .pro-context,
+      .pro-footnotes-inner { padding-left: 20px; padding-right: 20px; }
+      .pro-hero { padding: 40px 20px 0; }
+
+      .oppo-filebar-inner, .oppo-hero-inner, .oppo-sequence, .oppo-doc-inner,
+      .oppo-evidence, .oppo-context-inner, .oppo-footnotes-inner {
+        padding-left: 20px; padding-right: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════
+     FLIP BUTTON
+════════════════════════════════════════════════════════ -->
+<button id="flip-btn" aria-label="Switch between supporter and accountability views">
+  <span class="btn-oppo-label">&#9654; Supporter View</span>
+  <span class="btn-pro-label">&#9654; Accountability View</span>
+</button>
+
+<!-- ═══════════════════════════════════════════════════════
+     PRO SITE
+════════════════════════════════════════════════════════ -->
+<div class="site-wrap pro-content" id="pro-site">
+
+  <!-- MASTHEAD -->
+  <header class="pro-masthead">
+    <div class="pro-masthead-inner">
+      <span class="pro-district-flag">Minnesota Senate &mdash; District 3 &mdash; Arrowhead &amp; North Shore</span>
+      <span class="pro-dateline">94th Legislature &nbsp;&middot;&nbsp; 2025 Session</span>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="pro-hero">
+    <div class="pro-hero-text">
+      <div class="pro-kicker">Grant Hauschild</div>
+      <h1 class="pro-headline">Building<br><span>North</span><br>Country<br>Schools.</h1>
+      <p class="pro-deck">Hauschild authored SF1617 to shield Cook County Schools from sales tax on construction materials&mdash;a specific, dollar-saving bill for a district where every public institution has to work harder to survive.</p>
+      <div class="pro-byline">Minnesota Senate &nbsp;&middot;&nbsp; DFL &nbsp;&middot;&nbsp; District 3</div>
+    </div>
+    <div class="pro-photo-col">
+      <div class="pro-photo-frame">
+        <img
+          src="https://www.senate.mn/graphics/03Hauschild.jpg"
+          alt="Senator Grant Hauschild"
+          onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML += '<div style=\'background:#3A5A4A;width:100%;aspect-ratio:3/4;display:flex;align-items:center;justify-content:center;\'><span style=\'font-family:Bebas Neue,sans-serif;font-size:48px;color:rgba(240,234,214,0.25);letter-spacing:0.05em;\'>GH</span></div>';"
+        />
+      </div>
+      <div class="pro-photo-caption">Sen. Grant Hauschild &nbsp;&middot;&nbsp; Senate District 3</div>
+    </div>
+  </section>
+
+  <!-- THIN RULE -->
+  <div class="pro-rule"><hr /></div>
+
+  <!-- STAT STRIP -->
+  <div class="pro-stats" id="pro-stats">
+    <div class="pro-stats-inner">
+      <div class="pro-stat">
+        <div class="pro-stat-num"><span class="pro-stat-unit">Refundable</span></div>
+        <div class="pro-stat-label">Sales-tax exemption<br>for specified project materials</div>
+        <div class="pro-stat-source">Ref. [1] SF1617, 2025</div>
+      </div>
+      <div class="pro-stat">
+        <div class="pro-stat-num"><span class="pro-stat-unit">Named</span></div>
+        <div class="pro-stat-label">Cook County project scope<br>written into SF1617</div>
+        <div class="pro-stat-source">Ref. [1] SF1617 bill summary</div>
+      </div>
+      <div class="pro-stat">
+        <div class="pro-stat-num" data-target="1" data-prefix="" data-suffix="st term">0</div>
+        <div class="pro-stat-label">Junior senator delivering<br>district-specific legislation</div>
+        <div class="pro-stat-source">Ref. [2] MN Senate member bio</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BILL SECTION -->
+  <section class="pro-bill-section">
+    <div class="pro-bill-text-col">
+      <div class="pro-bill-label">The Legislation &nbsp;&mdash;&nbsp; SF1617</div>
+      <h2 class="pro-bill-title">A Tax Break Built for One School District.</h2>
+      <div class="pro-bill-body">
+        <p>Cook County Schools sits at the end of the road. Construction materials cost more to ship there. Contractors cost more to bring there. Every dollar in sales tax on building supplies is a dollar not spent on students.</p>
+        <p>SF1617 creates a refundable sales-tax exemption on construction materials used in a defined package of Cook County Schools upgrades. That means the school district gets back what it pays. The exemption is specific to a named package of work&mdash;not a blank check, but a targeted tool.<sup>[1]</sup></p>
+        <p>Hauschild chief-authored the bill. He represents Cook County. The connection between the legislation and the constituency is direct.</p>
+      </div>
+    </div>
+    <div class="pro-items-col">
+      <div class="pro-items-label">What SF1617 Covers</div>
+
+      <div class="pro-item">
+        <div class="pro-item-bar"></div>
+        <div class="pro-item-text">New secure entrance and office area</div>
+      </div>
+      <div class="pro-item">
+        <div class="pro-item-bar"></div>
+        <div class="pro-item-text">Auxiliary gymnasium and fitness center</div>
+      </div>
+      <div class="pro-item">
+        <div class="pro-item-bar"></div>
+        <div class="pro-item-text">Additional locker rooms</div>
+      </div>
+      <div class="pro-item">
+        <div class="pro-item-bar"></div>
+        <div class="pro-item-text">Commons and cafeteria renovations</div>
+      </div>
+      <div class="pro-item">
+        <div class="pro-item-bar"></div>
+        <div class="pro-item-text">Playground and asphalt improvements</div>
+      </div>
+      <div class="pro-item">
+        <div class="pro-item-bar"></div>
+        <div class="pro-item-text">HVAC, lighting, security, and PA-system upgrades</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LANDSCAPE BAND -->
+  <div class="pro-landscape">
+    <img
+      src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1400&q=80&fm=jpg"
+      alt="North Shore Minnesota landscape"
+      onerror="this.onerror=null; this.style.background='#3A5A4A'; this.style.display='block';"
+    />
+    <div class="pro-landscape-caption-bar">
+      <div class="pro-landscape-caption">Cook County &nbsp;&middot;&nbsp; North Shore, Lake Superior &nbsp;&middot;&nbsp; Senate District 3</div>
+    </div>
+  </div>
+
+  <!-- PULL QUOTE -->
+  <div class="pro-quote-band">
+    <div class="pro-quote-inner">
+      <div class="pro-quote-mark">&ldquo;</div>
+      <div>
+        <p class="pro-quote-text">SF1617 is a district-specific tax bill: it names one school district, one project, and one refundable exemption in the bill text.</p>
+        <div class="pro-quote-attr">Context: SF1617 as introduced &nbsp;&middot;&nbsp; Ref. [1]</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTEXT / WHY IT MATTERS -->
+  <section class="pro-context">
+    <h2 class="pro-context-head">Why District 3 Needs This Approach</h2>
+    <div class="pro-context-cols">
+      <div class="pro-context-body">
+        <p>Senate District 3 covers Cook, Lake, Itasca, Koochiching, and St. Louis counties&mdash;a geographic area larger than some states, served by a thin network of public schools and hospitals. School viability is not an abstraction here. When a district loses a school, there is no nearby alternative.<sup>[2]</sup></p>
+        <p>Construction costs in remote districts carry a distance penalty that urban and suburban schools do not face. A sales-tax exemption on materials is one of the few tools the Legislature can use to directly offset that penalty without requiring a levy vote.</p>
+      </div>
+      <div class="pro-context-body">
+        <p>Hauschild sits on the Education Policy and Taxes committees&mdash;positions that put him on both the policy and the fiscal side of a bill like this.<sup>[2]</sup> SF1617 moves through both tracks: it is an education bill that lives in the tax code.</p>
+        <p>The bill is a first-term senator doing the work that first-term senators rarely get credit for: writing legislation specific enough to be useful rather than broad enough to look safe.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTNOTES -->
+  <footer class="pro-footnotes">
+    <div class="pro-footnotes-inner">
+      <div class="fn-head">Sources &amp; References</div>
+      <ol class="fn-list">
+        <li data-n="1.">SF1617, 94th Minnesota Legislature (2025&ndash;2026). Chief author: Sen. Grant Hauschild. "Certain Cook County schools construction project materials refundable exemption and appropriation." Introduced February 20, 2025, and referred to Taxes. <a href="https://www.revisor.mn.gov/bills/94/2025/0/SF/1617/?body=senate" target="_blank" rel="noopener">Revisor status</a> and <a href="https://www.revisor.mn.gov/bills/94/2025/0/SF/1617/versions/latest/" target="_blank" rel="noopener">as-introduced text</a>.</li>
+        <li data-n="2.">Senator Grant Hauschild member biography, Minnesota Senate. Committees: Education Policy, Environment Climate and Legacy, Labor, Taxes. Assistant Majority Leader as of February 2025. <a href="https://www.senate.mn/members/member_bio.html?mem_id=1252" target="_blank" rel="noopener">senate.mn</a></li>
+      </ol>
+    </div>
+  </footer>
+
+</div><!-- /pro-content -->
+
+
+<!-- ═══════════════════════════════════════════════════════
+     OPPO SITE
+════════════════════════════════════════════════════════ -->
+<div class="site-wrap oppo-content" id="oppo-site">
+
+  <!-- FILE BAR -->
+  <div class="oppo-filebar">
+    <div class="oppo-filebar-inner">
+      <span class="oppo-file-ref">Case File: SF570 &nbsp;&mdash;&nbsp; Hauschild / Permitting Rollback</span>
+      <span class="oppo-file-meta">94th Legislature &nbsp;&middot;&nbsp; Provisions later enacted in First Special Session SF3 &nbsp;&middot;&nbsp; 2025</span>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <section class="oppo-hero">
+    <div class="oppo-hero-inner">
+      <div class="oppo-hero-text">
+        <div class="oppo-charge-label">Accountability Record &nbsp;&mdash;&nbsp; Senate District 3</div>
+        <h1 class="oppo-headline">He Quietly<br>Narrowed<br>Who Gets<br>a <em>Voice.</em></h1>
+        <p class="oppo-hero-deck">Grant Hauschild authored SF570 in 2025. The standalone bill did not itself become law, but similar provisions later appeared in First Special Session SF3: narrowing who can petition for environmental review of some projects and allowing local governments to begin reviewing some feedlot permit applications before environmental review is finished.<sup>[4][5][6]</sup></p>
+      </div>
+      <div class="oppo-photo-wrap">
+        <img
+          src="https://www.senate.mn/graphics/03Hauschild.jpg"
+          alt="Senator Grant Hauschild"
+          onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML += '<div style=\'background:#222;width:100%;aspect-ratio:3/4;display:flex;align-items:center;justify-content:center;\'><span style=\'font-family:Bebas Neue,sans-serif;font-size:48px;color:rgba(237,234,226,0.12);letter-spacing:0.05em;\'>GH</span></div>';"
+        />
+        <div class="oppo-photo-stamp">On Record</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SEQUENCE -->
+  <section class="oppo-sequence">
+    <div class="oppo-section-label">What Happened &nbsp;&mdash;&nbsp; In Order</div>
+    <div class="oppo-sequence-grid">
+      <div class="oppo-seq-step">
+        <div class="oppo-seq-num">01</div>
+        <div class="oppo-seq-head">The Bill</div>
+        <div class="oppo-seq-title">Hauschild Authors SF570</div>
+        <div class="oppo-seq-body">On January 23, 2025, Hauschild introduces SF570 as chief author. The bill targets "permitting efficiency." It runs 14 pages of statutory changes to Minnesota's environmental review process.<sup>[4]</sup></div>
+      </div>
+      <div class="oppo-seq-step">
+        <div class="oppo-seq-num">02</div>
+        <div class="oppo-seq-head">The Change</div>
+        <div class="oppo-seq-title">Petition Rights Restricted by Geography</div>
+        <div class="oppo-seq-body">SF570 proposed rewriting the EAW petition threshold. Previously, any 100 Minnesota residents could petition for an environmental assessment of a project. Under the proposed language, those 100 people had to live or own property in the project county or an immediately adjoining county.<sup>[4][6]</sup></div>
+      </div>
+      <div class="oppo-seq-step">
+        <div class="oppo-seq-num">03</div>
+        <div class="oppo-seq-head">The Vehicle Changed</div>
+        <div class="oppo-seq-title">Key Provisions Later Moved Through SF3</div>
+        <div class="oppo-seq-body">SF570 advanced as a standalone bill, but it was First Special Session SF3 that ultimately enacted the environmental-review and feedlot-review changes. The official record requires following both the original bill and the session-law vehicle.<sup>[4][5][6]</sup></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DOCUMENT BLOCK -->
+  <section class="oppo-doc-section">
+    <div class="oppo-doc-inner">
+      <div class="oppo-doc-label">The Gap &nbsp;&mdash;&nbsp; What Changed, What It Means</div>
+      <div class="oppo-doc-card">
+        <div class="oppo-doc-title">SF570 &mdash; Statutory Effect on EAW Petitions &mdash; Senate Research Summary, April 3, 2025</div>
+        <p class="oppo-doc-excerpt">
+          Under prior law, <span class="oppo-redact" data-reveal="ANY 100 MN RESIDENTS">&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;</span> could petition for a discretionary Environmental Assessment Worksheet on a proposed project. SF570 limits petitioners to those who <span class="oppo-redact" data-reveal="LIVE IN PROJECT OR ADJOINING COUNTY">&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;</span>. The bill also allows local governments to begin feedlot permit review <span class="oppo-redact" data-reveal="BEFORE ENV. REVIEW IS COMPLETE">&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;</span>, and appropriates $325,000 annually in FY2026 and FY2027 to DEED's Business First Stop program.
+        </p>
+        <div class="oppo-doc-gap">
+          HOVER RED BLOCKS TO REVEAL &nbsp;&middot;&nbsp; SF570 Senate Research Summary, April 3, 2025 &nbsp;&middot;&nbsp; Ref. [6]
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EVIDENCE CARDS -->
+  <section class="oppo-evidence">
+    <div class="oppo-section-label">Three Facts &nbsp;&mdash;&nbsp; One Bill</div>
+    <div class="oppo-cards">
+      <div class="oppo-card">
+        <div class="oppo-card-label">Petition Restriction</div>
+        <div class="oppo-card-title">Statewide Petitioning Was Narrowed</div>
+        <div class="oppo-card-body">Before the change, any 100 Minnesotans could demand an environmental review of a project anywhere in the state. The enacted language narrows that pool to people who live or own property in the project county or an adjoining county.<sup>[5][6]</sup></div>
+        <div class="oppo-card-cite">First Special Session SF3 &mdash; Revisor.mn.gov &mdash; 2025</div>
+      </div>
+      <div class="oppo-card">
+        <div class="oppo-card-label">Feedlot Permitting</div>
+        <div class="oppo-card-title">Feedlot Permit Review Can Start Earlier</div>
+        <div class="oppo-card-body">The enacted language says nothing precludes a local government from beginning to review a feedlot permit application before environmental review is complete. That changes the sequence even though the original policy first appeared in SF570.<sup>[5][6]</sup></div>
+        <div class="oppo-card-cite">SF570 Senate Research Summary &mdash; April 3, 2025</div>
+      </div>
+      <div class="oppo-card">
+        <div class="oppo-card-label">Brand Gap</div>
+        <div class="oppo-card-title">The Policy Survived Even Though the Vehicle Changed</div>
+        <div class="oppo-card-body">SF570 itself was not chaptered law. But the official Revisor record shows that key provisions from that bill later appeared in First Special Session SF3 and became law there. Anyone evaluating the record has to track the policy, not just the bill number.<sup>[4][5]</sup></div>
+        <div class="oppo-card-cite">Revisor bill file &middot; First Special Session SF3</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTEXT BAND -->
+  <section class="oppo-context">
+    <div class="oppo-context-inner">
+      <div>
+        <h2 class="oppo-context-head">The <em>District</em> Problem</h2>
+        <div class="oppo-context-body">
+          <p>Senate District 3 borders the Boundary Waters Canoe Area Wilderness. It contains Lake Superior shoreline. Its voters include a generation of residents who have fought hard against industrial permitting on water and wetlands.</p>
+          <p>Under the enacted SF3 language, a statewide group without enough residents or property owners in the project county or an adjoining county can no longer anchor a 100-person EAW petition the way prior law allowed.<sup>[5][6]</sup></p>
+          <p>That matters more in a district where environmental review is not abstract. In northeast Minnesota, permitting fights are part of the governing terrain.</p>
+        </div>
+      </div>
+      <div class="oppo-context-right">
+        <div class="oppo-pull">
+          <div class="oppo-pull-text">"Nothing in this subdivision precludes a local unit of government from beginning to review a feedlot permit application for a feedlot subject to environmental review under this chapter."</div>
+          <div class="oppo-pull-source">First Special Session SF3 &nbsp;&middot;&nbsp; Revisor Session Law &nbsp;&middot;&nbsp; Ref. [5]</div>
+        </div>
+        <div class="oppo-gap-box">
+          <strong>The Hauschild contradiction:</strong> He represents a district where environmental review carries unusual political weight, and the official record shows he authored SF570 before similar provisions were later enacted in First Special Session SF3.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTNOTES -->
+  <footer class="oppo-footnotes">
+    <div class="oppo-footnotes-inner">
+      <div class="fn-head">Sources &amp; References</div>
+      <ol class="fn-list">
+        <li data-n="4.">SF570, 94th Minnesota Legislature (2025&ndash;2026). Chief author: Sen. Grant Hauschild. Official Revisor status and as-introduced bill text. <a href="https://www.revisor.mn.gov/bills/94/2025/0/SF/570/?body=senate" target="_blank" rel="noopener">revisor.mn.gov &mdash; SF570 Status</a></li>
+        <li data-n="5.">First Special Session SF3 (2025), Session Law Chapter 1. Official Revisor session law showing the enacted changes to Minnesota Statutes section 116D.04, including petition eligibility and feedlot permit review language. <a href="https://www.revisor.mn.gov/laws/2025/1/Session+Law/Chapter/1/" target="_blank" rel="noopener">revisor.mn.gov &mdash; Session Law Chapter 1</a></li>
+        <li data-n="6.">SF570 Senate Research Summary / committee fiscal note, April 3, 2025. Official Senate document describing the EAW petition residency requirement and feedlot-review sequencing language in the SF570 proposal. <a href="https://assets.senate.mn/committees/2025-2026/3134_Committee_on_State_and_Local_Government/SF570_0-FN.pdf" target="_blank" rel="noopener">assets.senate.mn (PDF)</a></li>
+        <li data-n="2.">Senator Grant Hauschild member biography, Minnesota Senate. <a href="https://www.senate.mn/members/member_bio.html?mem_id=1252" target="_blank" rel="noopener">senate.mn</a></li>
+      </ol>
+    </div>
+  </footer>
+
+
+  <!-- Auto-transition sentinel — observed by IntersectionObserver -->
+  <div id="brief-sentinel" style="height:1px;width:100%;"></div>
+
+  <!-- Subtle stamp — visible as user nears the bottom -->
+  <div class="machine-stamp">
+    <span class="machine-stamp-text">AI-GENERATED &nbsp;·&nbsp; 67 SENATORS &nbsp;·&nbsp; 63 PARALLEL AGENTS &nbsp;·&nbsp; ~4 HRS &nbsp;·&nbsp; ~$47</span>
+  </div>
+
+</div><!-- /oppo-content -->
+
+
+<script>
+  /* ── FLIP LOGIC ─────────────────────────────────────────── */
+  const btn = document.getElementById('flip-btn');
+  const body = document.body;
+  const siteWraps = document.querySelectorAll('.site-wrap');
+
+  btn.addEventListener('click', () => {
+    // Fade out
+    siteWraps.forEach(el => el.classList.add('fading'));
+
+    setTimeout(() => {
+      // Toggle mode
+      body.classList.toggle('mode-oppo');
+      // Scroll to top
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      // Fade in
+      siteWraps.forEach(el => el.classList.remove('fading'));
+    }, 220);
+  });
+
+  /* ── SCROLL-TRIGGERED COUNTERS (pro site only) ──────────── */
+  const statsSection = document.getElementById('pro-stats');
+  let countersRun = false;
+
+  function formatNum(n, prefix, suffix) {
+    let display = '';
+    if (n >= 1000000) {
+      display = (n / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+    } else if (n >= 1000) {
+      display = (n / 1000).toFixed(0) + 'K';
+    } else {
+      display = n.toString();
+    }
+    return (prefix || '') + display + (suffix ? ' ' + suffix : '');
+  }
+
+  function runCounters() {
+    if (countersRun) return;
+    countersRun = true;
+    document.querySelectorAll('.pro-stat-num[data-target]').forEach(el => {
+      const target = parseInt(el.getAttribute('data-target'), 10);
+      const prefix = el.getAttribute('data-prefix') || '';
+      const suffix = el.getAttribute('data-suffix') || '';
+      const duration = 1200;
+      const steps = 40;
+      const interval = duration / steps;
+      let step = 0;
+      const timer = setInterval(() => {
+        step++;
+        const progress = step / steps;
+        // Ease out
+        const eased = 1 - Math.pow(1 - progress, 2);
+        const current = Math.round(eased * target);
+        el.textContent = formatNum(current, prefix, suffix);
+        if (step >= steps) {
+          clearInterval(timer);
+          el.textContent = formatNum(target, prefix, suffix);
+        }
+      }, interval);
+    });
+  }
+
+  // Use IntersectionObserver if available
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) runCounters();
+      });
+    }, { threshold: 0.3 });
+    observer.observe(statsSection);
+  } else {
+    // Fallback: run on scroll
+    window.addEventListener('scroll', () => {
+      const rect = statsSection.getBoundingClientRect();
+      if (rect.top < window.innerHeight * 0.85) runCounters();
+    }, { passive: true });
+  }
+</script>
+<!-- ═══════════════════════════════════════════════════════
+     THE BRIEF — AI capabilities briefing
+═══════════════════════════════════════════════════════ -->
+<div class="brief-content">
+
+  <div class="brief-opening">
+    <p class="brief-made-by">Sixty-seven of these pages were made using one AI account in about thirty minutes. Six months ago an automated project like this would have been impossible.</p>
+  </div>
+
+  <div class="brief-chart-section">
+    <h2 class="brief-chart-title">This is the trend that made it possible.</h2>
+    <div class="brief-chart-frame">
+      <img
+        src="https://metr.org/assets/images/measuring-ai-ability-to-complete-long-tasks/length-of-tasks-log.png"
+        alt="METR chart: length of tasks AI agents can complete autonomously, doubling roughly every 7 months since 2019"
+        class="brief-metr-img"
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+      >
+      <div class="brief-chart-fallback" style="display:none;">
+        <p>Chart unavailable. See the original at <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">metr.org</a>.</p>
+      </div>
+    </div>
+    <p class="brief-chart-source">Source: <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR</a>, an independent AI evaluation lab.</p>
+    <p class="brief-chart-read">This chart tracks how long a task an AI agent can finish on its own. In 2019, the answer was about three seconds. By early 2023, it was six minutes. by mid 2025, over two hours. As of early 2026, Claude Opus 4.6 completes tasks that take a skilled human roughly twelve hours.</p>
+    <p class="brief-chart-read">The overall doubling time has been about seven months. But it is getting faster. <a href="https://metr.org/time-horizons/" target="_blank">When researchers fit only the most recent data</a>, the doubling time drops to four months. At that rate, AI agents capable of completing month-long autonomous projects arrive not in the early 2030s but around 2028.</p>
+  </div>
+
+  <div class="brief-so-what">
+    <h2 class="brief-so-what-title">What that means for lawmakers.</h2>
+    <p>Urgency. There was a narrative last year that AI had hit a wall in capabilities. It was a plausible perspective at the time. It isn't anymore. After breakthroughs late last year, AI systems' ability to automate cyberattacks, pathogen design, misinformation, mass surveillance, and vast swaths of white-collar work is advancing faster than ever.</p>
+    <p>The world will soon change faster than the typical pace of policymaking. The only solution is to act with atypical speed: AI regulations, data center moratoriums, calling for a federal pause on AI development, worker displacement funds. Some of these ideas already have bills introduced this session. Others should be explored soon. Time is limited, so if you feel behind on AI, the sources below are a good place to start.</p>
+    
+  </div>
+
+  <div class="brief-next">
+    <h2 class="brief-next-title">Start here.</h2>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">USE</span>
+      <a href="https://claude.ai/cowork" target="_blank">Claude Cowork</a> · <a href="https://claude.ai/code" target="_blank">Claude Code</a>
+      <span class="brief-link-detail">The tools that built this page. Cowork handles research and writing. Code is the agent that runs tasks, spawns sub-agents, and makes decisions on its own. Spend thirty minutes with one of these on a real problem from your week. That will teach you more than any briefing.</span>
+    </div>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR: Measuring AI Ability to Complete Long Tasks</a>
+      <span class="brief-link-detail">The source for the chart above. The METR trend is based on software tasks, but <a href="https://futuretech.mit.edu/publication/crashing-waves-vs-rising-tides-preliminary-findings-on-ai-automation-from-thousands-of-worker-evaluations-of-labor-market-tasks" target="_blank">MIT research on worker evaluations of labor market tasks</a> finds similar patterns across white-collar work broadly.</span>
+    </div>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://aiindex.stanford.edu/report/" target="_blank">Stanford HAI AI Index 2025</a>
+      <span class="brief-link-detail">The most comprehensive annual report on AI capabilities, economics, and policy across all 50 states.</span>
+    </div>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.imdb.com/title/tt39150120/" target="_blank">The AI Doc: Or How I Became an Apocaloptimist</a>
+      <span class="brief-link-detail">Daniel Roher's 2026 documentary, in theaters now. Roher interviews Amodei, Altman, Hassabis, and dozens more. If you see one thing on this list, see this.</span>
+    </div>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.youtube.com/watch?v=xoVJKj8lcNQ" target="_blank">The A.I. Dilemma</a>
+      <span class="brief-link-detail">Center for Humane Technology. 60 min, free on YouTube. Made for people with institutional power who need to understand AI quickly.</span>
+    </div>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">TRACK</span>
+      <a href="https://www.ncsl.org/technology-and-communication/artificial-intelligence" target="_blank">NCSL AI Legislation Tracker</a> ·
+      <a href="https://mn.gov/mnit/about-mnit/oit-programs/ai/" target="_blank">MN.IT AI Office</a>
+      <span class="brief-link-detail">Every AI bill in every state. Plus Minnesota's own AI program office. See where you stand relative to the field.</span>
+    </div>
+  </div>
+
+  <div class="brief-close">
+    <p class="brief-close-small">This project is not affiliated with any campaign, party, or organization.</p>
+    <button id="exit-brief-btn">← Back</button>
+  </div>
+
+</div><!-- /brief-content -->
+
+<style>
+.brief-content { display: none; }
+body.mode-brief .brief-content  { display: block; }
+body.mode-brief .pro-content    { display: none; }
+body.mode-brief .oppo-content   { display: none; }
+body.mode-brief #flip-btn       { display: none; }
+
+.brief-content {
+  background: #0C0A08;
+  color: #D4CCBE;
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 17px;
+  line-height: 1.75;
+  min-height: 100vh;
+}
+.brief-content a { color: #C0B49A; }
+.brief-content a:hover { color: #fff; }
+
+@keyframes glitch-seq {
+  0%   { filter: saturate(0) brightness(0.5); }
+  10%  { filter: hue-rotate(90deg) contrast(4) brightness(3); transform: skewX(4deg); }
+  12%  { filter: brightness(0.1); transform: none; }
+  25%  { filter: hue-rotate(200deg) invert(0.8); transform: translateX(6px); }
+  27%  { filter: brightness(0.05); transform: none; }
+  40%  { filter: blur(6px) brightness(0.02); }
+  44%  { filter: brightness(6); }
+  46%  { filter: none; transform: none; }
+  60%  { filter: hue-rotate(300deg) contrast(3) saturate(8); transform: skewX(-3deg); }
+  62%  { filter: none; transform: none; }
+  78%  { filter: blur(16px) brightness(0.01); }
+  82%  { filter: brightness(2); }
+  84%  { filter: none; }
+  100% { filter: none; transform: none; }
+}
+body.glitching {
+  animation: glitch-seq 1.2s ease-in-out forwards;
+  pointer-events: none;
+}
+
+.machine-stamp {
+  background: #050505;
+  border-top: 1px solid #111;
+  padding: 16px 40px;
+  text-align: center;
+}
+.machine-stamp-text {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 0.22em;
+  color: #222;
+  text-transform: uppercase;
+  animation: stamp-pulse 3s ease-in-out infinite;
+}
+@keyframes stamp-pulse {
+  0%, 100% { color: #222; }
+  50% { color: #4A3A2A; }
+}
+
+.brief-opening { max-width: 640px; margin: 0 auto; padding: 100px 40px 64px; }
+.brief-made-by { font-size: 20px; line-height: 1.65; color: #B8AE9C; margin-bottom: 20px; }
+.brief-made-by.last { color: #E8DED0; }
+
+.brief-chart-section { max-width: 740px; margin: 0 auto; padding: 48px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-chart-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 32px; font-style: italic; }
+.brief-chart-frame { background: #fff; border-radius: 4px; padding: 12px; margin-bottom: 12px; }
+.brief-metr-img { width: 100%; height: auto; display: block; }
+.brief-chart-fallback { padding: 40px; text-align: center; color: #666; font-size: 14px; }
+.brief-chart-fallback a { color: #888; }
+.brief-chart-source { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #5A5040; line-height: 1.6; margin-bottom: 28px; }
+.brief-chart-source a { color: #7A6A54; text-decoration: none; }
+.brief-chart-read { font-size: 17px; color: #B8AE9C; }
+
+.brief-so-what { max-width: 640px; margin: 0 auto; padding: 56px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-so-what-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 28px; font-style: italic; }
+.brief-so-what p { font-size: 17px; color: #B8AE9C; margin-bottom: 20px; }
+
+.brief-next { max-width: 640px; margin: 0 auto; padding: 56px 40px 48px; border-top: 1px solid #1E1A14; }
+.brief-next-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 14px; font-style: italic; }
+.brief-next-intro { font-size: 15px; color: #9A9080; margin-bottom: 36px; line-height: 1.65; }
+.brief-link-block { margin-bottom: 28px; line-height: 1.7; }
+.brief-link-tag { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.2em; color: #6A5A44; text-transform: uppercase; display: block; margin-bottom: 4px; }
+.brief-link-block a { font-weight: 600; color: #E0D6C4; text-decoration: underline; text-underline-offset: 3px; font-size: 16px; }
+.brief-link-block a:hover { color: #fff; }
+.brief-link-detail { display: block; font-size: 14px; color: #6A5E4C; margin-top: 2px; }
+
+.brief-close { max-width: 640px; margin: 0 auto; padding: 48px 40px 100px; border-top: 1px solid #1E1A14; }
+.brief-close p { font-family: 'Source Serif 4', Georgia, serif; font-size: 16px; color: #9A9080; margin-bottom: 32px; line-height: 1.7; }
+.brief-close-small { font-family: 'IBM Plex Mono', monospace !important; font-size: 11px !important; color: #3A3428 !important; letter-spacing: 0.04em; }
+#exit-brief-btn { background: none; border: 1px solid #2A2418; color: #5A5040; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; padding: 10px 20px; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
+#exit-brief-btn:hover { border-color: #8A7A64; color: #C0B49A; }
+
+@media (max-width: 900px) {
+  .brief-opening, .brief-so-what, .brief-next, .brief-close { padding-left: 24px; padding-right: 24px; }
+  .brief-chart-section { padding-left: 24px; padding-right: 24px; }
+  .brief-made-by { font-size: 18px; }
+  .brief-opening { padding-top: 64px; }
+  .machine-stamp { padding: 14px 20px; }
+}
+</style>
+
+<script>
+(function() {
+  let briefTriggered = false;
+
+  function startBriefTransition() {
+    if (briefTriggered) return;
+    if (!document.body.classList.contains('mode-oppo')) return;
+    briefTriggered = true;
+    const body = document.body;
+
+    body.style.transition = 'filter 2.5s ease-in';
+    body.style.filter = 'saturate(0) brightness(0.3)';
+
+    setTimeout(() => {
+      const hed = document.querySelector('.oppo-content h1') || document.querySelector('.oppo-content h2');
+      if (hed) {
+        const orig = hed.textContent;
+        const chars = '█▓▒░■□0123456789';
+        let n = 0;
+        const si = setInterval(() => {
+          n++;
+          hed.textContent = Array.from(orig).map(c => c === ' ' ? ' ' : chars[Math.floor(Math.random() * chars.length)]).join('');
+          if (n > 40) { clearInterval(si); hed.textContent = orig; }
+        }, 40);
+      }
+    }, 1200);
+
+    setTimeout(() => {
+      body.style.transition = '';
+      body.style.filter = '';
+      body.classList.add('glitching');
+
+      setTimeout(() => {
+        body.classList.remove('glitching');
+        body.classList.add('mode-brief');
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      }, 1500);
+    }, 2500);
+  }
+
+  const sentinel = document.getElementById('brief-sentinel');
+  if (sentinel && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          io.disconnect();
+          setTimeout(startBriefTransition, 1200);
+        }
+      });
+    }, { threshold: 0.5 });
+    io.observe(sentinel);
+  }
+
+  const flipBtn = document.getElementById('flip-btn');
+  if (flipBtn) {
+    flipBtn.addEventListener('click', () => {
+      if (document.body.classList.contains('mode-oppo')) briefTriggered = false;
+    });
+  }
+})();
+
+document.addEventListener('click', (e) => {
+  if (e.target && e.target.id === 'exit-brief-btn') {
+    const body = document.body;
+    body.style.opacity = '0';
+    body.style.transition = 'opacity 0.3s';
+    setTimeout(() => {
+      body.classList.remove('mode-brief');
+      body.classList.add('mode-oppo');
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      body.style.opacity = '1';
+    }, 300);
+  }
+});
+</script>
+
+</body>
+</html>

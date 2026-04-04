@@ -1,0 +1,1541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>What Will My Health Insurance Cost? — MN Premium Security Plan Calculator</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Vertical accordion — dense, form-heavy, spreadsheet-adjacent. Full-width, no max-width shell.
+   2. Navigation: Accordion headers ARE the navigation — clicking opens/closes sections, only one open at a time.
+   3. Typography: Palatino (serif headings), Trebuchet MS (body/labels), Lucida Console (numbers/data)
+   4. Hero moment: A large premium dollar amount at the very top that live-updates as inputs change — 56px+ monospace teal on cream.
+   5. Color strategy: #8 (saturated accent) — warm grays and cream with teal (#008080) as sole accent throughout.
+   6. Entry experience: No animation. First accordion section open on load with a single clear question. Stark, immediate.
+   Additional: No bordered callout boxes. No emoji. No parchment-on-white cards. Dense form inputs styled to match the tool.
+*/
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --teal:#008080;
+  --teal-light:#e0f2f1;
+  --teal-dark:#005f5f;
+  --cream:#FAF9F5;
+  --warm-gray:#8A8580;
+  --warm-gray-light:#D5D0CB;
+  --warm-gray-dark:#4A4744;
+  --near-black:#1C1A18;
+  --white:#FFFFFF;
+  --green:#2D6A4F;
+  --yellow:#C8A620;
+  --red:#B91C1C;
+}
+
+html{font-size:15px;scroll-behavior:smooth}
+body{
+  font-family:'Trebuchet MS',sans-serif;
+  background:var(--cream);
+  color:var(--near-black);
+  line-height:1.45;
+  min-height:100vh;
+}
+
+/* ── HERO: live-updating premium amount ── */
+.hero{
+  background:var(--near-black);
+  padding:28px 24px 22px;
+  text-align:center;
+}
+.hero-label{
+  font-family:'Palatino Linotype',Palatino,'Book Antiqua',serif;
+  color:var(--warm-gray);
+  font-size:.82rem;
+  letter-spacing:2.5px;
+  text-transform:uppercase;
+  margin-bottom:4px;
+}
+.hero-amount{
+  font-family:'Lucida Console',Monaco,monospace;
+  color:var(--teal);
+  font-size:3.6rem;
+  font-weight:700;
+  line-height:1.1;
+  letter-spacing:-1px;
+}
+.hero-sub{
+  font-family:'Trebuchet MS',sans-serif;
+  color:var(--warm-gray);
+  font-size:.78rem;
+  margin-top:6px;
+}
+.hero-sub strong{color:var(--teal);font-weight:600}
+
+/* ── CONTEXT BAR ── */
+.context-bar{
+  background:var(--teal);
+  color:var(--white);
+  padding:10px 24px;
+  font-size:.8rem;
+  line-height:1.4;
+  font-family:'Trebuchet MS',sans-serif;
+}
+.context-bar strong{font-weight:700}
+
+/* ── ACCORDION ── */
+.accordion{width:100%;max-width:100%}
+.acc-section{border-bottom:1px solid var(--warm-gray-light)}
+.acc-header{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  width:100%;
+  padding:14px 24px;
+  background:var(--white);
+  border:none;
+  cursor:pointer;
+  text-align:left;
+  font-family:'Palatino Linotype',Palatino,'Book Antiqua',serif;
+  font-size:1.05rem;
+  font-weight:700;
+  color:var(--near-black);
+  letter-spacing:.3px;
+  transition:background .15s;
+}
+.acc-header:hover{background:var(--teal-light)}
+.acc-header[aria-expanded="true"]{
+  background:var(--teal);
+  color:var(--white);
+}
+.acc-marker{
+  display:inline-block;
+  width:22px;height:22px;
+  border:2px solid var(--teal);
+  border-radius:50%;
+  text-align:center;
+  line-height:18px;
+  font-family:'Lucida Console',Monaco,monospace;
+  font-size:.7rem;
+  font-weight:700;
+  color:var(--teal);
+  flex-shrink:0;
+}
+.acc-header[aria-expanded="true"] .acc-marker{
+  border-color:var(--white);
+  color:var(--white);
+  background:rgba(255,255,255,.15);
+}
+.acc-chevron{
+  margin-left:auto;
+  width:0;height:0;
+  border-left:5px solid transparent;
+  border-right:5px solid transparent;
+  border-top:6px solid var(--teal);
+  transition:transform .15s;
+  flex-shrink:0;
+}
+.acc-header[aria-expanded="true"] .acc-chevron{
+  border-top-color:var(--white);
+  transform:rotate(180deg);
+}
+.acc-body{
+  display:none;
+  padding:20px 24px 28px;
+  background:var(--white);
+  border-top:2px solid var(--teal);
+}
+.acc-body.open{display:block}
+
+/* ── FORM STYLING ── */
+.form-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px 20px;
+}
+.form-group{display:flex;flex-direction:column;gap:3px}
+.form-group.full{grid-column:1/-1}
+label{
+  font-family:'Trebuchet MS',sans-serif;
+  font-size:.78rem;
+  font-weight:600;
+  color:var(--warm-gray-dark);
+  text-transform:uppercase;
+  letter-spacing:.8px;
+}
+input[type="number"],input[type="text"],select{
+  font-family:'Lucida Console',Monaco,monospace;
+  font-size:.92rem;
+  padding:7px 10px;
+  border:1px solid var(--warm-gray-light);
+  border-radius:2px;
+  background:var(--cream);
+  color:var(--near-black);
+  outline:none;
+  width:100%;
+}
+input[type="number"]:focus,input[type="text"]:focus,select:focus{
+  border-color:var(--teal);
+  box-shadow:0 0 0 2px rgba(0,128,128,.15);
+}
+input[type="range"]{
+  -webkit-appearance:none;
+  appearance:none;
+  width:100%;
+  height:6px;
+  background:var(--warm-gray-light);
+  border-radius:3px;
+  outline:none;
+  margin-top:4px;
+}
+input[type="range"]::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  width:18px;height:18px;
+  background:var(--teal);
+  border-radius:50%;
+  cursor:pointer;
+}
+input[type="range"]::-moz-range-thumb{
+  width:18px;height:18px;
+  background:var(--teal);
+  border-radius:50%;
+  cursor:pointer;
+  border:none;
+}
+.range-val{
+  font-family:'Lucida Console',Monaco,monospace;
+  font-size:.85rem;
+  color:var(--teal);
+  font-weight:700;
+  min-width:36px;
+  text-align:right;
+}
+.range-row{display:flex;align-items:center;gap:10px}
+
+/* ── EXAMPLE BANNER ── */
+.example-banner{
+  background:var(--teal);
+  color:var(--white);
+  padding:8px 16px;
+  font-size:.8rem;
+  font-weight:600;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:14px;
+}
+.example-banner button{
+  background:var(--white);
+  color:var(--teal);
+  border:none;
+  padding:4px 12px;
+  font-family:'Trebuchet MS',sans-serif;
+  font-size:.75rem;
+  font-weight:700;
+  cursor:pointer;
+  border-radius:2px;
+  text-transform:uppercase;
+  letter-spacing:.5px;
+}
+
+/* ── RESULTS STYLING ── */
+.results-section{margin-top:18px}
+.results-section h3{
+  font-family:'Palatino Linotype',Palatino,'Book Antiqua',serif;
+  font-size:.95rem;
+  font-weight:700;
+  color:var(--teal-dark);
+  padding-bottom:6px;
+  margin-bottom:10px;
+  border-bottom:1px solid var(--warm-gray-light);
+}
+.result-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+  padding:5px 0;
+  font-size:.88rem;
+}
+.result-row+.result-row{border-top:1px dotted var(--warm-gray-light)}
+.result-label{color:var(--warm-gray-dark);font-family:'Trebuchet MS',sans-serif}
+.result-value{
+  font-family:'Lucida Console',Monaco,monospace;
+  font-weight:700;
+  color:var(--near-black);
+  text-align:right;
+}
+.result-value.savings{color:var(--teal)}
+.result-value.danger{color:var(--red)}
+
+/* ── RATIO BARS ── */
+.ratio-block{margin-bottom:14px}
+.ratio-bar-track{
+  width:100%;
+  height:10px;
+  background:var(--warm-gray-light);
+  border-radius:5px;
+  overflow:hidden;
+  margin-top:4px;
+}
+.ratio-bar-fill{
+  height:100%;
+  border-radius:5px;
+  transition:width .3s;
+}
+.ratio-bar-fill.green{background:var(--green)}
+.ratio-bar-fill.yellow{background:var(--yellow)}
+.ratio-bar-fill.red{background:var(--red)}
+.ratio-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+}
+.ratio-header .ratio-pct{
+  font-family:'Lucida Console',Monaco,monospace;
+  font-size:.95rem;
+  font-weight:700;
+}
+.ratio-header .ratio-pct.green{color:var(--green)}
+.ratio-header .ratio-pct.yellow{color:var(--yellow)}
+.ratio-header .ratio-pct.red{color:var(--red)}
+.ratio-header .ratio-name{
+  font-size:.82rem;
+  font-weight:600;
+  color:var(--warm-gray-dark);
+}
+
+/* ── PLAIN-ENGLISH SUMMARY ── */
+.plain-summary{
+  background:var(--near-black);
+  color:var(--cream);
+  padding:16px 20px;
+  font-family:'Palatino Linotype',Palatino,'Book Antiqua',serif;
+  font-size:.95rem;
+  line-height:1.55;
+  margin:16px 0;
+}
+
+/* ── SUGGESTIONS ── */
+.suggestion-item{
+  padding:8px 0;
+  font-size:.82rem;
+  line-height:1.45;
+  color:var(--warm-gray-dark);
+}
+.suggestion-item+.suggestion-item{border-top:1px dotted var(--warm-gray-light)}
+.suggestion-item strong{color:var(--teal-dark)}
+
+/* ── SUBSIDY TABLE ── */
+table.fpl-table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:.8rem;
+  margin-top:8px;
+}
+table.fpl-table th{
+  font-family:'Trebuchet MS',sans-serif;
+  text-transform:uppercase;
+  letter-spacing:.7px;
+  font-size:.7rem;
+  text-align:left;
+  padding:6px 8px;
+  background:var(--teal);
+  color:var(--white);
+  font-weight:600;
+}
+table.fpl-table td{
+  padding:5px 8px;
+  font-family:'Lucida Console',Monaco,monospace;
+  font-size:.78rem;
+  border-bottom:1px solid var(--warm-gray-light);
+}
+table.fpl-table tr:nth-child(even) td{background:var(--cream)}
+table.fpl-table .highlight-row td{
+  background:var(--teal-light);
+  font-weight:700;
+}
+
+/* ── CHART CONTAINER ── */
+.chart-wrap{
+  margin-top:14px;
+  background:var(--cream);
+  padding:12px;
+  border:1px solid var(--warm-gray-light);
+}
+.chart-wrap canvas{width:100%!important;max-height:320px}
+.chart-note{
+  font-size:.72rem;
+  color:var(--warm-gray);
+  margin-top:6px;
+  font-style:italic;
+}
+
+/* ── FLOW DIAGRAM (Module 3) ── */
+.flow-diagram{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:center;
+  gap:0;
+  margin:16px 0;
+  padding:16px 8px;
+  background:var(--cream);
+}
+.flow-step{
+  background:var(--white);
+  border:2px solid var(--teal);
+  padding:10px 14px;
+  text-align:center;
+  font-size:.78rem;
+  font-family:'Trebuchet MS',sans-serif;
+  font-weight:600;
+  color:var(--near-black);
+  max-width:150px;
+  line-height:1.3;
+}
+.flow-step.highlight{
+  background:var(--teal);
+  color:var(--white);
+}
+.flow-arrow{
+  width:0;height:0;
+  border-top:8px solid transparent;
+  border-bottom:8px solid transparent;
+  border-left:12px solid var(--teal);
+  margin:0 4px;
+  flex-shrink:0;
+}
+.flow-stats{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top:14px;
+}
+.flow-stat{
+  flex:1;
+  min-width:140px;
+  text-align:center;
+  padding:10px 8px;
+  background:var(--near-black);
+  color:var(--cream);
+}
+.flow-stat .stat-num{
+  font-family:'Lucida Console',Monaco,monospace;
+  font-size:1.3rem;
+  font-weight:700;
+  color:var(--teal);
+  display:block;
+}
+.flow-stat .stat-label{
+  font-size:.7rem;
+  text-transform:uppercase;
+  letter-spacing:1px;
+  margin-top:2px;
+}
+
+/* ── GLOSSARY ── */
+.glossary-item{padding:8px 0;font-size:.85rem}
+.glossary-item+.glossary-item{border-top:1px dotted var(--warm-gray-light)}
+.glossary-term{
+  font-family:'Palatino Linotype',Palatino,'Book Antiqua',serif;
+  font-weight:700;
+  color:var(--teal-dark);
+}
+.glossary-def{color:var(--warm-gray-dark);margin-top:2px}
+
+/* ── BUTTON ── */
+.btn{
+  display:inline-block;
+  padding:8px 20px;
+  background:var(--teal);
+  color:var(--white);
+  border:none;
+  font-family:'Trebuchet MS',sans-serif;
+  font-size:.82rem;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:1px;
+  cursor:pointer;
+  border-radius:2px;
+  margin-top:10px;
+}
+.btn:hover{background:var(--teal-dark)}
+.btn-outline{
+  background:transparent;
+  color:var(--teal);
+  border:2px solid var(--teal);
+}
+.btn-outline:hover{background:var(--teal);color:var(--white)}
+
+/* ── SECTION DIVIDER ── */
+.section-note{
+  font-size:.76rem;
+  color:var(--warm-gray);
+  line-height:1.5;
+  margin-top:16px;
+  padding-top:10px;
+  border-top:1px solid var(--warm-gray-light);
+}
+
+/* ── LOAD EXAMPLE BUTTON ── */
+.load-example-row{
+  display:flex;
+  justify-content:flex-end;
+  padding:6px 24px;
+  background:var(--cream);
+  gap:8px;
+}
+.load-example-row button{
+  font-family:'Trebuchet MS',sans-serif;
+  font-size:.72rem;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.8px;
+  padding:5px 14px;
+  border:1px solid var(--teal);
+  background:transparent;
+  color:var(--teal);
+  cursor:pointer;
+  border-radius:2px;
+}
+.load-example-row button:hover{
+  background:var(--teal);
+  color:var(--white);
+}
+
+/* ── INLINE STAT PAIR ── */
+.stat-pair{
+  display:inline-flex;
+  align-items:baseline;
+  gap:6px;
+  margin-right:18px;
+  margin-bottom:4px;
+}
+.stat-pair .sp-label{
+  font-size:.72rem;
+  text-transform:uppercase;
+  letter-spacing:.6px;
+  color:var(--warm-gray);
+  font-weight:600;
+}
+.stat-pair .sp-value{
+  font-family:'Lucida Console',Monaco,monospace;
+  font-size:.88rem;
+  font-weight:700;
+  color:var(--near-black);
+}
+
+/* ── FOOTER ── */
+footer{
+  background:var(--near-black);
+  color:var(--warm-gray);
+  padding:18px 24px;
+  font-size:.72rem;
+  line-height:1.5;
+  text-align:center;
+}
+footer a{color:var(--teal);text-decoration:none}
+
+/* ── KEYBOARD FOCUS STYLES ── */
+.acc-header:focus-visible{
+  outline:3px solid var(--teal);
+  outline-offset:-3px;
+}
+input:focus-visible,select:focus-visible{
+  outline:2px solid var(--teal);
+  outline-offset:1px;
+}
+.btn:focus-visible{
+  outline:3px solid var(--near-black);
+  outline-offset:2px;
+}
+
+/* ── SKIP LINK (accessibility) ── */
+.skip-link{
+  position:absolute;
+  top:-40px;
+  left:0;
+  background:var(--teal);
+  color:var(--white);
+  padding:8px 16px;
+  z-index:100;
+  font-size:.85rem;
+}
+.skip-link:focus{top:0}
+
+/* ── SUBSIDY BRACKET INDICATOR ── */
+.subsidy-bracket{
+  font-size:.85rem;
+  padding:10px 14px;
+  margin-top:8px;
+  line-height:1.5;
+}
+.subsidy-bracket.eligible{background:var(--teal-light);border-left:none}
+.subsidy-bracket.partial{background:#FEF9E7;border-left:none}
+.subsidy-bracket.none{background:var(--cream);border-left:none}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .form-grid{grid-template-columns:1fr}
+  .hero-amount{font-size:2.4rem}
+  .acc-header{padding:12px 16px;font-size:.95rem}
+  .acc-body{padding:16px}
+  .flow-diagram{flex-direction:column;align-items:stretch}
+  .flow-step{max-width:100%}
+  .flow-arrow{
+    border-left:8px solid transparent;
+    border-right:8px solid transparent;
+    border-top:12px solid var(--teal);
+    border-bottom:none;
+    width:auto;
+    align-self:center;
+    margin:4px 0;
+  }
+}
+
+/* ── PRINT ── */
+@media print{
+  .hero{padding:12px 16px;background:var(--white);border-bottom:2px solid var(--near-black)}
+  .hero-label{color:var(--near-black)}
+  .hero-amount{font-size:2rem;color:var(--near-black)}
+  .hero-sub{color:var(--warm-gray-dark)}
+  .context-bar{display:none}
+  .load-example-row{display:none}
+  .acc-header{display:none}
+  .acc-body{display:block!important;border:none;padding:12px 0}
+  .acc-body .results-section{page-break-inside:avoid}
+  .example-banner{display:none}
+  .btn{display:none}
+  input,select{
+    border:none;
+    background:transparent;
+    padding:2px 0;
+    font-size:.85rem;
+  }
+  .chart-wrap{page-break-inside:avoid}
+  .flow-diagram{page-break-inside:avoid}
+  .plain-summary{
+    background:var(--white);
+    color:var(--near-black);
+    border:1px solid var(--warm-gray-light);
+    padding:10px 14px;
+  }
+  .ratio-block{page-break-inside:avoid}
+  footer{
+    background:var(--white);
+    color:var(--near-black);
+    border-top:1px solid var(--warm-gray-light);
+    padding:10px 16px;
+  }
+  .skip-link{display:none}
+}
+</style>
+</head>
+<body>
+
+<a class="skip-link" href="#sec1">Skip to calculator</a>
+
+<!-- ═══ HERO: LIVE-UPDATING PREMIUM ═══ -->
+<div class="hero">
+  <div class="hero-label">Estimated Annual Reinsurance Savings</div>
+  <div class="hero-amount" id="heroAmount">$0</div>
+  <div class="hero-sub">saved per year by the <strong>Minnesota Premium Security Plan</strong></div>
+</div>
+
+<!-- ═══ CONTEXT BAR ═══ -->
+<!-- VERIFY: All claims in context bar sourced from software brief — SF333, $512M, 70% projection, career details -->
+<div class="context-bar">
+  <strong>Sen. Gary H. Dahms</strong> (SD-15) spent 25 years as an insurance agent in Redwood Falls before serving 16 years in the Minnesota Senate &mdash; including as author of SF333, which secured $512 million to keep Minnesota's reinsurance program running through 2028. Without that bill, individual-market premiums in 2026 would have been roughly 70% higher than they are. This tool helps southwest Minnesota residents calculate what the reinsurance program means for their actual premium costs.
+</div>
+
+<div class="load-example-row">
+  <button onclick="loadExample()" id="loadExBtn">Load Example: District 15 Farm Family</button>
+  <button onclick="printResults()">Print Results</button>
+</div>
+
+<!-- ═══ ACCORDION ═══ -->
+<div class="accordion" id="accordion">
+
+  <!-- ── SECTION 1: Household Profile ── -->
+  <div class="acc-section">
+    <button class="acc-header" aria-expanded="true" aria-controls="sec1" data-target="sec1">
+      <span class="acc-marker">A</span>
+      What does your household look like?
+      <span class="acc-chevron"></span>
+    </button>
+    <div class="acc-body open" id="sec1">
+      <div class="example-banner" id="exampleBanner">
+        Example data loaded: District 15 farm family. Edit to match your situation.
+        <button onclick="clearExample()">Clear</button>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="county">County</label>
+          <select id="county">
+            <option value="Brown">Brown</option>
+            <option value="Lac qui Parle">Lac qui Parle</option>
+            <option value="Lyon">Lyon</option>
+            <option value="Redwood">Redwood</option>
+            <option value="Yellow Medicine">Yellow Medicine</option>
+            <option value="Other">Other Minnesota county</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="hhSize">Household size</label>
+          <select id="hhSize">
+            <option value="1">1</option>
+            <option value="2" selected>2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5+</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="ageSlider">Age of primary policyholder</label>
+          <div class="range-row">
+            <input type="range" id="ageSlider" min="21" max="64" value="52">
+            <span class="range-val" id="ageVal">52</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="income">Annual household income ($)</label>
+          <input type="number" id="income" value="68000" min="0" step="1000">
+          <span style="font-size:.68rem;color:var(--warm-gray);margin-top:2px">Used only to estimate subsidy eligibility. Never transmitted anywhere.</span>
+        </div>
+        <div class="form-group full">
+          <label for="coverageSource">Coverage source</label>
+          <select id="coverageSource">
+            <option value="mnsure">Individual/family plan on MNsure</option>
+            <option value="offexchange">Individual/family plan off-exchange (direct from insurer)</option>
+            <option value="selfemployed">Self-employed / farm business plan</option>
+            <option value="cobra">COBRA continuation coverage</option>
+            <option value="other">Other / not sure</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 2: Current Coverage ── -->
+  <div class="acc-section">
+    <button class="acc-header" aria-expanded="false" aria-controls="sec2" data-target="sec2">
+      <span class="acc-marker">B</span>
+      What coverage do you have now?
+      <span class="acc-chevron"></span>
+    </button>
+    <div class="acc-body" id="sec2">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="premium">Current monthly premium ($)</label>
+          <input type="number" id="premium" value="890" min="0" step="10">
+          <span style="font-size:.68rem;color:var(--warm-gray)">Leave blank if unknown &mdash; we'll estimate based on age and tier.</span>
+        </div>
+        <div class="form-group">
+          <label for="metalTier">Plan metal tier</label>
+          <select id="metalTier">
+            <option value="Bronze">Bronze</option>
+            <option value="Silver" selected>Silver</option>
+            <option value="Gold">Gold</option>
+            <option value="Platinum">Platinum</option>
+            <option value="Catastrophic">Catastrophic</option>
+            <option value="Unknown">Unknown</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="deductible">Deductible ($)</label>
+          <input type="number" id="deductible" value="7000" min="0" step="250">
+        </div>
+        <div class="form-group">
+          <label for="oopMax">Out-of-pocket maximum ($)</label>
+          <input type="number" id="oopMax" value="8700" min="0" step="250">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 3: What Reinsurance Means for You ── -->
+  <div class="acc-section">
+    <button class="acc-header" aria-expanded="false" aria-controls="sec3" data-target="sec3">
+      <span class="acc-marker">C</span>
+      What reinsurance means for you
+      <span class="acc-chevron"></span>
+    </button>
+    <div class="acc-body" id="sec3">
+
+      <!-- Input summary -->
+      <div style="margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--warm-gray-light)">
+        <div style="display:flex;flex-wrap:wrap">
+          <span class="stat-pair">
+            <span class="sp-label">County</span>
+            <span class="sp-value" id="sumCounty">Brown</span>
+          </span>
+          <span class="stat-pair">
+            <span class="sp-label">Age</span>
+            <span class="sp-value" id="sumAge">52</span>
+          </span>
+          <span class="stat-pair">
+            <span class="sp-label">HH Size</span>
+            <span class="sp-value" id="sumHH">2</span>
+          </span>
+          <span class="stat-pair">
+            <span class="sp-label">Income</span>
+            <span class="sp-value" id="sumIncome">$68,000</span>
+          </span>
+          <span class="stat-pair">
+            <span class="sp-label">Plan</span>
+            <span class="sp-value" id="sumTier">Silver</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Panel 1: Premium Without Reinsurance -->
+      <div class="results-section">
+        <h3>Estimated Premium Without Reinsurance</h3>
+        <div class="result-row">
+          <span class="result-label">Your current monthly premium</span>
+          <span class="result-value" id="resCurrent">$890</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Estimated premium WITHOUT reinsurance</span>
+          <span class="result-value danger" id="resWithout">$1,113</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Monthly savings from MPSP</span>
+          <span class="result-value savings" id="resMonthlySavings">$223</span>
+        </div>
+        <div class="result-row" style="padding-top:8px;border-top:2px solid var(--teal)">
+          <span class="result-label" style="font-weight:700;color:var(--near-black)">Annual savings from MPSP</span>
+          <span class="result-value savings" id="resAnnualSavings" style="font-size:1.1rem">$2,670</span>
+        </div>
+        <span style="font-size:.7rem;color:var(--warm-gray);display:block;margin-top:6px">
+          Based on the documented ~20% average premium reduction from the MPSP. This is an approximation; actual impact varies by plan and insurer.
+        </span>
+      </div>
+
+      <!-- Panel 2: Subsidy Eligibility -->
+      <div class="results-section" style="margin-top:24px">
+        <h3>Subsidy Eligibility Snapshot</h3>
+        <div id="subsidyBracket" class="subsidy-bracket eligible"></div>
+        <table class="fpl-table" style="margin-top:12px">
+          <thead>
+            <tr>
+              <th>Household</th>
+              <th>100% FPL</th>
+              <th>150% FPL</th>
+              <th>250% FPL</th>
+              <th>400% FPL</th>
+            </tr>
+          </thead>
+          <tbody id="fplTableBody"></tbody>
+        </table>
+        <!-- VERIFY: FPL values from software brief — 2025 figures -->
+        <span style="font-size:.7rem;color:var(--warm-gray);display:block;margin-top:6px">
+          This is an estimate only. Visit <a href="https://www.mnsure.org" style="color:var(--teal)">MNsure.org</a> or call 1-855-3MNSURE (1-855-366-7873) for exact subsidy calculation.
+        </span>
+      </div>
+
+      <!-- Panel 3: 2026 Situation -->
+      <div class="results-section" style="margin-top:24px">
+        <h3>The 2026 Situation</h3>
+        <div class="result-row">
+          <span class="result-label">Your 2025 monthly premium</span>
+          <span class="result-value" id="res2025">$890</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">2026 premium (actual ~21.5% increase)</span>
+          <span class="result-value" id="res2026actual">$1,081</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">2026 if reinsurance had lapsed (~70% increase)</span>
+          <span class="result-value danger" id="res2026lapsed">$1,513</span>
+        </div>
+        <div class="result-row" style="padding-top:8px;border-top:2px solid var(--teal)">
+          <span class="result-label" style="font-weight:700">Difference SF333 made, per month</span>
+          <span class="result-value savings" id="res2026diff">$432</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label" style="font-weight:700">Difference SF333 made, per year</span>
+          <span class="result-value savings" id="res2026diffAnnual" style="font-size:1.05rem">$5,184</span>
+        </div>
+      </div>
+
+      <div class="section-note">
+        These figures reflect the difference between the actual 2026 premium trajectory (with MPSP maintained via SF333) and the projected trajectory if the program had lapsed. The 21.5% and 70% figures are documented projections from the program analysis.
+      </div>
+
+      <!-- Panel 4: 10-Year Chart -->
+      <div class="results-section" style="margin-top:24px">
+        <h3>10-Year Cost Projection</h3>
+        <div class="chart-wrap">
+          <canvas id="projectionChart"></canvas>
+        </div>
+        <p class="chart-note">Illustrative projections only. Scenario A assumes 4% annual growth with reinsurance maintained. Scenario B assumes a 70% first-year jump then 8% annual growth without reinsurance. Scenario C estimates net premium after tax credit for eligible incomes.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 4: Coverage Gap Checker ── -->
+  <div class="acc-section">
+    <button class="acc-header" aria-expanded="false" aria-controls="sec4" data-target="sec4">
+      <span class="acc-marker">D</span>
+      Is my coverage actually usable?
+      <span class="acc-chevron"></span>
+    </button>
+    <div class="acc-body" id="sec4">
+      <p style="font-size:.82rem;color:var(--warm-gray-dark);margin-bottom:14px">
+        A high deductible relative to your income can mean your coverage is essentially unusable until a catastrophic event. These ratios use the values you entered in sections A and B above.
+      </p>
+
+      <div style="display:flex;flex-wrap:wrap;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--warm-gray-light)">
+        <span class="stat-pair">
+          <span class="sp-label">Premium</span>
+          <span class="sp-value" id="gapPrem">$890/mo</span>
+        </span>
+        <span class="stat-pair">
+          <span class="sp-label">Deductible</span>
+          <span class="sp-value" id="gapDed">$7,000</span>
+        </span>
+        <span class="stat-pair">
+          <span class="sp-label">OOP Max</span>
+          <span class="sp-value" id="gapOOP">$8,700</span>
+        </span>
+        <span class="stat-pair">
+          <span class="sp-label">Income</span>
+          <span class="sp-value" id="gapIncome">$68,000</span>
+        </span>
+      </div>
+
+      <!-- Ratio 1: Premium-to-Income -->
+      <div class="ratio-block">
+        <div class="ratio-header">
+          <span class="ratio-name">Premium-to-Income Ratio</span>
+          <span class="ratio-pct" id="ratioP2I">0%</span>
+        </div>
+        <div class="ratio-bar-track"><div class="ratio-bar-fill" id="barP2I"></div></div>
+        <span style="font-size:.68rem;color:var(--warm-gray)">Annual premium as % of gross income. Under 8% = ACA affordability standard.</span>
+      </div>
+
+      <!-- Ratio 2: Deductible-to-Income -->
+      <div class="ratio-block">
+        <div class="ratio-header">
+          <span class="ratio-name">Deductible-to-Income Ratio</span>
+          <span class="ratio-pct" id="ratioD2I">0%</span>
+        </div>
+        <div class="ratio-bar-track"><div class="ratio-bar-fill" id="barD2I"></div></div>
+        <span style="font-size:.68rem;color:var(--warm-gray)">Annual deductible as % of gross income. Under 5% = manageable out-of-pocket risk.</span>
+      </div>
+
+      <!-- Ratio 3: Total Exposure -->
+      <div class="ratio-block">
+        <div class="ratio-header">
+          <span class="ratio-name">Total Exposure (worst-case year)</span>
+          <span class="ratio-pct" id="ratioTE">0%</span>
+        </div>
+        <div class="ratio-bar-track"><div class="ratio-bar-fill" id="barTE"></div></div>
+        <span style="font-size:.68rem;color:var(--warm-gray)">(Annual premium + out-of-pocket max) as % of income. Over 20% = serious hardship.</span>
+      </div>
+
+      <!-- Plain-English Summary -->
+      <div class="plain-summary" id="plainSummary"></div>
+
+      <!-- Suggestions -->
+      <div id="suggestions"></div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 5: What Is Reinsurance? ── -->
+  <div class="acc-section">
+    <button class="acc-header" aria-expanded="false" aria-controls="sec5" data-target="sec5">
+      <span class="acc-marker">E</span>
+      What is reinsurance and why does it matter?
+      <span class="acc-chevron"></span>
+    </button>
+    <div class="acc-body" id="sec5">
+
+      <!-- 3A: How It Works -->
+      <div class="results-section">
+        <h3>How the Minnesota Premium Security Plan Works</h3>
+        <div class="flow-diagram">
+          <div class="flow-step">You pay your monthly premium</div>
+          <div class="flow-arrow"></div>
+          <div class="flow-step">Insurer collects premiums from all enrollees</div>
+          <div class="flow-arrow"></div>
+          <div class="flow-step">Insurer pays claims as members use care</div>
+          <div class="flow-arrow"></div>
+          <div class="flow-step highlight">High-cost claimant hits $50,000 threshold</div>
+          <div class="flow-arrow"></div>
+          <div class="flow-step highlight">MPSP reimburses insurer for costs between $50K&ndash;$250K</div>
+          <div class="flow-arrow"></div>
+          <div class="flow-step">Insurer lowers premiums for everyone else</div>
+        </div>
+        <div class="flow-stats">
+          <div class="flow-stat">
+            <span class="stat-num">$50,000</span>
+            <span class="stat-label">Attachment point</span>
+          </div>
+          <div class="flow-stat">
+            <span class="stat-num">$250,000</span>
+            <span class="stat-label">Reinsurance cap</span>
+          </div>
+          <div class="flow-stat">
+            <span class="stat-num">~20%</span>
+            <span class="stat-label">Avg. premium reduction</span>
+          </div>
+          <div class="flow-stat">
+            <span class="stat-num">$512M</span>
+            <span class="stat-label">SF333 funding (2025)</span>
+          </div>
+          <div class="flow-stat">
+            <span class="stat-num">2017</span>
+            <span class="stat-label">Program started</span>
+          </div>
+        </div>
+        <span style="font-size:.72rem;color:var(--warm-gray);display:block;margin-top:10px">
+          The MPSP operates under an ACA Section 1332 State Innovation Waiver. SF333 requires a waiver renewal application by December 31, 2026, for benefit years beginning January 1, 2028.
+        </span>
+      </div>
+
+      <!-- 3B: Why It Matters in SW MN -->
+      <div class="results-section" style="margin-top:24px">
+        <h3>Why It Matters in Southwest Minnesota</h3>
+        <p style="font-size:.88rem;line-height:1.6;color:var(--warm-gray-dark)">
+          Southwest Minnesota has a higher proportion of self-employed farmers, agricultural workers, and small business owners than the state average. These are the households most likely to purchase coverage on the individual market &mdash; without an employer subsidizing premiums. When individual-market premiums spike, farmers and rural business owners feel it directly. The reinsurance program was specifically designed to protect this segment of the market.
+        </p>
+        <p style="font-size:.88rem;line-height:1.6;color:var(--warm-gray-dark);margin-top:10px">
+          Without SF333 passing, an estimated 93,000 Minnesotans would have lost affordable coverage statewide. In District 15 &mdash; Brown, Lac qui Parle, Lyon, Redwood, and Yellow Medicine counties &mdash; the impact would have been concentrated among the self-employed and farm families who have no other source of coverage.
+        </p>
+      </div>
+
+      <!-- 3C: Glossary -->
+      <div class="results-section" style="margin-top:24px">
+        <h3>Insurance Terms in Plain English</h3>
+        <div class="glossary-item">
+          <div class="glossary-term">Premium</div>
+          <div class="glossary-def">The monthly payment to keep your insurance active, whether you use it or not.</div>
+        </div>
+        <div class="glossary-item">
+          <div class="glossary-term">Deductible</div>
+          <div class="glossary-def">The amount you pay out of your own pocket before insurance starts covering most costs.</div>
+        </div>
+        <div class="glossary-item">
+          <div class="glossary-term">Out-of-Pocket Maximum</div>
+          <div class="glossary-def">The most you will ever pay in a single year; after this, insurance covers 100%.</div>
+        </div>
+        <div class="glossary-item">
+          <div class="glossary-term">Reinsurance</div>
+          <div class="glossary-def">Insurance for insurance companies &mdash; it protects them against catastrophically expensive patients so they can charge everyone else less.</div>
+        </div>
+        <div class="glossary-item">
+          <div class="glossary-term">Individual Market</div>
+          <div class="glossary-def">Health insurance you buy yourself, not through an employer &mdash; common for farmers, freelancers, and small business owners.</div>
+        </div>
+        <div class="glossary-item">
+          <div class="glossary-term">MNsure</div>
+          <div class="glossary-def">Minnesota's state health insurance marketplace where you can shop for individual and family plans and apply for financial assistance.</div>
+        </div>
+        <div class="glossary-item">
+          <div class="glossary-term">Premium Tax Credit</div>
+          <div class="glossary-def">A federal discount that reduces your monthly premium based on your income level.</div>
+        </div>
+        <div class="glossary-item">
+          <div class="glossary-term">Metal Tiers (Bronze / Silver / Gold / Platinum)</div>
+          <div class="glossary-def">Plan categories defined by how costs are split &mdash; Bronze has the lowest premiums but highest out-of-pocket costs; Platinum is the reverse.</div>
+        </div>
+        <!-- VERIFY: HSA limits from software brief — 2025 figures -->
+        <div class="glossary-item">
+          <div class="glossary-term">HSA (Health Savings Account)</div>
+          <div class="glossary-def">A tax-advantaged savings account for medical expenses, available with certain high-deductible plans. 2025 limits: $4,300 individual / $8,550 family.</div>
+        </div>
+        <div class="glossary-item">
+          <div class="glossary-term">COBRA</div>
+          <div class="glossary-def">Temporary continuation of employer health coverage after leaving a job &mdash; typically available for 18 months, often expensive.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /accordion -->
+
+<!-- VERIFY: MNsure phone number from software brief — 1-855-366-7873 -->
+<!-- ═══ FOOTER ═══ -->
+<footer>
+  A resource for District 15 and rural Minnesota. Built with AI assistance.<br>
+  Data reflects the Minnesota Premium Security Plan as of 2025&ndash;2026. This tool provides estimates only &mdash;
+  contact MNsure at <a href="tel:18553667873">1-855-3MNSURE</a> (1-855-366-7873) for personalized coverage guidance.
+</footer>
+
+<script>
+/* ═══════════════════════════════════════
+   DATA & CONSTANTS
+   ═══════════════════════════════════════ */
+
+// Reference premium rate table (approximate 2025 SW MN individual market benchmarks)
+// VERIFY: These are illustrative benchmarks from software brief, not independently confirmed rates.
+// Age 30 Bronze ~$280, Silver ~$360; Age 45 Bronze ~$420, Silver ~$540;
+// Age 55 Bronze ~$600, Silver ~$770; Age 60 Bronze ~$720, Silver ~$920
+// Gold, Platinum, and Catastrophic values are interpolated estimates — label as such.
+const RATE_TABLE = {
+  // keyed by [ageGroup][tier] → monthly premium estimate
+  '21-34': { Bronze: 280, Silver: 360, Gold: 430, Platinum: 510, Catastrophic: 220, Unknown: 360 },
+  '35-44': { Bronze: 350, Silver: 450, Gold: 540, Platinum: 640, Catastrophic: 280, Unknown: 450 },
+  '45-54': { Bronze: 420, Silver: 540, Gold: 650, Platinum: 770, Catastrophic: 340, Unknown: 540 },
+  '55-59': { Bronze: 600, Silver: 770, Gold: 920, Platinum: 1090, Catastrophic: 480, Unknown: 770 },
+  '60-64': { Bronze: 720, Silver: 920, Gold: 1100, Platinum: 1300, Catastrophic: 580, Unknown: 920 }
+};
+
+// 2025 Federal Poverty Levels
+const FPL = { 1: 15060, 2: 20440, 3: 25820, 4: 31200, 5: 36580 };
+
+// HSA limits
+const HSA = { individual: 4300, family: 8550, catchup: 1000 };
+
+let projectionChart = null;
+
+/* ═══════════════════════════════════════
+   UTILITY FUNCTIONS
+   ═══════════════════════════════════════ */
+
+function $(id) { return document.getElementById(id); }
+function fmt(n) { return '$' + Math.round(n).toLocaleString('en-US'); }
+function fmtPct(n) { return (n * 100).toFixed(1) + '%'; }
+
+function getAgeGroup(age) {
+  if (age <= 34) return '21-34';
+  if (age <= 44) return '35-44';
+  if (age <= 54) return '45-54';
+  if (age <= 59) return '55-59';
+  return '60-64';
+}
+
+function getEstimatedPremium(age, tier) {
+  const group = getAgeGroup(age);
+  return RATE_TABLE[group][tier] || RATE_TABLE[group]['Silver'];
+}
+
+function getFPLpct(income, hhSize) {
+  const size = Math.min(parseInt(hhSize) || 1, 5);
+  const fplBase = FPL[size];
+  return income / fplBase;
+}
+
+/* ═══════════════════════════════════════
+   ACCORDION LOGIC
+   ═══════════════════════════════════════ */
+
+document.querySelectorAll('.acc-header').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var target = this.getAttribute('data-target');
+    var isOpen = this.getAttribute('aria-expanded') === 'true';
+
+    // Close all
+    document.querySelectorAll('.acc-header').forEach(function(b) {
+      b.setAttribute('aria-expanded', 'false');
+    });
+    document.querySelectorAll('.acc-body').forEach(function(b) {
+      b.classList.remove('open');
+    });
+
+    // Open clicked (unless it was already open)
+    if (!isOpen) {
+      this.setAttribute('aria-expanded', 'true');
+      $(target).classList.add('open');
+    }
+
+    // Recalculate when opening results sections
+    if (target === 'sec3' || target === 'sec4') {
+      recalculate();
+    }
+  });
+});
+
+/* ═══════════════════════════════════════
+   FPL TABLE BUILD
+   ═══════════════════════════════════════ */
+
+function buildFPLtable() {
+  var html = '';
+  for (var i = 1; i <= 5; i++) {
+    var base = FPL[i];
+    html += '<tr id="fplRow' + i + '">';
+    html += '<td>' + i + (i === 5 ? '+' : '') + ' person' + (i > 1 ? 's' : '') + '</td>';
+    html += '<td>' + fmt(base) + '</td>';
+    html += '<td>' + fmt(base * 1.5) + '</td>';
+    html += '<td>' + fmt(base * 2.5) + '</td>';
+    html += '<td>' + fmt(base * 4) + '</td>';
+    html += '</tr>';
+  }
+  $('fplTableBody').innerHTML = html;
+}
+buildFPLtable();
+
+/* ═══════════════════════════════════════
+   MAIN CALCULATION ENGINE
+   ═══════════════════════════════════════ */
+
+function recalculate() {
+  var age = parseInt($('ageSlider').value) || 40;
+  var income = parseFloat($('income').value) || 0;
+  var hhSize = $('hhSize').value;
+  var tier = $('metalTier').value;
+  var premiumInput = parseFloat($('premium').value);
+  var deductible = parseFloat($('deductible').value) || 0;
+  var oopMax = parseFloat($('oopMax').value) || 0;
+  var source = $('coverageSource').value;
+
+  // Determine premium
+  var premium;
+  var usingEstimate = false;
+  if (isNaN(premiumInput) || premiumInput <= 0) {
+    premium = getEstimatedPremium(age, tier);
+    usingEstimate = true;
+  } else {
+    premium = premiumInput;
+  }
+
+  // ── Summary fields ──
+  $('sumCounty').textContent = $('county').value;
+  $('sumAge').textContent = age;
+  $('sumHH').textContent = hhSize;
+  $('sumIncome').textContent = income > 0 ? fmt(income) : '—';
+  $('sumTier').textContent = tier;
+
+  // ── PANEL 1: Reinsurance impact ──
+  var premWithout = premium / (1 - 0.20);
+  var monthlySavings = premWithout - premium;
+  var annualSavings = monthlySavings * 12;
+
+  $('resCurrent').textContent = fmt(premium) + '/mo' + (usingEstimate ? ' (est.)' : '');
+  $('resWithout').textContent = fmt(premWithout) + '/mo';
+  $('resMonthlySavings').textContent = fmt(monthlySavings) + '/mo';
+  $('resAnnualSavings').textContent = fmt(annualSavings);
+
+  // Hero amount
+  $('heroAmount').textContent = fmt(annualSavings);
+
+  // ── PANEL 2: Subsidy ──
+  var fplPct = getFPLpct(income, hhSize);
+  var subsidyHTML = '';
+  if (fplPct > 0 && fplPct <= 1.5) {
+    subsidyHTML = '<strong>Likely eligible for a zero-premium Silver plan</strong> via ACA enhanced subsidies. Your income is approximately ' + Math.round(fplPct * 100) + '% of the Federal Poverty Level.';
+    $('subsidyBracket').className = 'subsidy-bracket eligible';
+  } else if (fplPct <= 2.5) {
+    subsidyHTML = '<strong>Likely eligible for enhanced cost-sharing reductions</strong> in addition to premium tax credits. Your income is approximately ' + Math.round(fplPct * 100) + '% FPL.';
+    $('subsidyBracket').className = 'subsidy-bracket eligible';
+  } else if (fplPct <= 4.0) {
+    subsidyHTML = '<strong>Likely eligible for premium tax credits</strong> that reduce your monthly payment. Your income is approximately ' + Math.round(fplPct * 100) + '% FPL.';
+    $('subsidyBracket').className = 'subsidy-bracket partial';
+  } else if (fplPct > 4.0) {
+    subsidyHTML = 'At approximately ' + Math.round(fplPct * 100) + '% FPL, enhanced subsidies through 2025 may still apply. <strong>Important:</strong> these enhanced subsidies are set to expire, and the 2026 situation is uncertain. Check MNsure for current eligibility.';
+    $('subsidyBracket').className = 'subsidy-bracket none';
+  } else {
+    subsidyHTML = 'Enter your household income above to see subsidy eligibility.';
+    $('subsidyBracket').className = 'subsidy-bracket none';
+  }
+  $('subsidyBracket').innerHTML = subsidyHTML;
+
+  // Highlight matching FPL row
+  document.querySelectorAll('.fpl-table tbody tr').forEach(function(r) { r.classList.remove('highlight-row'); });
+  var sizeIdx = Math.min(parseInt(hhSize) || 1, 5);
+  var fplRow = $('fplRow' + sizeIdx);
+  if (fplRow) fplRow.classList.add('highlight-row');
+
+  // ── PANEL 3: 2026 Counterfactual ──
+  var prem2026actual = premium * 1.215;
+  var prem2026lapsed = premium * 1.70;
+  var diff2026mo = prem2026lapsed - prem2026actual;
+  var diff2026yr = diff2026mo * 12;
+
+  $('res2025').textContent = fmt(premium) + '/mo';
+  $('res2026actual').textContent = fmt(prem2026actual) + '/mo';
+  $('res2026lapsed').textContent = fmt(prem2026lapsed) + '/mo';
+  $('res2026diff').textContent = fmt(diff2026mo) + '/mo';
+  $('res2026diffAnnual').textContent = fmt(diff2026yr);
+
+  // ── PANEL 4: 10-Year Chart ──
+  buildChart(premium, income, hhSize);
+
+  // ── MODULE 2: Coverage Gap ──
+  $('gapPrem').textContent = fmt(premium) + '/mo';
+  $('gapDed').textContent = fmt(deductible);
+  $('gapOOP').textContent = fmt(oopMax);
+  $('gapIncome').textContent = income > 0 ? fmt(income) : '—';
+
+  var annPremium = premium * 12;
+
+  // Ratio 1: P2I
+  var p2i = income > 0 ? annPremium / income : 0;
+  var p2iClass = p2i < 0.08 ? 'green' : (p2i <= 0.15 ? 'yellow' : 'red');
+  $('ratioP2I').textContent = fmtPct(p2i);
+  $('ratioP2I').className = 'ratio-pct ' + p2iClass;
+  $('barP2I').style.width = Math.min(p2i * 100 / 0.25 * 100, 100) + '%';
+  $('barP2I').className = 'ratio-bar-fill ' + p2iClass;
+
+  // Ratio 2: D2I
+  var d2i = income > 0 ? deductible / income : 0;
+  var d2iClass = d2i < 0.05 ? 'green' : (d2i <= 0.12 ? 'yellow' : 'red');
+  $('ratioD2I').textContent = fmtPct(d2i);
+  $('ratioD2I').className = 'ratio-pct ' + d2iClass;
+  $('barD2I').style.width = Math.min(d2i * 100 / 0.20 * 100, 100) + '%';
+  $('barD2I').className = 'ratio-bar-fill ' + d2iClass;
+
+  // Ratio 3: Total Exposure
+  var te = income > 0 ? (annPremium + oopMax) / income : 0;
+  var teClass = te > 0.20 ? 'red' : (te > 0.12 ? 'yellow' : 'green');
+  $('ratioTE').textContent = fmtPct(te);
+  $('ratioTE').className = 'ratio-pct ' + teClass;
+  $('barTE').style.width = Math.min(te * 100 / 0.35 * 100, 100) + '%';
+  $('barTE').className = 'ratio-bar-fill ' + teClass;
+
+  // Plain-English summary
+  var totalWorstCase = annPremium + oopMax;
+  var summaryText = 'At your income level, you spend ' + fmt(annPremium) + ' on premiums before using any coverage.';
+  if (oopMax > 0) {
+    summaryText += ' If you had a major health event this year, your total health care spending could reach ' + fmt(totalWorstCase) + ' \u2014 about ' + fmtPct(te) + ' of your annual income.';
+  }
+  $('plainSummary').textContent = summaryText;
+
+  // Suggestions
+  var sugg = '';
+  if (fplPct > 0 && fplPct < 4.0 && source !== 'mnsure') {
+    sugg += '<div class="suggestion-item"><strong>Check MNsure eligibility.</strong> At your income level, you may qualify for premium tax credits or cost-sharing reductions that could significantly reduce your costs. Visit MNsure.org or call 1-855-3MNSURE.</div>';
+  }
+  if (d2i > 0.12) {
+    sugg += '<div class="suggestion-item"><strong>Consider a Health Savings Account (HSA).</strong> If you have a high-deductible plan, an HSA lets you save pre-tax dollars for medical expenses. 2025 contribution limits: $4,300 individual / $8,550 family. Age 55+: additional $1,000 catch-up.</div>';
+  }
+  if (source === 'cobra') {
+    sugg += '<div class="suggestion-item"><strong>Plan your COBRA transition.</strong> COBRA continuation is typically limited to 18 months. Begin shopping the individual market on MNsure before your COBRA window closes to avoid a coverage gap.</div>';
+  }
+  sugg += '<div class="suggestion-item"><strong>MNsure:</strong> 1-855-3MNSURE (1-855-366-7873) | MNsure.org | Open enrollment: November 1 \u2013 January 15</div>';
+  $('suggestions').innerHTML = sugg;
+
+  // Save to localStorage
+  saveState();
+}
+
+/* ═══════════════════════════════════════
+   10-YEAR PROJECTION CHART
+   ═══════════════════════════════════════ */
+
+function buildChart(premium, income, hhSize) {
+  var labels = [];
+  var scenA = []; // Reinsurance maintained
+  var scenB = []; // Reinsurance lapsed
+  var scenC = []; // With subsidy
+
+  var baseA = premium;
+  var baseB = premium * 1.70; // lapsed first year jump
+  var fplPct = getFPLpct(income, hhSize);
+
+  for (var y = 0; y <= 10; y++) {
+    labels.push(2025 + y);
+
+    // Scenario A
+    var a = (y === 0) ? premium * 12 : baseA * 12;
+    scenA.push(Math.round(a));
+    baseA = (y === 0) ? premium * 1.215 : baseA * 1.04;
+
+    // Scenario B
+    var b;
+    if (y === 0) {
+      b = premium * 12;
+    } else if (y === 1) {
+      b = baseB * 12;
+    } else {
+      baseB = baseB * 1.08;
+      b = baseB * 12;
+    }
+    scenB.push(Math.round(b));
+
+    // Scenario C: with subsidy (simplified ACA)
+    var annualA = scenA[y];
+    var subsidy = 0;
+    if (fplPct >= 1.0 && fplPct <= 4.0 && income > 0) {
+      // Simplified: expected contribution = 8.5% of income for silver
+      subsidy = Math.max(annualA - (0.085 * income), 0);
+    }
+    var netC = Math.max(annualA - subsidy, 0);
+    scenC.push(Math.round(netC));
+  }
+
+  var ctx = $('projectionChart').getContext('2d');
+  if (projectionChart) projectionChart.destroy();
+
+  projectionChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'A: Reinsurance Maintained',
+          data: scenA,
+          backgroundColor: '#008080',
+          borderRadius: 2
+        },
+        {
+          label: 'B: Reinsurance Lapsed',
+          data: scenB,
+          backgroundColor: '#B91C1C',
+          borderRadius: 2
+        },
+        {
+          label: 'C: With Subsidy (est.)',
+          data: scenC,
+          backgroundColor: '#2D6A4F',
+          borderRadius: 2
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      aspectRatio: 2.2,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            font: { family: "'Trebuchet MS', sans-serif", size: 11 },
+            padding: 12,
+            usePointStyle: true,
+            pointStyle: 'rect'
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return context.dataset.label + ': $' + context.parsed.y.toLocaleString();
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            font: { family: "'Lucida Console', monospace", size: 10 },
+            callback: function(v) { return '$' + (v / 1000).toFixed(0) + 'k'; }
+          },
+          title: {
+            display: true,
+            text: 'Annual Premium',
+            font: { family: "'Trebuchet MS', sans-serif", size: 11 }
+          }
+        },
+        x: {
+          ticks: { font: { family: "'Lucida Console', monospace", size: 10 } }
+        }
+      }
+    }
+  });
+}
+
+/* ═══════════════════════════════════════
+   LOCAL STORAGE
+   ═══════════════════════════════════════ */
+
+var STORAGE_KEY = 'dahms_insurance_calc';
+
+function saveState() {
+  try {
+    var state = {
+      county: $('county').value,
+      hhSize: $('hhSize').value,
+      age: $('ageSlider').value,
+      income: $('income').value,
+      coverageSource: $('coverageSource').value,
+      premium: $('premium').value,
+      metalTier: $('metalTier').value,
+      deductible: $('deductible').value,
+      oopMax: $('oopMax').value
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (e) { /* storage unavailable */ }
+}
+
+function loadState() {
+  try {
+    var saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      var s = JSON.parse(saved);
+      if (s.county) $('county').value = s.county;
+      if (s.hhSize) $('hhSize').value = s.hhSize;
+      if (s.age) { $('ageSlider').value = s.age; $('ageVal').textContent = s.age; }
+      if (s.income) $('income').value = s.income;
+      if (s.coverageSource) $('coverageSource').value = s.coverageSource;
+      if (s.premium) $('premium').value = s.premium;
+      if (s.metalTier) $('metalTier').value = s.metalTier;
+      if (s.deductible) $('deductible').value = s.deductible;
+      if (s.oopMax) $('oopMax').value = s.oopMax;
+      $('exampleBanner').style.display = 'none';
+      return true;
+    }
+  } catch (e) { /* storage unavailable */ }
+  return false;
+}
+
+function clearExample() {
+  $('county').value = 'Brown';
+  $('hhSize').value = '1';
+  $('ageSlider').value = 40; $('ageVal').textContent = '40';
+  $('income').value = '';
+  $('coverageSource').value = 'mnsure';
+  $('premium').value = '';
+  $('metalTier').value = 'Silver';
+  $('deductible').value = '';
+  $('oopMax').value = '';
+  $('exampleBanner').style.display = 'none';
+  try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
+  recalculate();
+}
+
+function loadExample() {
+  // Load the District 15 farm family example per the software brief
+  // VERIFY: Example values are illustrative, from software brief, not a real household
+  $('county').value = 'Brown';
+  $('hhSize').value = '2';
+  $('ageSlider').value = 52; $('ageVal').textContent = '52';
+  $('income').value = '68000';
+  $('coverageSource').value = 'mnsure';
+  $('premium').value = '890';
+  $('metalTier').value = 'Silver';
+  $('deductible').value = '7000';
+  $('oopMax').value = '8700';
+  $('exampleBanner').style.display = 'flex';
+  recalculate();
+}
+
+function printResults() {
+  window.print();
+}
+
+/* ═══════════════════════════════════════
+   EVENT LISTENERS
+   ═══════════════════════════════════════ */
+
+// Age slider display
+$('ageSlider').addEventListener('input', function() {
+  $('ageVal').textContent = this.value;
+  recalculate();
+});
+
+// All other inputs
+['county','hhSize','income','coverageSource','premium','metalTier','deductible','oopMax'].forEach(function(id) {
+  $(id).addEventListener('input', recalculate);
+  $(id).addEventListener('change', recalculate);
+});
+
+/* ═══════════════════════════════════════
+   INITIALIZATION
+   ═══════════════════════════════════════ */
+
+(function init() {
+  var hadSaved = loadState();
+  if (!hadSaved) {
+    // Show example banner with demo data already populated
+    $('exampleBanner').style.display = 'flex';
+  }
+  recalculate();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SF1528 Algorithm Audit Tool — Sen. Andrew Mathews, SD-27</title>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Single-column terminal emulator — full width, monospace text, command-line prompts, no sidebar
+   2. Navigation: Command-line style numbered menu options [1] [2] [3] [4], type-ahead or click
+   3. Typography: Consolas for monospace/body, Verdana for UI labels, Cambria for legal text
+   4. Hero moment: Giant ASCII-art block-letter AUDIT SCORE: XX/100 dominating the viewport
+   5. Color strategy: #7 Inverted — phosphor green (#33ff33) on black (#0a0a0a), amber warnings, terminal aesthetic throughout
+   6. Entry experience: Blinking cursor on black, text types itself revealing tool title — 3 seconds max
+   Additional: All form inputs styled as terminal fields; no cards/boxes — data separated by rules and spacing; dense data zones vs sparse hero zones
+*/
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #0a0a0a;
+  --green: #33ff33;
+  --green-dim: #1a8c1a;
+  --green-glow: rgba(51, 255, 51, 0.15);
+  --amber: #ffbf00;
+  --amber-dim: #8c6900;
+  --red: #ff3333;
+  --red-dim: #8c1a1a;
+  --white: #ffffff;
+  --gray: #555555;
+  --gray-light: #888888;
+  --input-bg: #111111;
+  --font-mono: Consolas, 'Liberation Mono', monospace;
+  --font-ui: Verdana, Geneva, sans-serif;
+  --font-legal: Cambria, serif;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--green);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Scanline overlay */
+body::after {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.08) 2px,
+    rgba(0,0,0,0.08) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* === BOOT SCREEN === */
+#boot-screen {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--bg);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+#boot-text {
+  font-family: var(--font-mono);
+  color: var(--green);
+  font-size: 15px;
+  white-space: pre-wrap;
+  max-width: 700px;
+  line-height: 1.5;
+}
+
+#boot-text .cursor {
+  display: inline-block;
+  width: 10px;
+  height: 18px;
+  background: var(--green);
+  animation: blink 0.6s step-end infinite;
+  vertical-align: text-bottom;
+  margin-left: 2px;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* === MAIN SHELL === */
+#app { display: none; }
+#app.active { display: block; }
+
+.shell {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 16px 20px;
+}
+
+/* Terminal top bar */
+.term-bar {
+  background: #1a1a1a;
+  border-bottom: 1px solid var(--green-dim);
+  padding: 8px 20px;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  color: var(--gray-light);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.term-bar .dots span {
+  display: inline-block;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  margin-right: 5px;
+}
+.term-bar .dots .d1 { background: var(--red); }
+.term-bar .dots .d2 { background: var(--amber); }
+.term-bar .dots .d3 { background: var(--green); }
+
+.term-bar .title { letter-spacing: 1px; text-transform: uppercase; }
+
+/* === NAVIGATION === */
+.nav-bar {
+  background: var(--bg);
+  border-bottom: 1px solid #222;
+  padding: 12px 20px;
+  position: sticky;
+  top: 35px;
+  z-index: 99;
+}
+
+.nav-bar .shell { padding: 0; }
+
+.nav-prompt {
+  color: var(--amber);
+  font-size: 12px;
+  margin-bottom: 6px;
+  font-family: var(--font-ui);
+}
+
+.nav-options {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.nav-btn {
+  background: transparent;
+  border: 1px solid var(--green-dim);
+  color: var(--green);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.nav-btn:hover, .nav-btn:focus {
+  background: var(--green);
+  color: var(--bg);
+  outline: none;
+}
+
+.nav-btn.active {
+  background: var(--green);
+  color: var(--bg);
+  font-weight: bold;
+}
+
+/* Type-ahead search */
+.nav-search {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-search label {
+  color: var(--green-dim);
+  font-size: 12px;
+}
+
+.nav-search input {
+  background: var(--input-bg);
+  border: 1px solid #333;
+  color: var(--green);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 4px 8px;
+  width: 200px;
+}
+
+.nav-search input:focus {
+  outline: none;
+  border-color: var(--green);
+  box-shadow: 0 0 6px var(--green-glow);
+}
+
+/* === SECTIONS === */
+.module { display: none; padding: 30px 0; }
+.module.active { display: block; }
+
+.section-header {
+  color: var(--white);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--green-dim);
+  margin-bottom: 20px;
+}
+
+.prompt { color: var(--amber); }
+.prompt::before { content: '> '; color: var(--green-dim); }
+
+h2 {
+  color: var(--white);
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+
+h3 {
+  color: var(--amber);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+p, li {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--green);
+  line-height: 1.6;
+}
+
+a {
+  color: var(--amber);
+  text-decoration: underline;
+  text-decoration-style: dotted;
+}
+a:hover { color: var(--white); }
+
+hr {
+  border: none;
+  border-top: 1px solid #222;
+  margin: 24px 0;
+}
+
+/* === MODULE 1: PLATFORM GRID === */
+.platform-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.platform-item {
+  background: var(--input-bg);
+  border: 1px solid #222;
+  padding: 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+  position: relative;
+}
+
+.platform-item:hover {
+  border-color: var(--green);
+  box-shadow: 0 0 10px var(--green-glow);
+}
+
+.platform-item.selected {
+  border-color: var(--green);
+  background: #0d1a0d;
+}
+
+.platform-name {
+  color: var(--white);
+  font-size: 15px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.platform-users {
+  color: var(--gray-light);
+  font-size: 11px;
+  font-family: var(--font-ui);
+  margin-bottom: 6px;
+}
+
+.platform-status {
+  display: inline-block;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  font-weight: bold;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 2px 8px;
+}
+
+.status-covered { background: #0d2e15; color: var(--green); border: 1px solid var(--green-dim); }
+.status-likely { background: #2e2a0d; color: var(--amber); border: 1px solid var(--amber-dim); }
+
+.platform-desc {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--green-dim);
+  line-height: 1.4;
+}
+
+.other-platform-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px;
+  background: var(--input-bg);
+  border: 1px dashed #333;
+}
+
+.other-platform-input input {
+  background: var(--bg);
+  border: 1px solid #333;
+  color: var(--green);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 6px 10px;
+  flex: 1;
+}
+
+.other-platform-input input:focus {
+  outline: none;
+  border-color: var(--green);
+}
+
+.threshold-note {
+  font-size: 12px;
+  color: var(--amber);
+  font-family: var(--font-ui);
+  margin-top: 16px;
+  padding: 10px;
+  border: 1px solid var(--amber-dim);
+  background: rgba(255, 191, 0, 0.04);
+}
+
+/* === MODULE 2: AUDIT CHECKLIST === */
+.audit-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.audit-controls label {
+  color: var(--amber);
+  font-size: 12px;
+  font-family: var(--font-ui);
+}
+
+.audit-controls select {
+  background: var(--input-bg);
+  border: 1px solid #333;
+  color: var(--green);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 6px 10px;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  min-width: 180px;
+}
+
+.audit-controls select:focus {
+  outline: none;
+  border-color: var(--green);
+}
+
+.progress-bar {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 24px;
+  height: 4px;
+}
+
+.progress-seg {
+  flex: 1;
+  background: #1a1a1a;
+  transition: background 0.3s;
+}
+
+.progress-seg.done { background: var(--green); }
+.progress-seg.partial { background: var(--amber); }
+
+.checklist-section {
+  margin-bottom: 28px;
+}
+
+.checklist-section-title {
+  color: var(--white);
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  padding-bottom: 4px;
+  border-bottom: 1px dotted #333;
+}
+
+.check-item {
+  padding: 10px 0;
+  border-bottom: 1px solid #151515;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.check-item input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  border: 2px solid var(--green-dim);
+  background: var(--bg);
+  cursor: pointer;
+  position: relative;
+  margin-top: 2px;
+}
+
+.check-item input[type="checkbox"]:checked {
+  background: var(--green);
+  border-color: var(--green);
+}
+
+.check-item input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 5px; top: 1px;
+  width: 6px; height: 11px;
+  border: solid var(--bg);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.check-item input[type="checkbox"]:focus {
+  outline: none;
+  box-shadow: 0 0 6px var(--green-glow);
+}
+
+.check-label {
+  flex: 1;
+}
+
+.check-label .question {
+  font-size: 14px;
+  color: var(--green);
+  cursor: pointer;
+}
+
+.check-label .tip-toggle {
+  font-size: 11px;
+  color: var(--gray-light);
+  cursor: pointer;
+  display: inline-block;
+  margin-top: 4px;
+  font-family: var(--font-ui);
+}
+
+.check-label .tip-toggle:hover { color: var(--amber); }
+
+.check-label .tip {
+  display: none;
+  font-size: 12px;
+  color: var(--green-dim);
+  margin-top: 6px;
+  padding-left: 12px;
+  border-left: 2px solid #222;
+  font-family: var(--font-legal);
+  line-height: 1.5;
+}
+
+.check-label .tip.open { display: block; }
+
+.statutory-note {
+  font-size: 11px;
+  color: var(--gray-light);
+  font-family: var(--font-legal);
+  font-style: italic;
+  margin-top: 8px;
+}
+
+/* === HERO: ASCII AUDIT SCORE === */
+.hero-score {
+  text-align: center;
+  padding: 40px 0 30px;
+  min-height: 200px;
+}
+
+.ascii-score {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.15;
+  white-space: pre;
+  display: inline-block;
+  text-align: left;
+}
+
+.ascii-score.score-green { color: var(--green); text-shadow: 0 0 20px var(--green-glow); }
+.ascii-score.score-amber { color: var(--amber); text-shadow: 0 0 20px rgba(255,191,0,0.2); }
+.ascii-score.score-red { color: var(--red); text-shadow: 0 0 20px rgba(255,51,51,0.2); }
+
+.score-label {
+  font-size: 13px;
+  color: var(--gray-light);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  font-family: var(--font-ui);
+}
+
+.score-verdict {
+  margin-top: 16px;
+  font-size: 15px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.verdict-comply { color: var(--green); }
+.verdict-concern { color: var(--amber); }
+.verdict-violate { color: var(--red); }
+
+.score-explanation {
+  max-width: 600px;
+  margin: 16px auto 0;
+  font-size: 13px;
+  color: var(--green-dim);
+  font-family: var(--font-legal);
+  line-height: 1.5;
+}
+
+.score-actions {
+  margin-top: 20px;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* === MODULE 3: INCIDENT LOG === */
+.incident-form {
+  display: grid;
+  gap: 16px;
+  max-width: 600px;
+}
+
+.form-row label {
+  display: block;
+  color: var(--amber);
+  font-size: 11px;
+  font-family: var(--font-ui);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.form-row input,
+.form-row select,
+.form-row textarea {
+  width: 100%;
+  background: var(--input-bg);
+  border: 1px solid #333;
+  color: var(--green);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 8px 10px;
+}
+
+.form-row input:focus,
+.form-row select:focus,
+.form-row textarea:focus {
+  outline: none;
+  border-color: var(--green);
+  box-shadow: 0 0 6px var(--green-glow);
+}
+
+.form-row textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-row select {
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.form-row .char-count {
+  text-align: right;
+  font-size: 10px;
+  color: var(--gray);
+  margin-top: 2px;
+}
+
+.form-check-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.form-check-row input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  min-width: 18px;
+  border: 2px solid var(--green-dim);
+  background: var(--bg);
+  cursor: pointer;
+  position: relative;
+}
+
+.form-check-row input[type="checkbox"]:checked {
+  background: var(--green);
+  border-color: var(--green);
+}
+
+.form-check-row input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 4px; top: 1px;
+  width: 6px; height: 10px;
+  border: solid var(--bg);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.form-check-row label {
+  color: var(--green);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.btn {
+  background: transparent;
+  border: 1px solid var(--green);
+  color: var(--green);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 8px 20px;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 1px;
+}
+
+.btn:hover, .btn:focus {
+  background: var(--green);
+  color: var(--bg);
+  outline: none;
+}
+
+.btn-amber {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+.btn-amber:hover, .btn-amber:focus {
+  background: var(--amber);
+  color: var(--bg);
+}
+
+.btn-red {
+  border-color: var(--red);
+  color: var(--red);
+}
+.btn-red:hover, .btn-red:focus {
+  background: var(--red);
+  color: var(--bg);
+}
+
+/* Incident record display */
+.incident-record {
+  background: var(--input-bg);
+  border: 1px solid var(--green-dim);
+  padding: 20px;
+  margin: 20px 0;
+  font-size: 13px;
+  max-width: 700px;
+}
+
+.record-header {
+  color: var(--white);
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-align: center;
+  padding-bottom: 10px;
+  border-bottom: 1px double var(--green-dim);
+  margin-bottom: 14px;
+}
+
+.record-row {
+  display: flex;
+  padding: 4px 0;
+  border-bottom: 1px dotted #1a1a1a;
+}
+
+.record-label {
+  width: 180px;
+  min-width: 180px;
+  color: var(--amber);
+  font-size: 11px;
+  font-family: var(--font-ui);
+  letter-spacing: 0.5px;
+  padding-top: 2px;
+}
+
+.record-value {
+  flex: 1;
+  color: var(--green);
+}
+
+.record-citation {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px double var(--green-dim);
+  font-family: var(--font-legal);
+  font-size: 12px;
+  color: var(--gray-light);
+  font-style: italic;
+  line-height: 1.5;
+}
+
+/* Saved records list */
+.saved-records-list {
+  margin-top: 20px;
+}
+
+.saved-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #1a1a1a;
+  font-size: 13px;
+}
+
+.saved-item .saved-info { flex: 1; }
+.saved-item .saved-platform { color: var(--white); }
+.saved-item .saved-date { color: var(--gray-light); font-size: 11px; margin-left: 12px; }
+
+.saved-item button {
+  background: transparent;
+  border: 1px solid #333;
+  color: var(--red);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 3px 8px;
+  cursor: pointer;
+}
+.saved-item button:hover { background: var(--red); color: var(--bg); border-color: var(--red); }
+
+/* Contact templates */
+.template-block {
+  margin: 16px 0;
+}
+
+.template-block textarea {
+  width: 100%;
+  max-width: 650px;
+  background: var(--input-bg);
+  border: 1px solid #333;
+  color: var(--green);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 12px;
+  min-height: 120px;
+  resize: vertical;
+}
+
+.template-block textarea:focus {
+  outline: none;
+  border-color: var(--green);
+}
+
+/* === MODULE 4: PLAIN LANGUAGE GUIDE === */
+.law-section {
+  margin-bottom: 4px;
+}
+
+.law-section details {
+  border: 1px solid #1a1a1a;
+}
+
+.law-section summary {
+  padding: 12px 16px;
+  cursor: pointer;
+  color: var(--green);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  background: var(--input-bg);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: background 0.15s;
+}
+
+.law-section summary::-webkit-details-marker { display: none; }
+
+.law-section summary::before {
+  content: '[ + ]';
+  color: var(--green-dim);
+  font-size: 12px;
+  min-width: 40px;
+}
+
+.law-section details[open] summary::before {
+  content: '[ - ]';
+}
+
+.law-section summary:hover {
+  background: #151515;
+}
+
+.law-section .law-content {
+  padding: 16px 20px;
+  font-family: var(--font-legal);
+  font-size: 14px;
+  color: var(--green);
+  line-height: 1.7;
+  background: var(--bg);
+  border-top: 1px solid #1a1a1a;
+}
+
+/* === FOOTER === */
+.site-footer {
+  margin-top: 40px;
+  padding: 16px 0;
+  border-top: 1px solid #222;
+  font-size: 11px;
+  color: var(--gray);
+  font-family: var(--font-legal);
+  line-height: 1.6;
+  text-align: center;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 640px) {
+  .shell { padding: 12px 14px; }
+  .platform-grid { grid-template-columns: 1fr; }
+  .nav-options { flex-direction: column; }
+  .nav-btn { text-align: left; }
+  .record-row { flex-direction: column; }
+  .record-label { width: auto; min-width: auto; margin-bottom: 2px; }
+  .ascii-score { font-size: 6px; }
+  .audit-controls { flex-direction: column; align-items: flex-start; }
+}
+
+/* === PRINT === */
+@media print {
+  body::after { display: none; }
+  #boot-screen { display: none !important; }
+  .term-bar, .nav-bar, .nav-search, .btn, button { display: none !important; }
+  body { background: #fff; color: #000; font-size: 12px; }
+  .shell { max-width: 100%; }
+  .module { display: none !important; }
+  .module.print-target { display: block !important; }
+  .incident-record { border: 2px solid #000; background: #fff; }
+  .record-header { color: #000; border-color: #000; }
+  .record-label { color: #333; }
+  .record-value { color: #000; }
+  .record-citation { color: #444; }
+  .hero-score { display: none; }
+  .law-section details { border-color: #ccc; }
+  .law-section details[open] { break-inside: avoid; }
+  .law-section summary { background: #f0f0f0; color: #000; }
+  .law-section .law-content { color: #000; }
+  .site-footer { color: #666; }
+  .section-header { color: #000; border-color: #000; }
+  p, li { color: #000; }
+  a { color: #000; text-decoration: underline; }
+}
+</style>
+</head>
+<body>
+
+<!-- BOOT SEQUENCE -->
+<div id="boot-screen">
+  <div id="boot-text"><span class="cursor"></span></div>
+</div>
+
+<!-- MAIN APPLICATION -->
+<div id="app">
+  <div class="term-bar">
+    <div class="dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></div>
+    <div class="title">SF1528 Algorithm Audit Tool &mdash; SD-27</div>
+  </div>
+
+  <div class="nav-bar">
+    <div class="shell">
+      <div class="nav-prompt">SELECT MODULE:</div>
+      <div class="nav-options">
+        <button class="nav-btn active" data-mod="mod1" onclick="switchModule('mod1')">[1] Platforms</button>
+        <button class="nav-btn" data-mod="mod2" onclick="switchModule('mod2')">[2] Audit</button>
+        <button class="nav-btn" data-mod="mod3" onclick="switchModule('mod3')">[3] Incident Log</button>
+        <button class="nav-btn" data-mod="mod4" onclick="switchModule('mod4')">[4] The Law</button>
+      </div>
+      <div class="nav-search">
+        <label>$</label>
+        <input type="text" id="nav-input" placeholder="type module name or number..." autocomplete="off" aria-label="Navigate to module by typing name or number">
+      </div>
+    </div>
+  </div>
+
+  <div class="shell">
+
+    <!-- ==================== MODULE 1: PLATFORMS ==================== -->
+    <div id="mod1" class="module active">
+      <div class="section-header">Module 1 &mdash; Platform Coverage Checker</div>
+      <p class="prompt">Which platforms are covered by SF1528?</p>
+      <p style="margin:10px 0 20px; font-size:13px; color:var(--green-dim);">SF1528 applies to social media platforms with more than 1,000,000 global account holders. Click a platform to select it for the audit checklist.</p>
+
+      <div class="platform-grid" id="platform-grid">
+        <!-- Rendered by JS -->
+      </div>
+
+      <div class="other-platform-input">
+        <label style="color:var(--amber); font-size:11px; font-family:var(--font-ui); white-space:nowrap;">OTHER PLATFORM:</label>
+        <input type="text" id="other-platform" placeholder="enter platform name..." aria-label="Enter other platform name">
+      </div>
+
+      <div class="threshold-note">
+        All platforms listed above exceed the 1,000,000 global account threshold in SF1528. The law applies to their operations in Minnesota. For unlisted platforms, verify their global user count before proceeding with an audit.
+      </div>
+    </div>
+
+    <!-- ==================== MODULE 2: AUDIT ==================== -->
+    <div id="mod2" class="module">
+      <div class="section-header">Module 2 &mdash; Family Account Audit Checklist</div>
+
+      <div class="audit-controls">
+        <label>PLATFORM:</label>
+        <select id="audit-platform" aria-label="Select platform to audit">
+          <option value="">-- select --</option>
+        </select>
+        <button class="btn" onclick="resetChecklist()">RESET</button>
+      </div>
+
+      <div class="progress-bar" id="progress-bar">
+        <div class="progress-seg" data-section="a"></div>
+        <div class="progress-seg" data-section="b"></div>
+        <div class="progress-seg" data-section="c"></div>
+      </div>
+
+      <div id="checklist-container">
+        <!-- Section A -->
+        <div class="checklist-section" data-section="a">
+          <div class="checklist-section-title">Section A &mdash; Parental Consent</div>
+          <div class="statutory-note">SF1528 requires verifiable parental consent before account creation for users under 18.</div>
+
+          <div class="check-item">
+            <input type="checkbox" id="a1" data-section="a" aria-label="Age verification check">
+            <div class="check-label">
+              <label class="question" for="a1">Did the platform ask for your child's age before account creation?</label>
+              <span class="tip-toggle" onclick="toggleTip(this)">[?] What to look for</span>
+              <div class="tip">Look for a date-of-birth field or age gate during the sign-up process. A simple "Are you 13+" checkbox is weaker than a full date-of-birth entry.</div>
+            </div>
+          </div>
+
+          <div class="check-item">
+            <input type="checkbox" id="a2" data-section="a" aria-label="Parental consent verification">
+            <div class="check-label">
+              <label class="question" for="a2">Did the platform require verifiable parental consent before your child (under 18) created an account?</label>
+              <span class="tip-toggle" onclick="toggleTip(this)">[?] What to look for</span>
+              <div class="tip">Verifiable consent means more than a checkbox. Look for: email sent to a parent, credit card micro-transaction, government ID verification, or a video call. If the child could complete sign-up without any parent involvement, this is likely not met.</div>
+            </div>
+          </div>
+
+          <div class="check-item">
+            <input type="checkbox" id="a3" data-section="a" aria-label="Verification request received">
+            <div class="check-label">
+              <label class="question" for="a3">If your child is under 18, did you receive a verification request &mdash; not just a checkbox &mdash; before the account was active?</label>
+              <span class="tip-toggle" onclick="toggleTip(this)">[?] What to look for</span>
+              <div class="tip">Check your email, text messages, or app notifications for a consent request from the platform. If you never received anything and your child has an active account, the platform may not have sought verifiable consent.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section B -->
+        <div class="checklist-section" data-section="b">
+          <div class="checklist-section-title">Section B &mdash; Algorithmic Feed (Core Prohibition)</div>
+          <div class="statutory-note">SF1528 prohibits platforms from using recommendation algorithms to push user-generated content at Minnesota minors. Permitted: chronological feeds, content from followed accounts, and search results.</div>
+
+          <div class="check-item">
+            <input type="checkbox" id="b1" data-section="b" aria-label="Unfollowed content check">
+            <div class="check-label">
+              <label class="question" for="b1">Is your child's feed showing content from accounts they do NOT follow?</label>
+              <span class="tip-toggle" onclick="toggleTip(this)">[?] What to look for</span>
+              <div class="tip">Scroll through your child's main feed. If posts appear from accounts your child has never followed or interacted with, those are algorithmically recommended. Look for labels like "Suggested for you" or "Based on your interests."</div>
+            </div>
+          </div>
+
+          <div class="check-item">
+            <input type="checkbox" id="b2" data-section="b" aria-label="Unsearched content check">
+            <div class="check-label">
+              <label class="question" for="b2">Is your child being shown content they did not search for?</label>
+              <span class="tip-toggle" onclick="toggleTip(this)">[?] What to look for</span>
+              <div class="tip">Content that appears without any search or follow action from your child is likely algorithmically pushed. This includes "Explore," "Discover," or "For You" pages that populate automatically.</div>
+            </div>
+          </div>
+
+          <div class="check-item">
+            <input type="checkbox" id="b3" data-section="b" aria-label="Algorithmic recommendations check">
+            <div class="check-label">
+              <label class="question" for="b3">Does the "For You" / "Discover" / "Recommended" feed push content based on engagement patterns rather than followed accounts?</label>
+              <span class="tip-toggle" onclick="toggleTip(this)">[?] What to look for</span>
+              <div class="tip">If the platform has a separate "Following" feed and a "For You" feed, the "For You" feed is algorithmic. Check if the default view when opening the app is the algorithmic feed.</div>
+            </div>
+          </div>
+
+          <div class="check-item">
+            <input type="checkbox" id="b4" data-section="b" aria-label="Chronological feed option check">
+            <div class="check-label">
+              <label class="question" for="b4">Has the platform provided a way to turn off algorithmic recommendations and switch to a chronological, followed-accounts-only feed?</label>
+              <span class="tip-toggle" onclick="toggleTip(this)">[?] What to look for</span>
+              <div class="tip">Check the platform's settings for a "chronological" or "latest" feed option. Some platforms offer this but make it hard to find or default back to the algorithmic feed. If no such option exists, check this box.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section C -->
+        <div class="checklist-section" data-section="c">
+          <div class="checklist-section-title">Section C &mdash; Permitted Exceptions</div>
+          <div class="statutory-note">These exceptions may apply. If YES, the platform may be within the law's allowed activity.</div>
+
+          <div class="check-item">
+            <input type="checkbox" id="c1" data-section="c" aria-label="Parental controls check">
+            <div class="check-label">
+              <label class="question" for="c1">Is the content filtered by parental controls the family itself configured?</label>
+              <span class="tip-toggle" onclick="toggleTip(this)">[?] What to look for</span>
+              <div class="tip">If you set up parental controls or content filters on the platform and the content your child sees is shaped by those settings, this may be an exception under SF1528.</div>
+            </div>
+          </div>
+
+          <div class="check-item">
+            <input type="checkbox" id="c2" data-section="c" aria-label="Government/educational content check">
+            <div class="check-label">
+              <label class="question" for="c2">Is the content from a government or educational institution account?</label>
+              <span class="tip-toggle" onclick="toggleTip(this)">[?] What to look for</span>
+              <div class="tip">Content from verified government agencies, schools, or educational institutions may be exempt. Check if the recommended content comes from such official accounts.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Audit Results -->
+      <div id="audit-results" style="display:none;">
+        <hr>
+        <div class="hero-score">
+          <div class="score-label">AUDIT SCORE</div>
+          <pre class="ascii-score" id="ascii-score-display"></pre>
+          <div class="score-verdict" id="score-verdict"></div>
+          <div class="score-explanation" id="score-explanation"></div>
+          <div class="score-actions">
+            <button class="btn" onclick="switchModule('mod3')">LOG INCIDENT</button>
+            <button class="btn-amber btn" onclick="recalcScore()">RECALCULATE</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== MODULE 3: INCIDENT LOG ==================== -->
+    <div id="mod3" class="module">
+      <div class="section-header">Module 3 &mdash; Incident Log &amp; Report Generator</div>
+      <p class="prompt">Document a suspected SF1528 violation.</p>
+      <p style="margin:8px 0 20px; font-size:12px; color:var(--green-dim);">No data leaves your device. Records are stored locally in your browser.</p>
+
+      <div class="incident-form" id="incident-form">
+        <div class="form-row">
+          <label>Child's Age Bracket</label>
+          <select id="inc-age" aria-label="Child age bracket">
+            <option value="">-- select --</option>
+            <option value="under13">Under 13</option>
+            <option value="13to17">13 to 17</option>
+            <option value="over18">18 or older (law may not apply)</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>Platform</label>
+          <select id="inc-platform" aria-label="Platform for incident">
+            <option value="">-- select --</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>Date(s) of Observed Behavior</label>
+          <input type="date" id="inc-date" aria-label="Date of observation">
+        </div>
+        <div class="form-row">
+          <label>Description of Algorithmic Content Observed</label>
+          <textarea id="inc-desc" maxlength="500" placeholder="Describe what you saw..." aria-label="Description of observed behavior"></textarea>
+          <div class="char-count"><span id="inc-desc-count">0</span>/500</div>
+        </div>
+        <div class="form-check-row">
+          <input type="checkbox" id="inc-screenshot">
+          <label for="inc-screenshot">Screenshot taken</label>
+        </div>
+        <div class="form-check-row">
+          <input type="checkbox" id="inc-contacted" onchange="toggleContactFields()">
+          <label for="inc-contacted">Contacted the platform</label>
+        </div>
+        <div id="contact-fields" style="display:none;">
+          <div class="form-row">
+            <label>Date Contacted</label>
+            <input type="date" id="inc-contact-date" aria-label="Date platform was contacted">
+          </div>
+          <div class="form-check-row" style="margin-top:8px;">
+            <input type="checkbox" id="inc-response">
+            <label for="inc-response">Response received from platform</label>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:8px;">
+          <button class="btn" onclick="generateRecord()">GENERATE RECORD</button>
+        </div>
+      </div>
+
+      <!-- Generated Record -->
+      <div id="generated-record" style="display:none;"></div>
+
+      <!-- Action Templates -->
+      <div id="action-templates" style="display:none;">
+        <hr>
+        <h3>Action Options</h3>
+
+        <div style="margin:16px 0;">
+          <button class="btn" onclick="printRecord()">PRINT / SAVE AS PDF</button>
+        </div>
+
+        <h3 style="margin-top:20px;">Contact the Platform</h3>
+        <p style="font-size:12px; color:var(--green-dim); margin-bottom:8px;">Complaint channels (verify current URLs):</p>
+        <div style="font-size:12px; line-height:2; margin-bottom:12px;">
+          <!-- VERIFY: Platform complaint URLs from software brief — may change over time -->
+          TikTok: <a href="https://www.tiktok.com/legal/report/privacy" target="_blank" rel="noopener">tiktok.com/legal/report/privacy</a><br>
+          Instagram: <a href="https://help.instagram.com/contact/383275799279658" target="_blank" rel="noopener">help.instagram.com/contact/383275799279658</a><br>
+          YouTube: <a href="https://support.google.com/youtube/answer/2802027" target="_blank" rel="noopener">support.google.com/youtube/answer/2802027</a><br>
+          Snapchat: <a href="https://support.snapchat.com/a/report-safety-concern" target="_blank" rel="noopener">support.snapchat.com/a/report-safety-concern</a><br>
+          X: <a href="https://help.x.com/forms/safety" target="_blank" rel="noopener">help.x.com/forms/safety</a>
+        </div>
+
+        <div class="template-block">
+          <label style="color:var(--amber); font-size:11px; font-family:var(--font-ui); letter-spacing:1px;">COMPLAINT TEMPLATE (editable):</label>
+          <textarea id="complaint-template" aria-label="Platform complaint template"></textarea>
+        </div>
+
+        <hr>
+        <h3>Contact Your Legislator</h3>
+        <p style="font-size:13px; margin-bottom:8px;">Senator Mathews represents District 27. His office wants to hear from families with SF1528 concerns.</p>
+        <div style="font-size:12px; line-height:1.8; margin-bottom:12px;">
+          <!-- VERIFY: Legislative contact info from software brief -->
+          Senator Andrew Mathews, Senate District 27<br>
+          Princeton, Minnesota<br>
+          Contact: <a href="https://www.senate.mn/members/contact_member?member_id=1250" target="_blank" rel="noopener">senate.mn/members/contact_member?member_id=1250</a>
+        </div>
+        <div class="template-block">
+          <label style="color:var(--amber); font-size:11px; font-family:var(--font-ui); letter-spacing:1px;">LEGISLATOR MESSAGE TEMPLATE (editable):</label>
+          <textarea id="legislator-template" aria-label="Legislator message template"></textarea>
+        </div>
+      </div>
+
+      <!-- Saved Records -->
+      <hr>
+      <h3>Saved Records</h3>
+      <p style="font-size:12px; color:var(--green-dim); margin-bottom:12px;">Up to 5 records stored in your browser. Data never leaves this device.</p>
+      <div id="saved-records-list" class="saved-records-list"></div>
+      <div style="margin-top:16px;">
+        <button class="btn-red btn" onclick="clearAllData()">CLEAR ALL DATA</button>
+      </div>
+    </div>
+
+    <!-- ==================== MODULE 4: THE LAW ==================== -->
+    <div id="mod4" class="module">
+      <div class="section-header">Module 4 &mdash; What the Law Says (Plain Language)</div>
+      <p class="prompt" style="margin-bottom:20px;">SF1528 &mdash; Stop Online Targeting Against Kids Act (SOTA Kids Act)</p>
+
+      <div style="font-size:12px; color:var(--gray-light); margin-bottom:20px; font-family:var(--font-legal);">
+        Chief author: Senator Andrew Mathews (SD-27). Co-authors: Senators Gruenhagen and Lucero. Companion: HF 48.
+        Introduced February 17, 2025 &mdash; 94th Minnesota Legislature. Referred to Senate Commerce and Consumer Protection Committee.
+      </div>
+
+      <div class="law-section">
+        <details open>
+          <summary>1. What SF1528 Covers</summary>
+          <div class="law-content">
+            This law applies to large social media platforms operating in Minnesota &mdash; specifically those with more than 1 million global account holders. It says they cannot use recommendation algorithms to push content at your child: content your child didn't ask for, didn't search for, and doesn't come from accounts your child chose to follow.
+          </div>
+        </details>
+      </div>
+
+      <div class="law-section">
+        <details>
+          <summary>2. What Platforms Are Still Allowed to Do</summary>
+          <div class="law-content">
+            Platforms can still show your child content from accounts they follow. They can still show chronological feeds. They can still show search results. What they cannot do is use an algorithm to push additional, unsolicited content at a minor.
+          </div>
+        </details>
+      </div>
+
+      <div class="law-section">
+        <details>
+          <summary>3. The Consent Requirement</summary>
+          <div class="law-content">
+            Before your child (under 18) creates an account on a covered platform, the platform must get verifiable parental consent &mdash; not just a checkbox. This means the platform must have a way to confirm a parent actually approved the account creation.
+          </div>
+        </details>
+      </div>
+
+      <div class="law-section">
+        <details>
+          <summary>4. What the Penalties Are</summary>
+          <div class="law-content">
+            $1,000 per violation. Up to $100,000 per user per year. The parent or guardian can bring a civil claim under the statute.
+          </div>
+        </details>
+      </div>
+
+      <div class="law-section">
+        <details>
+          <summary>5. When This Takes Effect</summary>
+          <div class="law-content">
+            SF1528 is proposed to take effect January 1, 2026, if signed into law. As of its introduction in February 2025, the bill is in the Senate Commerce and Consumer Protection Committee.
+          </div>
+        </details>
+      </div>
+
+      <div class="law-section">
+        <details>
+          <summary>6. What This Law Does Not Do</summary>
+          <div class="law-content">
+            This law does not ban social media for minors. It does not require platforms to verify every user's age. It focuses specifically on the algorithm &mdash; the system that decides what to push at your child beyond what they asked for.
+          </div>
+        </details>
+      </div>
+
+      <div style="margin-top:24px;">
+        <button class="btn" onclick="printGuide()">PRINT THIS GUIDE</button>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="site-footer">
+      A resource for Senate District 27 families and Minnesota parents. Built with AI.
+      Reflects SF1528 as introduced in the 94th Minnesota Legislature (2025). Not legal advice.
+      Consult an attorney for specific legal questions.
+    </div>
+  </div>
+</div>
+
+<script>
+/*
+ * SF1528 Algorithm Audit Tool
+ * Senator Andrew Mathews — SD-27
+ *
+ * PRIVACY NOTE: No data leaves the browser. No network requests are made.
+ * All data is stored in localStorage on the user's device only.
+ * This tool handles information about children — the privacy posture is absolute.
+ */
+
+// ==================== PLATFORM DATA ====================
+const platforms = [
+  { id: 'tiktok', name: 'TikTok', users: '~1.7 billion monthly active users', source: '2024, ByteDance disclosure', status: 'covered',
+    desc: 'Must not use recommendation algorithms to push content at Minnesota minors.' },
+  { id: 'instagram', name: 'Instagram / Meta', users: '~2 billion monthly active users', source: '2024, Meta', status: 'covered',
+    desc: 'Must not use recommendation algorithms to push content at Minnesota minors.' },
+  { id: 'youtube', name: 'YouTube / Google', users: '~2.7 billion monthly active users', source: '2024, Google/Alphabet', status: 'covered',
+    desc: 'Must not use recommendation algorithms to push content at Minnesota minors.' },
+  { id: 'snapchat', name: 'Snapchat', users: '~800 million monthly active users', source: '2024, Snap Inc.', status: 'covered',
+    desc: 'Must not use recommendation algorithms to push content at Minnesota minors.' },
+  { id: 'x', name: 'X (formerly Twitter)', users: '~600 million monthly active users', source: '2024, company statement', status: 'covered',
+    desc: 'Must not use recommendation algorithms to push content at Minnesota minors.' },
+  { id: 'discord', name: 'Discord', users: '~200 million registered users', source: '2023, Discord disclosure', status: 'covered',
+    desc: 'Must not use recommendation algorithms to push content at Minnesota minors.' },
+  { id: 'roblox', name: 'Roblox', users: '~88 million daily active users', source: '2024, Roblox Corp.', status: 'covered',
+    desc: 'Messaging and content recommendation features covered under SF1528.' },
+  { id: 'bereal', name: 'BeReal', users: '~40 million monthly active users', source: '2023, estimates', status: 'covered',
+    desc: 'Must not use recommendation algorithms to push content at Minnesota minors.' }
+];
+
+let selectedPlatform = '';
+let checklistState = {};
+let currentRecord = null;
+
+// ==================== BOOT SEQUENCE ====================
+(function boot() {
+  const bootLines = [
+    '> INITIALIZING SF1528 AUDIT SYSTEM...',
+    '> LOADING PLATFORM DATABASE...',
+    '> LOADING STATUTORY PROVISIONS...',
+    '',
+    '  MINNESOTA CHILD ALGORITHM AUDIT TOOL',
+    '  "Is This Platform Breaking the Law?"',
+    '  SF1528 — Stop Online Targeting Against Kids Act',
+    '  Chief Author: Sen. Andrew Mathews (SD-27)',
+    '',
+    '> SYSTEM READY.'
+  ];
+
+  const bootEl = document.getElementById('boot-text');
+  const fullText = bootLines.join('\n');
+  let idx = 0;
+  const speed = Math.floor(2600 / fullText.length); // finish in ~2.6s
+
+  function type() {
+    if (idx < fullText.length) {
+      bootEl.innerHTML = fullText.substring(0, idx + 1) + '<span class="cursor"></span>';
+      idx++;
+      setTimeout(type, speed);
+    } else {
+      setTimeout(function() {
+        document.getElementById('boot-screen').style.display = 'none';
+        document.getElementById('app').classList.add('active');
+        loadSavedState();
+      }, 400);
+    }
+  }
+  type();
+})();
+
+// ==================== NAVIGATION ====================
+function switchModule(modId) {
+  document.querySelectorAll('.module').forEach(function(m) { m.classList.remove('active', 'print-target'); });
+  document.getElementById(modId).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.mod === modId);
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Type-ahead nav
+document.getElementById('nav-input').addEventListener('input', function(e) {
+  var v = e.target.value.toLowerCase().trim();
+  if (v === '1' || v === 'plat' || v === 'platforms') { switchModule('mod1'); e.target.value = ''; }
+  else if (v === '2' || v === 'audit' || v === 'check') { switchModule('mod2'); e.target.value = ''; }
+  else if (v === '3' || v === 'inc' || v === 'incident' || v === 'log') { switchModule('mod3'); e.target.value = ''; }
+  else if (v === '4' || v === 'law' || v === 'guide') { switchModule('mod4'); e.target.value = ''; }
+});
+
+document.getElementById('nav-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') {
+    var v = e.target.value.trim();
+    if (v === '1') switchModule('mod1');
+    else if (v === '2') switchModule('mod2');
+    else if (v === '3') switchModule('mod3');
+    else if (v === '4') switchModule('mod4');
+    e.target.value = '';
+  }
+});
+
+// ==================== MODULE 1: PLATFORM GRID ====================
+function renderPlatformGrid() {
+  var grid = document.getElementById('platform-grid');
+  grid.innerHTML = '';
+  platforms.forEach(function(p) {
+    var div = document.createElement('div');
+    div.className = 'platform-item' + (selectedPlatform === p.id ? ' selected' : '');
+    div.onclick = function() { selectPlatform(p.id); };
+    div.setAttribute('role', 'button');
+    div.setAttribute('tabindex', '0');
+    div.setAttribute('aria-label', 'Select ' + p.name);
+    div.onkeydown = function(e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectPlatform(p.id); } };
+
+    var statusClass = p.status === 'covered' ? 'status-covered' : 'status-likely';
+    var statusLabel = p.status === 'covered' ? 'COVERED' : 'LIKELY';
+
+    div.innerHTML =
+      '<div class="platform-name">' + p.name + '</div>' +
+      '<div class="platform-users">' + p.users + ' (' + p.source + ')</div>' +
+      '<span class="platform-status ' + statusClass + '">' + statusLabel + '</span>' +
+      '<div class="platform-desc">' + p.desc + '</div>';
+    grid.appendChild(div);
+  });
+}
+
+function selectPlatform(id) {
+  selectedPlatform = id;
+  renderPlatformGrid();
+  document.getElementById('audit-platform').value = id;
+  document.getElementById('inc-platform').value = id;
+  try { localStorage.setItem('sf1528_selected_platform', id); } catch(e) {}
+}
+
+// Populate dropdowns
+function populateDropdowns() {
+  var auditSel = document.getElementById('audit-platform');
+  var incSel = document.getElementById('inc-platform');
+  platforms.forEach(function(p) {
+    var o1 = new Option(p.name, p.id);
+    var o2 = new Option(p.name, p.id);
+    auditSel.appendChild(o1);
+    incSel.appendChild(o2);
+  });
+  var otherOpt1 = new Option('Other (specify)', 'other');
+  var otherOpt2 = new Option('Other (specify)', 'other');
+  auditSel.appendChild(otherOpt1);
+  incSel.appendChild(otherOpt2);
+}
+
+document.getElementById('audit-platform').addEventListener('change', function() {
+  selectedPlatform = this.value;
+  renderPlatformGrid();
+});
+
+// ==================== MODULE 2: CHECKLIST LOGIC ====================
+function toggleTip(el) {
+  var tip = el.nextElementSibling;
+  tip.classList.toggle('open');
+  el.textContent = tip.classList.contains('open') ? '[-] Hide tip' : '[?] What to look for';
+}
+
+function updateProgress() {
+  var sections = { a: { total: 3, checked: 0 }, b: { total: 4, checked: 0 }, c: { total: 2, checked: 0 } };
+  document.querySelectorAll('#checklist-container input[type="checkbox"]').forEach(function(cb) {
+    var sec = cb.dataset.section;
+    if (sec && cb.checked) sections[sec].checked++;
+  });
+
+  ['a', 'b', 'c'].forEach(function(s) {
+    var seg = document.querySelector('.progress-seg[data-section="' + s + '"]');
+    if (sections[s].checked === sections[s].total) seg.className = 'progress-seg done';
+    else if (sections[s].checked > 0) seg.className = 'progress-seg partial';
+    else seg.className = 'progress-seg';
+  });
+
+  // Check if any box is checked to show results
+  var anyChecked = false;
+  document.querySelectorAll('#checklist-container input[type="checkbox"]').forEach(function(cb) {
+    if (cb.checked) anyChecked = true;
+  });
+  if (anyChecked) {
+    recalcScore();
+    document.getElementById('audit-results').style.display = 'block';
+  }
+}
+
+// Add event listeners to checkboxes
+document.querySelectorAll('#checklist-container input[type="checkbox"]').forEach(function(cb) {
+  cb.addEventListener('change', function() {
+    checklistState[this.id] = this.checked;
+    updateProgress();
+    try { localStorage.setItem('sf1528_checklist', JSON.stringify(checklistState)); } catch(e) {}
+  });
+});
+
+function resetChecklist() {
+  document.querySelectorAll('#checklist-container input[type="checkbox"]').forEach(function(cb) {
+    cb.checked = false;
+  });
+  checklistState = {};
+  document.getElementById('audit-results').style.display = 'none';
+  document.querySelectorAll('.progress-seg').forEach(function(s) { s.className = 'progress-seg'; });
+  try { localStorage.removeItem('sf1528_checklist'); } catch(e) {}
+}
+
+// ==================== ASCII SCORE RENDERING ====================
+var digitMap = {
+  '0': [' ████ ','██  ██','██  ██','██  ██',' ████ '],
+  '1': ['  ██  ',' ███  ','  ██  ','  ██  ',' ████ '],
+  '2': [' ████ ','    ██',' ████ ','██    ',' █████'],
+  '3': [' ████ ','    ██',' ████ ','    ██',' ████ '],
+  '4': ['██  ██','██  ██',' █████','    ██','    ██'],
+  '5': [' █████','██    ',' ████ ','    ██',' ████ '],
+  '6': [' ████ ','██    ',' █████','██  ██',' ████ '],
+  '7': [' █████','    ██','   ██ ','  ██  ','  ██  '],
+  '8': [' ████ ','██  ██',' ████ ','██  ██',' ████ '],
+  '9': [' ████ ','██  ██',' █████','    ██',' ████ '],
+  '/': ['    ██','   ██ ','  ██  ',' ██   ','██    '],
+  ' ': ['      ','      ','      ','      ','      ']
+};
+
+function renderAsciiNumber(numStr) {
+  var lines = ['','','','',''];
+  for (var i = 0; i < numStr.length; i++) {
+    var ch = numStr[i];
+    var glyph = digitMap[ch] || digitMap[' '];
+    for (var row = 0; row < 5; row++) {
+      lines[row] += glyph[row] + '  ';
+    }
+  }
+  return lines.join('\n');
+}
+
+function recalcScore() {
+  // Scoring logic per brief:
+  // If any Section B item checked YES and no Section C exception applies => likely violating
+  // Score: 100 = full compliance, lower = worse
+  var sectionA = []; // consent checks — unchecked = platform didn't do it = bad
+  var sectionB = []; // algorithmic feed — checked = platform IS doing this = bad
+  var sectionC = []; // exceptions — checked = exception applies
+
+  ['a1','a2','a3'].forEach(function(id) {
+    sectionA.push(document.getElementById(id).checked);
+  });
+  ['b1','b2','b3','b4'].forEach(function(id) {
+    sectionB.push(document.getElementById(id).checked);
+  });
+  ['c1','c2'].forEach(function(id) {
+    sectionC.push(document.getElementById(id).checked);
+  });
+
+  // Section A: unchecked items = platform missing consent steps (bad)
+  // We count unchecked as violations
+  var aViolations = sectionA.filter(function(v) { return !v; }).length;
+
+  // Section B: checked items = platform IS pushing algorithmic content (bad)
+  var bViolations = sectionB.filter(function(v) { return v; }).length;
+
+  // Section C: checked items = exceptions apply (mitigating)
+  var cExceptions = sectionC.filter(function(v) { return v; }).length;
+
+  // Calculate score (100 = fully compliant)
+  // Max possible violations: 3 (A) + 4 (B) = 7
+  var totalViolations = aViolations + bViolations;
+
+  // Exceptions reduce perceived violations
+  if (cExceptions > 0) totalViolations = Math.max(0, totalViolations - cExceptions);
+
+  var score = Math.round(Math.max(0, 100 - (totalViolations / 7) * 100));
+
+  // Determine tier
+  var tier, verdictText, explanation, colorClass;
+
+  // Per brief: if any Section B item checked AND no Section C exception => likely violating
+  var hasBviolation = bViolations > 0;
+  var hasException = cExceptions > 0;
+
+  if (hasBviolation && !hasException) {
+    tier = 'violate';
+    verdictText = 'LIKELY NOT COMPLYING';
+    explanation = 'Based on your answers, this platform appears to be using algorithmic content recommendations on your child\'s account in ways that SF1528 prohibits. The core prohibition — no algorithmic push of content a minor did not request — appears to be violated. Document your observations and consider the action options below.';
+    colorClass = 'score-red';
+  } else if (totalViolations > 0) {
+    tier = 'concern';
+    verdictText = 'SOME CONCERNS — REVIEW RECOMMENDED';
+    explanation = 'Your answers indicate some areas where the platform may not be meeting SF1528 requirements, but exceptions or partial compliance may apply. Review the specific items you flagged and monitor the account.';
+    colorClass = 'score-amber';
+  } else {
+    tier = 'comply';
+    verdictText = 'APPEARS TO BE COMPLYING';
+    explanation = 'Based on your answers, this platform appears to be meeting the requirements of SF1528 for your child\'s account. Continue to monitor — platform practices can change.';
+    colorClass = 'score-green';
+  }
+
+  var scoreStr = score.toString();
+  // Pad to show as XX/100
+  var displayStr = (score < 10 ? ' ' : '') + scoreStr + '/100';
+
+  var asciiEl = document.getElementById('ascii-score-display');
+  asciiEl.textContent = renderAsciiNumber(displayStr);
+  asciiEl.className = 'ascii-score ' + colorClass;
+
+  var verdictEl = document.getElementById('score-verdict');
+  verdictEl.textContent = verdictText;
+  verdictEl.className = 'score-verdict verdict-' + tier;
+
+  document.getElementById('score-explanation').textContent = explanation;
+
+  // Store for incident log
+  currentRecord = {
+    score: score,
+    tier: tier,
+    verdict: verdictText,
+    platform: selectedPlatform,
+    aViolations: aViolations,
+    bViolations: bViolations,
+    cExceptions: cExceptions
+  };
+}
+
+// ==================== MODULE 3: INCIDENT LOG ====================
+document.getElementById('inc-desc').addEventListener('input', function() {
+  document.getElementById('inc-desc-count').textContent = this.value.length;
+});
+
+function toggleContactFields() {
+  document.getElementById('contact-fields').style.display =
+    document.getElementById('inc-contacted').checked ? 'block' : 'none';
+}
+
+function generateRecord() {
+  var age = document.getElementById('inc-age').value;
+  var platform = document.getElementById('inc-platform').value;
+  var date = document.getElementById('inc-date').value;
+  var desc = document.getElementById('inc-desc').value.trim();
+
+  if (!age || !platform || !date || !desc) {
+    alert('Fill in all required fields: age bracket, platform, date, and description.');
+    return;
+  }
+
+  var platformName = platform === 'other' ?
+    (document.getElementById('other-platform').value || 'Other') :
+    (platforms.find(function(p) { return p.id === platform; }) || {}).name || platform;
+
+  var ageBracket = { 'under13': 'Under 13', '13to17': '13-17', 'over18': '18+' }[age] || age;
+  var screenshot = document.getElementById('inc-screenshot').checked ? 'Yes' : 'No';
+  var contacted = document.getElementById('inc-contacted').checked;
+  var contactDate = contacted ? document.getElementById('inc-contact-date').value : '';
+  var responseReceived = contacted ? document.getElementById('inc-response').checked : false;
+
+  var checklistFindings = '';
+  if (currentRecord) {
+    checklistFindings = currentRecord.verdict +
+      ' (Score: ' + currentRecord.score + '/100' +
+      ', Consent issues: ' + currentRecord.aViolations +
+      ', Algorithm issues: ' + currentRecord.bViolations +
+      ', Exceptions: ' + currentRecord.cExceptions + ')';
+  } else {
+    checklistFindings = 'Audit checklist not completed for this record.';
+  }
+
+  var now = new Date();
+  var generated = now.toLocaleDateString('en-US') + ' ' + now.toLocaleTimeString('en-US');
+
+  var recordHTML =
+    '<div class="incident-record" id="printable-record">' +
+      '<div class="record-header">SF1528 Compliance Concern Record</div>' +
+      '<div class="record-row"><div class="record-label">Generated</div><div class="record-value">' + generated + '</div></div>' +
+      '<div class="record-row"><div class="record-label">Platform</div><div class="record-value">' + platformName + '</div></div>' +
+      '<div class="record-row"><div class="record-label">Child Age Group</div><div class="record-value">' + ageBracket + '</div></div>' +
+      '<div class="record-row"><div class="record-label">Observation Date</div><div class="record-value">' + date + '</div></div>' +
+      '<div class="record-row"><div class="record-label">Description</div><div class="record-value">' + escapeHtml(desc) + '</div></div>' +
+      '<div class="record-row"><div class="record-label">Screenshot Taken</div><div class="record-value">' + screenshot + '</div></div>' +
+      '<div class="record-row"><div class="record-label">Platform Contacted</div><div class="record-value">' + (contacted ? 'Yes — ' + contactDate + (responseReceived ? ' (response received)' : ' (no response)') : 'No') + '</div></div>' +
+      '<div class="record-row"><div class="record-label">Checklist Findings</div><div class="record-value">' + checklistFindings + '</div></div>' +
+      '<div class="record-citation">' +
+        'Relevant statute: SF1528, 94th Minnesota Legislature (2025-2026 session) — ' +
+        'Stop Online Targeting Against Kids Act (SOTA Kids Act). ' +
+        'Chief author: Senator Andrew Mathews (SD-27). ' +
+        'Penalty provision: $1,000 per violation, $100,000 annual cap per user.' +
+      '</div>' +
+    '</div>';
+
+  document.getElementById('generated-record').innerHTML = recordHTML;
+  document.getElementById('generated-record').style.display = 'block';
+  document.getElementById('action-templates').style.display = 'block';
+
+  // Populate templates
+  document.getElementById('complaint-template').value =
+    'To Whom It May Concern,\n\n' +
+    'I am writing to report a potential violation of Minnesota\'s SF1528 (Stop Online Targeting Against Kids Act) regarding my child\'s account on ' + platformName + '.\n\n' +
+    'On ' + date + ', I observed the following: ' + desc + '\n\n' +
+    'SF1528 prohibits covered platforms from using recommendation algorithms to push user-generated content at Minnesota minors under 18. ' +
+    'I request that you review my child\'s account settings and ensure compliance with Minnesota law.\n\n' +
+    'Please respond to confirm what steps you are taking.\n\n' +
+    'Sincerely,\n[Your name]';
+
+  document.getElementById('legislator-template').value =
+    'Dear Senator Mathews,\n\n' +
+    'I am a constituent in Senate District 27. I am writing regarding your SF1528 — the SOTA Kids Act.\n\n' +
+    'I have observed what appears to be a violation of the act by ' + platformName + ' regarding my child\'s account (age group: ' + ageBracket + '). ' +
+    'Specifically, on ' + date + ': ' + desc + '\n\n' +
+    'I support your work to protect Minnesota children from algorithmic targeting and wanted your office to be aware of this experience.\n\n' +
+    'Sincerely,\n[Your name]\n[City, MN]';
+
+  // Save to localStorage
+  saveRecord({
+    platform: platformName,
+    platformId: platform,
+    date: date,
+    age: ageBracket,
+    desc: desc,
+    screenshot: screenshot,
+    contacted: contacted,
+    contactDate: contactDate,
+    responseReceived: responseReceived,
+    checklistFindings: checklistFindings,
+    timestamp: now.toISOString()
+  });
+}
+
+function escapeHtml(str) {
+  var div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function saveRecord(record) {
+  try {
+    var records = JSON.parse(localStorage.getItem('sf1528_records') || '[]');
+    records.unshift(record);
+    if (records.length > 5) records = records.slice(0, 5);
+    localStorage.setItem('sf1528_records', JSON.stringify(records));
+    renderSavedRecords();
+  } catch(e) { /* localStorage unavailable */ }
+}
+
+function renderSavedRecords() {
+  var container = document.getElementById('saved-records-list');
+  try {
+    var records = JSON.parse(localStorage.getItem('sf1528_records') || '[]');
+    if (records.length === 0) {
+      container.innerHTML = '<div style="color:var(--gray); font-size:12px;">No saved records.</div>';
+      return;
+    }
+    var html = '';
+    records.forEach(function(r, i) {
+      html +=
+        '<div class="saved-item">' +
+          '<div class="saved-info">' +
+            '<span class="saved-platform">' + escapeHtml(r.platform) + '</span>' +
+            '<span class="saved-date">' + r.date + '</span>' +
+          '</div>' +
+          '<button onclick="deleteRecord(' + i + ')" aria-label="Delete record ' + (i+1) + '">DEL</button>' +
+        '</div>';
+    });
+    container.innerHTML = html;
+  } catch(e) {
+    container.innerHTML = '<div style="color:var(--gray); font-size:12px;">Storage unavailable.</div>';
+  }
+}
+
+function deleteRecord(idx) {
+  try {
+    var records = JSON.parse(localStorage.getItem('sf1528_records') || '[]');
+    records.splice(idx, 1);
+    localStorage.setItem('sf1528_records', JSON.stringify(records));
+    renderSavedRecords();
+  } catch(e) {}
+}
+
+function clearAllData() {
+  if (!confirm('This will delete all saved records and checklist data. Are you sure?')) return;
+  try {
+    localStorage.removeItem('sf1528_records');
+    localStorage.removeItem('sf1528_checklist');
+    localStorage.removeItem('sf1528_selected_platform');
+  } catch(e) {}
+  resetChecklist();
+  renderSavedRecords();
+  document.getElementById('generated-record').style.display = 'none';
+  document.getElementById('action-templates').style.display = 'none';
+}
+
+function printRecord() {
+  document.querySelectorAll('.module').forEach(function(m) { m.classList.remove('print-target'); });
+  document.getElementById('mod3').classList.add('print-target');
+  window.print();
+}
+
+function printGuide() {
+  // Open all details for printing
+  document.querySelectorAll('#mod4 details').forEach(function(d) { d.open = true; });
+  document.querySelectorAll('.module').forEach(function(m) { m.classList.remove('print-target'); });
+  document.getElementById('mod4').classList.add('print-target');
+  window.print();
+}
+
+// ==================== LOAD SAVED STATE ====================
+function loadSavedState() {
+  populateDropdowns();
+  renderPlatformGrid();
+  renderSavedRecords();
+
+  // Restore selected platform
+  try {
+    var saved = localStorage.getItem('sf1528_selected_platform');
+    if (saved) {
+      selectedPlatform = saved;
+      renderPlatformGrid();
+      document.getElementById('audit-platform').value = saved;
+      document.getElementById('inc-platform').value = saved;
+    }
+  } catch(e) {}
+
+  // Restore checklist state
+  try {
+    var savedChecklist = localStorage.getItem('sf1528_checklist');
+    if (savedChecklist) {
+      checklistState = JSON.parse(savedChecklist);
+      Object.keys(checklistState).forEach(function(id) {
+        var cb = document.getElementById(id);
+        if (cb) cb.checked = checklistState[id];
+      });
+      updateProgress();
+    }
+  } catch(e) {}
+}
+
+// ==================== KEYBOARD SHORTCUTS ====================
+document.addEventListener('keydown', function(e) {
+  // Alt+1 through Alt+4 for module switching
+  if (e.altKey) {
+    if (e.key === '1') { switchModule('mod1'); e.preventDefault(); }
+    else if (e.key === '2') { switchModule('mod2'); e.preventDefault(); }
+    else if (e.key === '3') { switchModule('mod3'); e.preventDefault(); }
+    else if (e.key === '4') { switchModule('mod4'); e.preventDefault(); }
+  }
+  // '/' focuses the nav search
+  if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA' && document.activeElement.tagName !== 'SELECT') {
+    e.preventDefault();
+    document.getElementById('nav-input').focus();
+  }
+});
+</script>
+</body>
+</html>

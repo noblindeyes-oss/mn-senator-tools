@@ -1,0 +1,1585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minnesota Health Care Language Access Audit Tool — Sen. Wiklund, SD-51</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Audit checklist — full-width vertical flow, expandable guidance panels, no cards. Sticky header with gauge.
+   2. Navigation: Sticky header with circular compliance gauge + section jump links (scroll-based, no tabs).
+   3. Typography: Tahoma (body/UI), Palatino (headings/editorial), Lucida Console (data/scores).
+   4. Hero moment: Large circular SVG compliance gauge in sticky header — green/amber/red by score.
+   5. Color strategy: #5 Cool dominant — clinical white (#fff) dominant, medical teal (#00897b) headers/interactive,
+      soft gray (#f5f5f5) alternating sections, alert amber (#ff8f00) for compliance gaps. Hospital-corridor clean.
+   6. Entry experience: No intro paragraph. First audit question visible immediately on load.
+   Additional: No bordered callout boxes. No emoji. No rounded-top tabs. Status via pill badges only.
+*/
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --teal: #00897b;
+  --teal-dark: #00695c;
+  --teal-light: #b2dfdb;
+  --teal-bg: #e0f2f1;
+  --white: #ffffff;
+  --gray-section: #f5f5f5;
+  --amber: #ff8f00;
+  --amber-light: #fff3e0;
+  --red: #c62828;
+  --red-light: #ffebee;
+  --green: #2e7d32;
+  --green-light: #e8f5e9;
+  --text: #1a1a1a;
+  --text-secondary: #555;
+  --border: #d0d0d0;
+  --font-body: Tahoma, Geneva, sans-serif;
+  --font-heading: 'Palatino Linotype', Palatino, 'Book Antiqua', serif;
+  --font-data: 'Lucida Console', Monaco, monospace;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text);
+  background: var(--white);
+}
+
+/* ── STICKY HEADER ── */
+.sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--teal-dark);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  height: 64px;
+  gap: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.15);
+}
+.sticky-header .gauge-wrap {
+  flex-shrink: 0;
+  width: 48px; height: 48px;
+}
+.sticky-header .gauge-wrap svg { display: block; }
+.sticky-header .score-text {
+  font-family: var(--font-data);
+  font-size: 22px;
+  font-weight: bold;
+  min-width: 56px;
+}
+.sticky-header nav {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+.sticky-header nav a {
+  color: rgba(255,255,255,.85);
+  text-decoration: none;
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 3px;
+  letter-spacing: .3px;
+  transition: background .15s;
+}
+.sticky-header nav a:hover,
+.sticky-header nav a.active {
+  background: rgba(255,255,255,.18);
+  color: #fff;
+}
+.header-title {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: normal;
+  letter-spacing: .2px;
+  white-space: nowrap;
+}
+
+/* ── SECTION LAYOUT ── */
+.section {
+  padding: 40px 32px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+.section-alt {
+  background: var(--gray-section);
+}
+.section-teal {
+  background: var(--teal);
+  color: #fff;
+}
+.section-teal h2 { color: #fff; }
+.section-teal .text-secondary { color: rgba(255,255,255,.8); }
+
+h2 {
+  font-family: var(--font-heading);
+  font-size: 24px;
+  font-weight: normal;
+  color: var(--teal-dark);
+  margin-bottom: 20px;
+  letter-spacing: .3px;
+}
+h3 {
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--teal);
+  margin-bottom: 12px;
+}
+
+/* ── AUDIT QUESTION ROWS ── */
+.audit-q {
+  border-bottom: 1px solid var(--border);
+  padding: 16px 0;
+}
+.audit-q:last-child { border-bottom: none; }
+.audit-q-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.audit-q-num {
+  font-family: var(--font-data);
+  font-size: 11px;
+  color: var(--teal);
+  flex-shrink: 0;
+  width: 32px;
+  text-align: right;
+}
+.audit-q-text {
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.toggle-group {
+  display: flex;
+  gap: 0;
+  flex-shrink: 0;
+}
+.toggle-group button {
+  font-family: var(--font-body);
+  font-size: 12px;
+  padding: 5px 14px;
+  border: 1px solid var(--border);
+  background: var(--white);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all .12s;
+}
+.toggle-group button:first-child { border-radius: 3px 0 0 3px; }
+.toggle-group button:last-child { border-radius: 0 3px 3px 0; }
+.toggle-group button + button { border-left: none; }
+.toggle-group button.sel-yes { background: var(--green); color: #fff; border-color: var(--green); }
+.toggle-group button.sel-partial { background: var(--amber); color: #fff; border-color: var(--amber); }
+.toggle-group button.sel-no { background: var(--red); color: #fff; border-color: var(--red); }
+.toggle-group button:hover { opacity: .85; }
+
+.guidance-toggle {
+  font-size: 11px;
+  color: var(--teal);
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 4px 0;
+  margin-top: 4px;
+  font-family: var(--font-body);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.guidance-panel {
+  display: none;
+  margin-top: 8px;
+  padding: 12px 16px;
+  background: var(--teal-bg);
+  border-radius: 4px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+.guidance-panel.open { display: block; }
+
+/* ── STATUS PILLS ── */
+.pill {
+  display: inline-block;
+  font-family: var(--font-data);
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  letter-spacing: .5px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+.pill-strong { background: var(--green); color: #fff; }
+.pill-moderate { background: var(--amber); color: #fff; }
+.pill-risk { background: var(--red); color: #fff; }
+.pill-covered { background: var(--green-light); color: var(--green); }
+.pill-partial { background: var(--amber-light); color: var(--amber); }
+.pill-gap { background: var(--red-light); color: var(--red); }
+
+/* ── FORM ELEMENTS ── */
+label {
+  display: block;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+input[type="text"], input[type="number"], select, textarea {
+  font-family: var(--font-body);
+  font-size: 14px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--white);
+  color: var(--text);
+  width: 100%;
+  transition: border-color .15s;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--teal);
+  box-shadow: 0 0 0 2px rgba(0,137,123,.15);
+}
+textarea { resize: vertical; min-height: 60px; }
+
+.field-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.field-row > div { flex: 1; min-width: 180px; }
+
+/* ── LANGUAGE TABLE ── */
+.lang-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-top: 12px;
+}
+.lang-table th {
+  font-family: var(--font-body);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  color: var(--text-secondary);
+  text-align: left;
+  padding: 8px 6px;
+  border-bottom: 2px solid var(--teal);
+  font-weight: normal;
+}
+.lang-table td {
+  padding: 6px;
+  border-bottom: 1px solid #e8e8e8;
+  vertical-align: middle;
+}
+.lang-table input, .lang-table select {
+  font-size: 13px;
+  padding: 5px 8px;
+}
+.lang-table input[type="number"] { width: 70px; }
+.lang-table .lang-name-input { width: 130px; }
+
+.btn-sm {
+  font-family: var(--font-body);
+  font-size: 12px;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--white);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.btn-sm:hover { border-color: var(--teal); color: var(--teal); }
+.btn-sm.danger:hover { border-color: var(--red); color: var(--red); }
+
+/* ── ACTION BUTTONS ── */
+.btn-primary {
+  font-family: var(--font-body);
+  font-size: 14px;
+  padding: 10px 28px;
+  background: var(--teal);
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  letter-spacing: .3px;
+  transition: background .15s;
+}
+.btn-primary:hover { background: var(--teal-dark); }
+.btn-primary:disabled { background: #b0b0b0; cursor: not-allowed; }
+.btn-secondary {
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: 8px 20px;
+  background: transparent;
+  color: var(--teal);
+  border: 1px solid var(--teal);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.btn-secondary:hover { background: var(--teal); color: #fff; }
+
+/* ── DOMAIN GRID ── */
+.domain-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 24px 0;
+}
+.domain-cell {
+  padding: 20px;
+  background: var(--white);
+  border: 2px solid var(--border);
+  border-radius: 4px;
+  text-align: center;
+}
+.domain-cell h4 {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  margin-bottom: 8px;
+  color: var(--text);
+  font-weight: normal;
+}
+.domain-cell .domain-score {
+  font-family: var(--font-data);
+  font-size: 28px;
+  font-weight: bold;
+  margin: 8px 0;
+}
+.domain-cell.strong { border-color: var(--green); }
+.domain-cell.moderate { border-color: var(--amber); }
+.domain-cell.risk { border-color: var(--red); }
+
+/* ── CHART ── */
+.chart-wrap {
+  max-width: 600px;
+  margin: 20px 0;
+}
+
+/* ── ACTION PLAN ── */
+.action-item {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+.action-item:last-child { border-bottom: none; }
+.action-priority {
+  font-family: var(--font-data);
+  font-size: 11px;
+  letter-spacing: .5px;
+  margin-bottom: 6px;
+}
+.action-priority.high { color: var(--red); }
+.action-priority.medium { color: var(--amber); }
+.action-priority.low { color: var(--green); }
+.action-item h4 {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: normal;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.action-item p { font-size: 13px; color: var(--text-secondary); margin-bottom: 4px; }
+.action-meta {
+  font-family: var(--font-data);
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 8px;
+}
+
+/* ── RESOURCE LINKS ── */
+.resource-list { list-style: none; }
+.resource-list li {
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+  font-size: 13px;
+}
+.resource-list li:last-child { border-bottom: none; }
+.resource-list a { color: var(--teal); }
+
+/* ── STATIC INFO BLOCKS ── */
+.info-band {
+  background: var(--teal-bg);
+  padding: 20px 24px;
+  border-radius: 4px;
+  margin: 20px 0;
+  font-size: 13px;
+  line-height: 1.65;
+}
+.info-band strong { color: var(--teal-dark); }
+
+/* ── FOOTER ── */
+.site-footer {
+  background: var(--teal-dark);
+  color: rgba(255,255,255,.7);
+  text-align: center;
+  padding: 24px 32px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* ── CHECKBOX GRID (materials) ── */
+.materials-grid {
+  display: grid;
+  grid-template-columns: 140px repeat(3, 80px);
+  gap: 4px 8px;
+  font-size: 12px;
+  align-items: center;
+  margin-top: 8px;
+}
+.materials-grid .mg-header {
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  color: var(--text-secondary);
+  font-size: 10px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+.materials-grid label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text);
+  font-size: 12px;
+  cursor: pointer;
+}
+.materials-grid input[type="checkbox"] { width: auto; accent-color: var(--teal); }
+
+/* ── SUMMARY PARAGRAPH ── */
+.summary-para {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text);
+  margin: 20px 0;
+}
+
+/* ── LOADING DEMO ── */
+.demo-bar {
+  background: var(--amber-light);
+  padding: 10px 24px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--amber);
+}
+.demo-bar button {
+  background: var(--amber);
+  color: #fff;
+  border: none;
+  padding: 4px 14px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 12px;
+  margin-left: 8px;
+}
+.demo-bar button:hover { opacity: .85; }
+
+/* ── CONTENTEDITABLE ── */
+[contenteditable="true"]:focus {
+  outline: 2px solid var(--teal-light);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ── PRINT ── */
+@media print {
+  .sticky-header, .demo-bar, .btn-primary, .btn-secondary, .btn-sm,
+  .guidance-toggle, .toggle-group, nav, #module1, #module2,
+  .no-print { display: none !important; }
+  body { font-size: 12px; }
+  .section { padding: 16px 0; page-break-inside: avoid; }
+  h2 { page-break-after: avoid; }
+  .action-item { page-break-inside: avoid; }
+  .info-band { background: #eee !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .pill { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .sticky-header { padding: 0 12px; height: 56px; gap: 10px; }
+  .header-title { display: none; }
+  .sticky-header nav a { font-size: 11px; padding: 4px 8px; }
+  .section { padding: 24px 16px; }
+  .domain-grid { grid-template-columns: 1fr; }
+  .field-row { flex-direction: column; }
+  .audit-q-row { flex-wrap: wrap; }
+  .materials-grid { grid-template-columns: 120px repeat(3, 60px); font-size: 11px; }
+}
+</style>
+</head>
+<body>
+
+<!-- STICKY HEADER -->
+<header class="sticky-header" role="banner">
+  <div class="gauge-wrap" aria-label="Overall compliance score gauge">
+    <svg id="gaugeRing" viewBox="0 0 48 48" width="48" height="48">
+      <circle cx="24" cy="24" r="20" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="5"/>
+      <circle id="gaugeArc" cx="24" cy="24" r="20" fill="none" stroke="#fff" stroke-width="5"
+        stroke-dasharray="0 126" stroke-linecap="round"
+        transform="rotate(-90 24 24)"/>
+    </svg>
+  </div>
+  <span class="score-text" id="headerScore" aria-live="polite">--%</span>
+  <span class="header-title">Language Access Audit</span>
+  <nav aria-label="Section navigation">
+    <a href="#module1">1. Profile</a>
+    <a href="#module2">2. Assessment</a>
+    <a href="#module3">3. Action Plan</a>
+  </nav>
+</header>
+
+<!-- DEMO BAR -->
+<div class="demo-bar no-print" id="demoBar">
+  Start a new assessment or
+  <button onclick="loadDemo()">Load Example Clinic</button>
+  <button onclick="clearAll()" style="background:transparent;color:var(--amber);border:1px solid var(--amber);">Clear All</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- MODULE 1: LANGUAGE PROFILE BUILDER                -->
+<!-- ═══════════════════════════════════════════════════ -->
+<section class="section" id="module1">
+  <h2>1. Language Profile Builder</h2>
+
+  <h3>Clinic Information</h3>
+  <div class="field-row">
+    <div>
+      <label for="clinicName">Clinic Name (optional)</label>
+      <input type="text" id="clinicName" placeholder="e.g., Southside Community Health">
+    </div>
+    <div>
+      <label for="clinicType">Clinic Type</label>
+      <select id="clinicType">
+        <option value="">-- Select --</option>
+        <option value="primary">Primary Care</option>
+        <option value="urgent">Urgent Care</option>
+        <option value="specialty">Specialty</option>
+        <option value="chc">Community Health Center</option>
+        <option value="hospital_op">Hospital Outpatient</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+  </div>
+  <div class="field-row">
+    <div>
+      <label for="annualVisits">Total Annual Patient Visits</label>
+      <input type="number" id="annualVisits" min="0" placeholder="e.g., 12000">
+    </div>
+    <div>
+      <label for="lepPct">Estimated % LEP Patients</label>
+      <input type="number" id="lepPct" min="0" max="100" placeholder="e.g., 28">
+    </div>
+  </div>
+
+  <h3>Language Breakdown</h3>
+  <p style="font-size:12px;color:var(--text-secondary);margin-bottom:8px;">
+    Enter up to 8 languages. Percentages should approximate 100% of your LEP population.
+  </p>
+  <table class="lang-table" id="langTable">
+    <thead>
+      <tr>
+        <th>Language</th>
+        <th>% of LEP</th>
+        <th>Acuity (1-5)</th>
+        <th>Staff Interp.</th>
+        <th>Contract Interp.</th>
+        <th>Lead Time</th>
+        <th>VRI</th>
+        <th>Bilingual Staff</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="langBody"></tbody>
+  </table>
+  <button class="btn-sm" style="margin-top:8px;" onclick="addLangRow('')" id="addLangBtn">+ Add Language</button>
+
+  <h3 style="margin-top:28px;">Clinic-Wide Interpreter Resources</h3>
+  <div class="field-row">
+    <div>
+      <label for="hasVRI">Video Remote Interpreting (VRI)?</label>
+      <select id="hasVRI">
+        <option value="no">No</option>
+        <option value="yes">Yes</option>
+      </select>
+    </div>
+    <div>
+      <label for="vriVendor">VRI Vendor (if any)</label>
+      <input type="text" id="vriVendor" placeholder="e.g., LanguageLine">
+    </div>
+    <div>
+      <label for="hasOPI">Over-the-Phone Interpretation?</label>
+      <select id="hasOPI">
+        <option value="no">No</option>
+        <option value="yes">Yes</option>
+      </select>
+    </div>
+    <div>
+      <label for="opi247">OPI Available 24/7?</label>
+      <select id="opi247">
+        <option value="no">No</option>
+        <option value="yes">Yes</option>
+      </select>
+    </div>
+  </div>
+  <div class="field-row">
+    <div>
+      <label for="langScreen">Screen language preference at registration?</label>
+      <select id="langScreen">
+        <option value="no">No</option>
+        <option value="yes">Yes</option>
+        <option value="sometimes">Sometimes</option>
+      </select>
+    </div>
+    <div>
+      <label for="chartDoc">Interpreter requests documented in chart?</label>
+      <select id="chartDoc">
+        <option value="no">No</option>
+        <option value="yes">Yes</option>
+        <option value="sometimes">Sometimes</option>
+      </select>
+    </div>
+  </div>
+
+  <h3 style="margin-top:28px;">Translated Materials</h3>
+  <p style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">
+    Check which documents exist in each language.
+  </p>
+  <div id="materialsArea"></div>
+
+  <div style="margin-top:28px;">
+    <button class="btn-primary" onclick="buildProfile()">Build Language Profile</button>
+  </div>
+
+  <!-- PROFILE SUMMARY (rendered after build) -->
+  <div id="profileSummary" style="display:none;margin-top:32px;">
+    <h3>Language Profile Summary</h3>
+    <div id="profileStats" style="font-family:var(--font-data);font-size:13px;margin-bottom:16px;"></div>
+    <div id="coverageList" style="margin-bottom:16px;"></div>
+    <div class="chart-wrap">
+      <canvas id="lepChart" height="200" aria-label="LEP visit volume by language"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- MODULE 2: COMPLIANCE RISK ASSESSMENT              -->
+<!-- ═══════════════════════════════════════════════════ -->
+<section class="section section-alt" id="module2">
+  <h2>2. Compliance Risk Assessment</h2>
+  <p id="mod2Lock" style="color:var(--text-secondary);font-size:13px;">
+    Complete the Language Profile above, then return here to assess compliance.
+  </p>
+
+  <div id="mod2Content" style="display:none;">
+
+    <!-- DOMAIN A -->
+    <h3>Domain A — Civil Rights Compliance (Title VI / Section 1557)</h3>
+    <div id="domainA"></div>
+
+    <!-- DOMAIN B -->
+    <h3 style="margin-top:32px;">Domain B — Clinical Safety Coverage</h3>
+    <p style="font-size:12px;color:var(--text-secondary);margin-bottom:8px;">
+      Calculated automatically from your Language Profile data.
+    </p>
+    <div id="domainB"></div>
+
+    <!-- DOMAIN C -->
+    <h3 style="margin-top:32px;">Domain C — Documentation and Accountability</h3>
+    <div id="domainC"></div>
+
+    <!-- DOMAIN D -->
+    <h3 style="margin-top:32px;">Domain D — Translated Materials</h3>
+    <p style="font-size:12px;color:var(--text-secondary);margin-bottom:8px;">
+      Calculated from materials you indicated in the Language Profile.
+    </p>
+    <div id="domainD"></div>
+
+    <div style="margin-top:28px;">
+      <button class="btn-primary" onclick="runAssessment()">Score Assessment</button>
+    </div>
+
+    <!-- RESULTS DASHBOARD -->
+    <div id="riskDashboard" style="display:none;margin-top:32px;">
+      <h3>Overall Risk Dashboard</h3>
+      <div class="domain-grid" id="domainGrid"></div>
+      <div class="summary-para" id="summaryPara"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- MODULE 3: ACTION PLAN GENERATOR                   -->
+<!-- ═══════════════════════════════════════════════════ -->
+<section class="section" id="module3">
+  <h2>3. Action Plan</h2>
+  <p id="mod3Lock" style="color:var(--text-secondary);font-size:13px;">
+    Complete the Risk Assessment above to generate your Action Plan.
+  </p>
+
+  <div id="mod3Content" style="display:none;">
+    <div class="field-row" style="margin-bottom:20px;">
+      <div>
+        <label for="preparedBy">Prepared By (optional)</label>
+        <input type="text" id="preparedBy" placeholder="Name / Title">
+      </div>
+      <div>
+        <label for="planDate">Date</label>
+        <input type="text" id="planDate">
+      </div>
+    </div>
+
+    <div id="actionPlanBody"></div>
+
+    <!-- SF2043 CONTEXT -->
+    <div class="info-band" style="margin-top:32px;">
+      <strong>Legislative Context — SF2043 Work Group</strong><br>
+      The Minnesota Legislature's 2025 session established a Spoken Language Health Care
+      Interpreter Work Group through SF2043 (chief author: Sen. Melissa H. Wiklund, SD-51).
+      The 15-member group — which includes interpreters, LEP patients, health plans, health
+      systems, interpreter agencies, MDH, DHS, training programs, and hospital representation —
+      is developing recommendations on interpreter workforce, quality standards, and payment.
+      Clinics that document their language access gaps and improvement efforts now will be
+      better positioned to respond to any standards or requirements that emerge from the
+      work group's report.
+    </div>
+
+    <!-- MN INTERPRETER ROSTER NOTICE -->
+    <div class="info-band">
+      <strong>Minnesota Interpreter Roster</strong><br>
+      <!-- VERIFY: URL from software brief — not independently confirmed -->
+      Minnesota maintains a voluntary statewide Spoken Language Health Care Interpreter Roster
+      administered by the Minnesota Department of Health (MDH) under Minn. Stat. 144.058.
+      Roster-listed interpreters have met minimum competency standards. When contracting with
+      interpreter agencies or individual contractors, ask whether their interpreters hold MDH
+      roster certification. Roster information:
+      <a href="https://www.health.state.mn.us/facilities/providers/interpreter" target="_blank" rel="noopener">
+        www.health.state.mn.us/facilities/providers/interpreter</a>
+    </div>
+
+    <!-- RESOURCES -->
+    <h3 style="margin-top:28px;">Resources and Next Steps</h3>
+    <ul class="resource-list">
+      <!-- VERIFY: URLs from software brief — not independently confirmed -->
+      <li><a href="https://www.health.state.mn.us/communities/rih/topics/language.html" target="_blank" rel="noopener">
+        Minnesota Department of Health — Language Access</a></li>
+      <li><a href="https://mn.gov/dhs/general-public/about-dhs/lep/lep-resources.jsp" target="_blank" rel="noopener">
+        Minnesota Dept. of Human Services — LEP Resources</a></li>
+      <li><a href="https://www.hhs.gov/civil-rights/for-individuals/section-1557/" target="_blank" rel="noopener">
+        HHS Office for Civil Rights — Section 1557 (ACA)</a></li>
+      <li><a href="https://www.healthlaw.org" target="_blank" rel="noopener">
+        National Health Law Program — Language Access in Health Care</a></li>
+      <li><a href="https://www.mnachc.org" target="_blank" rel="noopener">
+        Minnesota Association of Community Health Centers</a></li>
+    </ul>
+
+    <div style="margin-top:28px;" class="no-print">
+      <button class="btn-primary" onclick="window.print()">Print Action Plan</button>
+      <button class="btn-secondary" style="margin-left:8px;" onclick="saveToStorage()">Save Progress</button>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  A resource for health care administrators in diverse communities.<br>
+  Built with AI for Senator Melissa H. Wiklund, SD-51.<br>
+  Reflects Minnesota interpreter standards and federal requirements as of 2025. Not legal advice.
+</footer>
+
+<script>
+/* ═══════════════════════════════════════════════════════ */
+/* STATE                                                   */
+/* ═══════════════════════════════════════════════════════ */
+let profileData = null;
+let assessmentData = null;
+let lepChart = null;
+const MAX_LANGS = 8;
+
+const DOMAIN_A_ITEMS = [
+  { id:'a1', text:'Clinic has a written Language Access Plan (LAP).', yes:2, partial:0, no:0, hasPartial:false,
+    guidance:'A Language Access Plan documents how your clinic identifies LEP patients, provides interpreter services, trains staff, and monitors compliance. It is a core Title VI requirement for federally funded providers.' },
+  { id:'a2', text:'LAP has been updated within the last 2 years.', yes:1, partial:0, no:0, hasPartial:false,
+    guidance:'An outdated LAP may not reflect current patient demographics, available interpreter resources, or regulatory changes.' },
+  { id:'a3', text:'Clinic provides written notice to patients of free interpreter services, in the top 3 LEP languages in the service area.', yes:2, partial:1, no:0, hasPartial:true,
+    guidance:'Under Title VI and Section 1557, clinics must inform LEP patients that interpreter services are available at no cost. "Partial" means notices exist but not in all top languages.' },
+  { id:'a4', text:'Interpreters used are qualified professionals — not untrained family members or minors.', yes:2, partial:1, no:0, hasPartial:true,
+    guidance:'Using family members (especially minors) as medical interpreters creates patient safety risks and may violate federal guidance. "Partial" means this is the policy but exceptions occur.' },
+  { id:'a5', text:'Clinic has a grievance procedure for LEP patients.', yes:1, partial:0, no:0, hasPartial:false,
+    guidance:'Patients should have a clear way to report language access failures. This is an OCR audit element.' },
+  { id:'a6', text:'Staff have received training on language access policies within the last 2 years.', yes:2, partial:1, no:0, hasPartial:true,
+    guidance:'Training should cover how to identify LEP patients, how to access interpreter services, and what NOT to do (e.g., asking a child to interpret). "Partial" means some staff trained, not all.' }
+];
+
+const DOMAIN_C_ITEMS = [
+  { id:'c1', text:'Interpreter use is documented in patient charts.', yes:2, partial:1, no:0, hasPartial:true,
+    guidance:'Chart documentation creates an audit trail and helps track utilization. "Sometimes" suggests inconsistent practice.' },
+  { id:'c2', text:'Language preference is collected at registration and stored in the record.', yes:2, partial:1, no:0, hasPartial:true,
+    guidance:'Systematic collection at registration ensures the information is available before clinical encounters.' },
+  { id:'c3', text:'Clinic tracks interpreter no-shows or service gaps.', yes:1, partial:0, no:0, hasPartial:false,
+    guidance:'Tracking failures helps identify unreliable vendors and patterns that put patients at risk.' },
+  { id:'c4', text:'Annual review of interpreter service costs and utilization exists.', yes:1, partial:0, no:0, hasPartial:false,
+    guidance:'Cost and utilization data supports budget planning and demonstrates compliance effort to regulators.' },
+  { id:'c5', text:'Patient complaints about language access are tracked.', yes:1, partial:0, no:0, hasPartial:false,
+    guidance:'Complaint tracking is both a quality improvement tool and an OCR audit element.' }
+];
+
+/* ═══════════════════════════════════════════════════════ */
+/* INIT                                                    */
+/* ═══════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  const defaults = ['Spanish','Somali','Hmong','Oromo'];
+  defaults.forEach(l => addLangRow(l));
+  renderDomainChecklist('domainA', DOMAIN_A_ITEMS);
+  renderDomainChecklist('domainC', DOMAIN_C_ITEMS);
+  document.getElementById('planDate').value = new Date().toISOString().slice(0,10);
+  tryLoadStorage();
+  updateGauge(null);
+});
+
+/* ═══════════════════════════════════════════════════════ */
+/* LANGUAGE TABLE                                          */
+/* ═══════════════════════════════════════════════════════ */
+function addLangRow(name) {
+  const tbody = document.getElementById('langBody');
+  if (tbody.rows.length >= MAX_LANGS) return;
+  const r = tbody.insertRow();
+  r.innerHTML = `
+    <td><input type="text" class="lang-name-input" value="${name}" placeholder="Language"></td>
+    <td><input type="number" class="lang-pct" min="0" max="100" placeholder="%"></td>
+    <td><select class="lang-acuity">
+      <option value="1">1</option><option value="2">2</option><option value="3" selected>3</option>
+      <option value="4">4</option><option value="5">5</option>
+    </select></td>
+    <td><select class="lang-staff"><option value="no">No</option><option value="yes">Yes</option></select></td>
+    <td><select class="lang-contract"><option value="no">No</option><option value="yes">Yes</option></select></td>
+    <td><select class="lang-lead">
+      <option value="same">Same-day</option><option value="next">Next-day</option><option value="2plus">2+ days</option>
+    </select></td>
+    <td><select class="lang-vri"><option value="no">No</option><option value="yes">Yes</option></select></td>
+    <td><select class="lang-bilingual"><option value="no">No</option><option value="yes">Yes</option></select></td>
+    <td><button class="btn-sm danger" onclick="this.closest('tr').remove();rebuildMaterials();">X</button></td>
+  `;
+  r.querySelector('.lang-name-input').addEventListener('input', rebuildMaterials);
+  rebuildMaterials();
+  if (tbody.rows.length >= MAX_LANGS) document.getElementById('addLangBtn').disabled = true;
+}
+
+function rebuildMaterials() {
+  const names = getLangNames();
+  const area = document.getElementById('materialsArea');
+  if (!names.length) { area.innerHTML = '<p style="font-size:12px;color:var(--text-secondary);">Add languages above first.</p>'; return; }
+  let h = `<div class="materials-grid">
+    <div class="mg-header">Language</div>
+    <div class="mg-header">Intake</div>
+    <div class="mg-header">Consent</div>
+    <div class="mg-header">Discharge</div>`;
+  names.forEach((n, i) => {
+    h += `<div>${n}</div>`;
+    ['intake','consent','discharge'].forEach(t => {
+      h += `<label><input type="checkbox" class="mat-cb" data-lang="${i}" data-type="${t}"> Yes</label>`;
+    });
+  });
+  h += '</div>';
+  area.innerHTML = h;
+}
+
+function getLangNames() {
+  return Array.from(document.querySelectorAll('.lang-name-input'))
+    .map(i => i.value.trim()).filter(Boolean);
+}
+
+function getLangRows() {
+  const rows = [];
+  document.querySelectorAll('#langBody tr').forEach(tr => {
+    const name = tr.querySelector('.lang-name-input').value.trim();
+    if (!name) return;
+    rows.push({
+      name,
+      pct: parseFloat(tr.querySelector('.lang-pct').value) || 0,
+      acuity: parseInt(tr.querySelector('.lang-acuity').value),
+      hasStaff: tr.querySelector('.lang-staff').value === 'yes',
+      hasContract: tr.querySelector('.lang-contract').value === 'yes',
+      leadTime: tr.querySelector('.lang-lead').value,
+      hasVRI: tr.querySelector('.lang-vri').value === 'yes',
+      hasBilingual: tr.querySelector('.lang-bilingual').value === 'yes'
+    });
+  });
+  return rows;
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* BUILD PROFILE                                           */
+/* ═══════════════════════════════════════════════════════ */
+function buildProfile() {
+  const totalVisits = parseInt(document.getElementById('annualVisits').value) || 0;
+  const lepPct = parseFloat(document.getElementById('lepPct').value) || 0;
+  const langs = getLangRows();
+
+  if (!totalVisits || !lepPct || !langs.length) {
+    alert('Please enter annual visits, LEP percentage, and at least one language.');
+    return;
+  }
+
+  const lepTotal = Math.round(totalVisits * lepPct / 100);
+  const globalVRI = document.getElementById('hasVRI').value === 'yes';
+  const globalOPI = document.getElementById('hasOPI').value === 'yes';
+
+  langs.forEach(l => {
+    l.visits = Math.round(lepTotal * l.pct / 100);
+    const hasInPerson = l.hasStaff || (l.hasContract && l.leadTime === 'same');
+    const hasVRI = l.hasVRI || globalVRI;
+    if (hasInPerson || hasVRI) {
+      l.coverage = 'COVERED';
+    } else if (globalOPI || l.hasContract) {
+      l.coverage = 'PARTIAL';
+    } else if (l.hasBilingual) {
+      l.coverage = 'GAP';
+      l.coverageNote = 'untrained bilingual staff is not a compliant interpreter service';
+    } else {
+      l.coverage = 'GAP';
+      l.coverageNote = 'no interpreter service identified';
+    }
+    l.hasSameDayAccess = hasInPerson || hasVRI;
+  });
+
+  langs.sort((a, b) => b.visits - a.visits);
+
+  // Materials
+  const matCbs = document.querySelectorAll('.mat-cb');
+  const materials = {};
+  const names = getLangNames();
+  names.forEach((n, i) => { materials[n] = { intake: false, consent: false, discharge: false }; });
+  matCbs.forEach(cb => {
+    const idx = parseInt(cb.dataset.lang);
+    const nm = names[idx];
+    if (nm && materials[nm]) materials[nm][cb.dataset.type] = cb.checked;
+  });
+
+  profileData = {
+    clinicName: document.getElementById('clinicName').value.trim() || 'Unnamed Clinic',
+    clinicType: document.getElementById('clinicType').value,
+    totalVisits, lepPct, lepTotal, langs, materials,
+    globalVRI, globalOPI,
+    opi247: document.getElementById('opi247').value === 'yes',
+    langScreen: document.getElementById('langScreen').value,
+    chartDoc: document.getElementById('chartDoc').value
+  };
+
+  renderProfileSummary();
+  document.getElementById('mod2Lock').style.display = 'none';
+  document.getElementById('mod2Content').style.display = 'block';
+  renderDomainB();
+  renderDomainD();
+  saveToStorage();
+}
+
+function renderProfileSummary() {
+  const d = profileData;
+  document.getElementById('profileSummary').style.display = 'block';
+  const top3 = d.langs.slice(0, 3);
+
+  let statsHtml = `LEP visits/year: <strong>${d.lepTotal.toLocaleString()}</strong> (${d.lepPct}% of ${d.totalVisits.toLocaleString()} total)<br>`;
+  statsHtml += 'Top languages: ' + top3.map(l =>
+    `<span style="display:inline-block;background:var(--teal);color:#fff;padding:2px 8px;border-radius:10px;margin-right:4px;font-size:11px;">${l.name} (${l.visits.toLocaleString()})</span>`
+  ).join(' ');
+  document.getElementById('profileStats').innerHTML = statsHtml;
+
+  let covHtml = '';
+  d.langs.forEach(l => {
+    const pillClass = l.coverage === 'COVERED' ? 'pill-covered' : l.coverage === 'PARTIAL' ? 'pill-partial' : 'pill-gap';
+    const note = l.coverageNote ? ' — ' + l.coverageNote : '';
+    covHtml += `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;">
+      <span style="width:110px;font-size:13px;">${l.name}</span>
+      <span class="pill ${pillClass}">${l.coverage}</span>
+      <span style="font-size:12px;color:var(--text-secondary);">${l.visits.toLocaleString()} visits/yr${note}</span>
+    </div>`;
+  });
+  document.getElementById('coverageList').innerHTML = covHtml;
+
+  // Chart
+  const ctx = document.getElementById('lepChart').getContext('2d');
+  if (lepChart) lepChart.destroy();
+  lepChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: d.langs.map(l => l.name),
+      datasets: [{
+        label: 'Estimated annual LEP visits',
+        data: d.langs.map(l => l.visits),
+        backgroundColor: d.langs.map((_, i) => i === 0 ? '#00897b' : '#b2dfdb'),
+        borderRadius: 2
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      animation: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { title: { display: true, text: 'Estimated annual LEP visits', font: { family: 'Tahoma' } }, grid: { color: '#e8e8e8' } },
+        y: { grid: { display: false } }
+      }
+    }
+  });
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* DOMAIN CHECKLISTS                                       */
+/* ═══════════════════════════════════════════════════════ */
+function renderDomainChecklist(containerId, items) {
+  const c = document.getElementById(containerId);
+  let h = '';
+  items.forEach((item, idx) => {
+    const btns = item.hasPartial
+      ? `<button onclick="setToggle(this,'yes')" data-val="yes">Yes</button><button onclick="setToggle(this,'partial')" data-val="partial">Partial</button><button onclick="setToggle(this,'no')" data-val="no">No</button>`
+      : `<button onclick="setToggle(this,'yes')" data-val="yes">Yes</button><button onclick="setToggle(this,'no')" data-val="no">No</button>`;
+    h += `<div class="audit-q" data-qid="${item.id}">
+      <div class="audit-q-row">
+        <span class="audit-q-num">${String(idx + 1).padStart(2, '0')}</span>
+        <span class="audit-q-text">${item.text}</span>
+        <div class="toggle-group">${btns}</div>
+      </div>
+      <button class="guidance-toggle" onclick="this.nextElementSibling.classList.toggle('open')">Show guidance</button>
+      <div class="guidance-panel">${item.guidance}</div>
+    </div>`;
+  });
+  c.innerHTML = h;
+}
+
+function setToggle(btn, val) {
+  const grp = btn.parentElement;
+  grp.querySelectorAll('button').forEach(b => b.className = '');
+  if (val === 'yes') btn.className = 'sel-yes';
+  else if (val === 'partial') btn.className = 'sel-partial';
+  else btn.className = 'sel-no';
+  grp.dataset.value = val;
+}
+
+function getChecklistScore(containerId, items) {
+  let score = 0;
+  items.forEach(item => {
+    const q = document.querySelector(`#${containerId} [data-qid="${item.id}"]`);
+    const val = q?.querySelector('.toggle-group')?.dataset.value;
+    if (val === 'yes') score += item.yes;
+    else if (val === 'partial') score += (item.partial || 0);
+  });
+  return score;
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* DOMAIN B (auto-calculated)                              */
+/* ═══════════════════════════════════════════════════════ */
+function renderDomainB() {
+  if (!profileData) return;
+  const d = profileData;
+  const highAcuity = d.langs.filter(l => l.acuity >= 4);
+  const topLang = d.langs[0];
+  let lines = [];
+
+  if (highAcuity.length) {
+    const covered = highAcuity.filter(l => l.hasSameDayAccess);
+    const uncovered = highAcuity.filter(l => !l.hasSameDayAccess);
+    if (uncovered.length === 0) {
+      lines.push('<span class="pill pill-strong">STRONG</span> All high-acuity languages have same-day in-person or VRI access.');
+    } else if (covered.length > 0) {
+      lines.push(`<span class="pill pill-moderate">MODERATE</span> Same-day access exists for some high-acuity languages but not: ${uncovered.map(l=>l.name).join(', ')}.`);
+    } else {
+      lines.push(`<span class="pill pill-risk">AT RISK</span> No same-day interpreter access for high-acuity languages: ${uncovered.map(l=>l.name).join(', ')}.`);
+    }
+  } else {
+    lines.push('<span class="pill pill-covered">OK</span> No languages rated high-acuity (4-5).');
+  }
+
+  if (topLang) {
+    if (topLang.hasSameDayAccess) {
+      lines.push(`<span class="pill pill-strong">STRONG</span> Same-day access for top language (${topLang.name}).`);
+    } else if (topLang.hasContract && topLang.leadTime === 'next') {
+      lines.push(`<span class="pill pill-moderate">MODERATE</span> Next-day access for top language (${topLang.name}) — not same-day.`);
+    } else {
+      lines.push(`<span class="pill pill-risk">AT RISK</span> No same-day access for top language (${topLang.name}).`);
+    }
+  }
+
+  if (d.opi247) {
+    lines.push('<span class="pill pill-strong">STRONG</span> OPI available 24/7 for after-hours urgent needs.');
+  } else if (d.globalOPI) {
+    lines.push('<span class="pill pill-moderate">MODERATE</span> OPI available but not 24/7.');
+  } else {
+    lines.push('<span class="pill pill-risk">AT RISK</span> No over-the-phone interpretation available.');
+  }
+
+  document.getElementById('domainB').innerHTML = lines.map(l => `<div style="padding:6px 0;">${l}</div>`).join('');
+}
+
+function scoreDomainB() {
+  if (!profileData) return { score: 0, band: 'AT RISK' };
+  const d = profileData;
+  let pts = 0; let max = 0;
+  const highAcuity = d.langs.filter(l => l.acuity >= 4);
+  if (highAcuity.length) {
+    max += 2;
+    const allCovered = highAcuity.every(l => l.hasSameDayAccess);
+    const someCovered = highAcuity.some(l => l.hasSameDayAccess);
+    if (allCovered) pts += 2;
+    else if (someCovered) pts += 1;
+  }
+  if (d.langs[0]) {
+    max += 2;
+    if (d.langs[0].hasSameDayAccess) pts += 2;
+    else if (d.langs[0].hasContract && d.langs[0].leadTime === 'next') pts += 1;
+  }
+  max += 1;
+  if (d.opi247) pts += 1;
+  const pct = max > 0 ? pts / max : 0;
+  let band = pct >= 0.75 ? 'STRONG' : pct >= 0.4 ? 'MODERATE' : 'AT RISK';
+  return { score: pts, max, band };
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* DOMAIN D (auto-calculated from materials)               */
+/* ═══════════════════════════════════════════════════════ */
+function renderDomainD() {
+  if (!profileData) return;
+  const top3 = profileData.langs.slice(0, 3);
+  const mats = profileData.materials;
+  let h = '';
+  top3.forEach(l => {
+    const m = mats[l.name] || { intake: false, consent: false, discharge: false };
+    const count = (m.intake ? 1 : 0) + (m.consent ? 1 : 0) + (m.discharge ? 1 : 0);
+    const pillClass = count === 3 ? 'pill-strong' : count >= 1 ? 'pill-moderate' : 'pill-risk';
+    const pillLabel = count === 3 ? 'COMPLETE' : count >= 1 ? 'PARTIAL' : 'NONE';
+    h += `<div style="padding:6px 0;display:flex;align-items:center;gap:10px;">
+      <span style="width:110px;font-size:13px;">${l.name}</span>
+      <span class="pill ${pillClass}">${pillLabel}</span>
+      <span style="font-size:12px;color:var(--text-secondary);">${count}/3 document types translated</span>
+    </div>`;
+  });
+  document.getElementById('domainD').innerHTML = h;
+}
+
+function scoreDomainD() {
+  if (!profileData) return { score: 0, band: 'AT RISK' };
+  const top3 = profileData.langs.slice(0, 3);
+  const mats = profileData.materials;
+  let score = 0;
+  top3.forEach(l => {
+    const m = mats[l.name] || {};
+    if (m.intake) score++;
+    if (m.consent) score++;
+    if (m.discharge) score++;
+  });
+  const band = score >= 8 ? 'STRONG' : score >= 5 ? 'MODERATE' : 'AT RISK';
+  return { score, max: 9, band };
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* RUN ASSESSMENT                                          */
+/* ═══════════════════════════════════════════════════════ */
+function runAssessment() {
+  const scoreA = getChecklistScore('domainA', DOMAIN_A_ITEMS);
+  const bandA = scoreA >= 8 ? 'STRONG' : scoreA >= 5 ? 'MODERATE' : 'AT RISK';
+  const domB = scoreDomainB();
+  const scoreC = getChecklistScore('domainC', DOMAIN_C_ITEMS);
+  const bandC = scoreC >= 6 ? 'STRONG' : scoreC >= 3 ? 'MODERATE' : 'AT RISK';
+  const domD = scoreDomainD();
+
+  assessmentData = {
+    a: { score: scoreA, max: 10, band: bandA, label: 'Civil Rights Compliance' },
+    b: { score: domB.score, max: domB.max, band: domB.band, label: 'Clinical Safety Coverage' },
+    c: { score: scoreC, max: 7, band: bandC, label: 'Documentation & Accountability' },
+    d: { score: domD.score, max: domD.max, band: domD.band, label: 'Translated Materials' }
+  };
+
+  renderDashboard();
+  document.getElementById('mod3Lock').style.display = 'none';
+  document.getElementById('mod3Content').style.display = 'block';
+  generateActionPlan();
+  saveToStorage();
+}
+
+function renderDashboard() {
+  const grid = document.getElementById('domainGrid');
+  let h = '';
+  ['a','b','c','d'].forEach(k => {
+    const d = assessmentData[k];
+    const cls = d.band === 'STRONG' ? 'strong' : d.band === 'MODERATE' ? 'moderate' : 'risk';
+    const pillCls = d.band === 'STRONG' ? 'pill-strong' : d.band === 'MODERATE' ? 'pill-moderate' : 'pill-risk';
+    h += `<div class="domain-cell ${cls}">
+      <h4>${d.label}</h4>
+      <div class="domain-score">${d.score}/${d.max}</div>
+      <span class="pill ${pillCls}" role="status" aria-label="${d.label}: ${d.band}">${d.band}</span>
+    </div>`;
+  });
+  grid.innerHTML = h;
+  document.getElementById('riskDashboard').style.display = 'block';
+
+  // Summary paragraph
+  const atRisk = ['a','b','c','d'].filter(k => assessmentData[k].band === 'AT RISK').map(k => assessmentData[k].label);
+  const moderate = ['a','b','c','d'].filter(k => assessmentData[k].band === 'MODERATE').map(k => assessmentData[k].label);
+  let para = '';
+  if (atRisk.length) {
+    para += `Highest-priority gap: <strong>${atRisk[0]}</strong>.`;
+    if (profileData) {
+      const uncoveredHigh = profileData.langs.filter(l => l.acuity >= 4 && !l.hasSameDayAccess);
+      if (uncoveredHigh.length && atRisk.includes('Clinical Safety Coverage')) {
+        para += ` You identified ${uncoveredHigh.map(l=>l.name).join(' and ')} as high-acuity but lack same-day interpreter access. This creates both a patient safety risk and a Title VI compliance exposure.`;
+      }
+    }
+    if (atRisk.length > 1) para += ` Additional at-risk domains: ${atRisk.slice(1).join(', ')}.`;
+  }
+  if (moderate.length) para += ` Domains needing improvement: ${moderate.join(', ')}.`;
+  if (!atRisk.length && !moderate.length) para = 'All domains are rated STRONG. Maintain current practices and review annually.';
+  document.getElementById('summaryPara').innerHTML = para;
+
+  // Update gauge
+  const total = ['a','b','c','d'].reduce((s,k) => s + assessmentData[k].score, 0);
+  const max = ['a','b','c','d'].reduce((s,k) => s + assessmentData[k].max, 0);
+  updateGauge(max > 0 ? Math.round(total / max * 100) : 0);
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* GAUGE                                                   */
+/* ═══════════════════════════════════════════════════════ */
+function updateGauge(pct) {
+  const arc = document.getElementById('gaugeArc');
+  const txt = document.getElementById('headerScore');
+  if (pct === null) {
+    arc.setAttribute('stroke-dasharray', '0 126');
+    arc.setAttribute('stroke', 'rgba(255,255,255,.3)');
+    txt.textContent = '--%';
+    return;
+  }
+  const circ = 2 * Math.PI * 20; // ~125.66
+  const fill = circ * pct / 100;
+  arc.setAttribute('stroke-dasharray', `${fill} ${circ}`);
+  let color = pct > 80 ? '#4caf50' : pct >= 50 ? '#ff8f00' : '#ef5350';
+  arc.setAttribute('stroke', color);
+  txt.textContent = pct + '%';
+  txt.style.color = color;
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* ACTION PLAN GENERATOR                                   */
+/* ═══════════════════════════════════════════════════════ */
+function generateActionPlan() {
+  if (!assessmentData || !profileData) return;
+  const actions = [];
+  const d = profileData;
+
+  // Domain A actions
+  if (assessmentData.a.band === 'AT RISK') {
+    actions.push({ priority: 'HIGH', domain: 'Civil Rights',
+      title: 'Develop or update a written Language Access Plan (LAP)',
+      why: 'A LAP is the foundational document for Title VI compliance. Without one, your clinic cannot demonstrate a systematic approach to serving LEP patients.',
+      owner: 'Practice Manager', timeline: 'Immediate (within 30 days)' });
+  } else if (assessmentData.a.band === 'MODERATE') {
+    actions.push({ priority: 'MEDIUM', domain: 'Civil Rights',
+      title: 'Close gaps in civil rights compliance documentation',
+      why: 'Your clinic has some Title VI elements in place but missing components create audit vulnerability.',
+      owner: 'Practice Manager', timeline: 'Short-term (60-90 days)' });
+  } else {
+    actions.push({ priority: 'MAINTAIN', domain: 'Civil Rights',
+      title: 'Maintain current civil rights compliance practices',
+      why: 'Your documentation and procedures score well. Schedule an annual review to keep them current.',
+      owner: 'Practice Manager', timeline: 'Ongoing (annual review)' });
+  }
+
+  // Domain B actions
+  const uncoveredHigh = d.langs.filter(l => l.acuity >= 4 && !l.hasSameDayAccess);
+  if (assessmentData.b.band === 'AT RISK') {
+    const langList = uncoveredHigh.map(l => l.name).join(' and ') || d.langs[0]?.name || 'identified languages';
+    actions.push({ priority: 'HIGH', domain: 'Clinical Safety',
+      title: `Establish same-day Video Remote Interpreting (VRI) for ${langList}`,
+      why: `${langList} ${uncoveredHigh.length > 1 ? 'are' : 'is'} your highest-volume or highest-acuity LEP language${uncoveredHigh.length > 1 ? 's' : ''} without same-day interpreter access. Under Title VI and Section 1557 of the ACA, federally funded providers must ensure meaningful access for LEP patients. Same-day VRI is the most practical solution for clinic settings without on-staff interpreters.`,
+      owner: 'Practice Manager', timeline: 'Immediate (within 30 days)' });
+    if (!d.opi247 && d.globalOPI) {
+      actions.push({ priority: 'HIGH', domain: 'Clinical Safety',
+        title: 'Upgrade OPI service to 24/7 availability',
+        why: 'After-hours urgent encounters with LEP patients require immediate language access. Current OPI is not available around the clock.',
+        owner: 'Clinical Lead', timeline: 'Immediate (within 30 days)' });
+    }
+  } else if (assessmentData.b.band === 'MODERATE') {
+    actions.push({ priority: 'MEDIUM', domain: 'Clinical Safety',
+      title: 'Improve same-day interpreter coverage for high-acuity encounters',
+      why: 'Some high-acuity languages lack same-day access, creating clinical risk during complex visits.',
+      owner: 'Clinical Lead', timeline: 'Short-term (60-90 days)' });
+  } else {
+    actions.push({ priority: 'MAINTAIN', domain: 'Clinical Safety',
+      title: 'Maintain clinical safety interpreter coverage',
+      why: 'Current same-day access for high-acuity languages is adequate. Monitor for volume changes.',
+      owner: 'Clinical Lead', timeline: 'Ongoing' });
+  }
+
+  // Domain C actions
+  if (assessmentData.c.band === 'AT RISK') {
+    actions.push({ priority: 'HIGH', domain: 'Documentation',
+      title: 'Implement systematic documentation of interpreter use and language preference',
+      why: 'Without consistent documentation, you cannot track utilization, demonstrate compliance, or identify service gaps.',
+      owner: 'Front Desk Supervisor / IT', timeline: 'Immediate (within 30 days)' });
+  } else if (assessmentData.c.band === 'MODERATE') {
+    actions.push({ priority: 'MEDIUM', domain: 'Documentation',
+      title: 'Standardize documentation practices across all staff',
+      why: 'Inconsistent documentation ("sometimes") weakens your compliance posture and limits quality improvement.',
+      owner: 'Front Desk Supervisor', timeline: 'Short-term (60-90 days)' });
+  } else {
+    actions.push({ priority: 'MAINTAIN', domain: 'Documentation',
+      title: 'Continue documentation and accountability practices',
+      why: 'Your documentation practices are strong. Ensure new staff receive training on these procedures.',
+      owner: 'Front Desk Supervisor', timeline: 'Ongoing' });
+  }
+
+  // Domain D actions
+  if (assessmentData.d.band === 'AT RISK') {
+    const top3 = d.langs.slice(0, 3);
+    const missing = top3.filter(l => {
+      const m = d.materials[l.name] || {};
+      return !m.intake || !m.consent || !m.discharge;
+    }).map(l => l.name);
+    actions.push({ priority: 'HIGH', domain: 'Translated Materials',
+      title: `Translate intake, consent, and discharge forms for ${missing.join(', ')}`,
+      why: 'Patients who cannot read English-only consent and discharge forms face safety risks and your clinic faces liability exposure.',
+      owner: 'Practice Manager', timeline: 'Short-term (60-90 days)' });
+  } else if (assessmentData.d.band === 'MODERATE') {
+    actions.push({ priority: 'MEDIUM', domain: 'Translated Materials',
+      title: 'Complete translation of remaining document types for top languages',
+      why: 'Some key documents are translated but gaps remain. Prioritize consent forms (highest liability).',
+      owner: 'Practice Manager', timeline: 'Short-term (60-90 days)' });
+  } else {
+    actions.push({ priority: 'MAINTAIN', domain: 'Translated Materials',
+      title: 'Maintain translated materials and review annually',
+      why: 'Your top languages have full document coverage. Update translations when forms change.',
+      owner: 'Practice Manager', timeline: 'Ongoing' });
+  }
+
+  // Sort: HIGH first, then MEDIUM, then MAINTAIN
+  const order = { HIGH: 0, MEDIUM: 1, MAINTAIN: 2 };
+  actions.sort((a, b) => order[a.priority] - order[b.priority]);
+
+  // Render
+  let h = '';
+  // Executive summary
+  const clinicLabel = d.clinicType ? { primary:'Primary Care', urgent:'Urgent Care', specialty:'Specialty', chc:'Community Health Center', hospital_op:'Hospital Outpatient', other:'Other' }[d.clinicType] || d.clinicType : '';
+  h += `<h3>Clinic Profile Summary</h3>
+    <p contenteditable="true" class="summary-para">${d.clinicName} is a ${clinicLabel.toLowerCase()} facility with approximately ${d.totalVisits.toLocaleString()} annual patient visits. An estimated ${d.lepPct}% of patients (approximately ${d.lepTotal.toLocaleString()} visits per year) have limited English proficiency. The top languages spoken by LEP patients are ${d.langs.slice(0,3).map(l => l.name).join(', ')}.</p>`;
+
+  // Current state table
+  h += `<h3 style="margin-top:24px;">Current State Summary</h3>
+    <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:20px;">
+    <tr style="border-bottom:2px solid var(--teal);">
+      <th style="text-align:left;padding:8px 6px;font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--text-secondary);font-weight:normal;">Domain</th>
+      <th style="text-align:center;padding:8px 6px;font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--text-secondary);font-weight:normal;">Score</th>
+      <th style="text-align:center;padding:8px 6px;font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--text-secondary);font-weight:normal;">Status</th>
+      <th style="text-align:left;padding:8px 6px;font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--text-secondary);font-weight:normal;">Key Finding</th>
+    </tr>`;
+  ['a','b','c','d'].forEach(k => {
+    const ad = assessmentData[k];
+    const pillCls = ad.band === 'STRONG' ? 'pill-strong' : ad.band === 'MODERATE' ? 'pill-moderate' : 'pill-risk';
+    let finding = '';
+    if (ad.band === 'AT RISK') finding = 'Immediate attention needed.';
+    else if (ad.band === 'MODERATE') finding = 'Improvement opportunities identified.';
+    else finding = 'Meeting current standards.';
+    h += `<tr style="border-bottom:1px solid #e8e8e8;">
+      <td style="padding:8px 6px;">${ad.label}</td>
+      <td style="padding:8px 6px;text-align:center;font-family:var(--font-data);font-size:12px;">${ad.score}/${ad.max}</td>
+      <td style="padding:8px 6px;text-align:center;"><span class="pill ${pillCls}">${ad.band}</span></td>
+      <td style="padding:8px 6px;font-size:12px;color:var(--text-secondary);">${finding}</td>
+    </tr>`;
+  });
+  h += '</table>';
+
+  // Action items
+  h += '<h3>Priority Action Items</h3>';
+  actions.forEach((a, i) => {
+    const pCls = a.priority === 'HIGH' ? 'high' : a.priority === 'MEDIUM' ? 'medium' : 'low';
+    const pLabel = a.priority === 'MAINTAIN' ? 'MAINTAIN / MONITOR' : a.priority + ' PRIORITY';
+    h += `<div class="action-item">
+      <div class="action-priority ${pCls}">${pLabel}</div>
+      <h4 contenteditable="true">ACTION ${i+1}: ${a.title}</h4>
+      <p contenteditable="true"><strong>Why it matters:</strong> ${a.why}</p>
+      <div class="action-meta">Owner: ${a.owner} | Timeline: ${a.timeline}</div>
+    </div>`;
+  });
+
+  document.getElementById('actionPlanBody').innerHTML = h;
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* DEMO DATA                                               */
+/* ═══════════════════════════════════════════════════════ */
+function loadDemo() {
+  clearAll();
+  document.getElementById('clinicName').value = 'Southside Community Health Clinic';
+  document.getElementById('clinicType').value = 'chc';
+  document.getElementById('annualVisits').value = '12000';
+  document.getElementById('lepPct').value = '28';
+
+  // Clear and rebuild language rows
+  document.getElementById('langBody').innerHTML = '';
+  const demoLangs = [
+    { name:'Spanish', pct:45, acuity:'4', staff:'yes', contract:'no', lead:'same', vri:'no', bilingual:'no' },
+    { name:'Somali', pct:30, acuity:'5', staff:'no', contract:'no', lead:'same', vri:'no', bilingual:'yes' },
+    { name:'Oromo', pct:15, acuity:'3', staff:'no', contract:'no', lead:'same', vri:'no', bilingual:'no' },
+    { name:'Hmong', pct:10, acuity:'3', staff:'no', contract:'no', lead:'same', vri:'no', bilingual:'no' }
+  ];
+  demoLangs.forEach(dl => {
+    addLangRow(dl.name);
+    const tr = document.querySelector('#langBody tr:last-child');
+    tr.querySelector('.lang-pct').value = dl.pct;
+    tr.querySelector('.lang-acuity').value = dl.acuity;
+    tr.querySelector('.lang-staff').value = dl.staff;
+    tr.querySelector('.lang-contract').value = dl.contract;
+    tr.querySelector('.lang-lead').value = dl.lead;
+    tr.querySelector('.lang-vri').value = dl.vri;
+    tr.querySelector('.lang-bilingual').value = dl.bilingual;
+  });
+
+  document.getElementById('hasVRI').value = 'no';
+  document.getElementById('hasOPI').value = 'yes';
+  document.getElementById('opi247').value = 'no';
+  document.getElementById('langScreen').value = 'sometimes';
+  document.getElementById('chartDoc').value = 'sometimes';
+
+  // Set materials — Spanish intake only
+  rebuildMaterials();
+  setTimeout(() => {
+    const cbs = document.querySelectorAll('.mat-cb');
+    cbs.forEach(cb => {
+      if (parseInt(cb.dataset.lang) === 0 && cb.dataset.type === 'intake') cb.checked = true;
+    });
+  }, 50);
+
+  // Auto-build profile
+  setTimeout(() => {
+    buildProfile();
+    // Set Domain A answers for demo
+    setTimeout(() => {
+      // a1: No LAP
+      setDemoToggle('a1', 'no');
+      // a2: No (no LAP to update)
+      setDemoToggle('a2', 'no');
+      // a3: Partial
+      setDemoToggle('a3', 'partial');
+      // a4: Sometimes
+      setDemoToggle('a4', 'partial');
+      // a5: No
+      setDemoToggle('a5', 'no');
+      // a6: Partial
+      setDemoToggle('a6', 'partial');
+      // Domain C
+      setDemoToggle('c1', 'partial');
+      setDemoToggle('c2', 'partial');
+      setDemoToggle('c3', 'no');
+      setDemoToggle('c4', 'no');
+      setDemoToggle('c5', 'no');
+
+      setTimeout(() => runAssessment(), 100);
+    }, 100);
+  }, 100);
+}
+
+function setDemoToggle(qid, val) {
+  const q = document.querySelector(`[data-qid="${qid}"]`);
+  if (!q) return;
+  const btn = q.querySelector(`.toggle-group button[data-val="${val}"]`);
+  if (btn) setToggle(btn, val);
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* STORAGE                                                 */
+/* ═══════════════════════════════════════════════════════ */
+function saveToStorage() {
+  try {
+    const data = {
+      clinicName: document.getElementById('clinicName').value,
+      clinicType: document.getElementById('clinicType').value,
+      annualVisits: document.getElementById('annualVisits').value,
+      lepPct: document.getElementById('lepPct').value,
+      hasVRI: document.getElementById('hasVRI').value,
+      vriVendor: document.getElementById('vriVendor').value,
+      hasOPI: document.getElementById('hasOPI').value,
+      opi247: document.getElementById('opi247').value,
+      langScreen: document.getElementById('langScreen').value,
+      chartDoc: document.getElementById('chartDoc').value
+    };
+    localStorage.setItem('wiklund_lang_access', JSON.stringify(data));
+  } catch(e) { /* silent */ }
+}
+
+function tryLoadStorage() {
+  try {
+    const raw = localStorage.getItem('wiklund_lang_access');
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (data.clinicName) document.getElementById('clinicName').value = data.clinicName;
+    if (data.clinicType) document.getElementById('clinicType').value = data.clinicType;
+    if (data.annualVisits) document.getElementById('annualVisits').value = data.annualVisits;
+    if (data.lepPct) document.getElementById('lepPct').value = data.lepPct;
+    if (data.hasVRI) document.getElementById('hasVRI').value = data.hasVRI;
+    if (data.vriVendor) document.getElementById('vriVendor').value = data.vriVendor;
+    if (data.hasOPI) document.getElementById('hasOPI').value = data.hasOPI;
+    if (data.opi247) document.getElementById('opi247').value = data.opi247;
+    if (data.langScreen) document.getElementById('langScreen').value = data.langScreen;
+    if (data.chartDoc) document.getElementById('chartDoc').value = data.chartDoc;
+  } catch(e) { /* silent */ }
+}
+
+function clearAll() {
+  try { localStorage.removeItem('wiklund_lang_access'); } catch(e) {}
+  document.getElementById('clinicName').value = '';
+  document.getElementById('clinicType').value = '';
+  document.getElementById('annualVisits').value = '';
+  document.getElementById('lepPct').value = '';
+  document.getElementById('hasVRI').value = 'no';
+  document.getElementById('vriVendor').value = '';
+  document.getElementById('hasOPI').value = 'no';
+  document.getElementById('opi247').value = 'no';
+  document.getElementById('langScreen').value = 'no';
+  document.getElementById('chartDoc').value = 'no';
+  document.getElementById('langBody').innerHTML = '';
+  document.getElementById('profileSummary').style.display = 'none';
+  document.getElementById('mod2Lock').style.display = 'block';
+  document.getElementById('mod2Content').style.display = 'none';
+  document.getElementById('riskDashboard').style.display = 'none';
+  document.getElementById('mod3Lock').style.display = 'block';
+  document.getElementById('mod3Content').style.display = 'none';
+  profileData = null;
+  assessmentData = null;
+  if (lepChart) { lepChart.destroy(); lepChart = null; }
+  updateGauge(null);
+  const defaults = ['Spanish','Somali','Hmong','Oromo'];
+  defaults.forEach(l => addLangRow(l));
+  document.getElementById('addLangBtn').disabled = false;
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* SCROLL SPY for nav                                      */
+/* ═══════════════════════════════════════════════════════ */
+const sectionIds = ['module1','module2','module3'];
+const navLinks = document.querySelectorAll('.sticky-header nav a');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sectionIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.getBoundingClientRect().top <= 120) current = id;
+  });
+  navLinks.forEach(a => {
+    a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+  });
+});
+</script>
+</body>
+</html>

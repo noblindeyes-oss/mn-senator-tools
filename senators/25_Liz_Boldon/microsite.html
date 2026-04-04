@@ -1,0 +1,1792 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Liz Boldon — Senate District 25</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=Space+Grotesk:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Oswald:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ─── RESET ──────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; overflow-x: hidden; }
+    body { overflow-x: hidden; min-width: 320px; }
+
+    /* ─── MODE SWITCHING ─────────────────────────────────────── */
+    .pro-content  { display: block; }
+    .oppo-content { display: none; }
+    body.mode-oppo .pro-content  { display: none; }
+    body.mode-oppo .oppo-content { display: block; }
+
+    /* ─── FLIP BUTTON ────────────────────────────────────────── */
+    #flip-btn {
+      position: fixed;
+      top: 20px; right: 20px;
+      z-index: 9999;
+      border: 2px solid currentColor;
+      cursor: pointer;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      padding: 11px 18px;
+      transition: opacity 0.22s, transform 0.18s, box-shadow 0.18s;
+      border-radius: 2px;
+    }
+    body:not(.mode-oppo) #flip-btn {
+      background: #0A2E2A;
+      color: #D4E8E4;
+      border-color: #2D7A6E;
+    }
+    body.mode-oppo #flip-btn {
+      background: #F0EDE6;
+      color: #1C1A16;
+      border-color: #7A6E5A;
+    }
+    #flip-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+    }
+    .btn-pro-label, .btn-oppo-label { pointer-events: none; }
+    body:not(.mode-oppo) .btn-oppo-label { display: none; }
+    body.mode-oppo .btn-pro-label  { display: none; }
+
+    /* ═══════════════════════════════════════════════════════════
+       PRO SITE — "CARE RECORD"
+       Palette:
+         clinical teal  #1A6B5E
+         deep teal      #0A3D35
+         limestone      #E8E4DC
+         warm off-white #F5F2EC
+         brick          #8B4A3A
+         slate          #3A4A48
+         text           #1A2420
+    ═══════════════════════════════════════════════════════════ */
+
+    .pro-content {
+      background: #F5F2EC;
+      font-family: 'Source Serif 4', Georgia, serif;
+      color: #1A2420;
+    }
+
+    /* ── PRO: TOP BAR ─────────────────────────────────────── */
+    .pro-topbar {
+      background: #0A3D35;
+      color: #A8D4CC;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      padding: 10px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #1A6B5E;
+    }
+    .pro-topbar-right {
+      display: flex;
+      gap: 32px;
+    }
+
+    /* ── PRO: HERO ────────────────────────────────────────── */
+    .pro-hero {
+      display: grid;
+      grid-template-columns: 1fr 480px;
+      min-height: 92vh;
+      border-bottom: 3px solid #0A3D35;
+    }
+    .pro-hero-text {
+      background: #0A3D35;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 72px 60px 68px;
+      position: relative;
+      overflow: hidden;
+    }
+    .pro-hero-text::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background:
+        radial-gradient(ellipse 400px 300px at 80% 20%, rgba(26,107,94,0.2) 0%, transparent 70%),
+        radial-gradient(ellipse 300px 400px at 10% 80%, rgba(139,74,58,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .pro-record-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #5AB8A6;
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .pro-record-label::before {
+      content: '';
+      display: block;
+      width: 32px;
+      height: 1px;
+      background: #5AB8A6;
+    }
+    .pro-hero-name {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(52px, 6vw, 82px);
+      font-weight: 700;
+      color: #E8F4F1;
+      line-height: 1.0;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+    }
+    .pro-hero-name span {
+      color: #5AB8A6;
+    }
+    .pro-hero-district {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      color: #7ABFB4;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 36px;
+    }
+    .pro-hero-argument {
+      font-size: 20px;
+      font-weight: 400;
+      line-height: 1.55;
+      color: #C8E4DF;
+      max-width: 480px;
+      border-left: 3px solid #1A6B5E;
+      padding-left: 20px;
+    }
+    .pro-hero-argument strong {
+      color: #E8F4F1;
+      font-weight: 600;
+    }
+
+    /* ── PRO: PHOTO PANEL ─────────────────────────────────── */
+    .pro-hero-photo {
+      position: relative;
+      overflow: hidden;
+      background: #1A3D38;
+    }
+    .pro-hero-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 15%;
+      filter: saturate(0.85) contrast(1.05);
+      display: block;
+    }
+    .pro-hero-photo-overlay {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: linear-gradient(to top, rgba(10,61,53,0.92) 0%, transparent 50%);
+      padding: 36px 28px 28px;
+    }
+    .pro-photo-caption {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: #7ABFB4;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+    .pro-hero-photo-placeholder {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(160deg, #1A4A42 0%, #0A2E2A 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .pro-placeholder-initials {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 96px;
+      font-weight: 700;
+      color: rgba(90,184,166,0.3);
+      letter-spacing: -0.04em;
+    }
+
+    /* ── PRO: STAT RAIL ───────────────────────────────────── */
+    .pro-stat-rail {
+      background: #1A6B5E;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-bottom: 3px solid #0A3D35;
+    }
+    .pro-stat-cell {
+      padding: 36px 40px;
+      border-right: 1px solid rgba(255,255,255,0.12);
+      position: relative;
+    }
+    .pro-stat-cell:last-child { border-right: none; }
+    .pro-stat-number {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 52px;
+      font-weight: 700;
+      color: #E8F4F1;
+      line-height: 1;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+    }
+    .pro-stat-number .stat-prefix,
+    .pro-stat-number .stat-suffix {
+      font-size: 28px;
+      font-weight: 500;
+      color: #8ECCC4;
+    }
+    .pro-stat-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #8ECCC4;
+    }
+    .pro-stat-sup {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      color: rgba(168,212,204,0.6);
+      margin-top: 4px;
+    }
+
+    /* ── PRO: MAIN CONTENT BANDS ──────────────────────────── */
+    .pro-section {
+      padding: 80px 0;
+      border-bottom: 1px solid #D4CFC5;
+    }
+    .pro-container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 48px;
+    }
+
+    /* ── PRO: SECTION HEADER ──────────────────────────────── */
+    .pro-section-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 48px;
+    }
+    .pro-section-tag {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #1A6B5E;
+      background: rgba(26,107,94,0.08);
+      border: 1px solid rgba(26,107,94,0.25);
+      padding: 5px 10px;
+      border-radius: 2px;
+    }
+    .pro-section-rule {
+      flex: 1;
+      height: 1px;
+      background: #D4CFC5;
+    }
+
+    /* ── PRO: KEY FACT BLOCK ──────────────────────────────── */
+    .pro-key-fact {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: start;
+    }
+    .pro-key-fact-headline {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(30px, 3.5vw, 44px);
+      font-weight: 700;
+      line-height: 1.1;
+      color: #0A3D35;
+      letter-spacing: -0.02em;
+      margin-bottom: 20px;
+    }
+    .pro-key-fact-headline em {
+      font-style: normal;
+      color: #1A6B5E;
+    }
+    .pro-key-fact-body {
+      font-size: 18px;
+      line-height: 1.65;
+      color: #2A3C38;
+    }
+    .pro-key-fact-body p + p { margin-top: 16px; }
+
+    /* ── PRO: ADDRESS CARDS ───────────────────────────────── */
+    .pro-address-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 40px;
+    }
+    .pro-address-card {
+      background: #FFFFFF;
+      border: 1px solid #D4CFC5;
+      border-left: 4px solid #1A6B5E;
+      padding: 28px 28px 24px;
+      border-radius: 0 4px 4px 0;
+    }
+    .pro-address-card-type {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #1A6B5E;
+      margin-bottom: 8px;
+    }
+    .pro-address-card-address {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 17px;
+      font-weight: 600;
+      color: #0A3D35;
+      margin-bottom: 8px;
+    }
+    .pro-address-card-desc {
+      font-size: 14px;
+      color: #4A5C58;
+      line-height: 1.5;
+    }
+
+    /* ── PRO: PULL QUOTE ──────────────────────────────────── */
+    .pro-pull-quote {
+      background: #0A3D35;
+      padding: 64px 60px;
+      margin: 0;
+      border-top: 3px solid #1A6B5E;
+      border-bottom: 3px solid #1A6B5E;
+    }
+    .pro-pull-quote blockquote {
+      max-width: 740px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .pro-pull-quote-mark {
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 80px;
+      color: rgba(90,184,166,0.25);
+      line-height: 0.5;
+      display: block;
+      margin-bottom: 24px;
+    }
+    .pro-pull-quote-text {
+      font-size: clamp(22px, 2.8vw, 32px);
+      font-weight: 300;
+      font-style: italic;
+      line-height: 1.5;
+      color: #D4EEE9;
+      margin-bottom: 24px;
+    }
+    .pro-pull-quote-text strong {
+      font-weight: 600;
+      font-style: normal;
+      color: #8ECCC4;
+    }
+    .pro-pull-quote-attr {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #5AB8A6;
+    }
+
+    /* ── PRO: CONTEXT BAND ────────────────────────────────── */
+    .pro-context-band {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 0;
+      border-bottom: 1px solid #D4CFC5;
+    }
+    .pro-context-sidebar {
+      background: #E8E4DC;
+      padding: 60px 40px;
+      border-right: 1px solid #D4CFC5;
+    }
+    .pro-context-sidebar-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #6A7A76;
+      margin-bottom: 24px;
+    }
+    .pro-context-sidebar-stat {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 42px;
+      font-weight: 700;
+      color: #0A3D35;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .pro-context-sidebar-sub {
+      font-size: 14px;
+      color: #4A5C58;
+      line-height: 1.5;
+    }
+    .pro-context-sidebar-divider {
+      border: none;
+      border-top: 1px solid #C8C3B8;
+      margin: 28px 0;
+    }
+    .pro-context-main {
+      padding: 60px 56px;
+    }
+    .pro-context-main h3 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 24px;
+      font-weight: 600;
+      color: #0A3D35;
+      margin-bottom: 16px;
+      letter-spacing: -0.01em;
+    }
+    .pro-context-main p {
+      font-size: 16px;
+      line-height: 1.68;
+      color: #2A3C38;
+      max-width: 560px;
+    }
+    .pro-context-main p + p { margin-top: 14px; }
+
+    /* ── PRO: CREDENTIAL STRIP ────────────────────────────── */
+    .pro-credential-strip {
+      background: #F5F2EC;
+      padding: 56px 48px;
+      display: flex;
+      gap: 48px;
+      align-items: flex-start;
+      border-bottom: 1px solid #D4CFC5;
+    }
+    .pro-credential-item {
+      flex: 1;
+      padding-left: 20px;
+      border-left: 2px solid #1A6B5E;
+    }
+    .pro-credential-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: #0A3D35;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .pro-credential-desc {
+      font-size: 14px;
+      color: #4A5C58;
+      line-height: 1.55;
+    }
+
+    /* ── PRO: FOOTNOTES ───────────────────────────────────── */
+    .pro-footnotes {
+      background: #E8E4DC;
+      padding: 48px;
+      border-top: 2px solid #C8C3B8;
+    }
+    .pro-footnotes-title {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #6A7A76;
+      margin-bottom: 20px;
+    }
+    .pro-footnotes ol {
+      list-style: decimal;
+      padding-left: 20px;
+    }
+    .pro-footnotes li {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: #4A5C58;
+      line-height: 1.7;
+      margin-bottom: 6px;
+    }
+    .pro-footnotes a {
+      color: #1A6B5E;
+      text-decoration: none;
+    }
+    .pro-footnotes a:hover { text-decoration: underline; }
+
+    /* ── PRO: DISTRICT LANDSCAPE ──────────────────────────── */
+    .pro-district-image {
+      width: 100%;
+      height: 320px;
+      object-fit: cover;
+      display: block;
+      filter: saturate(0.9) brightness(0.95);
+    }
+    .pro-district-caption-bar {
+      background: #0A3D35;
+      padding: 14px 48px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .pro-district-caption-text {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: #7ABFB4;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+
+
+    /* ═══════════════════════════════════════════════════════════
+       OPPO SITE — "CASE FILE: SF 3439"
+       Palette:
+         file tan     #EDE8DC
+         manila       #D8D0BE
+         case black   #1A1814
+         red alert    #9B2A1E
+         ash           #5A5248
+         cold white   #F7F4EE
+    ═══════════════════════════════════════════════════════════ */
+
+    .oppo-content {
+      background: #F7F4EE;
+      font-family: 'Source Serif 4', Georgia, serif;
+      color: #1A1814;
+    }
+
+    /* ── OPPO: CASE HEADER ────────────────────────────────── */
+    .oppo-case-header {
+      background: #1A1814;
+      padding: 20px 48px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 3px solid #9B2A1E;
+    }
+    .oppo-case-id {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      color: #9B2A1E;
+      text-transform: uppercase;
+    }
+    .oppo-case-status {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      color: #7A7060;
+      text-transform: uppercase;
+    }
+    .oppo-case-status span {
+      color: #E8A88A;
+    }
+
+    /* ── OPPO: SUBJECT BLOCK ──────────────────────────────── */
+    .oppo-subject {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      min-height: 80vh;
+      border-bottom: 3px solid #1A1814;
+    }
+    .oppo-subject-photo {
+      background: #2A2520;
+      position: relative;
+      overflow: hidden;
+    }
+    .oppo-subject-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 15%;
+      filter: grayscale(100%) contrast(1.3) brightness(0.75);
+      display: block;
+    }
+    .oppo-photo-stamp {
+      position: absolute;
+      bottom: 28px; left: 28px;
+    }
+    .oppo-photo-stamp-text {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #9B7A68;
+      margin-bottom: 4px;
+    }
+    .oppo-photo-name {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: #EDE8DC;
+    }
+    .oppo-subject-photo-placeholder {
+      width: 100%;
+      height: 100%;
+      background: #2A2520;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .oppo-placeholder-initials {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 96px;
+      font-weight: 700;
+      color: rgba(155,42,30,0.25);
+    }
+
+    .oppo-subject-right {
+      background: #EDE8DC;
+      padding: 64px 60px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border-left: 4px solid #1A1814;
+    }
+    .oppo-file-tag {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: #9B2A1E;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .oppo-file-tag::before {
+      content: '';
+      display: block;
+      width: 24px;
+      height: 2px;
+      background: #9B2A1E;
+    }
+    .oppo-accusation {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(28px, 3.5vw, 46px);
+      font-weight: 700;
+      line-height: 1.1;
+      color: #1A1814;
+      letter-spacing: -0.02em;
+      margin-bottom: 28px;
+    }
+    .oppo-accusation .highlight {
+      color: #9B2A1E;
+    }
+    .oppo-lede {
+      font-size: 17px;
+      line-height: 1.65;
+      color: #3A3228;
+      max-width: 540px;
+      border-left: 3px solid #9B2A1E;
+      padding-left: 18px;
+    }
+
+    /* ── OPPO: FACT STAT RAIL ─────────────────────────────── */
+    .oppo-stat-rail {
+      background: #1A1814;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-bottom: 2px solid #9B2A1E;
+    }
+    .oppo-stat-cell {
+      padding: 32px 40px;
+      border-right: 1px solid rgba(255,255,255,0.06);
+    }
+    .oppo-stat-cell:last-child { border-right: none; }
+    .oppo-stat-number {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 46px;
+      font-weight: 700;
+      color: #EDE8DC;
+      line-height: 1;
+      letter-spacing: -0.03em;
+    }
+    .oppo-stat-number .stat-suffix { font-size: 24px; color: #9B7060; }
+    .oppo-stat-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #7A7060;
+      margin-top: 6px;
+    }
+    .oppo-stat-label em {
+      font-style: normal;
+      color: #E8A88A;
+    }
+
+    /* ── OPPO: SEQUENCE ───────────────────────────────────── */
+    .oppo-sequence {
+      padding: 72px 0;
+      border-bottom: 1px solid #D8D0BE;
+    }
+    .oppo-sequence-container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 48px;
+    }
+    .oppo-sequence-header {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #9B2A1E;
+      margin-bottom: 40px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .oppo-sequence-header::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #D8D0BE;
+    }
+    .oppo-timeline {
+      position: relative;
+      padding-left: 48px;
+    }
+    .oppo-timeline::before {
+      content: '';
+      position: absolute;
+      left: 11px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: linear-gradient(to bottom, #9B2A1E, #5A5248);
+    }
+    .oppo-timeline-item {
+      position: relative;
+      margin-bottom: 40px;
+    }
+    .oppo-timeline-item:last-child { margin-bottom: 0; }
+    .oppo-timeline-dot {
+      position: absolute;
+      left: -41px;
+      top: 5px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #9B2A1E;
+      border: 2px solid #F7F4EE;
+      z-index: 1;
+    }
+    .oppo-timeline-dot.dot-mid { background: #6A5A4A; }
+    .oppo-timeline-dot.dot-end { background: #2A2520; }
+    .oppo-timeline-date {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      color: #9B2A1E;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .oppo-timeline-head {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 19px;
+      font-weight: 600;
+      color: #1A1814;
+      margin-bottom: 8px;
+      line-height: 1.3;
+    }
+    .oppo-timeline-body {
+      font-size: 15px;
+      line-height: 1.65;
+      color: #3A3228;
+      max-width: 680px;
+    }
+
+    /* ── OPPO: PROOF BLOCK ────────────────────────────────── */
+    .oppo-proof-section {
+      background: #EDE8DC;
+      padding: 72px 0;
+      border-top: 2px solid #D8D0BE;
+      border-bottom: 3px solid #1A1814;
+    }
+    .oppo-proof-container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 48px;
+    }
+    .oppo-proof-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #9B2A1E;
+      margin-bottom: 32px;
+    }
+    .oppo-proof-document {
+      background: #FDFAF4;
+      border: 1px solid #C8C0AE;
+      border-top: 4px solid #9B2A1E;
+      padding: 40px 44px;
+      max-width: 760px;
+      font-family: 'IBM Plex Mono', monospace;
+      box-shadow: 4px 4px 0 #C8C0AE;
+    }
+    .oppo-proof-doc-header {
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #9B7060;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #D8D0BE;
+    }
+    .oppo-proof-doc-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      color: #1A1814;
+      margin-bottom: 20px;
+    }
+    .oppo-proof-doc-body {
+      font-size: 12px;
+      line-height: 1.8;
+      color: #3A3228;
+    }
+    .oppo-proof-doc-body .law-text {
+      background: rgba(155,42,30,0.06);
+      border-left: 3px solid #9B2A1E;
+      padding: 16px 18px;
+      margin: 16px 0;
+      font-size: 13px;
+    }
+    .oppo-proof-doc-body .law-text .removed {
+      text-decoration: line-through;
+      color: #9B2A1E;
+      opacity: 0.7;
+    }
+    .oppo-proof-source {
+      font-size: 10px;
+      color: #7A7060;
+      margin-top: 20px;
+      padding-top: 14px;
+      border-top: 1px solid #D8D0BE;
+    }
+
+    /* ── OPPO: EVIDENCE CARDS ─────────────────────────────── */
+    .oppo-evidence-section {
+      padding: 72px 0;
+      border-bottom: 1px solid #D8D0BE;
+    }
+    .oppo-evidence-container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 48px;
+    }
+    .oppo-evidence-header {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #9B2A1E;
+      margin-bottom: 36px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .oppo-evidence-header::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #D8D0BE;
+    }
+    .oppo-evidence-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    .oppo-evidence-card {
+      background: #FDFAF4;
+      border: 1px solid #C8C0AE;
+      border-top: 3px solid #5A5248;
+      padding: 28px;
+      transition: border-top-color 0.2s, box-shadow 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .oppo-evidence-card:hover {
+      border-top-color: #9B2A1E;
+      box-shadow: 0 6px 24px rgba(155,42,30,0.15);
+    }
+    .oppo-evidence-card-number {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 36px;
+      font-weight: 600;
+      color: rgba(155,42,30,0.12);
+      position: absolute;
+      top: 16px; right: 20px;
+      line-height: 1;
+    }
+    .oppo-evidence-card-tag {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #9B2A1E;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .oppo-evidence-card-tag::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      background: #9B2A1E;
+      border-radius: 50%;
+    }
+    .oppo-evidence-card-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 17px;
+      font-weight: 600;
+      color: #1A1814;
+      margin-bottom: 12px;
+      line-height: 1.3;
+    }
+    .oppo-evidence-card-body {
+      font-size: 14px;
+      line-height: 1.65;
+      color: #3A3228;
+    }
+    /* Redaction bar hover effect */
+    .oppo-evidence-card .redact-line {
+      display: inline;
+      background: transparent;
+      transition: background 0.25s;
+      border-radius: 2px;
+      padding: 1px 2px;
+    }
+    .oppo-evidence-card:hover .redact-line {
+      background: rgba(155,42,30,0.15);
+    }
+
+    /* ── OPPO: COUNTER-ARGUMENT / RESPONSE PANEL ──────────── */
+    .oppo-response-section {
+      background: #2A2520;
+      padding: 60px 0;
+      border-bottom: 3px solid #9B2A1E;
+    }
+    .oppo-response-container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 48px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: start;
+    }
+    .oppo-response-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #9B7060;
+      margin-bottom: 20px;
+    }
+    .oppo-response-text {
+      font-size: 16px;
+      line-height: 1.65;
+      color: #C8C0AE;
+    }
+    .oppo-response-text p + p { margin-top: 14px; }
+    .oppo-response-text strong { color: #EDE8DC; }
+    .oppo-response-gap {
+      border-left: 2px solid #9B2A1E;
+      padding-left: 24px;
+    }
+    .oppo-response-gap-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 18px;
+      font-weight: 600;
+      color: #EDE8DC;
+      margin-bottom: 12px;
+    }
+    .oppo-response-gap-body {
+      font-size: 15px;
+      line-height: 1.65;
+      color: #C8C0AE;
+    }
+    .oppo-response-gap-body p + p { margin-top: 14px; }
+
+    /* ── OPPO: FOOTNOTES ──────────────────────────────────── */
+    .oppo-footnotes {
+      background: #EDE8DC;
+      padding: 48px;
+      border-top: 2px solid #C8C0AE;
+    }
+    .oppo-footnotes-title {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #7A7060;
+      margin-bottom: 20px;
+    }
+    .oppo-footnotes ol {
+      list-style: decimal;
+      padding-left: 20px;
+    }
+    .oppo-footnotes li {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: #5A5248;
+      line-height: 1.7;
+      margin-bottom: 6px;
+    }
+    .oppo-footnotes a {
+      color: #9B2A1E;
+      text-decoration: none;
+    }
+    .oppo-footnotes a:hover { text-decoration: underline; }
+
+    /* ─── RESPONSIVE ─────────────────────────────────────── */
+    @media (max-width: 960px) {
+      .pro-hero { grid-template-columns: 1fr; }
+      .pro-hero-photo { height: 420px; }
+      .pro-hero-text { padding: 56px 32px 52px; }
+      .pro-stat-rail { grid-template-columns: 1fr 1fr; }
+      .pro-stat-rail .pro-stat-cell:last-child { grid-column: span 2; border-top: 1px solid rgba(255,255,255,0.12); }
+      .pro-key-fact { grid-template-columns: 1fr; gap: 28px; }
+      .pro-address-cards { grid-template-columns: 1fr; }
+      .pro-context-band { grid-template-columns: 1fr; }
+      .pro-context-sidebar { border-right: none; border-bottom: 1px solid #D4CFC5; }
+      .pro-credential-strip { flex-direction: column; gap: 28px; }
+      .pro-container { padding: 0 24px; }
+      .pro-pull-quote { padding: 48px 24px; }
+      .pro-topbar-right { display: none; }
+
+      .oppo-subject { grid-template-columns: 1fr; }
+      .oppo-subject-photo { height: 340px; }
+      .oppo-subject-right { padding: 48px 28px; border-left: none; border-top: 4px solid #1A1814; }
+      .oppo-stat-rail { grid-template-columns: 1fr; }
+      .oppo-stat-cell { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.06); }
+      .oppo-evidence-cards { grid-template-columns: 1fr; }
+      .oppo-response-container { grid-template-columns: 1fr; gap: 36px; }
+      .oppo-sequence-container,
+      .oppo-proof-container,
+      .oppo-evidence-container { padding: 0 24px; }
+      .oppo-case-header { padding: 16px 24px; flex-direction: column; align-items: flex-start; gap: 6px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── FLIP BUTTON ──────────────────────────────────────────── -->
+<button id="flip-btn" aria-label="Switch site view">
+  <span class="btn-oppo-label">View Supporter Site</span>
+  <span class="btn-pro-label">View Opposition File</span>
+</button>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     PRO SITE — CARE RECORD: LIZ BOLDON
+════════════════════════════════════════════════════════════ -->
+<div class="pro-content" aria-label="Supporter site for Senator Liz Boldon">
+
+  <!-- Top bar -->
+  <div class="pro-topbar">
+    <span>Minnesota State Senate &mdash; District 25</span>
+    <div class="pro-topbar-right">
+      <span>Rochester, MN</span>
+      <span>DFL</span>
+      <span>94th Legislature</span>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <div class="pro-hero">
+    <div class="pro-hero-text">
+      <div class="pro-record-label">Care Record &bull; District 25</div>
+      <div class="pro-hero-name">Liz<br><span>Boldon</span></div>
+      <div class="pro-hero-district">State Senator &mdash; Rochester &amp; Oronoco</div>
+      <p class="pro-hero-argument">
+        A registered nurse in the Minnesota Senate.<br>
+        <strong>She brings real addresses, real dollar figures, and real residents</strong> to the housing and health debates Rochester depends on.
+      </p>
+    </div>
+    <div class="pro-hero-photo">
+      <img
+        src="https://www.senate.mn/graphics/25Boldon.jpg"
+        alt="Senator Liz Boldon"
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+      />
+      <div class="pro-hero-photo-placeholder" style="display:none;">
+        <div class="pro-placeholder-initials">LB</div>
+      </div>
+      <div class="pro-hero-photo-overlay">
+        <div class="pro-photo-caption">Senator since 2023 &bull; RN since 2002</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stat rail -->
+  <div class="pro-stat-rail">
+    <div class="pro-stat-cell">
+      <div class="pro-stat-number">
+        <span class="stat-prefix">$</span><span class="pro-counter" data-target="600">0</span><span class="stat-suffix">K</span>
+      </div>
+      <div class="pro-stat-label">Requested in SF 1838 for Rochester disability housing</div>
+      <div class="pro-stat-sup">Introduced Feb. 24, 2025 &mdash; [1]</div>
+    </div>
+    <div class="pro-stat-cell">
+      <div class="pro-stat-number">
+        <span class="pro-counter" data-target="2">0</span><span class="stat-suffix"> sites</span>
+      </div>
+      <div class="pro-stat-label">Named addresses in District 25</div>
+      <div class="pro-stat-sup">Eastwood Rd SE &amp; Kenosha Dr NW &mdash; [1]</div>
+    </div>
+    <div class="pro-stat-cell">
+      <div class="pro-stat-number">
+        <span class="pro-counter" data-target="20">0</span><span class="stat-suffix">+ yr</span>
+      </div>
+      <div class="pro-stat-label">As a registered nurse before the Senate</div>
+      <div class="pro-stat-sup">RN since 2002 &mdash; [2]</div>
+    </div>
+  </div>
+
+  <!-- District landscape image -->
+  <img
+    class="pro-district-image"
+    src="https://images.unsplash.com/photo-1549517045-bc93de075e53?w=1400&q=80&fit=crop"
+    alt="Rochester neighborhood street, District 25"
+    onerror="this.style.display='none';"
+  />
+  <div class="pro-district-caption-bar">
+    <span class="pro-district-caption-text">Rochester &mdash; Senate District 25</span>
+    <span class="pro-district-caption-text">Olmsted County, Minnesota</span>
+  </div>
+
+  <!-- Key fact section -->
+  <div class="pro-section">
+    <div class="pro-container">
+      <div class="pro-section-header">
+        <span class="pro-section-tag">Key Legislation</span>
+        <div class="pro-section-rule"></div>
+      </div>
+      <div class="pro-key-fact">
+        <div>
+          <h2 class="pro-key-fact-headline">
+            $600,000 for<br>
+            <em>accessible housing</em><br>
+            in Rochester.
+          </h2>
+          <div class="pro-address-cards">
+            <div class="pro-address-card">
+              <div class="pro-address-card-type">Site One</div>
+              <div class="pro-address-card-address">1680 Eastwood Rd SE</div>
+              <div class="pro-address-card-desc">Bostrom Terrace &mdash; low-income housing for adults with physical disabilities. Subsidized units in southeast Rochester.</div>
+            </div>
+            <div class="pro-address-card">
+              <div class="pro-address-card-type">Site Two</div>
+              <div class="pro-address-card-address">3461 Kenosha Dr NW</div>
+              <div class="pro-address-card-desc">Kenosha Drive Apartments &mdash; affordable, wheelchair-accessible one-bedroom units for qualifying senior households.</div>
+            </div>
+          </div>
+        </div>
+        <div class="pro-key-fact-body">
+          <p>Boldon chief-authored SF 1838 to seek a $600,000 fiscal year 2026 appropriation to Accessible Space, Inc. for improvements at two Rochester properties that house low-income adults with physical disabilities and seniors.</p>
+          <p>Accessible Space, Inc. is a Minnesota nonprofit with nearly forty years in subsidized accessible housing. The two Rochester sites it manages sit inside Boldon's district. The funding makes capital improvements possible that residents cannot pay for themselves.</p>
+          <p>This is not a general housing fund or a state agency line item. It is an introduced bill with a named nonprofit, a specific dollar figure, and two street addresses. That specificity reflects how Boldon approaches constituent service: through the actual systems that serve actual households, not through program branding.</p>
+          <p>As Vice Chair of the Senate Housing and Homelessness Prevention Committee, Boldon has positioned Rochester's housing access needs inside a statewide policy conversation that is otherwise dominated by the Twin Cities.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pull quote -->
+  <div class="pro-pull-quote">
+    <blockquote>
+      <span class="pro-pull-quote-mark">&ldquo;</span>
+      <p class="pro-pull-quote-text">
+        Boldon is a nurse-legislator. The practical question she brings to every bill is the same one she brought to the bedside: <strong>who needs what, and is it actually going to reach them?</strong>
+      </p>
+      <div class="pro-pull-quote-attr">District 25 &mdash; Nurse, Mother, Senator</div>
+    </blockquote>
+  </div>
+
+  <!-- Context band -->
+  <div class="pro-context-band">
+    <div class="pro-context-sidebar">
+      <div class="pro-context-sidebar-label">District at a glance</div>
+      <div class="pro-context-sidebar-stat">Rochester</div>
+      <div class="pro-context-sidebar-sub">Olmsted County. Mayo Clinic employment corridor. Newer neighborhoods. Housing-cost pressure from medical workforce growth.</div>
+      <hr class="pro-context-sidebar-divider" />
+      <div class="pro-context-sidebar-stat" style="font-size:28px;">#2</div>
+      <div class="pro-context-sidebar-sub">U.S. city for health care employment concentration. Affordable accessible housing is a structurally scarce resource in this market.</div>
+      <hr class="pro-context-sidebar-divider" />
+      <div class="pro-context-sidebar-stat" style="font-size:24px;">Housing + Health</div>
+      <div class="pro-context-sidebar-sub">Boldon's committee assignments &mdash; Housing and Homelessness Prevention, Health and Human Services &mdash; map directly onto her district's pressure points.</div>
+    </div>
+    <div class="pro-context-main">
+      <h3>Why accessible housing in Rochester is a hard problem</h3>
+      <p>Rochester's economy revolves around Mayo Clinic and its supply chain of medical employment. That drives up housing costs for everyone. For adults with physical disabilities and low-income seniors, the gap between what they can pay and what the market charges is not a small one.</p>
+      <p>Accessible units &mdash; those built or retrofitted for wheelchair users and people with mobility impairments &mdash; are more expensive to maintain than standard stock. Nonprofits like Accessible Space rely on periodic state capital infusions to close that gap. SF 1838 sought that kind of capital support at two places that already exist and already serve Rochester residents.</p>
+      <p>Boldon's nursing background is relevant here. She understands that housing instability is a health outcome. Poorly maintained accessible units are a medical risk. The requested $600,000 is not a social program; it is a structural intervention in a city where the medical economy has priced out the people who most need stability.</p>
+      <p>Her committee work extends this approach. As Vice Chair of the Housing and Homelessness Prevention Committee, she brings Rochester's specific pressures &mdash; not just Twin Cities vacancy stats &mdash; into the statewide policy conversation.</p>
+    </div>
+  </div>
+
+  <!-- Credential strip -->
+  <div class="pro-credential-strip">
+    <div class="pro-credential-item">
+      <div class="pro-credential-title">Registered Nurse</div>
+      <div class="pro-credential-desc">Licensed RN since 2002. Boldon came to the legislature with clinical experience before she had any political office.</div>
+    </div>
+    <div class="pro-credential-item">
+      <div class="pro-credential-title">Housing Committee</div>
+      <div class="pro-credential-desc">Vice Chair, Senate Housing and Homelessness Prevention Committee. Rochester's housing needs have a seat at the table.</div>
+    </div>
+    <div class="pro-credential-item">
+      <div class="pro-credential-title">Health and Human Services</div>
+      <div class="pro-credential-desc">Member of the Senate HHS Committee. Her clinical lens shapes her work on prevention, access, and population health.</div>
+    </div>
+    <div class="pro-credential-item">
+      <div class="pro-credential-title">District 25</div>
+      <div class="pro-credential-desc">Rochester, Oronoco, and three townships. In office since January 2023. First elected to the House in 2020.</div>
+    </div>
+  </div>
+
+  <!-- Pro footnotes -->
+  <div class="pro-footnotes">
+    <div class="pro-footnotes-title">Sources &amp; Footnotes</div>
+    <ol>
+      <li>[1] SF 1838, 94th Minnesota Legislature, chief-authored by Sen. Liz Boldon. As introduced, the bill would appropriate $600,000 in FY 2026 to Accessible Space, Inc. for improvements at 1680 Eastwood Rd SE and 3461 Kenosha Dr NW in Rochester; status page shows introduction on Feb. 24, 2025 and referral to Capital Investment. <a href="https://www.revisor.mn.gov/bills/94/2025/0/SF/1838/" target="_blank">revisor.mn.gov</a></li>
+      <li>[2] Senate biography, Sen. Liz Boldon, Minnesota Senate. RN since 2002. Elected to House 2020, Senate 2022. <a href="https://www.senate.mn/members/member_bio.html?mem_id=1259" target="_blank">senate.mn</a></li>
+      <li>[3] Minnesota Senate 2026 committee assignments PDF, as of Feb. 25, 2026: Vice Chair, Housing and Homelessness Prevention; member, Health and Human Services; member, Education Policy; member, Elections. <a href="https://www.senate.mn/committees/2025-2026/info/comlegal.pdf" target="_blank">senate.mn</a></li>
+      <li>[4] Kenosha Drive Apartments, 3481 Kenosha Dr NW, Rochester &mdash; Accessible Space, Inc. Senior housing, wheelchair accessible units. <a href="https://www.accessiblespace.org/senior-housing/minnesota-senior-housing/kenosha-drive-apartments/" target="_blank">accessiblespace.org</a></li>
+    </ol>
+  </div>
+
+</div><!-- /pro-content -->
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     OPPO SITE — CASE FILE: SF 3439
+════════════════════════════════════════════════════════════ -->
+<div class="oppo-content" aria-label="Opposition research file on Senator Liz Boldon">
+
+  <!-- Case header bar -->
+  <div class="oppo-case-header">
+    <div class="oppo-case-id">Case File: SF 3439 &bull; 94th Legislature &bull; District 25</div>
+    <div class="oppo-case-status">Status: <span>Introduced April 25, 2025; advanced to Education Policy on March 18, 2026</span></div>
+  </div>
+
+  <!-- Subject block -->
+  <div class="oppo-subject">
+    <div class="oppo-subject-photo">
+      <img
+        src="https://www.senate.mn/graphics/25Boldon.jpg"
+        alt="Senator Liz Boldon"
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+      />
+      <div class="oppo-subject-photo-placeholder" style="display:none;">
+        <div class="oppo-placeholder-initials">LB</div>
+      </div>
+      <div class="oppo-photo-stamp">
+        <div class="oppo-photo-stamp-text">Subject</div>
+        <div class="oppo-photo-name">Sen. Liz Boldon</div>
+      </div>
+    </div>
+    <div class="oppo-subject-right">
+      <div class="oppo-file-tag">Opposition Research &bull; District 25</div>
+      <h1 class="oppo-accusation">
+        The nurse-senator is<br>
+        <span class="highlight">removing your right</span><br>
+        to choose on vaccines.
+      </h1>
+      <p class="oppo-lede">
+        Boldon authored SF 3439 to end use of the conscientious-belief exemption for MMR immunization, effective August 1, 2026, if enacted. Families would need MMR vaccination records or a physician-signed medical exemption for a child to enroll or remain enrolled in covered programs.
+      </p>
+    </div>
+  </div>
+
+  <!-- Oppo stat rail -->
+  <div class="oppo-stat-rail">
+    <div class="oppo-stat-cell">
+      <div class="oppo-stat-number">1<span class="stat-suffix"> exemption</span></div>
+      <div class="oppo-stat-label">removed by SF 3439 &mdash; <em>conscientious belief</em></div>
+    </div>
+    <div class="oppo-stat-cell">
+      <div class="oppo-stat-number">Aug <span class="stat-suffix">'26</span></div>
+      <div class="oppo-stat-label">effective date &mdash; <em>if enacted for covered schools, preschools, and child care settings</em></div>
+    </div>
+    <div class="oppo-stat-cell">
+      <div class="oppo-stat-number">0<span class="stat-suffix"> exceptions</span></div>
+      <div class="oppo-stat-label">for personal conviction &mdash; <em>medical only, physician required</em></div>
+    </div>
+  </div>
+
+  <!-- Sequence section -->
+  <div class="oppo-sequence">
+    <div class="oppo-sequence-container">
+      <div class="oppo-sequence-header">The record &mdash; how we got here</div>
+      <div class="oppo-timeline">
+
+        <div class="oppo-timeline-item">
+          <div class="oppo-timeline-dot"></div>
+          <div class="oppo-timeline-date">2012</div>
+          <div class="oppo-timeline-head">Higher kindergarten vaccination coverage before the recent decline</div>
+          <div class="oppo-timeline-body">State school immunization data show Minnesota kindergarten vaccination coverage was higher in the early 2010s than it is today. The conscientious-belief exemption remained in state law during that period.</div>
+        </div>
+
+        <div class="oppo-timeline-item">
+          <div class="oppo-timeline-dot dot-mid"></div>
+          <div class="oppo-timeline-date">2024</div>
+          <div class="oppo-timeline-head">State data show continued decline in school immunization coverage</div>
+          <div class="oppo-timeline-body">Minnesota Department of Health school immunization data for 2024-25 show kindergarten vaccination coverage continuing to slide from pre-pandemic levels while nonmedical exemption rates trend upward. The trend is real. The question is the remedy.</div>
+        </div>
+
+        <div class="oppo-timeline-item">
+          <div class="oppo-timeline-dot dot-mid"></div>
+          <div class="oppo-timeline-date">April 25, 2025</div>
+          <div class="oppo-timeline-head">Boldon introduces SF 3439 &mdash; eliminates the conscientious exemption</div>
+          <div class="oppo-timeline-body">Boldon introduces SF 3439. The bill does not strengthen outreach, increase vaccination access, or create incentive programs. It removes the statutory right of parents to decline the MMR vaccine on conscientious grounds for children enrolling in any licensed childcare facility, preschool, or K-12 school &mdash; public, private, or charter.</div>
+        </div>
+
+        <div class="oppo-timeline-item">
+          <div class="oppo-timeline-dot dot-mid"></div>
+          <div class="oppo-timeline-date">March 18, 2026</div>
+          <div class="oppo-timeline-head">Committee hearing &mdash; bill passes to Senate Education Policy Committee</div>
+          <div class="oppo-timeline-body">The Senate status page shows SF 3439 moving from Health and Human Services to Education Policy on March 18, 2026. Boldon's bill had advanced beyond introduction, but it had not become law.</div>
+        </div>
+
+        <div class="oppo-timeline-item">
+          <div class="oppo-timeline-dot dot-end"></div>
+          <div class="oppo-timeline-date">August 1, 2026</div>
+          <div class="oppo-timeline-head">Effective date: no more conscientious exemptions for MMR</div>
+          <div class="oppo-timeline-body">If enacted, the bill takes effect August 1, 2026. Parents who held a conscientious belief exemption will no longer be able to rely on it. Children without MMR vaccination documentation or a physician's medical exemption will not be allowed to enroll or remain enrolled in licensed childcare or school programs in Minnesota.</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Proof document block -->
+  <div class="oppo-proof-section">
+    <div class="oppo-proof-container">
+      <div class="oppo-proof-label">Core Document &mdash; Bill Text</div>
+      <div class="oppo-proof-document">
+        <div class="oppo-proof-doc-header">
+          SF 3439 &bull; 94th Legislature (2025-2026) &bull; Introduced April 25, 2025 &bull; Chief Author: Sen. Liz Boldon (DFL-25)
+        </div>
+        <div class="oppo-proof-doc-title">
+          Prohibition: Use of Conscientiously Held Beliefs Exemption for MMR Immunization
+        </div>
+        <div class="oppo-proof-doc-body">
+          <p>The bill amends Minnesota statute to add a new prohibition. The operative language:</p>
+          <div class="law-text">
+            "Notwithstanding [existing exemption provisions], a person may not use an exemption to immunization due to conscientiously held beliefs for immunization against measles, mumps, and rubella for a child enrolling or enrolled in a child care facility, certified license-exempt child care center, preschool, prekindergarten program, or elementary or secondary school."
+          </div>
+          <p>What this removes: the right of a parent or guardian to cite personal, philosophical, or non-religious conviction as grounds for declining the MMR vaccine requirement.</p>
+          <p>What this leaves in place: medical exemptions only, contingent on a physician's written statement that the immunization is contraindicated or unnecessary because adequate immunity already exists.</p>
+          <p>Effective date: August 1, 2026, if enacted. The bill covers children enrolling or enrolled in child care facilities, certified license-exempt child care centers, preschools, prekindergarten programs, and elementary or secondary schools.</p>
+        </div>
+        <div class="oppo-proof-source">
+          Source: revisor.mn.gov &mdash; <a href="https://www.revisor.mn.gov/bills/94/2025/0/SF/3439/" target="_blank">SF 3439, 94th Legislature</a> &bull; Introduced April 25, 2025
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Evidence cards -->
+  <div class="oppo-evidence-section">
+    <div class="oppo-evidence-container">
+      <div class="oppo-evidence-header">Evidence cards &mdash; three angles of attack</div>
+      <div class="oppo-evidence-cards">
+
+        <div class="oppo-evidence-card">
+          <div class="oppo-evidence-card-number">01</div>
+          <div class="oppo-evidence-card-tag">Scope of removal</div>
+          <div class="oppo-evidence-card-title">Covered school and child care settings would lose the MMR belief exemption</div>
+          <div class="oppo-evidence-card-body">
+            <p>SF 3439 applies to <span class="redact-line">covered child care settings, preschools, prekindergarten programs, and elementary or secondary schools</span>. It does not create a separate hardship process. It removes the MMR conscientious-belief exemption effective August 1, 2026, if enacted.</p>
+            <p>For children already relying on that exemption, the bill would require new documentation to keep enrolling or remain enrolled: proof of MMR immunization or a physician-signed medical exemption.</p>
+          </div>
+        </div>
+
+        <div class="oppo-evidence-card">
+          <div class="oppo-evidence-card-number">02</div>
+          <div class="oppo-evidence-card-tag">The diagnosis vs. the prescription</div>
+          <div class="oppo-evidence-card-title">The bill does not address the cause of falling rates</div>
+          <div class="oppo-evidence-card-body">
+            <p>Boldon's own rationale rests on declining school immunization coverage shown in Minnesota Department of Health data. That decline is real.</p>
+            <p>SF 3439 does not fund vaccination outreach. It does not expand clinic access in underserved areas. It does not address the administrative burden of vaccine scheduling. It removes a right. It does not increase vaccination capacity.</p>
+          </div>
+        </div>
+
+        <div class="oppo-evidence-card">
+          <div class="oppo-evidence-card-number">03</div>
+          <div class="oppo-evidence-card-tag">The brand vs. the bill</div>
+          <div class="oppo-evidence-card-title">A care-first legislator authored a compulsion-first bill</div>
+          <div class="oppo-evidence-card-body">
+            <p>Boldon's political brand is <span class="redact-line">patient-centered, community-based, and accessibility-focused</span>. Her housing bill sought more access. SF 3439 would narrow one existing exemption if enacted.</p>
+            <p>The tension is clean and verifiable: the same senator who introduced a bill seeking $600,000 to expand housing access for vulnerable residents also authored a bill that would remove a statutory MMR exemption for covered enrollees. Both bills are on the record. The contrast is Boldon's own.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Response / gap section -->
+  <div class="oppo-response-section">
+    <div class="oppo-response-container">
+      <div>
+        <div class="oppo-response-label">Boldon's stated rationale</div>
+        <div class="oppo-response-text">
+          <p><strong>Boldon cites the data:</strong> Minnesota school immunization data show declining vaccination coverage over the last decade, and Minnesota reported measles cases in 2025.</p>
+          <p>She has argued that a single exemption type &mdash; conscientious belief &mdash; is disproportionately responsible for the coverage gap, and that public health infrastructure cannot be sustained when opt-out is structurally easy.</p>
+          <p>Medical exemptions remain. Families with documented contraindications are not affected. The bill is targeted at philosophical opt-outs, not medical necessity.</p>
+        </div>
+      </div>
+      <div class="oppo-response-gap">
+        <div class="oppo-response-gap-title">The unanswered question</div>
+        <div class="oppo-response-gap-body">
+          <p>Boldon has not explained in the bill text why removal &mdash; rather than reform &mdash; is the appropriate response to declining coverage. Other policy options could still exist outside this bill.</p>
+          <p>The bill would also affect children already relying on a conscientious-belief MMR exemption if they are enrolled in the covered child care or school settings after August 1, 2026.</p>
+          <p>The sharpest attack for a Rochester-district challenger is local: in a city shaped by patient-centered health care employment, a legislator who campaigned on care systems has authored the most coercive health policy of her tenure. The contrast between her housing work and her vaccine bill is entirely of her own making.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Oppo footnotes -->
+  <div class="oppo-footnotes">
+    <div class="oppo-footnotes-title">Sources &amp; Footnotes</div>
+    <ol>
+      <li>[1] SF 3439, 94th Minnesota Legislature. Chief author: Sen. Liz Boldon. Introduced April 25, 2025. The bill would end use of the conscientiously held beliefs exemption for MMR immunization in covered settings effective August 1, 2026, if enacted. <a href="https://www.revisor.mn.gov/bills/94/2025/0/SF/3439/" target="_blank">revisor.mn.gov</a></li>
+      <li>[2] Minnesota Department of Health, School Immunization Data for 2024-25. State data page for kindergarten vaccination and exemption percentages. <a href="https://www.health.state.mn.us/people/immunize/stats/school/index.html" target="_blank">health.state.mn.us</a></li>
+      <li>[3] SF 3439 Senate status page shows introduction on April 25, 2025, referral to Health and Human Services, and movement to Education Policy on March 18, 2026. <a href="https://www.revisor.mn.gov/bills/94/2025/0/SF/3439/" target="_blank">revisor.mn.gov</a></li>
+      <li>[4] Minnesota Department of Health measles statistics page. <a href="https://www.health.state.mn.us/diseases/measles/stats.html" target="_blank">health.state.mn.us</a></li>
+    </ol>
+  </div>
+
+  <!-- Auto-transition sentinel — observed by IntersectionObserver -->
+  <div id="brief-sentinel" style="height:1px;width:100%;"></div>
+
+  <!-- Subtle stamp — visible as user nears the bottom -->
+  <div class="machine-stamp">
+    <span class="machine-stamp-text">AI-GENERATED &nbsp;·&nbsp; 67 SENATORS &nbsp;·&nbsp; 63 PARALLEL AGENTS &nbsp;·&nbsp; ~4 HRS &nbsp;·&nbsp; ~$47</span>
+  </div>
+
+</div><!-- /oppo-content -->
+
+
+<script>
+  /* ── FLIP TOGGLE ─────────────────────────────────────── */
+  const btn = document.getElementById('flip-btn');
+  btn.addEventListener('click', () => {
+    document.body.style.opacity = '0';
+    document.body.style.transition = 'opacity 0.22s';
+    setTimeout(() => {
+      document.body.classList.toggle('mode-oppo');
+      window.scrollTo(0, 0);
+      document.body.style.opacity = '1';
+    }, 220);
+  });
+
+  /* ── COUNTER ANIMATION ────────────────────────────────── */
+  function animateCounters() {
+    const counters = document.querySelectorAll('.pro-counter');
+    counters.forEach(counter => {
+      const target = parseInt(counter.getAttribute('data-target'), 10);
+      const duration = 1400;
+      const steps = 50;
+      const increment = target / steps;
+      let current = 0;
+      let step = 0;
+      const timer = setInterval(() => {
+        step++;
+        current = Math.min(Math.round(increment * step), target);
+        counter.textContent = current;
+        if (step >= steps) clearInterval(timer);
+      }, duration / steps);
+    });
+  }
+
+  /* ── TYPEWRITER (oppo headline) ───────────────────────── */
+  function typewriterEffect() {
+    const el = document.querySelector('.oppo-accusation');
+    if (!el) return;
+    const original = el.innerHTML;
+    el._originalHTML = original;
+  }
+
+  /* ── INTERSECTION OBSERVER for counters ──────────────── */
+  const statRail = document.querySelector('.pro-stat-rail');
+  if (statRail && 'IntersectionObserver' in window) {
+    let triggered = false;
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !triggered) {
+          triggered = true;
+          animateCounters();
+        }
+      });
+    }, { threshold: 0.4 });
+    obs.observe(statRail);
+  } else if (statRail) {
+    animateCounters();
+  }
+</script>
+<!-- ═══════════════════════════════════════════════════════
+     THE BRIEF — AI capabilities briefing
+═══════════════════════════════════════════════════════ -->
+<div class="brief-content">
+
+  <div class="brief-opening">
+    <p class="brief-made-by">Sixty-seven of these pages were made using one AI account in about thirty minutes. Six months ago an automated project like this would have been impossible.</p>
+  </div>
+
+  <div class="brief-chart-section">
+    <h2 class="brief-chart-title">This is the trend that made it possible.</h2>
+    <div class="brief-chart-frame">
+      <img
+        src="https://metr.org/assets/images/measuring-ai-ability-to-complete-long-tasks/length-of-tasks-log.png"
+        alt="METR chart: length of tasks AI agents can complete autonomously, doubling roughly every 7 months since 2019"
+        class="brief-metr-img"
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+      >
+      <div class="brief-chart-fallback" style="display:none;">
+        <p>Chart unavailable. See the original at <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">metr.org</a>.</p>
+      </div>
+    </div>
+    <p class="brief-chart-source">Source: <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR</a>, an independent AI evaluation lab.</p>
+    <p class="brief-chart-read">This chart tracks how long a task an AI agent can finish on its own. In 2019, the answer was about three seconds. By early 2023, it was six minutes. by mid 2025, over two hours. As of early 2026, Claude Opus 4.6 completes tasks that take a skilled human roughly twelve hours.</p>
+    <p class="brief-chart-read">The overall doubling time has been about seven months. But it is getting faster. <a href="https://metr.org/time-horizons/" target="_blank">When researchers fit only the most recent data</a>, the doubling time drops to four months. At that rate, AI agents capable of completing month-long autonomous projects arrive not in the early 2030s but around 2028.</p>
+  </div>
+
+  <div class="brief-so-what">
+    <h2 class="brief-so-what-title">What that means for lawmakers.</h2>
+    <p>Urgency. There was a narrative last year that AI had hit a wall in capabilities. It was a plausible perspective at the time. It isn't anymore. After breakthroughs late last year, AI systems' ability to automate cyberattacks, pathogen design, misinformation, mass surveillance, and vast swaths of white-collar work is advancing faster than ever.</p>
+    <p>The world will soon change faster than the typical pace of policymaking. The only solution is to act with atypical speed: AI regulations, data center moratoriums, calling for a federal pause on AI development, worker displacement funds. Some of these ideas already have bills introduced this session. Others should be explored soon. Time is limited, so if you feel behind on AI, the sources below are a good place to start.</p>
+    
+  </div>
+
+  <div class="brief-next">
+    <h2 class="brief-next-title">Start here.</h2>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">USE</span>
+      <a href="https://claude.ai/cowork" target="_blank">Claude Cowork</a> · <a href="https://claude.ai/code" target="_blank">Claude Code</a>
+      <span class="brief-link-detail">The tools that built this page. Cowork handles research and writing. Code is the agent that runs tasks, spawns sub-agents, and makes decisions on its own. Spend thirty minutes with one of these on a real problem from your week. That will teach you more than any briefing.</span>
+    </div>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR: Measuring AI Ability to Complete Long Tasks</a>
+      <span class="brief-link-detail">The source for the chart above. The METR trend is based on software tasks, but <a href="https://futuretech.mit.edu/publication/crashing-waves-vs-rising-tides-preliminary-findings-on-ai-automation-from-thousands-of-worker-evaluations-of-labor-market-tasks" target="_blank">MIT research on worker evaluations of labor market tasks</a> finds similar patterns across white-collar work broadly.</span>
+    </div>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://aiindex.stanford.edu/report/" target="_blank">Stanford HAI AI Index 2025</a>
+      <span class="brief-link-detail">The most comprehensive annual report on AI capabilities, economics, and policy across all 50 states.</span>
+    </div>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.imdb.com/title/tt39150120/" target="_blank">The AI Doc: Or How I Became an Apocaloptimist</a>
+      <span class="brief-link-detail">Daniel Roher's 2026 documentary, in theaters now. Roher interviews Amodei, Altman, Hassabis, and dozens more. If you see one thing on this list, see this.</span>
+    </div>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.youtube.com/watch?v=xoVJKj8lcNQ" target="_blank">The A.I. Dilemma</a>
+      <span class="brief-link-detail">Center for Humane Technology. 60 min, free on YouTube. Made for people with institutional power who need to understand AI quickly.</span>
+    </div>
+
+    <div class="brief-link-block">
+      <span class="brief-link-tag">TRACK</span>
+      <a href="https://www.ncsl.org/technology-and-communication/artificial-intelligence" target="_blank">NCSL AI Legislation Tracker</a> ·
+      <a href="https://mn.gov/mnit/about-mnit/oit-programs/ai/" target="_blank">MN.IT AI Office</a>
+      <span class="brief-link-detail">Every AI bill in every state. Plus Minnesota's own AI program office. See where you stand relative to the field.</span>
+    </div>
+  </div>
+
+  <div class="brief-close">
+    <p class="brief-close-small">This project is not affiliated with any campaign, party, or organization.</p>
+    <button id="exit-brief-btn">← Back</button>
+  </div>
+
+</div><!-- /brief-content -->
+
+<style>
+.brief-content { display: none; }
+body.mode-brief .brief-content  { display: block; }
+body.mode-brief .pro-content    { display: none; }
+body.mode-brief .oppo-content   { display: none; }
+body.mode-brief #flip-btn       { display: none; }
+
+.brief-content {
+  background: #0C0A08;
+  color: #D4CCBE;
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 17px;
+  line-height: 1.75;
+  min-height: 100vh;
+}
+.brief-content a { color: #C0B49A; }
+.brief-content a:hover { color: #fff; }
+
+@keyframes glitch-seq {
+  0%   { filter: saturate(0) brightness(0.5); }
+  10%  { filter: hue-rotate(90deg) contrast(4) brightness(3); transform: skewX(4deg); }
+  12%  { filter: brightness(0.1); transform: none; }
+  25%  { filter: hue-rotate(200deg) invert(0.8); transform: translateX(6px); }
+  27%  { filter: brightness(0.05); transform: none; }
+  40%  { filter: blur(6px) brightness(0.02); }
+  44%  { filter: brightness(6); }
+  46%  { filter: none; transform: none; }
+  60%  { filter: hue-rotate(300deg) contrast(3) saturate(8); transform: skewX(-3deg); }
+  62%  { filter: none; transform: none; }
+  78%  { filter: blur(16px) brightness(0.01); }
+  82%  { filter: brightness(2); }
+  84%  { filter: none; }
+  100% { filter: none; transform: none; }
+}
+body.glitching {
+  animation: glitch-seq 1.2s ease-in-out forwards;
+  pointer-events: none;
+}
+
+.machine-stamp {
+  background: #050505;
+  border-top: 1px solid #111;
+  padding: 16px 40px;
+  text-align: center;
+}
+.machine-stamp-text {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 0.22em;
+  color: #222;
+  text-transform: uppercase;
+  animation: stamp-pulse 3s ease-in-out infinite;
+}
+@keyframes stamp-pulse {
+  0%, 100% { color: #222; }
+  50% { color: #4A3A2A; }
+}
+
+.brief-opening { max-width: 640px; margin: 0 auto; padding: 100px 40px 64px; }
+.brief-made-by { font-size: 20px; line-height: 1.65; color: #B8AE9C; margin-bottom: 20px; }
+.brief-made-by.last { color: #E8DED0; }
+
+.brief-chart-section { max-width: 740px; margin: 0 auto; padding: 48px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-chart-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 32px; font-style: italic; }
+.brief-chart-frame { background: #fff; border-radius: 4px; padding: 12px; margin-bottom: 12px; }
+.brief-metr-img { width: 100%; height: auto; display: block; }
+.brief-chart-fallback { padding: 40px; text-align: center; color: #666; font-size: 14px; }
+.brief-chart-fallback a { color: #888; }
+.brief-chart-source { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #5A5040; line-height: 1.6; margin-bottom: 28px; }
+.brief-chart-source a { color: #7A6A54; text-decoration: none; }
+.brief-chart-read { font-size: 17px; color: #B8AE9C; }
+
+.brief-so-what { max-width: 640px; margin: 0 auto; padding: 56px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-so-what-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 28px; font-style: italic; }
+.brief-so-what p { font-size: 17px; color: #B8AE9C; margin-bottom: 20px; }
+
+.brief-next { max-width: 640px; margin: 0 auto; padding: 56px 40px 48px; border-top: 1px solid #1E1A14; }
+.brief-next-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 14px; font-style: italic; }
+.brief-next-intro { font-size: 15px; color: #9A9080; margin-bottom: 36px; line-height: 1.65; }
+.brief-link-block { margin-bottom: 28px; line-height: 1.7; }
+.brief-link-tag { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.2em; color: #6A5A44; text-transform: uppercase; display: block; margin-bottom: 4px; }
+.brief-link-block a { font-weight: 600; color: #E0D6C4; text-decoration: underline; text-underline-offset: 3px; font-size: 16px; }
+.brief-link-block a:hover { color: #fff; }
+.brief-link-detail { display: block; font-size: 14px; color: #6A5E4C; margin-top: 2px; }
+
+.brief-close { max-width: 640px; margin: 0 auto; padding: 48px 40px 100px; border-top: 1px solid #1E1A14; }
+.brief-close p { font-family: 'Source Serif 4', Georgia, serif; font-size: 16px; color: #9A9080; margin-bottom: 32px; line-height: 1.7; }
+.brief-close-small { font-family: 'IBM Plex Mono', monospace !important; font-size: 11px !important; color: #3A3428 !important; letter-spacing: 0.04em; }
+#exit-brief-btn { background: none; border: 1px solid #2A2418; color: #5A5040; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; padding: 10px 20px; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
+#exit-brief-btn:hover { border-color: #8A7A64; color: #C0B49A; }
+
+@media (max-width: 900px) {
+  .brief-opening, .brief-so-what, .brief-next, .brief-close { padding-left: 24px; padding-right: 24px; }
+  .brief-chart-section { padding-left: 24px; padding-right: 24px; }
+  .brief-made-by { font-size: 18px; }
+  .brief-opening { padding-top: 64px; }
+  .machine-stamp { padding: 14px 20px; }
+}
+</style>
+
+<script>
+(function() {
+  let briefTriggered = false;
+
+  function startBriefTransition() {
+    if (briefTriggered) return;
+    if (!document.body.classList.contains('mode-oppo')) return;
+    briefTriggered = true;
+    const body = document.body;
+
+    body.style.transition = 'filter 2.5s ease-in';
+    body.style.filter = 'saturate(0) brightness(0.3)';
+
+    setTimeout(() => {
+      const hed = document.querySelector('.oppo-content h1') || document.querySelector('.oppo-content h2');
+      if (hed) {
+        const orig = hed.textContent;
+        const chars = '█▓▒░■□0123456789';
+        let n = 0;
+        const si = setInterval(() => {
+          n++;
+          hed.textContent = Array.from(orig).map(c => c === ' ' ? ' ' : chars[Math.floor(Math.random() * chars.length)]).join('');
+          if (n > 40) { clearInterval(si); hed.textContent = orig; }
+        }, 40);
+      }
+    }, 1200);
+
+    setTimeout(() => {
+      body.style.transition = '';
+      body.style.filter = '';
+      body.classList.add('glitching');
+
+      setTimeout(() => {
+        body.classList.remove('glitching');
+        body.classList.add('mode-brief');
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      }, 1500);
+    }, 2500);
+  }
+
+  const sentinel = document.getElementById('brief-sentinel');
+  if (sentinel && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          io.disconnect();
+          setTimeout(startBriefTransition, 1200);
+        }
+      });
+    }, { threshold: 0.5 });
+    io.observe(sentinel);
+  }
+
+  const flipBtn = document.getElementById('flip-btn');
+  if (flipBtn) {
+    flipBtn.addEventListener('click', () => {
+      if (document.body.classList.contains('mode-oppo')) briefTriggered = false;
+    });
+  }
+})();
+
+document.addEventListener('click', (e) => {
+  if (e.target && e.target.id === 'exit-brief-btn') {
+    const body = document.body;
+    body.style.opacity = '0';
+    body.style.transition = 'opacity 0.3s';
+    setTimeout(() => {
+      body.classList.remove('mode-brief');
+      body.classList.add('mode-oppo');
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      body.style.opacity = '1';
+    }, 300);
+  }
+});
+</script>
+
+</body>
+</html>

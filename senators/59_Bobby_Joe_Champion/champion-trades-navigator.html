@@ -1,0 +1,1894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>North Side Trades Pipeline Navigator — SD-59</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Two-column dashboard — fixed 220px dark sidebar + scrolling main content area; full viewport height; no centered max-width shell
+   2. Navigation: Vertical sidebar links with brick-red left-border active indicator (nav state indicator, not a content card)
+   3. Typography: Georgia serif body text with Arial Narrow condensed uppercase headers — inverts the Claude default of sans-serif everywhere
+   Additional: Stats use inline proportional bar elements (not card grid); pipeline uses CSS flexbox flow with pseudo-element arrows; document preview is a live-updating split panel; no parchment background
+*/
+
+/* ===== RESET & BASE ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --blue:       #2B4F72;
+  --blue-dark:  #1e3a54;
+  --blue-light: #3a6491;
+  --red:        #8B2E1A;
+  --red-hover:  #a33620;
+  --gray:       #5A5F63;
+  --bg:         #F2F2F0;
+  --white:      #FFFFFF;
+  --text:       #1C1C1C;
+  --steel-white:#EAF0F7;
+  --success:    #2D6A4F;
+  --warning:    #C4922A;
+  --sidebar-w:  220px;
+  --topbar-h:   56px;
+}
+
+html, body {
+  height: 100%;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 15px;
+  color: var(--text);
+  background: var(--bg);
+}
+
+/* ===== LAYOUT SHELL ===== */
+.app {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  background: var(--blue);
+  color: var(--steel-white);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  z-index: 100;
+  transition: transform 0.25s ease;
+}
+
+.sidebar-brand {
+  padding: 20px 16px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.12);
+}
+
+.sidebar-brand h1 {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  line-height: 1.3;
+  color: #FFFFFF;
+  margin-bottom: 6px;
+}
+
+.sidebar-brand .district-line {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 11px;
+  color: rgba(234,240,247,0.65);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.sidebar-brand .senator-name {
+  font-family: Georgia, serif;
+  font-size: 12px;
+  color: rgba(234,240,247,0.85);
+  margin-top: 4px;
+  font-style: italic;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 12px 0;
+}
+
+.nav-section-label {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: rgba(234,240,247,0.45);
+  padding: 8px 16px 4px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  cursor: pointer;
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(234,240,247,0.78);
+  border-left: 3px solid transparent;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  user-select: none;
+}
+
+.nav-item:hover {
+  background: rgba(255,255,255,0.07);
+  color: #FFFFFF;
+}
+
+.nav-item.active {
+  background: rgba(255,255,255,0.11);
+  color: #FFFFFF;
+  border-left-color: var(--red);
+}
+
+.nav-item .nav-icon {
+  font-size: 15px;
+  width: 18px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.sidebar-footer {
+  padding: 14px 16px;
+  border-top: 1px solid rgba(255,255,255,0.10);
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 10px;
+  color: rgba(234,240,247,0.38);
+  line-height: 1.5;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ===== MAIN AREA ===== */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.topbar {
+  height: var(--topbar-h);
+  min-height: var(--topbar-h);
+  background: var(--white);
+  border-bottom: 2px solid var(--blue);
+  display: flex;
+  align-items: center;
+  padding: 0 28px;
+  gap: 16px;
+}
+
+.hamburger {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  color: var(--blue);
+  padding: 4px;
+}
+
+.topbar-module {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--blue);
+}
+
+.topbar-desc {
+  font-family: Georgia, serif;
+  font-size: 12px;
+  color: var(--gray);
+  font-style: italic;
+}
+
+.topbar-desc::before { content: "— "; }
+
+.content-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 28px;
+  background: var(--bg);
+}
+
+/* ===== PANELS ===== */
+.module-panel { display: none; }
+.module-panel.active { display: block; }
+
+/* ===== INTRO BLOCK (no left-border card — uses colored background section) ===== */
+.intro-block {
+  background: var(--blue);
+  color: var(--steel-white);
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  border-radius: 2px;
+}
+
+.intro-block p {
+  font-family: Georgia, serif;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.intro-block strong {
+  color: #FFFFFF;
+}
+
+/* ===== SECTION HEADERS ===== */
+.section-header {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+  color: var(--blue);
+  margin-bottom: 14px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--blue);
+}
+
+/* ===== PIPELINE DIAGRAM ===== */
+.pipeline-flow {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  margin-bottom: 4px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.pipeline-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  min-width: 110px;
+  cursor: pointer;
+  position: relative;
+}
+
+.pipeline-stage:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 22px;
+  right: -18px;
+  width: 36px;
+  height: 2px;
+  background: var(--gray);
+  z-index: 1;
+}
+
+.pipeline-stage:not(:last-child)::before {
+  content: '▶';
+  position: absolute;
+  top: 14px;
+  right: -22px;
+  font-size: 10px;
+  color: var(--gray);
+  z-index: 2;
+}
+
+.stage-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--gray);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  transition: background 0.2s;
+  z-index: 3;
+  position: relative;
+}
+
+.pipeline-stage.active .stage-circle,
+.pipeline-stage:hover .stage-circle {
+  background: var(--red);
+}
+
+.stage-name {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--blue);
+  text-align: center;
+  line-height: 1.3;
+  margin-bottom: 4px;
+}
+
+.stage-tagline {
+  font-family: Georgia, serif;
+  font-size: 11px;
+  color: var(--gray);
+  text-align: center;
+  line-height: 1.3;
+  font-style: italic;
+}
+
+.pipeline-stage.active .stage-name { color: var(--red); }
+
+/* ACCORDION DETAIL PANELS */
+.stage-detail {
+  display: none;
+  background: var(--white);
+  border-top: 3px solid var(--red);
+  padding: 22px 26px;
+  margin-top: 12px;
+  animation: slideDown 0.18s ease;
+}
+
+.stage-detail.open { display: block; }
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.detail-header {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--blue);
+  margin-bottom: 14px;
+}
+
+.detail-body {
+  font-family: Georgia, serif;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text);
+}
+
+.detail-body p { margin-bottom: 10px; }
+
+.detail-body ul {
+  margin: 0 0 10px 20px;
+}
+
+.detail-body li { margin-bottom: 4px; }
+
+.coordinator-block {
+  background: #EAF0F7;
+  border-top: 2px solid var(--blue);
+  padding: 12px 16px;
+  margin-top: 14px;
+}
+
+.coordinator-block .cb-label {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--blue);
+  margin-bottom: 6px;
+}
+
+.coordinator-block p,
+.coordinator-block li {
+  font-family: Georgia, serif;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.coordinator-block ul { margin-left: 18px; }
+
+.track-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 14px 0;
+}
+
+.track-col {
+  background: var(--bg);
+  padding: 14px 16px;
+  border-top: 2px solid var(--blue);
+}
+
+.track-col h4 {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--blue);
+  margin-bottom: 8px;
+}
+
+.track-col p, .track-col li {
+  font-family: Georgia, serif;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.track-col ul { margin-left: 16px; margin-top: 6px; }
+
+.resource-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.resource-pill {
+  background: var(--blue);
+  color: var(--steel-white);
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 5px 12px;
+  border-radius: 2px;
+}
+
+.license-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  font-size: 13px;
+}
+
+.license-table th {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-size: 11px;
+  background: var(--blue);
+  color: var(--steel-white);
+  padding: 7px 12px;
+  text-align: left;
+}
+
+.license-table td {
+  font-family: Georgia, serif;
+  padding: 7px 12px;
+  border-bottom: 1px solid #ddd;
+  vertical-align: top;
+  line-height: 1.5;
+}
+
+.license-table tr:nth-child(even) td { background: var(--bg); }
+
+/* ===== WAGE CALCULATOR ===== */
+.calc-grid {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.calc-inputs {
+  background: var(--white);
+  padding: 20px;
+  border-top: 3px solid var(--blue);
+}
+
+.calc-results { }
+
+.form-group {
+  margin-bottom: 14px;
+}
+
+.form-group label {
+  display: block;
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--blue);
+  margin-bottom: 4px;
+}
+
+.form-group select,
+.form-group input[type="number"],
+.form-group input[type="text"] {
+  width: 100%;
+  padding: 7px 10px;
+  font-family: Georgia, serif;
+  font-size: 13px;
+  border: 1px solid #ccc;
+  background: var(--white);
+  color: var(--text);
+  appearance: none;
+  border-radius: 1px;
+}
+
+.form-group select:focus,
+.form-group input:focus {
+  outline: 2px solid var(--blue);
+  outline-offset: 1px;
+}
+
+.toggle-group {
+  display: flex;
+  gap: 0;
+}
+
+.toggle-btn {
+  flex: 1;
+  padding: 7px 10px;
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border: 1px solid #ccc;
+  background: var(--white);
+  color: var(--gray);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.toggle-btn:first-child { border-right: none; }
+
+.toggle-btn.active {
+  background: var(--blue);
+  color: var(--white);
+  border-color: var(--blue);
+}
+
+/* RESULTS DISPLAY */
+.big-stat-label {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--gray);
+  margin-bottom: 2px;
+}
+
+.big-stat-value {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 46px;
+  font-weight: 700;
+  color: var(--red);
+  line-height: 1;
+  margin-bottom: 16px;
+}
+
+.comparison-row {
+  display: flex;
+  gap: 32px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.comp-item { }
+
+.comp-item .comp-label {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--gray);
+}
+
+.comp-item .comp-value {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.comp-item.apprentice .comp-value { color: var(--red); }
+.comp-item.minwage .comp-value { color: var(--gray); }
+
+/* INLINE BAR TABLE */
+.bar-table { width: 100%; margin-bottom: 20px; }
+
+.bar-row {
+  display: grid;
+  grid-template-columns: 64px 1fr 90px 110px;
+  gap: 8px;
+  align-items: center;
+  padding: 5px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.bar-row.header-row {
+  border-bottom: 2px solid var(--blue);
+  padding-bottom: 5px;
+  margin-bottom: 2px;
+}
+
+.bar-row.header-row span {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--blue);
+}
+
+.bar-cell-label {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--gray);
+}
+
+.bar-cell-bar {
+  position: relative;
+  height: 18px;
+  background: #e8e8e6;
+  overflow: hidden;
+}
+
+.bar-fill {
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  background: var(--red);
+  transition: width 0.4s ease;
+}
+
+.bar-cell-wage {
+  font-family: Georgia, serif;
+  font-size: 13px;
+  text-align: right;
+  color: var(--text);
+}
+
+.bar-cell-annual {
+  font-family: Georgia, serif;
+  font-size: 13px;
+  text-align: right;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.chart-container {
+  background: var(--white);
+  padding: 16px;
+  border-top: 3px solid var(--blue);
+  margin-bottom: 12px;
+}
+
+.chart-container canvas { max-height: 300px; }
+
+.chart-unavailable {
+  display: none;
+  background: var(--bg);
+  padding: 16px;
+  font-family: Georgia, serif;
+  font-size: 13px;
+  color: var(--gray);
+  font-style: italic;
+  text-align: center;
+  border: 1px solid #ddd;
+}
+
+.footnote-text {
+  font-family: Georgia, serif;
+  font-size: 11px;
+  color: var(--gray);
+  font-style: italic;
+  line-height: 1.5;
+  margin-top: 8px;
+}
+
+/* ===== DOCUMENT GENERATOR ===== */
+.doc-gen-layout {
+  display: grid;
+  grid-template-columns: 2fr 3fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.doc-inputs {
+  background: var(--white);
+  padding: 20px;
+  border-top: 3px solid var(--blue);
+}
+
+.doc-inputs .section-header { margin-bottom: 16px; }
+
+.doc-inputs .form-group label { color: var(--blue); }
+
+.checklist-group { margin-bottom: 14px; }
+
+.checklist-group .cl-label {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--blue);
+  margin-bottom: 7px;
+  display: block;
+}
+
+.check-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+  font-family: Georgia, serif;
+  font-size: 13px;
+}
+
+.check-item input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--blue); }
+
+/* DOCUMENT PREVIEW */
+.doc-preview-wrap {
+  position: sticky;
+  top: 0;
+}
+
+.doc-preview-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.print-btn {
+  background: var(--red);
+  color: #FFFFFF;
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 9px 20px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
+  border-radius: 1px;
+}
+
+.print-btn:hover { background: var(--red-hover); }
+
+.print-hint {
+  font-family: Georgia, serif;
+  font-size: 12px;
+  color: var(--gray);
+  font-style: italic;
+}
+
+.doc-preview {
+  background: var(--white);
+  box-shadow: inset 0 0 0 1px #ddd, 0 2px 12px rgba(0,0,0,0.08);
+  padding: 36px 40px;
+  min-height: 600px;
+  font-family: Georgia, serif;
+}
+
+.doc-preview [contenteditable]:focus {
+  outline: 2px dashed var(--blue);
+  outline-offset: 2px;
+  background: rgba(43,79,114,0.04);
+}
+
+.doc-preview-header {
+  border-bottom: 3px solid var(--blue);
+  padding-bottom: 12px;
+  margin-bottom: 18px;
+}
+
+.doc-preview-header .doc-title {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--blue);
+  line-height: 1.2;
+}
+
+.doc-preview-header .doc-subtitle {
+  font-family: Georgia, serif;
+  font-size: 13px;
+  color: var(--gray);
+  margin-top: 4px;
+}
+
+.doc-section {
+  margin-bottom: 16px;
+}
+
+.doc-section-title {
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+  color: var(--blue);
+  margin-bottom: 5px;
+  padding-bottom: 3px;
+  border-bottom: 1px solid #ddd;
+}
+
+.doc-section-body {
+  font-family: Georgia, serif;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--text);
+  min-height: 20px;
+}
+
+.doc-section-body.editable-hint {
+  cursor: text;
+}
+
+.missing-docs-list {
+  font-family: Georgia, serif;
+  font-size: 13px;
+  color: var(--red);
+  line-height: 1.6;
+}
+
+.doc-footer {
+  margin-top: 24px;
+  padding-top: 10px;
+  border-top: 1px solid #ccc;
+  font-family: Georgia, serif;
+  font-size: 10px;
+  color: var(--gray);
+  line-height: 1.5;
+  font-style: italic;
+}
+
+/* ===== PRINT CSS ===== */
+@media print {
+  .sidebar, .topbar, .hamburger { display: none !important; }
+  .app { display: block; }
+  .main { display: block; overflow: visible; }
+  .content-area { padding: 0; overflow: visible; background: white; }
+  .module-panel { display: none !important; }
+  #panel-docgen { display: block !important; }
+  .doc-gen-layout { display: block; }
+  .doc-inputs { display: none !important; }
+  .doc-preview-actions { display: none !important; }
+  .doc-preview-wrap { position: static; }
+  .doc-preview {
+    box-shadow: none;
+    padding: 0;
+  }
+  .intro-block { display: none !important; }
+  body { font-size: 12pt; }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 900px) {
+  .calc-grid { grid-template-columns: 1fr; }
+  .doc-gen-layout { grid-template-columns: 1fr; }
+  .doc-preview-wrap { position: static; }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    transform: translateX(-100%);
+  }
+  .sidebar.open { transform: translateX(0); }
+  .hamburger { display: flex; align-items: center; justify-content: center; }
+  .app { display: block; }
+  .main { height: 100vh; }
+  .topbar { position: sticky; top: 0; z-index: 50; }
+  .pipeline-flow { flex-direction: column; }
+  .pipeline-stage:not(:last-child)::after,
+  .pipeline-stage:not(:last-child)::before { display: none; }
+  .pipeline-stage { flex-direction: row; align-items: flex-start; gap: 12px; }
+  .stage-circle { flex-shrink: 0; }
+  .track-grid { grid-template-columns: 1fr; }
+  .content-area { padding: 16px; }
+}
+
+/* ===== UTILITY ===== */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0;
+  margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;
+}
+
+a { color: var(--blue); }
+a:hover { color: var(--red); }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Module navigation">
+    <div class="sidebar-brand">
+      <h1>North Side Trades<br>Pipeline Navigator</h1>
+      <div class="district-line">SD-59 Workforce Tool</div>
+      <div class="senator-name">Sen. Bobby Joe Champion</div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Modules</div>
+      <div class="nav-item active" data-module="explorer" role="button" tabindex="0" aria-current="page">
+        <span class="nav-icon" aria-hidden="true">⬡</span>
+        Pipeline Explorer
+      </div>
+      <div class="nav-item" data-module="wage" role="button" tabindex="0">
+        <span class="nav-icon" aria-hidden="true">$</span>
+        Wage Calculator
+      </div>
+      <div class="nav-item" data-module="docgen" role="button" tabindex="0">
+        <span class="nav-icon" aria-hidden="true">▤</span>
+        Document Generator
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      MAD DADS · DEED · DLI<br>
+      Staff resource — SD-59<br>
+      April 2026
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <button class="hamburger" id="hamburger" aria-label="Toggle navigation" aria-expanded="false">&#9776;</button>
+      <span class="topbar-module" id="topbar-title">Pipeline Explorer</span>
+      <span class="topbar-desc" id="topbar-desc">Six-stage pathway from pre-apprenticeship to journeyworker</span>
+    </div>
+
+    <div class="content-area" id="content-area">
+
+      <!-- ===================== MODULE 1: PIPELINE EXPLORER ===================== -->
+      <div class="module-panel active" id="panel-explorer">
+
+        <div class="intro-block">
+          <p>In 2025, Senator Champion secured a <strong>$400,000 MAD DADS grant</strong> to train North Minneapolis youth ages 16 to 24 in HVAC, energy efficiency, and solar installation. That training is the door into the trades. This tool maps what comes after — the steps from a completed pre-apprenticeship program to a registered apprenticeship and, eventually, journeyworker status in a skilled trade.</p>
+        </div>
+
+        <div class="section-header">The Six-Stage Pipeline — Click a Stage for Details</div>
+
+        <!-- PIPELINE FLOW -->
+        <div class="pipeline-flow" role="list">
+
+          <div class="pipeline-stage" id="stage-1" role="listitem button" tabindex="0" aria-expanded="false" onclick="toggleStage(1)" onkeydown="keyStage(event,1)">
+            <div class="stage-circle">1</div>
+            <div class="stage-name">Pre-Apprenticeship<br>Training</div>
+            <div class="stage-tagline">Entry-level cert program</div>
+          </div>
+
+          <div class="pipeline-stage" id="stage-2" role="listitem button" tabindex="0" aria-expanded="false" onclick="toggleStage(2)" onkeydown="keyStage(event,2)">
+            <div class="stage-circle">2</div>
+            <div class="stage-name">Transition<br>Documentation</div>
+            <div class="stage-tagline">Compile trade dossier</div>
+          </div>
+
+          <div class="pipeline-stage" id="stage-3" role="listitem button" tabindex="0" aria-expanded="false" onclick="toggleStage(3)" onkeydown="keyStage(event,3)">
+            <div class="stage-circle">3</div>
+            <div class="stage-name">Program<br>Selection</div>
+            <div class="stage-tagline">Union joint vs. non-joint</div>
+          </div>
+
+          <div class="pipeline-stage" id="stage-4" role="listitem button" tabindex="0" aria-expanded="false" onclick="toggleStage(4)" onkeydown="keyStage(event,4)">
+            <div class="stage-circle">4</div>
+            <div class="stage-name">Application &amp;<br>Selection</div>
+            <div class="stage-tagline">JATC or employer process</div>
+          </div>
+
+          <div class="pipeline-stage" id="stage-5" role="listitem button" tabindex="0" aria-expanded="false" onclick="toggleStage(5)" onkeydown="keyStage(event,5)">
+            <div class="stage-circle">5</div>
+            <div class="stage-name">Registered<br>Apprenticeship</div>
+            <div class="stage-tagline">3–5 years OJT + RTI</div>
+          </div>
+
+          <div class="pipeline-stage" id="stage-6" role="listitem button" tabindex="0" aria-expanded="false" onclick="toggleStage(6)" onkeydown="keyStage(event,6)">
+            <div class="stage-circle">6</div>
+            <div class="stage-name">Journeyworker<br>Certification</div>
+            <div class="stage-tagline">DLI cert + state license</div>
+          </div>
+
+        </div><!-- /pipeline-flow -->
+
+        <!-- DETAIL PANELS (accordion) -->
+        <div id="detail-container">
+
+          <div class="stage-detail" id="detail-1" role="region" aria-labelledby="stage-1">
+            <div class="detail-header">Stage 1 — Pre-Apprenticeship Training</div>
+            <div class="detail-body">
+              <p><strong>What it is:</strong> Short-cycle vocational training, typically 8–16 weeks. Programs in the Minnesota context include the MAD DADS HVAC/Solar program, YouthBuild MN, IOCP North Side trades training, and Hennepin Technical College pre-apprenticeship cohorts.</p>
+              <p><strong>Eligibility:</strong> Usually ages 16–24. No prior trade experience required. Often income-qualified or justice-involved friendly. GED or high school diploma sometimes required; some programs support concurrent credential completion.</p>
+              <p><strong>Outputs:</strong> Certificate of completion; OSHA-10 safety credential (standard); basic trade tool familiarity; work-readiness documentation.</p>
+              <p><strong>Typical duration:</strong> 8–16 weeks.</p>
+              <p><strong>Cost to participant:</strong> Usually free — funded by grants (MAD DADS, WIOA), or state workforce dollars.</p>
+            </div>
+            <div class="coordinator-block">
+              <div class="cb-label">Coordinator Action Items</div>
+              <ul>
+                <li>Confirm participant completes OSHA-10 certification before program exit.</li>
+                <li>Ensure a formal completion certificate is issued — this is a required document for Stage 2.</li>
+                <li>Begin conversation about Stage 2 documentation before training ends — do not wait until after completion day.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="stage-detail" id="detail-2" role="region" aria-labelledby="stage-2">
+            <div class="detail-header">Stage 2 — Transition Documentation</div>
+            <div class="detail-body">
+              <p><strong>What it is:</strong> The administrative preparation that makes a participant "apprenticeship-ready." This stage is where most conversions fail — not from lack of skills but from paperwork and awareness gaps.</p>
+              <p><strong>Required documents:</strong></p>
+              <ul>
+                <li>Valid Minnesota ID or driver's license</li>
+                <li>Social Security card or work authorization documentation</li>
+                <li>OSHA-10 card (or higher certification)</li>
+                <li>Proof of pre-apprenticeship completion (certificate)</li>
+                <li>Trade-specific physical/drug screen documentation (varies by program)</li>
+                <li>References from program instructor</li>
+              </ul>
+            </div>
+            <div class="coordinator-block">
+              <div class="cb-label">Coordinator Action Item — Trade Dossier</div>
+              <p>Help the participant compile a "trade dossier" — a physical folder or PDF package with all documents, organized and ready to submit to a JATC or employer program. This should be completed <em>before</em> Stage 3 outreach begins.</p>
+            </div>
+          </div>
+
+          <div class="stage-detail" id="detail-3" role="region" aria-labelledby="stage-3">
+            <div class="detail-header">Stage 3 — Apprenticeship Program Selection</div>
+            <div class="detail-body">
+              <p><strong>What it is:</strong> Identifying the specific registered apprenticeship program that matches the participant's trade training. All registered apprenticeship programs in Minnesota are registered with the <strong>Department of Labor and Industry (DLI), Apprenticeship Unit</strong>.</p>
+              <div class="resource-row">
+                <span class="resource-pill">DLI Apprenticeship: dli.mn.gov/apprenticeship</span>
+                <span class="resource-pill">DEED Apprenticeship MN: mn.gov/deed/business/finding-workers/apprenticeships/</span>
+              </div>
+              <p style="margin-top:12px;"><strong>There are two tracks. Both are registered with DLI:</strong></p>
+              <div class="track-grid">
+                <div class="track-col">
+                  <h4>Track A — Joint (Union-Affiliated)</h4>
+                  <p>Administered by the JATC of the relevant international union local. Applications typically handled through the union hall or a dedicated JATC office.</p>
+                  <ul>
+                    <li>Sheet Metal Workers Local 10 (HVAC)</li>
+                    <li>IBEW Local 292 (electrical)</li>
+                    <li>UA Local 15 (plumbing/pipefitting)</li>
+                  </ul>
+                  <p style="margin-top:8px;">Acceptance is competitive; written test and interview typically required. For current contact info, use the DLI registered program directory — do not rely on direct phone numbers, which change.</p>
+                </div>
+                <div class="track-col">
+                  <h4>Track B — Non-Joint (Employer-Sponsored)</h4>
+                  <p>An individual employer or employer association registers a program with DLI. The employer recruits and sponsors apprentices directly.</p>
+                  <p style="margin-top:6px;">More common in solar, energy efficiency, and emerging green trades where union programs are less established. Entry may be faster than joint programs.</p>
+                  <p style="margin-top:6px;">This is the key leverage point for staff to negotiate <strong>direct-entry pipelines</strong> with employers on behalf of pre-apprenticeship graduates.</p>
+                </div>
+              </div>
+              <p><strong>RTI (Related Technical Instruction):</strong> Participants in registered programs typically enroll in RTI coursework through the Minnesota State Colleges and Universities (MnSCU) system — usually the community or technical college affiliated with their JATC.</p>
+            </div>
+            <div class="coordinator-block">
+              <div class="cb-label">Coordinator Action Items</div>
+              <ul>
+                <li>Pull the current DLI program directory for the participant's trade and geographic area: <em>dli.mn.gov/apprenticeship</em>.</li>
+                <li>Identify whether a joint or non-joint pathway is the better fit based on the participant's trade training and timeline.</li>
+                <li>If pursuing a non-joint employer pathway: contact the employer directly to inquire about pre-apprenticeship referral pipelines.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="stage-detail" id="detail-4" role="region" aria-labelledby="stage-4">
+            <div class="detail-header">Stage 4 — Application and Selection</div>
+            <div class="detail-body">
+              <p><strong>Joint programs — common requirements:</strong></p>
+              <ul>
+                <li>Written aptitude test (math and reading, typically NJATC standards)</li>
+                <li>Mechanical aptitude assessment</li>
+                <li>In-person interview</li>
+                <li>Physical requirements verification</li>
+                <li>Ranking on a waiting list by score</li>
+              </ul>
+              <p style="margin-top:10px;"><strong>Non-joint programs — common requirements:</strong></p>
+              <ul>
+                <li>Employer interview</li>
+                <li>Background check policy varies by employer</li>
+                <li>Some programs accept direct referrals from pre-apprenticeship programs — the key leverage point for coordinators</li>
+              </ul>
+              <p style="margin-top:10px;"><strong>Wait times:</strong> Union joint programs in metro trades can have 3–18 month waiting lists depending on trade and cohort timing. Non-joint programs may have faster entry. Set participant expectations clearly at this stage.</p>
+            </div>
+            <div class="coordinator-block">
+              <div class="cb-label">Coordinator Action Items</div>
+              <ul>
+                <li>Follow up on application status at regular intervals — do not leave participants to track this alone.</li>
+                <li>Prepare participant for aptitude test: basic math review resources are available through most pre-apprenticeship programs.</li>
+                <li>Connect with any pre-apprenticeship program alumni who are already in the program — peer mentors are the most effective conversion tool.</li>
+                <li>Document direct-referral agreements with non-joint employers as a replicable program asset.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="stage-detail" id="detail-5" role="region" aria-labelledby="stage-5">
+            <div class="detail-header">Stage 5 — Registered Apprenticeship (Active)</div>
+            <div class="detail-body">
+              <p><strong>What it is:</strong> The formal apprenticeship. Typically 3–5 years. Combines on-the-job training (OJT) hours with related technical instruction (RTI) — usually evening classes at a community or technical college.</p>
+              <p><strong>DLI tracking:</strong> Registered programs must track and report OJT hours to DLI. The apprentice accumulates hours and advances through wage periods.</p>
+              <p><strong>Wage progression:</strong> Wages advance as a percentage of journeyworker scale at each interval. See the Wage Calculator module for trade-specific projections.</p>
+              <p><strong>Key milestones:</strong></p>
+              <ul>
+                <li>Period completion reviews</li>
+                <li>RTI course completions at affiliated MnSCU institution</li>
+                <li>DLI-issued Certificate of Completion of Apprenticeship upon finishing all hours and RTI</li>
+              </ul>
+              <p style="margin-top:10px;"><strong>Employer subsidy note:</strong> Employers may receive a subsidy of up to $3.50/hour for registered apprentices through DEED's Apprenticeship Minnesota program. This is a recruitment tool for coordinators working with non-joint employers. Verify current rate at <em>mn.gov/deed</em>.</p>
+            </div>
+            <div class="coordinator-block">
+              <div class="cb-label">Coordinator Action Items</div>
+              <ul>
+                <li>Maintain contact with active apprentices — attrition risk is highest in Period 1 when wages are lowest relative to alternatives.</li>
+                <li>Ensure participant is enrolled in RTI coursework at their affiliated MnSCU institution.</li>
+                <li>Flag the $3.50/hr DEED employer subsidy when recruiting non-joint employer partners.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="stage-detail" id="detail-6" role="region" aria-labelledby="stage-6">
+            <div class="detail-header">Stage 6 — Journeyworker Certification</div>
+            <div class="detail-body">
+              <p><strong>What it is:</strong> Completion of all required OJT hours and RTI. DLI issues Certificate of Completion of Apprenticeship. In some trades, state licensing is also required — separate application through DLI with exam.</p>
+
+              <table class="license-table" aria-label="Minnesota trade licensing requirements">
+                <thead>
+                  <tr>
+                    <th>Trade</th>
+                    <th>MN State License Required?</th>
+                    <th>Exam / Additional Credential</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Electrical</td>
+                    <td>Yes — MN Journeyworker Electrical License (DLI Electrical Licensing Unit)</td>
+                    <td>PSI exam required after apprenticeship completion</td>
+                  </tr>
+                  <tr>
+                    <td>Plumbing / Pipefitting</td>
+                    <td>Yes — MN Journeyworker Plumber License (DLI)</td>
+                    <td>Exam required</td>
+                  </tr>
+                  <tr>
+                    <td>HVAC / Refrigeration</td>
+                    <td>Yes — MN Refrigeration License (DLI) for refrigerant work</td>
+                    <td>EPA 608 certification required for refrigerant handling (federal requirement)</td>
+                  </tr>
+                  <tr>
+                    <td>Solar PV Installation</td>
+                    <td>No separate MN solar journeyworker license; work falls under electrical licensing</td>
+                    <td>NABCEP certification — voluntary but industry-valued</td>
+                  </tr>
+                  <tr>
+                    <td>General Construction / Energy Efficiency</td>
+                    <td>No separate journeyworker license (beyond electrical/plumbing if those systems involved)</td>
+                    <td>OSHA-30 is a common employer requirement at journeyworker level</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <p style="margin-top:12px;"><strong>Earnings at journeyworker:</strong> See Module 2 (Wage Calculator) for Minneapolis–St. Paul MSA wage ranges by trade, sourced from BLS OES data.</p>
+            </div>
+            <div class="coordinator-block">
+              <div class="cb-label">Coordinator Action Items</div>
+              <ul>
+                <li>Verify trade-specific licensing exam requirements with DLI at least 6 months before apprenticeship completion so the participant has time to prepare.</li>
+                <li>Confirm RTI credit completion at MnSCU institution is fully documented and submitted to DLI.</li>
+              </ul>
+            </div>
+          </div>
+
+        </div><!-- /detail-container -->
+
+      </div><!-- /panel-explorer -->
+
+
+      <!-- ===================== MODULE 2: WAGE CALCULATOR ===================== -->
+      <div class="module-panel" id="panel-wage">
+
+        <div class="calc-grid">
+
+          <!-- INPUTS -->
+          <div class="calc-inputs">
+            <div class="section-header">Calculator Inputs</div>
+
+            <div class="form-group">
+              <label for="calc-trade">Trade</label>
+              <select id="calc-trade" aria-label="Select trade">
+                <option value="hvac">HVAC / Refrigeration</option>
+                <option value="solar">Solar PV Installation</option>
+                <option value="electrical">Electrical</option>
+                <option value="plumbing">Plumbing / Pipefitting</option>
+                <option value="sheetmetal">Sheet Metal</option>
+                <option value="general">General Construction / Energy Efficiency</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Apprenticeship Type</label>
+              <div class="toggle-group" role="group" aria-label="Apprenticeship type">
+                <button class="toggle-btn active" id="btn-union" onclick="setUnion(true)" aria-pressed="true">Union (Joint)</button>
+                <button class="toggle-btn" id="btn-nonunion" onclick="setUnion(false)" aria-pressed="false">Non-Union</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="calc-years">Apprenticeship Length (years)</label>
+              <select id="calc-years" aria-label="Apprenticeship length">
+                <option value="3">3 years</option>
+                <option value="4">4 years</option>
+                <option value="5" selected>5 years</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="calc-jw-rate">Journeyworker Scale ($/hr)</label>
+              <input type="number" id="calc-jw-rate" value="40" min="10" max="100" step="0.50" aria-label="Journeyworker hourly rate">
+            </div>
+
+            <div class="form-group">
+              <label for="calc-start-pct">Starting Period Wage (% of JW scale)</label>
+              <input type="number" id="calc-start-pct" value="40" min="30" max="70" step="5" aria-label="Starting period wage percentage">
+            </div>
+
+            <div class="form-group">
+              <label for="calc-hours">Hours per Week</label>
+              <input type="number" id="calc-hours" value="40" min="20" max="60" step="1" aria-label="Hours per week">
+            </div>
+
+            <div class="form-group">
+              <label for="calc-benefits">Benefits Value ($/hr equivalent, optional)</label>
+              <input type="number" id="calc-benefits" value="0" min="0" max="30" step="0.50" aria-label="Benefits value per hour">
+            </div>
+
+          </div><!-- /calc-inputs -->
+
+          <!-- RESULTS -->
+          <div class="calc-results">
+
+            <div class="big-stat-label">5-Year Apprenticeship Total Earnings</div>
+            <div class="big-stat-value" id="total-earnings">—</div>
+
+            <div class="comparison-row">
+              <div class="comp-item apprentice">
+                <div class="comp-label">Apprenticeship path (5 yr)</div>
+                <div class="comp-value" id="cmp-apprentice">—</div>
+              </div>
+              <div class="comp-item minwage">
+                <div class="comp-label">Min. wage equivalent (5 yr) <sup>†</sup></div>
+                <div class="comp-value" id="cmp-minwage">—</div>
+              </div>
+              <div class="comp-item" id="benefits-comparison-wrap" style="display:none;">
+                <div class="comp-label">Total compensation w/ benefits (5 yr)</div>
+                <div class="comp-value" id="cmp-benefits" style="color:var(--success);">—</div>
+              </div>
+            </div>
+
+            <div class="section-header" style="margin-bottom:10px;">Annual Earnings by Year</div>
+            <div class="bar-table" id="bar-table">
+              <div class="bar-row header-row">
+                <span>Year</span>
+                <span>Bar</span>
+                <span style="text-align:right;">$/hr</span>
+                <span style="text-align:right;">Annual Gross</span>
+              </div>
+            </div>
+
+            <div class="chart-container" id="chart-container">
+              <canvas id="wage-chart" aria-label="Wage trajectory bar chart"></canvas>
+            </div>
+            <div class="chart-unavailable" id="chart-unavailable">
+              Chart unavailable offline. Wage data shown in table above.
+            </div>
+
+            <p class="footnote-text">† Minnesota minimum wage: $10.85/hr for large employers (rate as of 2024 for large employers; verify current rate at mn.gov/deed or Minn. Stat. § 177.24). Minimum wage comparison uses $10.85 × 40 hrs × 50 weeks per year.</p>
+            <p class="footnote-text">Wage data shown is approximate, based on BLS Occupational Employment and Wage Statistics (OES) for the Minneapolis-St. Paul-Bloomington MSA. Actual union JATC scales and non-union employer rates will vary. Always confirm current rates with the program sponsor.</p>
+
+          </div><!-- /calc-results -->
+
+        </div><!-- /calc-grid -->
+
+      </div><!-- /panel-wage -->
+
+
+      <!-- ===================== MODULE 3: DOCUMENT GENERATOR ===================== -->
+      <div class="module-panel" id="panel-docgen">
+
+        <div class="doc-gen-layout">
+
+          <!-- INPUTS -->
+          <div class="doc-inputs">
+            <div class="section-header">Participant Information</div>
+
+            <div class="form-group">
+              <label for="dg-name">Participant First Name</label>
+              <input type="text" id="dg-name" placeholder="e.g., Marcus" aria-label="Participant first name">
+            </div>
+
+            <div class="form-group">
+              <label for="dg-trade">Trade Training Completed</label>
+              <select id="dg-trade" aria-label="Trade training completed">
+                <option value="hvac">HVAC / Refrigeration</option>
+                <option value="solar">Solar PV Installation</option>
+                <option value="electrical">Electrical</option>
+                <option value="plumbing">Plumbing / Pipefitting</option>
+                <option value="sheetmetal">Sheet Metal</option>
+                <option value="general">General Construction / Energy Efficiency</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="dg-program">Pre-Apprenticeship Program Name</label>
+              <input type="text" id="dg-program" placeholder="e.g., MAD DADS HVAC Training" aria-label="Program name">
+            </div>
+
+            <div class="form-group">
+              <label for="dg-date">Date Training Completed (MM/YYYY)</label>
+              <input type="text" id="dg-date" placeholder="e.g., 03/2026" aria-label="Date training completed">
+            </div>
+
+            <div class="form-group">
+              <label>Preferred Track</label>
+              <div class="toggle-group" role="group" aria-label="Preferred track">
+                <button class="toggle-btn active" id="btn-union-track" onclick="setTrack('union')" aria-pressed="true">Union Joint</button>
+                <button class="toggle-btn" id="btn-nonunion-track" onclick="setTrack('nonunion')" aria-pressed="false">Non-Union</button>
+                <button class="toggle-btn" id="btn-undecided-track" onclick="setTrack('undecided')" aria-pressed="false">Undecided</button>
+              </div>
+            </div>
+
+            <div class="checklist-group">
+              <span class="cl-label">Documents in Hand</span>
+              <label class="check-item"><input type="checkbox" id="doc-id" value="MN ID / Driver's License"> MN ID / Driver's License</label>
+              <label class="check-item"><input type="checkbox" id="doc-ss" value="Social Security card"> Social Security card</label>
+              <label class="check-item"><input type="checkbox" id="doc-osha" value="OSHA-10 card"> OSHA-10 card</label>
+              <label class="check-item"><input type="checkbox" id="doc-cert" value="Completion certificate"> Completion certificate</label>
+              <label class="check-item"><input type="checkbox" id="doc-refs" value="References from instructor"> References from instructor</label>
+            </div>
+
+          </div><!-- /doc-inputs -->
+
+          <!-- PREVIEW -->
+          <div class="doc-preview-wrap">
+            <div class="doc-preview-actions">
+              <button class="print-btn" onclick="window.print()" aria-label="Print participant document">Print Document</button>
+              <span class="print-hint">Click any text in the document to edit inline before printing.</span>
+            </div>
+
+            <div class="doc-preview" id="doc-preview" aria-label="Generated participant document preview">
+
+              <div class="doc-preview-header">
+                <div class="doc-title" id="doc-title" contenteditable="true" aria-label="Document title">[Name]'s Path to Journeyworker</div>
+                <div class="doc-subtitle" id="doc-subtitle" contenteditable="true" aria-label="Document subtitle">Pre-Apprenticeship Completion — Next Steps</div>
+              </div>
+
+              <div class="doc-section">
+                <div class="doc-section-title">You Completed</div>
+                <div class="doc-section-body editable-hint" id="doc-completed" contenteditable="true" aria-label="Completion summary">Complete the form on the left to generate this document.</div>
+              </div>
+
+              <div class="doc-section">
+                <div class="doc-section-title">Your Next Step</div>
+                <div class="doc-section-body editable-hint" id="doc-nextstep" contenteditable="true" aria-label="Next step"></div>
+              </div>
+
+              <div class="doc-section" id="doc-missing-section">
+                <div class="doc-section-title">Documents Still Needed</div>
+                <div class="missing-docs-list" id="doc-missing" contenteditable="true" aria-label="Missing documents"></div>
+              </div>
+
+              <div class="doc-section">
+                <div class="doc-section-title">What You Will Earn</div>
+                <div class="doc-section-body editable-hint" id="doc-wages" contenteditable="true" aria-label="Wage information"></div>
+              </div>
+
+              <div class="doc-section">
+                <div class="doc-section-title">Timeline to Expect</div>
+                <div class="doc-section-body editable-hint" id="doc-timeline" contenteditable="true" aria-label="Timeline"></div>
+              </div>
+
+              <div class="doc-footer" id="doc-footer" contenteditable="true" aria-label="Document footer">
+                Minnesota apprenticeship programs are registered with the Department of Labor and Industry. For a current list of registered programs, visit dli.mn.gov. This document was generated with AI. Verify all program details directly with the JATC or employer. Built to support SD-59 workforce development. April 2026.
+              </div>
+
+            </div><!-- /doc-preview -->
+          </div><!-- /doc-preview-wrap -->
+
+        </div><!-- /doc-gen-layout -->
+
+      </div><!-- /panel-docgen -->
+
+    </div><!-- /content-area -->
+  </div><!-- /main -->
+
+</div><!-- /app -->
+
+
+<script>
+// ===== DATA CONSTANTS =====
+
+const TRADE_DATA = {
+  hvac:       { label: 'HVAC / Refrigeration',               jwLow: 38, jwHigh: 42, jwDefault: 40, years: 5, startPct: 40 },
+  solar:      { label: 'Solar PV Installation',              jwLow: 28, jwHigh: 34, jwDefault: 31, years: 4, startPct: 40 },
+  electrical: { label: 'Electrical',                         jwLow: 45, jwHigh: 52, jwDefault: 48, years: 5, startPct: 40 },
+  plumbing:   { label: 'Plumbing / Pipefitting',             jwLow: 44, jwHigh: 50, jwDefault: 47, years: 5, startPct: 40 },
+  sheetmetal: { label: 'Sheet Metal',                        jwLow: 40, jwHigh: 46, jwDefault: 43, years: 5, startPct: 40 },
+  general:    { label: 'General Construction / Energy Eff.', jwLow: 24, jwHigh: 32, jwDefault: 28, years: 3, startPct: 45 }
+};
+
+const TRADE_JATC_NOTE = {
+  hvac:       'Contact the Sheet Metal Workers JATC (HVAC falls under Sheet Metal in joint programs) to request an application packet. Use the DLI registered program directory at dli.mn.gov/apprenticeship for current contact information.',
+  solar:      'Solar PV installation is most commonly pursued through non-union employer-sponsored programs. Contact employers who have registered solar programs with DLI at dli.mn.gov/apprenticeship for current opportunities.',
+  electrical: 'Contact IBEW Local 292 (or the relevant metro IBEW local) to request an application packet for the electrical apprenticeship. Use the DLI registered program directory at dli.mn.gov/apprenticeship for current contact information.',
+  plumbing:   'Contact UA Local 15 (plumbing/pipefitting) to request an application packet. Use the DLI registered program directory at dli.mn.gov/apprenticeship for current contact information.',
+  sheetmetal: 'Contact the Sheet Metal Workers Local 10 JATC to request an application packet. Use the DLI registered program directory at dli.mn.gov/apprenticeship for current contact information.',
+  general:    'General construction and energy efficiency apprenticeships are often employer-sponsored (non-joint). Contact employers with DLI-registered programs through the program directory at dli.mn.gov/apprenticeship.'
+};
+
+const TRADE_TIMELINE = {
+  hvac:       'Union joint HVAC/Sheet Metal programs in the metro may have 3–12 month waiting lists depending on cohort timing. The apprenticeship itself is typically 5 years (approximately 10,000 OJT hours). Plan for 6+ months from application to start date.',
+  solar:      'Non-union solar programs may have faster entry — sometimes within 1–3 months of application. The apprenticeship is typically 4 years. Licensing note: solar work that involves electrical systems requires a Minnesota electrical license.',
+  electrical: 'IBEW electrical apprenticeships are competitive. Expect a written aptitude test and ranked waiting list. Wait times in the Twin Cities metro can be 6–18 months. The apprenticeship is 5 years (approximately 8,000 OJT hours). A Minnesota journeyworker electrical license exam is required upon completion.',
+  plumbing:   'UA Local 15 plumbing/pipefitting apprenticeships require a written test and interview. Metro wait times vary 6–12 months. The apprenticeship is 5 years. A Minnesota journeyworker plumber license exam is required upon completion.',
+  sheetmetal: 'Sheet Metal Workers Local 10 applications require a written aptitude test and interview. Metro wait times vary 3–12 months. The apprenticeship is 5 years.',
+  general:    'General construction / energy efficiency apprenticeships via employer sponsors may start within 1–3 months of offer. Typical length is 3 years. OSHA-30 is a common employer requirement at journeyworker level.'
+};
+
+const TRADE_WAGE_TEXT = {
+  hvac:       { yr1Pct: 40, jwRange: '$38–$42/hr', soc: 'SOC 49-9021' },
+  solar:      { yr1Pct: 40, jwRange: '$28–$34/hr', soc: 'SOC 47-2231' },
+  electrical: { yr1Pct: 40, jwRange: '$45–$52/hr', soc: 'SOC 47-2111' },
+  plumbing:   { yr1Pct: 40, jwRange: '$44–$50/hr', soc: 'SOC 47-2152' },
+  sheetmetal: { yr1Pct: 40, jwRange: '$40–$46/hr', soc: 'SOC 47-2211' },
+  general:    { yr1Pct: 45, jwRange: '$24–$32/hr', soc: 'SOC 47-2130s' }
+};
+
+const MIN_WAGE = 10.85;
+let isUnion = true;
+let docTrack = 'union';
+let wageChart = null;
+
+// ===== NAVIGATION =====
+
+const MODULE_META = {
+  explorer: { title: 'Pipeline Explorer',       desc: 'Six-stage pathway from pre-apprenticeship to journeyworker' },
+  wage:     { title: 'Wage Calculator',          desc: 'Year-by-year earnings arc for registered apprenticeship trades' },
+  docgen:   { title: 'Document Generator',       desc: 'Generate a print-ready next-steps document for a participant' }
+};
+
+function switchModule(key) {
+  document.querySelectorAll('.module-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => {
+    n.classList.remove('active');
+    n.removeAttribute('aria-current');
+  });
+  document.getElementById('panel-' + key).classList.add('active');
+  const navItem = document.querySelector('[data-module="' + key + '"]');
+  navItem.classList.add('active');
+  navItem.setAttribute('aria-current', 'page');
+  document.getElementById('topbar-title').textContent = MODULE_META[key].title;
+  document.getElementById('topbar-desc').textContent  = MODULE_META[key].desc;
+
+  if (key === 'wage') { recalcWage(); }
+  closeSidebar();
+}
+
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => switchModule(item.dataset.module));
+  item.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); switchModule(item.dataset.module); } });
+});
+
+// ===== HAMBURGER =====
+
+function closeSidebar() {
+  const sb = document.getElementById('sidebar');
+  const hb = document.getElementById('hamburger');
+  if (window.innerWidth <= 768) {
+    sb.classList.remove('open');
+    hb.setAttribute('aria-expanded', 'false');
+  }
+}
+
+document.getElementById('hamburger').addEventListener('click', function() {
+  const sb = document.getElementById('sidebar');
+  const open = sb.classList.toggle('open');
+  this.setAttribute('aria-expanded', open ? 'true' : 'false');
+});
+
+// Close sidebar when clicking outside
+document.addEventListener('click', function(e) {
+  const sb = document.getElementById('sidebar');
+  const hb = document.getElementById('hamburger');
+  if (window.innerWidth <= 768 && sb.classList.contains('open')) {
+    if (!sb.contains(e.target) && e.target !== hb) { closeSidebar(); }
+  }
+});
+
+// ===== PIPELINE ACCORDION =====
+
+let openStage = null;
+
+function toggleStage(n) {
+  const stageEl  = document.getElementById('stage-' + n);
+  const detailEl = document.getElementById('detail-' + n);
+  const isOpen   = detailEl.classList.contains('open');
+
+  // Close all
+  document.querySelectorAll('.stage-detail').forEach(d => d.classList.remove('open'));
+  document.querySelectorAll('.pipeline-stage').forEach(s => {
+    s.classList.remove('active');
+    s.setAttribute('aria-expanded', 'false');
+  });
+
+  if (!isOpen) {
+    detailEl.classList.add('open');
+    stageEl.classList.add('active');
+    stageEl.setAttribute('aria-expanded', 'true');
+    openStage = n;
+    // Scroll detail into view smoothly
+    setTimeout(() => detailEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+  } else {
+    openStage = null;
+  }
+}
+
+function keyStage(event, n) {
+  if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggleStage(n); }
+}
+
+// ===== WAGE CALCULATOR =====
+
+function setUnion(val) {
+  isUnion = val;
+  document.getElementById('btn-union').classList.toggle('active', val);
+  document.getElementById('btn-nonunion').classList.toggle('active', !val);
+  document.getElementById('btn-union').setAttribute('aria-pressed', val ? 'true' : 'false');
+  document.getElementById('btn-nonunion').setAttribute('aria-pressed', val ? 'false' : 'true');
+  recalcWage();
+}
+
+function getWagePercentages(years, startPct) {
+  // Interpolate from startPct to 80% (final apprentice period), then journeyworker
+  // Example for 5 years: 40, 50, 60, 70, 80
+  const periods = [];
+  if (years === 1) { return [startPct]; }
+  const endPct = 80; // last period before JW
+  const step = (endPct - startPct) / (years - 1);
+  for (let i = 0; i < years; i++) {
+    periods.push(Math.round(startPct + step * i));
+  }
+  return periods;
+}
+
+function formatCurrency(val) {
+  return '$' + Math.round(val).toLocaleString('en-US');
+}
+
+function recalcWage() {
+  const trade     = document.getElementById('calc-trade').value;
+  const years     = parseInt(document.getElementById('calc-years').value);
+  const jwRate    = parseFloat(document.getElementById('calc-jw-rate').value) || 40;
+  const startPct  = parseFloat(document.getElementById('calc-start-pct').value) || 40;
+  const hoursWk   = parseFloat(document.getElementById('calc-hours').value) || 40;
+  const benefits  = parseFloat(document.getElementById('calc-benefits').value) || 0;
+
+  const pcts = getWagePercentages(years, startPct);
+  const rows = [];
+  let cumulative = 0;
+  let maxAnnual = 0;
+
+  for (let i = 0; i < years; i++) {
+    const pct     = pcts[i];
+    const hrRate  = (pct / 100) * jwRate;
+    const annual  = hrRate * hoursWk * 50;
+    cumulative   += annual;
+    maxAnnual     = Math.max(maxAnnual, annual);
+    rows.push({ year: i + 1, pct, hrRate, annual, cumulative });
+  }
+
+  // Journeyworker row
+  const jwAnnual = jwRate * hoursWk * 50;
+  maxAnnual = Math.max(maxAnnual, jwAnnual);
+
+  // Comparison
+  const minWageAnnual = MIN_WAGE * 40 * 50;
+  const minWageTotal  = minWageAnnual * 5;
+  const appTotal5yr   = rows.slice(0, 5).reduce((s, r) => s + r.annual, 0);
+  // If years < 5, pad remaining years with JW rate
+  let padTotal = appTotal5yr;
+  if (years < 5) {
+    padTotal += jwAnnual * (5 - years);
+  }
+
+  // Benefits
+  const benefitsTotal = benefits > 0
+    ? rows.reduce((s, r) => s + (r.hrRate + benefits) * hoursWk * 50, 0)
+    : 0;
+
+  // Update DOM
+  document.getElementById('total-earnings').textContent = formatCurrency(cumulative);
+  document.getElementById('cmp-apprentice').textContent  = formatCurrency(padTotal);
+  document.getElementById('cmp-minwage').textContent     = formatCurrency(minWageTotal);
+
+  const benWrap = document.getElementById('benefits-comparison-wrap');
+  if (benefits > 0) {
+    benWrap.style.display = '';
+    document.getElementById('cmp-benefits').textContent = formatCurrency(benefitsTotal);
+  } else {
+    benWrap.style.display = 'none';
+  }
+
+  // Bar table
+  const barTable = document.getElementById('bar-table');
+  // Remove old data rows (keep header)
+  const header = barTable.querySelector('.header-row');
+  barTable.innerHTML = '';
+  barTable.appendChild(header);
+
+  rows.forEach(r => {
+    const barRow = document.createElement('div');
+    barRow.className = 'bar-row';
+    const fillPct = maxAnnual > 0 ? (r.annual / maxAnnual * 100).toFixed(1) : 0;
+    barRow.innerHTML =
+      '<span class="bar-cell-label">Yr ' + r.year + '<br><small style="font-size:10px;color:var(--gray);">' + r.pct + '%</small></span>' +
+      '<div class="bar-cell-bar"><div class="bar-fill" style="width:' + fillPct + '%"></div></div>' +
+      '<span class="bar-cell-wage">$' + r.hrRate.toFixed(2) + '</span>' +
+      '<span class="bar-cell-annual">' + formatCurrency(r.annual) + '</span>';
+    barTable.appendChild(barRow);
+  });
+
+  // JW row
+  const jwRow = document.createElement('div');
+  jwRow.className = 'bar-row';
+  const jwFill = maxAnnual > 0 ? (jwAnnual / maxAnnual * 100).toFixed(1) : 100;
+  jwRow.innerHTML =
+    '<span class="bar-cell-label" style="color:var(--blue);font-weight:700;">JW</span>' +
+    '<div class="bar-cell-bar" style="background:#c5d8eb;"><div class="bar-fill" style="width:' + jwFill + '%;background:var(--blue);"></div></div>' +
+    '<span class="bar-cell-wage" style="color:var(--blue);font-weight:700;">$' + jwRate.toFixed(2) + '</span>' +
+    '<span class="bar-cell-annual" style="color:var(--blue);font-weight:700;">' + formatCurrency(jwAnnual) + '</span>';
+  barTable.appendChild(jwRow);
+
+  // Chart
+  updateChart(rows, jwAnnual, years);
+
+  saveLocalStorage();
+}
+
+function updateChart(rows, jwAnnual, years) {
+  const container = document.getElementById('chart-container');
+  const unavail   = document.getElementById('chart-unavailable');
+
+  if (typeof Chart === 'undefined') {
+    container.style.display = 'none';
+    unavail.style.display = 'block';
+    return;
+  }
+
+  container.style.display = '';
+  unavail.style.display = 'none';
+
+  const labels = rows.map(r => 'Year ' + r.year);
+  labels.push('JW Proj.');
+  const data   = rows.map(r => Math.round(r.annual));
+  data.push(Math.round(jwAnnual));
+
+  const bgColors = rows.map(() => '#8B2E1A');
+  bgColors.push('#2B4F72');
+
+  const borderColors = rows.map(() => '#8B2E1A');
+  borderColors.push('#2B4F72');
+
+  const borderDash = rows.map(() => []);
+  borderDash.push([6, 3]);
+
+  if (wageChart) { wageChart.destroy(); }
+
+  const ctx = document.getElementById('wage-chart').getContext('2d');
+  wageChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Annual Gross Earnings',
+        data,
+        backgroundColor: bgColors,
+        borderColor: borderColors,
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) { return ' ' + formatCurrency(ctx.raw); }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: function(v) { return '$' + (v/1000).toFixed(0) + 'k'; },
+            font: { family: "'Arial Narrow', Arial, sans-serif", size: 11 }
+          },
+          grid: { color: '#e8e8e6' }
+        },
+        x: {
+          ticks: { font: { family: "'Arial Narrow', Arial, sans-serif", size: 11 } },
+          grid: { display: false }
+        }
+      }
+    }
+  });
+}
+
+// Auto-populate trade defaults
+document.getElementById('calc-trade').addEventListener('change', function() {
+  const td = TRADE_DATA[this.value];
+  document.getElementById('calc-jw-rate').value   = td.jwDefault;
+  document.getElementById('calc-years').value     = td.years;
+  document.getElementById('calc-start-pct').value = td.startPct;
+  recalcWage();
+});
+
+['calc-years', 'calc-jw-rate', 'calc-start-pct', 'calc-hours', 'calc-benefits'].forEach(id => {
+  document.getElementById(id).addEventListener('input', recalcWage);
+});
+
+// ===== DOCUMENT GENERATOR =====
+
+function setTrack(track) {
+  docTrack = track;
+  ['union', 'nonunion', 'undecided'].forEach(t => {
+    const btn = document.getElementById('btn-' + t + '-track');
+    btn.classList.toggle('active', t === track);
+    btn.setAttribute('aria-pressed', t === track ? 'true' : 'false');
+  });
+  updateDocPreview();
+}
+
+function getTradeLabel(val) { return TRADE_DATA[val] ? TRADE_DATA[val].label : val; }
+
+function getMissingDocs() {
+  const docs = ['doc-id','doc-ss','doc-osha','doc-cert','doc-refs'];
+  const labels = {
+    'doc-id':   'MN ID / Driver\'s License',
+    'doc-ss':   'Social Security card',
+    'doc-osha': 'OSHA-10 card',
+    'doc-cert': 'Completion certificate',
+    'doc-refs': 'References from instructor'
+  };
+  const missing = [];
+  docs.forEach(id => {
+    if (!document.getElementById(id).checked) missing.push(labels[id]);
+  });
+  return missing;
+}
+
+function getTrackLabel() {
+  if (docTrack === 'union') return 'Union joint apprenticeship';
+  if (docTrack === 'nonunion') return 'Non-union (employer-sponsored) apprenticeship';
+  return 'Undecided — exploring both union joint and non-union options';
+}
+
+function getWageInfoForTrade(tradeKey) {
+  const tw = TRADE_WAGE_TEXT[tradeKey];
+  const td = TRADE_DATA[tradeKey];
+  if (!tw || !td) return '';
+  const yr1Rate = (tw.yr1Pct / 100) * td.jwDefault;
+  const yr1Annual = (yr1Rate * 40 * 50).toLocaleString('en-US', { maximumFractionDigits: 0 });
+  const jwAnnual  = (td.jwDefault * 40 * 50).toLocaleString('en-US', { maximumFractionDigits: 0 });
+  return 'Starting apprentice wage: approximately $' + yr1Rate.toFixed(2) + '/hr (~$' + yr1Annual + '/year). Journeyworker scale: approximately ' + tw.jwRange + ' (~$' + jwAnnual + '/year, 40 hrs/week). Wage data is approximate (BLS OES, Minneapolis-St. Paul-Bloomington MSA, ' + tw.soc + ').';
+}
+
+function updateDocPreview() {
+  const name    = document.getElementById('dg-name').value.trim() || '[Name]';
+  const trade   = document.getElementById('dg-trade').value;
+  const program = document.getElementById('dg-program').value.trim() || '[Program name]';
+  const date    = document.getElementById('dg-date').value.trim() || '[Date]';
+  const tradeLabel = getTradeLabel(trade);
+
+  // Title
+  document.getElementById('doc-title').textContent = name + "'s Path to Journeyworker " + tradeLabel;
+
+  // Subtitle
+  document.getElementById('doc-subtitle').textContent = 'Pre-Apprenticeship Completion — Next Steps';
+
+  // Completed
+  document.getElementById('doc-completed').textContent =
+    name + ' completed the ' + program + ' pre-apprenticeship program (' + tradeLabel + ') in ' + date + '.';
+
+  // Next step
+  document.getElementById('doc-nextstep').textContent = TRADE_JATC_NOTE[trade] || 'Contact the DLI Apprenticeship Unit at dli.mn.gov/apprenticeship to identify registered programs in your trade area.';
+
+  // Missing docs
+  const missing = getMissingDocs();
+  const missingEl = document.getElementById('doc-missing');
+  const missSection = document.getElementById('doc-missing-section');
+  if (missing.length === 0) {
+    missingEl.textContent = 'All required documents are in hand. Trade dossier is ready to submit.';
+    missingEl.style.color = 'var(--success)';
+    missSection.style.display = '';
+  } else {
+    missingEl.innerHTML = missing.map(d => '• ' + d).join('<br>');
+    missingEl.style.color = 'var(--red)';
+    missSection.style.display = '';
+  }
+
+  // Wages
+  document.getElementById('doc-wages').textContent = getWageInfoForTrade(trade);
+
+  // Timeline
+  document.getElementById('doc-timeline').textContent = TRADE_TIMELINE[trade] || '';
+}
+
+// Bind all doc-gen inputs
+['dg-name','dg-trade','dg-program','dg-date'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updateDocPreview);
+});
+
+['doc-id','doc-ss','doc-osha','doc-cert','doc-refs'].forEach(id => {
+  document.getElementById(id).addEventListener('change', updateDocPreview);
+});
+
+// ===== LOCAL STORAGE =====
+
+function saveLocalStorage() {
+  try {
+    localStorage.setItem('sd59-trade',     document.getElementById('calc-trade').value);
+    localStorage.setItem('sd59-jw-rate',   document.getElementById('calc-jw-rate').value);
+    localStorage.setItem('sd59-years',     document.getElementById('calc-years').value);
+    localStorage.setItem('sd59-start-pct', document.getElementById('calc-start-pct').value);
+    localStorage.setItem('sd59-hours',     document.getElementById('calc-hours').value);
+    localStorage.setItem('sd59-benefits',  document.getElementById('calc-benefits').value);
+    localStorage.setItem('sd59-is-union',  isUnion ? '1' : '0');
+  } catch(e) { /* localStorage may not be available */ }
+}
+
+function loadLocalStorage() {
+  try {
+    const trade = localStorage.getItem('sd59-trade');
+    if (trade) { document.getElementById('calc-trade').value = trade; }
+    const jwRate = localStorage.getItem('sd59-jw-rate');
+    if (jwRate) { document.getElementById('calc-jw-rate').value = jwRate; }
+    const years = localStorage.getItem('sd59-years');
+    if (years) { document.getElementById('calc-years').value = years; }
+    const startPct = localStorage.getItem('sd59-start-pct');
+    if (startPct) { document.getElementById('calc-start-pct').value = startPct; }
+    const hours = localStorage.getItem('sd59-hours');
+    if (hours) { document.getElementById('calc-hours').value = hours; }
+    const benefits = localStorage.getItem('sd59-benefits');
+    if (benefits) { document.getElementById('calc-benefits').value = benefits; }
+    const unionVal = localStorage.getItem('sd59-is-union');
+    if (unionVal !== null) { setUnion(unionVal === '1'); }
+  } catch(e) { /* localStorage may not be available */ }
+}
+
+// ===== INIT =====
+loadLocalStorage();
+recalcWage();
+updateDocPreview();
+</script>
+</body>
+</html>

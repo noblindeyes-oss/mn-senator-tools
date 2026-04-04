@@ -1,0 +1,1679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iron Range IRRRB Grant Finder &amp; Readiness Guide — Sen. Farnsworth, SD-07</title>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Two-column split — narrow icon sidebar (60px, expands to 200px on hover) + scrolling content pane
+   2. Navigation: Vertical icon sidebar with no text labels until hover — icons are inline SVG
+   3. Typography: Palatino Linotype/Palatino/Book Antiqua for body; Tahoma for headers/UI; Consolas for data
+   4. Hero moment: Large topographic contour SVG of the Mesabi Range, filling the content pane header
+   5. Color strategy: #4 Warm dominant — deep rust (#7B2D26), burnt sienna (#A0522D), cream (#F5ECD7), charcoal (#2C2C2C)
+   6. Entry experience: Full-screen SVG map of the Iron Range with clickable county regions that dissolve into the tool
+   Additional: No parchment-on-white cards. Program panels use flat rust title bars. Oversized CSS checkboxes.
+              Progress bar for readiness score. Print CSS for checklist.
+*/
+
+:root {
+  --rust: #7B2D26;
+  --rust-light: #9B3D30;
+  --sienna: #A0522D;
+  --sienna-light: #C4724A;
+  --cream: #F5ECD7;
+  --cream-dark: #E8DFC8;
+  --charcoal: #2C2C2C;
+  --charcoal-light: #3D3D3D;
+  --sidebar-bg: #2C2C2C;
+  --content-bg: #F5ECD7;
+  --content-alt: #EDE3CA;
+  --text-primary: #2C2C2C;
+  --text-secondary: #5C5244;
+  --text-light: #F5ECD7;
+  --success: #4A7C59;
+  --warning: #B45309;
+  --link: #7B2D26;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Palatino Linotype', Palatino, 'Book Antiqua', serif;
+  background: var(--content-bg);
+  color: var(--text-primary);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ═══ ENTRY SCREEN — Full-screen Iron Range SVG map ═══ */
+#entry-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--charcoal);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 1.2s ease, visibility 0s linear 1.2s;
+}
+#entry-screen.dissolve {
+  opacity: 0;
+  visibility: hidden;
+}
+#entry-screen h1 {
+  font-family: Tahoma, Geneva, sans-serif;
+  color: var(--cream);
+  font-size: 14px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  opacity: 0.7;
+}
+#entry-screen .map-prompt {
+  font-family: 'Palatino Linotype', Palatino, serif;
+  color: var(--sienna-light);
+  font-size: 13px;
+  margin-top: 18px;
+  font-style: italic;
+  opacity: 0.8;
+}
+#entry-map { max-width: 720px; width: 90vw; }
+#entry-map .county {
+  fill: var(--charcoal-light);
+  stroke: var(--sienna);
+  stroke-width: 1.2;
+  cursor: pointer;
+  transition: fill 0.3s ease, stroke-width 0.3s ease;
+}
+#entry-map .county:hover {
+  fill: var(--rust);
+  stroke: var(--cream);
+  stroke-width: 2;
+}
+#entry-map .county.active {
+  fill: var(--sienna);
+}
+#entry-map .county-label {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 11px;
+  fill: var(--cream);
+  pointer-events: none;
+  text-anchor: middle;
+  opacity: 0.85;
+}
+#entry-map .range-line {
+  fill: none;
+  stroke: var(--rust-light);
+  stroke-width: 1.5;
+  stroke-dasharray: 6 3;
+  opacity: 0.6;
+}
+
+/* ═══ SIDEBAR ═══ */
+#sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 60px;
+  height: 100vh;
+  background: var(--charcoal);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s ease;
+  overflow: hidden;
+}
+#sidebar:hover { width: 220px; }
+#sidebar .brand {
+  padding: 16px 12px 12px;
+  border-bottom: 1px solid var(--charcoal-light);
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+#sidebar .brand-icon {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+#sidebar .brand-icon svg { fill: var(--sienna-light); }
+#sidebar .brand-text {
+  font-family: Tahoma, Geneva, sans-serif;
+  color: var(--cream);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s ease 0.1s;
+}
+#sidebar:hover .brand-text { opacity: 1; }
+
+.nav-list { list-style: none; flex: 1; padding: 8px 0; overflow-y: auto; }
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  color: var(--cream-dark);
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+  white-space: nowrap;
+  border-left: 3px solid transparent;
+}
+.nav-item:hover {
+  background: var(--charcoal-light);
+  color: #fff;
+}
+.nav-item.active {
+  border-left-color: var(--sienna-light);
+  color: #fff;
+  background: rgba(160,82,45,0.15);
+}
+.nav-item svg {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  fill: currentColor;
+}
+.nav-item .nav-label {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  opacity: 0;
+  transition: opacity 0.2s ease 0.1s;
+}
+#sidebar:hover .nav-label { opacity: 1; }
+
+.nav-divider {
+  height: 1px;
+  background: var(--charcoal-light);
+  margin: 6px 14px;
+}
+.nav-sub .nav-label { font-size: 11px; }
+.nav-sub { padding: 8px 16px 8px 22px; }
+
+/* ═══ MAIN CONTENT ═══ */
+#main {
+  margin-left: 60px;
+  min-height: 100vh;
+}
+
+/* ═══ HERO — Topographic Mesabi Range SVG ═══ */
+#hero {
+  background: var(--rust);
+  padding: 48px 40px 36px;
+  position: relative;
+  overflow: hidden;
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+#hero .topo-bg {
+  position: absolute;
+  inset: 0;
+  opacity: 0.12;
+}
+#hero .topo-bg svg {
+  width: 100%;
+  height: 100%;
+}
+#hero h1 {
+  font-family: Tahoma, Geneva, sans-serif;
+  color: #fff;
+  font-size: 28px;
+  font-weight: 700;
+  position: relative;
+  z-index: 2;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+}
+#hero .hero-sub {
+  font-family: 'Palatino Linotype', Palatino, serif;
+  color: var(--cream);
+  font-size: 15px;
+  margin-top: 8px;
+  position: relative;
+  z-index: 2;
+  max-width: 640px;
+  opacity: 0.9;
+}
+#hero .hero-tag {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--sienna-light);
+  margin-bottom: 8px;
+  position: relative;
+  z-index: 2;
+}
+
+/* ═══ CONTENT SECTIONS ═══ */
+.section {
+  padding: 36px 40px;
+}
+.section-alt {
+  background: var(--content-alt);
+}
+.section-heading {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--rust);
+  margin-bottom: 20px;
+  letter-spacing: -0.3px;
+}
+.section-rule {
+  border: none;
+  height: 2px;
+  background: var(--sienna);
+  margin: 0 0 24px;
+  opacity: 0.4;
+}
+
+/* ═══ MODULE 1: PROGRAM FINDER ═══ */
+.finder-question {
+  margin-bottom: 24px;
+}
+.finder-question legend {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--charcoal);
+  margin-bottom: 10px;
+  display: block;
+}
+.finder-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.finder-opt {
+  display: none;
+}
+.finder-opt + label {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 12px;
+  padding: 8px 16px;
+  border: 2px solid var(--cream-dark);
+  background: #fff;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+.finder-opt:checked + label {
+  border-color: var(--rust);
+  background: var(--rust);
+  color: #fff;
+}
+.finder-opt + label:hover {
+  border-color: var(--sienna);
+}
+#finder-submit {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 12px 32px;
+  background: var(--rust);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-top: 12px;
+}
+#finder-submit:hover { background: var(--charcoal); }
+#finder-submit:focus { outline: 2px solid var(--sienna); outline-offset: 2px; }
+
+#finder-results { margin-top: 28px; }
+.result-panel {
+  margin-bottom: 16px;
+  background: #fff;
+  overflow: hidden;
+}
+.result-panel-head {
+  background: var(--rust);
+  color: #fff;
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.result-panel-body {
+  padding: 16px 20px;
+}
+.result-panel-body p {
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+.result-meta {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+.result-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+.btn-sm {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 7px 16px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.btn-learn {
+  background: var(--sienna);
+  color: #fff;
+}
+.btn-learn:hover { background: var(--charcoal); }
+.btn-ready {
+  background: transparent;
+  color: var(--rust);
+  border: 2px solid var(--rust);
+}
+.btn-ready:hover { background: var(--rust); color: #fff; }
+.no-results {
+  font-size: 14px;
+  color: var(--text-secondary);
+  padding: 20px 0;
+}
+
+/* ═══ MODULE 2: PROGRAM REFERENCE ═══ */
+.program-entry {
+  padding: 32px 40px;
+}
+.program-entry:nth-child(even) {
+  background: var(--content-alt);
+}
+.program-name {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--rust);
+  margin-bottom: 16px;
+}
+.fact-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+}
+.fact-table td {
+  padding: 6px 0;
+  vertical-align: top;
+  font-size: 14px;
+  border-bottom: 1px solid rgba(44,44,44,0.08);
+}
+.fact-table .fact-label {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  width: 180px;
+  padding-right: 16px;
+}
+.fact-table .fact-value {
+  font-family: 'Palatino Linotype', Palatino, serif;
+  color: var(--text-primary);
+}
+.fact-table .fact-value .mono {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 13px;
+}
+
+.tips-toggle {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--sienna);
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.tips-toggle:hover { color: var(--rust); }
+.tips-toggle svg {
+  width: 14px; height: 14px;
+  fill: currentColor;
+  transition: transform 0.2s;
+}
+.tips-toggle.open svg { transform: rotate(90deg); }
+.tips-content {
+  display: none;
+  padding: 12px 0 0 0;
+}
+.tips-content.show { display: block; }
+.tips-content ul {
+  list-style: none;
+  padding: 0;
+}
+.tips-content li {
+  font-size: 13px;
+  padding: 5px 0 5px 18px;
+  position: relative;
+  color: var(--text-secondary);
+}
+.tips-content li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 12px;
+  width: 8px;
+  height: 8px;
+  background: var(--sienna);
+  border-radius: 50%;
+}
+
+/* ═══ MODULE 3: READINESS CHECKLIST ═══ */
+.checklist-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 24px;
+}
+.checklist-select {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 13px;
+  padding: 8px 14px;
+  border: 2px solid var(--cream-dark);
+  background: #fff;
+  color: var(--text-primary);
+  min-width: 260px;
+}
+.checklist-select:focus { border-color: var(--rust); outline: none; }
+.org-input {
+  font-family: 'Palatino Linotype', Palatino, serif;
+  font-size: 13px;
+  padding: 8px 14px;
+  border: 2px solid var(--cream-dark);
+  background: #fff;
+  color: var(--text-primary);
+  min-width: 220px;
+}
+.org-input:focus { border-color: var(--rust); outline: none; }
+.org-input::placeholder { color: #aaa; }
+
+.checklist-group-label {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--sienna);
+  margin: 20px 0 10px;
+}
+.check-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(44,44,44,0.06);
+}
+.check-item input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 25px;
+  height: 25px;
+  border: 2px solid var(--cream-dark);
+  background: #fff;
+  flex-shrink: 0;
+  cursor: pointer;
+  position: relative;
+  margin-top: 1px;
+  transition: background 0.2s, border-color 0.2s;
+}
+.check-item input[type="checkbox"]:checked {
+  background: var(--success);
+  border-color: var(--success);
+}
+.check-item input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 8px;
+  width: 6px;
+  height: 12px;
+  border: solid #fff;
+  border-width: 0 2.5px 2.5px 0;
+  transform: rotate(45deg);
+}
+.check-item input[type="checkbox"]:focus {
+  outline: 2px solid var(--sienna);
+  outline-offset: 2px;
+}
+.check-item label {
+  font-size: 14px;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+/* Progress bar */
+.progress-wrap {
+  margin: 28px 0 8px;
+}
+.progress-bar-bg {
+  width: 100%;
+  height: 18px;
+  background: var(--cream-dark);
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--sienna);
+  transition: width 0.4s ease, background 0.4s ease;
+}
+.progress-label {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 6px;
+}
+.readiness-status {
+  font-family: 'Palatino Linotype', Palatino, serif;
+  font-size: 14px;
+  color: var(--text-primary);
+  margin-top: 12px;
+  padding: 12px 16px;
+  background: var(--charcoal);
+  color: var(--cream);
+}
+
+.checklist-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+.btn-action {
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 10px 24px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-print {
+  background: var(--charcoal);
+  color: #fff;
+}
+.btn-print:hover { background: var(--rust); }
+.btn-clear {
+  background: transparent;
+  color: var(--rust);
+  border: 2px solid var(--rust);
+}
+.btn-clear:hover { background: var(--rust); color: #fff; }
+
+/* ═══ FOOTER ═══ */
+#footer {
+  background: var(--charcoal);
+  color: var(--cream-dark);
+  padding: 24px 40px;
+  font-size: 12px;
+  line-height: 1.7;
+  opacity: 0.85;
+}
+#footer a {
+  color: var(--sienna-light);
+}
+
+/* ═══ MOBILE ═══ */
+#mobile-toggle {
+  display: none;
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 200;
+  width: 40px;
+  height: 40px;
+  background: var(--charcoal);
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+}
+#mobile-toggle svg { fill: var(--cream); width: 100%; height: 100%; }
+
+@media (max-width: 768px) {
+  #sidebar {
+    width: 220px;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  #sidebar:hover { width: 220px; }
+  #sidebar .nav-label { opacity: 1; }
+  #sidebar .brand-text { opacity: 1; }
+  #sidebar.open { transform: translateX(0); }
+  #mobile-toggle { display: block; }
+  #main { margin-left: 0; }
+  .section, .program-entry { padding: 24px 16px; }
+  #hero { padding: 36px 16px 24px; min-height: 180px; }
+  #hero h1 { font-size: 20px; }
+  .fact-table .fact-label { width: 120px; font-size: 11px; }
+  .finder-options { gap: 6px; }
+  .checklist-controls { flex-direction: column; align-items: flex-start; }
+}
+
+/* ═══ PRINT ═══ */
+@media print {
+  #sidebar, #mobile-toggle, #hero, #entry-screen,
+  #module-finder, #module-reference, .checklist-actions,
+  .checklist-controls .btn-action, #footer,
+  .nav-item, .tips-toggle { display: none !important; }
+  #main { margin-left: 0 !important; }
+  .section { padding: 12px 0; }
+  body { background: #fff; color: #000; font-size: 12px; }
+  #module-checklist { display: block !important; }
+  .print-header {
+    display: block !important;
+    font-family: Tahoma, Geneva, sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    border-bottom: 2px solid #000;
+    padding-bottom: 4px;
+  }
+  .print-meta {
+    display: block !important;
+    font-family: Consolas, monospace;
+    font-size: 11px;
+    margin-bottom: 16px;
+  }
+  .check-item input[type="checkbox"] {
+    appearance: auto;
+    -webkit-appearance: auto;
+    width: 16px;
+    height: 16px;
+  }
+  .progress-wrap, .readiness-status { break-inside: avoid; }
+}
+.print-header, .print-meta { display: none; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     ENTRY SCREEN — Iron Range SVG Map
+     ═══════════════════════════════════════════════════════════ -->
+<div id="entry-screen">
+  <h1>Iron Range IRRRB Grant Finder</h1>
+  <svg id="entry-map" viewBox="0 0 700 420" xmlns="http://www.w3.org/2000/svg">
+    <!-- Simplified Iron Range county map -->
+    <!-- Mesabi Range dashed line -->
+    <path class="range-line" d="M120,180 C200,160 320,140 480,155 Q540,160 600,175" />
+    <text x="350" y="130" class="county-label" style="font-size:9px;opacity:0.5;">Mesabi Iron Range</text>
+
+    <!-- Cook County -->
+    <path class="county" data-county="cook"
+          d="M520,40 L640,30 L660,120 L600,160 L530,140 Z" />
+    <text x="590" y="90" class="county-label">Cook</text>
+
+    <!-- Lake County -->
+    <path class="county" data-county="lake"
+          d="M430,50 L520,40 L530,140 L460,150 L410,130 Z" />
+    <text x="470" y="100" class="county-label">Lake</text>
+
+    <!-- St. Louis County (largest) -->
+    <path class="county" data-county="stlouis"
+          d="M180,40 L430,50 L410,130 L460,150 L530,140 L500,240 L380,270 L220,250 L140,200 L130,100 Z" />
+    <text x="310" y="180" class="county-label" style="font-size:13px;">St. Louis</text>
+
+    <!-- Koochiching County -->
+    <path class="county" data-county="koochiching"
+          d="M60,30 L180,40 L130,100 L140,200 L60,190 L30,100 Z" />
+    <text x="95" y="120" class="county-label">Koochiching</text>
+
+    <!-- Itasca County -->
+    <path class="county" data-county="itasca"
+          d="M60,190 L140,200 L220,250 L230,330 L100,320 L50,260 Z" />
+    <text x="140" y="275" class="county-label">Itasca</text>
+
+    <!-- Carlton County -->
+    <path class="county" data-county="carlton"
+          d="M380,270 L500,240 L520,320 L400,340 Z" />
+    <text x="450" y="300" class="county-label">Carlton</text>
+
+    <!-- Aitkin County -->
+    <path class="county" data-county="aitkin"
+          d="M230,330 L220,250 L380,270 L400,340 L340,380 L240,390 Z" />
+    <text x="310" y="340" class="county-label">Aitkin</text>
+
+    <!-- SD-07 label -->
+    <text x="350" y="410" class="county-label" style="font-size:10px;fill:#A0522D;letter-spacing:3px;">SENATE DISTRICT 07</text>
+  </svg>
+  <div class="map-prompt">Click any county to enter the guide</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MOBILE TOGGLE
+     ═══════════════════════════════════════════════════════════ -->
+<button id="mobile-toggle" aria-label="Toggle navigation">
+  <svg viewBox="0 0 24 24"><rect y="3" width="24" height="2"/><rect y="11" width="24" height="2"/><rect y="19" width="24" height="2"/></svg>
+</button>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SIDEBAR NAVIGATION
+     ═══════════════════════════════════════════════════════════ -->
+<nav id="sidebar" role="navigation" aria-label="Main navigation">
+  <div class="brand">
+    <div class="brand-icon">
+      <svg viewBox="0 0 32 32"><polygon points="16,2 30,28 2,28" fill="currentColor" opacity="0.8"/><line x1="8" y1="20" x2="24" y2="20" stroke="#2C2C2C" stroke-width="1.5"/><line x1="10" y1="15" x2="22" y2="15" stroke="#2C2C2C" stroke-width="1"/></svg>
+    </div>
+    <span class="brand-text">IRRRB Guide</span>
+  </div>
+  <ul class="nav-list">
+    <li>
+      <a class="nav-item active" data-target="module-finder" href="#module-finder">
+        <svg viewBox="0 0 24 24"><circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="2"/><line x1="15" y1="15" x2="21" y2="21" stroke="currentColor" stroke-width="2.5"/></svg>
+        <span class="nav-label">Program Finder</span>
+      </a>
+    </li>
+    <li><div class="nav-divider"></div></li>
+    <li>
+      <a class="nav-item" data-target="module-reference" href="#module-reference">
+        <svg viewBox="0 0 24 24"><rect x="3" y="2" width="18" height="20" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><line x1="7" y1="7" x2="17" y2="7" stroke="currentColor" stroke-width="1.5"/><line x1="7" y1="11" x2="17" y2="11" stroke="currentColor" stroke-width="1.5"/><line x1="7" y1="15" x2="13" y2="15" stroke="currentColor" stroke-width="1.5"/></svg>
+        <span class="nav-label">Program Reference</span>
+      </a>
+    </li>
+    <!-- Program sub-links -->
+    <li><a class="nav-item nav-sub" data-target="prog-cdbg" href="#prog-cdbg">
+      <svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" fill="currentColor" opacity="0.3"/></svg>
+      <span class="nav-label">CDBG</span>
+    </a></li>
+    <li><a class="nav-item nav-sub" data-target="prog-infrastructure" href="#prog-infrastructure">
+      <svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" fill="currentColor" opacity="0.3"/></svg>
+      <span class="nav-label">Infrastructure</span>
+    </a></li>
+    <li><a class="nav-item nav-sub" data-target="prog-business" href="#prog-business">
+      <svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" fill="currentColor" opacity="0.3"/></svg>
+      <span class="nav-label">Business Dev</span>
+    </a></li>
+    <li><a class="nav-item nav-sub" data-target="prog-workforce" href="#prog-workforce">
+      <svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" fill="currentColor" opacity="0.3"/></svg>
+      <span class="nav-label">Workforce</span>
+    </a></li>
+    <li><a class="nav-item nav-sub" data-target="prog-tourism" href="#prog-tourism">
+      <svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" fill="currentColor" opacity="0.3"/></svg>
+      <span class="nav-label">Tourism</span>
+    </a></li>
+    <li><a class="nav-item nav-sub" data-target="prog-energy" href="#prog-energy">
+      <svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" fill="currentColor" opacity="0.3"/></svg>
+      <span class="nav-label">Energy/Enviro</span>
+    </a></li>
+    <li><div class="nav-divider"></div></li>
+    <li>
+      <a class="nav-item" data-target="module-checklist" href="#module-checklist">
+        <svg viewBox="0 0 24 24"><polyline points="4,12 9,17 20,6" fill="none" stroke="currentColor" stroke-width="2.5"/></svg>
+        <span class="nav-label">Readiness Checklist</span>
+      </a>
+    </li>
+  </ul>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MAIN CONTENT AREA
+     ═══════════════════════════════════════════════════════════ -->
+<main id="main">
+
+  <!-- HERO — Topographic Mesabi Range contours -->
+  <header id="hero">
+    <div class="topo-bg">
+      <svg viewBox="0 0 1000 300" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Topographic contour lines representing Mesabi Range elevation -->
+        <path d="M0,280 Q100,260 200,250 T400,230 T600,220 T800,240 T1000,260" fill="none" stroke="#F5ECD7" stroke-width="2"/>
+        <path d="M0,250 Q120,220 250,210 T450,190 T650,185 T850,210 T1000,230" fill="none" stroke="#F5ECD7" stroke-width="2"/>
+        <path d="M0,220 Q150,180 300,170 T500,150 T700,155 T900,180 T1000,200" fill="none" stroke="#F5ECD7" stroke-width="1.8"/>
+        <path d="M0,190 Q160,150 320,135 T520,115 T720,125 T920,155 T1000,175" fill="none" stroke="#F5ECD7" stroke-width="1.5"/>
+        <path d="M0,160 Q180,120 350,100 T550,80 T740,90 T930,125 T1000,150" fill="none" stroke="#F5ECD7" stroke-width="1.3"/>
+        <path d="M0,135 Q200,90 370,72 T570,55 T750,65 T940,100 T1000,125" fill="none" stroke="#F5ECD7" stroke-width="1.1"/>
+        <path d="M0,110 Q220,65 400,48 T600,35 T770,42 T950,75 T1000,100" fill="none" stroke="#F5ECD7" stroke-width="0.9"/>
+        <path d="M0,90 Q250,45 430,30 T630,20 T790,28 T960,55 T1000,80" fill="none" stroke="#F5ECD7" stroke-width="0.7"/>
+        <path d="M0,70 Q280,30 460,18 T660,10 T810,15 T970,40 T1000,60" fill="none" stroke="#F5ECD7" stroke-width="0.5"/>
+        <!-- Mine pit cross-sections -->
+        <ellipse cx="420" cy="200" rx="60" ry="15" fill="none" stroke="#F5ECD7" stroke-width="1" opacity="0.4"/>
+        <ellipse cx="620" cy="180" rx="45" ry="12" fill="none" stroke="#F5ECD7" stroke-width="1" opacity="0.4"/>
+        <ellipse cx="300" cy="210" rx="35" ry="10" fill="none" stroke="#F5ECD7" stroke-width="1" opacity="0.3"/>
+      </svg>
+    </div>
+    <div class="hero-tag">Senator Robert D. Farnsworth &middot; SD-07 &middot; IRRRB Chair</div>
+    <h1>Iron Range IRRRB Grant Finder<br>&amp; Readiness Guide</h1>
+    <p class="hero-sub">Find the right IRRRB program for your community. Check your readiness. Arrive at the conversation prepared.</p>
+  </header>
+
+  <!-- ══════════════════════════════════════════════════════
+       MODULE 1: PROGRAM FINDER
+       ══════════════════════════════════════════════════════ -->
+  <section id="module-finder" class="section">
+    <h2 class="section-heading">Program Finder</h2>
+    <hr class="section-rule">
+
+    <fieldset class="finder-question">
+      <legend>1. Who are you?</legend>
+      <div class="finder-options" id="q-applicant">
+        <input class="finder-opt" type="radio" name="applicant" id="app-city" value="city">
+        <label for="app-city">City / Township</label>
+        <input class="finder-opt" type="radio" name="applicant" id="app-county" value="county">
+        <label for="app-county">County Government</label>
+        <input class="finder-opt" type="radio" name="applicant" id="app-school" value="school">
+        <label for="app-school">School District</label>
+        <input class="finder-opt" type="radio" name="applicant" id="app-nonprofit" value="nonprofit">
+        <label for="app-nonprofit">Nonprofit</label>
+        <input class="finder-opt" type="radio" name="applicant" id="app-tribal" value="tribal">
+        <label for="app-tribal">Tribal Government</label>
+        <input class="finder-opt" type="radio" name="applicant" id="app-business" value="business">
+        <label for="app-business">Private Business</label>
+      </div>
+    </fieldset>
+
+    <fieldset class="finder-question">
+      <legend>2. What is your project type?</legend>
+      <div class="finder-options" id="q-project">
+        <input class="finder-opt" type="radio" name="project" id="proj-infra" value="infrastructure">
+        <label for="proj-infra">Road, Water, Sewer, Infrastructure</label>
+        <input class="finder-opt" type="radio" name="project" id="proj-building" value="building">
+        <label for="proj-building">Building Construction / Renovation</label>
+        <input class="finder-opt" type="radio" name="project" id="proj-workforce" value="workforce">
+        <label for="proj-workforce">Workforce Training / Job Placement</label>
+        <input class="finder-opt" type="radio" name="project" id="proj-business" value="business_dev">
+        <label for="proj-business">Business Startup / Expansion</label>
+        <input class="finder-opt" type="radio" name="project" id="proj-tourism" value="tourism">
+        <label for="proj-tourism">Tourism / Recreation / Trails</label>
+        <input class="finder-opt" type="radio" name="project" id="proj-arts" value="arts">
+        <label for="proj-arts">Arts / Culture / Heritage</label>
+        <input class="finder-opt" type="radio" name="project" id="proj-enviro" value="environmental">
+        <label for="proj-enviro">Environmental Cleanup / Remediation</label>
+        <input class="finder-opt" type="radio" name="project" id="proj-econ" value="economic_div">
+        <label for="proj-econ">Economic Diversification / Innovation</label>
+      </div>
+    </fieldset>
+
+    <fieldset class="finder-question">
+      <legend>3. Project size (rough total cost)?</legend>
+      <div class="finder-options" id="q-size">
+        <input class="finder-opt" type="radio" name="size" id="size-0" value="0">
+        <label for="size-0">Under $25,000</label>
+        <input class="finder-opt" type="radio" name="size" id="size-1" value="1">
+        <label for="size-1">$25K &ndash; $100K</label>
+        <input class="finder-opt" type="radio" name="size" id="size-2" value="2">
+        <label for="size-2">$100K &ndash; $500K</label>
+        <input class="finder-opt" type="radio" name="size" id="size-3" value="3">
+        <label for="size-3">$500K &ndash; $2M</label>
+        <input class="finder-opt" type="radio" name="size" id="size-4" value="4">
+        <label for="size-4">Over $2,000,000</label>
+      </div>
+    </fieldset>
+
+    <fieldset class="finder-question">
+      <legend>4. Is your community in the IRRRB service area?</legend>
+      <div style="margin-bottom:8px;">
+        <select id="q-geography" class="checklist-select" aria-label="Select your county">
+          <option value="">-- Select your county --</option>
+          <option value="yes">St. Louis County</option>
+          <option value="yes">Itasca County</option>
+          <option value="yes">Koochiching County</option>
+          <option value="yes">Cook County</option>
+          <option value="yes">Lake County</option>
+          <option value="yes">Carlton County (partial)</option>
+          <option value="yes">Aitkin County (partial)</option>
+          <option value="no">Other Minnesota county</option>
+          <option value="unsure">Not sure</option>
+        </select>
+      </div>
+      <p style="font-size:12px;color:var(--text-secondary);max-width:560px;">
+        IRRRB programs are funded by taconite production taxes and serve communities within the Iron Range tax relief area.
+        If you are unsure whether your community qualifies, contact the IRRRB office at
+        <span style="font-family:Consolas,monospace;font-weight:700;">800-657-3775</span>.
+      </p>
+    </fieldset>
+
+    <button id="finder-submit" type="button">Find Programs</button>
+
+    <div id="finder-results"></div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       MODULE 2: PROGRAM REFERENCE GUIDE
+       ══════════════════════════════════════════════════════ -->
+  <section id="module-reference">
+    <div class="section" style="padding-bottom:12px;">
+      <h2 class="section-heading">Program Reference Guide</h2>
+      <hr class="section-rule">
+      <p style="font-size:14px;color:var(--text-secondary);max-width:600px;">
+        Detailed profiles of each IRRRB grant and loan program. Use the sidebar to jump to a specific program.
+      </p>
+    </div>
+
+    <!-- PROGRAM 1: CDBG -->
+    <div class="program-entry" id="prog-cdbg">
+      <h3 class="program-name">Community Development Block Grant (CDBG)</h3>
+      <table class="fact-table">
+        <tr><td class="fact-label">Administered by</td><td class="fact-value">IRRRB / DEED (federal pass-through)</td></tr>
+        <tr><td class="fact-label">Description</td><td class="fact-value">Federal CDBG funds passed through IRRRB to Iron Range local governments. Supports public infrastructure, housing rehabilitation, and economic development.</td></tr>
+        <tr><td class="fact-label">Eligible applicants</td><td class="fact-value">Cities and townships in the IRRRB service area</td></tr>
+        <tr><td class="fact-label">Typical award</td><td class="fact-value"><span class="mono">$100,000 &ndash; $750,000</span> (varies by project type and federal allocation)</td></tr>
+        <tr><td class="fact-label">Match requirement</td><td class="fact-value">Generally no required local match for infrastructure; economic development projects may require local participation</td></tr>
+        <tr><td class="fact-label">Key requirements</td><td class="fact-value">Must primarily benefit low/moderate income persons (LMI test); Environmental Review required; Davis-Bacon prevailing wage applies to construction</td></tr>
+        <tr><td class="fact-label">Timeline</td><td class="fact-value">Applications accepted on rolling basis; contact IRRRB for current cycles</td></tr>
+        <!-- VERIFY: Phone number from software brief — not independently confirmed -->
+        <tr><td class="fact-label">Contact</td><td class="fact-value">IRRRB Community Development division; <span class="mono">800-657-3775</span></td></tr>
+      </table>
+      <button class="tips-toggle" onclick="toggleTips(this)" aria-expanded="false">
+        <svg viewBox="0 0 24 24"><polygon points="8,4 20,12 8,20"/></svg>
+        Application Tips
+      </button>
+      <div class="tips-content">
+        <ul>
+          <li>Document the LMI percentage in your project's benefit area before starting the application. Census data or a local income survey can establish this.</li>
+          <li>Budget for Davis-Bacon wage compliance on any construction component. This is a federal requirement and cannot be waived.</li>
+          <li>Start the Environmental Review early; it can take 30-60 days and must be complete before funds are committed.</li>
+          <li>If combining CDBG with other IRRRB funds, note this in your application. Leveraging multiple sources strengthens the project.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- PROGRAM 2: Infrastructure -->
+    <div class="program-entry" id="prog-infrastructure">
+      <h3 class="program-name">IRRRB Infrastructure Grant Program (Public Works)</h3>
+      <table class="fact-table">
+        <tr><td class="fact-label">Funded by</td><td class="fact-value">Taconite production tax revenues</td></tr>
+        <tr><td class="fact-label">Description</td><td class="fact-value">State-funded grants for public infrastructure in the Iron Range tax relief area.</td></tr>
+        <tr><td class="fact-label">Eligible applicants</td><td class="fact-value">Local governments and Tribal governments in the IRRRB service area</td></tr>
+        <tr><td class="fact-label">Typical award</td><td class="fact-value">Up to <span class="mono">$500,000</span> (larger projects may require additional justification)</td></tr>
+        <tr><td class="fact-label">Match requirement</td><td class="fact-value">Typically 50% local match required; exceptions for financially distressed communities</td></tr>
+        <tr><td class="fact-label">Eligible projects</td><td class="fact-value">Water and sewer systems, roads, bridges, public buildings, parks</td></tr>
+        <tr><td class="fact-label">Key requirements</td><td class="fact-value">Project must serve a public benefit; must demonstrate community need; engineering feasibility preferred at application stage</td></tr>
+        <tr><td class="fact-label">Contact</td><td class="fact-value">IRRRB Infrastructure/Community Grants; <span class="mono">800-657-3775</span></td></tr>
+      </table>
+      <button class="tips-toggle" onclick="toggleTips(this)" aria-expanded="false">
+        <svg viewBox="0 0 24 24"><polygon points="8,4 20,12 8,20"/></svg>
+        Application Tips
+      </button>
+      <div class="tips-content">
+        <ul>
+          <li>A preliminary engineering report greatly strengthens your application. Even a brief scope-and-cost letter from a licensed engineer helps.</li>
+          <li>Quantify the community need: how many residents are served, how old is the failing infrastructure, what happens if nothing is done.</li>
+          <li>If your community qualifies as financially distressed, document it. The match requirement may be reduced or waived.</li>
+          <li>Coordinate early with the IRRRB program officer. They can advise on project scope before you invest in a full engineering study.</li>
+          <li>When Cleveland-Cliffs production cuts reduce local tax base, that is relevant context for demonstrating community financial distress.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- PROGRAM 3: Business Development -->
+    <div class="program-entry" id="prog-business">
+      <h3 class="program-name">Business Development Loan/Grant Program</h3>
+      <table class="fact-table">
+        <tr><td class="fact-label">Description</td><td class="fact-value">Low-interest loans and grants to attract and retain businesses in the Iron Range, supporting economic diversification beyond mining.</td></tr>
+        <tr><td class="fact-label">Eligible applicants</td><td class="fact-value">Private businesses, developers, cooperatives locating or expanding in the IRRRB service area</td></tr>
+        <tr><td class="fact-label">Typical award</td><td class="fact-value">Loans <span class="mono">$25,000 &ndash; $1,000,000+</span>; grants typically smaller, tied to job creation</td></tr>
+        <tr><td class="fact-label">Match requirement</td><td class="fact-value">Borrower equity contribution required (typically 10&ndash;20%)</td></tr>
+        <tr><td class="fact-label">Key requirements</td><td class="fact-value">Must create or retain permanent full-time jobs; business plan required; preference for projects that diversify the regional economy</td></tr>
+        <tr><td class="fact-label">Contact</td><td class="fact-value">IRRRB Business Development; <span class="mono">800-657-3775</span></td></tr>
+      </table>
+      <button class="tips-toggle" onclick="toggleTips(this)" aria-expanded="false">
+        <svg viewBox="0 0 24 24"><polygon points="8,4 20,12 8,20"/></svg>
+        Application Tips
+      </button>
+      <div class="tips-content">
+        <ul>
+          <li>Job creation is the key metric. Be specific: how many positions, what wages, full-time or part-time, when will they be filled.</li>
+          <li>Projects that diversify the Iron Range economy beyond mining get preference. If your business brings a new industry sector, say so explicitly.</li>
+          <li>Prepare 2-3 years of financials or, for startups, detailed projections with assumptions documented.</li>
+          <li>Personal guarantees from owners are typically required for loan components. Discuss this with your lender and attorney early.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- PROGRAM 4: Workforce -->
+    <div class="program-entry" id="prog-workforce">
+      <h3 class="program-name">Workforce Development and Training Grants</h3>
+      <table class="fact-table">
+        <tr><td class="fact-label">Description</td><td class="fact-value">Grants to support job training, apprenticeships, and workforce readiness programs serving Iron Range residents.</td></tr>
+        <tr><td class="fact-label">Eligible applicants</td><td class="fact-value">School districts, community colleges, nonprofits, workforce training organizations</td></tr>
+        <tr><td class="fact-label">Typical award</td><td class="fact-value"><span class="mono">$10,000 &ndash; $150,000</span></td></tr>
+        <tr><td class="fact-label">Match requirement</td><td class="fact-value">Varies; often no match required for nonprofit/school applicants</td></tr>
+        <tr><td class="fact-label">Key requirements</td><td class="fact-value">Must serve Iron Range residents; programs must lead to employment or credential attainment; reporting on outcomes required</td></tr>
+        <tr><td class="fact-label">Context</td><td class="fact-value">With Iron Range school districts facing budget pressure &mdash; Hibbing cut 21 positions in 2025 to address a $2.8M shortfall &mdash; this program can fund career/technical education that the general fund cannot cover.</td></tr>
+        <tr><td class="fact-label">Contact</td><td class="fact-value">IRRRB Workforce Development; <span class="mono">800-657-3775</span></td></tr>
+      </table>
+      <button class="tips-toggle" onclick="toggleTips(this)" aria-expanded="false">
+        <svg viewBox="0 0 24 24"><polygon points="8,4 20,12 8,20"/></svg>
+        Application Tips
+      </button>
+      <div class="tips-content">
+        <ul>
+          <li>Letters of support from local employers who will hire program graduates are among the strongest evidence you can provide.</li>
+          <li>Define measurable outcomes: how many people will be trained, what credential will they earn, what is the expected placement rate.</li>
+          <li>If your school district has faced budget cuts, document the gap. Show that this program fills a need the general fund cannot meet.</li>
+          <li>Partner with a community college or training provider if your organization does not deliver instruction directly.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- PROGRAM 5: Tourism -->
+    <div class="program-entry" id="prog-tourism">
+      <h3 class="program-name">Tourism and Recreation Development Grants</h3>
+      <table class="fact-table">
+        <tr><td class="fact-label">Description</td><td class="fact-value">Grants for tourism infrastructure, trail development, visitor amenities, and cultural/heritage attractions in the Iron Range.</td></tr>
+        <tr><td class="fact-label">Eligible applicants</td><td class="fact-value">Local governments, nonprofits, Tribal governments</td></tr>
+        <tr><td class="fact-label">Typical award</td><td class="fact-value"><span class="mono">$10,000 &ndash; $200,000</span></td></tr>
+        <tr><td class="fact-label">Match requirement</td><td class="fact-value">Typically 50% match (cash or in-kind)</td></tr>
+        <tr><td class="fact-label">Eligible projects</td><td class="fact-value">Trail construction/extension, signage, visitor centers, heritage sites, recreation facilities, tourism marketing with physical infrastructure component</td></tr>
+        <tr><td class="fact-label">Contact</td><td class="fact-value">IRRRB Tourism/Recreation; <span class="mono">800-657-3775</span></td></tr>
+      </table>
+      <button class="tips-toggle" onclick="toggleTips(this)" aria-expanded="false">
+        <svg viewBox="0 0 24 24"><polygon points="8,4 20,12 8,20"/></svg>
+        Application Tips
+      </button>
+      <div class="tips-content">
+        <ul>
+          <li>Heritage preservation projects are strong candidates. For example, the Aitkin County Historical Society building at 20 Pacific Street, Aitkin &mdash; subject of Farnsworth's SF2226 ($100,000 roof appropriation request) &mdash; is exactly the kind of community asset this program exists to support.</li>
+          <li>Quantify tourism impact: visitor counts, overnight stays, spending estimates. Regional tourism data from Explore Minnesota can help.</li>
+          <li>In-kind match counts. Volunteer labor, donated materials, and staff time can all be documented as match.</li>
+          <li>Trail projects that connect to existing trail systems or regional networks are especially competitive.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- PROGRAM 6: Energy/Environmental -->
+    <div class="program-entry" id="prog-energy">
+      <h3 class="program-name">Renewable Energy and Environmental Program</h3>
+      <table class="fact-table">
+        <tr><td class="fact-label">Description</td><td class="fact-value">Grants supporting renewable energy installations, energy efficiency improvements, and environmental remediation on Iron Range lands.</td></tr>
+        <tr><td class="fact-label">Eligible applicants</td><td class="fact-value">Local governments, nonprofits, Tribal governments, in some cases private businesses</td></tr>
+        <tr><td class="fact-label">Typical award</td><td class="fact-value"><span class="mono">$25,000 &ndash; $300,000</span></td></tr>
+        <tr><td class="fact-label">Match requirement</td><td class="fact-value">Typically 50% match; exceptions for environmental remediation</td></tr>
+        <tr><td class="fact-label">Context</td><td class="fact-value">The Iron Range has significant environmental legacy from mining operations. This program supports brownfield/mine-land reuse projects.</td></tr>
+        <tr><td class="fact-label">Contact</td><td class="fact-value">IRRRB Environmental; <span class="mono">800-657-3775</span></td></tr>
+      </table>
+      <button class="tips-toggle" onclick="toggleTips(this)" aria-expanded="false">
+        <svg viewBox="0 0 24 24"><polygon points="8,4 20,12 8,20"/></svg>
+        Application Tips
+      </button>
+      <div class="tips-content">
+        <ul>
+          <li>Mine-land remediation and reuse projects have strong justification built in. Document the environmental legacy and the community benefit of reclamation.</li>
+          <li>Energy efficiency projects for public buildings can show clear cost savings. Calculate the payback period and include it.</li>
+          <li>If combining with federal environmental grants (EPA Brownfields, etc.), note this as leveraged funding.</li>
+          <li>For renewable energy installations, include projected energy output and cost offset over the system lifetime.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       MODULE 3: APPLICATION READINESS CHECKLIST
+       ══════════════════════════════════════════════════════ -->
+  <section id="module-checklist" class="section">
+    <h2 class="section-heading">Application Readiness Checklist</h2>
+    <hr class="section-rule">
+
+    <div class="print-header">IRRRB Application Readiness Checklist</div>
+    <div class="print-meta" id="print-meta"></div>
+
+    <div class="checklist-controls">
+      <select id="checklist-program" class="checklist-select" aria-label="Select program">
+        <option value="universal">General (all programs)</option>
+        <option value="cdbg">CDBG</option>
+        <option value="infrastructure">Infrastructure</option>
+        <option value="business">Business Development</option>
+        <option value="workforce">Workforce / Education</option>
+        <option value="tourism">Tourism / Recreation</option>
+        <option value="energy">Energy / Environmental</option>
+      </select>
+      <input type="text" id="org-name" class="org-input" placeholder="Your organization name" aria-label="Organization name">
+    </div>
+
+    <!-- Universal checklist -->
+    <div id="checklist-items">
+      <div class="checklist-group-label">Universal Requirements</div>
+
+      <div class="check-item">
+        <input type="checkbox" id="ck-auth" data-group="universal">
+        <label for="ck-auth">Governing body authorization &mdash; city council, board, or board of directors resolution authorizing the application</label>
+      </div>
+      <div class="check-item">
+        <input type="checkbox" id="ck-desc" data-group="universal">
+        <label for="ck-desc">Project description &mdash; two paragraphs covering what it is, why it is needed, and what it will accomplish</label>
+      </div>
+      <div class="check-item">
+        <input type="checkbox" id="ck-budget" data-group="universal">
+        <label for="ck-budget">Budget &mdash; project cost estimate from a qualified contractor, engineer, or vendor</label>
+      </div>
+      <div class="check-item">
+        <input type="checkbox" id="ck-need" data-group="universal">
+        <label for="ck-need">Community need &mdash; data or documentation showing need (population served, age of infrastructure, economic indicators)</label>
+      </div>
+      <div class="check-item">
+        <input type="checkbox" id="ck-match" data-group="universal">
+        <label for="ck-match">Match funds &mdash; identified local match source (if required by the program)</label>
+      </div>
+      <div class="check-item">
+        <input type="checkbox" id="ck-contact" data-group="universal">
+        <label for="ck-contact">Contact &mdash; identified the IRRRB program officer for this program</label>
+      </div>
+      <div class="check-item">
+        <input type="checkbox" id="ck-timeline" data-group="universal">
+        <label for="ck-timeline">Timeline &mdash; proposed project timeline from start to completion</label>
+      </div>
+
+      <!-- Infrastructure-specific -->
+      <div class="checklist-group-label group-infrastructure" style="display:none;">Infrastructure-Specific</div>
+      <div class="check-item item-infrastructure" style="display:none;">
+        <input type="checkbox" id="ck-eng" data-group="infrastructure">
+        <label for="ck-eng">Engineering &mdash; a licensed engineer has prepared at least a preliminary project scope and cost estimate</label>
+      </div>
+      <div class="check-item item-infrastructure" style="display:none;">
+        <input type="checkbox" id="ck-envrev" data-group="infrastructure">
+        <label for="ck-envrev">Environmental review &mdash; identified any environmental issues on the project site (wetlands, contamination, historic structures)</label>
+      </div>
+      <div class="check-item item-infrastructure" style="display:none;">
+        <input type="checkbox" id="ck-utility" data-group="infrastructure">
+        <label for="ck-utility">Utility coordination &mdash; coordinated with utilities (electric, gas, telecom) about conflicts</label>
+      </div>
+      <div class="check-item item-infrastructure" style="display:none;">
+        <input type="checkbox" id="ck-davis" data-group="infrastructure">
+        <label for="ck-davis">Prevailing wage &mdash; prepared to comply with Davis-Bacon if federal CDBG funds are involved</label>
+      </div>
+
+      <!-- Workforce-specific -->
+      <div class="checklist-group-label group-workforce" style="display:none;">Workforce / Education-Specific</div>
+      <div class="check-item item-workforce" style="display:none;">
+        <input type="checkbox" id="ck-instructor" data-group="workforce">
+        <label for="ck-instructor">Instructor/trainer credentials &mdash; documented qualifications of the people delivering training</label>
+      </div>
+      <div class="check-item item-workforce" style="display:none;">
+        <input type="checkbox" id="ck-employer" data-group="workforce">
+        <label for="ck-employer">Employer partners &mdash; letters of support from local employers who will hire program graduates</label>
+      </div>
+      <div class="check-item item-workforce" style="display:none;">
+        <input type="checkbox" id="ck-outcomes" data-group="workforce">
+        <label for="ck-outcomes">Outcome tracking &mdash; a plan to track and report on job placements or credential attainments</label>
+      </div>
+      <div class="check-item item-workforce" style="display:none;">
+        <input type="checkbox" id="ck-undup" data-group="workforce">
+        <label for="ck-undup">Unduplicated count &mdash; estimated number of Iron Range residents who will be served</label>
+      </div>
+
+      <!-- Business-specific -->
+      <div class="checklist-group-label group-business" style="display:none;">Business Development-Specific</div>
+      <div class="check-item item-business" style="display:none;">
+        <input type="checkbox" id="ck-bizplan" data-group="business">
+        <label for="ck-bizplan">Business plan &mdash; business plan or executive summary ready to share</label>
+      </div>
+      <div class="check-item item-business" style="display:none;">
+        <input type="checkbox" id="ck-financials" data-group="business">
+        <label for="ck-financials">Financial statements &mdash; 2-3 years of business financials or projections for a startup</label>
+      </div>
+      <div class="check-item item-business" style="display:none;">
+        <input type="checkbox" id="ck-jobs" data-group="business">
+        <label for="ck-jobs">Job creation commitment &mdash; documented specific jobs (number, wage, full/part-time) to be created or retained</label>
+      </div>
+      <div class="check-item item-business" style="display:none;">
+        <input type="checkbox" id="ck-guarantee" data-group="business">
+        <label for="ck-guarantee">Personal guarantee &mdash; business owners prepared to provide personal guarantees for loan repayment</label>
+      </div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progress-fill"></div>
+      </div>
+      <div class="progress-label" id="progress-label">0 of 7 items checked</div>
+    </div>
+    <div class="readiness-status" id="readiness-status">
+      Select a program and begin checking items to see your readiness score.
+    </div>
+
+    <div class="checklist-actions">
+      <button class="btn-action btn-print" onclick="printChecklist()" type="button">Print Checklist</button>
+      <button class="btn-action btn-clear" onclick="clearChecklist()" type="button">Clear Saved State</button>
+    </div>
+  </section>
+
+  <!-- ═══ FOOTER ═══ -->
+  <footer id="footer">
+    A resource for SD-07 communities and the Iron Range. Built with AI.<br>
+    Data reflects IRRRB programs and Farnsworth's legislative record as of 2025.
+    Contact IRRRB directly at <span style="font-family:Consolas,monospace;">800-657-3775</span>
+    or <a href="https://mn.gov/irrrb" target="_blank" rel="noopener">mn.gov/irrrb</a> for current program details.
+  </footer>
+
+</main>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   ENTRY SCREEN — dissolve on county click
+   ═══════════════════════════════════════════════════════════ */
+(function() {
+  var counties = document.querySelectorAll('#entry-map .county');
+  counties.forEach(function(c) {
+    c.addEventListener('click', function() {
+      document.getElementById('entry-screen').classList.add('dissolve');
+      setTimeout(function() {
+        document.getElementById('entry-screen').style.display = 'none';
+      }, 1300);
+    });
+  });
+})();
+
+/* ═══════════════════════════════════════════════════════════
+   MOBILE SIDEBAR TOGGLE
+   ═══════════════════════════════════════════════════════════ */
+document.getElementById('mobile-toggle').addEventListener('click', function() {
+  document.getElementById('sidebar').classList.toggle('open');
+});
+
+/* ═══════════════════════════════════════════════════════════
+   SIDEBAR NAVIGATION
+   ═══════════════════════════════════════════════════════════ */
+(function() {
+  var navItems = document.querySelectorAll('.nav-item[data-target]');
+  navItems.forEach(function(item) {
+    item.addEventListener('click', function(e) {
+      e.preventDefault();
+      var targetId = this.getAttribute('data-target');
+      var target = document.getElementById(targetId);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      // Update active state
+      navItems.forEach(function(n) { n.classList.remove('active'); });
+      this.classList.add('active');
+      // Close mobile sidebar
+      document.getElementById('sidebar').classList.remove('open');
+    });
+  });
+
+  // IntersectionObserver for active section highlighting
+  var sections = ['module-finder', 'module-reference', 'module-checklist',
+                  'prog-cdbg', 'prog-infrastructure', 'prog-business',
+                  'prog-workforce', 'prog-tourism', 'prog-energy'];
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        var id = entry.target.id;
+        navItems.forEach(function(n) {
+          n.classList.toggle('active', n.getAttribute('data-target') === id);
+        });
+      }
+    });
+  }, { rootMargin: '-20% 0px -60% 0px' });
+
+  sections.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) observer.observe(el);
+  });
+})();
+
+/* ═══════════════════════════════════════════════════════════
+   TIPS TOGGLE
+   ═══════════════════════════════════════════════════════════ */
+function toggleTips(btn) {
+  var content = btn.nextElementSibling;
+  var isOpen = content.classList.toggle('show');
+  btn.classList.toggle('open', isOpen);
+  btn.setAttribute('aria-expanded', isOpen);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PROGRAM FINDER — Eligibility Matrix & Matching
+   ═══════════════════════════════════════════════════════════ */
+var PROGRAMS = [
+  {
+    id: 'cdbg',
+    name: 'Community Development Block Grant (CDBG)',
+    desc: 'Federal CDBG funds passed through IRRRB for public infrastructure, housing rehab, and economic development.',
+    award: '$100,000 - $750,000',
+    match: 'Generally no local match for infrastructure',
+    admin: 'IRRRB / DEED (federal pass-through)',
+    eligibleApplicants: ['city', 'county'],
+    eligibleProjects: ['infrastructure', 'building', 'business_dev', 'economic_div'],
+    minSize: 2, maxSize: 4,
+    requiresArea: true
+  },
+  {
+    id: 'infrastructure',
+    name: 'IRRRB Infrastructure Grant Program',
+    desc: 'State-funded grants from taconite tax revenues for public infrastructure in the Iron Range.',
+    award: 'Up to $500,000',
+    match: '50% local match (exceptions for distressed communities)',
+    admin: 'IRRRB directly',
+    eligibleApplicants: ['city', 'county', 'tribal'],
+    eligibleProjects: ['infrastructure', 'building'],
+    minSize: 1, maxSize: 4,
+    requiresArea: true
+  },
+  {
+    id: 'business',
+    name: 'Business Development Loan/Grant Program',
+    desc: 'Low-interest loans and grants to attract and retain businesses, supporting economic diversification.',
+    award: '$25,000 - $1,000,000+ (loans); grants tied to job creation',
+    match: '10-20% borrower equity',
+    admin: 'IRRRB Business Development',
+    eligibleApplicants: ['business'],
+    eligibleProjects: ['business_dev', 'economic_div'],
+    minSize: 1, maxSize: 4,
+    requiresArea: true
+  },
+  {
+    id: 'workforce',
+    name: 'Workforce Development and Training Grants',
+    desc: 'Grants for job training, apprenticeships, and workforce readiness programs serving Iron Range residents.',
+    award: '$10,000 - $150,000',
+    match: 'Varies; often no match for nonprofits/schools',
+    admin: 'IRRRB Workforce Development',
+    eligibleApplicants: ['school', 'nonprofit', 'tribal'],
+    eligibleProjects: ['workforce'],
+    minSize: 0, maxSize: 2,
+    requiresArea: true
+  },
+  {
+    id: 'tourism',
+    name: 'Tourism and Recreation Development Grants',
+    desc: 'Grants for tourism infrastructure, trails, visitor amenities, and cultural/heritage attractions.',
+    award: '$10,000 - $200,000',
+    match: '50% match (cash or in-kind)',
+    admin: 'IRRRB Tourism/Recreation',
+    eligibleApplicants: ['city', 'county', 'nonprofit', 'tribal'],
+    eligibleProjects: ['tourism', 'arts', 'building'],
+    minSize: 0, maxSize: 3,
+    requiresArea: true
+  },
+  {
+    id: 'energy',
+    name: 'Renewable Energy and Environmental Program',
+    desc: 'Grants for renewable energy, energy efficiency, and environmental remediation on Iron Range lands.',
+    award: '$25,000 - $300,000',
+    match: '50% match (exceptions for remediation)',
+    admin: 'IRRRB Environmental',
+    eligibleApplicants: ['city', 'county', 'nonprofit', 'tribal', 'business'],
+    eligibleProjects: ['environmental', 'infrastructure', 'economic_div'],
+    minSize: 1, maxSize: 3,
+    requiresArea: true
+  }
+];
+
+document.getElementById('finder-submit').addEventListener('click', function() {
+  var applicant = getRadioValue('applicant');
+  var project = getRadioValue('project');
+  var size = getRadioValue('size');
+  var geo = document.getElementById('q-geography').value;
+
+  if (!applicant || !project || size === null || !geo) {
+    showResults('<p class="no-results">Please answer all four questions above, then click Find Programs.</p>');
+    return;
+  }
+
+  var sizeIdx = parseInt(size, 10);
+  var inArea = (geo === 'yes');
+
+  if (geo === 'no') {
+    showResults('<p class="no-results">IRRRB programs serve communities within the Iron Range tax relief area. Your county may not be eligible for most IRRRB programs. Contact the IRRRB office at <span style="font-family:Consolas,monospace;font-weight:700;">800-657-3775</span> to discuss your specific situation.</p>');
+    return;
+  }
+
+  if (geo === 'unsure') {
+    inArea = true; // Show programs but with a note
+  }
+
+  var matches = PROGRAMS.filter(function(p) {
+    if (p.requiresArea && !inArea) return false;
+    if (p.eligibleApplicants.indexOf(applicant) === -1) return false;
+    if (p.eligibleProjects.indexOf(project) === -1) return false;
+    if (sizeIdx < p.minSize || sizeIdx > p.maxSize) return false;
+    return true;
+  });
+
+  if (matches.length === 0) {
+    showResults('<p class="no-results">Based on your inputs, no standard IRRRB programs apply directly. Contact the IRRRB office at <span style="font-family:Consolas,monospace;font-weight:700;">800-657-3775</span> to discuss your project &mdash; program officers can identify options not covered in this guide.</p>');
+    return;
+  }
+
+  var html = '';
+  if (geo === 'unsure') {
+    html += '<p style="font-size:13px;color:var(--warning);margin-bottom:16px;font-weight:700;">You indicated you are unsure about service area eligibility. The results below assume you qualify. Confirm with IRRRB at 800-657-3775.</p>';
+  }
+
+  matches.forEach(function(p) {
+    html += '<div class="result-panel">';
+    html += '<div class="result-panel-head">' + esc(p.name) + '</div>';
+    html += '<div class="result-panel-body">';
+    html += '<p>' + esc(p.desc) + '</p>';
+    html += '<p class="result-meta">Typical award: ' + esc(p.award) + '</p>';
+    html += '<p class="result-meta">Match: ' + esc(p.match) + '</p>';
+    html += '<p class="result-meta">Administered by: ' + esc(p.admin) + '</p>';
+    html += '<div class="result-actions">';
+    html += '<button class="btn-sm btn-learn" onclick="jumpToProgram(\'' + p.id + '\')">Learn More</button>';
+    html += '<button class="btn-sm btn-ready" onclick="jumpToReadiness(\'' + p.id + '\')">Check Readiness</button>';
+    html += '</div></div></div>';
+  });
+
+  showResults(html);
+});
+
+function getRadioValue(name) {
+  var el = document.querySelector('input[name="' + name + '"]:checked');
+  return el ? el.value : null;
+}
+
+function showResults(html) {
+  document.getElementById('finder-results').innerHTML = html;
+}
+
+function esc(s) {
+  var d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function jumpToProgram(id) {
+  var el = document.getElementById('prog-' + id);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function jumpToReadiness(id) {
+  // Map program IDs to checklist dropdown values
+  var map = {
+    'cdbg': 'cdbg',
+    'infrastructure': 'infrastructure',
+    'business': 'business',
+    'workforce': 'workforce',
+    'tourism': 'tourism',
+    'energy': 'energy'
+  };
+  var sel = document.getElementById('checklist-program');
+  if (map[id]) {
+    sel.value = map[id];
+    sel.dispatchEvent(new Event('change'));
+  }
+  document.getElementById('module-checklist').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   READINESS CHECKLIST — dynamic groups, scoring, localStorage
+   ═══════════════════════════════════════════════════════════ */
+var CHECKLIST_GROUPS = {
+  'cdbg': ['infrastructure'],
+  'infrastructure': ['infrastructure'],
+  'business': ['business'],
+  'workforce': ['workforce'],
+  'tourism': [],
+  'energy': [],
+  'universal': []
+};
+
+var programSelect = document.getElementById('checklist-program');
+programSelect.addEventListener('change', updateChecklistVisibility);
+
+function updateChecklistVisibility() {
+  var val = programSelect.value;
+  var extras = CHECKLIST_GROUPS[val] || [];
+
+  // Hide all extra groups
+  ['infrastructure', 'workforce', 'business'].forEach(function(g) {
+    var groupLabel = document.querySelector('.group-' + g);
+    var items = document.querySelectorAll('.item-' + g);
+    var show = extras.indexOf(g) !== -1;
+    if (groupLabel) groupLabel.style.display = show ? '' : 'none';
+    items.forEach(function(item) { item.style.display = show ? '' : 'none'; });
+  });
+
+  loadChecklistState();
+  updateProgress();
+}
+
+function getVisibleCheckboxes() {
+  var all = document.querySelectorAll('#checklist-items input[type="checkbox"]');
+  var visible = [];
+  all.forEach(function(cb) {
+    var parent = cb.closest('.check-item');
+    if (parent && parent.style.display !== 'none') {
+      visible.push(cb);
+    }
+  });
+  return visible;
+}
+
+function updateProgress() {
+  var visible = getVisibleCheckboxes();
+  var total = visible.length;
+  var checked = 0;
+  visible.forEach(function(cb) { if (cb.checked) checked++; });
+
+  var pct = total > 0 ? Math.round((checked / total) * 100) : 0;
+  var fill = document.getElementById('progress-fill');
+  var label = document.getElementById('progress-label');
+  var status = document.getElementById('readiness-status');
+
+  fill.style.width = pct + '%';
+
+  // Color transitions: sienna -> blended -> success green
+  if (pct < 50) {
+    fill.style.background = 'var(--sienna)';
+  } else if (pct < 80) {
+    fill.style.background = 'var(--warning)';
+  } else {
+    fill.style.background = 'var(--success)';
+  }
+
+  label.textContent = checked + ' of ' + total + ' items checked (' + pct + '%)';
+
+  if (total === 0) {
+    status.textContent = 'Select a program and begin checking items to see your readiness score.';
+  } else if (pct < 50) {
+    status.textContent = 'Not ready \u2014 focus on the unchecked items before contacting IRRRB.';
+  } else if (pct < 80) {
+    status.textContent = 'Getting close \u2014 a few more items will strengthen your application.';
+  } else {
+    status.textContent = 'Strong readiness \u2014 contact your IRRRB program officer to discuss your project. Call 800-657-3775.';
+  }
+}
+
+// Save/load from localStorage
+var LS_KEY = 'farnsworth-irrrb-checklist';
+
+function saveChecklistState() {
+  var state = {};
+  var program = programSelect.value;
+  state._program = program;
+  state._org = document.getElementById('org-name').value;
+  document.querySelectorAll('#checklist-items input[type="checkbox"]').forEach(function(cb) {
+    state[cb.id] = cb.checked;
+  });
+  try {
+    var allState = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
+    allState[program] = state;
+    localStorage.setItem(LS_KEY, JSON.stringify(allState));
+  } catch(e) { /* localStorage unavailable */ }
+}
+
+function loadChecklistState() {
+  var program = programSelect.value;
+  try {
+    var allState = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
+    var state = allState[program];
+    if (!state) {
+      // Reset all checkboxes
+      document.querySelectorAll('#checklist-items input[type="checkbox"]').forEach(function(cb) {
+        cb.checked = false;
+      });
+      return;
+    }
+    if (state._org) document.getElementById('org-name').value = state._org;
+    document.querySelectorAll('#checklist-items input[type="checkbox"]').forEach(function(cb) {
+      cb.checked = !!state[cb.id];
+    });
+  } catch(e) {
+    document.querySelectorAll('#checklist-items input[type="checkbox"]').forEach(function(cb) {
+      cb.checked = false;
+    });
+  }
+}
+
+function clearChecklist() {
+  var program = programSelect.value;
+  try {
+    var allState = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
+    delete allState[program];
+    localStorage.setItem(LS_KEY, JSON.stringify(allState));
+  } catch(e) { /* */ }
+  document.querySelectorAll('#checklist-items input[type="checkbox"]').forEach(function(cb) {
+    cb.checked = false;
+  });
+  updateProgress();
+}
+
+// Listen for checkbox changes
+document.getElementById('checklist-items').addEventListener('change', function(e) {
+  if (e.target.type === 'checkbox') {
+    saveChecklistState();
+    updateProgress();
+  }
+});
+
+// Print
+function printChecklist() {
+  var org = document.getElementById('org-name').value || 'Not specified';
+  var program = programSelect.options[programSelect.selectedIndex].text;
+  var meta = document.getElementById('print-meta');
+  var today = new Date();
+  var dateStr = (today.getMonth()+1) + '/' + today.getDate() + '/' + today.getFullYear();
+  meta.textContent = 'Organization: ' + org + '  |  Program: ' + program + '  |  Date: ' + dateStr;
+  window.print();
+}
+
+// Initialize
+updateChecklistVisibility();
+</script>
+
+</body>
+</html>

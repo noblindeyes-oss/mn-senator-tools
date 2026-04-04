@@ -1,0 +1,1448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minnesota Kinship Foster Care Licensing Navigator — Senator Maye Quade</title>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Guided interview — chat-bubble conversational format (left Q, right A) with a narrow "Your Situation" summary sidebar (200px, dark burgundy)
+   2. Navigation: Conversation flow IS the nav; Back/Next buttons at bottom; sidebar summary items are clickable to revisit
+   3. Typography: Palatino (serif headers), Century Gothic (sans body/labels), Consolas (monospace data/codes)
+   4. Hero moment: At interview completion, full-width burgundy band reveals "YOUR LICENSING PATHWAY" with personalized result at 36px+
+   5. Color strategy: #4 Warm dominant — cream base, burgundy and honey structural, charcoal text. Color is environmental, not trim.
+   6. Entry experience: House SVG draws itself on cream, fills with warm honey, "Welcome home" fades in. 2 seconds. No paragraph.
+   Additional: Chat bubbles use burgundy for questions (left) and honey outlines for answers (right). SF1786 callouts are full-width honey bands with burgundy text. No bordered callout boxes. No cards. No emoji icons.
+*/
+
+:root {
+  --burgundy: #5d001e;
+  --burgundy-light: #7a1030;
+  --honey: #f0a500;
+  --honey-light: #fdf3d7;
+  --cream: #fdf8f0;
+  --charcoal: #3c3c3c;
+  --charcoal-light: #5a5a5a;
+  --success: #2D6A4F;
+  --alert: #B01C2E;
+  --white: #ffffff;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Century Gothic', 'Apple Gothic', 'URW Gothic', sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--charcoal);
+  background: var(--cream);
+  overflow-x: hidden;
+}
+
+/* ── ENTRY SCREEN ── */
+#entry-screen {
+  position: fixed; inset: 0; z-index: 9999;
+  background: var(--cream);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  transition: opacity 0.6s ease;
+}
+#entry-screen.fade-out { opacity: 0; pointer-events: none; }
+
+#house-svg {
+  width: 140px; height: 140px;
+}
+#house-svg .house-line {
+  fill: none; stroke: var(--burgundy); stroke-width: 2.5;
+  stroke-dasharray: 400; stroke-dashoffset: 400;
+  animation: drawHouse 1.4s ease forwards;
+}
+#house-svg .house-fill {
+  fill: var(--honey); opacity: 0;
+  animation: fillHouse 0.6s ease 1.2s forwards;
+}
+@keyframes drawHouse {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes fillHouse {
+  to { opacity: 0.35; }
+}
+
+#welcome-text {
+  font-family: 'Palatino Linotype', Palatino, 'Book Antiqua', serif;
+  font-size: 28px; color: var(--burgundy);
+  margin-top: 18px; opacity: 0; letter-spacing: 1px;
+  animation: fadeWelcome 0.7s ease 1.5s forwards;
+}
+@keyframes fadeWelcome {
+  to { opacity: 1; }
+}
+
+/* ── MAIN LAYOUT ── */
+#app { display: none; min-height: 100vh; }
+#app.visible { display: flex; }
+
+/* Sidebar */
+#sidebar {
+  width: 220px; min-height: 100vh;
+  background: var(--burgundy);
+  color: var(--cream); padding: 24px 16px;
+  position: fixed; left: 0; top: 0; bottom: 0;
+  overflow-y: auto; z-index: 100;
+  font-size: 13px;
+}
+#sidebar h2 {
+  font-family: 'Palatino Linotype', Palatino, 'Book Antiqua', serif;
+  font-size: 15px; font-weight: normal;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--honey); margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(240,165,0,0.3);
+}
+.sidebar-item {
+  padding: 8px 10px; margin-bottom: 4px;
+  border-radius: 4px; cursor: pointer;
+  transition: background 0.2s;
+  line-height: 1.35;
+}
+.sidebar-item:hover { background: rgba(255,255,255,0.1); }
+.sidebar-item.answered { color: var(--honey); }
+.sidebar-item .si-label {
+  font-size: 11px; text-transform: uppercase;
+  letter-spacing: 1px; opacity: 0.6;
+  display: block; margin-bottom: 2px;
+  font-family: Consolas, 'Liberation Mono', monospace;
+}
+.sidebar-item .si-value { display: block; font-size: 14px; }
+
+#sidebar-progress {
+  margin-top: 24px; padding-top: 16px;
+  border-top: 1px solid rgba(240,165,0,0.3);
+}
+#sidebar-progress .sp-label {
+  font-size: 11px; text-transform: uppercase;
+  letter-spacing: 1px; opacity: 0.6;
+  font-family: Consolas, 'Liberation Mono', monospace;
+}
+#progress-bar-outer {
+  height: 6px; background: rgba(255,255,255,0.15);
+  border-radius: 3px; margin-top: 8px; overflow: hidden;
+}
+#progress-bar-inner {
+  height: 100%; background: var(--honey);
+  border-radius: 3px; width: 0%;
+  transition: width 0.4s ease;
+}
+#progress-text {
+  font-size: 12px; margin-top: 6px;
+  font-family: Consolas, 'Liberation Mono', monospace;
+}
+
+#sidebar-nav {
+  margin-top: 24px; padding-top: 16px;
+  border-top: 1px solid rgba(240,165,0,0.3);
+}
+.sidebar-nav-btn {
+  display: block; width: 100%;
+  background: none; border: 1px solid rgba(240,165,0,0.4);
+  color: var(--cream); padding: 8px 10px;
+  border-radius: 4px; cursor: pointer;
+  font-family: 'Century Gothic', 'Apple Gothic', sans-serif;
+  font-size: 13px; text-align: left;
+  margin-bottom: 6px; transition: all 0.2s;
+}
+.sidebar-nav-btn:hover { background: rgba(240,165,0,0.15); border-color: var(--honey); }
+.sidebar-nav-btn.active { background: var(--honey); color: var(--burgundy); font-weight: bold; }
+
+/* Main content area */
+#main {
+  margin-left: 220px; flex: 1;
+  padding: 32px 40px 60px;
+  max-width: 780px;
+}
+
+/* ── CHAT BUBBLES ── */
+.chat-group { margin-bottom: 32px; }
+
+.bubble {
+  max-width: 88%; padding: 16px 20px;
+  border-radius: 16px; margin-bottom: 10px;
+  position: relative; line-height: 1.5;
+}
+.bubble-q {
+  background: var(--burgundy); color: var(--cream);
+  border-bottom-left-radius: 4px;
+  margin-right: auto;
+  font-family: 'Palatino Linotype', Palatino, 'Book Antiqua', serif;
+  font-size: 17px;
+}
+.bubble-q .q-number {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 11px; letter-spacing: 1px;
+  opacity: 0.6; display: block; margin-bottom: 4px;
+}
+.bubble-a {
+  background: var(--white);
+  border: 2px solid var(--honey);
+  border-bottom-right-radius: 4px;
+  margin-left: auto;
+}
+.bubble-note {
+  font-size: 13px; color: var(--charcoal-light);
+  max-width: 80%; margin-bottom: 10px;
+  padding: 0 4px;
+  font-style: italic;
+}
+
+/* Answer options */
+.answer-options { display: flex; flex-wrap: wrap; gap: 8px; }
+.answer-btn {
+  background: var(--cream); border: 2px solid var(--honey);
+  color: var(--charcoal); padding: 10px 18px;
+  border-radius: 24px; cursor: pointer;
+  font-family: 'Century Gothic', 'Apple Gothic', sans-serif;
+  font-size: 14px; transition: all 0.2s;
+  line-height: 1.3;
+}
+.answer-btn:hover { background: var(--honey); color: var(--burgundy); }
+.answer-btn.selected {
+  background: var(--burgundy); color: var(--cream);
+  border-color: var(--burgundy);
+}
+
+/* Select dropdown styled */
+.styled-select {
+  width: 100%; padding: 12px 16px;
+  border: 2px solid var(--honey);
+  border-radius: 8px; background: var(--white);
+  font-family: 'Century Gothic', 'Apple Gothic', sans-serif;
+  font-size: 15px; color: var(--charcoal);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235d001e' fill='none' stroke-width='2'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  cursor: pointer;
+}
+.styled-select:focus { outline: none; border-color: var(--burgundy); box-shadow: 0 0 0 3px rgba(93,0,30,0.12); }
+
+/* Number input */
+.styled-number {
+  width: 80px; padding: 10px 14px;
+  border: 2px solid var(--honey);
+  border-radius: 8px; background: var(--white);
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 18px; color: var(--charcoal);
+  text-align: center;
+}
+.styled-number:focus { outline: none; border-color: var(--burgundy); box-shadow: 0 0 0 3px rgba(93,0,30,0.12); }
+
+/* ── BOTTOM NAV ── */
+#bottom-nav {
+  display: flex; justify-content: space-between;
+  align-items: center; margin-top: 40px;
+  padding-top: 24px;
+  border-top: 2px solid var(--honey);
+}
+.nav-btn {
+  background: var(--burgundy); color: var(--cream);
+  border: none; padding: 14px 32px;
+  border-radius: 28px; cursor: pointer;
+  font-family: 'Century Gothic', 'Apple Gothic', sans-serif;
+  font-size: 15px; font-weight: bold;
+  letter-spacing: 0.5px; transition: all 0.25s;
+}
+.nav-btn:hover { background: var(--burgundy-light); transform: translateY(-1px); }
+.nav-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+.nav-btn.next-btn { background: var(--honey); color: var(--burgundy); }
+.nav-btn.next-btn:hover { background: #dba000; }
+
+/* ── HERO RESULT BAND ── */
+#result-screen { display: none; }
+#result-screen.visible { display: block; }
+
+.hero-band {
+  background: var(--burgundy);
+  color: var(--cream);
+  padding: 48px 40px;
+  margin: -32px -40px 32px;
+}
+.hero-band h1 {
+  font-family: 'Palatino Linotype', Palatino, 'Book Antiqua', serif;
+  font-size: 36px; letter-spacing: 3px;
+  text-transform: uppercase; margin-bottom: 8px;
+}
+.hero-band .hero-sub {
+  font-size: 17px; opacity: 0.8;
+  max-width: 600px;
+}
+
+/* Result personalized header */
+.result-personal {
+  background: var(--honey);
+  color: var(--burgundy);
+  padding: 20px 28px;
+  border-radius: 8px;
+  font-family: 'Palatino Linotype', Palatino, 'Book Antiqua', serif;
+  font-size: 18px; line-height: 1.5;
+  margin-bottom: 32px;
+}
+
+/* ── CHECKLIST (Module 2) ── */
+.stage-block { margin-bottom: 28px; }
+.stage-header {
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px 20px;
+  background: var(--burgundy);
+  color: var(--cream);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+  user-select: none;
+}
+.stage-header:hover { background: var(--burgundy-light); }
+.stage-num {
+  width: 32px; height: 32px;
+  border: 2px solid var(--honey);
+  border-radius: 50%; display: flex;
+  align-items: center; justify-content: center;
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 14px; font-weight: bold;
+  flex-shrink: 0;
+}
+.stage-num.complete { background: var(--success); border-color: var(--success); }
+.stage-title {
+  font-family: 'Palatino Linotype', Palatino, 'Book Antiqua', serif;
+  font-size: 17px; flex: 1;
+}
+.stage-arrow {
+  width: 0; height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 8px solid var(--cream);
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+.stage-header.open .stage-arrow { transform: rotate(180deg); }
+
+.stage-body {
+  display: none; padding: 20px 24px;
+  background: var(--white);
+  border: 2px solid rgba(93,0,30,0.1);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+}
+.stage-body.open { display: block; }
+
+.stage-desc {
+  font-size: 14px; color: var(--charcoal-light);
+  margin-bottom: 16px; line-height: 1.5;
+}
+
+/* Checklist items */
+.check-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 8px 0;
+}
+.check-item + .check-item { border-top: 1px solid rgba(93,0,30,0.06); }
+.check-item input[type="checkbox"] {
+  appearance: none; -webkit-appearance: none;
+  width: 22px; height: 22px; min-width: 22px;
+  border: 2px solid var(--honey);
+  border-radius: 4px; cursor: pointer;
+  margin-top: 2px; position: relative;
+  transition: all 0.15s;
+}
+.check-item input[type="checkbox"]:checked {
+  background: var(--success); border-color: var(--success);
+}
+.check-item input[type="checkbox"]:checked::after {
+  content: ''; position: absolute;
+  left: 6px; top: 2px;
+  width: 6px; height: 11px;
+  border: solid var(--white);
+  border-width: 0 2.5px 2.5px 0;
+  transform: rotate(45deg);
+}
+.check-item label {
+  font-size: 15px; line-height: 1.45;
+  cursor: pointer;
+}
+
+/* SF1786 callout — full-width honey band, NOT a bordered box */
+.sf1786-band {
+  background: var(--honey);
+  color: var(--burgundy);
+  padding: 14px 20px;
+  margin: 16px -24px;
+  font-size: 14px; line-height: 1.5;
+}
+.sf1786-band strong {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 12px; letter-spacing: 1px;
+  display: block; margin-bottom: 4px;
+}
+
+/* What to bring sub-list */
+.sub-list { margin: 12px 0 12px 16px; }
+.sub-list li {
+  font-size: 14px; margin-bottom: 6px;
+  list-style: none; padding-left: 14px;
+  position: relative;
+}
+.sub-list li::before {
+  content: ''; position: absolute; left: 0; top: 8px;
+  width: 6px; height: 6px; background: var(--honey);
+  border-radius: 50%;
+}
+
+/* Who-does-this label */
+.who-label {
+  font-family: Consolas, 'Liberation Mono', monospace;
+  font-size: 11px; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--charcoal-light);
+  margin-top: 12px;
+}
+
+/* Notes textarea */
+.stage-notes {
+  margin-top: 16px; padding-top: 12px;
+  border-top: 1px solid rgba(93,0,30,0.08);
+}
+.stage-notes label {
+  font-size: 12px; text-transform: uppercase;
+  letter-spacing: 1px; color: var(--charcoal-light);
+  font-family: Consolas, 'Liberation Mono', monospace;
+  display: block; margin-bottom: 6px;
+}
+.stage-notes textarea {
+  width: 100%; min-height: 60px; padding: 10px 14px;
+  border: 2px solid rgba(240,165,0,0.3);
+  border-radius: 6px; font-family: 'Century Gothic', 'Apple Gothic', sans-serif;
+  font-size: 14px; color: var(--charcoal);
+  resize: vertical; background: var(--cream);
+}
+.stage-notes textarea:focus { outline: none; border-color: var(--honey); }
+
+/* ── LANGUAGE RIGHTS BANNER ── */
+.lang-banner {
+  background: var(--honey);
+  color: var(--burgundy);
+  padding: 14px 24px;
+  font-size: 14px; font-weight: bold;
+  margin-bottom: 24px;
+  border-radius: 6px;
+  line-height: 1.45;
+}
+
+/* ── RIGHTS CARD (Module 3) ── */
+.rights-card { max-width: 680px; }
+.rights-card h2 {
+  font-family: 'Palatino Linotype', Palatino, 'Book Antiqua', serif;
+  font-size: 22px; color: var(--burgundy);
+  margin-bottom: 20px;
+}
+.rights-section {
+  padding: 14px 0;
+}
+.rights-section + .rights-section { border-top: 1px solid rgba(93,0,30,0.1); }
+.rights-section h3 {
+  font-family: 'Palatino Linotype', Palatino, 'Book Antiqua', serif;
+  font-size: 16px; color: var(--burgundy); margin-bottom: 6px;
+}
+.rights-section p { font-size: 14px; line-height: 1.55; }
+
+.contacts-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 12px; margin-top: 20px;
+}
+.contact-field label {
+  font-size: 11px; text-transform: uppercase;
+  letter-spacing: 1px; color: var(--charcoal-light);
+  font-family: Consolas, 'Liberation Mono', monospace;
+  display: block; margin-bottom: 4px;
+}
+.contact-field input {
+  width: 100%; padding: 8px 12px;
+  border: 2px solid rgba(240,165,0,0.3);
+  border-radius: 6px; background: var(--cream);
+  font-family: 'Century Gothic', 'Apple Gothic', sans-serif;
+  font-size: 14px;
+}
+.contact-field input:focus { outline: none; border-color: var(--honey); }
+
+/* Renewal date field */
+.renewal-field {
+  margin-top: 16px; padding: 14px 20px;
+  background: var(--honey-light);
+  border-radius: 6px;
+}
+.renewal-field label {
+  font-size: 12px; text-transform: uppercase;
+  letter-spacing: 1px; color: var(--charcoal-light);
+  font-family: Consolas, 'Liberation Mono', monospace;
+  display: block; margin-bottom: 6px;
+}
+.renewal-field input[type="date"] {
+  padding: 8px 12px;
+  border: 2px solid var(--honey);
+  border-radius: 6px; background: var(--white);
+  font-family: 'Century Gothic', 'Apple Gothic', sans-serif;
+  font-size: 14px; color: var(--charcoal);
+}
+.renewal-field input[type="date"]:focus { outline: none; border-color: var(--burgundy); }
+.renewal-reminder {
+  margin-top: 8px; font-size: 13px;
+  color: var(--burgundy); font-weight: bold;
+}
+
+/* Chat bubble entrance animation */
+.chat-group {
+  animation: bubbleIn 0.3s ease both;
+}
+@keyframes bubbleIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* History-aware info band */
+.info-band {
+  background: var(--cream);
+  border: 2px solid var(--honey);
+  padding: 12px 20px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.info-band strong {
+  color: var(--burgundy);
+}
+
+/* Skip-to-content link for accessibility */
+.skip-link {
+  position: absolute; top: -100px; left: 0;
+  background: var(--burgundy); color: var(--cream);
+  padding: 8px 16px; z-index: 10000;
+  font-size: 14px; text-decoration: none;
+}
+.skip-link:focus { top: 0; }
+
+.print-btn {
+  background: var(--burgundy); color: var(--cream);
+  border: none; padding: 12px 28px;
+  border-radius: 24px; cursor: pointer;
+  font-family: 'Century Gothic', 'Apple Gothic', sans-serif;
+  font-size: 14px; font-weight: bold;
+  margin-top: 24px; transition: all 0.2s;
+}
+.print-btn:hover { background: var(--burgundy-light); }
+
+/* ── FOOTER ── */
+#app-footer {
+  margin-top: 48px; padding-top: 20px;
+  border-top: 2px solid var(--honey);
+  font-size: 12px; color: var(--charcoal-light);
+  line-height: 1.6;
+}
+#app-footer .reset-btn {
+  background: none; border: none;
+  color: var(--charcoal-light); cursor: pointer;
+  font-size: 11px; text-decoration: underline;
+  font-family: Consolas, 'Liberation Mono', monospace;
+  margin-top: 8px; padding: 0;
+}
+#app-footer .reset-btn:hover { color: var(--alert); }
+
+/* ── MOBILE ── */
+@media (max-width: 700px) {
+  #sidebar {
+    position: fixed; left: -260px; width: 260px;
+    transition: left 0.3s ease; z-index: 200;
+  }
+  #sidebar.mobile-open { left: 0; }
+  #mobile-toggle {
+    display: flex; position: fixed; top: 12px; left: 12px;
+    z-index: 300; width: 40px; height: 40px;
+    background: var(--burgundy); border: none;
+    border-radius: 8px; cursor: pointer;
+    align-items: center; justify-content: center;
+  }
+  #mobile-toggle span {
+    display: block; width: 20px; height: 2px;
+    background: var(--cream); position: relative;
+  }
+  #mobile-toggle span::before, #mobile-toggle span::after {
+    content: ''; position: absolute; left: 0;
+    width: 20px; height: 2px; background: var(--cream);
+  }
+  #mobile-toggle span::before { top: -6px; }
+  #mobile-toggle span::after { top: 6px; }
+  #mobile-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.4); z-index: 150;
+  }
+  #mobile-overlay.show { display: block; }
+  #main { margin-left: 0; padding: 24px 18px 60px; padding-top: 60px; }
+  .hero-band { margin: -24px -18px 24px; padding: 36px 18px; }
+  .hero-band h1 { font-size: 24px; letter-spacing: 2px; }
+  .sf1786-band { margin: 16px -24px; }
+  .bubble { max-width: 95%; }
+  .contacts-grid { grid-template-columns: 1fr; }
+}
+@media (min-width: 701px) {
+  #mobile-toggle, #mobile-overlay { display: none; }
+}
+
+/* ── PRINT ── */
+@media print {
+  body { background: white; font-size: 12pt; }
+  #sidebar, #mobile-toggle, #mobile-overlay, #bottom-nav,
+  .nav-btn, .print-btn, #app-footer, .stage-notes,
+  .reset-btn { display: none !important; }
+  #main { margin-left: 0; padding: 0; max-width: 100%; }
+  .hero-band { background: var(--burgundy) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .sf1786-band { background: #fdf3e3 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .stage-body { display: block !important; border: 1px solid #ccc; }
+  .rights-card { page-break-inside: avoid; }
+}
+.print-only-rights #checklist-screen,
+.print-only-rights #interview-screen,
+.print-only-rights #result-screen .hero-band,
+.print-only-rights #result-screen .result-personal,
+.print-only-rights #result-screen .lang-banner,
+.print-only-rights #result-screen #checklist-container,
+.print-only-rights #sidebar,
+.print-only-rights #bottom-nav,
+.print-only-rights #app-footer { display: none !important; }
+</style>
+</head>
+<body>
+
+<a href="#main" class="skip-link">Skip to main content</a>
+
+<!-- ENTRY SCREEN -->
+<div id="entry-screen">
+  <svg id="house-svg" viewBox="0 0 100 100">
+    <path class="house-fill" d="M20 50 L50 20 L80 50 L80 85 L20 85 Z"/>
+    <path class="house-line" d="M10 55 L50 15 L90 55"/>
+    <path class="house-line" d="M25 50 L25 85 L75 85 L75 50"/>
+    <path class="house-line" d="M42 85 L42 65 L58 65 L58 85"/>
+  </svg>
+  <div id="welcome-text">Welcome home</div>
+</div>
+
+<!-- MOBILE TOGGLE -->
+<button id="mobile-toggle" aria-label="Toggle sidebar"><span></span></button>
+<div id="mobile-overlay"></div>
+
+<!-- APP -->
+<div id="app">
+  <!-- SIDEBAR -->
+  <aside id="sidebar" role="complementary" aria-label="Your situation summary">
+    <h2>Your Situation</h2>
+    <div id="sidebar-answers"></div>
+    <div id="sidebar-progress">
+      <div class="sp-label">Checklist Progress</div>
+      <div id="progress-bar-outer"><div id="progress-bar-inner"></div></div>
+      <div id="progress-text">0 of 0 complete</div>
+    </div>
+    <nav id="sidebar-nav">
+      <button class="sidebar-nav-btn active" data-view="interview" onclick="switchView('interview')">Screener</button>
+      <button class="sidebar-nav-btn" data-view="result" onclick="switchView('result')">Checklist</button>
+      <button class="sidebar-nav-btn" data-view="rights" onclick="switchView('rights')">Rights Card</button>
+    </nav>
+  </aside>
+
+  <!-- MAIN -->
+  <div id="main" role="main" aria-label="Main content">
+
+    <!-- INTERVIEW SCREEN -->
+    <div id="interview-screen">
+      <div id="chat-container"></div>
+      <div id="bottom-nav">
+        <button class="nav-btn" id="btn-back" onclick="goBack()" disabled>Back</button>
+        <button class="nav-btn next-btn" id="btn-next" onclick="goNext()" disabled>Next</button>
+      </div>
+    </div>
+
+    <!-- RESULT SCREEN (Checklist + Rights) -->
+    <div id="result-screen">
+      <div class="hero-band">
+        <h1>Your Licensing Pathway</h1>
+        <div class="hero-sub">A personalized checklist for your kinship foster care license in Minnesota.</div>
+      </div>
+      <div id="personal-header" class="result-personal"></div>
+      <div id="lang-banner-slot"></div>
+      <div id="checklist-container"></div>
+      <div id="rights-container" style="display:none;"></div>
+      <div id="app-footer">
+        A resource for relative caregivers in Dakota County and across Minnesota. Built with AI assistance. Information reflects Minnesota law as of 2025, including SF1786 (2025). This tool provides general guidance — confirm all requirements with your county or licensing agency.
+        <br><button class="reset-btn" onclick="resetAll()">Reset all progress</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════
+   DATA
+   ══════════════════════════════════════════════════ */
+
+const MN_COUNTIES = [
+  "Aitkin","Anoka","Becker","Beltrami","Benton","Big Stone","Blue Earth","Brown",
+  "Carlton","Carver","Cass","Chippewa","Chisago","Clay","Clearwater","Cook",
+  "Cottonwood","Crow Wing","Dakota","Dodge","Douglas","Faribault","Fillmore",
+  "Freeborn","Goodhue","Grant","Hennepin","Houston","Hubbard","Isanti","Itasca",
+  "Jackson","Kanabec","Kandiyohi","Kittson","Koochiching","Lac qui Parle",
+  "Lake","Lake of the Woods","Le Sueur","Lincoln","Lyon","Mahnomen","Marshall",
+  "Martin","McLeod","Meeker","Mille Lacs","Morrison","Mower","Murray","Nicollet",
+  "Nobles","Norman","Olmsted","Otter Tail","Pennington","Pine","Pipestone","Polk",
+  "Pope","Ramsey","Red Lake","Redwood","Renville","Rice","Rock","Roseau",
+  "Scott","Sherburne","Sibley","St. Louis","Stearns","Steele","Stevens","Swift",
+  "Todd","Traverse","Wabasha","Wadena","Waseca","Washington","Watonwan","Wilkin",
+  "Winona","Wright","Yellow Medicine"
+];
+
+const MN_LANGUAGES = [
+  "English","Spanish","Somali","Hmong","Vietnamese","Chinese (Simplified)",
+  "Oromo","Amharic","Arabic","Karen","Russian","Khmer","Lao","Tigrinya",
+  "French","Nepali","Burmese","Tagalog","Portuguese","Swahili"
+];
+
+const QUESTIONS = [
+  {
+    id: "relationship",
+    label: "Relationship",
+    text: "What is your relationship to the child?",
+    type: "buttons",
+    options: ["Grandparent","Aunt or uncle","Sibling (adult)","Family friend or \"important person\"","Other relative"]
+  },
+  {
+    id: "placed",
+    label: "Placement",
+    text: "Is the child currently placed with you?",
+    type: "buttons",
+    options: ["Yes","No","Pending placement"]
+  },
+  {
+    id: "county",
+    label: "County",
+    text: "Which county is handling the case?",
+    type: "select",
+    options: MN_COUNTIES,
+    placeholder: "Select your county..."
+  },
+  {
+    id: "agency",
+    label: "Agency type",
+    text: "Are you working with a county social worker or a private agency?",
+    type: "buttons",
+    options: ["County agency","Private agency","Not sure yet"]
+  },
+  {
+    id: "contacted",
+    label: "DHS contact",
+    text: "Has DHS or the county contacted you about licensing yet?",
+    type: "buttons",
+    options: ["Yes","No"]
+  },
+  {
+    id: "adults",
+    label: "Adults 18+",
+    text: "How many adults over 18 live in your home?",
+    type: "number",
+    note: "Include yourself."
+  },
+  {
+    id: "history",
+    label: "Prior history",
+    text: "Do any household members have prior criminal history or child protection history?",
+    type: "buttons",
+    options: ["Yes","No","Unsure"],
+    note: "This does not disqualify most people. A set-aside process exists."
+  },
+  {
+    id: "language",
+    label: "Language",
+    text: "What is your preferred language for materials?",
+    type: "select",
+    options: MN_LANGUAGES,
+    placeholder: "Select language..."
+  }
+];
+
+/* Checklist stages */
+const STAGES = [
+  {
+    title: "Before You Start",
+    who: "You + your county/agency",
+    desc: "Make first contact and assert your rights as a relative caregiver.",
+    items: [
+      "Contact your county's foster care licensing unit or the assigned private agency",
+      "Tell them you are a RELATIVE caregiver — this triggers different rules",
+      "Ask whether to use county licensing or a private agency (you have the right to choose)",
+      "Get the name and direct contact of your assigned licensor",
+      "Request all materials in your preferred language (your right under SF1786)"
+    ],
+    sf1786: "You can now choose between county and private agency licensing. Previously, relative caregivers had less flexibility in this choice."
+  },
+  {
+    title: "Home Study Application",
+    who: "You — gather documents, then submit to your licensor",
+    desc: "Collect the documents your licensor needs to process your application.",
+    items: [
+      "Complete the application form (DHS-2769 or equivalent provided by your licensor)",
+      "Gather proof of identity for all household members over 18 (state ID or passport)",
+      "Gather proof of address (utility bill, lease agreement, or mortgage statement)",
+      "Gather proof of income (pay stubs, tax return, or benefits letter)",
+      "If married: marriage certificate; if divorced: divorce decree",
+      "Pet vaccination records (if pets in home)",
+      "Proof of vehicle insurance (if transporting children)",
+      "Health statements for all household members"
+    ],
+    sf1786: null,
+    note: "Your licensor will provide the exact application packet. This list covers the most common required documents — your county may require additional items."
+  },
+  {
+    title: "Background Studies",
+    who: "DHS processes; you provide information and fingerprints",
+    desc: "Everyone in your household goes through a background check. This is standard and does not mean you are suspected of anything.",
+    items: [
+      "All household members age 13+ must complete a background study",
+      "Each person must complete a DHS background study form (name, DOB, SSN)",
+      "Fingerprinting required for all household members 18+",
+      "Out-of-state residents or recent movers: may need additional FBI fingerprint check",
+      "Background study results typically take 2\u20134 weeks",
+      "Prior history does not automatically disqualify \u2014 ask your licensor about the set-aside process if relevant"
+    ],
+    sf1786: "SF1786 funded grants for counties and agencies to acquire mobile fingerprinting devices. Ask your licensor whether mobile fingerprinting is available \u2014 you may not need to travel to an office."
+  },
+  {
+    title: "Home Inspection",
+    who: "Your licensor inspects; you prepare",
+    desc: "Your licensor will visit your home to verify safety standards. Most of these are common-sense items you may already have in place.",
+    items: [
+      "Schedule home inspection with your licensor",
+      "Working smoke detectors on every level",
+      "Working carbon monoxide detector",
+      "Fire extinguisher accessible (not expired)",
+      "All medications locked or secured",
+      "Firearms locked and ammunition stored separately (if any)",
+      "Cleaning products and chemicals secured",
+      "Water heater set to 120\u00b0F or below",
+      "Adequate sleeping space for the child (confirm minimum requirements with your licensor)",
+      "No peeling paint or obvious hazards"
+    ],
+    sf1786: null
+  },
+  {
+    title: "Training Requirements",
+    who: "You complete training; your licensor tracks it",
+    desc: "Required training for relative caregivers is shorter than for non-relative foster parents.",
+    items: [
+      "Complete Sudden Unexplained Infant Death (SUID) and abusive head trauma prevention training \u2014 can be completed within 30 days of license approval",
+      "Complete child restraint system (car seat) safety training \u2014 can be completed within 30 days of license approval",
+      "Total pre-placement required training: varies by county \u2014 ask your licensor",
+      "Annual renewal: 6 hours of in-service training (as a relative caregiver)"
+    ],
+    sf1786: "Under SF1786, relative caregivers must complete only 6 hours of annual in-service training \u2014 not the standard 12 hours required for non-relative foster parents. You also have more flexibility in choosing training topics."
+  },
+  {
+    title: "Case Plan and Support",
+    who: "Your licensing agency provides; you request if not received",
+    desc: "Your agency is required to give you written information about your rights and support options.",
+    items: [
+      "Receive written information about legal services available to you",
+      "Receive explanation of your licensing options (county vs. private)",
+      "Receive description of ongoing case support from the agency",
+      "Receive information about respite care (temporary relief care) options",
+      "Receive information about how to include a substitute caregiver in the case plan"
+    ],
+    sf1786: "SF1786 explicitly requires agencies to provide this information in writing. If you have not received it, you can cite this law."
+  },
+  {
+    title: "License Approval",
+    who: "Your licensing agency issues the license; you track renewal",
+    desc: "The finish line. Once approved, keep track of your renewal date.",
+    items: [
+      "Receive written notice of license approval",
+      "Note your license expiration date (licenses renew annually)",
+      "Set a renewal reminder",
+      "Ask about the Relative Caregiver Support Grant (funded by SF1786)"
+    ],
+    sf1786: null
+  }
+];
+
+/* ══════════════════════════════════════════════════
+   STATE
+   ══════════════════════════════════════════════════ */
+
+let currentQ = 0;
+let answers = {};
+let checkStates = {};
+let notes = {};
+let contacts = {};
+let currentView = 'interview';
+
+function loadState() {
+  try {
+    const s = localStorage.getItem('mkn_answers');
+    if (s) answers = JSON.parse(s);
+    const c = localStorage.getItem('mkn_checks');
+    if (c) checkStates = JSON.parse(c);
+    const n = localStorage.getItem('mkn_notes');
+    if (n) notes = JSON.parse(n);
+    const ct = localStorage.getItem('mkn_contacts');
+    if (ct) contacts = JSON.parse(ct);
+  } catch(e) {}
+}
+
+function saveAnswers() {
+  try { localStorage.setItem('mkn_answers', JSON.stringify(answers)); } catch(e) {}
+}
+function saveChecks() {
+  try { localStorage.setItem('mkn_checks', JSON.stringify(checkStates)); } catch(e) {}
+}
+function saveNotes() {
+  try { localStorage.setItem('mkn_notes', JSON.stringify(notes)); } catch(e) {}
+}
+function saveContacts() {
+  try { localStorage.setItem('mkn_contacts', JSON.stringify(contacts)); } catch(e) {}
+}
+
+function resetAll() {
+  if (!confirm('Reset all progress? This clears your answers, checklist, and notes.')) return;
+  localStorage.removeItem('mkn_answers');
+  localStorage.removeItem('mkn_checks');
+  localStorage.removeItem('mkn_notes');
+  localStorage.removeItem('mkn_contacts');
+  localStorage.removeItem('mkn_renewal');
+  answers = {}; checkStates = {}; notes = {}; contacts = {};
+  currentQ = 0; currentView = 'interview';
+  renderInterview();
+  switchView('interview');
+  updateSidebar();
+}
+
+/* ══════════════════════════════════════════════════
+   INTERVIEW RENDERING
+   ══════════════════════════════════════════════════ */
+
+function renderInterview() {
+  const container = document.getElementById('chat-container');
+  container.innerHTML = '';
+
+  // Opening framing as first bubble
+  const intro = document.createElement('div');
+  intro.className = 'chat-group';
+  intro.innerHTML = `
+    <div class="bubble bubble-q">
+      Senator Maye Quade's SF1786 changed the rules for relative foster care licensing in Minnesota — shorter training, multilingual materials, mobile fingerprinting, and a written guide to caregiver rights. Let's figure out your specific situation so we can build your personalized checklist.
+    </div>`;
+  container.appendChild(intro);
+
+  // Render all questions up to and including currentQ
+  for (let i = 0; i <= Math.min(currentQ, QUESTIONS.length - 1); i++) {
+    const q = QUESTIONS[i];
+    const group = document.createElement('div');
+    group.className = 'chat-group';
+    group.id = 'q-group-' + i;
+
+    let html = `<div class="bubble bubble-q">
+      <span class="q-number">QUESTION ${i + 1} OF ${QUESTIONS.length}</span>
+      ${q.text}
+    </div>`;
+
+    if (q.note) {
+      html += `<div class="bubble-note">${q.note}</div>`;
+    }
+
+    // Answer area
+    if (i === currentQ && !answers[q.id]) {
+      html += `<div class="bubble bubble-a">${renderInput(q, i)}</div>`;
+    } else if (answers[q.id] !== undefined) {
+      html += `<div class="bubble bubble-a" style="cursor:default;">
+        <strong style="font-size:15px;">${answers[q.id]}</strong>
+      </div>`;
+    }
+
+    group.innerHTML = html;
+    container.appendChild(group);
+  }
+
+  updateNavButtons();
+  scrollToBottom();
+}
+
+function renderInput(q, idx) {
+  if (q.type === 'buttons') {
+    return '<div class="answer-options">' +
+      q.options.map(o => `<button class="answer-btn" onclick="selectAnswer(${idx},'${o.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">${o}</button>`).join('') +
+      '</div>';
+  }
+  if (q.type === 'select') {
+    return `<select class="styled-select" onchange="selectAnswer(${idx}, this.value)">
+      <option value="">${q.placeholder || 'Select...'}</option>
+      ${q.options.map(o => `<option value="${o}">${o}</option>`).join('')}
+    </select>`;
+  }
+  if (q.type === 'number') {
+    return `<input type="number" class="styled-number" min="1" max="20" value="1"
+      onchange="selectAnswer(${idx}, this.value)"
+      onkeyup="if(event.key==='Enter') selectAnswer(${idx}, this.value)">
+      <button class="answer-btn" style="margin-left:10px;" onclick="selectAnswer(${idx}, this.parentElement.querySelector('input').value)">Confirm</button>`;
+  }
+  return '';
+}
+
+function selectAnswer(idx, value) {
+  if (!value) return;
+  const q = QUESTIONS[idx];
+  answers[q.id] = value;
+  saveAnswers();
+
+  if (idx === currentQ && currentQ < QUESTIONS.length - 1) {
+    currentQ++;
+  }
+  renderInterview();
+  updateSidebar();
+}
+
+function goBack() {
+  if (currentQ > 0) {
+    currentQ--;
+    renderInterview();
+  }
+}
+
+function goNext() {
+  const q = QUESTIONS[currentQ];
+  if (answers[q.id] !== undefined) {
+    if (currentQ < QUESTIONS.length - 1) {
+      currentQ++;
+      renderInterview();
+    } else {
+      // All answered — show result
+      showResult();
+    }
+  }
+}
+
+function updateNavButtons() {
+  const backBtn = document.getElementById('btn-back');
+  const nextBtn = document.getElementById('btn-next');
+  backBtn.disabled = currentQ === 0;
+
+  const q = QUESTIONS[currentQ];
+  if (answers[q.id] !== undefined) {
+    nextBtn.disabled = false;
+    nextBtn.textContent = currentQ === QUESTIONS.length - 1 ? 'See My Checklist' : 'Next';
+  } else {
+    nextBtn.disabled = true;
+    nextBtn.textContent = 'Next';
+  }
+}
+
+function scrollToBottom() {
+  const container = document.getElementById('chat-container');
+  setTimeout(() => {
+    const lastGroup = container.lastElementChild;
+    if (lastGroup) lastGroup.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }, 50);
+}
+
+/* ══════════════════════════════════════════════════
+   SIDEBAR
+   ══════════════════════════════════════════════════ */
+
+function updateSidebar() {
+  const el = document.getElementById('sidebar-answers');
+  el.innerHTML = '';
+  QUESTIONS.forEach((q, i) => {
+    if (answers[q.id] !== undefined) {
+      const div = document.createElement('div');
+      div.className = 'sidebar-item answered';
+      div.innerHTML = `<span class="si-label">${q.label}</span><span class="si-value">${answers[q.id]}</span>`;
+      div.onclick = () => {
+        if (currentView === 'interview') {
+          currentQ = i;
+          renderInterview();
+        }
+      };
+      el.appendChild(div);
+    }
+  });
+  updateProgress();
+}
+
+function updateProgress() {
+  let total = 0, checked = 0;
+  STAGES.forEach((stage, si) => {
+    stage.items.forEach((_, ii) => {
+      total++;
+      if (checkStates[si + '-' + ii]) checked++;
+    });
+  });
+  const pct = total ? Math.round((checked / total) * 100) : 0;
+  document.getElementById('progress-bar-inner').style.width = pct + '%';
+  document.getElementById('progress-text').textContent = checked + ' of ' + total + ' complete';
+}
+
+/* ══════════════════════════════════════════════════
+   VIEW SWITCHING
+   ══════════════════════════════════════════════════ */
+
+function switchView(view) {
+  currentView = view;
+  document.querySelectorAll('.sidebar-nav-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.view === view);
+  });
+
+  const interview = document.getElementById('interview-screen');
+  const result = document.getElementById('result-screen');
+  const checklist = document.getElementById('checklist-container');
+  const rights = document.getElementById('rights-container');
+
+  interview.style.display = view === 'interview' ? 'block' : 'none';
+  result.style.display = (view === 'result' || view === 'rights') ? 'block' : 'none';
+
+  if (view === 'result') {
+    checklist.style.display = 'block';
+    rights.style.display = 'none';
+    document.querySelector('.hero-band').style.display = 'block';
+    document.getElementById('personal-header').style.display = 'block';
+    document.getElementById('lang-banner-slot').style.display = 'block';
+  } else if (view === 'rights') {
+    checklist.style.display = 'none';
+    rights.style.display = 'block';
+    document.querySelector('.hero-band').style.display = 'none';
+    document.getElementById('personal-header').style.display = 'none';
+    document.getElementById('lang-banner-slot').style.display = 'none';
+  }
+
+  // Close mobile sidebar
+  document.getElementById('sidebar').classList.remove('mobile-open');
+  document.getElementById('mobile-overlay').classList.remove('show');
+}
+
+function showResult() {
+  buildPersonalHeader();
+  buildChecklist();
+  buildRightsCard();
+  switchView('result');
+  updateProgress();
+  window.scrollTo(0, 0);
+}
+
+/* ══════════════════════════════════════════════════
+   PERSONAL HEADER
+   ══════════════════════════════════════════════════ */
+
+function buildPersonalHeader() {
+  const rel = answers.relationship || 'relative';
+  const county = answers.county || 'your county';
+  const agency = answers.agency || 'an agency';
+  const agencyText = agency === 'County agency' ? 'a county agency' :
+                     agency === 'Private agency' ? 'a private agency' :
+                     'an agency (to be determined)';
+
+  document.getElementById('personal-header').innerHTML =
+    `You are a <strong>${rel.toLowerCase()}</strong> seeking to become a licensed relative foster care provider in <strong>${county} County</strong>, working with <strong>${agencyText}</strong>. Here is your licensing checklist.`;
+
+  // Language banner
+  const langSlot = document.getElementById('lang-banner-slot');
+  if (answers.language && answers.language !== 'English') {
+    langSlot.innerHTML = `<div class="lang-banner">Under SF1786, you have the right to receive all materials in <strong>${answers.language}</strong>. Request this from your licensor if you have not received it.</div>`;
+  } else {
+    langSlot.innerHTML = '';
+  }
+}
+
+/* ══════════════════════════════════════════════════
+   CHECKLIST (Module 2)
+   ══════════════════════════════════════════════════ */
+
+function buildChecklist() {
+  const container = document.getElementById('checklist-container');
+  container.innerHTML = '';
+
+  // History-aware info band
+  if (answers.history === 'Yes' || answers.history === 'Unsure') {
+    const band = document.createElement('div');
+    band.className = 'info-band';
+    band.innerHTML = `<strong>About prior history:</strong> Having criminal or child protection history does not automatically disqualify you from becoming a licensed relative caregiver. Minnesota has a "set-aside" process that evaluates each situation individually. When you reach Step 3 (Background Studies), ask your licensor specifically about the set-aside process. Many relatives with prior history successfully obtain licenses.`;
+    container.appendChild(band);
+  }
+
+  // Contact-aware info band
+  if (answers.contacted === 'No') {
+    const band = document.createElement('div');
+    band.className = 'info-band';
+    band.innerHTML = `<strong>You haven't been contacted yet.</strong> That's okay — you can initiate the process yourself. Step 1 below walks you through making first contact. You don't need to wait for DHS or your county to reach out.`;
+    container.appendChild(band);
+  }
+
+  // Adults count note
+  const adultCount = parseInt(answers.adults) || 1;
+  if (adultCount > 1) {
+    const band = document.createElement('div');
+    band.className = 'info-band';
+    band.innerHTML = `<strong>${adultCount} adults in your household.</strong> Each adult (18+) will need to complete a background study and fingerprinting. Household members age 13-17 need a background study but not fingerprinting. Plan for everyone to be available when your licensor schedules these steps.`;
+    container.appendChild(band);
+  }
+
+  STAGES.forEach((stage, si) => {
+    const block = document.createElement('div');
+    block.className = 'stage-block';
+
+    // Count completions
+    const stageComplete = stage.items.every((_, ii) => checkStates[si + '-' + ii]);
+
+    // Renewal date field for last stage
+    const isLastStage = si === STAGES.length - 1;
+    const renewalHtml = isLastStage ? buildRenewalField() : '';
+
+    block.innerHTML = `
+      <div class="stage-header" onclick="toggleStage(${si})" id="stage-header-${si}">
+        <div class="stage-num ${stageComplete ? 'complete' : ''}">${stageComplete ? '&#10003;' : (si + 1)}</div>
+        <div class="stage-title">Step ${si + 1}: ${stage.title}</div>
+        <div class="stage-arrow"></div>
+      </div>
+      <div class="stage-body" id="stage-body-${si}">
+        <div class="stage-desc">${stage.desc}</div>
+        <div class="who-label">Who does this: ${stage.who}</div>
+        ${buildCheckItems(stage, si)}
+        ${stage.sf1786 ? `<div class="sf1786-band"><strong>SF1786 CHANGE</strong>${stage.sf1786}</div>` : ''}
+        ${stage.note ? `<p style="font-size:13px;color:var(--charcoal-light);margin-top:12px;font-style:italic;">${stage.note}</p>` : ''}
+        ${renewalHtml}
+        <div class="stage-notes">
+          <label for="note-${si}">Your notes</label>
+          <textarea id="note-${si}" placeholder="Licensor name, dates, reminders..."
+            oninput="saveNote(${si}, this.value)">${notes[si] || ''}</textarea>
+        </div>
+      </div>`;
+
+    container.appendChild(block);
+  });
+}
+
+function buildRenewalField() {
+  const saved = localStorage.getItem('mkn_renewal') || '';
+  let reminderHtml = '';
+  if (saved) {
+    const renewDate = new Date(saved + 'T00:00:00');
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const diffDays = Math.ceil((renewDate - today) / (1000 * 60 * 60 * 24));
+    if (diffDays < 0) {
+      reminderHtml = `<div class="renewal-reminder" style="color:var(--alert);">Your license expired ${Math.abs(diffDays)} days ago. Contact your licensor immediately about renewal.</div>`;
+    } else if (diffDays <= 60) {
+      reminderHtml = `<div class="renewal-reminder">Your license expires in ${diffDays} days. Start the renewal process now.</div>`;
+    } else {
+      reminderHtml = `<div class="renewal-reminder" style="color:var(--success);">${diffDays} days until renewal. You're in good standing.</div>`;
+    }
+  }
+  return `
+    <div class="renewal-field">
+      <label>License Expiration Date</label>
+      <input type="date" id="renewal-date" value="${saved}"
+        onchange="localStorage.setItem('mkn_renewal',this.value);buildChecklist();">
+      ${reminderHtml}
+    </div>`;
+}
+
+function buildCheckItems(stage, si) {
+  return stage.items.map((item, ii) => {
+    const key = si + '-' + ii;
+    const checked = checkStates[key] ? 'checked' : '';
+    return `<div class="check-item">
+      <input type="checkbox" id="chk-${key}" ${checked}
+        onchange="toggleCheck('${key}', ${si})">
+      <label for="chk-${key}">${item}</label>
+    </div>`;
+  }).join('');
+}
+
+function toggleStage(si) {
+  const header = document.getElementById('stage-header-' + si);
+  const body = document.getElementById('stage-body-' + si);
+  const isOpen = body.classList.contains('open');
+  // Close all
+  document.querySelectorAll('.stage-body').forEach(b => b.classList.remove('open'));
+  document.querySelectorAll('.stage-header').forEach(h => h.classList.remove('open'));
+  if (!isOpen) {
+    body.classList.add('open');
+    header.classList.add('open');
+  }
+}
+
+function toggleCheck(key, si) {
+  checkStates[key] = document.getElementById('chk-' + key).checked;
+  saveChecks();
+  updateProgress();
+  // Update stage header completion
+  const stage = STAGES[si];
+  const stageComplete = stage.items.every((_, ii) => checkStates[si + '-' + ii]);
+  const numEl = document.querySelector('#stage-header-' + si + ' .stage-num');
+  if (stageComplete) {
+    numEl.classList.add('complete');
+    numEl.innerHTML = '&#10003;';
+  } else {
+    numEl.classList.remove('complete');
+    numEl.textContent = si + 1;
+  }
+}
+
+function saveNote(si, val) {
+  notes[si] = val;
+  saveNotes();
+}
+
+/* ══════════════════════════════════════════════════
+   RIGHTS CARD (Module 3)
+   ══════════════════════════════════════════════════ */
+
+function buildRightsCard() {
+  const container = document.getElementById('rights-container');
+  container.innerHTML = `
+    <div class="rights-card">
+      <h2>Your Rights as a Relative Caregiver</h2>
+      <p style="font-size:13px;color:var(--charcoal-light);margin-bottom:20px;font-family:Consolas,'Liberation Mono',monospace;">SF1786, Minnesota 2025</p>
+
+      <div class="rights-section">
+        <h3>1. Language Access</h3>
+        <p>You have the right to receive all written communications and licensing materials in your preferred language. Minnesota DHS is required to provide materials in the 20 most common languages spoken in Minnesota, plus American Sign Language. If you need materials in another format due to a disability, you can request that too.</p>
+      </div>
+
+      <div class="rights-section">
+        <h3>2. Agency Choice</h3>
+        <p>You can choose to be licensed through your county agency or through a private licensing agency. Both paths lead to the same license. Ask your licensor to explain the difference before you decide.</p>
+      </div>
+
+      <div class="rights-section">
+        <h3>3. Condensed Licensing Guide</h3>
+        <p>The Minnesota Department of Human Services is required to publish a condensed version of foster care licensing guidelines specifically for relative caregivers by December 15, 2025. Ask your licensor for this guide.</p>
+      </div>
+
+      <div class="rights-section">
+        <h3>4. Reduced Training Hours</h3>
+        <p>As a relative caregiver, you are required to complete 6 hours of annual in-service training, not 12. You also have flexibility in choosing training topics.</p>
+      </div>
+
+      <div class="rights-section">
+        <h3>5. Written Support Information</h3>
+        <p>Your licensing agency is required to give you written information about your legal services options, support resources, respite care, and how to name a substitute caregiver. Ask for this in writing if you have not received it.</p>
+      </div>
+
+      <div class="rights-section">
+        <h3>6. Mobile Fingerprinting</h3>
+        <p>Counties and agencies may have mobile fingerprinting equipment available — meaning you may not need to travel to an office for background study fingerprints. Ask your licensor whether this is available in your county.</p>
+      </div>
+
+      <div class="rights-section">
+        <h3>7. Relative Caregiver Support Grant</h3>
+        <p>SF1786 created funding for a Relative Caregiver Support Grant program. Ask your licensor or county agency about eligibility and how to apply.</p>
+      </div>
+
+      <div style="margin-top:28px;padding-top:20px;border-top:2px solid var(--honey);">
+        <h3 style="font-family:'Palatino Linotype',Palatino,'Book Antiqua',serif;font-size:16px;color:var(--burgundy);margin-bottom:14px;">Important Contacts</h3>
+        <div class="contacts-grid">
+          <div class="contact-field">
+            <label>Your Assigned Licensor</label>
+            <input type="text" id="ct-licensor" placeholder="Name"
+              value="${contacts.licensor || ''}"
+              oninput="contacts.licensor=this.value;saveContacts();">
+          </div>
+          <div class="contact-field">
+            <label>Licensor Phone</label>
+            <input type="text" id="ct-licensor-phone" placeholder="Phone"
+              value="${contacts.licensorPhone || ''}"
+              oninput="contacts.licensorPhone=this.value;saveContacts();">
+          </div>
+          <div class="contact-field">
+            <label>Your County Agency</label>
+            <input type="text" id="ct-county" placeholder="Agency name"
+              value="${contacts.county || ''}"
+              oninput="contacts.county=this.value;saveContacts();">
+          </div>
+          <div class="contact-field">
+            <label>County Phone</label>
+            <input type="text" id="ct-county-phone" placeholder="Phone"
+              value="${contacts.countyPhone || ''}"
+              oninput="contacts.countyPhone=this.value;saveContacts();">
+          </div>
+          <div class="contact-field">
+            <!-- VERIFY: Phone number from software brief — publicly listed DHS main line -->
+            <label>DHS Main Line</label>
+            <input type="text" value="651-431-3830" readonly
+              style="background:var(--honey-light);cursor:default;">
+          </div>
+          <div class="contact-field">
+            <label>Legal Aid Referral</label>
+            <input type="text" id="ct-legal" placeholder="If needed"
+              value="${contacts.legal || ''}"
+              oninput="contacts.legal=this.value;saveContacts();">
+          </div>
+        </div>
+      </div>
+
+      <button class="print-btn" onclick="printRightsCard()">Print Rights Card</button>
+    </div>`;
+}
+
+function printRightsCard() {
+  document.body.classList.add('print-only-rights');
+  window.print();
+  document.body.classList.remove('print-only-rights');
+}
+
+/* ══════════════════════════════════════════════════
+   MOBILE SIDEBAR
+   ══════════════════════════════════════════════════ */
+
+document.getElementById('mobile-toggle').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('mobile-open');
+  document.getElementById('mobile-overlay').classList.toggle('show');
+});
+document.getElementById('mobile-overlay').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.remove('mobile-open');
+  document.getElementById('mobile-overlay').classList.remove('show');
+});
+
+/* ══════════════════════════════════════════════════
+   INIT
+   ══════════════════════════════════════════════════ */
+
+function init() {
+  loadState();
+
+  // If answers exist, restore position
+  const answeredCount = Object.keys(answers).length;
+  if (answeredCount > 0) {
+    currentQ = Math.min(answeredCount, QUESTIONS.length - 1);
+  }
+
+  // Entry animation
+  setTimeout(() => {
+    document.getElementById('entry-screen').classList.add('fade-out');
+    setTimeout(() => {
+      document.getElementById('entry-screen').style.display = 'none';
+      document.getElementById('app').classList.add('visible');
+
+      // If all questions answered, go straight to result
+      if (answeredCount >= QUESTIONS.length) {
+        showResult();
+      } else {
+        renderInterview();
+      }
+      updateSidebar();
+    }, 600);
+  }, 2400);
+}
+
+init();
+</script>
+</body>
+</html>

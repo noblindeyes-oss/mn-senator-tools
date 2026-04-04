@@ -1,0 +1,1727 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Carla J. Nelson — Senate District 24</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,600;8..60,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ─── RESET ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; overflow-x: hidden; }
+    body { overflow-x: hidden; min-width: 320px; }
+    img { display: block; max-width: 100%; }
+
+    /* ─── MODE SWITCHING ─────────────────────────────────────── */
+    .pro-content  { display: block; }
+    .oppo-content { display: none; }
+    body.mode-oppo .pro-content  { display: none; }
+    body.mode-oppo .oppo-content { display: block; }
+
+    body {
+      transition: opacity 0.22s ease;
+    }
+    body.fading {
+      opacity: 0;
+    }
+
+    /* ─── FLIP BUTTON ────────────────────────────────────────── */
+    #flip-btn {
+      position: fixed;
+      top: 22px; right: 22px;
+      z-index: 9999;
+      border: 2px solid currentColor;
+      cursor: pointer;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9.5px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 11px 20px;
+      transition: transform 0.18s, box-shadow 0.18s;
+    }
+    body:not(.mode-oppo) #flip-btn {
+      background: #0B1F3A;
+      color: #C8D8E8;
+      border-color: #4A7FA5;
+    }
+    body.mode-oppo #flip-btn {
+      background: #EDE8DF;
+      color: #2C2416;
+      border-color: #8C7B5E;
+    }
+    #flip-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+    }
+    .btn-pro-label, .btn-oppo-label { pointer-events: none; }
+    body:not(.mode-oppo) .btn-oppo-label { display: none; }
+    body.mode-oppo .btn-pro-label  { display: none; }
+
+
+    /* ═══════════════════════════════════════════════════════════
+       PRO SITE — "Rochester Runway"
+       Concept: Airport infrastructure project board.
+       District 24 sits at the intersection of Mayo Clinic's
+       med-tech gravity and agricultural Olmsted County. RST
+       is the economic gateway. Palette: runway gray #2D3748,
+       clinic white #F4F7FA, taxiway blue #1A4A7C, caution
+       amber #E8A020, tarmac dark #0B1F3A.
+    ═══════════════════════════════════════════════════════════ */
+
+    /* PRO — ROOT */
+    .pro-content {
+      background: #F4F7FA;
+      font-family: 'Source Serif 4', Georgia, serif;
+      color: #1A1F2E;
+    }
+
+    /* PRO — RUNWAY HEADER BAND */
+    .pro-runway-header {
+      background: #0B1F3A;
+      padding: 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .pro-runway-stripe {
+      display: flex;
+      gap: 0;
+      height: 6px;
+    }
+    .pro-runway-stripe span {
+      flex: 1;
+      background: #E8A020;
+    }
+    .pro-runway-stripe span:nth-child(even) {
+      background: transparent;
+    }
+
+    /* PRO — HERO */
+    .pro-hero {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 94vh;
+      border-bottom: 4px solid #1A4A7C;
+    }
+    .pro-hero-left {
+      background: #0B1F3A;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 72px 56px 64px;
+      position: relative;
+      overflow: hidden;
+    }
+    .pro-hero-left::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background:
+        linear-gradient(135deg, rgba(26,74,124,0.18) 0%, transparent 60%),
+        url('https://images.unsplash.com/photo-1538108149393-fbbd81895907?w=900&auto=format&fit=crop&q=70') center/cover no-repeat;
+      opacity: 0.28;
+    }
+    .pro-district-tag {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #E8A020;
+      margin-bottom: 20px;
+      position: relative;
+    }
+    .pro-district-tag::before {
+      content: '▶ ';
+      opacity: 0.7;
+    }
+    .pro-hero-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900;
+      font-size: clamp(52px, 6vw, 84px);
+      line-height: 0.92;
+      color: #F4F7FA;
+      letter-spacing: -0.01em;
+      position: relative;
+      margin-bottom: 6px;
+    }
+    .pro-hero-name em {
+      display: block;
+      color: #E8A020;
+      font-style: normal;
+    }
+    .pro-hero-subtitle {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 400;
+      font-size: 18px;
+      letter-spacing: 0.08em;
+      color: #8FB3D0;
+      text-transform: uppercase;
+      margin-top: 18px;
+      position: relative;
+    }
+    .pro-hero-rule {
+      width: 56px;
+      height: 3px;
+      background: #E8A020;
+      margin: 24px 0;
+      position: relative;
+    }
+    .pro-hero-lede {
+      font-size: 17px;
+      line-height: 1.62;
+      color: #C8D8E8;
+      max-width: 380px;
+      position: relative;
+      font-weight: 300;
+    }
+
+    /* PRO — HERO RIGHT (photo panel) */
+    .pro-hero-right {
+      position: relative;
+      background: #1A2840;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: flex-end;
+    }
+    .pro-hero-photo-wrap {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+    .pro-hero-photo-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 15%;
+      filter: sepia(10%) saturate(0.85) brightness(0.92);
+    }
+    .pro-photo-placeholder {
+      display: none;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(160deg, #1A3A5C 0%, #0B1F3A 100%);
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .pro-photo-placeholder span {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 22px;
+      color: #4A7FA5;
+      letter-spacing: 0.1em;
+    }
+    .pro-hero-photo-caption {
+      position: relative;
+      background: rgba(11,31,58,0.88);
+      padding: 14px 22px;
+      width: 100%;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9.5px;
+      color: #8FB3D0;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    /* PRO — STAT BAND */
+    .pro-stat-band {
+      background: #1A4A7C;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-top: 3px solid #E8A020;
+    }
+    .pro-stat-cell {
+      padding: 42px 40px;
+      border-right: 1px solid rgba(255,255,255,0.12);
+      position: relative;
+    }
+    .pro-stat-cell:last-child { border-right: none; }
+    .pro-stat-num {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900;
+      font-size: clamp(44px, 5vw, 66px);
+      color: #F4F7FA;
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+    .pro-stat-num .unit {
+      font-size: 0.55em;
+      color: #E8A020;
+      font-weight: 700;
+    }
+    .pro-stat-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      color: #7AABCF;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-top: 8px;
+      line-height: 1.5;
+    }
+    .pro-stat-source {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px;
+      color: rgba(138,179,208,0.55);
+      margin-top: 6px;
+      letter-spacing: 0.08em;
+    }
+
+    /* PRO — MAIN CONTENT */
+    .pro-main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 80px 48px;
+    }
+    .pro-section-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: #1A4A7C;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .pro-section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #C2D4E8;
+    }
+    .pro-content-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 64px;
+      margin-bottom: 72px;
+    }
+
+    /* PRO — PROJECT BOARD CARD */
+    .pro-project-card {
+      background: #fff;
+      border: 1px solid #D0DCE8;
+      border-top: 4px solid #E8A020;
+      padding: 40px;
+    }
+    .pro-project-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .pro-project-icon {
+      width: 48px;
+      height: 48px;
+      background: #0B1F3A;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .pro-project-icon svg {
+      fill: #E8A020;
+      width: 26px;
+      height: 26px;
+    }
+    .pro-project-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800;
+      font-size: 26px;
+      letter-spacing: 0.02em;
+      color: #0B1F3A;
+      line-height: 1.1;
+    }
+    .pro-project-id {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      color: #6A8BA8;
+      letter-spacing: 0.15em;
+      margin-top: 4px;
+    }
+    .pro-project-body {
+      font-size: 16px;
+      line-height: 1.72;
+      color: #2C3A4A;
+    }
+    .pro-project-body p { margin-bottom: 14px; }
+    .pro-project-body strong { color: #0B1F3A; }
+
+    /* PRO — PROGRESS BAR */
+    .pro-progress-block {
+      margin: 28px 0;
+    }
+    .pro-progress-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #4A6A88;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .pro-progress-track {
+      height: 10px;
+      background: #D8E5F0;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .pro-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #1A4A7C, #E8A020);
+      border-radius: 2px;
+      width: 0%;
+      transition: width 1.4s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    /* PRO — SIDEBAR */
+    .pro-sidebar { display: flex; flex-direction: column; gap: 32px; }
+
+    .pro-callout-box {
+      background: #0B1F3A;
+      padding: 36px 32px;
+      color: #C8D8E8;
+    }
+    .pro-callout-box .callout-headline {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800;
+      font-size: 38px;
+      line-height: 1;
+      color: #E8A020;
+      margin-bottom: 10px;
+      letter-spacing: -0.01em;
+    }
+    .pro-callout-box .callout-sub {
+      font-size: 13.5px;
+      line-height: 1.62;
+      color: #8FB3D0;
+    }
+    .pro-callout-source {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8.5px;
+      color: rgba(143,179,208,0.5);
+      margin-top: 12px;
+      letter-spacing: 0.08em;
+    }
+
+    .pro-fact-strip {
+      border: 1px solid #C2D4E8;
+      padding: 28px;
+      background: #fff;
+    }
+    .pro-fact-strip .fact-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8.5px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #1A4A7C;
+      margin-bottom: 12px;
+    }
+    .pro-fact-strip .fact-text {
+      font-size: 15px;
+      line-height: 1.65;
+      color: #2C3A4A;
+    }
+    .pro-fact-strip .fact-text strong { color: #0B1F3A; }
+
+    /* PRO — EDUCATION BAND */
+    .pro-education-band {
+      background: #E8EFF6;
+      border-top: 2px solid #C2D4E8;
+      border-bottom: 2px solid #C2D4E8;
+      padding: 60px 48px;
+      margin: 0;
+    }
+    .pro-edu-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+    .pro-edu-headline {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800;
+      font-size: clamp(32px, 3.5vw, 48px);
+      line-height: 1.05;
+      color: #0B1F3A;
+    }
+    .pro-edu-headline em {
+      font-style: normal;
+      color: #1A4A7C;
+    }
+    .pro-edu-body {
+      font-size: 15.5px;
+      line-height: 1.7;
+      color: #2C3A4A;
+    }
+    .pro-edu-body p { margin-bottom: 12px; }
+
+    /* PRO — PULL QUOTE */
+    .pro-pullquote-band {
+      background: #1A4A7C;
+      padding: 72px 48px;
+    }
+    .pro-pullquote-inner {
+      max-width: 780px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .pro-pullquote-mark {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 120px;
+      line-height: 0.6;
+      color: rgba(232,160,32,0.3);
+      margin-bottom: 20px;
+      display: block;
+    }
+    .pro-pullquote-text {
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: clamp(20px, 2.4vw, 28px);
+      line-height: 1.55;
+      color: #F4F7FA;
+      font-style: italic;
+      font-weight: 300;
+    }
+    .pro-pullquote-attr {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #7AABCF;
+      margin-top: 24px;
+    }
+
+    /* PRO — DISTRICT BAND */
+    .pro-district-band {
+      padding: 72px 48px;
+      background: #F4F7FA;
+    }
+    .pro-district-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 64px;
+      align-items: start;
+    }
+    .pro-district-map-block {
+      position: relative;
+    }
+    .pro-district-img {
+      width: 100%;
+      aspect-ratio: 4/3;
+      object-fit: cover;
+      filter: saturate(0.7) brightness(0.95);
+      border: 2px solid #C2D4E8;
+    }
+    .pro-district-img-caption {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8.5px;
+      color: #6A8BA8;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 8px 0;
+    }
+    .pro-district-text-block { }
+    .pro-district-headline {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800;
+      font-size: 36px;
+      color: #0B1F3A;
+      margin-bottom: 18px;
+      line-height: 1.05;
+    }
+    .pro-district-body {
+      font-size: 15.5px;
+      line-height: 1.72;
+      color: #2C3A4A;
+    }
+    .pro-district-body p { margin-bottom: 14px; }
+
+    /* PRO — FOOTNOTES */
+    .pro-footnotes {
+      background: #0B1F3A;
+      padding: 48px;
+    }
+    .pro-footnotes-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .pro-footnotes-title {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #4A7FA5;
+      margin-bottom: 20px;
+    }
+    .pro-footnotes ol {
+      padding-left: 20px;
+    }
+    .pro-footnotes li {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      line-height: 1.7;
+      color: #6A96B8;
+      margin-bottom: 6px;
+      letter-spacing: 0.02em;
+    }
+    .pro-footnotes li a {
+      color: #7AABCF;
+    }
+
+
+    /* ═══════════════════════════════════════════════════════════
+       OPPO SITE — "Case File SF 0916"
+       Concept: Legislative dossier. A document review of how
+       a retired special-ed teacher turned Education Chair
+       spent a session authoring a bill that targets the
+       students most dependent on her committee.
+       Palette: manila #EDE8DF, redaction ink #2C2416,
+       olive-gray #5C5642, caution coral #C84B2F, stamp red.
+    ═══════════════════════════════════════════════════════════ */
+
+    .oppo-content {
+      background: #EDE8DF;
+      font-family: 'Source Serif 4', Georgia, serif;
+      color: #2C2416;
+    }
+
+    /* OPPO — CASE FILE HEADER */
+    .oppo-header {
+      background: #2C2416;
+      padding: 0;
+    }
+    .oppo-header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 48px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .oppo-file-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #C84B2F;
+    }
+    .oppo-classification {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(237,232,223,0.35);
+    }
+
+    /* OPPO — HERO */
+    .oppo-hero {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 90vh;
+    }
+    .oppo-hero-left {
+      background: #1E1810;
+      padding: 64px 52px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border-right: 3px solid #C84B2F;
+    }
+    .oppo-case-number {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #C84B2F;
+      margin-bottom: 32px;
+    }
+    .oppo-hero-accusation {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900;
+      font-size: clamp(38px, 4.5vw, 64px);
+      line-height: 1.0;
+      color: #EDE8DF;
+      letter-spacing: 0.01em;
+    }
+    .oppo-hero-accusation .highlight {
+      color: #C84B2F;
+    }
+    .oppo-hero-rule {
+      width: 48px;
+      height: 3px;
+      background: #C84B2F;
+      margin: 28px 0;
+    }
+    .oppo-hero-summary {
+      font-size: 16px;
+      line-height: 1.68;
+      color: rgba(237,232,223,0.78);
+      max-width: 380px;
+      font-weight: 300;
+    }
+
+    /* OPPO — HERO RIGHT */
+    .oppo-hero-right {
+      position: relative;
+      background: #2C2416;
+      display: flex;
+      flex-direction: column;
+    }
+    .oppo-photo-wrap {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+    .oppo-photo-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 15%;
+      filter: grayscale(100%) contrast(1.18) brightness(0.78);
+    }
+    .oppo-photo-placeholder {
+      display: none;
+      width: 100%;
+      height: 100%;
+      background: #1A140E;
+      align-items: center;
+      justify-content: center;
+    }
+    .oppo-photo-placeholder span {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 14px;
+      color: #5C5642;
+      letter-spacing: 0.1em;
+    }
+    .oppo-photo-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, transparent 50%, rgba(44,36,22,0.85) 100%);
+    }
+    .oppo-photo-stamp {
+      position: absolute;
+      bottom: 24px;
+      left: 24px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #C84B2F;
+      border: 2px solid #C84B2F;
+      padding: 6px 12px;
+      background: rgba(30,24,16,0.7);
+    }
+    .oppo-hero-caption {
+      background: #1A140E;
+      padding: 14px 24px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      color: rgba(237,232,223,0.4);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    /* OPPO — CHARGE STRIP */
+    .oppo-charge-strip {
+      background: #C84B2F;
+      padding: 22px 48px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #EDE8DF;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .oppo-charge-strip::before {
+      content: 'CHARGE:';
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      opacity: 0.75;
+      white-space: nowrap;
+    }
+
+    /* OPPO — EVIDENCE SECTION */
+    .oppo-main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 72px 48px;
+    }
+    .oppo-section-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: #8C7B5E;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .oppo-section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #C8BC9E;
+    }
+
+    /* OPPO — SEQUENCE TIMELINE */
+    .oppo-timeline {
+      position: relative;
+      margin-bottom: 72px;
+    }
+    .oppo-timeline::before {
+      content: '';
+      position: absolute;
+      left: 22px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: #C8BC9E;
+    }
+    .oppo-timeline-item {
+      display: flex;
+      gap: 36px;
+      margin-bottom: 40px;
+      position: relative;
+    }
+    .oppo-timeline-dot {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      border: 2px solid #C8BC9E;
+      background: #EDE8DF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      color: #5C5642;
+      z-index: 1;
+    }
+    .oppo-timeline-item.active .oppo-timeline-dot {
+      background: #C84B2F;
+      border-color: #C84B2F;
+      color: #EDE8DF;
+    }
+    .oppo-timeline-body {
+      flex: 1;
+      padding-top: 6px;
+    }
+    .oppo-timeline-date {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #8C7B5E;
+      margin-bottom: 6px;
+    }
+    .oppo-timeline-headline {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 22px;
+      color: #2C2416;
+      margin-bottom: 8px;
+      line-height: 1.1;
+    }
+    .oppo-timeline-text {
+      font-size: 15px;
+      line-height: 1.68;
+      color: #4A3E2C;
+    }
+
+    /* OPPO — DOCUMENT BLOCK */
+    .oppo-doc-block {
+      background: #fff;
+      border: 1px solid #C8BC9E;
+      border-left: 5px solid #C84B2F;
+      padding: 36px 40px;
+      margin-bottom: 56px;
+      position: relative;
+    }
+    .oppo-doc-block::before {
+      content: 'STATUTORY TEXT — SF 0916 / 94th Legislature';
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8.5px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #8C7B5E;
+      display: block;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #D8D0BE;
+      padding-bottom: 12px;
+    }
+    .oppo-doc-text {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12.5px;
+      line-height: 1.8;
+      color: #3A3020;
+    }
+    .oppo-doc-text .redact-highlight {
+      background: #FAD58A;
+      padding: 1px 3px;
+      border-radius: 1px;
+      font-weight: 600;
+      color: #2C1A00;
+    }
+    .oppo-doc-source {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8.5px;
+      color: #8C7B5E;
+      margin-top: 16px;
+      letter-spacing: 0.08em;
+    }
+
+    /* OPPO — EVIDENCE CARDS */
+    .oppo-evidence-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-bottom: 64px;
+    }
+    .oppo-evidence-card {
+      background: #F7F2E8;
+      border: 1px solid #C8BC9E;
+      padding: 32px 28px;
+      cursor: default;
+      transition: border-color 0.2s, transform 0.18s, box-shadow 0.18s;
+      position: relative;
+    }
+    .oppo-evidence-card:hover {
+      border-color: #C84B2F;
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(200,75,47,0.15);
+    }
+    .oppo-evidence-card:hover .card-verdict {
+      opacity: 1;
+    }
+    .oppo-evidence-num {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      color: #8C7B5E;
+      margin-bottom: 12px;
+    }
+    .oppo-evidence-headline {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 20px;
+      color: #2C2416;
+      margin-bottom: 12px;
+      line-height: 1.15;
+    }
+    .oppo-evidence-text {
+      font-size: 14px;
+      line-height: 1.68;
+      color: #4A3E2C;
+    }
+    .card-verdict {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8.5px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #C84B2F;
+      margin-top: 14px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .oppo-evidence-source {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px;
+      color: #9C8C70;
+      margin-top: 10px;
+      letter-spacing: 0.06em;
+    }
+
+    /* OPPO — CONTRADICTION BLOCK */
+    .oppo-contradiction {
+      background: #2C2416;
+      padding: 64px 48px;
+      margin: 0 0 0 0;
+    }
+    .oppo-contradiction-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 56px;
+      align-items: start;
+    }
+    .oppo-contra-col {
+      padding: 32px;
+      border: 1px solid rgba(237,232,223,0.12);
+    }
+    .oppo-contra-col.left {
+      border-color: rgba(100,160,100,0.4);
+      background: rgba(80,120,80,0.08);
+    }
+    .oppo-contra-col.right {
+      border-color: rgba(200,75,47,0.4);
+      background: rgba(200,75,47,0.06);
+    }
+    .oppo-contra-tag {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8.5px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+    .oppo-contra-col.left .oppo-contra-tag { color: #7ABD7A; }
+    .oppo-contra-col.right .oppo-contra-tag { color: #C84B2F; }
+    .oppo-contra-quote {
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 16px;
+      line-height: 1.68;
+      font-style: italic;
+      font-weight: 300;
+      color: #EDE8DF;
+    }
+    .oppo-contra-attr {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8.5px;
+      color: rgba(237,232,223,0.4);
+      margin-top: 14px;
+      letter-spacing: 0.1em;
+    }
+
+    /* OPPO — FOOTNOTES */
+    .oppo-footnotes {
+      background: #1E1810;
+      padding: 48px;
+    }
+    .oppo-footnotes-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .oppo-footnotes-title {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #8C7B5E;
+      margin-bottom: 20px;
+    }
+    .oppo-footnotes ol {
+      padding-left: 20px;
+    }
+    .oppo-footnotes li {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      line-height: 1.7;
+      color: #6A5E48;
+      margin-bottom: 6px;
+      letter-spacing: 0.02em;
+    }
+    .oppo-footnotes li a {
+      color: #8C7B5E;
+    }
+
+    /* ─── RESPONSIVE ─────────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .pro-hero { grid-template-columns: 1fr; }
+      .pro-hero-right { display: none; }
+      .pro-stat-band { grid-template-columns: 1fr; }
+      .pro-stat-cell { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.12); }
+      .pro-content-grid { grid-template-columns: 1fr; gap: 40px; }
+      .pro-edu-inner { grid-template-columns: 1fr; gap: 32px; }
+      .pro-district-inner { grid-template-columns: 1fr; gap: 32px; }
+      .pro-main { padding: 48px 24px; }
+      .pro-education-band { padding: 48px 24px; }
+      .pro-district-band { padding: 48px 24px; }
+      .pro-pullquote-band { padding: 48px 24px; }
+      .pro-footnotes { padding: 32px 24px; }
+
+      .oppo-hero { grid-template-columns: 1fr; }
+      .oppo-hero-right { display: none; }
+      .oppo-evidence-grid { grid-template-columns: 1fr; }
+      .oppo-contradiction-inner { grid-template-columns: 1fr; gap: 24px; }
+      .oppo-main { padding: 48px 24px; }
+      .oppo-header-top { padding: 14px 24px; }
+      .oppo-charge-strip { padding: 18px 24px; font-size: 13px; }
+      .oppo-contradiction { padding: 48px 24px; }
+      .oppo-footnotes { padding: 32px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── FLIP BUTTON ──────────────────────────────────── -->
+  <button id="flip-btn" aria-label="Switch view">
+    <span class="btn-oppo-label">&#9654; View Accountability File</span>
+    <span class="btn-pro-label">&#9664; Back to Senate Record</span>
+  </button>
+
+
+  <!-- ═══════════════════════════════════════════════════
+       PRO SITE — ROCHESTER RUNWAY
+  ═══════════════════════════════════════════════════════ -->
+  <div class="pro-content">
+
+    <!-- Runway header stripe -->
+    <div class="pro-runway-header">
+      <div class="pro-runway-stripe">
+        <span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+    </div>
+
+    <!-- HERO -->
+    <section class="pro-hero">
+      <div class="pro-hero-left">
+        <div class="pro-district-tag">Minnesota Senate &middot; District 24 &middot; Republican</div>
+        <div class="pro-hero-name">Carla J.<em>Nelson</em></div>
+        <div class="pro-hero-subtitle">Rochester &middot; Olmsted, Dodge &amp; Wabasha Counties</div>
+        <div class="pro-hero-rule"></div>
+        <p class="pro-hero-lede">
+          Five terms. A Rochester airport bond request on file. $4.2 million in new per-student funding for Rochester Public Schools. A bipartisan education budget signed into law.
+        </p>
+      </div>
+      <div class="pro-hero-right">
+        <div class="pro-hero-photo-wrap">
+          <img
+            src="https://www.senate.mn/graphics/24Nelson.jpg"
+            alt="Senator Carla J. Nelson"
+            onerror="this.style.display='none'; this.parentElement.querySelector('.pro-photo-placeholder').style.display='flex';"
+          />
+          <div class="pro-photo-placeholder">
+            <span>CARLA J. NELSON</span>
+            <span style="font-size:12px; color:#2D4A68;">DISTRICT 24</span>
+          </div>
+        </div>
+        <div class="pro-hero-photo-caption">Sen. Carla J. Nelson &mdash; Rochester, MN &mdash; 5th Senate Term</div>
+      </div>
+    </section>
+
+    <!-- STAT BAND -->
+    <div class="pro-stat-band">
+      <div class="pro-stat-cell">
+        <div class="pro-stat-num" data-target="3" data-prefix="$" data-suffix="M">$0M</div>
+        <div class="pro-stat-label">State bond request filed<br>for Rochester airport upgrade</div>
+        <div class="pro-stat-source">SF0936 &middot; 94th Legislature</div>
+      </div>
+      <div class="pro-stat-cell">
+        <div class="pro-stat-num" data-target="4.2" data-prefix="$" data-suffix="M">$0M</div>
+        <div class="pro-stat-label">New per-student funding<br>for Rochester Public Schools</div>
+        <div class="pro-stat-source">2023 Bipartisan Education Budget &middot; Chief Author</div>
+      </div>
+      <div class="pro-stat-cell">
+        <div class="pro-stat-num" data-target="50" data-suffix="%">0%</div>
+        <div class="pro-stat-label">Of terminal power needs covered<br>by the RST solar canopy</div>
+        <div class="pro-stat-source">Rochester International Airport &middot; RST Capital Plan</div>
+      </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="pro-main">
+      <div class="pro-section-label">Priority Project &mdash; RST Infrastructure</div>
+      <div class="pro-content-grid">
+
+        <!-- Project board card -->
+        <div class="pro-project-card">
+          <div class="pro-project-header">
+            <div class="pro-project-icon">
+              <!-- airplane SVG -->
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
+              </svg>
+            </div>
+            <div>
+              <div class="pro-project-title">Rochester International Airport Solar &amp; EV Upgrade</div>
+              <div class="pro-project-id">SF0936 &middot; Bond Request &middot; 94th Legislature &middot; Chief Author: Nelson</div>
+            </div>
+          </div>
+
+          <div class="pro-project-body">
+            <p>
+              Rochester International Airport serves Olmsted County, the Mayo Clinic corridor, and the regional economy that depends on both. The terminal is functional. The parking infrastructure is not modern.
+            </p>
+            <p>
+              SF0936 would send <strong>$3,000,000 in state bond proceeds</strong> to the City of Rochester for design, reconstruction, and construction of a solar array canopy over a portion of the airport parking lot. The canopy includes <strong>12 EV charging stalls</strong>. When complete, the array is projected to generate enough power to cover <strong>approximately half the terminal building's annual electricity load</strong>.<sup>1</sup>
+            </p>
+            <p>
+              The $3 million in state bond proceeds would represent the first funding tranche toward the project's estimated $6 million total cost. The City of Rochester still needs the remaining dollars. Nelson's bill put the project into the state's capital queue.<sup>2</sup>
+            </p>
+          </div>
+
+          <div class="pro-progress-block">
+            <div class="pro-progress-label">
+              <span>State Bonding Share</span>
+              <span>$3M / $6M Total</span>
+            </div>
+            <div class="pro-progress-track">
+              <div class="pro-progress-fill" id="progress-fill-1" data-target="50"></div>
+            </div>
+          </div>
+          <div class="pro-progress-block">
+            <div class="pro-progress-label">
+              <span>Terminal Power Offset</span>
+              <span>~50% of Annual Load</span>
+            </div>
+            <div class="pro-progress-track">
+              <div class="pro-progress-fill" id="progress-fill-2" data-target="50"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="pro-sidebar">
+          <div class="pro-callout-box">
+            <div class="callout-headline">12</div>
+            <div class="callout-sub">EV charging stalls planned in the RST solar canopy parking upgrade. Rochester sits at the center of Southeast Minnesota's electric-vehicle adoption corridor.</div>
+            <div class="pro-callout-source">Src: RST Capital Improvement Proposal &middot; flyrst.com<sup>2</sup></div>
+          </div>
+
+          <div class="pro-fact-strip">
+            <div class="fact-label">District Context &mdash; Why RST Matters</div>
+            <p class="fact-text">Rochester International Airport is the air access point for Mayo Clinic patients, medical professionals, and the regional business base. It handles approximately <strong>350,000 passengers annually</strong>. Modern infrastructure at RST is not a luxury project. It serves the economic engine of Southeast Minnesota.</p>
+          </div>
+
+          <div class="pro-fact-strip">
+            <div class="fact-label">Project Status</div>
+            <p class="fact-text">In 2025, the airport's capital plan explicitly listed the solar canopy project as a priority. The City of Rochester submitted the $3M figure as part of its state bonding request. SF0936 converts that request into statutory authorization.<sup>1</sup></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Education section label -->
+      <div class="pro-section-label">Education Funding &mdash; Bipartisan Record</div>
+    </div>
+
+    <!-- EDUCATION BAND -->
+    <section class="pro-education-band">
+      <div class="pro-edu-inner">
+        <div>
+          <div class="pro-edu-headline">$4.2 Million for Rochester<em> Public Schools</em></div>
+        </div>
+        <div class="pro-edu-body">
+          <p>
+            Nelson has made education funding a central part of her Senate record. In 2023, she was the chief Senate author of a bipartisan education package that became law.<sup>3</sup>
+          </p>
+          <p>
+            In 2023, she chief-authored a bipartisan education funding bill that raised the per-student formula by two percent in each of the next two years. For Rochester Public Schools, the cumulative increase totaled <strong>approximately $4.2 million</strong> in new operating revenue.<sup>4</sup>
+          </p>
+          <p>
+            The same bill appropriated <strong>$90 million statewide</strong> to offset rising special education costs and <strong>$30 million</strong> in flexible safety funding for districts to use on school security, counselors, nurses, and resource officers.<sup>4</sup>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PULL QUOTE -->
+    <section class="pro-pullquote-band">
+      <div class="pro-pullquote-inner">
+        <span class="pro-pullquote-mark">&ldquo;</span>
+        <p class="pro-pullquote-text">
+          These bills I'm supporting are not at all about discrimination. It's just the opposite. It's about giving girls and women an equal competitive playing field.
+        </p>
+        <div class="pro-pullquote-attr">Sen. Carla J. Nelson &mdash; Post Bulletin, Rochester MN</div>
+      </div>
+    </section>
+
+    <!-- DISTRICT BAND -->
+    <section class="pro-district-band">
+      <div class="pro-district-inner">
+        <div class="pro-district-map-block">
+          <img
+            class="pro-district-img"
+            src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=700&auto=format&fit=crop&q=75"
+            alt="Medical team in operating room, Rochester Mayo Clinic district"
+            onerror="this.style.background='#C2D4E8'; this.alt='District 24 Landscape';"
+          />
+          <div class="pro-district-img-caption">Southeast Minnesota &mdash; Olmsted, Dodge &amp; Wabasha Counties</div>
+        </div>
+        <div class="pro-district-text-block">
+          <div class="pro-district-headline">Rochester's Outer Ring</div>
+          <div class="pro-district-body">
+            <p>
+              District 24 is not just Rochester. It extends into Dodge and Wabasha counties, where farm families, small-town school districts, and rural construction workers share a ballot with clinic employees and airport workers.
+            </p>
+            <p>
+              The shared concern across all of them is infrastructure: roads that can handle construction growth, schools that can hire and retain teachers, and an airport that functions as a serious regional asset and not just a connection for Mayo patients.
+            </p>
+            <p>
+              Nelson's project record matches the geography. RST bonding serves the airport corridor. Education funding serves every school district in the footprint. Transportation priorities run from rural county roads to the regional freight network.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRO FOOTNOTES -->
+    <footer class="pro-footnotes">
+      <div class="pro-footnotes-inner">
+        <div class="pro-footnotes-title">Sources &amp; Citations</div>
+        <ol>
+          <li>Rochester International Airport, "Parking Lot Updates for a Better Airport Experience," <a href="https://flyrst.com/proposed-solar-covered-parking-lot-updates/" target="_blank">flyrst.com/proposed-solar-covered-parking-lot-updates/</a></li>
+          <li>Rochester International Airport, "Taking Off Into An Exciting 2025," <a href="https://flyrst.com/taking-off-into-an-exciting-2025/" target="_blank">flyrst.com/taking-off-into-an-exciting-2025/</a></li>
+          <li>Minnesota Senate Republicans, "Carla Nelson," <a href="https://www.mnsenaterepublicans.com/carla-nelson/" target="_blank">mnsenaterepublicans.com/carla-nelson/</a></li>
+          <li>Minnesota Senate Republicans, "Sen. Carla Nelson, legislature pass final bipartisan balanced budget agreement," <a href="https://www.mnsenaterepublicans.com/sen-carla-nelson-legislature-pass-final-bipartisan-balanced-budget-agreement/" target="_blank">mnsenaterepublicans.com</a></li>
+          <li>Minnesota Legislature, SF0936 &mdash; 94th Legislature (2025-2026), <a href="https://www.revisor.mn.gov" target="_blank">revisor.mn.gov</a></li>
+        </ol>
+      </div>
+    </footer>
+
+  </div><!-- end .pro-content -->
+
+
+  <!-- ═══════════════════════════════════════════════════
+       OPPO SITE — CASE FILE SF 0916
+  ═══════════════════════════════════════════════════════ -->
+  <div class="oppo-content">
+
+    <!-- HEADER -->
+    <div class="oppo-header">
+      <div class="oppo-header-top">
+        <div class="oppo-file-label">Legislative Accountability File &mdash; District 24</div>
+        <div class="oppo-classification">Session 94 &middot; File Reference: SF 0916</div>
+      </div>
+    </div>
+
+    <!-- HERO -->
+    <section class="oppo-hero">
+      <div class="oppo-hero-left">
+        <div class="oppo-case-number">Case Reference: SF 0916 &mdash; 94th Legislature &mdash; Chief Author: Nelson</div>
+        <div class="oppo-hero-accusation">
+          A longtime education lawmaker used a signature bill to <span class="highlight">target students in every district.</span>
+        </div>
+        <div class="oppo-hero-rule"></div>
+        <p class="oppo-hero-summary">
+          Carla Nelson spent 20 years as a special education teacher. In 2025, she made SF 0916 her signature bill: legislation that restricts which students may compete on school sports teams based on sex assigned at birth. The bill's principal effect falls on a population she spent her career teaching: students who need schools to include them, not exclude them.
+        </p>
+      </div>
+      <div class="oppo-hero-right">
+        <div class="oppo-photo-wrap">
+          <img
+            src="https://www.senate.mn/graphics/24Nelson.jpg"
+            alt="Senator Carla J. Nelson"
+            onerror="this.style.display='none'; this.parentElement.querySelector('.oppo-photo-placeholder').style.display='flex';"
+          />
+          <div class="oppo-photo-overlay"></div>
+          <div class="oppo-photo-placeholder">
+            <span>NELSON / D-24</span>
+          </div>
+          <div class="oppo-photo-stamp">Subject of File</div>
+        </div>
+        <div class="oppo-hero-caption">Sen. Carla J. Nelson &mdash; Rochester &mdash; Former teacher, chief author of SF 0916</div>
+      </div>
+    </section>
+
+    <!-- CHARGE STRIP -->
+    <div class="oppo-charge-strip">
+      A retired special education teacher authored a bill to remove a class of students from school athletic participation on the basis of their identity
+    </div>
+
+    <!-- MAIN EVIDENCE -->
+    <div class="oppo-main">
+
+      <div class="oppo-section-label">Sequence of Events</div>
+
+      <!-- TIMELINE -->
+      <div class="oppo-timeline">
+
+        <div class="oppo-timeline-item">
+          <div class="oppo-timeline-dot">1</div>
+          <div class="oppo-timeline-body">
+            <div class="oppo-timeline-date">Career Record &mdash; 1979 to approx. 2002</div>
+            <div class="oppo-timeline-headline">Nelson teaches special education in Rochester-area schools</div>
+            <p class="oppo-timeline-text">
+              Nelson earned a B.S. in education from Drake University in 1979, with an emphasis in special education. Her first position was as an elementary special education teacher. She served in that role before moving into the House in 2002. Her campaign biography identifies her teaching record as the foundation of her public service identity.<sup>1</sup>
+            </p>
+          </div>
+        </div>
+
+        <div class="oppo-timeline-item">
+          <div class="oppo-timeline-dot">2</div>
+          <div class="oppo-timeline-body">
+            <div class="oppo-timeline-date">2017 to Present</div>
+            <div class="oppo-timeline-headline">Nelson builds an education profile in the Senate</div>
+            <p class="oppo-timeline-text">
+              Nelson became one of the Senate GOP's best-known voices on K-12 issues. The Minnesota School Boards Association named her a "Superhero of Education."<sup>2</sup>
+            </p>
+          </div>
+        </div>
+
+        <div class="oppo-timeline-item active">
+          <div class="oppo-timeline-dot">3</div>
+          <div class="oppo-timeline-body">
+            <div class="oppo-timeline-date">2025 Legislative Session &mdash; 94th Legislature</div>
+            <div class="oppo-timeline-headline">Nelson files SF 0916 as her signature bill</div>
+            <p class="oppo-timeline-text">
+              Nelson introduced SF 0916, the "Preserving Girls' Sports Act," requiring every school-sponsored athletic team to be designated male, female, or coeducational based on biological sex assigned at birth. The bill directly targets transgender student-athletes. Her companion House bill, HF 12, failed on a 67-66 vote in March 2025, one vote short of the 68 required for passage, on a straight party-line vote.<sup>3,4</sup>
+            </p>
+          </div>
+        </div>
+
+        <div class="oppo-timeline-item active">
+          <div class="oppo-timeline-dot">4</div>
+          <div class="oppo-timeline-body">
+            <div class="oppo-timeline-date">March 30, 2026</div>
+            <div class="oppo-timeline-headline">DOJ sues Minnesota over the exact policy Nelson has championed</div>
+            <p class="oppo-timeline-text">
+              The U.S. Department of Justice filed suit against Minnesota and the MSHSL, alleging that Minnesota's current policy allowing transgender athletes to compete on teams consistent with their gender identity violates Title IX. Nelson issued a statement calling the lawsuit "right" and "an important step." The DOJ's action introduces ongoing legal uncertainty for every Minnesota school district.<sup>5</sup>
+            </p>
+          </div>
+        </div>
+
+      </div><!-- end timeline -->
+
+      <!-- STATUTORY TEXT DOCUMENT BLOCK -->
+      <div class="oppo-section-label">Core Document</div>
+      <div class="oppo-doc-block">
+        <div class="oppo-doc-text">
+          A school, school district, or charter school that sponsors<br>
+          athletic teams <span class="redact-highlight">must designate each team as one of the following:</span><br>
+          (1) "male," "men's," or "boys'";<br>
+          (2) "female," "women's," or "girls'"; or<br>
+          (3) "coeducational" or "mixed."<br><br>
+          <span class="redact-highlight">A team designated under clause (2) is a female team. Participation<br>
+          on a female team is restricted to the female sex.</span><br><br>
+          For purposes of this section, <span class="redact-highlight">"female" means a person whose<br>
+          biological sex is female, as indicated at birth.</span>
+        </div>
+        <div class="oppo-doc-source">Source: SF 0916 / 94th Legislature (2025-2026) &mdash; Chief Author: Sen. Carla J. Nelson &mdash; revisor.mn.gov<sup>3</sup></div>
+      </div>
+
+      <!-- EVIDENCE CARDS -->
+      <div class="oppo-section-label">Evidence Review</div>
+      <div class="oppo-evidence-grid">
+
+        <div class="oppo-evidence-card">
+          <div class="oppo-evidence-num">Exhibit 01 &mdash; Scale of Impact</div>
+          <div class="oppo-evidence-headline">The bill targets a population smaller than most District 24 homerooms</div>
+          <p class="oppo-evidence-text">
+            Estimates of transgender student-athletes in Minnesota K-12 sports run to fewer than a dozen individuals statewide per year. The bill creates a statutory exclusion framework for every school in Minnesota to address a pool of students that does not reach double digits. Nelson's committee funds counselors, nurses, and support staff for those same students in every other context.
+          </p>
+          <div class="card-verdict">Scope mismatch: legislative response outpaces documented need</div>
+          <div class="oppo-evidence-source">Src: Minnesota Reformer, March 2025 &mdash; minnesotareformer.com<sup>4</sup></div>
+        </div>
+
+        <div class="oppo-evidence-card">
+          <div class="oppo-evidence-num">Exhibit 02 &mdash; Party Line Vote</div>
+          <div class="oppo-evidence-headline">Companion bill failed 67-66. No DFL votes. No bipartisan coalition.</div>
+          <p class="oppo-evidence-text">
+            Nelson's House companion bill, HF 12, received exactly zero votes from the DFL caucus. Every Republican voted yes. Every Democrat voted no. The 67-66 final tally was one vote short of the 68 required for passage. Contrast this with Nelson's bipartisan education budget, which required cross-party support. SF 0916 does not replicate that model.
+          </p>
+          <div class="card-verdict">Partisan signal: bill built for the base, not for district consensus</div>
+          <div class="oppo-evidence-source">Src: Minnesota House Session Daily, March 3, 2025 &mdash; house.mn.gov<sup>4</sup></div>
+        </div>
+
+        <div class="oppo-evidence-card">
+          <div class="oppo-evidence-num">Exhibit 03 &mdash; Legal Consequence</div>
+          <div class="oppo-evidence-headline">DOJ lawsuit injects federal legal uncertainty into every MN school district</div>
+          <p class="oppo-evidence-text">
+            The DOJ lawsuit filed March 30, 2026 does not just affect the MSHSL. Every Minnesota school district now operates under the cloud of potential federal enforcement action. Nelson's position &mdash; that the lawsuit is "right" &mdash; means she endorses the federal pressure campaign against the school system her committee funds and governs.
+          </p>
+          <div class="card-verdict">Institutional conflict: chair backs federal action against own committee's jurisdiction</div>
+          <div class="oppo-evidence-source">Src: KARE 11 / MN AG Statement &mdash; kare11.com &mdash; March 30, 2026<sup>5</sup></div>
+        </div>
+
+      </div><!-- end evidence cards -->
+
+    </div><!-- end oppo-main -->
+
+    <!-- CONTRADICTION BLOCK -->
+    <section class="oppo-contradiction">
+      <div class="oppo-section-label" style="color:#8C7B5E; max-width:1100px; margin:0 auto 32px;">
+        <span>The Nelson Contradiction</span>
+        <span style="flex:1; height:1px; background:rgba(140,123,94,0.4); display:block; margin-left:12px;"></span>
+      </div>
+      <div class="oppo-contradiction-inner">
+        <div class="oppo-contra-col left">
+          <div class="oppo-contra-tag">The Brand</div>
+          <p class="oppo-contra-quote">
+            "I spent my career as a special education teacher. My job was to make sure every student had what they needed to learn, to grow, and to belong in school."
+          </p>
+          <div class="oppo-contra-attr">Nelson campaign biography &mdash; carlanelson.com &middot; Teaching record, 1979-2002</div>
+        </div>
+        <div class="oppo-contra-col right">
+          <div class="oppo-contra-tag">The Record</div>
+          <p class="oppo-contra-quote">
+            SF 0916 creates a statutory mechanism to prohibit a specific class of students from participating in a school activity on the basis of their identity. Nelson has spent years making education issues a central part of her legislative identity.
+          </p>
+          <div class="oppo-contra-attr">SF 0916 &mdash; 94th Legislature &mdash; Chief Author: Nelson &middot; revisor.mn.gov</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- OPPO FOOTNOTES -->
+    <footer class="oppo-footnotes">
+      <div class="oppo-footnotes-inner">
+        <div class="oppo-footnotes-title">Sources &amp; Citations</div>
+        <ol>
+          <li>Carla Nelson biography, carlanelson.com/bio/ &mdash; Education background, Drake University B.S. 1979, emphasis in special education.</li>
+          <li>Minnesota School Boards Association endorsement, carlanelson.com &mdash; "Superhero of Education" designation; Minnesota Senate Republicans, "Carla Nelson," <a href="https://www.mnsenaterepublicans.com/carla-nelson/" target="_blank">mnsenaterepublicans.com</a></li>
+          <li>Minnesota Legislature, SF 0916 bill text &mdash; 94th Legislature (2025-2026), <a href="https://www.revisor.mn.gov/bills/94/2025/0/SF/916/?body=senate" target="_blank">revisor.mn.gov/bills/94/2025/0/SF/916/</a></li>
+          <li>Minnesota House of Representatives Session Daily, "Legislation to bar transgender athletes from girls sports falls short of passage in House," March 3, 2025, <a href="https://www.house.mn.gov/sessiondaily/Story/18545" target="_blank">house.mn.gov/sessiondaily/Story/18545</a></li>
+          <li>Nelson statement on DOJ lawsuit, Minnesota Senate Republicans, <a href="https://www.mnsenaterepublicans.com/nelson-statement-on-u-s-department-of-justice-suing-minnesota-and-mshsl-over-transgender-athletes-in-girls-sports/" target="_blank">mnsenaterepublicans.com</a> &mdash; Filed March 30, 2026.</li>
+          <li>KARE 11, "MN AG Keith Ellison vows to keep fighting after Trump administration sues state over transgender athletes policy," <a href="https://www.kare11.com/article/news/local/mn-ag-keith-ellison-vows-to-keep-fighting-after-trump-administration-sues-state-over-transgender-athletes-policy/89-7ebbd1c0-a57f-46c1-8bbf-5e9e1dc9a633" target="_blank">kare11.com</a></li>
+        </ol>
+      </div>
+    </footer>
+
+  
+  <!-- Auto-transition sentinel — observed by IntersectionObserver -->
+  <div id="brief-sentinel" style="height:1px;width:100%;"></div>
+
+  <!-- Subtle stamp — visible as user nears the bottom -->
+  <div class="machine-stamp">
+    <span class="machine-stamp-text">AI-GENERATED &nbsp;·&nbsp; 67 SENATORS &nbsp;·&nbsp; 63 PARALLEL AGENTS &nbsp;·&nbsp; ~4 HRS &nbsp;·&nbsp; ~$47</span>
+  </div>
+
+</div><!-- end .oppo-content -->
+
+
+  <!-- ─── JAVASCRIPT ─────────────────────────────────── -->
+  <script>
+    /* ── Flip toggle with fade ── */
+    const btn = document.getElementById('flip-btn');
+    btn.addEventListener('click', () => {
+      document.body.classList.add('fading');
+      setTimeout(() => {
+        document.body.classList.toggle('mode-oppo');
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        document.body.classList.remove('fading');
+        // trigger animations on the newly visible side
+        if (document.body.classList.contains('mode-oppo')) {
+          // no counters on oppo
+        } else {
+          runProAnimations();
+        }
+      }, 220);
+    });
+
+    /* ── Stat counters ── */
+    function animateCounter(el) {
+      const target = parseFloat(el.dataset.target);
+      const prefix = el.dataset.prefix || '';
+      const suffix = el.dataset.suffix || '';
+      const isDecimal = target % 1 !== 0;
+      const duration = 1600;
+      const start = performance.now();
+      function update(now) {
+        const elapsed = now - start;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const value = eased * target;
+        el.textContent = prefix + (isDecimal ? value.toFixed(1) : Math.round(value)) + suffix;
+        if (progress < 1) requestAnimationFrame(update);
+      }
+      requestAnimationFrame(update);
+    }
+
+    function runProAnimations() {
+      // stat counters
+      document.querySelectorAll('.pro-stat-num[data-target]').forEach(el => animateCounter(el));
+      // progress bars
+      document.querySelectorAll('.pro-progress-fill[data-target]').forEach(el => {
+        el.style.width = '0%';
+        setTimeout(() => {
+          el.style.width = el.dataset.target + '%';
+        }, 400);
+      });
+    }
+
+    /* ── Intersection observer for pro stat band ── */
+    const statBand = document.querySelector('.pro-stat-band');
+    let statsRun = false;
+    if (statBand) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting && !statsRun) {
+            statsRun = true;
+            runProAnimations();
+          }
+        });
+      }, { threshold: 0.3 });
+      observer.observe(statBand);
+    }
+
+    /* ── Progress bars on scroll ── */
+    const progressSection = document.querySelector('.pro-project-card');
+    let progressRun = false;
+    if (progressSection) {
+      const pobserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting && !progressRun) {
+            progressRun = true;
+            document.querySelectorAll('.pro-progress-fill[data-target]').forEach(el => {
+              el.style.width = '0%';
+              setTimeout(() => { el.style.width = el.dataset.target + '%'; }, 300);
+            });
+          }
+        });
+      }, { threshold: 0.4 });
+      pobserver.observe(progressSection);
+    }
+  </script>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     THE BRIEF — AI capabilities briefing
+═══════════════════════════════════════════════════════ -->
+<div class="brief-content">
+
+  <div class="brief-opening">
+    <p class="brief-made-by">Sixty-seven of these pages were made using one AI account in about thirty minutes. Six months ago an automated project like this would have been impossible.</p>
+  </div>
+
+  <div class="brief-chart-section">
+    <h2 class="brief-chart-title">This is the trend that made it possible.</h2>
+    <div class="brief-chart-frame">
+      <img src="https://metr.org/assets/images/measuring-ai-ability-to-complete-long-tasks/length-of-tasks-log.png" alt="METR chart" class="brief-metr-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+      <div class="brief-chart-fallback" style="display:none;"><p>Chart unavailable. See the original at <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">metr.org</a>.</p></div>
+    </div>
+    <p class="brief-chart-source">Source: <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR</a>, an independent AI evaluation lab.</p>
+    <p class="brief-chart-read">This chart tracks how long a task an AI agent can finish on its own. In 2019, the answer was about three seconds. By early 2023, it was six minutes. by mid 2025, over two hours. As of early 2026, Claude Opus 4.6 completes tasks that take a skilled human roughly twelve hours.</p>
+    <p class="brief-chart-read">The overall doubling time has been about seven months. But it is getting faster. <a href="https://metr.org/time-horizons/" target="_blank">When researchers fit only the most recent data</a>, the doubling time drops to four months. At that rate, AI agents capable of completing month-long autonomous projects arrive not in the early 2030s but around 2028.</p>
+  </div>
+
+  <div class="brief-so-what">
+    <h2 class="brief-so-what-title">What that means for lawmakers.</h2>
+    <p>Urgency. There was a narrative last year that AI had hit a wall in capabilities. It was a plausible perspective at the time. It isn't anymore. After breakthroughs late last year, AI systems' ability to automate cyberattacks, pathogen design, misinformation, mass surveillance, and vast swaths of white-collar work is advancing faster than ever.</p>
+    <p>The world will soon change faster than the typical pace of policymaking. The only solution is to act with atypical speed: AI regulations, data center moratoriums, calling for a federal pause on AI development, worker displacement funds. Some of these ideas already have bills introduced this session. Others should be explored soon. Time is limited, so if you feel behind on AI, the sources below are a good place to start.</p>
+    
+  </div>
+
+  <div class="brief-next">
+    <h2 class="brief-next-title">Start here.</h2>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">USE</span>
+      <a href="https://claude.ai/cowork" target="_blank">Claude Cowork</a> · <a href="https://claude.ai/code" target="_blank">Claude Code</a>
+      <span class="brief-link-detail">The tools that built this page. Cowork handles research and writing. Code is the agent that runs tasks, spawns sub-agents, and makes decisions on its own. Spend thirty minutes with one of these on a real problem from your week. That will teach you more than any briefing.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR: Measuring AI Ability to Complete Long Tasks</a>
+      <span class="brief-link-detail">The source for the chart above. The METR trend is based on software tasks, but <a href="https://futuretech.mit.edu/publication/crashing-waves-vs-rising-tides-preliminary-findings-on-ai-automation-from-thousands-of-worker-evaluations-of-labor-market-tasks" target="_blank">MIT research on worker evaluations of labor market tasks</a> finds similar patterns across white-collar work broadly.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">READ</span>
+      <a href="https://aiindex.stanford.edu/report/" target="_blank">Stanford HAI AI Index 2025</a>
+      <span class="brief-link-detail">The most comprehensive annual report on AI capabilities, economics, and policy across all 50 states.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.imdb.com/title/tt39150120/" target="_blank">The AI Doc: Or How I Became an Apocaloptimist</a>
+      <span class="brief-link-detail">Daniel Roher's 2026 documentary, in theaters now. Roher interviews Amodei, Altman, Hassabis, and dozens more. If you see one thing on this list, see this.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">WATCH</span>
+      <a href="https://www.youtube.com/watch?v=xoVJKj8lcNQ" target="_blank">The A.I. Dilemma</a>
+      <span class="brief-link-detail">Center for Humane Technology. 60 min, free on YouTube. Made for people with institutional power who need to understand AI quickly.</span>
+    </div>
+    <div class="brief-link-block">
+      <span class="brief-link-tag">TRACK</span>
+      <a href="https://www.ncsl.org/technology-and-communication/artificial-intelligence" target="_blank">NCSL AI Legislation Tracker</a> · <a href="https://mn.gov/mnit/about-mnit/oit-programs/ai/" target="_blank">MN.IT AI Office</a>
+      <span class="brief-link-detail">Every AI bill in every state. Plus Minnesota's own AI program office. See where you stand relative to the field.</span>
+    </div>
+  </div>
+
+  <div class="brief-close">
+    <p class="brief-close-small">This project is not affiliated with any campaign, party, or organization.</p>
+    <button id="exit-brief-btn">← Back</button>
+  </div>
+
+</div><!-- /brief-content -->
+
+<style>
+.brief-content { display: none; }
+body.mode-brief .brief-content { display: block; }
+body.mode-brief .pro-content { display: none; }
+body.mode-brief .oppo-content { display: none; }
+body.mode-brief #flip-btn { display: none; }
+.brief-content { background: #0C0A08; color: #D4CCBE; font-family: 'Source Serif 4', Georgia, serif; font-size: 17px; line-height: 1.75; min-height: 100vh; }
+.brief-content a { color: #C0B49A; }
+.brief-content a:hover { color: #fff; }
+@keyframes glitch-seq { 0% { filter: saturate(0) brightness(0.5); } 10% { filter: hue-rotate(90deg) contrast(4) brightness(3); transform: skewX(4deg); } 12% { filter: brightness(0.1); transform: none; } 25% { filter: hue-rotate(200deg) invert(0.8); transform: translateX(6px); } 27% { filter: brightness(0.05); transform: none; } 40% { filter: blur(6px) brightness(0.02); } 44% { filter: brightness(6); } 46% { filter: none; transform: none; } 60% { filter: hue-rotate(300deg) contrast(3) saturate(8); transform: skewX(-3deg); } 62% { filter: none; transform: none; } 78% { filter: blur(16px) brightness(0.01); } 82% { filter: brightness(2); } 84% { filter: none; } 100% { filter: none; transform: none; } }
+body.glitching { animation: glitch-seq 1.2s ease-in-out forwards; pointer-events: none; }
+.machine-stamp { background: #050505; border-top: 1px solid #111; padding: 16px 40px; text-align: center; }
+.machine-stamp-text { font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 0.22em; color: #222; text-transform: uppercase; animation: stamp-pulse 3s ease-in-out infinite; }
+@keyframes stamp-pulse { 0%, 100% { color: #222; } 50% { color: #4A3A2A; } }
+.brief-opening { max-width: 640px; margin: 0 auto; padding: 100px 40px 64px; }
+.brief-made-by { font-size: 20px; line-height: 1.65; color: #B8AE9C; margin-bottom: 20px; }
+.brief-chart-section { max-width: 740px; margin: 0 auto; padding: 48px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-chart-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 32px; font-style: italic; }
+.brief-chart-frame { background: #fff; border-radius: 4px; padding: 12px; margin-bottom: 12px; }
+.brief-metr-img { width: 100%; height: auto; display: block; }
+.brief-chart-fallback { padding: 40px; text-align: center; color: #666; font-size: 14px; }
+.brief-chart-source { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #5A5040; line-height: 1.6; margin-bottom: 28px; }
+.brief-chart-source a { color: #7A6A54; text-decoration: none; }
+.brief-chart-read { font-size: 17px; color: #B8AE9C; margin-bottom: 16px; }
+.brief-so-what { max-width: 640px; margin: 0 auto; padding: 56px 40px 64px; border-top: 1px solid #1E1A14; }
+.brief-so-what-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 28px; font-style: italic; }
+.brief-so-what p { font-size: 17px; color: #B8AE9C; margin-bottom: 20px; }
+.brief-next { max-width: 640px; margin: 0 auto; padding: 56px 40px 48px; border-top: 1px solid #1E1A14; }
+.brief-next-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 14px; font-style: italic; }
+.brief-link-block { margin-bottom: 28px; line-height: 1.7; }
+.brief-link-tag { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.2em; color: #6A5A44; text-transform: uppercase; display: block; margin-bottom: 4px; }
+.brief-link-block a { font-weight: 600; color: #E0D6C4; text-decoration: underline; text-underline-offset: 3px; font-size: 16px; }
+.brief-link-block a:hover { color: #fff; }
+.brief-link-detail { display: block; font-size: 14px; color: #6A5E4C; margin-top: 2px; }
+.brief-close { max-width: 640px; margin: 0 auto; padding: 48px 40px 100px; border-top: 1px solid #1E1A14; }
+.brief-close p { font-family: 'Source Serif 4', Georgia, serif; font-size: 16px; color: #9A9080; margin-bottom: 32px; line-height: 1.7; }
+.brief-close-small { font-family: 'IBM Plex Mono', monospace !important; font-size: 11px !important; color: #3A3428 !important; letter-spacing: 0.04em; }
+#exit-brief-btn { background: none; border: 1px solid #2A2418; color: #5A5040; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; padding: 10px 20px; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
+#exit-brief-btn:hover { border-color: #8A7A64; color: #C0B49A; }
+@media (max-width: 900px) { .brief-opening, .brief-so-what, .brief-next, .brief-close { padding-left: 24px; padding-right: 24px; } .brief-chart-section { padding-left: 24px; padding-right: 24px; } .brief-made-by { font-size: 18px; } .brief-opening { padding-top: 64px; } .machine-stamp { padding: 14px 20px; } }
+</style>
+
+<script>
+(function() {
+  let briefTriggered = false;
+  function startBriefTransition() {
+    if (briefTriggered) return;
+    if (!document.body.classList.contains('mode-oppo')) return;
+    briefTriggered = true;
+    const body = document.body;
+    body.style.transition = 'filter 2.5s ease-in';
+    body.style.filter = 'saturate(0) brightness(0.3)';
+    setTimeout(() => {
+      const hed = document.querySelector('.oppo-content h1') || document.querySelector('.oppo-content h2');
+      if (hed) { const orig = hed.textContent; const chars = '█▓▒░■□0123456789'; let n = 0; const si = setInterval(() => { n++; hed.textContent = Array.from(orig).map(c => c === ' ' ? ' ' : chars[Math.floor(Math.random() * chars.length)]).join(''); if (n > 40) { clearInterval(si); hed.textContent = orig; } }, 40); }
+    }, 1200);
+    setTimeout(() => {
+      body.style.transition = ''; body.style.filter = ''; body.classList.add('glitching');
+      setTimeout(() => { body.classList.remove('glitching'); body.classList.add('mode-brief'); window.scrollTo({ top: 0, behavior: 'instant' }); }, 1500);
+    }, 2500);
+  }
+  const sentinel = document.getElementById('brief-sentinel');
+  if (sentinel && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => { entries.forEach(e => { if (e.isIntersecting) { io.disconnect(); setTimeout(startBriefTransition, 1200); } }); }, { threshold: 0.5 });
+    io.observe(sentinel);
+  }
+  const flipBtn = document.getElementById('flip-btn');
+  if (flipBtn) { flipBtn.addEventListener('click', () => { if (document.body.classList.contains('mode-oppo')) briefTriggered = false; }); }
+})();
+document.addEventListener('click', (e) => {
+  if (e.target && e.target.id === 'exit-brief-btn') {
+    const body = document.body; body.style.opacity = '0'; body.style.transition = 'opacity 0.3s';
+    setTimeout(() => { body.classList.remove('mode-brief'); body.classList.add('mode-oppo'); window.scrollTo({ top: 0, behavior: 'instant' }); body.style.opacity = '1'; }, 300);
+  }
+});
+</script>
+
+</body>
+</html>

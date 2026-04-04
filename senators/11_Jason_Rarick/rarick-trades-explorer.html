@@ -1,0 +1,2334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minnesota Skilled Trades Career Pathway Explorer — SD-11</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Full-width top-bar + narrow dark sidebar (200px) + scrollable main content — asymmetric 200/remainder split, sidebar distinctly dark #1C1C1C vs main warm off-white #F5F2ED, creating two visually different environments.
+   2. Navigation: Vertical sidebar list — text links stacked in a dark panel with iron-ore red active indicator bar on the left edge of each link (top-border style), NOT rounded-top tabs.
+   3. Typography: 'Arial Narrow', Arial condensed for headers — all-caps generous letter-spacing on section labels; body text Georgia serif 16px for an official-publication feel; data values in monospace for technical precision.
+   4. Hero moment: Full-bleed #8B1A1A iron-ore red header spanning the full viewport with reversed white type at 42px — and a stat ticker row beneath it showing three key numbers at 36px monospace font on a #2C5F2E spruce-green background.
+   5. Color commitment: Stat ticker row uses full spruce-green background (#2C5F2E); Module 3 timeline uses full iron-ore red node circles and a dark #1A2A1A section background; earnings calculator panel uses slate-blue (#4A6FA5) header strip; sidebar is full #1C1C1C near-black; readiness gauge uses spruce green fill.
+   Additional: Licensing pathway rendered as a vertical stepper with numbered circles rather than left-border cards; earnings outputs displayed as large standalone monospace numbers, not result-card grid; no emoji used anywhere.
+*/
+
+/* ─── RESET & BASE ─── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --red:    #8B1A1A;
+  --red-dk: #6B1414;
+  --red-lt: #B52020;
+  --green:  #2C5F2E;
+  --green-lt: #3A7D3C;
+  --blue:   #4A6FA5;
+  --blue-lt:#5A82BC;
+  --bg:     #F5F2ED;
+  --surface:#EDEAE4;
+  --text:   #1C1C1C;
+  --muted:  #5A5A5A;
+  --success:#2D6A4F;
+  --amber:  #B5770D;
+  --border: #C8C4BC;
+  --sidebar-w: 200px;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 16px;
+  color: var(--text);
+  background: var(--bg);
+  line-height: 1.5;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── SITE HEADER ─── */
+.site-header {
+  background: var(--red);
+  color: #fff;
+  padding: 28px 32px 20px;
+  position: relative;
+}
+.site-header h1 {
+  font-family: 'Arial Narrow', 'Arial', sans-serif;
+  font-size: 42px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+  text-transform: uppercase;
+  color: #fff;
+}
+.site-header .subtitle {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 15px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.75);
+  margin-top: 6px;
+}
+.mission-banner {
+  margin-top: 18px;
+  padding: 14px 20px;
+  background: rgba(0,0,0,0.25);
+  border-top: 3px solid rgba(255,255,255,0.3);
+  font-family: Georgia, serif;
+  font-size: 14px;
+  color: rgba(255,255,255,0.9);
+  line-height: 1.6;
+  max-width: 860px;
+}
+
+/* ─── STAT TICKER ─── */
+.stat-ticker {
+  background: var(--green);
+  display: flex;
+  align-items: stretch;
+  border-bottom: 3px solid var(--red-dk);
+}
+.stat-item {
+  flex: 1;
+  padding: 18px 24px;
+  text-align: center;
+  border-right: 1px solid rgba(255,255,255,0.15);
+}
+.stat-item:last-child { border-right: none; }
+.stat-num {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 36px;
+  font-weight: 700;
+  color: #fff;
+  display: block;
+  line-height: 1;
+}
+.stat-label {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.75);
+  margin-top: 4px;
+  display: block;
+}
+
+/* ─── BODY LAYOUT: sidebar + main ─── */
+.body-wrap {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ─── SIDEBAR ─── */
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  background: #1C1C1C;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+.sidebar-label {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 10px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: #888;
+  padding: 20px 16px 8px;
+  border-bottom: 1px solid #333;
+}
+.nav-link {
+  display: block;
+  padding: 16px 16px 16px 20px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #aaa;
+  text-decoration: none;
+  border-left: 4px solid transparent;
+  border-bottom: 1px solid #2a2a2a;
+  cursor: pointer;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.nav-link:hover {
+  background: #2a2a2a;
+  color: #ddd;
+  border-left-color: var(--border);
+}
+.nav-link.active {
+  background: #2a2a2a;
+  color: #fff;
+  border-left-color: var(--red);
+}
+.sidebar-footer {
+  margin-top: auto;
+  padding: 16px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #555;
+  border-top: 1px solid #2a2a2a;
+  line-height: 1.6;
+}
+
+/* ─── MAIN CONTENT ─── */
+.main-content {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.module-panel {
+  display: none;
+  flex: 1;
+}
+.module-panel.active {
+  display: block;
+}
+
+/* ─── MODULE 1: TRADE EXPLORER ─── */
+.module-header {
+  background: var(--red);
+  padding: 20px 32px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.module-header h2 {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #fff;
+}
+.module-header .mod-num {
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  color: rgba(255,255,255,0.55);
+  background: rgba(0,0,0,0.25);
+  padding: 3px 8px;
+  letter-spacing: 1px;
+}
+
+.trade-select-bar {
+  background: var(--surface);
+  padding: 16px 32px;
+  border-bottom: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.trade-select-bar label {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--muted);
+}
+.trade-select-bar select {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 10px 16px;
+  border: 2px solid var(--red);
+  background: #fff;
+  color: var(--text);
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238B1A1A' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+  min-width: 280px;
+}
+.trade-select-bar select:focus {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+/* ─── TRADE PROFILE ─── */
+.trade-profile {
+  padding: 28px 32px;
+}
+.trade-profile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+.profile-section {
+  background: #fff;
+  padding: 24px;
+  border-top: 4px solid var(--blue);
+}
+.profile-section.full-width {
+  grid-column: 1 / -1;
+}
+.section-eyebrow {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--blue);
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.section-title {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 18px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+.trade-desc {
+  font-family: Georgia, serif;
+  font-size: 15px;
+  color: var(--text);
+  line-height: 1.65;
+}
+
+/* ─── LICENSING STEPPER ─── */
+.stepper {
+  list-style: none;
+  position: relative;
+  padding-left: 0;
+}
+.stepper::before {
+  content: '';
+  position: absolute;
+  left: 18px;
+  top: 28px;
+  bottom: 28px;
+  width: 2px;
+  background: var(--border);
+}
+.step-item {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  position: relative;
+}
+.step-num {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--red);
+  color: #fff;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+}
+.step-body {
+  flex: 1;
+  padding-top: 4px;
+}
+.step-name {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 15px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.step-detail {
+  font-family: Georgia, serif;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+.step-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+.step-tag {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+.step-tag.admin { background: rgba(74,111,165,0.1); border-color: var(--blue); color: var(--blue); }
+.step-tag.time  { background: rgba(44,95,46,0.1);  border-color: var(--green); color: var(--green); }
+
+/* ─── EARNINGS CALCULATOR ─── */
+.calc-panel {
+  background: #fff;
+  border-top: 4px solid var(--blue);
+  grid-column: 1 / -1;
+}
+.calc-header {
+  background: var(--blue);
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.calc-header h3 {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #fff;
+}
+.calc-body {
+  padding: 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+}
+.calc-inputs { }
+.calc-outputs { }
+.input-group {
+  margin-bottom: 20px;
+}
+.input-group label {
+  display: block;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.input-group select,
+.input-group input[type="range"] {
+  width: 100%;
+}
+.input-group select {
+  font-family: Georgia, serif;
+  font-size: 14px;
+  padding: 10px 12px;
+  border: 2px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234A6FA5' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 32px;
+  cursor: pointer;
+}
+.input-group select:focus {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+  border-color: var(--blue);
+}
+.range-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.range-val {
+  font-family: 'Courier New', monospace;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+}
+input[type="range"] {
+  appearance: none;
+  -webkit-appearance: none;
+  height: 6px;
+  background: var(--surface);
+  border-radius: 3px;
+  outline: none;
+  border: 1px solid var(--border);
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--red);
+  cursor: pointer;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px var(--red);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--red);
+  cursor: pointer;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px var(--red);
+}
+
+/* output numbers */
+.output-row {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--surface);
+}
+.output-row:last-child { border-bottom: none; margin-bottom: 0; }
+.output-label {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.output-val {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.1;
+}
+.output-val.big { font-size: 36px; }
+.output-val.green { color: var(--success); }
+.output-val.amber { color: var(--amber); }
+.output-sub {
+  font-family: Georgia, serif;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+
+.debt-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.debt-box {
+  padding: 12px;
+  background: var(--surface);
+  text-align: center;
+}
+.debt-box .debt-label {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.debt-box .debt-num {
+  font-family: 'Courier New', monospace;
+  font-size: 22px;
+  font-weight: 700;
+}
+.debt-box.green-box .debt-num { color: var(--success); }
+.debt-box.amber-box .debt-num { color: var(--amber); }
+
+.chart-container {
+  margin-top: 16px;
+  height: 200px;
+  position: relative;
+}
+.chart-disclaimer {
+  font-family: Georgia, serif;
+  font-style: italic;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  line-height: 1.5;
+}
+
+/* ─── TRAINING PROGRAMS ─── */
+.programs-section {
+  background: var(--green);
+  padding: 24px 32px;
+}
+.programs-section h3 {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 14px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.75);
+  margin-bottom: 16px;
+}
+.program-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+.program-card {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  padding: 16px;
+}
+.program-name {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #fff;
+  margin-bottom: 4px;
+}
+.program-loc {
+  font-family: Georgia, serif;
+  font-size: 12px;
+  color: rgba(255,255,255,0.7);
+  margin-bottom: 8px;
+}
+.program-note {
+  font-family: Georgia, serif;
+  font-size: 12px;
+  color: rgba(255,255,255,0.85);
+  line-height: 1.5;
+}
+.program-card.highlight-card {
+  border-color: rgba(255,255,255,0.5);
+  background: rgba(255,255,255,0.14);
+}
+
+/* ─── WHY TRADES CALLOUT ─── */
+.trades-why {
+  background: var(--surface);
+  padding: 16px 32px;
+  border-top: 1px solid var(--border);
+}
+.trades-why p {
+  font-family: Georgia, serif;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+/* ─── MODULE 2: TRACKER ─── */
+.tracker-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 0;
+  min-height: calc(100vh - 200px);
+}
+.tracker-main {
+  padding: 28px 32px;
+  border-right: 2px solid var(--border);
+}
+.tracker-sidebar {
+  padding: 28px 24px;
+  background: var(--surface);
+}
+
+.tracker-select-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid var(--border);
+}
+.tracker-select-row label {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.tracker-select-row select {
+  font-family: Georgia, serif;
+  font-size: 14px;
+  padding: 10px 32px 10px 12px;
+  border: 2px solid var(--border);
+  background: #fff;
+  color: var(--text);
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234A6FA5' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  flex: 1;
+  min-width: 200px;
+  cursor: pointer;
+}
+.tracker-select-row select:focus {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+  border-color: var(--blue);
+}
+
+/* checklist */
+.checklist-title {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 14px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 900;
+  color: var(--text);
+  margin-bottom: 16px;
+}
+.checklist {
+  list-style: none;
+  margin-bottom: 28px;
+}
+.checklist li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--surface);
+  cursor: pointer;
+}
+.checklist li:first-child { border-top: 1px solid var(--surface); }
+.checklist li input[type="checkbox"] {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  accent-color: var(--green);
+  cursor: pointer;
+}
+.checklist li .check-text {
+  font-family: Georgia, serif;
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.5;
+  flex: 1;
+}
+.checklist li .check-text .check-note {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  font-style: italic;
+  margin-top: 2px;
+}
+.checklist li.checked .check-text {
+  color: var(--muted);
+  text-decoration: line-through;
+  text-decoration-color: var(--success);
+}
+
+/* readiness gauge */
+.gauge-wrap {
+  text-align: center;
+  margin-bottom: 28px;
+  padding-bottom: 24px;
+  border-bottom: 2px solid var(--border);
+}
+.gauge-title {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 11px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 16px;
+  font-weight: 700;
+}
+.gauge-outer {
+  width: 160px;
+  height: 80px;
+  margin: 0 auto 12px;
+  position: relative;
+  overflow: hidden;
+}
+.gauge-track {
+  position: absolute;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: conic-gradient(var(--border) 0deg 180deg, transparent 180deg);
+  top: 0;
+  left: 0;
+}
+.gauge-fill {
+  position: absolute;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: conic-gradient(var(--green) 0deg var(--gauge-angle, 0deg), transparent var(--gauge-angle, 0deg));
+  top: 0;
+  left: 0;
+  transition: --gauge-angle 0.4s ease;
+}
+.gauge-mask {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  background: var(--surface);
+  border-radius: 50%;
+  top: 30px;
+  left: 30px;
+}
+.gauge-pct {
+  position: absolute;
+  bottom: 4px;
+  left: 0;
+  right: 0;
+  font-family: 'Courier New', monospace;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  text-align: center;
+}
+.gauge-status {
+  font-family: Georgia, serif;
+  font-size: 13px;
+  font-weight: 700;
+  margin-top: 8px;
+  padding: 6px 12px;
+  display: inline-block;
+}
+.gauge-status.not-ready { background: rgba(181,119,13,0.15); color: var(--amber); }
+.gauge-status.getting-close { background: rgba(74,111,165,0.15); color: var(--blue); }
+.gauge-status.app-ready { background: rgba(44,95,46,0.15); color: var(--green); }
+
+/* application calendar */
+.cal-title {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 11px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 14px;
+  font-weight: 700;
+}
+.cal-program {
+  margin-bottom: 16px;
+  padding: 14px;
+  background: #fff;
+  border-top: 3px solid var(--blue);
+}
+.cal-prog-name {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+.cal-window {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  color: var(--red);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.cal-detail {
+  font-family: Georgia, serif;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.cal-detail a {
+  color: var(--blue);
+  text-decoration: none;
+}
+.cal-detail a:hover { text-decoration: underline; }
+
+/* prep tips accordion */
+.prep-section {
+  padding: 28px 32px 36px;
+  background: #fff;
+  border-top: 2px solid var(--border);
+}
+.prep-section h3 {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 14px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 900;
+  color: var(--text);
+  margin-bottom: 16px;
+}
+.accordion-item {
+  border-bottom: 1px solid var(--border);
+}
+.accordion-trigger {
+  width: 100%;
+  text-align: left;
+  padding: 16px 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-family: Georgia, serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+.accordion-trigger:hover { color: var(--red); }
+.accordion-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: monospace;
+  font-size: 14px;
+  color: var(--muted);
+  transition: transform 0.2s, background 0.2s;
+}
+.accordion-trigger[aria-expanded="true"] .accordion-icon {
+  transform: rotate(45deg);
+  background: var(--red);
+  color: #fff;
+  border-color: var(--red);
+}
+.accordion-body {
+  display: none;
+  padding: 0 0 20px 4px;
+  font-family: Georgia, serif;
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.7;
+}
+.accordion-body.open { display: block; }
+.accordion-body a { color: var(--blue); }
+
+/* ─── MODULE 3: THE PATHWAY ─── */
+.pathway-hero {
+  background: #1A2A1A;
+  padding: 32px 40px 24px;
+  border-bottom: 4px solid var(--red);
+}
+.pathway-hero h2 {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 32px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #fff;
+  margin-bottom: 6px;
+}
+.pathway-hero .hero-sub {
+  font-family: Georgia, serif;
+  font-size: 15px;
+  color: rgba(255,255,255,0.7);
+  max-width: 600px;
+  line-height: 1.6;
+}
+
+.timeline-controls {
+  background: #1A2A1A;
+  padding: 0 40px 20px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.tl-btn {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #fff;
+  padding: 10px 20px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.tl-btn:hover { background: rgba(255,255,255,0.2); }
+.tl-btn:focus { outline: 2px solid var(--blue); outline-offset: 2px; }
+.tl-pos {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  color: rgba(255,255,255,0.5);
+  margin-left: auto;
+}
+
+.timeline-track-wrap {
+  background: #1A2A1A;
+  padding: 0 40px 40px;
+  overflow: hidden;
+}
+.timeline-track {
+  display: flex;
+  gap: 0;
+  transition: transform 0.35s ease;
+}
+.tl-card {
+  flex-shrink: 0;
+  width: 280px;
+  margin-right: 20px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-top: 4px solid var(--red);
+  padding: 20px;
+  position: relative;
+}
+.tl-year {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 34px;
+  font-weight: 700;
+  color: var(--red-lt);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.tl-type {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--green-lt);
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.tl-event {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 15px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: #fff;
+  margin-bottom: 10px;
+  line-height: 1.3;
+}
+.tl-text {
+  font-family: Georgia, serif;
+  font-size: 13px;
+  color: rgba(255,255,255,0.75);
+  line-height: 1.6;
+}
+.tl-connector {
+  position: absolute;
+  right: -21px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 22px;
+  height: 2px;
+  background: var(--border);
+  z-index: 1;
+}
+
+/* pathway callout */
+.pathway-callout {
+  margin: 32px 40px;
+  padding: 28px 32px;
+  border: 3px solid var(--red);
+  background: #fff;
+  position: relative;
+}
+.pathway-callout::before {
+  content: '"';
+  position: absolute;
+  top: -10px;
+  left: 24px;
+  font-family: Georgia, serif;
+  font-size: 80px;
+  color: var(--red);
+  line-height: 1;
+  background: #fff;
+  padding: 0 4px;
+}
+.pathway-callout p {
+  font-family: Georgia, serif;
+  font-size: 15px;
+  color: var(--text);
+  line-height: 1.75;
+  padding-top: 12px;
+}
+
+/* about tooltip */
+.about-strip {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 20px 40px;
+  font-family: Georgia, serif;
+  font-size: 13px;
+  font-style: italic;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+/* ─── FOOTER ─── */
+footer {
+  background: var(--red-dk);
+  color: rgba(255,255,255,0.75);
+  padding: 20px 32px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  line-height: 1.7;
+}
+footer strong { color: #fff; }
+
+/* ─── MOBILE RESPONSIVE ─── */
+@media (max-width: 768px) {
+  .body-wrap { flex-direction: column; }
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+    flex-direction: row;
+    flex-wrap: wrap;
+    overflow-x: auto;
+  }
+  .sidebar-label, .sidebar-footer { display: none; }
+  .nav-link {
+    border-left: none;
+    border-bottom: 3px solid transparent;
+    padding: 14px 16px;
+    font-size: 12px;
+  }
+  .nav-link.active { border-bottom-color: var(--red); border-left: none; }
+  .site-header h1 { font-size: 28px; }
+  .stat-ticker { flex-direction: column; }
+  .stat-item { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.15); }
+  .trade-profile-grid { grid-template-columns: 1fr; }
+  .calc-body { grid-template-columns: 1fr; }
+  .tracker-layout { grid-template-columns: 1fr; }
+  .tracker-sidebar { border-top: 2px solid var(--border); }
+  .timeline-track-wrap { padding: 0 20px 32px; }
+  .timeline-controls { padding: 0 20px 16px; }
+  .tl-card { width: 240px; }
+  .pathway-callout { margin: 20px; padding: 20px; }
+  .about-strip { padding: 16px 20px; }
+  .trade-select-bar { padding: 12px 16px; }
+  .trade-profile { padding: 20px 16px; }
+  .programs-section { padding: 20px 16px; }
+  .tracker-main, .tracker-sidebar { padding: 20px 16px; }
+  .pathway-hero { padding: 24px 20px 16px; }
+}
+
+/* ─── PRINT ─── */
+@media print {
+  .sidebar, .tl-btn, .trade-select-bar, .tracker-select-row,
+  .accordion-trigger, .timeline-controls { display: none !important; }
+  .module-panel { display: block !important; }
+  .body-wrap { display: block; }
+  .main-content { overflow: visible; }
+  .timeline-track { flex-wrap: wrap; transform: none !important; }
+  .tl-card { page-break-inside: avoid; width: 45%; margin: 8px; }
+  footer { background: #fff; color: #000; border-top: 1px solid #000; }
+  .site-header { background: #fff; color: #000; }
+  .site-header h1, .site-header .subtitle { color: #000; }
+  .stat-ticker, .module-header, .programs-section { background: #f0f0f0; }
+  .stat-num, .stat-label { color: #000; }
+}
+
+@property --gauge-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+</style>
+</head>
+<body>
+
+<!-- SITE HEADER -->
+<header class="site-header">
+  <h1>Minnesota Skilled Trades<br>Career Pathway Explorer</h1>
+  <p class="subtitle">Senate District 11 &bull; East-Central Minnesota &bull; Find Your Trade, Build Your Future</p>
+  <div class="mission-banner">
+    Minnesota's skilled trades — electrical, plumbing, HVAC, welding, heavy equipment — offer starting wages
+    competitive with four-year degrees, no student debt, and lifetime job security in industries that cannot
+    be outsourced. This tool helps students and career-changers in east-central Minnesota understand the path in.
+  </div>
+</header>
+
+<!-- STAT TICKER -->
+<div class="stat-ticker" role="complementary" aria-label="Key statistics">
+  <div class="stat-item">
+    <span class="stat-num">+10%</span>
+    <span class="stat-label">Projected growth, MN electricians</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-num">$0</span>
+    <span class="stat-label">Student debt — trades path</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-num">$52K</span>
+    <span class="stat-label">4-yr degree median start salary, MN</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-num">5 yr</span>
+    <span class="stat-label">To journeyworker — electrical</span>
+  </div>
+</div>
+
+<!-- BODY LAYOUT -->
+<div class="body-wrap">
+
+  <!-- SIDEBAR NAV -->
+  <nav class="sidebar" role="navigation" aria-label="Main navigation">
+    <div class="sidebar-label">Modules</div>
+    <button class="nav-link active" data-module="mod1" aria-pressed="true">Explore<br>Trades</button>
+    <button class="nav-link" data-module="mod2" aria-pressed="false">Apprenticeship<br>Tracker</button>
+    <button class="nav-link" data-module="mod3" aria-pressed="false">The<br>Pathway</button>
+    <div class="sidebar-footer">
+      Data: MN Dept. of Labor &amp; Industry<br>
+      MN DEED Wage Data, 2024–25<br>
+      CareerOneStop 2024
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content" role="main">
+
+    <!-- ============================================================
+         MODULE 1: TRADE EXPLORER
+         ============================================================ -->
+    <section class="module-panel active" id="mod1" aria-label="Explore Trades">
+
+      <div class="module-header">
+        <span class="mod-num">MOD 01</span>
+        <h2>Trade Explorer &amp; Earnings Calculator</h2>
+      </div>
+
+      <div class="trade-select-bar">
+        <label for="trade-select">Select a trade:</label>
+        <select id="trade-select" aria-label="Select a skilled trade to explore">
+          <option value="electrician">Electrician (Inside Wireman — IBEW)</option>
+          <option value="plumber">Plumber</option>
+          <option value="hvac">HVAC / Sheet Metal Technician</option>
+          <option value="const-elec">Construction Electrician (Limited Energy)</option>
+          <option value="pipefitter">Pipefitter / Steamfitter</option>
+          <option value="carpenter">Carpenter (Union / Non-union)</option>
+          <option value="welder">Welder / Industrial Maintenance Tech</option>
+          <option value="heavy-eq">Heavy Equipment Operator</option>
+        </select>
+      </div>
+
+      <div class="trade-profile">
+        <div class="trade-profile-grid">
+
+          <!-- WHAT YOU DO -->
+          <div class="profile-section" id="trade-desc-panel">
+            <div class="section-eyebrow">What You Do</div>
+            <div class="section-title" id="trade-title">Electrician</div>
+            <p class="trade-desc" id="trade-desc">Loading...</p>
+          </div>
+
+          <!-- TRAINING PROGRAMS (right column) -->
+          <div class="profile-section" id="trade-programs-panel">
+            <div class="section-eyebrow">Training Programs Near SD-11</div>
+            <div class="section-title">Where to Start</div>
+            <div id="trade-programs-list"></div>
+          </div>
+
+          <!-- LICENSING PATHWAY (full width) -->
+          <div class="profile-section full-width" id="licensing-panel">
+            <div class="section-eyebrow">Minnesota Licensing Pathway</div>
+            <div class="section-title" id="licensing-title">Step-by-Step</div>
+            <ul class="stepper" id="licensing-steps"></ul>
+          </div>
+
+          <!-- EARNINGS CALCULATOR (full width) -->
+          <div class="calc-panel full-width profile-section" id="earnings-panel" style="padding:0; border-top: 4px solid var(--blue);">
+            <div class="calc-header">
+              <span class="mod-num" style="color:rgba(255,255,255,0.6); font-size:11px;">TOOL</span>
+              <h3>Earnings Calculator</h3>
+            </div>
+            <div class="calc-body">
+              <!-- INPUTS -->
+              <div class="calc-inputs">
+                <div class="input-group">
+                  <label for="career-stage">Career Stage</label>
+                  <select id="career-stage">
+                    <option value="app1">Apprentice — Year 1</option>
+                    <option value="app2">Apprentice — Year 2</option>
+                    <option value="app3">Apprentice — Year 3</option>
+                    <option value="app4">Apprentice — Year 4</option>
+                    <option value="app5">Apprentice — Year 5</option>
+                    <option value="journey">Journeyworker</option>
+                    <option value="master">Master / Contractor</option>
+                  </select>
+                </div>
+                <div class="input-group">
+                  <label for="work-setting">Work Setting</label>
+                  <select id="work-setting">
+                    <option value="union">Union (IBEW scale)</option>
+                    <option value="nonunion">Non-union</option>
+                    <option value="self">Self-employed</option>
+                  </select>
+                </div>
+                <div class="input-group">
+                  <label for="hours-slider">Hours per Year: <span id="hours-display">1,900</span></label>
+                  <div class="range-wrap">
+                    <input type="range" id="hours-slider" min="1200" max="2500" value="1900" step="50"
+                           aria-label="Hours worked per year">
+                  </div>
+                  <div style="display:flex; justify-content:space-between; margin-top:4px;">
+                    <span style="font-family:'Arial Narrow',Arial,sans-serif; font-size:10px; color:var(--muted); letter-spacing:1px;">1,200 HRS</span>
+                    <span style="font-family:'Arial Narrow',Arial,sans-serif; font-size:10px; color:var(--muted); letter-spacing:1px;">2,500 HRS</span>
+                  </div>
+                </div>
+                <p class="chart-disclaimer" style="margin-top:8px;">
+                  Estimated ranges based on Minnesota wage data (DEED / IBEW scales). Actual wages vary
+                  by employer, location, and market conditions.
+                </p>
+              </div>
+              <!-- OUTPUTS -->
+              <div class="calc-outputs">
+                <div class="output-row">
+                  <div class="output-label">Estimated Hourly Range</div>
+                  <div class="output-val big" id="out-hourly">—</div>
+                </div>
+                <div class="output-row">
+                  <div class="output-label">Annual Gross Income</div>
+                  <div class="output-val big green" id="out-annual">—</div>
+                  <div class="output-sub" id="out-vs-college"></div>
+                </div>
+                <div class="debt-row">
+                  <div class="debt-box green-box">
+                    <div class="debt-label">Trade Path Debt</div>
+                    <div class="debt-num">$0–$3K</div>
+                    <div style="font-family:Georgia,serif; font-size:11px; color:var(--success); margin-top:3px;">tools &amp; fees</div>
+                  </div>
+                  <div class="debt-box amber-box">
+                    <div class="debt-label">4-yr College Debt</div>
+                    <div class="debt-num">~$31K</div>
+                    <div style="font-family:Georgia,serif; font-size:11px; color:var(--amber); margin-top:3px;">MN avg. approx.</div>
+                  </div>
+                </div>
+                <div class="output-label">5-Year Cumulative Net Advantage</div>
+                <div class="output-val" id="out-5year">—</div>
+                <div class="output-sub" id="out-5year-sub"></div>
+                <div class="chart-container">
+                  <canvas id="earningsChart" aria-label="5-year earnings comparison chart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /trade-profile-grid -->
+      </div><!-- /trade-profile -->
+
+      <!-- TRAINING PROGRAMS FULL ROW -->
+      <div class="programs-section">
+        <h3>Training Programs Serving Senate District 11</h3>
+        <div class="program-list">
+          <div class="program-card highlight-card">
+            <div class="program-name">Pine Technical &amp; Community College</div>
+            <div class="program-loc">Pine City, MN — Heart of SD-11</div>
+            <div class="program-note">Electrical Technology, Welding, Industrial Maintenance. The district's own institution — no commute to the Twin Cities required. Rolling admissions. Visit <strong>pine.edu</strong></div>
+          </div>
+          <div class="program-card">
+            <div class="program-name">IBEW Local 110 JATC</div>
+            <div class="program-loc">St. Paul, MN</div>
+            <div class="program-note">Union apprenticeship serving Pine/Chisago/Washington county areas. 5-year inside wireman program. Applications open periodically — competitive admission.</div>
+          </div>
+          <div class="program-card">
+            <div class="program-name">IBEW Local 242 JATC</div>
+            <div class="program-loc">Duluth, MN</div>
+            <div class="program-note">Serves Carlton and St. Louis county portions of SD-11. Spring applications; visit <strong>jatc242.org</strong> for current windows.</div>
+          </div>
+          <div class="program-card">
+            <div class="program-name">ABC Minnesota</div>
+            <div class="program-loc">Statewide</div>
+            <div class="program-note">Associated Builders and Contractors — non-union apprenticeship path for multiple trades. Rolling admissions. Visit <strong>abc.org/minnesota</strong></div>
+          </div>
+          <div class="program-card">
+            <div class="program-name">Reentry Vocational Training</div>
+            <div class="program-loc">Moose Lake Correctional Facility</div>
+            <div class="program-note">Vocational trades training for returning citizens in the region. Contact the facility or MN DOC for current program availability.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WHY TRADES MATTER NOTE -->
+      <div class="trades-why">
+        <p>State infrastructure investment — like the $7 million in bonding sought for Pine City's wastewater system — creates direct demand for local licensed electricians, pipefitters, and construction workers.
+        When public projects move forward, the trades that built the region's infrastructure are the ones that maintain and expand it.
+        &bull; Electricians: approximately 10% job growth projected in Minnesota (CareerOneStop 2024 data; contact MN DEED for current projections).</p>
+      </div>
+
+    </section>
+    <!-- END MODULE 1 -->
+
+    <!-- ============================================================
+         MODULE 2: APPRENTICESHIP TRACKER
+         ============================================================ -->
+    <section class="module-panel" id="mod2" aria-label="Apprenticeship Tracker">
+
+      <div class="module-header">
+        <span class="mod-num">MOD 02</span>
+        <h2>Apprenticeship Application Tracker</h2>
+      </div>
+
+      <div class="tracker-layout">
+        <div class="tracker-main">
+          <div class="tracker-select-row">
+            <label for="tracker-trade">Target trade:</label>
+            <select id="tracker-trade" aria-label="Select your target trade">
+              <option value="electrician">Electrician</option>
+              <option value="plumber">Plumber</option>
+              <option value="hvac">HVAC / Sheet Metal</option>
+              <option value="carpenter">Carpenter</option>
+              <option value="pipefitter">Pipefitter</option>
+              <option value="welder">Welder</option>
+              <option value="heavy-eq">Heavy Equipment Operator</option>
+            </select>
+          </div>
+
+          <div class="checklist-title">Eligibility Checklist — Am I Ready?</div>
+          <ul class="checklist" id="readiness-checklist">
+            <li data-idx="0">
+              <input type="checkbox" id="chk0" aria-label="18 years old requirement">
+              <label for="chk0" class="check-text">I am at least 18 years old (or will be before program start)</label>
+            </li>
+            <li data-idx="1">
+              <input type="checkbox" id="chk1" aria-label="High school diploma requirement">
+              <label for="chk1" class="check-text">I have a high school diploma or GED</label>
+            </li>
+            <li data-idx="2">
+              <input type="checkbox" id="chk2" aria-label="Driver's license requirement">
+              <label for="chk2" class="check-text">I have a valid Minnesota driver's license</label>
+            </li>
+            <li data-idx="3">
+              <input type="checkbox" id="chk3" aria-label="Algebra requirement">
+              <label for="chk3" class="check-text">I have completed or am enrolled in an algebra course</label>
+            </li>
+            <li data-idx="4">
+              <input type="checkbox" id="chk4" aria-label="Physical fitness requirement">
+              <label for="chk4" class="check-text">I have a physical confirming I can meet the work requirements</label>
+            </li>
+            <li data-idx="5">
+              <input type="checkbox" id="chk5" aria-label="Felony record requirement">
+              <label for="chk5" class="check-text">
+                I do not have a felony record that would disqualify me from licensure
+                <span class="check-note">Each program has its own policies; contact the JATC directly to discuss your situation.</span>
+              </label>
+            </li>
+            <li data-idx="6">
+              <input type="checkbox" id="chk6" aria-label="References requirement">
+              <label for="chk6" class="check-text">I have gathered two references (personal or professional)</label>
+            </li>
+          </ul>
+
+        </div><!-- /tracker-main -->
+
+        <div class="tracker-sidebar">
+          <!-- GAUGE -->
+          <div class="gauge-wrap">
+            <div class="gauge-title">Application Readiness</div>
+            <div class="gauge-outer" role="meter" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="Readiness gauge" id="gauge-aria">
+              <div class="gauge-track"></div>
+              <div class="gauge-fill" id="gauge-fill"></div>
+              <div class="gauge-mask"></div>
+              <div class="gauge-pct" id="gauge-pct">0%</div>
+            </div>
+            <div class="gauge-status not-ready" id="gauge-status">Not yet ready — review requirements above</div>
+          </div>
+
+          <!-- APPLICATION CALENDAR -->
+          <div class="cal-title">Application Windows</div>
+
+          <div class="cal-program">
+            <div class="cal-prog-name">IBEW Local 110 JATC</div>
+            <div class="cal-window">Jan &amp; July — check annually</div>
+            <div class="cal-detail">St. Paul. Serves Pine/Chisago/Washington areas. Bring: transcript, photo ID, two references, aptitude test results. <a href="https://www.ibew110jatc.org" target="_blank" rel="noopener">ibew110jatc.org</a></div>
+          </div>
+          <div class="cal-program">
+            <div class="cal-prog-name">IBEW Local 242 JATC</div>
+            <div class="cal-window">Spring — check jatc242.org</div>
+            <div class="cal-detail">Duluth. Serves Carlton/St. Louis county area. Bring: transcript, ID, references. <a href="https://www.jatc242.org" target="_blank" rel="noopener">jatc242.org</a></div>
+          </div>
+          <div class="cal-program">
+            <div class="cal-prog-name">Pine Technical &amp; Community College</div>
+            <div class="cal-window">Rolling admissions</div>
+            <div class="cal-detail">Pine City — contact admissions directly. Bring: transcripts or GED, ID. <a href="https://pine.edu" target="_blank" rel="noopener">pine.edu</a></div>
+          </div>
+          <div class="cal-program">
+            <div class="cal-prog-name">ABC Minnesota</div>
+            <div class="cal-window">Rolling admissions</div>
+            <div class="cal-detail">Non-union path, multiple trades. <a href="https://abc.org/minnesota" target="_blank" rel="noopener">abc.org/minnesota</a></div>
+          </div>
+
+        </div><!-- /tracker-sidebar -->
+      </div><!-- /tracker-layout -->
+
+      <!-- PREP TIPS ACCORDION -->
+      <div class="prep-section">
+        <h3>Preparation Tips</h3>
+        <div class="accordion-item">
+          <button class="accordion-trigger" aria-expanded="false" aria-controls="acc1-body">
+            Study for the math aptitude test
+            <span class="accordion-icon">+</span>
+          </button>
+          <div class="accordion-body" id="acc1-body" role="region">
+            Most apprenticeship programs require a math aptitude test covering algebra and basic arithmetic.
+            Khan Academy offers free, self-paced algebra courses at <a href="https://www.khanacademy.org/math/algebra" target="_blank" rel="noopener">khanacademy.org/math/algebra</a>.
+            Focus on solving for unknowns, working with fractions, and reading formulas — the kinds of math
+            you use to calculate voltage drop and load calculations on the job.
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" aria-expanded="false" aria-controls="acc2-body">
+            Get your work boots and PPE before day one
+            <span class="accordion-icon">+</span>
+          </button>
+          <div class="accordion-body" id="acc2-body" role="region">
+            Apprentices are expected to arrive job-site ready. Before your first day, acquire:
+            steel-toed work boots (leather, ANSI-rated), safety glasses, a hard hat (class E for electrical work),
+            work gloves, and a basic hand tool set (voltage tester, pliers, screwdrivers, wire strippers).
+            Many JATCs provide a tool list; ask during orientation. Budget $200–$400 for initial gear.
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" aria-expanded="false" aria-controls="acc3-body">
+            Talk to a journeyworker first
+            <span class="accordion-icon">+</span>
+          </button>
+          <div class="accordion-body" id="acc3-body" role="region">
+            An informational interview with a working tradesperson is the most accurate way to understand
+            day-to-day reality — what a job site actually looks like, how physical the work is, what they
+            wish they had known before applying. Contact your local union hall or ask a high school counselor
+            to connect you with a tradesperson willing to talk. Most are glad to help.
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" aria-expanded="false" aria-controls="acc4-body">
+            Consider Pine Tech's pre-apprenticeship program
+            <span class="accordion-icon">+</span>
+          </button>
+          <div class="accordion-body" id="acc4-body" role="region">
+            Pine Technical &amp; Community College in Pine City offers pre-apprenticeship electrical courses
+            through its Electrical Technology program. Completing a semester of coursework there can strengthen
+            your JATC application and give you a head start on the classroom portion of apprenticeship training.
+            It also confirms the trade is a fit before committing to a 5-year program.
+            Visit <a href="https://pine.edu" target="_blank" rel="noopener">pine.edu</a> for current course offerings.
+          </div>
+        </div>
+      </div>
+
+    </section>
+    <!-- END MODULE 2 -->
+
+    <!-- ============================================================
+         MODULE 3: THE RARICK PATHWAY
+         ============================================================ -->
+    <section class="module-panel" id="mod3" aria-label="The Rarick Pathway">
+
+      <div class="module-header" style="background: #1A2A1A;">
+        <span class="mod-num">MOD 03</span>
+        <h2>The Rarick Pathway — A Worked Example</h2>
+      </div>
+
+      <div class="pathway-hero">
+        <h2>One Path. Real Numbers. No Debt.</h2>
+        <p class="hero-sub">
+          A Pine City High School graduate enters an apprenticeship program in 1992.
+          Thirty years later he chairs the Minnesota Senate committee that sets policy for
+          the same system he came up through. This is what that path actually looked like.
+        </p>
+      </div>
+
+      <div class="timeline-controls">
+        <button class="tl-btn" id="tl-prev" aria-label="Previous milestone">&#8592; Prev</button>
+        <button class="tl-btn" id="tl-next" aria-label="Next milestone">Next &#8594;</button>
+        <span class="tl-pos" id="tl-pos">1 / 7</span>
+      </div>
+
+      <div class="timeline-track-wrap">
+        <div class="timeline-track" id="timeline-track">
+          <!-- cards injected by JS -->
+        </div>
+      </div>
+
+      <div class="pathway-callout">
+        <p>
+          This is one path. The point isn't that everyone should become a Master Electrician or a state senator.
+          The point is that a 5-year apprenticeship can be the foundation for a stable career, a business, or
+          something else entirely — without the debt. In 2025, Minnesota is projected to need thousands of
+          additional licensed electricians, plumbers, and HVAC technicians. The pipeline needs people.
+          This tool is for them.
+        </p>
+      </div>
+
+      <div class="about-strip">
+        Senator Rarick entered IBEW Local 110 as an apprentice electrician in 1992 — before he ever thought
+        about running for office. Thirty years later he chairs the committee that sets policy for the same
+        trades pipeline he came up through. This tool was built because that pipeline still needs people,
+        and the pathway is not as well-understood as it should be.
+      </div>
+
+    </section>
+    <!-- END MODULE 3 -->
+
+  </main><!-- /main-content -->
+</div><!-- /body-wrap -->
+
+<footer>
+  <strong>Built as a resource for Senate District 11 and east-central Minnesota.</strong><br>
+  Data reflects Minnesota DLI licensing requirements and wage data as of 2025.
+  Contact Pine Technical &amp; Community College (<a href="https://pine.edu" style="color:rgba(255,255,255,0.75);">pine.edu</a>) or your local JATC for current program availability.
+  Wage figures are estimated ranges; actual compensation varies by employer, location, and market conditions.
+  Source: MN Dept. of Labor and Industry, MN DEED, CareerOneStop 2024.
+</footer>
+
+<!-- ================================================================
+     JAVASCRIPT DATA + LOGIC
+     ================================================================ -->
+<script>
+'use strict';
+
+// ── TRADE DATA ──────────────────────────────────────────────────────────────
+const TRADES = {
+  electrician: {
+    title: 'Electrician (Inside Wireman — IBEW)',
+    desc: 'You pull wire, install panels, troubleshoot faults, and keep the lights on. Most of your work is commercial and industrial new construction; some is service and repair for existing buildings. Inside wireman work ranges from high-rises to manufacturing plants to data centers — wherever the electrical system is the heart of the operation.',
+    licensing: [
+      {
+        name: 'Apply to an Apprenticeship Program',
+        detail: 'Requires: age 18+, HS diploma or GED, algebra coursework, valid driver\'s license, aptitude test. Applications competitive. IBEW JATC or ABC Minnesota (non-union path).',
+        admin: 'IBEW JATC / ABC Minnesota',
+        time: 'Applications open periodically',
+        cost: 'No fee to apply (IBEW); small test fee possible'
+      },
+      {
+        name: 'Complete 5-Year Apprenticeship',
+        detail: '8,000 hours on-the-job training (paid, starting ~$18–22/hr). 1,000 hours classroom/lab instruction (144 hrs/year minimum). Wage increases each year — approximately 40% of journeyworker scale at Year 1, rising to 80–90% at Year 5.',
+        admin: 'Joint Apprenticeship Training Committee (JATC)',
+        time: '5 years',
+        cost: 'Paid throughout — no tuition'
+      },
+      {
+        name: 'Journeyworker Electrician License',
+        detail: 'Exam administered by MN Dept. of Labor and Industry. Requires completion of apprenticeship OR equivalent documented experience. License must be renewed every 2 years; continuing education required.',
+        admin: 'MN Dept. of Labor and Industry (DLI)',
+        time: 'Exam upon apprenticeship completion; renewal every 2 yrs',
+        cost: 'Exam fee + renewal fee (check DLI for current amounts)'
+      },
+      {
+        name: 'Master Electrician License (Optional/Required for permits)',
+        detail: 'Requires: 1 year as licensed journeyworker + additional written exam. With a Master\'s license you can pull permits, supervise projects, and legally operate an electrical contracting business. This is the license Jason Rarick holds.',
+        admin: 'MN Dept. of Labor and Industry (DLI)',
+        time: '1 year post-journeyworker + exam',
+        cost: 'Exam fee (check DLI for current amounts)'
+      },
+      {
+        name: 'Electrical Contractor License (to own a business)',
+        detail: 'Requires: Master Electrician license + business registration with MN Secretary of State + bond and liability insurance. This is the license that lets you operate your own electrical contracting company.',
+        admin: 'MN Dept. of Labor and Industry (DLI)',
+        time: 'Upon completion of Master license requirements',
+        cost: 'Bond, insurance, registration fees'
+      }
+    ],
+    wages: {
+      app1: { union: [20,23], nonunion: [16,20], self: [16,20] },
+      app2: { union: [23,26], nonunion: [18,22], self: [18,22] },
+      app3: { union: [26,30], nonunion: [20,25], self: [20,25] },
+      app4: { union: [29,34], nonunion: [22,28], self: [22,28] },
+      app5: { union: [33,37], nonunion: [25,32], self: [25,32] },
+      journey: { union: [42,52], nonunion: [28,38], self: [35,55] },
+      master:  { union: [55,80], nonunion: [45,65], self: [55,80] }
+    },
+    programs: [
+      { name: 'IBEW Local 110 JATC', loc: 'St. Paul — primary local for Pine County area', note: '5-year inside wireman apprenticeship. Paid from day one.' },
+      { name: 'IBEW Local 242 JATC', loc: 'Duluth — serves Carlton/St. Louis areas of SD-11', note: 'Spring applications; check jatc242.org' },
+      { name: 'Pine Tech — Electrical Technology', loc: 'Pine City (on-district)', note: 'Pre-apprenticeship and certificate programs. Rolling admissions.' },
+      { name: 'ABC Minnesota', loc: 'Statewide — non-union path', note: 'Associated Builders and Contractors open-shop apprenticeship.' }
+    ]
+  },
+  plumber: {
+    title: 'Plumber',
+    desc: 'You install and service water supply, drainage, and gas systems in residential, commercial, and industrial buildings. Plumbing is both rough-in work during construction (running pipe before walls close) and finish work (fixtures, water heaters, backflow prevention). Much of Minnesota plumbing is commercial and municipal — large buildings and infrastructure.',
+    licensing: [
+      {
+        name: 'Apply to an Apprenticeship Program',
+        detail: 'Age 18+, HS diploma or GED, algebra, physical ability to meet job demands. Minnesota Plumbing Contractors Association or UA Local union JATCs.',
+        admin: 'UA JATC / MN Plumbing Contractors Association',
+        time: 'Applications competitive; check annually',
+        cost: 'Minimal application cost'
+      },
+      {
+        name: 'Complete 5-Year Apprenticeship',
+        detail: '8,000 hours OJT + classroom instruction. Paid from day one at escalating rates. Covers pipe sizing, code, fixtures, drain/waste/vent systems, and gas.',
+        admin: 'JATC / Approved apprenticeship sponsor',
+        time: '5 years',
+        cost: 'Paid throughout'
+      },
+      {
+        name: 'Journeyworker Plumber License',
+        detail: 'Exam by MN Dept. of Labor and Industry. Requires apprenticeship completion or equivalent. Renewal every 2 years with continuing education.',
+        admin: 'MN Dept. of Labor and Industry (DLI)',
+        time: 'Upon completion + exam',
+        cost: 'Exam and renewal fees'
+      },
+      {
+        name: 'Master Plumber License',
+        detail: 'Requires: 1 year as licensed journeyworker + additional exam. Required to pull permits and supervise plumbing work.',
+        admin: 'MN Dept. of Labor and Industry (DLI)',
+        time: '1 year post-journey + exam',
+        cost: 'Exam fee'
+      }
+    ],
+    wages: {
+      app1: { union: [19,22], nonunion: [15,19], self: [15,19] },
+      app2: { union: [22,25], nonunion: [17,21], self: [17,21] },
+      app3: { union: [25,29], nonunion: [19,24], self: [19,24] },
+      app4: { union: [29,34], nonunion: [22,27], self: [22,27] },
+      app5: { union: [33,38], nonunion: [25,32], self: [25,32] },
+      journey: { union: [40,50], nonunion: [28,38], self: [35,55] },
+      master:  { union: [50,70], nonunion: [40,60], self: [50,70] }
+    },
+    programs: [
+      { name: 'UA Local 34 JATC', loc: 'Minneapolis/St. Paul area', note: 'United Association plumbing and pipefitting apprenticeships.' },
+      { name: 'Pine Tech — Contact Admissions', loc: 'Pine City (on-district)', note: 'Check with admissions for pre-apprenticeship industrial maintenance options.' },
+      { name: 'ABC Minnesota', loc: 'Statewide', note: 'Non-union plumbing apprenticeship path.' }
+    ]
+  },
+  hvac: {
+    title: 'HVAC / Sheet Metal Technician',
+    desc: 'You fabricate, install, and service heating, ventilation, air conditioning, and refrigeration systems. Sheet metal work includes cutting, bending, and installing ductwork in commercial buildings. HVAC service involves diagnosing and repairing mechanical and refrigerant systems. Both paths require EPA 608 certification to handle refrigerants.',
+    licensing: [
+      {
+        name: 'Apply to an Apprenticeship Program',
+        detail: 'Age 18+, HS diploma/GED, mechanical aptitude helpful. Sheet Metal Workers International (Local 10 or 15 in MN) or ABC Minnesota.',
+        admin: 'SMWIA JATC / ABC Minnesota',
+        time: 'Applications open periodically',
+        cost: 'Minimal'
+      },
+      {
+        name: 'Complete 5-Year Apprenticeship',
+        detail: 'Covers ductwork fabrication, system installation, controls, refrigeration. Paid from day one. EPA 608 certification usually obtained during apprenticeship.',
+        admin: 'JATC',
+        time: '5 years',
+        cost: 'Paid throughout; EPA 608 exam fee'
+      },
+      {
+        name: 'EPA 608 Certification (Refrigerants)',
+        detail: 'Federal requirement to purchase and handle refrigerants. Covers core knowledge plus Type I, II, III, or Universal certification based on system types.',
+        admin: 'EPA-approved testing organization',
+        time: 'Exam; typically obtained during apprenticeship',
+        cost: 'Exam fee (~$20–$50)'
+      },
+      {
+        name: 'Journeyworker Sheet Metal Worker License (MN)',
+        detail: 'Minnesota does not require a separate journeyworker license for all HVAC work, but contractor licensing and local permits apply. Check MN DLI for current requirements.',
+        admin: 'MN Dept. of Labor and Industry (DLI)',
+        time: 'Upon completion of apprenticeship',
+        cost: 'Varies'
+      }
+    ],
+    wages: {
+      app1: { union: [18,21], nonunion: [14,18], self: [14,18] },
+      app2: { union: [20,24], nonunion: [16,20], self: [16,20] },
+      app3: { union: [23,27], nonunion: [18,23], self: [18,23] },
+      app4: { union: [26,31], nonunion: [20,26], self: [20,26] },
+      app5: { union: [30,35], nonunion: [23,30], self: [23,30] },
+      journey: { union: [36,46], nonunion: [26,36], self: [32,48] },
+      master:  { union: [46,65], nonunion: [36,55], self: [46,65] }
+    },
+    programs: [
+      { name: 'Sheet Metal Workers Local 10', loc: 'Minneapolis area', note: '5-year union apprenticeship covering both sheet metal and HVAC.' },
+      { name: 'Pine Tech — Industrial Maintenance', loc: 'Pine City (on-district)', note: 'Foundational mechanical and HVAC coursework.' },
+      { name: 'ABC Minnesota', loc: 'Statewide', note: 'Non-union HVAC apprenticeship tracks.' }
+    ]
+  },
+  'const-elec': {
+    title: 'Construction Electrician (Limited Energy / Residential)',
+    desc: 'You install and service low-voltage and limited-energy systems — alarm systems, data cabling, audiovisual, and residential wiring. This path has a shorter licensing timeline than inside wireman work, making it an accessible entry point into the electrical trades. Residential work involves panel installation, circuit rough-in, and code compliance for single-family and multi-family homes.',
+    licensing: [
+      {
+        name: 'Limited Energy Technician Registration (MN)',
+        detail: 'For low-voltage alarm and communications work. Requires registration with MN DLI. Less intensive than full electrician licensing.',
+        admin: 'MN Dept. of Labor and Industry (DLI)',
+        time: '1–2 years experience pathway',
+        cost: 'Registration fee'
+      },
+      {
+        name: 'Residential Electrician — 2-Year Apprenticeship Path',
+        detail: 'Shorter apprenticeship than commercial/industrial inside wireman track. Focused on residential installation — panels, circuits, service entrance, and fixtures.',
+        admin: 'IBEW JATC or non-union sponsor',
+        time: '2 years + exam',
+        cost: 'Paid throughout'
+      },
+      {
+        name: 'Residential Electrician License (MN)',
+        detail: 'Requires apprenticeship or equivalent experience + MN DLI exam. Allows work on residential buildings up to a defined scope.',
+        admin: 'MN Dept. of Labor and Industry (DLI)',
+        time: 'Upon completion + exam',
+        cost: 'Exam and license fee'
+      }
+    ],
+    wages: {
+      app1: { union: [18,21], nonunion: [15,18], self: [15,18] },
+      app2: { union: [20,24], nonunion: [17,21], self: [17,21] },
+      app3: { union: [23,27], nonunion: [19,24], self: [19,24] },
+      app4: { union: [25,30], nonunion: [21,26], self: [21,26] },
+      app5: { union: [28,33], nonunion: [23,29], self: [23,29] },
+      journey: { union: [32,42], nonunion: [24,34], self: [28,44] },
+      master:  { union: [42,58], nonunion: [34,50], self: [40,60] }
+    },
+    programs: [
+      { name: 'IBEW Local 110 JATC', loc: 'St. Paul', note: 'Inside wireman and residential tracks available.' },
+      { name: 'Pine Tech — Electrical Technology', loc: 'Pine City (on-district)', note: 'Covers residential and commercial wiring fundamentals.' },
+      { name: 'ABC Minnesota', loc: 'Statewide', note: 'Residential electrician non-union path.' }
+    ]
+  },
+  pipefitter: {
+    title: 'Pipefitter / Steamfitter',
+    desc: 'You install, maintain, and repair high-pressure piping systems — steam, process piping, fire suppression, and mechanical systems in industrial plants, power facilities, and commercial buildings. Pipefitters work alongside plumbers but focus on the mechanical systems side: boilers, chillers, compressors, and process equipment. The work requires precision measurement and knowledge of thermal expansion and pressure dynamics.',
+    licensing: [
+      {
+        name: 'Apply to UA JATC Apprenticeship',
+        detail: 'United Association (UA) pipefitting apprenticeship. Age 18+, HS diploma/GED, algebra, physical ability. Competitive admission.',
+        admin: 'UA Local 455 JATC (Minneapolis/St. Paul)',
+        time: 'Applications open periodically',
+        cost: 'Application fee (check JATC)'
+      },
+      {
+        name: 'Complete 5-Year Apprenticeship',
+        detail: 'Pipefitting, welding, rigging, blueprint reading, system controls. Paid from day one. Many pipefitters also obtain welding certifications during apprenticeship.',
+        admin: 'UA JATC',
+        time: '5 years',
+        cost: 'Paid throughout'
+      },
+      {
+        name: 'Journeyworker Pipefitter / Steamfitter',
+        detail: 'Recognized journeyworker status upon apprenticeship completion. No separate MN state license required for all pipefitting work, but contractor and permit requirements apply.',
+        admin: 'UA / MN DLI for relevant permits',
+        time: 'Upon apprenticeship completion',
+        cost: 'Minimal'
+      }
+    ],
+    wages: {
+      app1: { union: [20,23], nonunion: [16,20], self: [16,20] },
+      app2: { union: [23,27], nonunion: [18,22], self: [18,22] },
+      app3: { union: [26,31], nonunion: [20,25], self: [20,25] },
+      app4: { union: [30,35], nonunion: [23,28], self: [23,28] },
+      app5: { union: [34,39], nonunion: [26,32], self: [26,32] },
+      journey: { union: [42,53], nonunion: [30,40], self: [36,55] },
+      master:  { union: [52,72], nonunion: [42,60], self: [50,70] }
+    },
+    programs: [
+      { name: 'UA Local 455 JATC', loc: 'Minneapolis/St. Paul', note: 'Primary union pipefitting apprenticeship for the region.' },
+      { name: 'Pine Tech — Industrial Maintenance', loc: 'Pine City (on-district)', note: 'Foundational mechanical systems coursework.' },
+      { name: 'ABC Minnesota', loc: 'Statewide', note: 'Non-union pipefitting track.' }
+    ]
+  },
+  carpenter: {
+    title: 'Carpenter (Union / Non-union Paths)',
+    desc: 'You frame buildings, install finish work, form concrete, and build the structural bones of everything from houses to bridges. Union carpenters through the United Brotherhood of Carpenters cover a wide range of specializations — residential framing, commercial interior systems, concrete formwork, and millwrights (industrial equipment installation). It is physically demanding, skilled work that requires spatial reasoning and precision.',
+    licensing: [
+      {
+        name: 'Apply to an Apprenticeship (Union or Non-union)',
+        detail: 'Age 18+, HS diploma/GED, valid driver\'s license. UBC (United Brotherhood of Carpenters) JATC or ABC Minnesota. Also possible to start non-union with a contractor and work toward UBC membership.',
+        admin: 'North Central States Regional Council of Carpenters / ABC MN',
+        time: 'Applications competitive; check NCSRCC',
+        cost: 'Application and initiation fees (union)'
+      },
+      {
+        name: 'Complete 4-Year Apprenticeship',
+        detail: 'Carpentry apprenticeships in Minnesota are typically 4 years (vs. 5 for electrical/plumbing). Covers framing, finish, formwork, and safety. Paid from day one.',
+        admin: 'UBC JATC',
+        time: '4 years',
+        cost: 'Paid throughout'
+      },
+      {
+        name: 'Journeyworker Carpenter',
+        detail: 'Recognized status upon completion. No separate Minnesota state license required for general carpentry, but contractors need licensure. Specialized work (e.g., boilermakers) has separate certifications.',
+        admin: 'UBC / MN Dept. of Labor',
+        time: 'Upon apprenticeship completion',
+        cost: 'Minimal'
+      }
+    ],
+    wages: {
+      app1: { union: [20,25], nonunion: [16,20], self: [16,20] },
+      app2: { union: [24,28], nonunion: [18,22], self: [18,22] },
+      app3: { union: [27,32], nonunion: [20,25], self: [20,25] },
+      app4: { union: [31,36], nonunion: [22,28], self: [22,28] },
+      app5: { union: [34,40], nonunion: [24,30], self: [24,30] },
+      journey: { union: [38,48], nonunion: [26,36], self: [32,48] },
+      master:  { union: [48,65], nonunion: [36,52], self: [44,62] }
+    },
+    programs: [
+      { name: 'North Central States Regional Council of Carpenters', loc: 'Minneapolis area', note: 'Primary union carpentry apprenticeship serving Minnesota.' },
+      { name: 'Pine Tech', loc: 'Pine City (on-district)', note: 'Contact admissions for construction-related coursework.' },
+      { name: 'ABC Minnesota', loc: 'Statewide', note: 'Non-union carpentry apprenticeship.' }
+    ]
+  },
+  welder: {
+    title: 'Welder / Industrial Maintenance Tech',
+    desc: 'You join metal using MIG, TIG, stick, and flux-core processes — on structural steel, pipe, manufacturing equipment, and industrial machinery. Industrial maintenance technicians keep manufacturing facilities running: diagnosing mechanical, hydraulic, and pneumatic systems and performing preventive and corrective maintenance. Pine County\'s manufacturing sector is a direct employer for these skills.',
+    licensing: [
+      {
+        name: 'Vocational Training or Employer Sponsorship',
+        detail: 'Welding can be entered directly through a vocational program (Pine Tech, South Central College) or employer-sponsored on-the-job training. No state license required, but AWS certifications are industry standard.',
+        admin: 'Pine Technical & Community College / employer',
+        time: '1–2 year certificate or OJT',
+        cost: 'Varies; Pine Tech tuition applies'
+      },
+      {
+        name: 'AWS Certification (D1.1 Structural / D1.6 Stainless / 6G Pipe)',
+        detail: 'American Welding Society certifications are the industry credential. D1.1 covers structural steel; 6G pipe welding is the most demanding and highest-paid. Certifications are position and process specific.',
+        admin: 'AWS-approved testing facility',
+        time: 'Ongoing — test per process and position',
+        cost: '$100–$300 per certification test'
+      },
+      {
+        name: 'Industrial Maintenance Technician Path',
+        detail: 'Pine Tech\'s Industrial Maintenance Technology program covers hydraulics, pneumatics, electrical systems, and PLC basics. Typical entry into manufacturing facilities as a maintenance tech or millwright helper.',
+        admin: 'Pine Technical & Community College',
+        time: '2-year AAS degree or 1-year diploma',
+        cost: 'Pine Tech tuition; financial aid available'
+      }
+    ],
+    wages: {
+      app1: { union: [18,22], nonunion: [16,20], self: [16,20] },
+      app2: { union: [20,24], nonunion: [18,22], self: [18,22] },
+      app3: { union: [22,26], nonunion: [20,25], self: [20,25] },
+      app4: { union: [24,29], nonunion: [22,27], self: [22,27] },
+      app5: { union: [26,32], nonunion: [24,30], self: [24,30] },
+      journey: { union: [28,40], nonunion: [26,38], self: [28,42] },
+      master:  { union: [38,55], nonunion: [32,48], self: [38,55] }
+    },
+    programs: [
+      { name: 'Pine Tech — Welding Program', loc: 'Pine City (on-district)', note: 'Welding and Industrial Maintenance Technology programs. Rolling admissions.' },
+      { name: 'South Central College', loc: 'Faribault/North Mankato', note: 'Additional welding training options in greater MN.' },
+      { name: 'ABC Minnesota', loc: 'Statewide', note: 'Industrial maintenance non-union tracks.' }
+    ]
+  },
+  'heavy-eq': {
+    title: 'Heavy Equipment Operator',
+    desc: 'You operate bulldozers, excavators, graders, scrapers, cranes, and other heavy machinery on construction sites, road projects, and mine operations. Precision matters: a good operator can grade a road bed to quarter-inch tolerance. Minnesota\'s infrastructure and construction industry is a major employer, and the region\'s road and utility projects create steady demand for skilled operators.',
+    licensing: [
+      {
+        name: 'Apply to IUOE Apprenticeship',
+        detail: 'International Union of Operating Engineers (IUOE) Local 49 is the primary union path in Minnesota. Age 18+, HS diploma/GED, valid driver\'s license, physical ability.',
+        admin: 'IUOE Local 49 — Minnesota',
+        time: 'Applications competitive; check local49.org',
+        cost: 'Application and union fees'
+      },
+      {
+        name: 'Complete 3-Year Apprenticeship',
+        detail: 'Heavy equipment operation apprenticeship covers multiple machine types: excavators, loaders, cranes, pavers. Paid from day one. Includes safety and rigging certification.',
+        admin: 'IUOE JATC',
+        time: '3 years',
+        cost: 'Paid throughout'
+      },
+      {
+        name: 'CDL Class A License (often required)',
+        detail: 'Many heavy equipment operator roles require a Commercial Driver\'s License Class A to haul equipment between sites. CDL training available through community colleges and private schools.',
+        admin: 'MN Driver and Vehicle Services',
+        time: '1–3 months training',
+        cost: '$3,000–$8,000 CDL training; or employer-sponsored'
+      },
+      {
+        name: 'Crane Operator Certification (NCCCO)',
+        detail: 'For crane operation specifically, NCCCO (National Commission for Certification of Crane Operators) certification is the industry and legal standard in most states.',
+        admin: 'NCCCO',
+        time: 'Exam upon apprenticeship/experience',
+        cost: 'Exam fee'
+      }
+    ],
+    wages: {
+      app1: { union: [22,28], nonunion: [18,24], self: [18,24] },
+      app2: { union: [26,31], nonunion: [20,26], self: [20,26] },
+      app3: { union: [30,36], nonunion: [22,28], self: [22,28] },
+      app4: { union: [33,39], nonunion: [25,32], self: [25,32] },
+      app5: { union: [36,42], nonunion: [27,35], self: [27,35] },
+      journey: { union: [38,52], nonunion: [28,40], self: [34,52] },
+      master:  { union: [50,70], nonunion: [38,55], self: [46,65] }
+    },
+    programs: [
+      { name: 'IUOE Local 49 JATC', loc: 'Minnesota — statewide', note: 'Primary union heavy equipment operator apprenticeship.' },
+      { name: 'Pine Tech — Contact Admissions', loc: 'Pine City (on-district)', note: 'Check for equipment operation or CDL-related coursework.' },
+      { name: 'ABC Minnesota', loc: 'Statewide', note: 'Non-union equipment operator tracks.' }
+    ]
+  }
+};
+
+// ── TIMELINE DATA ──────────────────────────────────────────────────────────
+const TIMELINE = [
+  {
+    year: '1992',
+    type: 'TRAINING',
+    event: 'Entered IBEW Local 110 Apprenticeship',
+    text: 'Pine City High School graduate enters a 5-year union electrical program at age 22. No college debt. Paid while learning — starting at roughly 40% of journeyworker scale on day one.'
+  },
+  {
+    year: '1992–96',
+    type: 'TRAINING',
+    event: 'Apprenticeship Years + JATC Committee',
+    text: 'Four years of on-the-job work alongside classroom training. Also served on the JATC apprenticeship committee — helping recruit and evaluate the next class of apprentices. Hands-on with the system from the inside.'
+  },
+  {
+    year: '1997',
+    type: 'CERTIFICATION',
+    event: 'Earned Master Electrician License',
+    text: 'With a Master\'s license, you can pull permits, supervise jobs, and own a contracting business. This is the credential that opens the door to independent work. Administered by MN Dept. of Labor and Industry.'
+  },
+  {
+    year: '2004',
+    type: 'BUSINESS',
+    event: 'Founded Rarick Electric',
+    text: 'Seven years after becoming a Master Electrician, opened his own electrical contracting business. The apprenticeship built the skill; the license made ownership possible. A one-man contractor can gross $80K–$120K in a working year.'
+  },
+  {
+    year: '2014',
+    type: 'LEGISLATURE',
+    event: 'Elected to Minnesota House',
+    text: 'A tradesman and small business owner runs for the legislature and wins in a district that values people who have actually worked with their hands. Brings direct industry knowledge to energy and labor policy.'
+  },
+  {
+    year: '2019',
+    type: 'LEGISLATURE',
+    event: 'Won Senate Seat — District 11',
+    text: 'Now representing Pine City, Moose Lake, Cloquet, and a wide stretch of east-central Minnesota — the same region where his trades career began. Elected in a special election for SD-11.'
+  },
+  {
+    year: '2021+',
+    type: 'COMMITTEE',
+    event: 'Chairs Labor and Industry Policy',
+    text: 'The Senate committee that sets policy for Minnesota\'s construction trades, apprenticeship programs, and contractor licensing — the exact system he came up through. Agenda: workforce training and skills programs.'
+  }
+];
+
+// ── PMT CALCULATION ────────────────────────────────────────────────────────
+function calcPMTAnnual(principal, annualRate, years) {
+  const r = annualRate / 12;
+  const n = years * 12;
+  const pmt = principal * (r * Math.pow(1+r, n)) / (Math.pow(1+r, n) - 1);
+  return pmt * 12;
+}
+const LOAN_ANNUAL = calcPMTAnnual(31000, 0.055, 10);
+
+function tradeCumulative5(tradeKey, setting) {
+  const t = TRADES[tradeKey];
+  const stages = ['app1','app2','app3','app4','app5'];
+  let total = 0;
+  stages.forEach(s => {
+    const r = t.wages[s] ? t.wages[s][setting] : t.wages['app1'][setting];
+    const mid = (r[0] + r[1]) / 2;
+    total += mid * 1900;
+  });
+  return total;
+}
+
+function collegeCumulative5() {
+  let total = 0;
+  for (let y=0; y<5; y++) {
+    const factor = 1 + y * 0.025;
+    const gross = 52000 * factor;
+    total += gross - LOAN_ANNUAL;
+  }
+  return total;
+}
+
+// ── DOM REFS ───────────────────────────────────────────────────────────────
+const tradeSelect    = document.getElementById('trade-select');
+const careerStage    = document.getElementById('career-stage');
+const workSetting    = document.getElementById('work-setting');
+const hoursSlider    = document.getElementById('hours-slider');
+const hoursDisplay   = document.getElementById('hours-display');
+const outHourly      = document.getElementById('out-hourly');
+const outAnnual      = document.getElementById('out-annual');
+const outVsCollege   = document.getElementById('out-vs-college');
+const out5year       = document.getElementById('out-5year');
+const out5yearSub    = document.getElementById('out-5year-sub');
+
+let earningsChart = null;
+
+function fmt(n) {
+  return '$' + Math.round(n).toLocaleString();
+}
+
+function updateTradeProfile() {
+  const key = tradeSelect.value;
+  const trade = TRADES[key];
+
+  document.getElementById('trade-title').textContent = trade.title;
+  document.getElementById('trade-desc').textContent = trade.desc;
+
+  // Licensing steps
+  const ul = document.getElementById('licensing-steps');
+  ul.innerHTML = '';
+  trade.licensing.forEach((step, i) => {
+    const li = document.createElement('li');
+    li.className = 'step-item';
+    li.innerHTML = `
+      <div class="step-num">${i+1}</div>
+      <div class="step-body">
+        <div class="step-name">${step.name}</div>
+        <div class="step-detail">${step.detail}</div>
+        <div class="step-meta">
+          <span class="step-tag admin">${step.admin}</span>
+          <span class="step-tag time">${step.time}</span>
+          ${step.cost ? `<span class="step-tag">${step.cost}</span>` : ''}
+        </div>
+      </div>`;
+    ul.appendChild(li);
+  });
+
+  // Programs
+  const pl = document.getElementById('trade-programs-list');
+  pl.innerHTML = '';
+  trade.programs.forEach(p => {
+    const div = document.createElement('div');
+    div.style.cssText = 'margin-bottom:14px; padding-bottom:14px; border-bottom:1px solid var(--surface);';
+    div.innerHTML = `<div style="font-family:'Arial Narrow',Arial,sans-serif;font-size:13px;font-weight:900;text-transform:uppercase;color:var(--text);margin-bottom:2px;">${p.name}</div>
+      <div style="font-family:'Arial Narrow',Arial,sans-serif;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--blue);margin-bottom:4px;">${p.loc}</div>
+      <div style="font-family:Georgia,serif;font-size:13px;color:var(--muted);line-height:1.5;">${p.note}</div>`;
+    pl.appendChild(div);
+  });
+
+  updateEarnings();
+}
+
+function updateEarnings() {
+  const key     = tradeSelect.value;
+  const stage   = careerStage.value;
+  const setting = workSetting.value;
+  const hours   = parseInt(hoursSlider.value);
+  const trade   = TRADES[key];
+
+  hoursDisplay.textContent = hours.toLocaleString();
+
+  const wageRange = trade.wages[stage] ? trade.wages[stage][setting] : trade.wages['journey'][setting];
+  const lo = wageRange[0];
+  const hi = wageRange[1];
+  const mid = (lo + hi) / 2;
+
+  outHourly.textContent = `$${lo}–$${hi}/hr`;
+  const annual = mid * hours;
+  outAnnual.textContent = fmt(annual);
+
+  const diff = annual - 52000;
+  if (diff >= 0) {
+    outVsCollege.textContent = `+${fmt(diff)} above MN 4-yr degree median starting salary ($52,000)`;
+  } else {
+    outVsCollege.textContent = `${fmt(diff)} vs. MN 4-yr degree median starting salary ($52,000)`;
+  }
+
+  const tradeTot  = tradeCumulative5(key, setting);
+  const collegeTot = collegeCumulative5();
+  const advantage = tradeTot - collegeTot;
+
+  if (advantage >= 0) {
+    out5year.textContent = `+${fmt(advantage)}`;
+    out5year.className   = 'output-val green';
+    out5yearSub.textContent = `Trade path earns ${fmt(advantage)} more over 5 years, net of estimated college loan payments (~${fmt(LOAN_ANNUAL)}/yr)`;
+  } else {
+    out5year.textContent = fmt(advantage);
+    out5year.className   = 'output-val amber';
+    out5yearSub.textContent = `5-year comparison based on trade apprentice wages vs. $52,000 college start salary net of ~${fmt(LOAN_ANNUAL)}/yr loan payment. Results vary by trade, setting, and individual outcome.`;
+  }
+
+  updateChart(tradeTot, collegeTot);
+}
+
+function updateChart(tradeTot, collegeTot) {
+  const ctx = document.getElementById('earningsChart').getContext('2d');
+  if (earningsChart) earningsChart.destroy();
+  earningsChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Trade Path', 'College Path (net)'],
+      datasets: [{
+        data: [Math.round(tradeTot), Math.round(collegeTot)],
+        backgroundColor: ['#8B1A1A', '#4A6FA5'],
+        borderWidth: 0,
+        barThickness: 60
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ' ' + fmt(ctx.raw) + ' over 5 years'
+          }
+        },
+        datalabels: false
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: v => '$' + (v/1000).toFixed(0) + 'K',
+            font: { family: "'Courier New', monospace", size: 11 }
+          },
+          grid: { color: 'rgba(0,0,0,0.06)' }
+        },
+        x: {
+          ticks: {
+            font: { family: "'Arial Narrow', Arial, sans-serif", size: 12, weight: 'bold' }
+          },
+          grid: { display: false }
+        }
+      }
+    }
+  });
+}
+
+// ── CHECKLIST / GAUGE ─────────────────────────────────────────────────────
+const CHECKLIST_KEY = 'rarick_checklist_v1';
+
+function loadChecklist() {
+  const saved = JSON.parse(localStorage.getItem(CHECKLIST_KEY) || '{}');
+  const items = document.querySelectorAll('#readiness-checklist input[type="checkbox"]');
+  items.forEach((cb, i) => {
+    if (saved[i]) {
+      cb.checked = true;
+      cb.closest('li').classList.add('checked');
+    }
+  });
+  updateGauge();
+}
+
+function saveChecklist() {
+  const items = document.querySelectorAll('#readiness-checklist input[type="checkbox"]');
+  const state = {};
+  items.forEach((cb, i) => { state[i] = cb.checked; });
+  localStorage.setItem(CHECKLIST_KEY, JSON.stringify(state));
+}
+
+function updateGauge() {
+  const items   = document.querySelectorAll('#readiness-checklist input[type="checkbox"]');
+  const total   = items.length;
+  let checked   = 0;
+  items.forEach(cb => { if (cb.checked) checked++; });
+  const pct     = Math.round((checked / total) * 100);
+  const angle   = (checked / total) * 180;
+
+  const fill    = document.getElementById('gauge-fill');
+  const pctEl   = document.getElementById('gauge-pct');
+  const statusEl = document.getElementById('gauge-status');
+  const ariaEl  = document.getElementById('gauge-aria');
+
+  fill.style.setProperty('--gauge-angle', angle + 'deg');
+  fill.style.background = `conic-gradient(var(--green) 0deg ${angle}deg, transparent ${angle}deg)`;
+  pctEl.textContent = pct + '%';
+  ariaEl.setAttribute('aria-valuenow', pct);
+
+  if (checked <= 2) {
+    statusEl.textContent = 'Not yet ready — review requirements above';
+    statusEl.className = 'gauge-status not-ready';
+  } else if (checked <= 5) {
+    statusEl.textContent = 'Getting close — work on remaining items';
+    statusEl.className = 'gauge-status getting-close';
+  } else {
+    statusEl.textContent = 'Application-ready — find an open application window';
+    statusEl.className = 'gauge-status app-ready';
+  }
+}
+
+document.getElementById('readiness-checklist').addEventListener('change', e => {
+  if (e.target.type === 'checkbox') {
+    e.target.closest('li').classList.toggle('checked', e.target.checked);
+    saveChecklist();
+    updateGauge();
+  }
+});
+
+// ── TIMELINE ──────────────────────────────────────────────────────────────
+let tlIndex = 0;
+const VISIBLE = 3; // cards visible at once on desktop
+
+function buildTimeline() {
+  const track = document.getElementById('timeline-track');
+  TIMELINE.forEach((node, i) => {
+    const card = document.createElement('div');
+    card.className = 'tl-card';
+    card.innerHTML = `
+      <div class="tl-year">${node.year}</div>
+      <div class="tl-type">${node.type}</div>
+      <div class="tl-event">${node.event}</div>
+      <div class="tl-text">${node.text}</div>
+      ${i < TIMELINE.length - 1 ? '<div class="tl-connector"></div>' : ''}
+    `;
+    track.appendChild(card);
+  });
+  updateTimeline();
+}
+
+function updateTimeline() {
+  const track = document.getElementById('timeline-track');
+  const cardW = 300; // card width + gap
+  track.style.transform = `translateX(-${tlIndex * cardW}px)`;
+  document.getElementById('tl-pos').textContent = `${tlIndex + 1} / ${TIMELINE.length}`;
+}
+
+document.getElementById('tl-prev').addEventListener('click', () => {
+  if (tlIndex > 0) { tlIndex--; updateTimeline(); }
+});
+document.getElementById('tl-next').addEventListener('click', () => {
+  if (tlIndex < TIMELINE.length - 1) { tlIndex++; updateTimeline(); }
+});
+
+document.addEventListener('keydown', e => {
+  const mod3Active = document.getElementById('mod3').classList.contains('active');
+  if (!mod3Active) return;
+  if (e.key === 'ArrowRight' && tlIndex < TIMELINE.length - 1) { tlIndex++; updateTimeline(); }
+  if (e.key === 'ArrowLeft'  && tlIndex > 0)                   { tlIndex--; updateTimeline(); }
+});
+
+// ── ACCORDION ─────────────────────────────────────────────────────────────
+document.querySelectorAll('.accordion-trigger').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const expanded = btn.getAttribute('aria-expanded') === 'true';
+    btn.setAttribute('aria-expanded', !expanded);
+    const bodyId = btn.getAttribute('aria-controls');
+    const body   = document.getElementById(bodyId);
+    body.classList.toggle('open', !expanded);
+  });
+});
+
+// ── MODULE NAVIGATION ─────────────────────────────────────────────────────
+document.querySelectorAll('.nav-link').forEach(link => {
+  link.addEventListener('click', () => {
+    const target = link.dataset.module;
+
+    document.querySelectorAll('.nav-link').forEach(l => {
+      l.classList.remove('active');
+      l.setAttribute('aria-pressed', 'false');
+    });
+    document.querySelectorAll('.module-panel').forEach(p => p.classList.remove('active'));
+
+    link.classList.add('active');
+    link.setAttribute('aria-pressed', 'true');
+    document.getElementById(target).classList.add('active');
+  });
+});
+
+// ── EVENT LISTENERS ───────────────────────────────────────────────────────
+tradeSelect.addEventListener('change', updateTradeProfile);
+careerStage.addEventListener('change', updateEarnings);
+workSetting.addEventListener('change', updateEarnings);
+hoursSlider.addEventListener('input', updateEarnings);
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+updateTradeProfile();
+loadChecklist();
+buildTimeline();
+</script>
+
+</body>
+</html>

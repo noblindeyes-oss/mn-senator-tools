@@ -1,0 +1,1564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Before You Sign — MN Contract-for-Deed Buyer Rights Tool</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
+   1. Layout: Full-width editorial/magazine — no sidebar. Horizontal stepper across the top. Sections are full-bleed color bands that alternate brick red, river blue, white, light blue. Content constrained within bands at different widths per section.
+   2. Navigation: Horizontal numbered stepper bar (circles connected by line) fixed below the header — NOT tabs, NOT sidebar nav. Minimal, utilitarian.
+   3. Typography: Times New Roman for headers (legal authority, distinct from Georgia), Verdana 15px for body (web-native, wider than Arial Narrow), Courier New for statute citations. Three distinct voices.
+   4. Hero moment: The opening is a full-viewport brick-red panel with a single question in 36px white type. No paragraph. The cost delta in Module 2 displays at 54px as a standalone number with dramatic negative space.
+   5. Color commitment: Brick red hero covers full viewport on load. River blue bands wrap Module 1 header and Module 3 header. Alternating #EAF2F8 tinted sections throughout. White is the minority color. Color is environmental, not trim.
+   Additional: No cards anywhere. Data lives in HTML tables, definition lists, and inline text. Checklist uses custom-styled radio groups with no containing boxes. Print CSS strips to clean B&W document.
+*/
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --brick: #8B2020;
+  --brick-dark: #6B1818;
+  --river: #1B4F72;
+  --river-light: #EAF2F8;
+  --slate: #5D6D7E;
+  --dark: #1A1A1A;
+  --light: #F2F4F5;
+  --green: #1A6B3C;
+  --yellow: #C49A00;
+  --alert: #8B2020;
+  --white: #FFFFFF;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--dark);
+  background: var(--white);
+}
+
+/* --- HERO OPENING --- */
+.hero {
+  min-height: 100vh;
+  background: var(--brick);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 24px 120px;
+  text-align: center;
+  position: relative;
+}
+
+.hero-question {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 42px;
+  font-weight: 700;
+  color: var(--white);
+  max-width: 700px;
+  line-height: 1.25;
+  margin-bottom: 32px;
+}
+
+.hero-sub {
+  font-size: 17px;
+  color: rgba(255,255,255,0.85);
+  max-width: 540px;
+  margin-bottom: 48px;
+}
+
+.hero-cta {
+  display: inline-block;
+  background: var(--white);
+  color: var(--brick);
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  padding: 14px 36px;
+  border: none;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  transition: background 0.2s, transform 0.15s;
+}
+.hero-cta:hover { background: var(--light); transform: translateY(-1px); }
+
+.hero-load-example {
+  display: block;
+  margin-top: 16px;
+  background: none;
+  border: 1px solid rgba(255,255,255,0.5);
+  color: rgba(255,255,255,0.85);
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 13px;
+  padding: 8px 24px;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+.hero-load-example:hover { border-color: #fff; color: #fff; }
+
+.hero-scroll-hint {
+  position: absolute;
+  bottom: 32px;
+  color: rgba(255,255,255,0.5);
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* --- STEPPER NAV --- */
+.stepper-bar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--river);
+  padding: 0;
+  display: flex;
+  align-items: stretch;
+  height: 56px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.step-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.6);
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  transition: background 0.2s, color 0.2s;
+  border-bottom: 3px solid transparent;
+  position: relative;
+}
+.step-btn:hover { color: rgba(255,255,255,0.9); background: rgba(255,255,255,0.05); }
+.step-btn.active { color: #fff; border-bottom-color: var(--brick); background: rgba(255,255,255,0.08); }
+.step-btn.completed { color: rgba(255,255,255,0.85); }
+
+.step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.step-btn.completed .step-num { background: var(--green); border-color: var(--green); color: #fff; }
+.step-btn.active .step-num { background: var(--brick); border-color: var(--brick); color: #fff; }
+
+.step-label { display: inline; }
+
+/* --- MODULE SECTIONS --- */
+.module { display: none; }
+.module.active { display: block; }
+
+.module-header {
+  background: var(--brick);
+  padding: 36px 0;
+  text-align: center;
+}
+.module-header h2 {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--white);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.module-header p {
+  color: rgba(255,255,255,0.8);
+  font-size: 14px;
+  margin-top: 6px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.module-body {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 40px 24px 60px;
+}
+
+/* Alternate tinted sections */
+.tinted { background: var(--river-light); }
+.river-bg { background: var(--river); color: var(--light); }
+
+/* --- TYPOGRAPHY --- */
+h3 {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--brick);
+  margin-bottom: 16px;
+  letter-spacing: 0.5px;
+}
+.river-bg h3 { color: var(--white); }
+
+.statute-ref {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 13px;
+  color: var(--slate);
+}
+.river-bg .statute-ref { color: rgba(255,255,255,0.65); }
+
+/* --- CHECKLIST (Module 1) --- */
+.checklist-section {
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+.checklist-section:last-child { border-bottom: none; }
+
+.checklist-section-title {
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--slate);
+  margin-bottom: 14px;
+}
+
+.checklist-item {
+  margin-bottom: 14px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.checklist-text {
+  flex: 1;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.checklist-text .statute-ref { display: block; margin-top: 2px; }
+
+.radio-group {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.radio-group label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  padding: 4px 8px;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  background: #f5f5f5;
+  color: #888;
+  transition: all 0.15s;
+  text-align: center;
+  min-width: 32px;
+}
+.radio-group label:first-child { border-radius: 3px 0 0 3px; }
+.radio-group label:last-child { border-radius: 0 3px 3px 0; }
+
+.radio-group input { display: none; }
+.radio-group input:checked + span { font-weight: 700; }
+
+.radio-group input[value="received"]:checked ~ span,
+label.sel-received { background: var(--green); color: #fff; border-color: var(--green); }
+label.sel-not-received { background: var(--alert); color: #fff; border-color: var(--alert); }
+label.sel-unsure { background: var(--yellow); color: #fff; border-color: var(--yellow); }
+
+/* --- RESULT BANNERS --- */
+.result-banner {
+  padding: 28px 32px;
+  margin: 32px -24px;
+  font-size: 16px;
+  font-weight: 700;
+}
+.result-banner.green { background: var(--green); color: #fff; }
+.result-banner.yellow { background: var(--yellow); color: #000; }
+.result-banner.red { background: var(--alert); color: #fff; }
+
+.result-banner .banner-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  display: block;
+  margin-bottom: 6px;
+  opacity: 0.8;
+}
+
+.result-details {
+  margin-top: 20px;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.result-details dt {
+  font-weight: 700;
+  margin-top: 10px;
+}
+.result-details dd {
+  margin-left: 0;
+  margin-bottom: 4px;
+}
+
+.help-links {
+  margin-top: 20px;
+  font-size: 14px;
+  font-weight: 400;
+}
+.help-links a { color: inherit; text-decoration: underline; }
+.result-banner.yellow .help-links a { color: #333; }
+
+/* --- CALCULATOR (Module 2) --- */
+.calc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px 40px;
+  margin-bottom: 40px;
+}
+
+.calc-grid fieldset {
+  border: none;
+  padding: 0;
+}
+
+.calc-grid legend {
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--river);
+  margin-bottom: 14px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--river);
+  width: 100%;
+}
+
+.field {
+  margin-bottom: 12px;
+}
+
+.field label {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--dark);
+  margin-bottom: 3px;
+}
+
+.field input, .field select {
+  width: 100%;
+  padding: 8px 10px;
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 15px;
+  border: 2px solid #ccc;
+  background: #fafafa;
+  color: var(--dark);
+  transition: border-color 0.2s;
+}
+.field input:focus, .field select:focus {
+  outline: none;
+  border-color: var(--river);
+  background: #fff;
+}
+
+.field .hint {
+  font-size: 11px;
+  color: var(--slate);
+  margin-top: 2px;
+}
+
+/* Comparison table */
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  margin-bottom: 32px;
+}
+.comparison-table th {
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 10px 12px;
+  text-align: right;
+  background: var(--river);
+  color: #fff;
+  font-weight: 700;
+}
+.comparison-table th:first-child { text-align: left; }
+.comparison-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #ddd;
+  text-align: right;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+}
+.comparison-table td:first-child {
+  text-align: left;
+  font-family: Verdana, Geneva, sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--dark);
+}
+.comparison-table tr:nth-child(even) { background: var(--river-light); }
+.comparison-table tr.highlight-row td { background: var(--brick); color: #fff; font-weight: 700; }
+
+/* Delta display — the hero number */
+.cost-delta {
+  text-align: center;
+  padding: 48px 24px;
+  background: var(--dark);
+  color: var(--white);
+  margin: 0 -24px 40px;
+}
+.cost-delta .delta-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--slate);
+  margin-bottom: 8px;
+}
+.cost-delta .delta-number {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 54px;
+  font-weight: 700;
+  color: var(--brick);
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.cost-delta .delta-sub {
+  font-size: 14px;
+  color: rgba(255,255,255,0.6);
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+/* Down payment protection */
+.dp-protection {
+  background: var(--river-light);
+  padding: 24px;
+  margin-bottom: 32px;
+  border-left: none;
+}
+.dp-protection strong { color: var(--brick); }
+
+/* Chart container */
+.chart-wrap {
+  margin-bottom: 40px;
+  background: #fff;
+  padding: 16px;
+}
+.chart-wrap canvas { max-height: 340px; }
+
+.chart-legend {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  font-size: 13px;
+  margin-top: 8px;
+}
+.chart-legend span::before {
+  content: '';
+  display: inline-block;
+  width: 14px;
+  height: 3px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+.chart-legend .leg-cfd::before { background: var(--brick); }
+.chart-legend .leg-mtg::before { background: var(--river); }
+
+/* --- MODULE 3: PRE-SIGNING RECORD --- */
+.record-form .field { margin-bottom: 14px; }
+.record-form .field label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--slate);
+}
+.record-form .field input {
+  border-width: 0 0 2px 0;
+  border-color: #ccc;
+  background: transparent;
+  padding: 6px 2px;
+  font-size: 15px;
+}
+.record-form .field input:focus {
+  border-color: var(--river);
+  background: transparent;
+}
+
+.disclosure-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin: 24px 0;
+}
+.disclosure-table th {
+  background: var(--dark);
+  color: #fff;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 8px 10px;
+  text-align: left;
+  font-weight: 700;
+}
+.disclosure-table td {
+  padding: 7px 10px;
+  border-bottom: 1px solid #ddd;
+  vertical-align: top;
+}
+.disclosure-table tr:nth-child(even) { background: #f7f7f7; }
+
+.status-received { color: var(--green); font-weight: 700; }
+.status-not-received { color: var(--alert); font-weight: 700; }
+.status-unsure { color: var(--yellow); font-weight: 700; }
+.status-none { color: #999; }
+
+.notes-area {
+  width: 100%;
+  min-height: 100px;
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 14px;
+  padding: 12px;
+  border: 2px solid #ccc;
+  background: #fafafa;
+  resize: vertical;
+}
+.notes-area:focus { border-color: var(--river); outline: none; }
+
+.rights-reminder {
+  background: var(--river);
+  color: var(--light);
+  padding: 28px;
+  margin: 32px 0;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.rights-reminder strong { color: #fff; }
+
+.print-btn {
+  display: inline-block;
+  background: var(--brick);
+  color: #fff;
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 12px 32px;
+  border: none;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: background 0.2s;
+}
+.print-btn:hover { background: var(--brick-dark); }
+
+/* --- FOOTER --- */
+.site-footer {
+  background: var(--dark);
+  color: rgba(255,255,255,0.5);
+  padding: 24px;
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.site-footer a { color: rgba(255,255,255,0.7); }
+
+/* --- MOBILE --- */
+@media (max-width: 768px) {
+  .hero-question { font-size: 28px; }
+  .stepper-bar { height: auto; flex-wrap: wrap; }
+  .step-btn { font-size: 11px; padding: 10px 6px; }
+  .step-label { display: none; }
+  .calc-grid { grid-template-columns: 1fr; gap: 24px; }
+  .cost-delta .delta-number { font-size: 36px; }
+  .module-body { padding: 24px 16px 40px; }
+  .result-banner { margin: 24px -16px; padding: 20px 16px; }
+  .cost-delta { margin: 0 -16px 32px; }
+}
+
+/* --- PRINT --- */
+@media print {
+  .hero, .stepper-bar, .site-footer, .print-btn, .hero-load-example { display: none !important; }
+  .module { display: none !important; }
+  .module.print-target { display: block !important; }
+  .module-header { background: #fff !important; padding: 12px 0 !important; }
+  .module-header h2 { color: #000 !important; font-size: 22px !important; }
+  .module-header p { color: #333 !important; }
+  body { font-size: 12px; color: #000; }
+  .module-body { padding: 0; max-width: 100%; }
+  .rights-reminder { background: #eee !important; color: #000 !important; break-before: page; }
+  .rights-reminder strong { color: #000 !important; }
+  .disclosure-table th { background: #333 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  @page { margin: 0.75in; }
+  .record-attribution { display: block; margin-top: 24px; font-size: 11px; color: #666; text-align: center; }
+}
+.record-attribution { display: none; }
+
+/* --- CAVEAT BAND --- */
+.caveat-band {
+  background: var(--river-light);
+  padding: 14px 24px;
+  font-size: 13px;
+  color: var(--slate);
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* --- APPLICABILITY NOTE --- */
+.applicability-note {
+  font-size: 13px;
+  color: var(--slate);
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #ddd;
+  line-height: 1.6;
+}
+
+.btn-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+.btn-primary {
+  background: var(--brick);
+  color: #fff;
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 10px 24px;
+  border: none;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: background 0.2s;
+}
+.btn-primary:hover { background: var(--brick-dark); }
+.btn-secondary {
+  background: none;
+  border: 2px solid var(--river);
+  color: var(--river);
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 10px 24px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-secondary:hover { background: var(--river); color: #fff; }
+
+/* Inline calc note */
+.calc-note {
+  font-size: 13px;
+  color: var(--slate);
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+</style>
+</head>
+<body>
+
+<!-- ============ HERO ============ -->
+<section class="hero" id="hero">
+  <div class="hero-question">Are you about to sign a contract for deed?</div>
+  <div class="hero-sub">Know what the seller is required to disclose. See the real cost. Keep a record.</div>
+  <button class="hero-cta" onclick="startTool()">Check Your Rights</button>
+  <button class="hero-load-example" onclick="loadExample()">Load example: Minneapolis investor-seller contract</button>
+  <div class="hero-scroll-hint">Minnesota Statute 559A</div>
+</section>
+
+<!-- ============ STEPPER NAV ============ -->
+<nav class="stepper-bar" id="stepperBar" style="display:none;">
+  <button class="step-btn active" data-step="1" onclick="goStep(1)">
+    <span class="step-num">1</span>
+    <span class="step-label">Disclosure Check</span>
+  </button>
+  <button class="step-btn" data-step="2" onclick="goStep(2)">
+    <span class="step-num">2</span>
+    <span class="step-label">Cost Calculator</span>
+  </button>
+  <button class="step-btn" data-step="3" onclick="goStep(3)">
+    <span class="step-num">3</span>
+    <span class="step-label">Pre-Signing Record</span>
+  </button>
+</nav>
+
+<!-- ============ MODULE 1: DISCLOSURE CHECKER ============ -->
+<section class="module" id="module1">
+  <div class="module-header">
+    <h2>Disclosure Compliance Check</h2>
+    <p>Mark each required disclosure: received, not received, or unsure.</p>
+  </div>
+  <div class="module-body">
+
+    <!-- TIMING -->
+    <div class="checklist-section">
+      <div class="checklist-section-title">Timing</div>
+      <div class="checklist-item">
+        <div class="checklist-text">
+          Did you receive ALL disclosures at least <strong>10 calendar days</strong> before you are being asked to sign?
+          <span class="statute-ref">559A.03, subd. 1</span>
+        </div>
+        <div class="radio-group" data-name="timing_10day">
+          <label><input type="radio" name="timing_10day" value="received"><span>Yes</span></label>
+          <label><input type="radio" name="timing_10day" value="not_received"><span>No</span></label>
+          <label><input type="radio" name="timing_10day" value="unsure"><span>?</span></label>
+        </div>
+      </div>
+    </div>
+
+    <!-- PURCHASE TERMS -->
+    <div class="checklist-section">
+      <div class="checklist-section-title">Purchase Terms</div>
+      <div class="checklist-item">
+        <div class="checklist-text">Purchase price stated in writing <span class="statute-ref">559A.03, subd. 1(a)</span></div>
+        <div class="radio-group" data-name="pt_price"><label><input type="radio" name="pt_price" value="received"><span>Yes</span></label><label><input type="radio" name="pt_price" value="not_received"><span>No</span></label><label><input type="radio" name="pt_price" value="unsure"><span>?</span></label></div>
+      </div>
+      <div class="checklist-item">
+        <div class="checklist-text">Annual interest rate stated in writing <span class="statute-ref">559A.03, subd. 1(a)</span></div>
+        <div class="radio-group" data-name="pt_rate"><label><input type="radio" name="pt_rate" value="received"><span>Yes</span></label><label><input type="radio" name="pt_rate" value="not_received"><span>No</span></label><label><input type="radio" name="pt_rate" value="unsure"><span>?</span></label></div>
+      </div>
+      <div class="checklist-item">
+        <div class="checklist-text">Down payment amount stated in writing <span class="statute-ref">559A.03, subd. 1(a)</span></div>
+        <div class="radio-group" data-name="pt_down"><label><input type="radio" name="pt_down" value="received"><span>Yes</span></label><label><input type="radio" name="pt_down" value="not_received"><span>No</span></label><label><input type="radio" name="pt_down" value="unsure"><span>?</span></label></div>
+      </div>
+      <div class="checklist-item">
+        <div class="checklist-text">Statement that buyer is responsible for property taxes, homeowner's insurance, all repairs and maintenance <span class="statute-ref">559A.03, subd. 1(a)(3)</span></div>
+        <div class="radio-group" data-name="pt_resp"><label><input type="radio" name="pt_resp" value="received"><span>Yes</span></label><label><input type="radio" name="pt_resp" value="not_received"><span>No</span></label><label><input type="radio" name="pt_resp" value="unsure"><span>?</span></label></div>
+      </div>
+    </div>
+
+    <!-- BALLOON PAYMENT -->
+    <div class="checklist-section">
+      <div class="checklist-section-title">Balloon Payment</div>
+      <div class="checklist-item">
+        <div class="checklist-text">If there is a balloon payment: amount disclosed in writing <span class="statute-ref">559A.03, subd. 1(a)(1)</span></div>
+        <div class="radio-group" data-name="bp_amount"><label><input type="radio" name="bp_amount" value="received"><span>Yes</span></label><label><input type="radio" name="bp_amount" value="not_received"><span>No</span></label><label><input type="radio" name="bp_amount" value="unsure"><span>?</span></label></div>
+      </div>
+      <div class="checklist-item">
+        <div class="checklist-text">If there is a balloon payment: due date disclosed in writing <span class="statute-ref">559A.03, subd. 1(a)(1)</span></div>
+        <div class="radio-group" data-name="bp_date"><label><input type="radio" name="bp_date" value="received"><span>Yes</span></label><label><input type="radio" name="bp_date" value="not_received"><span>No</span></label><label><input type="radio" name="bp_date" value="unsure"><span>?</span></label></div>
+      </div>
+      <div class="checklist-item">
+        <div class="checklist-text">If no balloon payment: seller has stated this clearly <span class="statute-ref">559A.03, subd. 1(a)(1)</span></div>
+        <div class="radio-group" data-name="bp_none"><label><input type="radio" name="bp_none" value="received"><span>Yes</span></label><label><input type="radio" name="bp_none" value="not_received"><span>No</span></label><label><input type="radio" name="bp_none" value="unsure"><span>?</span></label></div>
+      </div>
+    </div>
+
+    <!-- ACQUISITION PRICE -->
+    <div class="checklist-section">
+      <div class="checklist-section-title">Seller's Acquisition Price</div>
+      <div class="checklist-item">
+        <div class="checklist-text">Seller disclosed what they paid for the property and when — or stated they purchased more than 2 years ago (exempting them from disclosure) <span class="statute-ref">559A.03, subd. 1(a)(2)</span></div>
+        <div class="radio-group" data-name="acq_price"><label><input type="radio" name="acq_price" value="received"><span>Yes</span></label><label><input type="radio" name="acq_price" value="not_received"><span>No</span></label><label><input type="radio" name="acq_price" value="unsure"><span>?</span></label></div>
+      </div>
+    </div>
+
+    <!-- AMORTIZATION SCHEDULE -->
+    <div class="checklist-section">
+      <div class="checklist-section-title">Amortization Schedule</div>
+      <div class="checklist-item">
+        <div class="checklist-text">Separate amortization schedule provided showing payment-by-payment breakdown of principal vs. interest <span class="statute-ref">559A.03, subd. 1(b)</span></div>
+        <div class="radio-group" data-name="amort_sched"><label><input type="radio" name="amort_sched" value="received"><span>Yes</span></label><label><input type="radio" name="amort_sched" value="not_received"><span>No</span></label><label><input type="radio" name="amort_sched" value="unsure"><span>?</span></label></div>
+      </div>
+      <div class="checklist-item">
+        <div class="checklist-text">Balloon payment amount and date shown on amortization schedule <span class="statute-ref">559A.03, subd. 1(b)</span></div>
+        <div class="radio-group" data-name="amort_balloon"><label><input type="radio" name="amort_balloon" value="received"><span>Yes</span></label><label><input type="radio" name="amort_balloon" value="not_received"><span>No</span></label><label><input type="radio" name="amort_balloon" value="unsure"><span>?</span></label></div>
+      </div>
+    </div>
+
+    <!-- GENERAL INFORMATION DOCUMENT -->
+    <div class="checklist-section">
+      <div class="checklist-section-title">General Information Document</div>
+      <div class="checklist-item">
+        <div class="checklist-text">Seller provided a document explaining how contracts for deed work, including the 120-day cancellation provision and the risk of losing all paid amounts if unable to complete payments <span class="statute-ref">559A.03, subd. 1(a)(4)</span></div>
+        <div class="radio-group" data-name="gen_info"><label><input type="radio" name="gen_info" value="received"><span>Yes</span></label><label><input type="radio" name="gen_info" value="not_received"><span>No</span></label><label><input type="radio" name="gen_info" value="unsure"><span>?</span></label></div>
+      </div>
+    </div>
+
+    <!-- CANCELLATION RIGHT -->
+    <div class="checklist-section">
+      <div class="checklist-section-title">Cancellation Right</div>
+      <div class="checklist-item">
+        <div class="checklist-text">Buyer informed of the right to cancel the purchase agreement within 10 calendar days of receiving disclosures <span class="statute-ref">559A.04, subd. 1</span></div>
+        <div class="radio-group" data-name="cancel_right"><label><input type="radio" name="cancel_right" value="received"><span>Yes</span></label><label><input type="radio" name="cancel_right" value="not_received"><span>No</span></label><label><input type="radio" name="cancel_right" value="unsure"><span>?</span></label></div>
+      </div>
+    </div>
+
+    <!-- LANGUAGE ACCESS -->
+    <div class="checklist-section">
+      <div class="checklist-section-title">Language Access</div>
+      <div class="checklist-item">
+        <div class="checklist-text">If any part of negotiations occurred in a language other than English, were all disclosures provided in that same language? <span class="statute-ref">559A.03, subd. 2</span></div>
+        <div class="radio-group" data-name="lang_access"><label><input type="radio" name="lang_access" value="received"><span>Yes</span></label><label><input type="radio" name="lang_access" value="not_received"><span>No</span></label><label><input type="radio" name="lang_access" value="unsure"><span>?</span></label></div>
+      </div>
+    </div>
+
+    <!-- CHURNING CHECK -->
+    <div class="checklist-section">
+      <div class="checklist-section-title">Churning Indicator</div>
+      <div class="checklist-item">
+        <div class="checklist-text">Has this seller previously offered you or someone you know a contract for deed on this same property that was later terminated? <span class="statute-ref">559A.01, subd. 3 / 559A.04, subd. 3</span></div>
+        <div class="radio-group" data-name="churning"><label><input type="radio" name="churning" value="received"><span>No</span></label><label><input type="radio" name="churning" value="not_received"><span>Yes</span></label><label><input type="radio" name="churning" value="unsure"><span>?</span></label></div>
+      </div>
+    </div>
+
+    <!-- RESULT AREA -->
+    <div id="checkResult"></div>
+
+    <div class="btn-row">
+      <button class="btn-primary" onclick="evaluateChecklist()">Evaluate Disclosures</button>
+      <button class="btn-secondary" onclick="goStep(2)">Continue to Cost Calculator</button>
+    </div>
+
+    <div class="applicability-note">
+      <strong>Note:</strong> This tool covers transactions subject to <span class="statute-ref">MN Stat. 559A</span> — where the seller is an "investor seller" as defined by statute. If you are buying from a family member or an owner-occupant who lived in the home for at least 12 months, different rules apply. When in doubt, contact HOME Line (612-728-5767) or Legal Aid MN.
+    </div>
+  </div>
+</section>
+
+<!-- ============ MODULE 2: COST CALCULATOR ============ -->
+<section class="module" id="module2">
+  <div class="module-header">
+    <h2>Total Cost Calculator</h2>
+    <p>See the real financial difference between this contract and a conventional mortgage.</p>
+  </div>
+  <div class="module-body">
+
+    <div class="calc-grid">
+      <fieldset>
+        <legend>Contract for Deed Terms</legend>
+        <div class="field">
+          <label for="cfd_price">Purchase Price ($)</label>
+          <input type="number" id="cfd_price" value="" placeholder="210000">
+        </div>
+        <div class="field">
+          <label for="cfd_down">Down Payment ($)</label>
+          <input type="number" id="cfd_down" value="" placeholder="15000">
+        </div>
+        <div class="field">
+          <label for="cfd_rate">Annual Interest Rate (%)</label>
+          <input type="number" id="cfd_rate" value="" step="0.1" placeholder="9.5">
+        </div>
+        <div class="field">
+          <label for="cfd_term">Term (years)</label>
+          <input type="number" id="cfd_term" value="" placeholder="30">
+        </div>
+        <div class="field">
+          <label for="cfd_balloon">Balloon Payment ($)</label>
+          <input type="number" id="cfd_balloon" value="" placeholder="185000">
+          <div class="hint">Enter 0 if none</div>
+        </div>
+        <div class="field">
+          <label for="cfd_balloon_yr">Balloon Due at Year</label>
+          <input type="number" id="cfd_balloon_yr" value="" placeholder="7">
+          <div class="hint">Leave blank if no balloon</div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Comparable Mortgage</legend>
+        <div class="field">
+          <label for="mtg_rate">Mortgage Interest Rate (%)</label>
+          <input type="number" id="mtg_rate" value="6.8" step="0.1">
+          <div class="hint">Current MN 30-yr fixed avg: ~6.8%</div>
+        </div>
+        <div class="field">
+          <label for="mtg_term">Mortgage Term (years)</label>
+          <input type="number" id="mtg_term" value="30">
+        </div>
+        <div class="field">
+          <label for="mtg_pmi">PMI Rate (% annually)</label>
+          <input type="number" id="mtg_pmi" value="0.8" step="0.1">
+          <div class="hint">Applies if down payment &lt; 20%</div>
+        </div>
+        <div class="field">
+          <label for="mtg_closing">Closing Costs (%)</label>
+          <input type="number" id="mtg_closing" value="2.5" step="0.1">
+          <div class="hint">Typically 2-3% of purchase price</div>
+        </div>
+      </fieldset>
+    </div>
+
+    <div class="btn-row" style="margin-bottom:32px;">
+      <button class="btn-primary" onclick="runCalculator()">Calculate Comparison</button>
+    </div>
+
+    <div id="calcResults" style="display:none;">
+      <div id="costDelta" class="cost-delta">
+        <div class="delta-label">Estimated Additional Cost of This Contract Over a Comparable Mortgage</div>
+        <div class="delta-number" id="deltaNumber">$0</div>
+        <div class="delta-sub">through <span id="deltaThrough"></span></div>
+      </div>
+
+      <table class="comparison-table" id="compTable">
+        <thead>
+          <tr><th></th><th>Contract for Deed</th><th>30-Yr Mortgage</th></tr>
+        </thead>
+        <tbody id="compBody"></tbody>
+      </table>
+
+      <div class="dp-protection" id="dpProtection"></div>
+
+      <div class="calc-note">
+        Contracts for deed can be a legitimate path to homeownership when mortgage credit is unavailable. This comparison shows the financial cost of that alternative so you know what you are paying for access.
+      </div>
+
+      <h3>Equity Over Time</h3>
+      <div class="chart-wrap">
+        <canvas id="equityChart"></canvas>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-secondary" onclick="goStep(3)">Continue to Pre-Signing Record</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MODULE 3: PRE-SIGNING RECORD ============ -->
+<section class="module" id="module3">
+  <div class="module-header" style="background:var(--river);">
+    <h2>Pre-Signing Record</h2>
+    <p>A dated record of what was and was not disclosed before you signed. Print and keep.</p>
+  </div>
+  <div class="module-body">
+
+    <div style="text-align:center; margin-bottom:32px;">
+      <div style="font-family:'Times New Roman',Times,serif; font-size:22px; font-weight:700; letter-spacing:1px; color:var(--dark);">PRE-EXECUTION DISCLOSURE RECORD</div>
+      <div style="font-size:13px; color:var(--slate); margin-top:4px;">Prepared under Minnesota Statute 559A (Contracts for Deed; Investor Sellers)</div>
+      <div style="font-size:14px; margin-top:6px; font-weight:700;" id="recordDate"></div>
+    </div>
+
+    <h3>Property Information</h3>
+    <div class="record-form">
+      <div class="field">
+        <label for="rec_address">Property Address</label>
+        <input type="text" id="rec_address" placeholder="Full street address, city, state, ZIP">
+      </div>
+      <div class="field">
+        <label for="rec_seller">Seller Name (as shown on contract)</label>
+        <input type="text" id="rec_seller">
+      </div>
+      <div class="field">
+        <label for="rec_buyer">Buyer Name(s)</label>
+        <input type="text" id="rec_buyer">
+      </div>
+      <div class="field">
+        <label for="rec_exec_date">Contract Execution Date</label>
+        <input type="text" id="rec_exec_date" placeholder="MM/DD/YYYY or 'pending'">
+      </div>
+    </div>
+
+    <h3 style="margin-top:32px;">Disclosure Status</h3>
+    <table class="disclosure-table" id="disclosureTable">
+      <thead>
+        <tr><th>Disclosure Item</th><th>Required By</th><th>Status</th></tr>
+      </thead>
+      <tbody id="disclosureBody">
+        <tr><td colspan="3" style="color:#999; text-align:center; padding:16px;">Complete the Disclosure Check (Step 1) to populate this table.</td></tr>
+      </tbody>
+    </table>
+
+    <h3 style="margin-top:32px;">Financial Terms Summary</h3>
+    <div id="financialSummary" style="font-size:14px; color:var(--slate);">
+      Complete the Cost Calculator (Step 2) to populate financial terms.
+    </div>
+
+    <h3 style="margin-top:32px;">Buyer's Notes</h3>
+    <p style="font-size:13px; color:var(--slate); margin-bottom:8px;">Record any verbal representations made by the seller, conditions discussed, or other details not in the written contract.</p>
+    <textarea class="notes-area" id="buyerNotes" placeholder="Example: Seller said the balloon payment 'wouldn't be a problem' because I'd have better credit by year 7..."></textarea>
+
+    <div class="rights-reminder">
+      <strong>Your Rights Under Minnesota Statute 559A</strong><br><br>
+      Under <span class="statute-ref" style="color:rgba(255,255,255,0.8);">559A.04</span>, you may cancel the purchase agreement within 10 calendar days of receiving required disclosures.<br><br>
+      Under <span class="statute-ref" style="color:rgba(255,255,255,0.8);">559A.05</span>, you have two years from contract execution to seek rescission and damages for material disclosure violations.<br><br>
+      If the seller terminates this contract within 48 months, any down payment amount exceeding 10% of the purchase price must be returned within 180 days.<br><br>
+      <strong>Contact:</strong> Minnesota Attorney General (<a href="https://mn.gov/ag" style="color:#fff;">mn.gov/ag</a>) or HOME Line (<a href="tel:6127285767" style="color:#fff;">612-728-5767</a>) if you believe your rights have been violated.
+    </div>
+
+    <div class="btn-row" style="margin-top:24px;">
+      <button class="print-btn" onclick="printRecord()">Print This Record</button>
+    </div>
+
+    <div class="record-attribution">
+      This tool reflects protections established under MN Statute 559A and legislative work on contract-for-deed reform in Minnesota.
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="site-footer" id="siteFooter">
+  Built for District 63 and renters across Minneapolis. Reflects MN Statute 559A as enacted. Not legal advice — contact <a href="https://homelinemn.org">HOME Line</a> (612-728-5767) or <a href="https://lawhelpmn.org">Legal Aid MN</a> for individual guidance. Built with AI.
+</footer>
+
+<script>
+// ===== STATE =====
+const STORAGE_KEY = 'mfr_cfd_tool_v1';
+let currentStep = 0; // 0 = hero, 1-3 = modules
+let checklistData = {};
+let calcData = {};
+let equityChart = null;
+
+// ===== CHECKLIST ITEMS FOR REFERENCE =====
+const checklistItems = [
+  { name: 'timing_10day', text: 'All disclosures received at least 10 calendar days before signing', statute: '559A.03, subd. 1' },
+  { name: 'pt_price', text: 'Purchase price stated in writing', statute: '559A.03, subd. 1(a)' },
+  { name: 'pt_rate', text: 'Annual interest rate stated in writing', statute: '559A.03, subd. 1(a)' },
+  { name: 'pt_down', text: 'Down payment amount stated in writing', statute: '559A.03, subd. 1(a)' },
+  { name: 'pt_resp', text: 'Buyer responsibility for taxes, insurance, maintenance stated', statute: '559A.03, subd. 1(a)(3)' },
+  { name: 'bp_amount', text: 'Balloon payment amount disclosed (if applicable)', statute: '559A.03, subd. 1(a)(1)' },
+  { name: 'bp_date', text: 'Balloon payment due date disclosed (if applicable)', statute: '559A.03, subd. 1(a)(1)' },
+  { name: 'bp_none', text: 'No-balloon-payment statement provided (if applicable)', statute: '559A.03, subd. 1(a)(1)' },
+  { name: 'acq_price', text: 'Seller acquisition price and date disclosed', statute: '559A.03, subd. 1(a)(2)' },
+  { name: 'amort_sched', text: 'Amortization schedule with principal/interest breakdown', statute: '559A.03, subd. 1(b)' },
+  { name: 'amort_balloon', text: 'Balloon shown on amortization schedule', statute: '559A.03, subd. 1(b)' },
+  { name: 'gen_info', text: 'General information document on contracts for deed', statute: '559A.03, subd. 1(a)(4)' },
+  { name: 'cancel_right', text: 'Cancellation right within 10 days disclosed', statute: '559A.04, subd. 1' },
+  { name: 'lang_access', text: 'Disclosures in negotiation language (if non-English)', statute: '559A.03, subd. 2' },
+  { name: 'churning', text: 'No prior terminated contract on this property (churning)', statute: '559A.01, subd. 3 / 559A.04, subd. 3' }
+];
+
+// ===== NAVIGATION =====
+function startTool() {
+  document.getElementById('hero').style.display = 'none';
+  document.getElementById('stepperBar').style.display = 'flex';
+  document.getElementById('siteFooter').style.display = 'block';
+  goStep(1);
+}
+
+function goStep(n) {
+  currentStep = n;
+  document.querySelectorAll('.module').forEach(m => m.classList.remove('active', 'print-target'));
+  document.getElementById('module' + n).classList.add('active');
+  document.querySelectorAll('.step-btn').forEach(btn => {
+    const s = parseInt(btn.dataset.step);
+    btn.classList.toggle('active', s === n);
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  if (n === 3) {
+    populateRecord();
+  }
+
+  saveState();
+}
+
+// ===== LOAD EXAMPLE =====
+function loadExample() {
+  // Set checklist — most items "received", a couple "not_received" to show red
+  const exampleChecklist = {
+    timing_10day: 'received', pt_price: 'received', pt_rate: 'received',
+    pt_down: 'received', pt_resp: 'not_received', bp_amount: 'received',
+    bp_date: 'received', bp_none: 'unsure', acq_price: 'received',
+    amort_sched: 'not_received', amort_balloon: 'not_received', gen_info: 'not_received',
+    cancel_right: 'unsure', lang_access: 'received', churning: 'received'
+  };
+
+  Object.entries(exampleChecklist).forEach(([name, val]) => {
+    const radio = document.querySelector(`input[name="${name}"][value="${val}"]`);
+    if (radio) {
+      radio.checked = true;
+      updateRadioStyle(radio);
+    }
+  });
+
+  // Set calculator values
+  document.getElementById('cfd_price').value = 210000;
+  document.getElementById('cfd_down').value = 15000;
+  document.getElementById('cfd_rate').value = 9.5;
+  document.getElementById('cfd_term').value = 30;
+  document.getElementById('cfd_balloon').value = 185000;
+  document.getElementById('cfd_balloon_yr').value = 7;
+
+  startTool();
+  evaluateChecklist();
+}
+
+// ===== RADIO STYLING =====
+function updateRadioStyle(radio) {
+  const group = radio.closest('.radio-group');
+  group.querySelectorAll('label').forEach(l => {
+    l.classList.remove('sel-received', 'sel-not-received', 'sel-unsure');
+  });
+  const label = radio.closest('label');
+  if (radio.value === 'received') label.classList.add('sel-received');
+  else if (radio.value === 'not_received') label.classList.add('sel-not-received');
+  else if (radio.value === 'unsure') label.classList.add('sel-unsure');
+}
+
+document.addEventListener('change', function(e) {
+  if (e.target.type === 'radio' && e.target.closest('.radio-group')) {
+    updateRadioStyle(e.target);
+    saveState();
+  }
+});
+
+// ===== EVALUATE CHECKLIST =====
+function evaluateChecklist() {
+  const results = {};
+  let notReceived = [];
+  let unsure = [];
+  let answered = 0;
+
+  checklistItems.forEach(item => {
+    const radio = document.querySelector(`input[name="${item.name}"]:checked`);
+    if (radio) {
+      results[item.name] = radio.value;
+      answered++;
+      if (radio.value === 'not_received') notReceived.push(item);
+      else if (radio.value === 'unsure') unsure.push(item);
+    }
+  });
+
+  checklistData = results;
+
+  const container = document.getElementById('checkResult');
+
+  if (answered === 0) {
+    container.innerHTML = '<p style="color:var(--slate); margin-top:16px;">Mark at least one item to see results.</p>';
+    return;
+  }
+
+  let html = '';
+
+  if (notReceived.length > 0) {
+    html += `<div class="result-banner red">
+      <span class="banner-label">Disclosure Missing</span>
+      ${notReceived.length} required disclosure${notReceived.length > 1 ? 's were' : ' was'} NOT received.
+      <div class="result-details"><dl>`;
+    notReceived.forEach(item => {
+      html += `<dt>${item.text}</dt><dd><span class="statute-ref">${item.statute}</span> — This is a required disclosure. Under <span class="statute-ref">559A.05</span>, material disclosure violations give the buyer a two-year rescission window from contract execution.</dd>`;
+    });
+    html += `</dl></div>
+      <div class="help-links">
+        Get help: <a href="https://mn.gov/ag" target="_blank">MN Attorney General</a> |
+        <a href="https://homelinemn.org" target="_blank">HOME Line</a> |
+        <a href="https://lawhelpmn.org" target="_blank">Legal Aid MN</a>
+      </div>
+    </div>`;
+  }
+
+  if (unsure.length > 0) {
+    html += `<div class="result-banner yellow">
+      <span class="banner-label">Review Needed</span>
+      ${unsure.length} item${unsure.length > 1 ? 's' : ''} marked uncertain. Ask the seller directly:
+      <div class="result-details"><dl>`;
+    unsure.forEach(item => {
+      html += `<dt>${item.text}</dt><dd>Required under <span class="statute-ref">${item.statute}</span>. Request this in writing before signing.</dd>`;
+    });
+    html += `</dl></div>
+      <div class="help-links">
+        Questions? Call <a href="tel:6127285767">HOME Line: 612-728-5767</a>
+      </div>
+    </div>`;
+  }
+
+  if (notReceived.length === 0 && unsure.length === 0 && answered > 0) {
+    html += `<div class="result-banner green">
+      <span class="banner-label">Compliant</span>
+      All answered items indicate disclosures were received. Continue to the Cost Calculator to review financial terms.
+    </div>`;
+  }
+
+  container.innerHTML = html;
+  saveState();
+}
+
+// ===== CALCULATOR =====
+function monthlyPayment(principal, annualRate, termYears) {
+  if (principal <= 0) return 0;
+  const r = annualRate / 100 / 12;
+  const n = termYears * 12;
+  if (r === 0) return principal / n;
+  return principal * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+}
+
+function buildAmortization(principal, annualRate, termYears, balloonAmt, balloonYr) {
+  const r = annualRate / 100 / 12;
+  const n = termYears * 12;
+  const payment = monthlyPayment(principal, annualRate, termYears);
+  const schedule = [{ month: 0, balance: principal, totalInterest: 0, equity: 0 }];
+  let balance = principal;
+  let totalInterest = 0;
+
+  const endMonth = balloonYr > 0 ? Math.min(balloonYr * 12, n) : n;
+
+  for (let m = 1; m <= endMonth; m++) {
+    const interestPart = balance * r;
+    const principalPart = payment - interestPart;
+    totalInterest += interestPart;
+    balance = Math.max(0, balance - principalPart);
+    schedule.push({ month: m, balance, totalInterest, equity: principal - balance });
+  }
+
+  return { schedule, payment, totalInterest, finalBalance: balance };
+}
+
+function fmt(n) {
+  return '$' + Math.round(n).toLocaleString('en-US');
+}
+
+function runCalculator() {
+  const price = parseFloat(document.getElementById('cfd_price').value) || 0;
+  const down = parseFloat(document.getElementById('cfd_down').value) || 0;
+  const cfdRate = parseFloat(document.getElementById('cfd_rate').value) || 0;
+  const cfdTerm = parseFloat(document.getElementById('cfd_term').value) || 30;
+  const balloon = parseFloat(document.getElementById('cfd_balloon').value) || 0;
+  const balloonYr = parseFloat(document.getElementById('cfd_balloon_yr').value) || 0;
+
+  const mtgRate = parseFloat(document.getElementById('mtg_rate').value) || 6.8;
+  const mtgTerm = parseFloat(document.getElementById('mtg_term').value) || 30;
+  const pmiRate = parseFloat(document.getElementById('mtg_pmi').value) || 0;
+  const closingPct = parseFloat(document.getElementById('mtg_closing').value) || 0;
+
+  if (price <= 0) { alert('Enter a purchase price.'); return; }
+
+  const cfdPrincipal = price - down;
+  const mtgPrincipal = price - down;
+
+  // CFD amortization
+  const cfd = buildAmortization(cfdPrincipal, cfdRate, cfdTerm, balloon, balloonYr);
+  const cfdMonthly = cfd.payment;
+
+  // Mortgage amortization (full term, no balloon)
+  const mtg = buildAmortization(mtgPrincipal, mtgRate, mtgTerm, 0, 0);
+  const mtgMonthly = mtg.payment;
+
+  // PMI: apply until 20% equity
+  const pmiThreshold = price * 0.2;
+  let totalPMI = 0;
+  if (down < pmiThreshold) {
+    const monthlyPMI = (pmiRate / 100) * mtgPrincipal / 12;
+    for (let i = 1; i < mtg.schedule.length; i++) {
+      if (mtg.schedule[i].equity + down >= pmiThreshold) break;
+      totalPMI += monthlyPMI;
+    }
+  }
+  const closingCosts = price * (closingPct / 100);
+
+  // Comparison period
+  const comparisonMonths = balloonYr > 0 ? balloonYr * 12 : cfdTerm * 12;
+  const comparisonLabel = balloonYr > 0 ? `Year ${balloonYr} (balloon due)` : `Year ${cfdTerm} (full term)`;
+
+  // Total costs
+  const cfdTotalPayments = cfdMonthly * comparisonMonths;
+  const cfdTotalInterest = cfd.totalInterest;
+  const cfdTotalCost = down + cfdTotalPayments + (balloonYr > 0 ? cfd.finalBalance : 0);
+
+  // For mortgage over same period
+  const mtgPaymentsOverPeriod = mtgMonthly * comparisonMonths;
+  let mtgInterestOverPeriod = 0;
+  for (let i = 1; i <= Math.min(comparisonMonths, mtg.schedule.length - 1); i++) {
+    mtgInterestOverPeriod = mtg.schedule[i].totalInterest;
+  }
+  const mtgTotalCost = down + mtgPaymentsOverPeriod + closingCosts;
+
+  const delta = cfdTotalCost - mtgTotalCost;
+
+  // Equity at year 5 and 10
+  const eq5cfd = cfd.schedule[Math.min(60, cfd.schedule.length - 1)]?.equity || 0;
+  const eq10cfd = cfd.schedule[Math.min(120, cfd.schedule.length - 1)]?.equity || 0;
+  const eq5mtg = mtg.schedule[Math.min(60, mtg.schedule.length - 1)]?.equity || 0;
+  const eq10mtg = mtg.schedule[Math.min(120, mtg.schedule.length - 1)]?.equity || 0;
+
+  // Display delta
+  document.getElementById('deltaNumber').textContent = fmt(Math.abs(delta));
+  document.getElementById('deltaThrough').textContent = comparisonLabel;
+  if (delta > 0) {
+    document.getElementById('deltaNumber').style.color = 'var(--brick)';
+  } else {
+    document.getElementById('deltaNumber').style.color = 'var(--green)';
+  }
+
+  // Build table
+  const rows = [
+    ['Purchase price', fmt(price), fmt(price)],
+    ['Down payment', fmt(down), fmt(down)],
+    ['Principal financed', fmt(cfdPrincipal), fmt(mtgPrincipal)],
+    ['Monthly payment', fmt(cfdMonthly), fmt(mtgMonthly)],
+    ['Balloon payment', balloon > 0 ? `${fmt(balloon)} at yr ${balloonYr}` : 'None', 'None'],
+    ['Total interest paid (' + comparisonLabel + ')', fmt(cfdTotalInterest), fmt(mtgInterestOverPeriod)],
+    ['Closing costs', 'N/A', fmt(closingCosts)],
+    ['Total cost through ' + comparisonLabel, fmt(cfdTotalCost), fmt(mtgTotalCost), true],
+    ['Equity at year 5', fmt(eq5cfd), fmt(eq5mtg)],
+    ['Equity at year 10', eq10cfd > 0 ? fmt(eq10cfd) : (balloonYr > 0 && balloonYr < 10 ? 'Balloon due' : fmt(0)), fmt(eq10mtg)]
+  ];
+
+  const tbody = document.getElementById('compBody');
+  tbody.innerHTML = rows.map(r =>
+    `<tr${r[3] ? ' class="highlight-row"' : ''}><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`
+  ).join('');
+
+  // Down payment protection
+  const dpRefund = Math.max(0, down - (0.10 * price));
+  const dpDiv = document.getElementById('dpProtection');
+  if (dpRefund > 0) {
+    dpDiv.innerHTML = `<strong>Down Payment Protection (559A.04, subd. 4):</strong> If this contract is terminated in the first 48 months, the seller must return approximately <strong>${fmt(dpRefund)}</strong> of your down payment (the portion above 10% of the purchase price) within 180 days.`;
+  } else {
+    dpDiv.innerHTML = `<strong>Down Payment Protection:</strong> Your down payment (${fmt(down)}) is ${((down/price)*100).toFixed(1)}% of the purchase price — below the 10% threshold. Under <span class="statute-ref">559A.04, subd. 4</span>, the statutory refund rule does not protect any portion. <strong>The entire ${fmt(down)} is at risk if the contract is terminated.</strong>`;
+  }
+
+  // Store calc data for Module 3
+  calcData = { price, down, cfdRate, cfdTerm, balloon, balloonYr, cfdMonthly, cfdTotalCost, mtgTotalCost, delta, comparisonLabel };
+
+  document.getElementById('calcResults').style.display = 'block';
+
+  // Build chart
+  buildEquityChart(cfd, mtg, balloonYr);
+
+  saveState();
+}
+
+function buildEquityChart(cfd, mtg, balloonYr) {
+  const ctx = document.getElementById('equityChart');
+  if (!ctx) return;
+  if (typeof Chart === 'undefined') {
+    ctx.parentElement.innerHTML = '<p style="color:var(--slate); text-align:center; padding:24px;">Chart.js not available. Equity chart requires an internet connection on first load.</p>';
+    return;
+  }
+
+  if (equityChart) equityChart.destroy();
+
+  // Yearly data points
+  const maxYears = Math.max(balloonYr > 0 ? balloonYr + 1 : 0, Math.min(30, cfd.schedule.length / 12));
+  const labels = [];
+  const cfdData = [];
+  const mtgData = [];
+
+  for (let y = 0; y <= maxYears; y++) {
+    labels.push('Yr ' + y);
+    const cfdIdx = Math.min(y * 12, cfd.schedule.length - 1);
+    const mtgIdx = Math.min(y * 12, mtg.schedule.length - 1);
+    cfdData.push(Math.round(cfd.schedule[cfdIdx]?.balance || 0));
+    mtgData.push(Math.round(mtg.schedule[mtgIdx]?.balance || 0));
+  }
+
+  const annotation = balloonYr > 0 ? {
+    type: 'line',
+    xMin: balloonYr,
+    xMax: balloonYr,
+    borderColor: '#C49A00',
+    borderWidth: 2,
+    borderDash: [6, 4],
+    label: {
+      display: true,
+      content: `BALLOON DUE: ${fmt(cfd.schedule[Math.min(balloonYr * 12, cfd.schedule.length - 1)]?.balance || 0)}`,
+      position: 'start',
+      backgroundColor: '#C49A00',
+      color: '#000',
+      font: { size: 11, weight: 'bold', family: 'Verdana' },
+      padding: 4
+    }
+  } : null;
+
+  equityChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Contract for Deed',
+          data: cfdData,
+          borderColor: '#8B2020',
+          backgroundColor: 'rgba(139,32,32,0.08)',
+          fill: true,
+          tension: 0.2,
+          pointRadius: 2,
+          borderWidth: 3
+        },
+        {
+          label: '30-Yr Mortgage',
+          data: mtgData,
+          borderColor: '#1B4F72',
+          backgroundColor: 'rgba(27,79,114,0.08)',
+          fill: true,
+          tension: 0.2,
+          pointRadius: 2,
+          borderWidth: 3
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { display: false },
+        annotation: annotation ? { annotations: { balloon: annotation } } : undefined,
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              return ctx.dataset.label + ': ' + fmt(ctx.parsed.y) + ' remaining';
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          title: { display: true, text: 'Balance Remaining ($)', font: { family: 'Verdana', size: 12 } },
+          ticks: { callback: v => '$' + (v/1000).toFixed(0) + 'k' }
+        },
+        x: {
+          title: { display: true, text: 'Year', font: { family: 'Verdana', size: 12 } }
+        }
+      }
+    }
+  });
+}
+
+// ===== MODULE 3: POPULATE RECORD =====
+function populateRecord() {
+  // Date
+  const now = new Date();
+  document.getElementById('recordDate').textContent = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+  // Disclosure table
+  const tbody = document.getElementById('disclosureBody');
+  const hasData = Object.keys(checklistData).length > 0;
+
+  if (hasData) {
+    tbody.innerHTML = checklistItems.map(item => {
+      const val = checklistData[item.name];
+      let statusClass = 'status-none';
+      let statusText = 'Not answered';
+      if (val === 'received') { statusClass = 'status-received'; statusText = 'Received'; }
+      else if (val === 'not_received') { statusClass = 'status-not-received'; statusText = 'NOT Received'; }
+      else if (val === 'unsure') { statusClass = 'status-unsure'; statusText = 'Unsure'; }
+      return `<tr><td>${item.text}</td><td><span class="statute-ref">${item.statute}</span></td><td class="${statusClass}">${statusText}</td></tr>`;
+    }).join('');
+  }
+
+  // Financial summary
+  const fDiv = document.getElementById('financialSummary');
+  if (calcData.price) {
+    fDiv.innerHTML = `
+      <table class="disclosure-table" style="max-width:500px;">
+        <tr><td style="font-weight:700;">Purchase Price</td><td>${fmt(calcData.price)}</td></tr>
+        <tr><td style="font-weight:700;">Interest Rate</td><td>${calcData.cfdRate}%</td></tr>
+        <tr><td style="font-weight:700;">Term</td><td>${calcData.cfdTerm} years</td></tr>
+        <tr><td style="font-weight:700;">Monthly Payment</td><td>${fmt(calcData.cfdMonthly)}</td></tr>
+        ${calcData.balloon > 0 ? `<tr><td style="font-weight:700;">Balloon Payment</td><td>${fmt(calcData.balloon)} at year ${calcData.balloonYr}</td></tr>` : ''}
+        <tr><td style="font-weight:700;">Estimated Total Cost</td><td>${fmt(calcData.cfdTotalCost)}</td></tr>
+        <tr><td style="font-weight:700;">Extra Cost vs. Mortgage</td><td style="color:var(--brick); font-weight:700;">${fmt(Math.abs(calcData.delta))}</td></tr>
+      </table>
+    `;
+  }
+}
+
+// ===== PRINT =====
+function printRecord() {
+  populateRecord();
+  document.querySelectorAll('.module').forEach(m => m.classList.remove('print-target'));
+  document.getElementById('module3').classList.add('print-target');
+  window.print();
+}
+
+// ===== LOCAL STORAGE =====
+function saveState() {
+  const state = {
+    checklistData: {},
+    calcInputs: {},
+    recordInputs: {},
+    currentStep,
+    buyerNotes: document.getElementById('buyerNotes')?.value || ''
+  };
+
+  // Gather checklist
+  checklistItems.forEach(item => {
+    const r = document.querySelector(`input[name="${item.name}"]:checked`);
+    if (r) state.checklistData[item.name] = r.value;
+  });
+
+  // Gather calc inputs
+  ['cfd_price','cfd_down','cfd_rate','cfd_term','cfd_balloon','cfd_balloon_yr','mtg_rate','mtg_term','mtg_pmi','mtg_closing'].forEach(id => {
+    state.calcInputs[id] = document.getElementById(id)?.value || '';
+  });
+
+  // Gather record inputs
+  ['rec_address','rec_seller','rec_buyer','rec_exec_date'].forEach(id => {
+    state.recordInputs[id] = document.getElementById(id)?.value || '';
+  });
+
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const state = JSON.parse(raw);
+
+    // Restore checklist
+    if (state.checklistData) {
+      Object.entries(state.checklistData).forEach(([name, val]) => {
+        const r = document.querySelector(`input[name="${name}"][value="${val}"]`);
+        if (r) { r.checked = true; updateRadioStyle(r); }
+      });
+      checklistData = state.checklistData;
+    }
+
+    // Restore calc inputs
+    if (state.calcInputs) {
+      Object.entries(state.calcInputs).forEach(([id, val]) => {
+        const el = document.getElementById(id);
+        if (el && val) el.value = val;
+      });
+    }
+
+    // Restore record inputs
+    if (state.recordInputs) {
+      Object.entries(state.recordInputs).forEach(([id, val]) => {
+        const el = document.getElementById(id);
+        if (el && val) el.value = val;
+      });
+    }
+
+    if (state.buyerNotes) {
+      document.getElementById('buyerNotes').value = state.buyerNotes;
+    }
+
+    // Resume at last step
+    if (state.currentStep && state.currentStep >= 1) {
+      startTool();
+      goStep(state.currentStep);
+
+      // Re-run evaluations if data exists
+      if (Object.keys(state.checklistData || {}).length > 0) evaluateChecklist();
+      if (state.calcInputs?.cfd_price) runCalculator();
+    }
+  } catch(e) {}
+}
+
+// Save on input changes
+document.addEventListener('input', function(e) {
+  if (e.target.closest('.module-body')) saveState();
+});
+
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded', function() {
+  loadState();
+});
+</script>
+</body>
+</html>
