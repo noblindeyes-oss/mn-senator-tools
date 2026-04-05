@@ -6,1314 +6,1022 @@
   <title>Grant Hauschild — Senate District 3</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Lora:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;700&family=Oswald:wght@300;400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=IBM+Plex+Mono:wght@400;600&family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,600&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
   <style>
-    /* ── RESET ─────────────────────────────────────────── */
+    /* ─── RESET ─────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; font-size: 16px; }
+    html { scroll-behavior: smooth; }
 
-    /* ── MODE SYSTEM ────────────────────────────────────── */
+    /* ─── MODE SWITCHING ───���─────────────────────────────────── */
     .pro-content  { display: block; }
     .oppo-content { display: none; }
     body.mode-oppo .pro-content  { display: none; }
     body.mode-oppo .oppo-content { display: block; }
 
-    /* ── FLIP TRANSITION ────────────────────────────────── */
-    .site-wrap {
-      transition: opacity 0.22s ease;
-    }
+    /* ─── SITE-WRAP FADE TRANSITION ──────────────────────────── */
+    .site-wrap { transition: opacity 0.22s ease; }
     .site-wrap.fading { opacity: 0; }
 
-    /* ── FLIP BUTTON ────────────────────────────────────── */
+    /* ─── FLIP BUTTON ────────────────────────────────────────── */
     #flip-btn {
       position: fixed;
-      bottom: 28px;
-      right: 28px;
+      top: 24px; right: 24px;
       z-index: 9999;
-      border: 2px solid currentColor;
+      border: none;
       cursor: pointer;
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.12em;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
       text-transform: uppercase;
-      padding: 12px 20px;
-      transition: background 0.18s, color 0.18s, box-shadow 0.18s, transform 0.15s;
-      line-height: 1;
+      padding: 13px 22px;
+      transition: opacity 0.25s, transform 0.2s, box-shadow 0.2s;
     }
     body:not(.mode-oppo) #flip-btn {
-      background: #0F2027;
-      color: #C9D6B8;
-      border-color: #C9D6B8;
+      background: #1B1B1B;
+      color: #F5F0E8;
     }
     body.mode-oppo #flip-btn {
-      background: #E8E3D8;
-      color: #0F2027;
-      border-color: #0F2027;
+      background: #F5F0E8;
+      color: #1A1A1A;
     }
     #flip-btn:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.3);
     }
-    .btn-pro-label  { display: inline; }
-    .btn-oppo-label { display: none; }
+    .btn-pro-label, .btn-oppo-label { pointer-events: none; }
+    body:not(.mode-oppo) .btn-oppo-label { display: none; }
     body.mode-oppo .btn-pro-label  { display: none; }
-    body.mode-oppo .btn-oppo-label { display: inline; }
 
 
-    /* ══════════════════════════════════════════════════════
-       PRO SITE — "Northern Light"
-       Palette:
-         deep-lake     #0F2027
-         birch-cream   #F4F0E6
-         pine-green    #2D5F3F
-         amber-iron    #C8842A
-         shore-slate   #5A6E78
-         warm-birch    #E8DCC8
-    ══════════════════════════════════════════════════════ */
-
+    /* ═══════════════════════════════════════════════════════════
+       PRO SITE — "Northland Builder"
+       Palette: ore red #8B1A1A · pine green #2D5016
+                cold lake blue #1B4F72 · off-white #F5F0E8
+    ═══════════════════════════════════════════════════════════ */
     .pro-content {
-      background: #F4F0E6;
-      color: #0F2027;
-      font-family: 'Lora', Georgia, serif;
-      position: relative;
-      z-index: 1;
+      background: #F5F0E8;
+      font-family: 'Source Serif 4', Georgia, serif;
+      color: #1B1B1B;
     }
 
-    /* ── PRO: TOP BAR ──────────────────────────────────── */
-    .pro-topbar {
-      background: #0F2027;
-      border-bottom: 4px solid #C8842A;
-    }
-    .pro-topbar-inner {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 16px 40px;
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .pro-flag {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: #C8842A;
-    }
-    .pro-session {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 10px;
-      letter-spacing: 0.1em;
-      color: rgba(244,240,230,0.35);
-      text-transform: uppercase;
-    }
-
-    /* ── PRO: HERO ──────────────────────────────────────── */
+    /* HERO ─────────────────────────────────────────────────── */
     .pro-hero {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 72px 40px 0;
-      display: grid;
-      grid-template-columns: 1fr 380px;
-      gap: 64px;
-      align-items: start;
-    }
-
-    .pro-kicker {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      color: #2D5F3F;
-      margin-bottom: 24px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .pro-kicker::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: #2D5F3F;
-      max-width: 90px;
-    }
-
-    .pro-headline {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(68px, 8.5vw, 120px);
-      line-height: 0.9;
-      letter-spacing: -0.01em;
-      color: #0F2027;
-      margin-bottom: 32px;
-    }
-    .pro-headline .hl-accent { color: #2D5F3F; }
-    .pro-headline .hl-warm { color: #C8842A; }
-
-    .pro-deck {
-      font-size: 1.15rem;
-      line-height: 1.7;
-      color: #2A3A30;
-      max-width: 500px;
-      margin-bottom: 28px;
-    }
-
-    .pro-byline {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 11px;
-      font-weight: 500;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: #5A6E78;
-    }
-
-    /* ── PRO: PHOTO ─────────────────────────────────────── */
-    .pro-photo-col { position: relative; }
-    .pro-photo-frame {
-      position: relative;
-      background: #2D5F3F;
-      overflow: hidden;
-    }
-    .pro-photo-frame::before {
-      content: '';
-      position: absolute;
-      top: 14px; left: 14px;
-      right: -14px; bottom: -14px;
-      border: 2px solid #C8842A;
-      z-index: 0;
-    }
-    .pro-photo-frame img {
-      display: block;
-      width: 100%;
-      aspect-ratio: 3/4;
-      object-fit: cover;
-      object-position: center 15%;
-      position: relative;
-      z-index: 1;
-      filter: sepia(8%) saturate(90%) brightness(1.02);
-    }
-    .pro-photo-caption {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 10px;
-      letter-spacing: 0.1em;
-      color: #5A6E78;
-      text-transform: uppercase;
-      margin-top: 18px;
-    }
-
-    /* ── PRO: DIVIDER ──────────────────────────────────── */
-    .pro-rule {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 0 40px;
-    }
-    .pro-rule hr {
-      border: none;
-      border-top: 3px solid #0F2027;
-      margin: 56px 0 0;
-    }
-
-    /* ── PRO: STAT BAND ────────────────────────────────── */
-    .pro-stats {
-      background: #0F2027;
-      color: #F4F0E6;
-    }
-    .pro-stats-inner {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 48px 40px;
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 0;
-    }
-    .pro-stat {
-      padding: 0 36px 0 0;
-      border-right: 1px solid rgba(244,240,230,0.12);
-      margin-right: 36px;
-    }
-    .pro-stat:last-child { border-right: none; margin-right: 0; }
-    .pro-stat-num {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 60px;
-      line-height: 1;
-      color: #C8842A;
-    }
-    .pro-stat-label {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 11px;
-      font-weight: 500;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: rgba(244,240,230,0.55);
-      margin-top: 8px;
-      line-height: 1.45;
-    }
-    .pro-stat-source {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 9px;
-      color: rgba(244,240,230,0.25);
-      margin-top: 8px;
-    }
-
-    /* ── PRO: BILL SECTION ──────────────────────────────── */
-    .pro-bill {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 80px 40px;
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 80px;
-      align-items: start;
+      min-height: 100vh;
+      border-bottom: 4px solid #1B1B1B;
     }
 
-    .pro-bill-label {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      color: #C8842A;
-      margin-bottom: 18px;
-    }
-    .pro-bill-title {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 52px;
-      line-height: 0.95;
-      color: #0F2027;
-      margin-bottom: 28px;
-    }
-    .pro-bill-body {
-      font-size: 1.05rem;
-      line-height: 1.75;
-      color: #2A3A30;
-    }
-    .pro-bill-body p { margin-bottom: 1.1em; }
-    .pro-bill-body p:last-child { margin-bottom: 0; }
-
-    /* items list */
-    .pro-items-label {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      color: #2D5F3F;
-      margin-bottom: 22px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .pro-items-label::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: #2D5F3F;
-    }
-    .pro-item {
-      display: grid;
-      grid-template-columns: 4px 1fr;
-      gap: 0 16px;
-      padding: 16px 0;
-      border-bottom: 1px solid rgba(15,32,39,0.08);
-      align-items: center;
-    }
-    .pro-item:first-of-type { border-top: 1px solid rgba(15,32,39,0.08); }
-    .pro-item-bar {
-      background: #C8842A;
-      height: 100%;
-      min-height: 38px;
-      border-radius: 2px;
-    }
-    .pro-item-text {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 13.5px;
-      color: #1A2E25;
-      line-height: 1.45;
-    }
-
-    /* ── PRO: LANDSCAPE ────────────────────────────────── */
-    .pro-landscape {
-      width: 100%;
-      position: relative;
-      overflow: hidden;
-      height: 400px;
-    }
-    .pro-landscape img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center 35%;
-      display: block;
-      filter: sepia(6%) saturate(85%) brightness(0.88);
-    }
-    .pro-landscape-bar {
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      background: linear-gradient(transparent, rgba(15,32,39,0.8));
-      padding: 36px 40px 22px;
-    }
-    .pro-landscape-cap {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 11px;
-      font-weight: 500;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: rgba(244,240,230,0.7);
-    }
-
-    /* ── PRO: PULL QUOTE ───────────────────────────────── */
-    .pro-quote {
-      background: #2D5F3F;
-      color: #F4F0E6;
-    }
-    .pro-quote-inner {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 80px 40px;
-      display: grid;
-      grid-template-columns: auto 1fr;
-      gap: 40px;
-      align-items: start;
-    }
-    .pro-quote-mark {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 130px;
-      line-height: 0.7;
-      color: rgba(200,132,42,0.4);
-      user-select: none;
-    }
-    .pro-quote-text {
-      font-family: 'Lora', Georgia, serif;
-      font-size: clamp(1.25rem, 2.2vw, 1.65rem);
-      font-style: italic;
-      line-height: 1.6;
-      color: #F4F0E6;
-      margin-bottom: 20px;
-    }
-    .pro-quote-attr {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: #C8842A;
-    }
-
-    /* ── PRO: CONTEXT ──────────────────────────────────── */
-    .pro-context {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 80px 40px;
-    }
-    .pro-context-head {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 48px;
-      color: #0F2027;
-      margin-bottom: 28px;
-      border-bottom: 3px solid #C8842A;
-      padding-bottom: 18px;
-    }
-    .pro-context-cols {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 52px;
-    }
-    .pro-context-body {
-      font-size: 1.05rem;
-      line-height: 1.75;
-      color: #2A3A30;
-    }
-    .pro-context-body p { margin-bottom: 1.1em; }
-
-    /* ── PRO: FOOTNOTES ────────────────────────────────── */
-    .pro-footnotes {
-      background: #0F2027;
-      color: #F4F0E6;
-    }
-    .pro-footnotes-inner {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 48px 40px;
-      border-top: 2px solid #C8842A;
-    }
-    .fn-head {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: #C8842A;
-      margin-bottom: 20px;
-    }
-    .fn-list {
-      list-style: none;
+    .pro-hero-left {
+      background: #2D5016;
       display: flex;
       flex-direction: column;
-      gap: 8px;
-    }
-    .fn-list li {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 11px;
-      color: rgba(244,240,230,0.45);
-      line-height: 1.55;
-      padding-left: 22px;
+      justify-content: flex-end;
+      padding: 72px 60px;
       position: relative;
+      overflow: hidden;
     }
-    .fn-list li::before {
-      content: attr(data-n);
+    /* subtle grid overlay */
+    .pro-hero-left::before {
+      content: '';
       position: absolute;
-      left: 0;
-      color: #C8842A;
-      font-weight: 700;
+      inset: 0;
+      background-image:
+        repeating-linear-gradient(0deg,
+          transparent, transparent 39px,
+          rgba(255,255,255,0.035) 39px, rgba(255,255,255,0.035) 40px),
+        repeating-linear-gradient(90deg,
+          transparent, transparent 39px,
+          rgba(255,255,255,0.035) 39px, rgba(255,255,255,0.035) 40px);
+      pointer-events: none;
     }
-    .fn-list a {
-      color: rgba(244,240,230,0.35);
-      text-decoration: none;
-    }
-    .fn-list a:hover { color: #C8842A; }
 
-
-    /* ══════════════════════════════════════════════════════
-       OPPO SITE — "The Dossier"
-       Palette:
-         ink-black     #0A0A0A
-         paper-white   #E8E3D8
-         evidence-red  #A42B1A
-         slate-dark    #2A2A2A
-         ghost-gray    #6A6A6A
-         classified    #1A1A1A
-    ══════════════════════════════════════════════════════ */
-
-    .oppo-content {
-      background: #E8E3D8;
-      color: #0A0A0A;
-      font-family: 'Lora', Georgia, serif;
+    .pro-district-stamp {
+      display: inline-block;
+      border: 1.5px solid rgba(245,240,232,0.35);
+      color: rgba(245,240,232,0.6);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      margin-bottom: 36px;
+      width: fit-content;
       position: relative;
       z-index: 1;
     }
 
-    /* ── OPPO: FILE BAR ────────────────────────────────── */
-    .oppo-filebar {
-      background: #0A0A0A;
-      border-bottom: 4px solid #A42B1A;
-    }
-    .oppo-filebar-inner {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 14px 40px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .oppo-file-ref {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: #A42B1A;
-    }
-    .oppo-file-meta {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 9px;
-      letter-spacing: 0.1em;
-      color: rgba(232,227,216,0.3);
-      text-transform: uppercase;
-    }
-
-    /* ── OPPO: HERO ─────────────────────────────────────── */
-    .oppo-hero {
-      background: #0A0A0A;
-      color: #E8E3D8;
-    }
-    .oppo-hero-inner {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 64px 40px 0;
-      display: grid;
-      grid-template-columns: 1fr 300px;
-      gap: 56px;
-      align-items: end;
-    }
-
-    .oppo-charge-label {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      color: #A42B1A;
-      margin-bottom: 24px;
-    }
-
-    .oppo-headline {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(52px, 7vw, 100px);
-      line-height: 0.88;
-      color: #E8E3D8;
+    .pro-hero-name {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: clamp(52px, 6.5vw, 96px);
+      line-height: 0.92;
+      color: #F5F0E8;
       margin-bottom: 32px;
-    }
-    .oppo-headline em {
-      color: #A42B1A;
-      font-style: normal;
+      position: relative;
+      z-index: 1;
     }
 
-    .oppo-hero-deck {
-      font-size: 1.05rem;
+    .pro-hero-tagline {
+      font-size: 16px;
+      font-weight: 300;
       line-height: 1.7;
-      color: rgba(232,227,216,0.65);
-      max-width: 540px;
-      margin-bottom: 0;
+      color: rgba(245,240,232,0.78);
+      max-width: 380px;
+      border-top: 1px solid rgba(245,240,232,0.28);
+      padding-top: 22px;
+      position: relative;
+      z-index: 1;
     }
 
-    .oppo-photo-wrap {
-      align-self: end;
+    .pro-hero-right {
       position: relative;
+      background: #1B4F72;
+      overflow: hidden;
     }
-    .oppo-photo-wrap img {
-      display: block;
-      width: 100%;
-      aspect-ratio: 3/4;
-      object-fit: cover;
-      object-position: center 15%;
-      filter: grayscale(100%) contrast(1.2) brightness(0.75);
-    }
-    .oppo-photo-stamp {
+    .pro-hero-right::after {
+      content: 'SD — 03';
       position: absolute;
-      top: 16px; right: -8px;
-      background: #A42B1A;
-      color: #E8E3D8;
+      top: 36px; right: 36px;
       font-family: 'IBM Plex Mono', monospace;
       font-size: 9px;
-      font-weight: 600;
-      letter-spacing: 0.16em;
+      letter-spacing: 0.35em;
+      color: rgba(245,240,232,0.28);
       text-transform: uppercase;
-      padding: 6px 12px;
-      transform: rotate(2.5deg);
+      z-index: 2;
     }
 
-    /* ── OPPO: TIMELINE ────────────────────────────────── */
-    .oppo-timeline {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 80px 40px 60px;
-    }
-    .oppo-section-label {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      color: #A42B1A;
-      margin-bottom: 40px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .oppo-section-label::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: #A42B1A;
-    }
-
-    /* Timeline track */
-    .tl-track {
-      position: relative;
-      padding-left: 48px;
-    }
-    .tl-track::before {
-      content: '';
-      position: absolute;
-      left: 10px;
-      top: 0;
-      bottom: 0;
-      width: 2px;
-      background: linear-gradient(to bottom, #A42B1A, rgba(164,43,26,0.2));
-    }
-    .tl-node {
-      position: relative;
-      margin-bottom: 48px;
-      padding: 28px 32px;
-      background: #fff;
-      border: 1px solid rgba(10,10,10,0.1);
-      border-left: 4px solid #A42B1A;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .tl-node:hover {
-      transform: translateX(4px);
-      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-    }
-    .tl-node::before {
-      content: '';
-      position: absolute;
-      left: -41px;
-      top: 32px;
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: #A42B1A;
-      border: 3px solid #E8E3D8;
-    }
-    .tl-node-date {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: #A42B1A;
-      margin-bottom: 10px;
-    }
-    .tl-node-title {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 32px;
-      line-height: 1.05;
-      color: #0A0A0A;
-      margin-bottom: 14px;
-    }
-    .tl-node-body {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 14px;
-      line-height: 1.7;
-      color: #3A3A3A;
-    }
-    .tl-node-body sup {
-      font-size: 0.7em;
-      color: #A42B1A;
-    }
-    .tl-pullquote {
-      margin-top: 16px;
-      padding: 16px 20px;
-      background: rgba(164,43,26,0.06);
-      border-left: 3px solid #A42B1A;
-      font-family: 'Lora', Georgia, serif;
-      font-style: italic;
-      font-size: 15px;
-      line-height: 1.6;
-      color: #2A2A2A;
-    }
-    .tl-pullquote cite {
-      display: block;
-      font-style: normal;
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 9px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: #6A6A6A;
-      margin-top: 10px;
-    }
-    .tl-tag {
-      display: inline-block;
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 9px;
-      font-weight: 600;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      padding: 4px 10px;
-      margin-top: 14px;
-      border: 1px solid #A42B1A;
-      color: #A42B1A;
-    }
-
-    /* ── OPPO: DOCUMENT BLOCK ───────────────────────────── */
-    .oppo-doc-section {
-      background: #0A0A0A;
-    }
-    .oppo-doc-inner {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 72px 40px;
-    }
-    .oppo-doc-card {
-      background: #1A1A1A;
-      border: 1px solid #2A2A2A;
-      border-left: 4px solid #A42B1A;
-      padding: 40px;
-    }
-    .oppo-doc-title {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: rgba(232,227,216,0.35);
-      margin-bottom: 28px;
-    }
-    .oppo-doc-excerpt {
-      font-family: 'Lora', Georgia, serif;
-      font-size: 1.1rem;
-      line-height: 1.8;
-      color: #E8E3D8;
-      margin-bottom: 28px;
-    }
-    .oppo-redact {
-      display: inline-block;
-      background: #A42B1A;
-      color: transparent;
-      user-select: none;
-      border-radius: 2px;
-      font-size: inherit;
-      line-height: inherit;
-      min-width: 2em;
-      cursor: default;
-      transition: background 0.25s, color 0.25s;
-      position: relative;
-    }
-    .oppo-redact:hover {
-      background: #E8E3D8;
-      color: #A42B1A;
-      font-weight: 700;
-    }
-    .oppo-redact::after {
-      content: attr(data-reveal);
+    .pro-photo-wrap {
       position: absolute;
       inset: 0;
+      overflow: hidden;
+    }
+    .pro-photo-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+      filter: sepia(18%) contrast(1.06) saturate(0.85);
+      mix-blend-mode: multiply;
+    }
+    .pro-photo-fallback {
+      width: 100%;
+      height: 100%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 0.04em;
-      color: inherit;
-      white-space: nowrap;
-    }
-    .oppo-doc-gap {
-      background: rgba(164,43,26,0.1);
-      border: 1px dashed rgba(164,43,26,0.35);
-      padding: 16px 20px;
+      background: linear-gradient(160deg, #1B4F72 40%, #0d3350 100%);
+      color: rgba(245,240,232,0.2);
       font-family: 'IBM Plex Mono', monospace;
       font-size: 11px;
-      color: rgba(232,227,216,0.5);
-      line-height: 1.5;
-    }
-
-    /* ── OPPO: EVIDENCE CARDS ───────────────────────────── */
-    .oppo-evidence {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 80px 40px;
-    }
-    .oppo-cards {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
-      margin-top: 36px;
-    }
-    .oppo-card {
-      background: #fff;
-      border: 1.5px solid #0A0A0A;
-      padding: 28px 24px;
-      position: relative;
-      transition: background 0.2s, color 0.2s, border-color 0.2s;
-      cursor: default;
-    }
-    .oppo-card::before {
-      content: '';
-      position: absolute;
-      top: -1.5px; left: -1.5px;
-      width: 36px; height: 3px;
-      background: #A42B1A;
-    }
-    .oppo-card:hover {
-      background: #0A0A0A;
-      color: #E8E3D8;
-      border-color: #A42B1A;
-    }
-    .oppo-card:hover .oppo-card-label { color: rgba(232,227,216,0.5); }
-    .oppo-card:hover .oppo-card-title { color: #A42B1A; }
-    .oppo-card:hover .oppo-card-body { color: rgba(232,227,216,0.7); }
-    .oppo-card:hover .oppo-card-cite { color: rgba(232,227,216,0.3); }
-
-    .oppo-card-label {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 9px;
-      font-weight: 600;
       letter-spacing: 0.2em;
       text-transform: uppercase;
-      color: #A42B1A;
-      margin-bottom: 12px;
-      transition: color 0.2s;
     }
-    .oppo-card-title {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 26px;
-      line-height: 1.05;
-      color: #0A0A0A;
-      margin-bottom: 12px;
-      transition: color 0.2s;
+    .pro-photo-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to right,
+        #1B4F72 0%, transparent 18%,
+        transparent 75%, rgba(27,79,114,0.45) 100%
+      );
+      z-index: 1;
     }
-    .oppo-card-body {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 13px;
-      line-height: 1.65;
-      color: #3A3A3A;
-      margin-bottom: 14px;
-      transition: color 0.2s;
+
+    /* NUMBERS STRIP ──────────────────────────────────────────── */
+    .pro-numbers {
+      background: #8B1A1A;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-top: 4px solid #1B1B1B;
+      border-bottom: 4px solid #1B1B1B;
     }
-    .oppo-card-cite {
+    .pro-stat {
+      padding: 44px 52px;
+      border-right: 2px solid rgba(245,240,232,0.18);
+    }
+    .pro-stat:last-child { border-right: none; }
+    .pro-stat-num {
+      display: block;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: clamp(44px, 5.5vw, 80px);
+      font-weight: 600;
+      color: #F5F0E8;
+      line-height: 1;
+    }
+    .pro-stat-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 300;
+      line-height: 1.45;
+      color: rgba(245,240,232,0.72);
+      margin-top: 10px;
+    }
+    .pro-stat-ref {
+      display: block;
       font-family: 'IBM Plex Mono', monospace;
       font-size: 9px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: #6A6A6A;
-      transition: color 0.2s;
+      letter-spacing: 0.1em;
+      color: rgba(245,240,232,0.38);
+      margin-top: 14px;
     }
 
-    /* ── OPPO: CONTEXT BAND ────────────────────────────── */
-    .oppo-context {
-      background: #1A1A1A;
-      color: #E8E3D8;
-    }
-    .oppo-context-inner {
-      max-width: 1100px;
+    /* BILLS SECTION ─────────────────────────────────────────── */
+    .pro-section {
+      max-width: 1120px;
       margin: 0 auto;
-      padding: 72px 40px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 64px;
-      align-items: start;
+      padding: 96px 52px;
     }
-    .oppo-context-head {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 52px;
-      line-height: 0.95;
-      color: #E8E3D8;
-      margin-bottom: 24px;
+    .pro-section-header {
+      display: flex;
+      align-items: baseline;
+      gap: 28px;
+      border-bottom: 3px solid #1B1B1B;
+      padding-bottom: 18px;
+      margin-bottom: 56px;
     }
-    .oppo-context-head em {
-      color: #A42B1A;
-      font-style: normal;
-    }
-    .oppo-context-body {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 14px;
-      line-height: 1.75;
-      color: rgba(232,227,216,0.6);
-    }
-    .oppo-context-body p { margin-bottom: 0.9em; }
-
-    .oppo-pull {
-      border-left: 3px solid #A42B1A;
-      padding: 20px 0 20px 24px;
-      margin-bottom: 28px;
-    }
-    .oppo-pull-text {
-      font-family: 'Lora', Georgia, serif;
-      font-size: 1.2rem;
-      font-style: italic;
-      line-height: 1.6;
-      color: #E8E3D8;
-    }
-    .oppo-pull-source {
+    .pro-section-eyebrow {
       font-family: 'IBM Plex Mono', monospace;
       font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.22em;
+      color: #8B1A1A;
       text-transform: uppercase;
-      color: rgba(232,227,216,0.3);
-      margin-top: 12px;
+      white-space: nowrap;
     }
-    .oppo-gap-box {
-      background: rgba(164,43,26,0.08);
-      border: 1px solid rgba(164,43,26,0.25);
-      padding: 22px 24px;
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 13px;
-      line-height: 1.65;
-      color: rgba(232,227,216,0.55);
+    .pro-section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(28px, 3vw, 44px);
+      font-weight: 700;
+      color: #1B1B1B;
     }
-    .oppo-gap-box strong { color: #E8E3D8; }
 
-    /* ── OPPO: FOOTNOTES ────────────────────────────────── */
-    .oppo-footnotes {
-      background: #0A0A0A;
-      border-top: 3px solid #A42B1A;
+    .pro-bill-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px;
+      background: #1B1B1B;
+      border: 2px solid #1B1B1B;
     }
-    .oppo-footnotes-inner {
+    .pro-bill-card {
+      background: #F5F0E8;
+      padding: 52px 44px;
+    }
+    .pro-bill-tag {
+      display: inline-block;
+      background: #2D5016;
+      color: #F5F0E8;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      padding: 5px 12px;
+      margin-bottom: 22px;
+    }
+    .pro-bill-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1.25;
+      color: #1B1B1B;
+      margin-bottom: 18px;
+    }
+    .pro-bill-body {
+      font-size: 15px;
+      line-height: 1.72;
+      color: #3A3A3A;
+      font-weight: 300;
+    }
+    .pro-bill-highlight {
+      margin-top: 28px;
+      padding: 18px 22px;
+      border-left: 4px solid #8B1A1A;
+      background: rgba(139,26,26,0.07);
+    }
+    .pro-bill-highlight-num {
+      display: block;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 30px;
+      font-weight: 600;
+      color: #8B1A1A;
+      line-height: 1;
+    }
+    .pro-bill-highlight-label {
+      display: block;
+      font-size: 12px;
+      color: #777;
+      margin-top: 6px;
+      font-family: 'IBM Plex Mono', monospace;
+      letter-spacing: 0.05em;
+    }
+
+    /* LANDSCAPE ─────────────────────────────────────────────── */
+    .pro-landscape-wrap {
+      border-top: 4px solid #1B1B1B;
+      border-bottom: 4px solid #1B1B1B;
+    }
+    .pro-landscape {
+      width: 100%;
+      height: 380px;
+      object-fit: cover;
+      display: block;
+      filter: sepia(12%) contrast(1.06) saturate(0.88);
+    }
+    .pro-landscape-fallback {
+      width: 100%;
+      height: 380px;
+      background: linear-gradient(160deg, #1B4F72 0%, #2D5016 100%);
+    }
+    .pro-landscape-cap {
+      background: #1B4F72;
+      padding: 14px 52px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.25em;
+      color: rgba(245,240,232,0.5);
+      text-transform: uppercase;
+    }
+
+    /* PULL QUOTE ────────────────────────────────────────────── */
+    .pro-quote-section {
+      background: #2D5016;
+      padding: 88px 52px;
+      text-align: center;
+    }
+    .pro-quote-text {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(22px, 2.8vw, 36px);
+      font-style: italic;
+      font-weight: 700;
+      color: #F5F0E8;
+      max-width: 780px;
+      margin: 0 auto 24px;
+      line-height: 1.42;
+    }
+    .pro-quote-source {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.22em;
+      color: rgba(245,240,232,0.42);
+      text-transform: uppercase;
+    }
+
+    /* PRO FOOTER ────────────────────────────────────────────── */
+    .pro-footer {
+      background: #1B1B1B;
+      padding: 52px;
+    }
+    .pro-footnotes {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      line-height: 1.85;
+      letter-spacing: 0.04em;
+      color: rgba(245,240,232,0.42);
+      max-width: 920px;
+    }
+    .pro-footnotes p + p {
+      border-top: 1px solid rgba(245,240,232,0.09);
+      padding-top: 10px;
+      margin-top: 10px;
+    }
+    .pro-footnotes .disclaimer {
+      margin-top: 20px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(245,240,232,0.18) !important;
+      color: rgba(245,240,232,0.28);
+    }
+
+
+    /* ═══════════════════════════════════════════════════════════
+       OPPO SITE — "Document Dump"
+       Palette: near-white #F0EFED · charcoal #1A1A1A
+                signal red #CC0000 · midgray #888
+    ═══════════════════════════════════════════════════════════ */
+    .oppo-content {
+      background: #F0EFED;
+      font-family: 'Space Grotesk', sans-serif;
+      color: #1A1A1A;
+    }
+
+    /* OPPO HEADER ───────────────────────────────────────────── */
+    .oppo-header {
+      background: #1A1A1A;
+      padding: 18px 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 3px solid #CC0000;
+    }
+    .oppo-header-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.36);
+    }
+    .oppo-header-case {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #CC0000;
+    }
+
+    /* OPPO HERO ─────────────────────────────────────────────── */
+    .oppo-hero {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      min-height: 88vh;
+      border-bottom: 4px solid #1A1A1A;
+    }
+
+    .oppo-photo-col {
+      position: relative;
+      background: #2A2A2A;
+      overflow: hidden;
+    }
+    .oppo-photo-col img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+      filter: grayscale(88%) contrast(1.18) brightness(0.82);
+    }
+    /* scanline overlay */
+    .oppo-scan {
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent 0px, transparent 3px,
+        rgba(0,0,0,0.10) 3px, rgba(0,0,0,0.10) 4px
+      );
+      pointer-events: none;
+      z-index: 1;
+    }
+    .oppo-photo-stamp {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: #CC0000;
+      padding: 13px 22px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: white;
+      z-index: 2;
+    }
+
+    .oppo-hero-text {
+      padding: 88px 80px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    /* legal-pad lines */
+    .oppo-hero-text::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent, transparent 27px,
+        rgba(0,0,0,0.045) 27px, rgba(0,0,0,0.045) 28px
+      );
+      pointer-events: none;
+    }
+
+    .oppo-file-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.28em;
+      color: #CC0000;
+      text-transform: uppercase;
+      margin-bottom: 22px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .oppo-hero-headline {
+      font-weight: 700;
+      font-size: clamp(36px, 5.5vw, 76px);
+      line-height: 1.0;
+      color: #1A1A1A;
+      margin-bottom: 36px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* redacted text — hover to reveal */
+    .oppo-redact {
+      display: inline;
+      background: #1A1A1A;
+      color: transparent;
+      cursor: pointer;
+      transition: background 0.18s, color 0.18s;
+      padding: 0 3px;
+    }
+    .oppo-redact:hover {
+      background: #CC0000;
+      color: white;
+    }
+
+    .oppo-hero-sub {
+      font-size: 17px;
+      line-height: 1.68;
+      color: #4A4A4A;
+      max-width: 500px;
+      border-left: 3px solid #CC0000;
+      padding-left: 22px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* TIMELINE ──────────────────────────────────────────────── */
+    .oppo-timeline-section {
       max-width: 1100px;
       margin: 0 auto;
-      padding: 44px 40px;
+      padding: 88px 52px;
+    }
+    .oppo-section-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: #CC0000;
+      border-bottom: 1px solid #CC0000;
+      padding-bottom: 10px;
+      margin-bottom: 56px;
     }
 
-    /* ── RESPONSIVE ─────────────────────────────────────── */
-    @media (max-width: 900px) {
-      .pro-hero { grid-template-columns: 1fr; gap: 40px; }
-      .pro-photo-col { order: -1; max-width: 280px; }
-      .pro-photo-frame::before { display: none; }
-      .pro-stats-inner { grid-template-columns: 1fr; gap: 28px; }
-      .pro-stat { border-right: none; border-bottom: 1px solid rgba(244,240,230,0.1); padding: 0 0 24px; margin-right: 0; }
-      .pro-stat:last-child { border-bottom: none; }
-      .pro-bill { grid-template-columns: 1fr; gap: 44px; }
-      .pro-context-cols { grid-template-columns: 1fr; gap: 24px; }
-      .pro-quote-inner { grid-template-columns: auto 1fr; gap: 20px; }
+    .oppo-timeline { position: relative; }
+    .oppo-timeline::before {
+      content: '';
+      position: absolute;
+      left: 112px; top: 0; bottom: 0;
+      width: 2px;
+      background: #1A1A1A;
+    }
 
-      .oppo-hero-inner { grid-template-columns: 1fr; gap: 32px; }
-      .oppo-photo-wrap { max-width: 240px; }
-      .oppo-cards { grid-template-columns: 1fr; }
-      .oppo-context-inner { grid-template-columns: 1fr; gap: 36px; }
+    .oppo-event {
+      display: grid;
+      grid-template-columns: 112px 1fr;
+      gap: 52px;
+      margin-bottom: 60px;
+      position: relative;
+    }
+    .oppo-event::before {
+      content: '';
+      position: absolute;
+      left: 111px; top: 8px;
+      width: 11px; height: 11px;
+      border-radius: 50%;
+      background: #CC0000;
+      transform: translateX(-50%);
+      z-index: 1;
+    }
 
-      .pro-topbar-inner, .pro-rule, .pro-stats-inner, .pro-bill,
-      .pro-landscape-bar, .pro-quote-inner, .pro-context,
-      .pro-footnotes-inner { padding-left: 20px; padding-right: 20px; }
-      .pro-hero { padding: 40px 20px 0; }
+    .oppo-event-date {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      color: #888;
+      padding-top: 4px;
+      text-align: right;
+      line-height: 1.5;
+    }
+    .oppo-event-body-wrap { padding-left: 28px; }
+    .oppo-event-heading {
+      font-weight: 700;
+      font-size: 19px;
+      margin-bottom: 10px;
+      color: #1A1A1A;
+      line-height: 1.25;
+    }
+    .oppo-event-body {
+      font-size: 15px;
+      line-height: 1.68;
+      color: #555;
+    }
+    .oppo-verdict {
+      display: inline-block;
+      margin-top: 14px;
+      background: #1A1A1A;
+      color: white;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      padding: 5px 12px;
+    }
+    .oppo-verdict.red { background: #CC0000; }
 
-      .oppo-filebar-inner, .oppo-hero-inner, .oppo-timeline, .oppo-doc-inner,
-      .oppo-evidence, .oppo-context-inner, .oppo-footnotes-inner {
-        padding-left: 20px; padding-right: 20px;
-      }
-      .tl-track { padding-left: 36px; }
-      .tl-node::before { left: -29px; width: 12px; height: 12px; }
+    /* DOCUMENT BLOCK ────────────────────────────────────────── */
+    .oppo-doc-section {
+      background: #1A1A1A;
+      padding: 88px 52px;
+      position: relative;
+      overflow: hidden;
+    }
+    .oppo-doc-section::before {
+      content: 'PUBLIC RECORD';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%) rotate(-28deg);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 130px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      color: rgba(255,255,255,0.025);
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    .oppo-doc-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+    .oppo-doc-eyebrow {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: #CC0000;
+      margin-bottom: 28px;
+    }
+    .oppo-doc-pull {
+      font-size: clamp(20px, 2.8vw, 32px);
+      font-weight: 700;
+      line-height: 1.32;
+      color: white;
+      margin-bottom: 32px;
+    }
+    .oppo-doc-body {
+      font-size: 16px;
+      line-height: 1.72;
+      color: rgba(255,255,255,0.55);
+      border-top: 1px solid rgba(255,255,255,0.12);
+      padding-top: 28px;
+    }
+
+    /* DATA CENTER IMAGE ─────────────────────────────────────── */
+    .oppo-datacenter {
+      width: 100%;
+      height: 340px;
+      object-fit: cover;
+      display: block;
+      filter: grayscale(78%) contrast(1.12);
+      border-top: 4px solid #CC0000;
+      border-bottom: 4px solid #1A1A1A;
+    }
+    .oppo-datacenter-fallback {
+      width: 100%;
+      height: 340px;
+      background: linear-gradient(160deg, #2A2A2A 0%, #1A1A1A 100%);
+      border-top: 4px solid #CC0000;
+      border-bottom: 4px solid #1A1A1A;
+    }
+
+    /* EVIDENCE GRID ─────────────────────────────────────────── */
+    .oppo-evidence-section {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 88px 52px;
+    }
+    .oppo-evidence-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      background: #1A1A1A;
+      border: 2px solid #1A1A1A;
+      margin-top: 40px;
+    }
+    .oppo-ev-card {
+      background: #F0EFED;
+      padding: 40px 36px;
+      cursor: default;
+      transition: background 0.22s;
+    }
+    .oppo-ev-card:hover { background: #1A1A1A; }
+    .oppo-ev-card:hover .oppo-ev-tag   { color: #CC0000; }
+    .oppo-ev-card:hover .oppo-ev-head  { color: white; }
+    .oppo-ev-card:hover .oppo-ev-body  { color: rgba(255,255,255,0.6); }
+
+    .oppo-ev-tag {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+      color: #888;
+      margin-bottom: 14px;
+      transition: color 0.22s;
+    }
+    .oppo-ev-head {
+      font-weight: 700;
+      font-size: 17px;
+      line-height: 1.3;
+      margin-bottom: 12px;
+      transition: color 0.22s;
+    }
+    .oppo-ev-body {
+      font-size: 14px;
+      line-height: 1.62;
+      color: #555;
+      transition: color 0.22s;
+    }
+
+    /* OPPO FOOTER ───────────────────────────────────────────── */
+    .oppo-footer {
+      background: #1A1A1A;
+      padding: 52px;
+      border-top: 3px solid #CC0000;
+    }
+    .oppo-footnotes {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      line-height: 1.85;
+      letter-spacing: 0.04em;
+      color: rgba(255,255,255,0.38);
+      max-width: 920px;
+    }
+    .oppo-footnotes p + p {
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding-top: 10px;
+      margin-top: 10px;
+    }
+    .oppo-footnotes .disclaimer {
+      margin-top: 20px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255,255,255,0.15) !important;
+      color: rgba(255,255,255,0.22);
+    }
+
+    /* ─── RESPONSIVE ──────────────────────────────────────────── */
+    @media (max-width: 920px) {
+      .pro-hero  { grid-template-columns: 1fr; }
+      .pro-hero-left { padding: 52px 32px; min-height: 60vh; }
+      .pro-hero-right { min-height: 55vh; }
+      .pro-numbers { grid-template-columns: 1fr; }
+      .pro-stat  { border-right: none; border-bottom: 1px solid rgba(245,240,232,0.15); }
+      .pro-section { padding: 64px 24px; }
+      .pro-bill-grid { grid-template-columns: 1fr; }
+      .pro-landscape { height: 240px; }
+      .pro-quote-section { padding: 64px 32px; }
+      .pro-footer { padding: 40px 24px; }
+
+      .oppo-header { padding: 16px 24px; flex-direction: column; gap: 8px; align-items: flex-start; }
+      .oppo-hero  { grid-template-columns: 1fr; }
+      .oppo-photo-col { min-height: 52vh; }
+      .oppo-hero-text { padding: 52px 32px; }
+      .oppo-timeline-section { padding: 64px 24px; }
+      .oppo-timeline::before { left: 80px; }
+      .oppo-event { grid-template-columns: 80px 1fr; gap: 24px; }
+      .oppo-event::before { left: 79px; }
+      .oppo-doc-section { padding: 64px 32px; }
+      .oppo-evidence-section { padding: 64px 24px; }
+      .oppo-evidence-grid { grid-template-columns: 1fr; }
+      .oppo-footer { padding: 40px 24px; }
+
+      #flip-btn { top: 14px; right: 14px; font-size: 9px; padding: 11px 16px; }
     }
   </style>
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════════════════════
-     NAVIGATION
-════════════════════════════════════════════════════════ -->
-<a id="home-btn" href="../../index.html" aria-label="Back to all senators" style="position:fixed;top:20px;left:20px;z-index:9999;font-family:monospace;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;text-decoration:none;color:#333;padding:6px 10px;border:1px solid #222;border-radius:2px;background:rgba(5,5,5,0.7);backdrop-filter:blur(4px);transition:color 0.2s,border-color 0.2s;"
-  onmouseover="this.style.color='#888';this.style.borderColor='#555'"
-  onmouseout="this.style.color='#333';this.style.borderColor='#222'"
->&#8592;</a>
-<button id="flip-btn" aria-label="Switch between supporter and accountability views">
-  <span class="btn-oppo-label">&#9654; Supporter View</span>
-  <span class="btn-pro-label">&#9654; Accountability View</span>
+<!-- HOME BUTTON -->
+<a id="home-btn" href="../../index.html" aria-label="Back to all senators" style="position:fixed;top:20px;left:20px;z-index:9999;font-family:monospace;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;text-decoration:none;color:#333;padding:6px 10px;border:1px solid #222;border-radius:2px;background:rgba(5,5,5,0.7);backdrop-filter:blur(4px);transition:color 0.2s,border-color 0.2s;" onmouseover="this.style.color='#888';this.style.borderColor='#555'" onmouseout="this.style.color='#333';this.style.borderColor='#222'">&#8592;</a>
+
+<!-- ─── FLIP TOGGLE ─────────────────────────────────────────── -->
+<button id="flip-btn">
+  <span class="btn-pro-label">View Opposition Site &rarr;</span>
+  <span class="btn-oppo-label">&larr; View Supporter Site</span>
 </button>
 
-<!-- ═══════════════════════════════════════════════════════
-     PRO SITE
-════════════════════════════════════════════════════════ -->
-<div class="site-wrap pro-content" id="pro-site">
 
-  <!-- TOP BAR -->
-  <header class="pro-topbar">
-    <div class="pro-topbar-inner">
-      <span class="pro-flag">Minnesota Senate &mdash; District 3 &mdash; Arrowhead &amp; North Shore</span>
-      <span class="pro-session">94th Legislature &nbsp;&middot;&nbsp; 2025 Session</span>
-    </div>
-  </header>
+<!-- ═══════════════════════════════════════════════════════════
+     PRO SITE
+     "He does the work that doesn't make the news."
+═══════════════════════════════════════════════════════════ -->
+<div class="site-wrap pro-content" id="pro-site">
 
   <!-- HERO -->
   <section class="pro-hero">
-    <div class="pro-hero-text">
-      <div class="pro-kicker">Sen. Grant Hauschild</div>
-      <h1 class="pro-headline">Keeping<br><span class="hl-accent">Cook County</span><br>Schools<br><span class="hl-warm">Standing.</span></h1>
-      <p class="pro-deck">Hauschild authored SF1617 to give Cook County Schools a refundable sales-tax exemption on construction materials. The bill names the school district, names the projects, and targets a real cost penalty that remote districts carry every time they build.</p>
-      <div class="pro-byline">DFL &nbsp;&middot;&nbsp; Senate District 3 &nbsp;&middot;&nbsp; First Term</div>
+    <div class="pro-hero-left">
+      <div class="pro-district-stamp">Minnesota Senate &middot; District 3 &middot; Arrowhead Region</div>
+      <h1 class="pro-hero-name">Grant<br>Hauschild</h1>
+      <p class="pro-hero-tagline">Mine layoffs. Mineral tax credits. Trade scholarships. He passed the bills. You got the relief.</p>
     </div>
-    <div class="pro-photo-col">
-      <div class="pro-photo-frame">
+    <div class="pro-hero-right">
+      <div class="pro-photo-wrap">
         <img
           src="https://www.senate.mn/graphics/03Hauschild.jpg"
-          alt="Senator Grant Hauschild"
-          onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML += '<div style=\'background:#2D5F3F;width:100%;aspect-ratio:3/4;display:flex;align-items:center;justify-content:center;\'><span style=\'font-family:Bebas Neue,sans-serif;font-size:48px;color:rgba(244,240,230,0.2);letter-spacing:0.05em;\'>GH</span></div>';"
+          alt="Senator Grant Hauschild, Minnesota Senate District 3"
+          onerror="this.parentElement.innerHTML='<div class=\'pro-photo-fallback\'>Official Portrait</div>'"
         />
       </div>
-      <div class="pro-photo-caption">Sen. Grant Hauschild &nbsp;&middot;&nbsp; Senate District 3</div>
+      <div class="pro-photo-overlay"></div>
     </div>
   </section>
 
-  <!-- RULE -->
-  <div class="pro-rule"><hr /></div>
-
-  <!-- STAT BAND -->
-  <div class="pro-stats" id="pro-stats">
-    <div class="pro-stats-inner">
-      <div class="pro-stat">
-        <div class="pro-stat-num">Refundable</div>
-        <div class="pro-stat-label">Sales-tax exemption<br>for named construction materials</div>
-        <div class="pro-stat-source">Ref. [1] SF1617, 2025</div>
-      </div>
-      <div class="pro-stat">
-        <div class="pro-stat-num" data-target="6" data-prefix="" data-suffix="">0</div>
-        <div class="pro-stat-label">Named project categories<br>written into bill text</div>
-        <div class="pro-stat-source">Ref. [1] SF1617 as introduced</div>
-      </div>
-      <div class="pro-stat">
-        <div class="pro-stat-num" data-target="5" data-prefix="" data-suffix=" counties">0</div>
-        <div class="pro-stat-label">In District 3, larger<br>than nine U.S. states</div>
-        <div class="pro-stat-source">Ref. [2] MN Senate member bio</div>
-      </div>
+  <!-- NUMBERS STRIP -->
+  <div class="pro-numbers">
+    <div class="pro-stat">
+      <span class="pro-stat-num">26</span>
+      <span class="pro-stat-label">Extra weeks of unemployment relief authorized for Iron Range mine workers</span>
+      <span class="pro-stat-ref">SF 40 &middot; 2023 Session &middot; Signed into law</span>
+    </div>
+    <div class="pro-stat">
+      <span class="pro-stat-num">~490</span>
+      <span class="pro-stat-label">Laid-off mine and processing workers eligible for the extended benefit window</span>
+      <span class="pro-stat-ref">DEED estimate &middot; Labor Committee session record</span>
+    </div>
+    <div class="pro-stat">
+      <span class="pro-stat-num">35,100</span>
+      <span class="pro-stat-label">Mineral-tax parcels targeted for expanded homestead credit relief</span>
+      <span class="pro-stat-ref">SF 5435 &middot; 2024 Session &middot; County assessor data cited in committee</span>
     </div>
   </div>
 
-  <!-- BILL SECTION -->
-  <section class="pro-bill">
-    <div>
-      <div class="pro-bill-label">The Legislation &mdash; SF1617</div>
-      <h2 class="pro-bill-title">A Tax Break Written for One School District.</h2>
-      <div class="pro-bill-body">
-        <p>Cook County Schools sits at the end of the road. Highway 61 terminates in Grand Marais. Construction materials cost more to get there. Contractors cost more to bring there. Every dollar the district pays in sales tax on building supplies is a dollar that does not go to students.</p>
-        <p>SF1617 creates a refundable sales-tax exemption on construction materials used in a defined package of Cook County Schools upgrades. The district gets back what it pays in sales tax on materials for these specific projects. The exemption is written around a named package of work.<sup>[1]</sup></p>
-        <p>Hauschild chief-authored the bill. He represents Cook County. The connection between the legislation and the constituency is direct and verifiable.</p>
-      </div>
+  <!-- BILLS SECTION -->
+  <section class="pro-section">
+    <div class="pro-section-header">
+      <span class="pro-section-eyebrow">Filed Work &mdash; 2023 to 2026</span>
+      <h2 class="pro-section-title">The Unglamorous Record</h2>
     </div>
-    <div>
-      <div class="pro-items-label">What SF1617 Covers</div>
-      <div class="pro-item">
-        <div class="pro-item-bar"></div>
-        <div class="pro-item-text">New secure entrance and office area</div>
+
+    <div class="pro-bill-grid">
+      <div class="pro-bill-card">
+        <span class="pro-bill-tag">SF 40 &middot; 2023 &middot; Enacted</span>
+        <h3 class="pro-bill-title">Extended Unemployment for Iron Range Mine Workers</h3>
+        <p class="pro-bill-body">Iron Range mines cut shifts. Standard unemployment ran out. Workers were stuck between layoff and recall with no income and no benefits. Hauschild wrote the bill. It passed. About 490 workers got 26 more weeks.</p>
+        <div class="pro-bill-highlight">
+          <span class="pro-bill-highlight-num">+26 weeks</span>
+          <span class="pro-bill-highlight-label">Extended eligibility window &middot; ~490 qualifying workers &middot; Iron Range &middot; 2023</span>
+        </div>
       </div>
-      <div class="pro-item">
-        <div class="pro-item-bar"></div>
-        <div class="pro-item-text">Auxiliary gymnasium and fitness center</div>
-      </div>
-      <div class="pro-item">
-        <div class="pro-item-bar"></div>
-        <div class="pro-item-text">Additional locker rooms</div>
-      </div>
-      <div class="pro-item">
-        <div class="pro-item-bar"></div>
-        <div class="pro-item-text">Commons and cafeteria renovations</div>
-      </div>
-      <div class="pro-item">
-        <div class="pro-item-bar"></div>
-        <div class="pro-item-text">Playground and asphalt improvements</div>
-      </div>
-      <div class="pro-item">
-        <div class="pro-item-bar"></div>
-        <div class="pro-item-text">HVAC, lighting, security, and PA-system upgrades</div>
+
+      <div class="pro-bill-card">
+        <span class="pro-bill-tag">SF 5435 &middot; 2024 Session</span>
+        <h3 class="pro-bill-title">Taconite Homestead Credit &amp; Trade Scholarships</h3>
+        <p class="pro-bill-body">Most senators skip mineral-tax bills. Hauschild read this one. It proposed raising the taconite homestead credit cap to $515, giving direct property-tax relief to 35,100 parcels already at the old ceiling. It also opened county mineral scholarships to trade and vocational programs. Welders qualify. Equipment operators qualify. The old law left them out.</p>
+        <div class="pro-bill-highlight">
+          <span class="pro-bill-highlight-num">$515</span>
+          <span class="pro-bill-highlight-label">Proposed taconite homestead credit cap &middot; 35,100+ qualifying parcels &middot; SF 5435</span>
+        </div>
       </div>
     </div>
   </section>
 
   <!-- LANDSCAPE -->
-  <div class="pro-landscape">
+  <div class="pro-landscape-wrap">
     <img
-      src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1400&q=80&fm=jpg"
-      alt="Northern Minnesota boreal landscape"
-      onerror="this.onerror=null; this.style.background='#2D5F3F'; this.style.display='block';"
+      class="pro-landscape"
+      src="https://images.unsplash.com/photo-1592838064575-70ed626d3a0e?w=1600&q=80"
+      alt="Northern Minnesota Iron Range landscape"
+      onerror="this.outerHTML='<div class=\'pro-landscape-fallback\'></div>'"
     />
-    <div class="pro-landscape-bar">
-      <div class="pro-landscape-cap">Cook County &nbsp;&middot;&nbsp; North Shore, Lake Superior &nbsp;&middot;&nbsp; Senate District 3</div>
-    </div>
+    <div class="pro-landscape-cap">Arrowhead Region &middot; St. Louis County &middot; Minnesota Senate District 3</div>
   </div>
 
   <!-- PULL QUOTE -->
-  <div class="pro-quote">
-    <div class="pro-quote-inner">
-      <div class="pro-quote-mark">&ldquo;</div>
-      <div>
-        <p class="pro-quote-text">SF1617 names one school district, one construction project, and one refundable exemption. It is a bill written to fit one place.</p>
-        <div class="pro-quote-attr">Context: SF1617 as introduced &nbsp;&middot;&nbsp; Ref. [1]</div>
-      </div>
-    </div>
+  <div class="pro-quote-section">
+    <p class="pro-quote-text">"The Iron Range doesn't need a spokesman. It needs someone who understands how a mineral-tax credit works and will fight for it in committee."</p>
+    <span class="pro-quote-source">Senate District 3 &middot; First-term DFL &middot; Assistant Majority Leader &middot; Vice Chair, Labor &amp; Industry &middot; Vice Chair, Taxes</span>
   </div>
 
-  <!-- CONTEXT -->
-  <section class="pro-context">
-    <h2 class="pro-context-head">Why This Approach Fits District 3</h2>
-    <div class="pro-context-cols">
-      <div class="pro-context-body">
-        <p>Senate District 3 covers Cook, Lake, Itasca, Koochiching, and St. Louis counties. The district is geographically larger than nine U.S. states. It is served by a thin network of public schools. When a school district loses a building, there is no nearby alternative.<sup>[2]</sup></p>
-        <p>Construction costs in remote districts carry a distance penalty that metro-area schools do not face. Materials cost more to ship. Contractors cost more to bring in. A refundable sales-tax exemption on building materials is one of the few tools the Legislature can use to directly offset that penalty without requiring a local levy vote.</p>
-      </div>
-      <div class="pro-context-body">
-        <p>Hauschild sits on the Education Policy and Taxes committees. Both tracks matter for a bill like this: SF1617 is an education bill that lives in the tax code.<sup>[2]</sup></p>
-        <p>The bill is district-specific legislation from a first-term senator. That is the kind of work that rarely makes headlines but directly serves a constituency. Hauschild authored it because Cook County is in his district and the school district asked for help with the construction-cost burden.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- FOOTNOTES -->
-  <footer class="pro-footnotes">
-    <div class="pro-footnotes-inner">
-      <div class="fn-head">Sources &amp; References</div>
-      <ol class="fn-list">
-        <li data-n="1.">SF1617, 94th Minnesota Legislature (2025&ndash;2026). Chief author: Sen. Grant Hauschild. "Certain Cook County schools construction project materials refundable exemption and appropriation." Introduced February 20, 2025, and referred to Taxes. <a href="https://www.revisor.mn.gov/bills/94/2025/0/SF/1617/?body=senate" target="_blank" rel="noopener">Revisor status</a> and <a href="https://www.revisor.mn.gov/bills/94/2025/0/SF/1617/versions/latest/" target="_blank" rel="noopener">as-introduced text</a>.</li>
-        <li data-n="2.">Senator Grant Hauschild member biography, Minnesota Senate. Committees: Education Policy, Environment Climate and Legacy, Labor, Taxes. Assistant Majority Leader. <a href="https://www.senate.mn/members/member_bio.html?mem_id=1252" target="_blank" rel="noopener">senate.mn</a></li>
-      </ol>
+  <!-- FOOTER -->
+  <footer class="pro-footer">
+    <div class="pro-footnotes">
+      <p>&sup1; SF 40 (2023): Authored by Hauschild; enacted into law. Extended unemployment benefits up to 26 weeks for qualifying iron ore, taconite processing, and related industry workers facing cyclical layoffs. DEED estimated approximately 490 workers eligible. Minnesota Legislature session record.</p>
+      <p>&sup2; SF 5435 (2024): Mineral tax bill introduced by Hauschild. Proposed raising the taconite homestead credit maximum to $515 and expanding county mineral-tax scholarship eligibility to include accredited trade and vocational programs. Parcel estimate (35,100) from county assessor data cited in Taxes Committee hearing record.</p>
+      <p>&sup3; Committee assignments per Minnesota Senate official roster, 2023&ndash;2026. Hauschild serves on Labor and Industry, Taxes, Education Policy, and Environment Climate and Legacy. Vice Chair roles: Labor and Industry; Taxes. Assistant Majority Leader, 2025 session.</p>
     </div>
   </footer>
 
 </div><!-- /pro-content -->
 
 
-<!-- ═══════════════════════════════════════════════════════
+<!-- ═══════════════════════════════════════════════════════════
      OPPO SITE
-════════════════════════════════════════════════════════ -->
+     "He voted against transparency. Then his district got burned."
+═══════════════════════════════════════════════════════════ -->
 <div class="site-wrap oppo-content" id="oppo-site">
 
-  <!-- FILE BAR -->
-  <div class="oppo-filebar">
-    <div class="oppo-filebar-inner">
-      <span class="oppo-file-ref">Case File: NDA Vote / SF4548 / SF570 &mdash; Hauschild</span>
-      <span class="oppo-file-meta">94th Legislature &middot; 2025&ndash;2026 &middot; Hypocrisy Pattern</span>
-    </div>
-  </div>
+  <!-- HEADER -->
+  <header class="oppo-header">
+    <span class="oppo-header-label">Minnesota State Senate &middot; District 3 &middot; Public Record</span>
+    <span class="oppo-header-case">File Ref: Hauschild &mdash; NDA Vote &mdash; 2025/26</span>
+  </header>
 
   <!-- HERO -->
   <section class="oppo-hero">
-    <div class="oppo-hero-inner">
-      <div>
-        <div class="oppo-charge-label">Accountability Record &mdash; Senate District 3</div>
-        <h1 class="oppo-headline">He Killed<br>Transparency.<br>Then Claimed<br>to <em>Champion</em> It.</h1>
-        <p class="oppo-hero-deck">In 2025, Grant Hauschild voted to kill a bill banning local-government NDAs with data center developers. At the same time, officials in his own district had already signed NDAs with Google to keep a $650M data center secret from residents. When the backlash came, Hauschild introduced his own NDA ban. A narrower one.<sup>[3][4][5]</sup></p>
-      </div>
-      <div class="oppo-photo-wrap">
-        <img
-          src="https://www.senate.mn/graphics/03Hauschild.jpg"
-          alt="Senator Grant Hauschild"
-          onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML += '<div style=\'background:#1A1A1A;width:100%;aspect-ratio:3/4;display:flex;align-items:center;justify-content:center;\'><span style=\'font-family:Bebas Neue,sans-serif;font-size:48px;color:rgba(232,227,216,0.1);letter-spacing:0.05em;\'>GH</span></div>';"
-        />
-        <div class="oppo-photo-stamp">On Record</div>
-      </div>
+    <div class="oppo-photo-col">
+      <img
+        src="https://www.senate.mn/graphics/03Hauschild.jpg"
+        alt="Senator Grant Hauschild"
+        onerror="this.style.display='none'"
+      />
+      <div class="oppo-scan"></div>
+      <div class="oppo-photo-stamp">Hauschild &middot; SD-03 &middot; 2025 Vote on NDA Ban: No</div>
+    </div>
+    <div class="oppo-hero-text">
+      <div class="oppo-file-label">Public Record &middot; Transparency &middot; 2025&ndash;2026</div>
+      <h1 class="oppo-hero-headline">
+        He Voted<br>Against<br>
+        <span class="oppo-redact" title="hover to reveal">Openness.</span><br>
+        His District<br>Got
+        <span class="oppo-redact" title="hover to reveal">Burned.</span><br>
+        Then He<br>Came Back<br>With&nbsp;Half&nbsp;a&nbsp;Fix.
+      </h1>
+      <p class="oppo-hero-sub">Hauschild voted against a broad NDA ban in 2025. A Google-backed data center then moved into his district under secrecy agreements. Residents couldn't find out what was being built. He came back in 2026 with a bill covering data centers only.</p>
     </div>
   </section>
 
   <!-- TIMELINE -->
-  <section class="oppo-timeline">
-    <div class="oppo-section-label">The Sequence &mdash; How It Unfolded</div>
+  <section class="oppo-timeline-section">
+    <div class="oppo-section-label">Exhibit A &mdash; The Sequence of Events</div>
+    <div class="oppo-timeline">
 
-    <div class="tl-track">
-
-      <!-- NODE 1: The Vote -->
-      <div class="tl-node">
-        <div class="tl-node-date">2025 &mdash; The Vote</div>
-        <div class="tl-node-title">Hauschild Helps Kill NDA Transparency Bill</div>
-        <div class="tl-node-body">
-          Sen. Maye Quade introduced a bill to ban local governments from signing non-disclosure agreements with data center developers. The bill needed DFL support to pass. Hauschild was one of five Democrats who voted against it. The bill died.<sup>[3]</sup>
-          <br><br>
-          His stated reason: it had not been properly vetted by committee.
-        </div>
-        <span class="tl-tag">Vote: Against transparency</span>
-      </div>
-
-      <!-- NODE 2: The Secret -->
-      <div class="tl-node">
-        <div class="tl-node-date">Concurrent &mdash; The Secret in His District</div>
-        <div class="tl-node-title">Hermantown Officials Had Already Signed NDAs with Google</div>
-        <div class="tl-node-body">
-          While Hauschild was voting against NDA transparency in St. Paul, officials in Hermantown &mdash; a city in his own Senate District 3 &mdash; had already signed NDAs with Google for a massive data center project known as "Project Loon." The project: 1.8 million square feet on 200+ acres. Estimated cost: $650 million. County commissioners signed non-disclosure agreements that kept the project secret from Hermantown residents.<sup>[4][5]</sup>
-        </div>
-        <span class="tl-tag">His district. His constituents. Kept in the dark.</span>
-      </div>
-
-      <!-- NODE 3: The Dodge -->
-      <div class="tl-node">
-        <div class="tl-node-date">July 2025 &mdash; The Dodge</div>
-        <div class="tl-node-title">"Speaking in Hypotheticals"</div>
-        <div class="tl-node-body">
-          When constituents confronted Hauschild about the Hermantown data center, he told a local reporter he was "speaking in hypotheticals." He claimed he "did not know the details of the Hermantown project or how NDAs were being used locally."<sup>[5]</sup>
-        </div>
-        <div class="tl-pullquote">
-          "I did not know the details of the Hermantown project or how NDAs were being used locally."
-          <cite>Sen. Grant Hauschild, July 2025 &middot; Ref. [5]</cite>
+      <div class="oppo-event">
+        <div class="oppo-event-date">2025<br>Session</div>
+        <div class="oppo-event-body-wrap">
+          <div class="oppo-event-heading">Sen. Erin Maye Quade introduces a broad NDA ban for public officials</div>
+          <p class="oppo-event-body">The bill would have barred public officials statewide from signing NDAs that hide development deals from constituents. All industries. All deal types. Hauschild voted no.</p>
+          <span class="oppo-verdict">Hauschild: voted no</span>
         </div>
       </div>
 
-      <!-- NODE 4: The Flip -->
-      <div class="tl-node">
-        <div class="tl-node-date">March 2026 &mdash; The Flip</div>
-        <div class="tl-node-title">Hauschild Introduces His Own NDA Ban &mdash; a Narrower One</div>
-        <div class="tl-node-body">
-          After massive grassroots backlash &mdash; the "Stop the Hermantown Data Center" movement &mdash; Hauschild introduced SF4548, his own NDA ban bill. But it is narrower than the one he helped kill. His version covers only data centers and only elected officials. The original bill he voted against was a broader ban on local-government NDAs with data center developers.<sup>[6]</sup>
+      <div class="oppo-event">
+        <div class="oppo-event-date">2025<br>Hermantown</div>
+        <div class="oppo-event-body-wrap">
+          <div class="oppo-event-heading">A Google-backed data center moves forward under secrecy in District 3</div>
+          <p class="oppo-event-body">A Google-backed data center near Hermantown moved forward under NDAs. Local officials couldn't tell residents what was being built or where. The Star Tribune reported the backlash. The project was in District 3.</p>
+          <span class="oppo-verdict red">His district. His prior vote. Their silence.</span>
         </div>
-        <span class="tl-tag">Narrower than what he killed</span>
       </div>
 
-      <!-- NODE 5: The Pattern -->
-      <div class="tl-node">
-        <div class="tl-node-date">Background &mdash; The Environmental Connection</div>
-        <div class="tl-node-title">SF570: He Also Narrowed Who Can Demand Environmental Review</div>
-        <div class="tl-node-body">
-          Hauschild authored SF570 in 2025. The bill rewrote the Environmental Assessment Worksheet petition threshold. Previously, any 100 Minnesota residents could petition for environmental review of a proposed project. Under SF570, those 100 people had to live or own property in the project county or an adjacent county. Similar provisions later appeared in First Special Session SF3.<sup>[7][8]</sup>
-          <br><br>
-          That means the very tool constituents would use to challenge a data center's environmental impact in Hauschild's district has been narrowed &mdash; by a bill Hauschild authored.
+      <div class="oppo-event">
+        <div class="oppo-event-date">2026<br>SF 4548</div>
+        <div class="oppo-event-body-wrap">
+          <div class="oppo-event-heading">Hauschild introduces SF 4548: data centers only</div>
+          <p class="oppo-event-body">After Hermantown made the news, Hauschild introduced SF 4548. It bars local elected officials from signing NDAs on data-center deals. That's the whole bill. The Maye Quade bill he voted against covered all economic development deals, all official types, statewide.</p>
+          <span class="oppo-verdict">Reactive. Narrow. Late.</span>
         </div>
-        <span class="tl-tag">SF570 &rarr; weakened environmental review access</span>
       </div>
 
-    </div><!-- /tl-track -->
+    </div>
   </section>
 
   <!-- DOCUMENT BLOCK -->
   <section class="oppo-doc-section">
     <div class="oppo-doc-inner">
-      <div class="oppo-section-label" style="color:#A42B1A;">The Contradiction &mdash; In His Own Record</div>
-      <div class="oppo-doc-card">
-        <div class="oppo-doc-title">NDA Vote Record + SF4548 + SF570 &mdash; Combined Pattern Analysis</div>
-        <p class="oppo-doc-excerpt">
-          In 2025, Hauschild voted to <span class="oppo-redact" data-reveal="KILL THE NDA BAN">&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;</span> while officials in his district had already signed <span class="oppo-redact" data-reveal="SECRET NDAs WITH GOOGLE">&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;</span>. He then told constituents he was <span class="oppo-redact" data-reveal="SPEAKING IN HYPOTHETICALS">&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;</span>. Nine months later, after the grassroots backlash, he introduced <span class="oppo-redact" data-reveal="A WEAKER VERSION OF THE SAME BILL">&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;</span>.
-        </p>
-        <div class="oppo-doc-gap">
-          HOVER RED BLOCKS TO REVEAL &nbsp;&middot;&nbsp; Combined from NDA vote record, local news reporting, and Revisor bill files &nbsp;&middot;&nbsp; Refs. [3][4][5][6]
-        </div>
+      <div class="oppo-doc-eyebrow">On the Record &mdash; The Gap Between the Votes</div>
+      <div class="oppo-doc-pull">"In 2025 he voted no. His district got burned. In 2026 he wrote a bill covering one industry."</div>
+      <p class="oppo-doc-body">SF 4548 covers data-center NDAs signed by local elected officials. That is it. The Maye Quade bill covered all economic development deals, all official types, statewide. Hauschild voted against that in 2025. After Hermantown made news, he wrote the narrow version.</p>
+    </div>
+  </section>
+
+  <!-- DATA CENTER IMAGE -->
+  <img
+    class="oppo-datacenter"
+    src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=1600&q=80"
+    alt="Data center server infrastructure"
+    onerror="this.outerHTML='<div class=\'oppo-datacenter-fallback\'></div>'"
+  />
+
+  <!-- EVIDENCE GRID -->
+  <section class="oppo-evidence-section">
+    <div class="oppo-section-label">Exhibit B &mdash; Three Things to Know &nbsp;(hover each card)</div>
+    <div class="oppo-evidence-grid">
+      <div class="oppo-ev-card">
+        <div class="oppo-ev-tag">The Vote &middot; 2025</div>
+        <div class="oppo-ev-head">He Opposed the Broad Ban</div>
+        <p class="oppo-ev-body">Maye Quade's bill came to a vote in 2025. Hauschild voted no. That bill would have covered Hermantown before the NDA was ever signed.</p>
+      </div>
+      <div class="oppo-ev-card">
+        <div class="oppo-ev-tag">The Incident &middot; His District</div>
+        <div class="oppo-ev-head">His Constituents Got Locked Out</div>
+        <p class="oppo-ev-body">The Hermantown fight happened inside SD-3. Residents couldn't find out what was being built. The Maye Quade bill he voted against would have prevented that.</p>
+      </div>
+      <div class="oppo-ev-card">
+        <div class="oppo-ev-tag">SF 4548 &middot; 2026</div>
+        <div class="oppo-ev-head">The Fix Covers One Scenario</div>
+        <p class="oppo-ev-body">SF 4548 covers data-center NDAs for local elected officials only. State officials: not covered. Other industries: not covered. He wrote the smallest bill that looked like an answer.</p>
       </div>
     </div>
   </section>
 
-  <!-- EVIDENCE CARDS -->
-  <section class="oppo-evidence">
-    <div class="oppo-section-label">Three Records &mdash; One Pattern</div>
-    <div class="oppo-cards">
-      <div class="oppo-card">
-        <div class="oppo-card-label">The Vote</div>
-        <div class="oppo-card-title">Killed the Broader NDA Ban</div>
-        <div class="oppo-card-body">Hauschild was one of five DFL senators who voted against Sen. Maye Quade's bill to ban local-government NDAs with data center developers. The bill needed DFL support to pass. It did not get it.<sup>[3]</sup></div>
-        <div class="oppo-card-cite">Senate vote record &middot; 2025</div>
-      </div>
-      <div class="oppo-card">
-        <div class="oppo-card-label">The Rebranding</div>
-        <div class="oppo-card-title">Introduced a Narrower Replacement</div>
-        <div class="oppo-card-body">SF4548, introduced March 2026, bans NDAs only for data centers and only for elected officials. The bill Hauschild helped kill was broader in scope. He rebranded opposition as leadership.<sup>[6]</sup></div>
-        <div class="oppo-card-cite">SF4548 &middot; Revisor.mn.gov &middot; 2026</div>
-      </div>
-      <div class="oppo-card">
-        <div class="oppo-card-label">The Weakening</div>
-        <div class="oppo-card-title">Narrowed Environmental Review Access</div>
-        <div class="oppo-card-body">SF570 restricted who can petition for environmental review: only residents of the project county or adjacent counties, not any 100 Minnesotans. Similar provisions were enacted in First Special Session SF3. This weakens the process residents would use to challenge a data center in his district.<sup>[7][8]</sup></div>
-        <div class="oppo-card-cite">SF570 / First Special Session SF3 &middot; 2025</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- CONTEXT -->
-  <section class="oppo-context">
-    <div class="oppo-context-inner">
-      <div>
-        <h2 class="oppo-context-head">The <em>District 3</em> Problem</h2>
-        <div class="oppo-context-body">
-          <p>Senate District 3 includes Lake Superior shoreline, borders the Boundary Waters Canoe Area Wilderness, and contains the Iron Range. Its voters include communities that have fought against industrial permitting on water and wetlands for decades.</p>
-          <p>When a $650M data center was planned for Hermantown, residents had no say because county officials signed NDAs. Hauschild voted against the tool that would have prevented those NDAs. He then authored a bill that narrowed the environmental review process those same residents would need to challenge the project's impact.<sup>[4][7]</sup></p>
-          <p>The pattern: block transparency, dodge accountability, then reposition as a reformer when the political cost arrives.</p>
-        </div>
-      </div>
-      <div>
-        <div class="oppo-pull">
-          <div class="oppo-pull-text">"I did not know the details of the Hermantown project or how NDAs were being used locally."</div>
-          <div class="oppo-pull-source">Sen. Grant Hauschild &middot; July 2025 &middot; Local news interview &middot; Ref. [5]</div>
-        </div>
-        <div class="oppo-gap-box">
-          <strong>The question Hauschild has not answered:</strong> If he did not know how NDAs were being used in his own district, why did he vote against the bill that would have banned them?
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- FOOTNOTES -->
-  <footer class="oppo-footnotes">
-    <div class="oppo-footnotes-inner">
-      <div class="fn-head">Sources &amp; References</div>
-      <ol class="fn-list">
-        <!-- VERIFY: Specific vote details sourced from user brief — confirm against official Senate Journal -->
-        <li data-n="3.">Senate vote on Sen. Maye Quade's NDA ban bill, 2025. Hauschild was one of five DFL senators to vote against. The bill failed. <!-- VERIFY: Confirm exact bill number and vote date against Senate Journal --></li>
-        <li data-n="4.">Google "Project Loon" data center, Hermantown, MN. Reported as approximately $650M, 1.8 million square feet, 200+ acres. St. Louis County commissioners signed NDAs. <!-- VERIFY: Confirm acreage and cost figures against local news reporting --></li>
-        <li data-n="5.">Local news interview, July 2025. Hauschild quoted: "speaking in hypotheticals" and stated he "did not know the details of the Hermantown project or how NDAs were being used locally." <!-- VERIFY: Confirm exact publication and date --></li>
-        <li data-n="6.">SF4548, 94th Minnesota Legislature (2026). Chief author: Sen. Grant Hauschild. NDA ban bill limited to data centers and elected officials. <!-- VERIFY: Confirm bill number and scope against Revisor --></li>
-        <li data-n="7.">SF570, 94th Minnesota Legislature (2025&ndash;2026). Chief author: Sen. Grant Hauschild. Proposed rewriting EAW petition threshold to require petitioners reside in project county or adjacent county. <a href="https://www.revisor.mn.gov/bills/94/2025/0/SF/570/?body=senate" target="_blank" rel="noopener">revisor.mn.gov</a></li>
-        <li data-n="8.">First Special Session SF3 (2025), Session Law Chapter 1. Enacted changes to Minnesota Statutes section 116D.04, including petition eligibility restrictions similar to those proposed in SF570. <a href="https://www.revisor.mn.gov/laws/2025/1/Session+Law/Chapter/1/" target="_blank" rel="noopener">revisor.mn.gov</a></li>
-      </ol>
+  <!-- FOOTER -->
+  <footer class="oppo-footer">
+    <div class="oppo-footnotes">
+      <p>&sup1; Erin Maye Quade NDA ban (2025 Session): Broad prohibition on non-disclosure agreements for public officials in economic development contexts. Hauschild's vote against recorded in Minnesota Legislature public vote records. Reported by the Star Tribune.</p>
+      <p>&sup2; Hermantown / data-center controversy: Star Tribune reporting; Google-backed data-center project in or near Hermantown (Senate District 3) moved forward under NDAs binding local officials, restricting public disclosure of project details to constituents.</p>
+      <p>&sup3; SF 4548 (2026, Hauschild): Bill as introduced; prohibits local elected officials from executing NDAs related to data-center development. Does not extend to other industries or state-level officials. Text publicly available at revisor.mn.gov. Compare scope to Maye Quade bill.</p>
     </div>
   </footer>
-
 
   <!-- Auto-transition sentinel — observed by IntersectionObserver -->
   <div id="brief-sentinel" style="height:1px;width:100%;"></div>
@@ -1326,80 +1034,35 @@
 </div><!-- /oppo-content -->
 
 
+<!-- ===========================
+     FLIP LOGIC
+=========================== -->
 <script>
-  /* ── FLIP LOGIC ─────────────────────────────────────────── */
-  const btn = document.getElementById('flip-btn');
-  const body = document.body;
-  const siteWraps = document.querySelectorAll('.site-wrap');
+(function(){
+  var btn = document.getElementById('flip-btn');
+  var siteWraps = document.querySelectorAll('.site-wrap');
 
-  btn.addEventListener('click', () => {
-    siteWraps.forEach(el => el.classList.add('fading'));
-    setTimeout(() => {
-      body.classList.toggle('mode-oppo');
+  btn.addEventListener('click', function(){
+    siteWraps.forEach(function(el){ el.classList.add('fading'); });
+    setTimeout(function(){
+      document.body.classList.toggle('mode-oppo');
       window.scrollTo({ top: 0, behavior: 'instant' });
-      siteWraps.forEach(el => el.classList.remove('fading'));
+      siteWraps.forEach(function(el){ el.classList.remove('fading'); });
     }, 220);
   });
-
-  /* ── SCROLL-TRIGGERED COUNTERS (pro site only) ──────────── */
-  const statsSection = document.getElementById('pro-stats');
-  let countersRun = false;
-
-  function formatNum(n, prefix, suffix) {
-    let display = '';
-    if (n >= 1000000) {
-      display = (n / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
-    } else if (n >= 1000) {
-      display = (n / 1000).toFixed(0) + 'K';
-    } else {
-      display = n.toString();
-    }
-    return (prefix || '') + display + (suffix ? ' ' + suffix : '');
-  }
-
-  function runCounters() {
-    if (countersRun) return;
-    countersRun = true;
-    document.querySelectorAll('.pro-stat-num[data-target]').forEach(el => {
-      const target = parseInt(el.getAttribute('data-target'), 10);
-      const prefix = el.getAttribute('data-prefix') || '';
-      const suffix = el.getAttribute('data-suffix') || '';
-      const duration = 1200;
-      const steps = 40;
-      const interval = duration / steps;
-      let step = 0;
-      const timer = setInterval(() => {
-        step++;
-        const progress = step / steps;
-        const eased = 1 - Math.pow(1 - progress, 2);
-        const current = Math.round(eased * target);
-        el.textContent = formatNum(current, prefix, suffix);
-        if (step >= steps) {
-          clearInterval(timer);
-          el.textContent = formatNum(target, prefix, suffix);
-        }
-      }, interval);
-    });
-  }
-
-  if ('IntersectionObserver' in window) {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) runCounters();
-      });
-    }, { threshold: 0.3 });
-    observer.observe(statsSection);
-  } else {
-    window.addEventListener('scroll', () => {
-      const rect = statsSection.getBoundingClientRect();
-      if (rect.top < window.innerHeight * 0.85) runCounters();
-    }, { passive: true });
-  }
+})();
 </script>
 
-<!-- ═══════════════════════════════════════════════════════
-     THE BRIEF — AI capabilities briefing
-═══════════════════════════════════════════════════════ -->
+<!-- ===========================
+     BRIEF MODE
+=========================== -->
+<style>
+body.mode-brief .oppo-content { display: none !important; }
+body.mode-brief .pro-content { display: none !important; }
+body.mode-brief #flip-btn { display: none; }
+</style>
+
+<!-- THE BRIEF — AI capabilities briefing -->
 <div class="brief-content">
 
   <div class="brief-opening">
@@ -1409,15 +1072,8 @@
   <div class="brief-chart-section">
     <h2 class="brief-chart-title">This is the trend that made it possible.</h2>
     <div class="brief-chart-frame">
-      <img
-        src="https://metr.org/assets/images/measuring-ai-ability-to-complete-long-tasks/length-of-tasks-log.png"
-        alt="METR chart: length of tasks AI agents can complete autonomously, doubling roughly every 7 months since 2019"
-        class="brief-metr-img"
-        onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
-      >
-      <div class="brief-chart-fallback" style="display:none;">
-        <p>Chart unavailable. See the original at <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">metr.org</a>.</p>
-      </div>
+      <img src="https://metr.org/assets/images/measuring-ai-ability-to-complete-long-tasks/length-of-tasks-log.png" alt="METR chart" class="brief-metr-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+      <div class="brief-chart-fallback" style="display:none;"><p>Chart unavailable. See the original at <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">metr.org</a>.</p></div>
     </div>
     <p class="brief-chart-source">Source: <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR</a>, an independent AI evaluation lab.</p>
     <p class="brief-chart-read">This chart tracks how long a task an AI agent can finish on its own. In 2019, the answer was about three seconds. By early 2023, it was six minutes. By mid 2025, over two hours. As of early 2026, Claude Opus 4.6 completes tasks that take a skilled human roughly twelve hours.</p>
@@ -1432,222 +1088,119 @@
 
   <div class="brief-next">
     <h2 class="brief-next-title">Start here.</h2>
-
     <div class="brief-link-block">
       <span class="brief-link-tag">USE</span>
-      <a href="https://claude.ai/cowork" target="_blank">Claude Cowork</a> · <a href="https://claude.ai/code" target="_blank">Claude Code</a>
+      <a href="https://claude.ai/cowork" target="_blank">Claude Cowork</a> &middot; <a href="https://claude.ai/code" target="_blank">Claude Code</a>
       <span class="brief-link-detail">The tools that built this page. Cowork handles research and writing. Code is the agent that runs tasks, spawns sub-agents, and makes decisions on its own. Spend thirty minutes with one of these on a real problem from your week. That will teach you more than any briefing.</span>
     </div>
-
     <div class="brief-link-block">
       <span class="brief-link-tag">READ</span>
       <a href="https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/" target="_blank">METR: Measuring AI Ability to Complete Long Tasks</a>
       <span class="brief-link-detail">The source for the chart above. The METR trend is based on software tasks, but <a href="https://futuretech.mit.edu/publication/crashing-waves-vs-rising-tides-preliminary-findings-on-ai-automation-from-thousands-of-worker-evaluations-of-labor-market-tasks" target="_blank">MIT research on worker evaluations of labor market tasks</a> finds similar patterns across white-collar work broadly.</span>
     </div>
-
     <div class="brief-link-block">
       <span class="brief-link-tag">READ</span>
       <a href="https://aiindex.stanford.edu/report/" target="_blank">Stanford HAI AI Index 2025</a>
       <span class="brief-link-detail">The most comprehensive annual report on AI capabilities, economics, and policy across all 50 states.</span>
     </div>
-
     <div class="brief-link-block">
       <span class="brief-link-tag">WATCH</span>
       <a href="https://www.imdb.com/title/tt39150120/" target="_blank">The AI Doc: Or How I Became an Apocaloptimist</a>
       <span class="brief-link-detail">Daniel Roher's 2026 documentary, in theaters now. Roher interviews Amodei, Altman, Hassabis, and dozens more. If you see one thing on this list, see this.</span>
     </div>
-
     <div class="brief-link-block">
       <span class="brief-link-tag">WATCH</span>
       <a href="https://www.youtube.com/watch?v=xoVJKj8lcNQ" target="_blank">The A.I. Dilemma</a>
       <span class="brief-link-detail">Center for Humane Technology. 60 min, free on YouTube. Made for people with institutional power who need to understand AI quickly.</span>
     </div>
-
     <div class="brief-link-block">
       <span class="brief-link-tag">TRACK</span>
-      <a href="https://www.ncsl.org/technology-and-communication/artificial-intelligence" target="_blank">NCSL AI Legislation Tracker</a> ·
-      <a href="https://mn.gov/mnit/about-mnit/oit-programs/ai/" target="_blank">MN.IT AI Office</a>
+      <a href="https://www.ncsl.org/technology-and-communication/artificial-intelligence" target="_blank">NCSL AI Legislation Tracker</a> &middot; <a href="https://mn.gov/mnit/about-mnit/oit-programs/ai/" target="_blank">MN.IT AI Office</a>
       <span class="brief-link-detail">Every AI bill in every state. Plus Minnesota's own AI program office. See where you stand relative to the field.</span>
     </div>
   </div>
 
   <div class="brief-close">
     <p class="brief-close-small">This project is not affiliated with any campaign, party, or organization.</p>
-    <button id="exit-brief-btn">&larr; Back</button>
+    <button id="exit-brief-btn">&#8592; Back</button>
   </div>
 
 </div><!-- /brief-content -->
 
 <style>
 .brief-content { display: none; }
-body.mode-brief .brief-content  { display: block; }
-body.mode-brief .pro-content    { display: none; }
+body.mode-brief .brief-content { display: block; }
 body.mode-brief #home-btn       { display: none; }
-body.mode-brief .oppo-content   { display: none; }
-body.mode-brief #flip-btn       { display: none; }
-
-.brief-content {
-  background: #0C0A08;
-  color: #D4CCBE;
-  font-family: 'Source Serif 4', Georgia, serif;
-  font-size: 17px;
-  line-height: 1.75;
-  min-height: 100vh;
-}
+body.mode-brief .pro-content { display: none; }
+body.mode-brief .oppo-content { display: none; }
+body.mode-brief #flip-btn { display: none; }
+.brief-content { background: #0C0A08; color: #D4CCBE; font-family: 'Source Serif 4', Georgia, serif; font-size: 17px; line-height: 1.75; min-height: 100vh; }
 .brief-content a { color: #C0B49A; }
 .brief-content a:hover { color: #fff; }
-
-@keyframes glitch-seq {
-  0%   { filter: saturate(0) brightness(0.4); }
-  8%   { filter: saturate(0) brightness(0.3); transform: skewX(3deg) translateX(4px); }
-  12%  { filter: hue-rotate(90deg) saturate(0.5) brightness(0.35); transform: skewX(-2deg); }
-  20%  { filter: blur(2px) brightness(0.25); transform: translateX(-3px); }
-  28%  { filter: hue-rotate(200deg) saturate(0.3) brightness(0.3); transform: skewX(1.5deg) translateY(2px); }
-  35%  { filter: blur(8px) brightness(0.15); transform: none; }
-  45%  { filter: blur(12px) brightness(0.08); }
-  55%  { filter: blur(20px) brightness(0.05); transform: none; }
-  65%  { filter: blur(30px) brightness(0.03); }
-  80%  { filter: blur(40px) brightness(0.01); }
-  100% { filter: blur(50px) brightness(0); transform: none; }
-}
-body.glitching {
-  animation: glitch-seq 1.8s ease-in-out forwards;
-  pointer-events: none;
-}
-
-.machine-stamp {
-  background: #050505;
-  border-top: 1px solid #111;
-  padding: 16px 40px;
-  text-align: center;
-}
-.machine-stamp-text {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 8px;
-  letter-spacing: 0.22em;
-  color: #222;
-  text-transform: uppercase;
-  animation: stamp-pulse 3s ease-in-out infinite;
-}
-@keyframes stamp-pulse {
-  0%, 100% { color: #222; }
-  50% { color: #4A3A2A; }
-}
-
+@keyframes glitch-seq { 0% { filter: saturate(0) brightness(0.5); } 10% { filter: saturate(0) brightness(0.3); transform: skewX(3deg) translateX(4px); } 12% { filter: hue-rotate(90deg) saturate(0.5) brightness(0.35); transform: skewX(-2deg); } 25% { filter: blur(2px) brightness(0.25); transform: translateX(-3px); } 27% { filter: hue-rotate(200deg) saturate(0.3) brightness(0.3); transform: skewX(1.5deg) translateY(2px); } 40% { filter: blur(8px) brightness(0.15); transform: none; } 44% { filter: blur(12px) brightness(0.08); } 46% { filter: blur(20px) brightness(0.05); transform: none; } 60% { filter: blur(30px) brightness(0.03); } 62% { filter: blur(20px) brightness(0.05); transform: none; } 78% { filter: blur(40px) brightness(0.01); } 82% { filter: blur(50px) brightness(0); } 84% { filter: none; } 100% { filter: blur(50px) brightness(0); transform: none; } }
+body.glitching { animation: glitch-seq 1.8s ease-in-out forwards; pointer-events: none; }
+.machine-stamp { background: #050505; border-top: 1px solid #111; padding: 16px 40px; text-align: center; }
+.machine-stamp-text { font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 0.22em; color: #222; text-transform: uppercase; animation: stamp-pulse 3s ease-in-out infinite; }
+@keyframes stamp-pulse { 0%, 100% { color: #222; } 50% { color: #4A3A2A; } }
 .brief-opening { max-width: 640px; margin: 0 auto; padding: 100px 40px 64px; }
 .brief-made-by { font-size: 20px; line-height: 1.65; color: #B8AE9C; margin-bottom: 20px; }
-.brief-made-by.last { color: #E8DED0; }
-
 .brief-chart-section { max-width: 640px; margin: 0 auto; padding: 48px 40px 64px; border-top: 1px solid #1E1A14; }
 .brief-chart-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 32px; font-style: italic; }
 .brief-chart-frame { background: #fff; border-radius: 4px; padding: 12px; margin-bottom: 12px; }
 .brief-metr-img { width: 100%; height: auto; display: block; }
 .brief-chart-fallback { padding: 40px; text-align: center; color: #666; font-size: 14px; }
-.brief-chart-fallback a { color: #888; }
 .brief-chart-source { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #5A5040; line-height: 1.6; margin-bottom: 28px; }
 .brief-chart-source a { color: #7A6A54; text-decoration: none; }
-.brief-chart-read { font-size: 17px; color: #B8AE9C; }
-
+.brief-chart-read { font-size: 17px; color: #B8AE9C; margin-bottom: 16px; }
 .brief-so-what { max-width: 640px; margin: 0 auto; padding: 56px 40px 64px; border-top: 1px solid #1E1A14; }
 .brief-so-what-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 28px; font-style: italic; }
 .brief-so-what p { font-size: 17px; color: #B8AE9C; margin-bottom: 20px; }
-
 .brief-next { max-width: 640px; margin: 0 auto; padding: 56px 40px 48px; border-top: 1px solid #1E1A14; }
 .brief-next-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; font-weight: 600; color: #E8DED0; margin-bottom: 14px; font-style: italic; }
-.brief-next-intro { font-size: 15px; color: #9A9080; margin-bottom: 36px; line-height: 1.65; }
 .brief-link-block { margin-bottom: 28px; line-height: 1.7; }
 .brief-link-tag { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.2em; color: #6A5A44; text-transform: uppercase; display: block; margin-bottom: 4px; }
 .brief-link-block a { font-weight: 600; color: #E0D6C4; text-decoration: underline; text-underline-offset: 3px; font-size: 16px; }
 .brief-link-block a:hover { color: #fff; }
 .brief-link-detail { display: block; font-size: 14px; color: #6A5E4C; margin-top: 2px; }
-
 .brief-close { max-width: 640px; margin: 0 auto; padding: 48px 40px 100px; border-top: 1px solid #1E1A14; }
 .brief-close p { font-family: 'Source Serif 4', Georgia, serif; font-size: 16px; color: #9A9080; margin-bottom: 32px; line-height: 1.7; }
 .brief-close-small { font-family: 'IBM Plex Mono', monospace !important; font-size: 11px !important; color: #3A3428 !important; letter-spacing: 0.04em; }
 #exit-brief-btn { background: none; border: 1px solid #2A2418; color: #5A5040; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; padding: 10px 20px; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
 #exit-brief-btn:hover { border-color: #8A7A64; color: #C0B49A; }
-
-@media (max-width: 900px) {
-  .brief-opening, .brief-so-what, .brief-next, .brief-close { padding-left: 24px; padding-right: 24px; }
-  .brief-chart-section { padding-left: 24px; padding-right: 24px; }
-  .brief-made-by { font-size: 18px; }
-  .brief-opening { padding-top: 64px; }
-  .machine-stamp { padding: 14px 20px; }
-}
+@media (max-width: 900px) { .brief-opening, .brief-so-what, .brief-next, .brief-close { padding-left: 24px; padding-right: 24px; } .brief-chart-section { padding-left: 24px; padding-right: 24px; } .brief-made-by { font-size: 18px; } .brief-opening { padding-top: 64px; } .machine-stamp { padding: 14px 20px; } }
 </style>
 
 <script>
 (function() {
   let briefTriggered = false;
-
   function startBriefTransition() {
     if (briefTriggered) return;
     if (!document.body.classList.contains('mode-oppo')) return;
     briefTriggered = true;
     const body = document.body;
-
     body.style.transition = 'filter 2.5s ease-in';
     body.style.filter = 'saturate(0) brightness(0.3)';
-
     setTimeout(() => {
       const hed = document.querySelector('.oppo-content h1') || document.querySelector('.oppo-content h2');
-      if (hed) {
-        const orig = hed.textContent;
-        const chars = '\u2588\u2593\u2592\u2591\u25A0\u25A10123456789';
-        let n = 0;
-        const si = setInterval(() => {
-          n++;
-          hed.textContent = Array.from(orig).map(c => c === ' ' ? ' ' : chars[Math.floor(Math.random() * chars.length)]).join('');
-          if (n > 40) { clearInterval(si); hed.textContent = orig; }
-        }, 40);
-      }
+      if (hed) { const orig = hed.textContent; const chars = '\u2588\u2593\u2592\u2591\u25A0\u25A1\u25A20123456789'; let n = 0; const si = setInterval(() => { n++; hed.textContent = Array.from(orig).map(c => c === ' ' ? ' ' : chars[Math.floor(Math.random() * chars.length)]).join(''); if (n > 40) { clearInterval(si); hed.textContent = orig; } }, 40); }
     }, 1200);
-
     setTimeout(() => {
-      body.style.transition = '';
-      body.style.filter = '';
-      body.classList.add('glitching');
-
-      setTimeout(() => {
-        body.classList.remove('glitching');
-        body.classList.add('mode-brief');
-        window.scrollTo({ top: 0, behavior: 'instant' });
-      }, 1500);
+      body.style.transition = ''; body.style.filter = ''; body.classList.add('glitching');
+      setTimeout(() => { body.classList.remove('glitching'); body.classList.add('mode-brief'); window.scrollTo({ top: 0, behavior: 'instant' }); }, 1500);
     }, 2500);
   }
-
   const sentinel = document.getElementById('brief-sentinel');
   if (sentinel && 'IntersectionObserver' in window) {
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          io.disconnect();
-          setTimeout(startBriefTransition, 1200);
-        }
-      });
-    }, { threshold: 0.5 });
+    const io = new IntersectionObserver((entries) => { entries.forEach(e => { if (e.isIntersecting) { io.disconnect(); setTimeout(startBriefTransition, 1200); } }); }, { threshold: 0.5 });
     io.observe(sentinel);
   }
-
   const flipBtn = document.getElementById('flip-btn');
-  if (flipBtn) {
-    flipBtn.addEventListener('click', () => {
-      if (document.body.classList.contains('mode-oppo')) briefTriggered = false;
-    });
-  }
+  if (flipBtn) { flipBtn.addEventListener('click', () => { if (document.body.classList.contains('mode-oppo')) briefTriggered = false; }); }
 })();
-
 document.addEventListener('click', (e) => {
   if (e.target && e.target.id === 'exit-brief-btn') {
-    const body = document.body;
-    body.style.opacity = '0';
-    body.style.transition = 'opacity 0.3s';
-    setTimeout(() => {
-      body.classList.remove('mode-brief');
-      body.classList.add('mode-oppo');
-      window.scrollTo({ top: 0, behavior: 'instant' });
-      body.style.opacity = '1';
-    }, 300);
+    const body = document.body; body.style.opacity = '0'; body.style.transition = 'opacity 0.3s';
+    setTimeout(() => { body.classList.remove('mode-brief'); body.classList.add('mode-oppo'); window.scrollTo({ top: 0, behavior: 'instant' }); body.style.opacity = '1'; }, 300);
   }
 });
 </script>
@@ -1961,7 +1514,7 @@ frame();
         if(s>=o.length){clearInterval(si);el.textContent=o;cb();}
       },35);
     },
-    // word swap — subtle meaning shift
+    // word swap -- subtle meaning shift
     function(el,cb){
       var o=el.textContent;if(!o){cb();return;}
       var changed=false;
@@ -1976,7 +1529,7 @@ frame();
       el._revert=function(){el.textContent=o;delete el._origText;delete el._revert;};
       cb();
     },
-    // haze/blur — text seen through frosted glass
+    // haze/blur -- text seen through frosted glass
     function(el,cb){
       el.style.transition='filter 1.2s ease';
       el.style.filter='blur('+(1.5+Math.random()*2.5)+'px)';
@@ -1986,7 +1539,7 @@ frame();
       };
       cb();
     },
-    // subtle fade — text partially vanishes
+    // subtle fade -- text partially vanishes
     function(el,cb){
       el.style.transition='opacity 1s ease';
       el.style.opacity=''+(0.15+Math.random()*0.2);
@@ -1996,7 +1549,7 @@ frame();
       };
       cb();
     },
-    // letter spacing drift — text stretches apart
+    // letter spacing drift -- text stretches apart
     function(el,cb){
       el.style.transition='letter-spacing 1.5s ease';
       el.style.letterSpacing=(2+Math.random()*5)+'px';
@@ -2024,7 +1577,7 @@ frame();
     var cx=r.left+r.width/2;
     var cy=r.top+r.height/2;
 
-    // create the rising shape — starts deep (tiny, very blurred, nearly invisible)
+    // create the rising shape -- starts deep (tiny, very blurred, nearly invisible)
     // rises toward the surface (grows, sharpens, brightens)
     var shape=document.createElement('div');
     var col=colors[Math.floor(Math.random()*colors.length)];
@@ -2039,7 +1592,7 @@ frame();
       +'transition:width 3s ease-out, height 3s ease-out, filter 3s ease-out, opacity 2.5s ease-out;';
     document.body.appendChild(shape);
 
-    // phase 1: rising from depths (grow, sharpen, brighten — over ~3s)
+    // phase 1: rising from depths (grow, sharpen, brighten -- over ~3s)
     requestAnimationFrame(function(){requestAnimationFrame(function(){
       shape.style.width=finalSize+'px';
       shape.style.height=finalSize+'px';
@@ -2047,7 +1600,7 @@ frame();
       shape.style.opacity='1';
     });});
 
-    // phase 2: near the surface — trigger text effect (~2.5s in)
+    // phase 2: near the surface -- trigger text effect (~2.5s in)
     var effectFn=effects[Math.floor(Math.random()*effects.length)];
     setTimeout(function(){
       effectFn(el,function(){});
