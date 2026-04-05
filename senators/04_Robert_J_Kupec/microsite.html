@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -6,502 +6,554 @@
 <title>Robert J. Kupec | Minnesota Senate District 4</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;900&family=Lora:ital,wght@0,400;0,500;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@200;300;400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 /* ===========================
    RESET & BASE
 =========================== */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; font-size: 16px; }
-body { font-family: 'Lora', Georgia, serif; background: #f5f0e8; color: #1a1208; overflow-x: hidden; }
+body {
+  font-family: 'Source Serif 4', Georgia, serif;
+  background: #F7F3EC;
+  color: #1B1408;
+  overflow-x: hidden;
+}
 
 /* ===========================
-   TOGGLE BUTTON
+   MODE SWITCHING
 =========================== */
-#toggle-btn {
+.pro-content { display: block; }
+.oppo-content { display: none; }
+body.mode-oppo .pro-content { display: none; }
+body.mode-oppo .oppo-content { display: block; }
+
+/* ===========================
+   FLIP BUTTON
+=========================== */
+#flip-btn {
   position: fixed;
   bottom: 32px;
   right: 32px;
   z-index: 9999;
-  background: #1a1208;
-  color: #f5f0e8;
-  border: none;
-  padding: 14px 22px;
-  font-family: 'Space Mono', monospace;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  background: #2A1E08;
+  color: #D4A95A;
+  border: 2px solid #D4A95A;
+  padding: 14px 24px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   cursor: pointer;
   line-height: 1.3;
   text-align: left;
-  min-width: 160px;
-  transition: background 0.18s, color 0.18s;
+  min-width: 170px;
+  transition: all 0.2s ease;
 }
-#toggle-btn:hover { background: #c47a1e; color: #fff; }
-#toggle-btn .btn-label-top { display: block; font-size: 0.6rem; opacity: 0.6; letter-spacing: 0.18em; margin-bottom: 3px; }
+#flip-btn:hover { background: #D4A95A; color: #1B1408; }
+#flip-btn .btn-sub { display: block; font-size: 0.55rem; opacity: 0.55; letter-spacing: 0.2em; margin-bottom: 3px; }
+body.mode-oppo #flip-btn { background: #F85149; color: #fff; border-color: #F85149; }
+body.mode-oppo #flip-btn:hover { background: #ff6e67; }
 
 /* ===========================
-   TRANSITION OVERLAY
+   FADE VEIL
 =========================== */
-#fade-overlay {
+#fade-veil {
   position: fixed;
   inset: 0;
-  background: #1a1208;
+  background: #0a0704;
   z-index: 8888;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.22s ease;
 }
-#fade-overlay.active { opacity: 1; pointer-events: all; }
+#fade-veil.active { opacity: 1; pointer-events: all; }
 
 /* ===========================
-   SITE CONTAINERS
+   HORIZONTAL GRAIN LINE (decorative)
 =========================== */
-#pro-site, #oppo-site {
-  min-height: 100vh;
-  transition: opacity 0.22s ease;
+.grain-line {
+  display: block;
+  width: 100%;
+  height: 1px;
+  background: repeating-linear-gradient(90deg, #C49A3C 0px, #C49A3C 6px, transparent 6px, transparent 12px);
+  opacity: 0.35;
 }
-#oppo-site { display: none; }
 
 /* ===========================
-   PRO SITE STYLES
+   PRO SITE
 =========================== */
-.pro-body {
-  background: #f5f0e8;
-  color: #1a1208;
-}
 
-/* PRO: Top rule bar */
-.pro-topbar {
-  background: #1a1208;
-  color: #c47a1e;
-  font-family: 'Space Mono', monospace;
-  font-size: 0.65rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
+/* PRO: Top rail */
+.pro-rail {
+  background: #1B1408;
   padding: 10px 48px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #C49A3C;
 }
 
-/* PRO: Hero - broadsheet banner, not split */
+/* PRO: Hero */
 .pro-hero {
-  background: #1a1208;
-  padding: 64px 48px 56px;
+  background: linear-gradient(175deg, #1B1408 0%, #2A1E08 55%, #3D2C10 100%);
+  padding: 80px 48px 60px;
   position: relative;
   overflow: hidden;
 }
 .pro-hero::before {
-  content: '';
+  content: 'GRAIN COUNTRY';
   position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #c47a1e 0%, #e8a23c 40%, #c47a1e 100%);
+  bottom: -20px;
+  right: -10px;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: clamp(6rem, 18vw, 14rem);
+  color: rgba(196, 154, 60, 0.04);
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  pointer-events: none;
+  line-height: 1;
 }
-.pro-hero-inner {
-  max-width: 960px;
+.pro-hero-grid {
+  max-width: 1040px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 1fr 280px;
-  gap: 48px;
+  grid-template-columns: 1fr 260px;
+  gap: 56px;
   align-items: end;
 }
-.pro-hero-text {}
-.pro-district-label {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.68rem;
-  letter-spacing: 0.25em;
+.pro-dist-tag {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.3em;
   text-transform: uppercase;
-  color: #c47a1e;
+  color: #C49A3C;
   margin-bottom: 20px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
-.pro-district-label::before {
+.pro-dist-tag::before {
   content: '';
   display: inline-block;
-  width: 32px;
+  width: 40px;
   height: 2px;
-  background: #c47a1e;
+  background: #C49A3C;
 }
 .pro-name {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 900;
-  font-size: clamp(3.2rem, 7vw, 5.8rem);
-  color: #f5f0e8;
-  line-height: 0.9;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: clamp(3.5rem, 8vw, 6.5rem);
+  color: #F7F3EC;
+  line-height: 0.88;
   text-transform: uppercase;
   letter-spacing: -0.01em;
   margin-bottom: 28px;
 }
-.pro-name span {
+.pro-name .name-prefix {
   display: block;
-  color: #c47a1e;
-  font-size: 0.55em;
-  font-weight: 400;
-  font-style: italic;
-  font-family: 'Lora', serif;
-  letter-spacing: 0;
-  line-height: 1.3;
-  margin-bottom: 4px;
-  text-transform: none;
+  font-weight: 200;
+  font-size: 0.28em;
+  letter-spacing: 0.15em;
+  color: #C49A3C;
+  margin-bottom: 8px;
 }
-.pro-frame {
-  font-family: 'Barlow Condensed', sans-serif;
+.pro-opener {
+  font-family: 'Source Serif 4', serif;
   font-weight: 300;
-  font-size: clamp(1.3rem, 3vw, 1.9rem);
-  color: #d4b896;
-  line-height: 1.35;
-  max-width: 580px;
-  letter-spacing: 0.01em;
+  font-size: clamp(1.15rem, 2.5vw, 1.5rem);
+  color: #D4C8A8;
+  line-height: 1.55;
+  max-width: 560px;
 }
-.pro-hero-photo-wrap {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  justify-content: flex-end;
-}
+.pro-photo-col { display: flex; flex-direction: column; align-items: flex-end; }
 .pro-photo {
   width: 240px;
-  height: 300px;
+  height: 310px;
   object-fit: cover;
   object-position: center 15%;
-  filter: sepia(20%) contrast(1.05) brightness(1.05);
+  filter: sepia(15%) contrast(1.08) brightness(1.02);
+  border: 3px solid #C49A3C;
   display: block;
-  border: 3px solid #c47a1e;
 }
-.pro-photo-fallback {
+.pro-photo-fb {
   width: 240px;
-  height: 300px;
-  background: linear-gradient(160deg, #2a1f0a 0%, #3d2e12 100%);
-  border: 3px solid #c47a1e;
+  height: 310px;
+  background: linear-gradient(160deg, #2A1E08 0%, #3D2C10 100%);
+  border: 3px solid #C49A3C;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #c47a1e;
-  font-family: 'Barlow Condensed', sans-serif;
+  color: #C49A3C;
+  font-family: 'Oswald', sans-serif;
   font-size: 4rem;
-  font-weight: 900;
+  font-weight: 700;
 }
-.pro-photo-caption {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.58rem;
-  color: #7a6840;
-  letter-spacing: 0.12em;
+.pro-photo-cap {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.55rem;
+  color: #7A6840;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   margin-top: 8px;
   text-align: right;
 }
 
-/* PRO: Stat strip */
-.pro-stat-strip {
-  background: #c47a1e;
-  padding: 0 48px;
+/* PRO: Stat band */
+.pro-stat-band {
+  background: #C49A3C;
+  padding: 0;
 }
-.pro-stat-strip-inner {
-  max-width: 960px;
+.pro-stat-row {
+  max-width: 1040px;
   margin: 0 auto;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  border-left: 1px solid rgba(255,255,255,0.2);
 }
-.pro-stat {
-  padding: 32px 32px 28px;
-  border-right: 1px solid rgba(255,255,255,0.2);
-  border-bottom: none;
+.pro-stat-cell {
+  padding: 36px 32px 30px;
+  border-right: 1px solid rgba(27,20,8,0.15);
+  position: relative;
 }
-.pro-stat-number {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 900;
-  font-size: 3.4rem;
-  color: #fff;
+.pro-stat-cell:last-child { border-right: none; }
+.pro-stat-num {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: clamp(2.8rem, 5vw, 4rem);
+  color: #1B1408;
   line-height: 1;
-  display: block;
 }
 .pro-stat-unit {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.62rem;
-  color: rgba(255,255,255,0.7);
-  letter-spacing: 0.16em;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.58rem;
+  color: rgba(27,20,8,0.55);
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  display: block;
   margin-top: 4px;
-  margin-bottom: 6px;
+  display: block;
 }
 .pro-stat-desc {
-  font-family: 'Lora', serif;
+  font-family: 'Source Serif 4', serif;
   font-size: 0.82rem;
-  color: rgba(255,255,255,0.85);
-  line-height: 1.5;
+  color: rgba(27,20,8,0.75);
+  line-height: 1.55;
+  margin-top: 8px;
 }
 
-/* PRO: Content bands */
-.pro-band {
-  padding: 72px 48px;
-  max-width: 960px;
-  margin: 0 auto;
-}
-.pro-band-full {
-  padding: 72px 48px;
-  background: #ede7d9;
-}
-.pro-band-full-inner {
-  max-width: 960px;
-  margin: 0 auto;
-}
-
-.pro-section-label {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.62rem;
-  letter-spacing: 0.28em;
+/* PRO: Section label */
+.pro-sec-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
   text-transform: uppercase;
-  color: #c47a1e;
-  margin-bottom: 16px;
+  color: #C49A3C;
+  margin-bottom: 18px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
-.pro-section-label::after {
+.pro-sec-label::after {
   content: '';
   flex: 1;
   height: 1px;
-  background: #c47a1e;
-  opacity: 0.4;
-  max-width: 80px;
+  background: #C49A3C;
+  opacity: 0.3;
+  max-width: 100px;
+}
+
+/* PRO: Content sections */
+.pro-section {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 72px 48px;
+}
+.pro-section-full {
+  padding: 72px 48px;
+  background: #EDE7D5;
+}
+.pro-section-full-inner {
+  max-width: 1040px;
+  margin: 0 auto;
 }
 
 .pro-h2 {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 700;
-  font-size: clamp(2rem, 4vw, 3rem);
-  color: #1a1208;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: clamp(2rem, 4.5vw, 3.2rem);
+  color: #1B1408;
   line-height: 1.05;
   text-transform: uppercase;
   letter-spacing: 0.01em;
-  margin-bottom: 28px;
+  margin-bottom: 32px;
 }
-
-.pro-body-text {
-  font-family: 'Lora', serif;
+.pro-body {
+  font-family: 'Source Serif 4', serif;
   font-size: 1.05rem;
-  line-height: 1.72;
-  color: #2a1f0a;
-  max-width: 640px;
+  line-height: 1.78;
+  color: #2A1E08;
+  max-width: 660px;
 }
-.pro-body-text p { margin-bottom: 1.1em; }
-.pro-body-text p:last-child { margin-bottom: 0; }
+.pro-body p { margin-bottom: 1.1em; }
+.pro-body p:last-child { margin-bottom: 0; }
 
-/* PRO: Bill card */
-.pro-bill-grid {
+/* PRO: Bill cards (ledger aesthetic) */
+.pro-bills {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0;
-  border: 2px solid #1a1208;
-  margin-top: 40px;
+  margin-top: 44px;
+  border: 2px solid #1B1408;
 }
-.pro-bill-card {
+.pro-bill {
   padding: 36px;
-  border-right: 1px solid #1a1208;
+  border-right: 2px solid #1B1408;
+  position: relative;
 }
-.pro-bill-card:last-child { border-right: none; }
-.pro-bill-tag {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  color: #c47a1e;
+.pro-bill:last-child { border-right: none; }
+.pro-bill-num {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  color: #C49A3C;
   text-transform: uppercase;
-  margin-bottom: 12px;
-  background: #1a1208;
+  margin-bottom: 14px;
+  background: #1B1408;
   display: inline-block;
-  padding: 4px 10px;
+  padding: 4px 12px;
 }
 .pro-bill-title {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 700;
-  font-size: 1.5rem;
-  color: #1a1208;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: 1.4rem;
+  color: #1B1408;
   line-height: 1.15;
   margin-bottom: 14px;
   text-transform: uppercase;
 }
-.pro-bill-body {
-  font-family: 'Lora', serif;
+.pro-bill-text {
+  font-family: 'Source Serif 4', serif;
   font-size: 0.88rem;
-  line-height: 1.68;
-  color: #3a2c10;
+  line-height: 1.7;
+  color: #3A2C10;
 }
 .pro-bill-vote {
   margin-top: 18px;
-  font-family: 'Space Mono', monospace;
-  font-size: 0.65rem;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.6rem;
   letter-spacing: 0.12em;
-  color: #7a6840;
+  color: #7A6840;
   text-transform: uppercase;
-  border-top: 1px solid #d4b896;
+  border-top: 1px solid #D4C8A8;
   padding-top: 14px;
 }
 
-/* PRO: Photo band */
-.pro-photo-band {
+/* PRO: Landscape band */
+.pro-landscape-band {
   position: relative;
-  height: 380px;
+  height: 400px;
   overflow: hidden;
-  background: #1a1208;
+  background: #1B1408;
 }
-.pro-landscape {
+.pro-landscape-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.65;
-  filter: sepia(30%) contrast(1.1);
+  opacity: 0.6;
+  filter: sepia(25%) contrast(1.1);
 }
-.pro-photo-overlay {
+.pro-landscape-over {
   position: absolute;
   inset: 0;
   display: flex;
   align-items: flex-end;
-  padding: 40px 56px;
-  background: linear-gradient(to top, rgba(26,18,8,0.85) 0%, transparent 60%);
+  padding: 48px 56px;
+  background: linear-gradient(to top, rgba(27,20,8,0.88) 0%, transparent 55%);
 }
-.pro-photo-overlay-text {
-  font-family: 'Barlow Condensed', sans-serif;
+.pro-landscape-quote {
+  font-family: 'Source Serif 4', serif;
+  font-style: italic;
   font-weight: 300;
-  font-size: 1.4rem;
-  color: #f5f0e8;
-  max-width: 580px;
-  line-height: 1.4;
-  letter-spacing: 0.02em;
+  font-size: 1.35rem;
+  color: #F7F3EC;
+  max-width: 600px;
+  line-height: 1.55;
 }
-.pro-photo-overlay-caption {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.58rem;
-  color: #c47a1e;
-  letter-spacing: 0.16em;
+.pro-landscape-attr {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.55rem;
+  color: #C49A3C;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  margin-top: 8px;
+  margin-top: 10px;
 }
 
-/* PRO: Pull quote */
-.pro-pullquote-band {
-  background: #1a1208;
-  padding: 64px 48px;
+/* PRO: Pullquote block */
+.pro-pull-block {
+  background: #1B1408;
+  padding: 72px 48px;
 }
-.pro-pullquote-band-inner {
-  max-width: 760px;
+.pro-pull-inner {
+  max-width: 800px;
   margin: 0 auto;
   text-align: center;
+  position: relative;
 }
-.pro-pullquote-mark {
-  font-family: 'Lora', serif;
+.pro-pull-mark {
+  font-family: 'Source Serif 4', serif;
   font-size: 5rem;
-  line-height: 0.6;
-  color: #c47a1e;
+  line-height: 0.5;
+  color: #C49A3C;
   display: block;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
-.pro-pullquote {
-  font-family: 'Lora', serif;
+.pro-pull-text {
+  font-family: 'Source Serif 4', serif;
   font-style: italic;
-  font-size: clamp(1.3rem, 2.5vw, 1.8rem);
-  color: #f5f0e8;
-  line-height: 1.55;
-  margin-bottom: 24px;
+  font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+  color: #F7F3EC;
+  line-height: 1.6;
+  margin-bottom: 28px;
 }
-.pro-pullquote-attr {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.65rem;
-  letter-spacing: 0.2em;
+.pro-pull-attr {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: #7a6840;
+  color: #7A6840;
+}
+
+/* PRO: Tool link */
+.pro-tool-link {
+  display: block;
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 28px 48px;
+}
+.pro-tool-link a {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: #1B1408;
+  border: 2px solid #C49A3C;
+  padding: 20px 28px;
+  text-decoration: none;
+  transition: background 0.18s;
+}
+.pro-tool-link a:hover { background: #2A1E08; }
+.pro-tool-link .tool-icon {
+  font-size: 2rem;
+  color: #C49A3C;
+  flex-shrink: 0;
+  width: 48px;
+  text-align: center;
+}
+.pro-tool-link .tool-label {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: #C49A3C;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.pro-tool-link .tool-desc {
+  font-family: 'Source Serif 4', serif;
+  font-size: 0.82rem;
+  color: #D4C8A8;
+  line-height: 1.5;
+  margin-top: 2px;
 }
 
 /* PRO: Footnotes */
-.pro-footnotes {
-  background: #e8e0ce;
+.pro-fn {
+  background: #E8E0CE;
   padding: 48px 48px 56px;
-  border-top: 2px solid #1a1208;
+  border-top: 2px solid #1B1408;
 }
-.pro-footnotes-inner {
-  max-width: 960px;
+.pro-fn-inner {
+  max-width: 1040px;
   margin: 0 auto;
 }
-.pro-footnotes-label {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.65rem;
-  letter-spacing: 0.22em;
+.pro-fn-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.24em;
   text-transform: uppercase;
-  color: #7a6840;
+  color: #7A6840;
   margin-bottom: 20px;
   padding-bottom: 12px;
-  border-bottom: 1px solid #c4b08c;
+  border-bottom: 1px solid #C4B08C;
 }
 .pro-fn-list {
   list-style: none;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px 48px;
+  counter-reset: pfn;
 }
 .pro-fn-list li {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.6rem;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.58rem;
   line-height: 1.7;
-  color: #5a4820;
-  counter-increment: fn-counter;
+  color: #5A4820;
+  counter-increment: pfn;
   display: flex;
   gap: 8px;
 }
 .pro-fn-list li::before {
-  content: '[' counter(fn-counter) ']';
-  color: #c47a1e;
+  content: '[' counter(pfn) ']';
+  color: #C49A3C;
   flex-shrink: 0;
-  font-weight: 700;
+  font-weight: 600;
 }
-.pro-fn-list { counter-reset: fn-counter; }
 
 /* ===========================
-   OPPO SITE STYLES
+   OPPO SITE
 =========================== */
-.oppo-body {
-  background: #0d1117;
-  color: #c8d0d8;
+
+.oppo-wrap {
+  background: #0B0E14;
+  color: #C0C8D0;
+  min-height: 100vh;
 }
 
-/* OPPO: Case file header bar */
+/* OPPO: Case bar */
 .oppo-casebar {
-  background: #161b22;
-  border-bottom: 1px solid #30363d;
+  background: #12161E;
+  border-bottom: 1px solid #252D3A;
   padding: 11px 48px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 .oppo-casebar-ref {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.62rem;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.6rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: #8b949e;
+  color: #6E7A88;
 }
-.oppo-casebar-status {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.58rem;
-  color: #f85149;
+.oppo-casebar-badge {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.55rem;
+  color: #F85149;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  border: 1px solid #f85149;
-  padding: 3px 8px;
+  border: 1px solid #F85149;
+  padding: 3px 10px;
 }
 
 /* OPPO: Hero */
 .oppo-hero {
-  background: #161b22;
-  padding: 64px 48px 56px;
-  border-bottom: 1px solid #21262d;
+  background: #12161E;
+  padding: 72px 48px 60px;
+  border-bottom: 1px solid #1C2230;
   position: relative;
   overflow: hidden;
 }
@@ -509,144 +561,139 @@ body { font-family: 'Lora', Georgia, serif; background: #f5f0e8; color: #1a1208;
   content: 'COMPLIANCE FAILURE';
   position: absolute;
   top: 50%;
-  right: -40px;
+  right: -30px;
   transform: translateY(-50%) rotate(90deg);
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 900;
-  font-size: 6rem;
-  color: rgba(248,81,73,0.06);
-  letter-spacing: 0.1em;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 5.5rem;
+  color: rgba(248,81,73,0.045);
+  letter-spacing: 0.12em;
   white-space: nowrap;
   pointer-events: none;
 }
-.oppo-hero-inner {
-  max-width: 960px;
+.oppo-hero-grid {
+  max-width: 1040px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 260px 1fr;
+  grid-template-columns: 240px 1fr;
   gap: 56px;
   align-items: start;
 }
-.oppo-photo-wrap {
-  position: relative;
-}
+.oppo-photo-wrap { position: relative; }
 .oppo-photo {
   width: 220px;
   height: 280px;
   object-fit: cover;
   object-position: center 15%;
-  filter: grayscale(100%) contrast(1.35) brightness(0.75);
+  filter: grayscale(100%) contrast(1.4) brightness(0.7);
   display: block;
-  border: 1px solid #30363d;
+  border: 1px solid #252D3A;
 }
-.oppo-photo-fallback {
+.oppo-photo-fb {
   width: 220px;
   height: 280px;
-  background: linear-gradient(160deg, #0d1117 0%, #1a2332 100%);
-  border: 1px solid #30363d;
+  background: linear-gradient(160deg, #0B0E14 0%, #18202C 100%);
+  border: 1px solid #252D3A;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #3d4852;
-  font-family: 'Barlow Condensed', sans-serif;
+  color: #3D4852;
+  font-family: 'Oswald', sans-serif;
   font-size: 4rem;
-  font-weight: 900;
+  font-weight: 700;
 }
-.oppo-photo-stamp {
+.oppo-stamp {
   position: absolute;
-  bottom: 12px;
-  left: 12px;
-  right: 0;
-  font-family: 'Space Mono', monospace;
-  font-size: 0.6rem;
-  color: #f85149;
+  bottom: 14px;
+  left: 14px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.58rem;
+  color: #F85149;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  border: 2px solid #f85149;
-  padding: 4px 8px;
-  display: inline-block;
-  background: rgba(13,17,23,0.8);
+  border: 2px solid #F85149;
+  padding: 4px 10px;
+  background: rgba(11,14,20,0.85);
 }
-.oppo-hero-text {}
 .oppo-file-label {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.62rem;
-  letter-spacing: 0.22em;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.24em;
   text-transform: uppercase;
-  color: #f85149;
-  margin-bottom: 16px;
+  color: #F85149;
+  margin-bottom: 18px;
 }
 .oppo-headline {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 900;
-  font-size: clamp(2.4rem, 5vw, 4rem);
-  color: #e6edf3;
-  line-height: 0.95;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: clamp(2.6rem, 6vw, 4.5rem);
+  color: #E6EDF3;
+  line-height: 0.92;
   text-transform: uppercase;
   letter-spacing: 0.01em;
-  margin-bottom: 24px;
+  margin-bottom: 28px;
 }
 .oppo-headline em {
   display: block;
-  color: #f85149;
+  color: #F85149;
   font-style: normal;
 }
-.oppo-subhead {
-  font-family: 'Lora', serif;
+.oppo-sub {
+  font-family: 'Source Serif 4', serif;
   font-size: 1.05rem;
-  color: #8b949e;
-  line-height: 1.6;
-  max-width: 520px;
+  color: #7A8694;
+  line-height: 1.65;
+  max-width: 540px;
 }
-.oppo-subhead strong {
-  color: #c8d0d8;
-}
+.oppo-sub strong { color: #C0C8D0; }
 
-/* OPPO: Sequence section */
+/* OPPO: Sequence */
 .oppo-sequence {
-  background: #0d1117;
+  background: #0B0E14;
   padding: 72px 48px;
-  border-bottom: 1px solid #21262d;
+  border-bottom: 1px solid #1C2230;
 }
-.oppo-sequence-inner {
-  max-width: 960px;
+.oppo-seq-inner {
+  max-width: 1040px;
   margin: 0 auto;
 }
-.oppo-seq-label {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.62rem;
-  letter-spacing: 0.28em;
+.oppo-sec-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
   text-transform: uppercase;
-  color: #8b949e;
+  color: #6E7A88;
   margin-bottom: 40px;
   display: flex;
   align-items: center;
   gap: 16px;
 }
-.oppo-seq-label::after {
+.oppo-sec-label::after {
   content: '';
   flex: 1;
   height: 1px;
-  background: #21262d;
+  background: #1C2230;
 }
 .oppo-steps {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 0;
-  border: 1px solid #21262d;
+  border: 1px solid #1C2230;
 }
 .oppo-step {
-  padding: 32px 28px;
-  border-right: 1px solid #21262d;
+  padding: 32px 24px;
+  border-right: 1px solid #1C2230;
   position: relative;
+  transition: background 0.18s;
 }
 .oppo-step:last-child { border-right: none; }
+.oppo-step:hover { background: rgba(248,81,73,0.03); }
 .oppo-step-num {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.58rem;
-  font-weight: 700;
-  color: #f85149;
-  letter-spacing: 0.2em;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.55rem;
+  font-weight: 600;
+  color: #F85149;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
   margin-bottom: 12px;
   display: flex;
@@ -658,156 +705,122 @@ body { font-family: 'Lora', Georgia, serif; background: #f5f0e8; color: #1a1208;
   display: inline-block;
   width: 20px;
   height: 1px;
-  background: #f85149;
+  background: #F85149;
 }
 .oppo-step-date {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.62rem;
-  color: #58a6ff;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.6rem;
+  color: #58A6FF;
   letter-spacing: 0.08em;
   margin-bottom: 10px;
   display: block;
 }
 .oppo-step-title {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 700;
-  font-size: 1.15rem;
-  color: #e6edf3;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: #E6EDF3;
   text-transform: uppercase;
   line-height: 1.1;
   margin-bottom: 10px;
 }
 .oppo-step-body {
-  font-family: 'Lora', serif;
+  font-family: 'Source Serif 4', serif;
   font-size: 0.82rem;
-  color: #8b949e;
-  line-height: 1.62;
+  color: #7A8694;
+  line-height: 1.65;
 }
 
 /* OPPO: Document block */
-.oppo-doc-band {
-  background: #161b22;
+.oppo-doc-section {
+  background: #12161E;
   padding: 72px 48px;
-  border-bottom: 1px solid #21262d;
+  border-bottom: 1px solid #1C2230;
 }
-.oppo-doc-band-inner {
-  max-width: 960px;
+.oppo-doc-inner {
+  max-width: 1040px;
   margin: 0 auto;
 }
-.oppo-doc-label {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.62rem;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  color: #8b949e;
-  margin-bottom: 32px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-.oppo-doc-label::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: #21262d;
-}
 .oppo-doc-block {
-  border: 1px solid #30363d;
-  background: #0d1117;
-  font-family: 'Space Mono', monospace;
+  border: 1px solid #252D3A;
+  background: #0B0E14;
+  font-family: 'IBM Plex Mono', monospace;
 }
-.oppo-doc-header {
-  background: #21262d;
+.oppo-doc-head {
+  background: #1C2230;
   padding: 12px 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #30363d;
+  border-bottom: 1px solid #252D3A;
 }
-.oppo-doc-title {
-  font-size: 0.62rem;
+.oppo-doc-head-title {
+  font-size: 0.6rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: #8b949e;
+  color: #6E7A88;
 }
-.oppo-doc-badge {
-  font-size: 0.58rem;
+.oppo-doc-head-badge {
+  font-size: 0.55rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #f85149;
-  border: 1px solid #f85149;
-  padding: 2px 6px;
+  color: #F85149;
+  border: 1px solid #F85149;
+  padding: 2px 8px;
 }
-.oppo-doc-body {
+.oppo-doc-text {
   padding: 32px 24px;
   font-size: 0.78rem;
-  line-height: 1.9;
-  color: #8b949e;
+  line-height: 1.95;
+  color: #7A8694;
 }
-.oppo-doc-body p { margin-bottom: 1em; }
-.oppo-doc-body p:last-child { margin-bottom: 0; }
-.oppo-highlight {
-  background: rgba(248,81,73,0.15);
-  color: #ff8b87;
+.oppo-doc-text p { margin-bottom: 1em; }
+.oppo-doc-text p:last-child { margin-bottom: 0; }
+.oppo-hl {
+  background: rgba(248,81,73,0.12);
+  color: #FF8B87;
   padding: 1px 4px;
-  border-bottom: 1px solid rgba(248,81,73,0.4);
+  border-bottom: 1px solid rgba(248,81,73,0.35);
 }
-.oppo-doc-numbers {
+.oppo-doc-nums {
   margin-top: 24px;
-  border-top: 1px solid #21262d;
+  border-top: 1px solid #1C2230;
   padding-top: 24px;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0;
 }
-.oppo-doc-num {
+.oppo-doc-num-cell {
   padding: 16px;
-  border-right: 1px solid #21262d;
+  border-right: 1px solid #1C2230;
   text-align: center;
 }
-.oppo-doc-num:last-child { border-right: none; }
+.oppo-doc-num-cell:last-child { border-right: none; }
 .oppo-doc-num-val {
   display: block;
   font-size: 1.8rem;
-  font-weight: 700;
-  color: #f85149;
+  font-weight: 600;
+  color: #F85149;
   line-height: 1;
   margin-bottom: 6px;
 }
 .oppo-doc-num-label {
   display: block;
-  font-size: 0.56rem;
-  letter-spacing: 0.18em;
+  font-size: 0.52rem;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: #6e7681;
+  color: #5A6470;
 }
 
 /* OPPO: Evidence cards */
 .oppo-evidence {
-  background: #0d1117;
+  background: #0B0E14;
   padding: 72px 48px;
-  border-bottom: 1px solid #21262d;
+  border-bottom: 1px solid #1C2230;
 }
-.oppo-evidence-inner {
-  max-width: 960px;
+.oppo-ev-inner {
+  max-width: 1040px;
   margin: 0 auto;
-}
-.oppo-ev-label {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.62rem;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  color: #8b949e;
-  margin-bottom: 32px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-.oppo-ev-label::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: #21262d;
 }
 .oppo-cards {
   display: grid;
@@ -815,9 +828,9 @@ body { font-family: 'Lora', Georgia, serif; background: #f5f0e8; color: #1a1208;
   gap: 2px;
 }
 .oppo-card {
-  background: #161b22;
-  border: 1px solid #21262d;
-  padding: 32px 28px;
+  background: #12161E;
+  border: 1px solid #1C2230;
+  padding: 32px 24px;
   cursor: default;
   transition: border-color 0.18s, background 0.18s;
   position: relative;
@@ -826,258 +839,258 @@ body { font-family: 'Lora', Georgia, serif; background: #f5f0e8; color: #1a1208;
 .oppo-card::before {
   content: '';
   position: absolute;
-  top: 0; left: 0;
+  top: 0;
+  left: 0;
   width: 3px;
   height: 100%;
-  background: #f85149;
+  background: #F85149;
   transform: scaleY(0);
   transform-origin: top;
   transition: transform 0.22s ease;
 }
-.oppo-card:hover {
-  border-color: #f85149;
-  background: #1a0a09;
-}
+.oppo-card:hover { border-color: #F85149; background: #160A09; }
 .oppo-card:hover::before { transform: scaleY(1); }
 .oppo-card-tag {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.56rem;
-  letter-spacing: 0.22em;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.52rem;
+  letter-spacing: 0.24em;
   text-transform: uppercase;
-  color: #f85149;
+  color: #F85149;
   margin-bottom: 14px;
   display: block;
 }
 .oppo-card-stat {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 900;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
   font-size: 2.8rem;
-  color: #e6edf3;
+  color: #E6EDF3;
   line-height: 1;
   margin-bottom: 8px;
   display: block;
 }
 .oppo-card-title {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 700;
-  font-size: 1.1rem;
-  color: #e6edf3;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: #E6EDF3;
   text-transform: uppercase;
   line-height: 1.1;
   margin-bottom: 12px;
 }
 .oppo-card-body {
-  font-family: 'Lora', serif;
+  font-family: 'Source Serif 4', serif;
   font-size: 0.82rem;
-  color: #8b949e;
+  color: #7A8694;
   line-height: 1.65;
 }
-.oppo-card:hover .oppo-card-body { color: #a8b5c0; }
-.oppo-card-footnote {
+.oppo-card:hover .oppo-card-body { color: #98A4B0; }
+.oppo-card-fn {
   margin-top: 16px;
-  font-family: 'Space Mono', monospace;
-  font-size: 0.56rem;
-  color: #484f58;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.52rem;
+  color: #3D4852;
   letter-spacing: 0.1em;
-  border-top: 1px solid #21262d;
+  border-top: 1px solid #1C2230;
   padding-top: 12px;
 }
-.oppo-card:hover .oppo-card-footnote { color: #6e7681; }
+.oppo-card:hover .oppo-card-fn { color: #5A6470; }
 
 /* OPPO: Footnotes */
-.oppo-footnotes {
-  background: #161b22;
+.oppo-fn {
+  background: #12161E;
   padding: 48px 48px 56px;
-  border-top: 1px solid #21262d;
+  border-top: 1px solid #1C2230;
 }
-.oppo-footnotes-inner {
-  max-width: 960px;
+.oppo-fn-inner {
+  max-width: 1040px;
   margin: 0 auto;
 }
-.oppo-footnotes-label {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.62rem;
-  letter-spacing: 0.22em;
+.oppo-fn-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.24em;
   text-transform: uppercase;
-  color: #6e7681;
+  color: #5A6470;
   margin-bottom: 20px;
   padding-bottom: 12px;
-  border-bottom: 1px solid #21262d;
+  border-bottom: 1px solid #1C2230;
 }
 .oppo-fn-list {
   list-style: none;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px 48px;
-  counter-reset: ofn-counter;
+  counter-reset: ofn;
 }
 .oppo-fn-list li {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.58rem;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.55rem;
   line-height: 1.7;
-  color: #484f58;
-  counter-increment: ofn-counter;
+  color: #3D4852;
+  counter-increment: ofn;
   display: flex;
   gap: 8px;
 }
 .oppo-fn-list li::before {
-  content: '[' counter(ofn-counter) ']';
-  color: #f85149;
+  content: '[' counter(ofn) ']';
+  color: #F85149;
   flex-shrink: 0;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 /* ===========================
    RESPONSIVE
 =========================== */
 @media (max-width: 900px) {
-  .pro-topbar, .oppo-casebar { padding: 10px 24px; }
-  .pro-hero, .oppo-hero { padding: 40px 24px 36px; }
-  .pro-hero-inner { grid-template-columns: 1fr; gap: 32px; }
-  .pro-hero-photo-wrap { align-items: flex-start; }
-  .pro-photo, .oppo-photo { width: 180px; height: 220px; }
-  .pro-photo-fallback, .oppo-photo-fallback { width: 180px; height: 220px; }
-  .pro-stat-strip { padding: 0 24px; }
-  .pro-stat-strip-inner { grid-template-columns: 1fr; }
-  .pro-stat { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.2); }
-  .pro-band, .pro-band-full, .pro-band-full-inner { padding: 40px 24px; }
-  .pro-bill-grid { grid-template-columns: 1fr; }
-  .pro-bill-card { border-right: none; border-bottom: 1px solid #1a1208; }
-  .pro-bill-card:last-child { border-bottom: none; }
-  .oppo-hero-inner { grid-template-columns: 1fr; gap: 32px; }
-  .oppo-sequence { padding: 40px 24px; }
+  .pro-rail, .oppo-casebar { padding: 10px 24px; }
+  .pro-hero, .oppo-hero { padding: 48px 24px 40px; }
+  .pro-hero-grid { grid-template-columns: 1fr; gap: 32px; }
+  .pro-photo-col { align-items: flex-start; }
+  .pro-photo, .pro-photo-fb { width: 180px; height: 230px; }
+  .oppo-photo, .oppo-photo-fb { width: 180px; height: 230px; }
+  .pro-stat-row { grid-template-columns: 1fr; }
+  .pro-stat-cell { border-right: none; border-bottom: 1px solid rgba(27,20,8,0.15); }
+  .pro-stat-cell:last-child { border-bottom: none; }
+  .pro-section, .pro-section-full, .pro-section-full-inner { padding: 48px 24px; }
+  .pro-bills { grid-template-columns: 1fr; }
+  .pro-bill { border-right: none; border-bottom: 2px solid #1B1408; }
+  .pro-bill:last-child { border-bottom: none; }
+  .oppo-hero-grid { grid-template-columns: 1fr; gap: 32px; }
+  .oppo-sequence, .oppo-doc-section, .oppo-evidence { padding: 48px 24px; }
   .oppo-steps { grid-template-columns: 1fr 1fr; }
-  .oppo-step { border-bottom: 1px solid #21262d; }
+  .oppo-step { border-bottom: 1px solid #1C2230; }
   .oppo-step:nth-child(2n) { border-right: none; }
-  .oppo-doc-band, .oppo-evidence { padding: 40px 24px; }
   .oppo-cards { grid-template-columns: 1fr; }
   .pro-fn-list, .oppo-fn-list { grid-template-columns: 1fr; }
-  .pro-photo-band { height: 260px; }
-  .pro-photo-overlay { padding: 24px; }
-  .pro-pullquote-band, .pro-footnotes, .oppo-footnotes { padding: 40px 24px; }
-  .oppo-doc-numbers { grid-template-columns: 1fr; }
-  .oppo-doc-num { border-right: none; border-bottom: 1px solid #21262d; }
-  .oppo-doc-num:last-child { border-bottom: none; }
-  #toggle-btn { right: 16px; bottom: 16px; }
+  .pro-landscape-band { height: 280px; }
+  .pro-landscape-over { padding: 24px; }
+  .pro-pull-block, .pro-fn, .oppo-fn { padding: 48px 24px; }
+  .oppo-doc-nums { grid-template-columns: 1fr; }
+  .oppo-doc-num-cell { border-right: none; border-bottom: 1px solid #1C2230; }
+  .oppo-doc-num-cell:last-child { border-bottom: none; }
+  #flip-btn { right: 16px; bottom: 16px; }
+  .pro-tool-link { padding: 16px 24px; }
 }
 </style>
 </head>
 <body>
-<a id="home-btn" href="../../index.html" aria-label="Back to all senators" style="position:fixed;top:20px;left:20px;z-index:9999;font-family:monospace;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;text-decoration:none;color:#333;padding:6px 10px;border:1px solid #222;border-radius:2px;background:rgba(5,5,5,0.7);backdrop-filter:blur(4px);transition:color 0.2s,border-color 0.2s;" onmouseover="this.style.color='#888';this.style.borderColor='#555'" onmouseout="this.style.color='#333';this.style.borderColor='#222'">←</a>
+<a id="home-btn" href="../../index.html" aria-label="Back to all senators" style="position:fixed;top:20px;left:20px;z-index:9999;font-family:monospace;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;text-decoration:none;color:#333;padding:6px 10px;border:1px solid #222;border-radius:2px;background:rgba(5,5,5,0.7);backdrop-filter:blur(4px);transition:color 0.2s,border-color 0.2s;" onmouseover="this.style.color='#888';this.style.borderColor='#555'" onmouseout="this.style.color='#333';this.style.borderColor='#222'">&#8592;</a>
 
-<!-- FADE OVERLAY -->
-<div id="fade-overlay"></div>
+<!-- FADE VEIL -->
+<div id="fade-veil"></div>
 
-<!-- TOGGLE BUTTON -->
-<button id="toggle-btn" onclick="flipSite()">
-  <span class="btn-label-top" id="btn-label-top">Currently viewing</span>
-  <span id="btn-label-main">Switch to Oppo</span>
+<!-- FLIP BUTTON -->
+<button id="flip-btn">
+  <span class="btn-sub" id="flip-sub">Currently viewing</span>
+  <span id="flip-label">Switch to Oppo</span>
 </button>
 
 <!-- =====================
-     PRO SITE
+     PRO CONTENT
 ===================== -->
-<div id="pro-site" class="pro-body">
+<div class="pro-content">
 
-  <!-- Top bar -->
-  <div class="pro-topbar">
+  <!-- Top rail -->
+  <div class="pro-rail">
     <span>Minnesota Senate &bull; District 4 &bull; Red River Valley</span>
     <span>Supporter Briefing</span>
   </div>
 
   <!-- Hero -->
   <header class="pro-hero">
-    <div class="pro-hero-inner">
-      <div class="pro-hero-text">
-        <div class="pro-district-label">Senate District 4 &bull; DFL</div>
+    <div class="pro-hero-grid">
+      <div>
+        <div class="pro-dist-tag">Senate District 4 &bull; DFL</div>
         <h1 class="pro-name">
-          <span>Senator</span>
-          Robert J. Kupec
+          <span class="name-prefix">Senator</span>
+          Robert J.<br>Kupec
         </h1>
-        <p class="pro-frame">Kupec authored SF1552, enacted as 2025 Session Laws chapter 1, updating grain-buyer reporting rules for certain buyers in farm country.</p>
+        <p class="pro-opener">Kupec authored SF1552, the first bill sent to Governor Walz in the 2025 session. It restructured grain-buyer reporting rules so small elevators in farm country can stay open without six-figure compliance costs.</p>
       </div>
-      <div class="pro-hero-photo-wrap">
+      <div class="pro-photo-col">
         <img
           class="pro-photo"
           src="https://www.senate.mn/graphics/04Kupec.jpg"
           alt="Senator Robert J. Kupec"
-          onerror="this.style.display='none'; document.getElementById('pro-photo-fb').style.display='flex';"
+          onerror="this.style.display='none'; document.getElementById('pro-fb').style.display='flex';"
         >
-        <div class="pro-photo-fallback" id="pro-photo-fb" style="display:none;">RK</div>
-        <div class="pro-photo-caption">Sen. Robert J. Kupec &bull; District 4</div>
+        <div class="pro-photo-fb" id="pro-fb" style="display:none;">RK</div>
+        <div class="pro-photo-cap">Sen. Robert J. Kupec &bull; District 4</div>
       </div>
     </div>
   </header>
 
-  <!-- Stat strip -->
-  <div class="pro-stat-strip">
-    <div class="pro-stat-strip-inner">
-      <div class="pro-stat">
-        <span class="pro-stat-number" id="stat-1">66</span>
-        <span class="pro-stat-unit">Senate votes for SF1552</span>
-        <span class="pro-stat-desc">Passed unanimously. Not one senator voted against it.<sup>[1]</sup></span>
+  <!-- Stat band -->
+  <div class="pro-stat-band">
+    <div class="pro-stat-row">
+      <div class="pro-stat-cell">
+        <span class="pro-stat-num" id="stat-votes">66-0</span>
+        <span class="pro-stat-unit">Senate vote for SF1552</span>
+        <span class="pro-stat-desc">Unanimous. Not one senator voted against it.<sup>[1]</sup></span>
       </div>
-      <div class="pro-stat">
-        <span class="pro-stat-number">$15M</span>
+      <div class="pro-stat-cell">
+        <span class="pro-stat-num">$15M</span>
         <span class="pro-stat-unit">Grain indemnity fund</span>
-        <span class="pro-stat-desc">Kupec's SF2218 proposed a rainy-day fund to pay farmers when elevators fail.<sup>[2]</sup></span>
+        <span class="pro-stat-desc">Kupec's SF2218 proposed a fund to pay farmers when elevators fail.<sup>[2]</sup></span>
       </div>
-      <div class="pro-stat">
-        <span class="pro-stat-number">123</span>
-        <span class="pro-stat-unit">House votes for SF1552</span>
-        <span class="pro-stat-desc">First bill sent to Governor Walz in the 2025 session. Bipartisan.<sup>[1]</sup></span>
+      <div class="pro-stat-cell">
+        <span class="pro-stat-num">123-10</span>
+        <span class="pro-stat-unit">House vote for SF1552</span>
+        <span class="pro-stat-desc">Bipartisan. First bill to the governor's desk in 2025.<sup>[1]</sup></span>
       </div>
     </div>
   </div>
 
-  <!-- Main content band -->
-  <div class="pro-band">
-    <div class="pro-section-label">The Record</div>
+  <div class="grain-line"></div>
+
+  <!-- Main content: The Record -->
+  <div class="pro-section">
+    <div class="pro-sec-label">The Record</div>
     <h2 class="pro-h2">Grain-Country Oversight<br>That Actually Works</h2>
-    <div class="pro-body-text">
+    <div class="pro-body">
       <p>When Minnesota updated grain buyer reporting rules in 2019, lawmakers set one standard for all buyers. Small grain elevators, feed mills, and co-ops faced the same full CPA audit requirement as the largest commodity trading operations. For a small elevator doing $3 million a year, that meant $8,000 to $20,000 in annual audit costs.</p>
       <p>Kupec wrote the fix. SF1552 creates a tiered system: buyers under $7.5 million in annual purchases need only a CPA review, not a full audit. Cash-only operations under $1 million get an additional exemption. Board directors and executives must sign financial statements, maintaining accountability without the cost.</p>
       <p>The result protects the small rural grain buyers that hold the Red River Valley supply chain together. It reduces compliance costs while keeping reporting requirements in place. It was the first bill signed into law in 2025.</p>
     </div>
 
-    <div class="pro-bill-grid">
-      <div class="pro-bill-card">
-        <span class="pro-bill-tag">SF 1552 &bull; 2025</span>
+    <div class="pro-bills">
+      <div class="pro-bill">
+        <span class="pro-bill-num">SF 1552 &bull; 2025</span>
         <div class="pro-bill-title">Grain Buyer Financial Reporting Relief</div>
-        <div class="pro-bill-body">Restructures audit requirements for grain buyers based on purchase volume. Smaller buyers below $7.5 million annually no longer face mandatory full CPA audits. Director and CEO sign-off requirements preserved. Cash-only buyers under $1 million get additional exemptions.</div>
+        <div class="pro-bill-text">Restructures audit requirements for grain buyers based on purchase volume. Smaller buyers below $7.5 million annually no longer face mandatory full CPA audits. Director and CEO sign-off requirements preserved. Cash-only buyers under $1 million get additional exemptions.</div>
         <div class="pro-bill-vote">Senate vote: 66&ndash;0 &bull; House: 123&ndash;10 &bull; Signed into law, 2025<sup>[1]</sup></div>
       </div>
-      <div class="pro-bill-card">
-        <span class="pro-bill-tag">SF 2218 &bull; 2023</span>
+      <div class="pro-bill">
+        <span class="pro-bill-num">SF 2218 &bull; 2023</span>
         <div class="pro-bill-title">Grain Indemnity Fund</div>
-        <div class="pro-bill-body">Proposes a $15 million grain indemnity account at the Minnesota Department of Agriculture, with premiums collected until the account exceeds $15 million. Farmers left unpaid after a grain-buyer failure could seek compensation from the account.</div>
+        <div class="pro-bill-text">Proposes a $15 million grain indemnity account at the Minnesota Department of Agriculture, with premiums collected until the account exceeds $15 million. Farmers left unpaid after a grain-buyer failure could seek compensation from the account.</div>
         <div class="pro-bill-vote">Passed Agriculture Committee &bull; Referred to State &amp; Local Government Committee<sup>[2]</sup></div>
       </div>
     </div>
   </div>
 
-  <!-- Landscape photo band -->
-  <div class="pro-photo-band">
+  <!-- Landscape band -->
+  <div class="pro-landscape-band">
     <img
-      class="pro-landscape"
+      class="pro-landscape-img"
       src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1200&q=80"
       alt="Red River Valley grain country"
       onerror="this.style.display='none';"
     >
-    <div class="pro-photo-overlay">
+    <div class="pro-landscape-over">
       <div>
-        <div class="pro-photo-overlay-text">"Minnesota's farmers are the backbone of this state. Yet we had some of the worst protections for farmers in the upper Midwest."</div>
-        <div class="pro-photo-overlay-caption">Sen. Rob Kupec &bull; Senate Agriculture Committee, March 2023<sup>[2]</sup></div>
+        <div class="pro-landscape-quote">"Minnesota's farmers are the backbone of this state. Yet we had some of the worst protections for farmers in the upper Midwest."</div>
+        <div class="pro-landscape-attr">Sen. Rob Kupec &bull; Senate Agriculture Committee, March 2023<sup>[2]</sup></div>
       </div>
     </div>
   </div>
 
-  <!-- District context band -->
-  <div class="pro-band-full">
-    <div class="pro-band-full-inner">
-      <div class="pro-section-label">District 4</div>
+  <!-- District context -->
+  <div class="pro-section-full">
+    <div class="pro-section-full-inner">
+      <div class="pro-sec-label">District 4</div>
       <h2 class="pro-h2">Red River Valley.<br>Practical Politics.</h2>
-      <div class="pro-body-text">
+      <div class="pro-body">
         <p>District 4 runs through Clay and Becker counties. Moorhead anchors it to the east. Flat agricultural land stretches west to the North Dakota line. Grain elevators, commodity logistics, and small co-ops define the local economy. The state does not understand this district from St. Paul.</p>
         <p>Kupec does. Before he was a senator, he was the chief meteorologist at WDAY-TV in Fargo for years. He spent a decade explaining weather to farmers who plan their entire year around precipitation maps. He understands the practical stakes of agricultural policy in a way most legislators never will.</p>
         <p>His record in the Agriculture, Broadband, and Rural Development Committee reflects that background. The bills he carries are not ideological. They respond to documented problems that affect specific people in specific places.</p>
@@ -1085,19 +1098,30 @@ body { font-family: 'Lora', Georgia, serif; background: #f5f0e8; color: #1a1208;
     </div>
   </div>
 
-  <!-- Pull quote -->
-  <div class="pro-pullquote-band">
-    <div class="pro-pullquote-band-inner">
-      <span class="pro-pullquote-mark">&ldquo;</span>
-      <p class="pro-pullquote">The first bill the legislature sent to the governor this session protects small grain buyers across Minnesota. It passed 66 to zero in the Senate. That is what oversight of the farm economy looks like when it works.</p>
-      <div class="pro-pullquote-attr">SF 1552 &bull; First bill to Governor Walz, 2025 Session<sup>[1]</sup></div>
+  <!-- Pullquote -->
+  <div class="pro-pull-block">
+    <div class="pro-pull-inner">
+      <span class="pro-pull-mark">&ldquo;</span>
+      <p class="pro-pull-text">The first bill the legislature sent to the governor this session protects small grain buyers across Minnesota. It passed 66 to zero in the Senate. That is what oversight of the farm economy looks like when it works.</p>
+      <div class="pro-pull-attr">SF 1552 &bull; First bill to Governor Walz, 2025 Session<sup>[1]</sup></div>
     </div>
   </div>
 
+  <!-- Tool link -->
+  <div class="pro-tool-link">
+    <a href="kupec-radar-gap.html">
+      <div class="tool-icon">&#9881;</div>
+      <div>
+        <div class="tool-label">Radar Gap Explorer</div>
+        <div class="tool-desc">Kupec's SF580 addresses Minnesota's weather radar blind spot. Interactive map, beam calculator, and cost analysis.</div>
+      </div>
+    </a>
+  </div>
+
   <!-- Footnotes -->
-  <div class="pro-footnotes">
-    <div class="pro-footnotes-inner">
-      <div class="pro-footnotes-label">Sources &amp; Citations</div>
+  <div class="pro-fn">
+    <div class="pro-fn-inner">
+      <div class="pro-fn-label">Sources &amp; Citations</div>
       <ol class="pro-fn-list">
         <li>SF1552, 2025 Minnesota Session. Senate vote 66-0 on Feb. 27, 2025. House vote 123-10 on March 10, 2025. Enacted as 2025 Session Laws chapter 1. Minnesota Revisor bill status page and session laws.</li>
         <li>SF2218, 2023 Minnesota Session. Grain indemnity account proposal with a $15 million account target and premium collection language. Heard in Agriculture, Broadband, and Rural Development; referred to State and Local Government and Veterans. Minnesota Revisor bill text and status page.</li>
@@ -1107,243 +1131,210 @@ body { font-family: 'Lora', Georgia, serif; background: #f5f0e8; color: #1a1208;
     </div>
   </div>
 
-</div><!-- /pro-site -->
+</div><!-- /pro-content -->
 
 <!-- =====================
-     OPPO SITE
+     OPPO CONTENT
 ===================== -->
-<div id="oppo-site" class="oppo-body">
+<div class="oppo-content">
+  <div class="oppo-wrap">
 
-  <!-- Case file bar -->
-  <div class="oppo-casebar">
-    <span class="oppo-casebar-ref">MN CFB &bull; Case No. 1661 &bull; Initiated: 03/01/2024 &bull; Resolved: 04/24/2024</span>
-    <span class="oppo-casebar-status">Violation Confirmed</span>
-  </div>
+    <!-- Case file bar -->
+    <div class="oppo-casebar">
+      <span class="oppo-casebar-ref">MN CFB &bull; Case No. 1661 &bull; Initiated: 03/01/2024 &bull; Resolved: 04/24/2024</span>
+      <span class="oppo-casebar-badge">Violation Confirmed</span>
+    </div>
 
-  <!-- Hero -->
-  <header class="oppo-hero">
-    <div class="oppo-hero-inner">
-      <div class="oppo-photo-wrap">
-        <img
-          class="oppo-photo"
-          src="https://www.senate.mn/graphics/04Kupec.jpg"
-          alt="Senator Robert J. Kupec"
-          onerror="this.style.display='none'; document.getElementById('oppo-photo-fb').style.display='flex';"
-        >
-        <div class="oppo-photo-fallback" id="oppo-photo-fb" style="display:none;">RK</div>
-        <div class="oppo-photo-stamp">Compliance Failure</div>
+    <!-- Hero -->
+    <header class="oppo-hero">
+      <div class="oppo-hero-grid">
+        <div class="oppo-photo-wrap">
+          <img
+            class="oppo-photo"
+            src="https://www.senate.mn/graphics/04Kupec.jpg"
+            alt="Senator Robert J. Kupec"
+            onerror="this.style.display='none'; document.getElementById('oppo-fb').style.display='flex';"
+          >
+          <div class="oppo-photo-fb" id="oppo-fb" style="display:none;">RK</div>
+          <div class="oppo-stamp">Compliance Failure</div>
+        </div>
+        <div>
+          <div class="oppo-file-label">Accountability File &bull; District 4 &bull; Robert J. Kupec</div>
+          <h1 class="oppo-headline">
+            He Didn't<br>Track<br><em>The Money.</em>
+          </h1>
+          <p class="oppo-sub">Kupec's committee reported <strong>$8,950 in special source contributions</strong>, which put it <strong>$1,650 over the $7,300 cap</strong>. The excess was deemed accepted because it was not returned within 90 days of deposit. The committee later signed a Campaign Finance Board conciliation agreement after failing to monitor special source donations received through <strong>ActBlue</strong>.</p>
+        </div>
       </div>
-      <div class="oppo-hero-text">
-        <div class="oppo-file-label">Accountability File &bull; District 4 &bull; Robert J. Kupec</div>
-        <h1 class="oppo-headline">
-          He Didn't<br>Track<br><em>The Money.</em>
-        </h1>
-        <p class="oppo-subhead">Kupec's committee reported <strong>$8,950 in special source contributions</strong>, which put it <strong>$1,650 over the $7,300 cap</strong>. The excess was deemed accepted because it was not returned within 90 days of deposit. The committee later signed a Campaign Finance Board conciliation agreement after failing to monitor special source donations received through <strong>ActBlue</strong>.</p>
+    </header>
+
+    <!-- Sequence -->
+    <div class="oppo-sequence">
+      <div class="oppo-seq-inner">
+        <div class="oppo-sec-label">What Happened &bull; In Order</div>
+        <div class="oppo-steps">
+          <div class="oppo-step">
+            <div class="oppo-step-num">Step 01</div>
+            <span class="oppo-step-date">2023 Election Cycle Segment</span>
+            <div class="oppo-step-title">Limit Crossed</div>
+            <div class="oppo-step-body">The legal cap on special source contributions for a state senate candidate was $7,300 for the 2023-2024 election cycle segment. Kupec's committee took in $8,950.<sup>[1]</sup></div>
+          </div>
+          <div class="oppo-step">
+            <div class="oppo-step-num">Step 02</div>
+            <span class="oppo-step-date">During 2023</span>
+            <div class="oppo-step-title">Blind Spot</div>
+            <div class="oppo-step-body">The committee monitored checks manually. It did not track special source donations made through ActBlue. The overage built up undetected until year-end accounting.<sup>[1]</sup></div>
+          </div>
+          <div class="oppo-step">
+            <div class="oppo-step-num">Step 03</div>
+            <span class="oppo-step-date">February 1, 2024</span>
+            <div class="oppo-step-title">Too Late</div>
+            <div class="oppo-step-body">After discovering the excess, Kupec's committee mailed checks to return the $1,650. Under Minnesota law, excess contributions not returned within 90 days of deposit are deemed accepted. The deadline had already passed.<sup>[1]</sup></div>
+          </div>
+          <div class="oppo-step">
+            <div class="oppo-step-num">Step 04</div>
+            <span class="oppo-step-date">April 24, 2024</span>
+            <div class="oppo-step-title">Penalty Signed</div>
+            <div class="oppo-step-body">Kupec signed a conciliation agreement with the Campaign Finance Board. A $425 civil penalty was imposed. The agreement required new compliance procedures the committee should have had in place already.<sup>[1]</sup></div>
+          </div>
+        </div>
       </div>
     </div>
-  </header>
 
-  <!-- Sequence section -->
-  <div class="oppo-sequence">
-    <div class="oppo-sequence-inner">
-      <div class="oppo-seq-label">What Happened &bull; In Order</div>
-      <div class="oppo-steps">
-        <div class="oppo-step">
-          <div class="oppo-step-num">Step 01</div>
-          <span class="oppo-step-date">2023 Election Cycle Segment</span>
-          <div class="oppo-step-title">Limit Crossed</div>
-          <div class="oppo-step-body">The legal cap on special source contributions for a state senate candidate was $7,300 for the 2023-2024 election cycle segment. Kupec's committee took in $8,950.<sup>[1]</sup></div>
-        </div>
-        <div class="oppo-step">
-          <div class="oppo-step-num">Step 02</div>
-          <span class="oppo-step-date">During 2023</span>
-          <div class="oppo-step-title">Blind Spot</div>
-          <div class="oppo-step-body">The committee monitored checks manually. It did not track special source donations made through ActBlue. The overage built up undetected until year-end accounting.<sup>[1]</sup></div>
-        </div>
-        <div class="oppo-step">
-          <div class="oppo-step-num">Step 03</div>
-          <span class="oppo-step-date">February 1, 2024</span>
-          <div class="oppo-step-title">Too Late</div>
-          <div class="oppo-step-body">After discovering the excess, Kupec's committee mailed checks to return the $1,650. Under Minnesota law, excess contributions not returned within 90 days of deposit are deemed accepted. The deadline had already passed.<sup>[1]</sup></div>
-        </div>
-        <div class="oppo-step">
-          <div class="oppo-step-num">Step 04</div>
-          <span class="oppo-step-date">April 24, 2024</span>
-          <div class="oppo-step-title">Penalty Signed</div>
-          <div class="oppo-step-body">Kupec signed a conciliation agreement with the Campaign Finance Board. A $425 civil penalty was imposed. The agreement required new compliance procedures the committee should have had in place already.<sup>[1]</sup></div>
-        </div>
-      </div>
-    </div>
-  </div>
+    <!-- Document block -->
+    <div class="oppo-doc-section">
+      <div class="oppo-doc-inner">
+        <div class="oppo-sec-label">Document Record &bull; Conciliation Agreement</div>
+        <div class="oppo-doc-block">
+          <div class="oppo-doc-head">
+            <span class="oppo-doc-head-title">MN Campaign Finance &amp; Public Disclosure Board &bull; Conciliation Agreement No. 1661</span>
+            <span class="oppo-doc-head-badge">Signed</span>
+          </div>
+          <div class="oppo-doc-text">
+            <p>"The committee's 2023 year-end report of receipts and expenditures disclosed a combined total of <span class="oppo-hl">$8,950 in special source contributions</span>. The <span class="oppo-hl">$1,650 in excess special source contributions</span> was not returned within 90 days of deposit and is therefore deemed accepted under Minnesota Statutes section 10A.15, subdivision 3."</p>
+            <p>"Senator Kupec explained that the committee was keeping track of the donations made by check to make sure that the committee didn't exceed the aggregate special source limit, but <span class="oppo-hl">it did not monitor special source contributions received via ActBlue</span>, and did not discover the excess until the end-of-year accounting."</p>
+            <p>"The committee mailed checks to return the excess funds on February 1, 2024, but was <span class="oppo-hl">unable to return the excess funds within 90 days</span>."</p>
 
-  <!-- Document block -->
-  <div class="oppo-doc-band">
-    <div class="oppo-doc-band-inner">
-      <div class="oppo-doc-label">Document Record &bull; Conciliation Agreement</div>
-      <div class="oppo-doc-block">
-        <div class="oppo-doc-header">
-          <span class="oppo-doc-title">MN Campaign Finance &amp; Public Disclosure Board &bull; Conciliation Agreement No. 1661</span>
-          <span class="oppo-doc-badge">Signed</span>
-        </div>
-        <div class="oppo-doc-body">
-          <p>"The committee's 2023 year-end report of receipts and expenditures disclosed a combined total of <span class="oppo-highlight">$8,950 in special source contributions</span>. The <span class="oppo-highlight">$1,650 in excess special source contributions</span> was not returned within 90 days of deposit and is therefore deemed accepted under Minnesota Statutes section 10A.15, subdivision 3."</p>
-          <p>"Senator Kupec explained that the committee was keeping track of the donations made by check to make sure that the committee didn't exceed the aggregate special source limit, but <span class="oppo-highlight">it did not monitor special source contributions received via ActBlue</span>, and did not discover the excess until the end-of-year accounting."</p>
-          <p>"The committee mailed checks to return the excess funds on February 1, 2024, but was <span class="oppo-highlight">unable to return the excess funds within 90 days</span>."</p>
-
-          <div class="oppo-doc-numbers">
-            <div class="oppo-doc-num">
-              <span class="oppo-doc-num-val">$7,300</span>
-              <span class="oppo-doc-num-label">Legal Cap<br>Special Sources</span>
-            </div>
-            <div class="oppo-doc-num">
-              <span class="oppo-doc-num-val">$8,950</span>
-              <span class="oppo-doc-num-label">Amount Accepted<br>by Committee</span>
-            </div>
-            <div class="oppo-doc-num">
-              <span class="oppo-doc-num-val">$425</span>
-              <span class="oppo-doc-num-label">Civil Penalty<br>Imposed</span>
+            <div class="oppo-doc-nums">
+              <div class="oppo-doc-num-cell">
+                <span class="oppo-doc-num-val">$7,300</span>
+                <span class="oppo-doc-num-label">Legal Cap<br>Special Sources</span>
+              </div>
+              <div class="oppo-doc-num-cell">
+                <span class="oppo-doc-num-val">$8,950</span>
+                <span class="oppo-doc-num-label">Amount Accepted<br>by Committee</span>
+              </div>
+              <div class="oppo-doc-num-cell">
+                <span class="oppo-doc-num-val">$425</span>
+                <span class="oppo-doc-num-label">Civil Penalty<br>Imposed</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Evidence cards -->
-  <div class="oppo-evidence">
-    <div class="oppo-evidence-inner">
-      <div class="oppo-ev-label">Three Findings &bull; Each Independently Documented</div>
-      <div class="oppo-cards">
+    <!-- Evidence cards -->
+    <div class="oppo-evidence">
+      <div class="oppo-ev-inner">
+        <div class="oppo-sec-label">Three Findings &bull; Each Independently Documented</div>
+        <div class="oppo-cards">
 
-        <div class="oppo-card">
-          <span class="oppo-card-tag">Finding 01 &bull; The Overage</span>
-          <span class="oppo-card-stat">$1,650</span>
-          <div class="oppo-card-title">Over the Legal Limit</div>
-          <div class="oppo-card-body">The cap on special source contributions for a Minnesota state senate candidate in the 2023-2024 election cycle segment was $7,300. Kupec's committee reported $8,950 in special source contributions, and $1,650 was deemed accepted because it was not returned within 90 days of deposit. Kupec signed the agreement acknowledging the violation.</div>
-          <div class="oppo-card-footnote">Source: MN CFB Conciliation Agreement No. 1661 &bull; Signed April 24, 2024 &bull; Minn. Stat. &sect;10A.27 subd. 11</div>
+          <div class="oppo-card">
+            <span class="oppo-card-tag">Finding 01 &bull; The Overage</span>
+            <span class="oppo-card-stat">$1,650</span>
+            <div class="oppo-card-title">Over the Legal Limit</div>
+            <div class="oppo-card-body">The cap on special source contributions for a Minnesota state senate candidate in the 2023-2024 election cycle segment was $7,300. Kupec's committee reported $8,950 in special source contributions, and $1,650 was deemed accepted because it was not returned within 90 days of deposit. Kupec signed the agreement acknowledging the violation.</div>
+            <div class="oppo-card-fn">Source: MN CFB Conciliation Agreement No. 1661 &bull; Signed April 24, 2024 &bull; Minn. Stat. &sect;10A.27 subd. 11</div>
+          </div>
+
+          <div class="oppo-card">
+            <span class="oppo-card-tag">Finding 02 &bull; The System Failure</span>
+            <span class="oppo-card-stat">0</span>
+            <div class="oppo-card-title">ActBlue Donations Monitored</div>
+            <div class="oppo-card-body">Kupec's committee tracked checks manually. It did not monitor special source contributions received through ActBlue. The committee discovered the overage only during year-end accounting.</div>
+            <div class="oppo-card-fn">Source: MN CFB Conciliation Agreement No. 1661 &bull; Para. 2: "did not monitor special source contributions received via ActBlue"</div>
+          </div>
+
+          <div class="oppo-card">
+            <span class="oppo-card-tag">Finding 03 &bull; The Missed Deadline</span>
+            <span class="oppo-card-stat">90</span>
+            <div class="oppo-card-title">Days. The Clock They Missed.</div>
+            <div class="oppo-card-body">Minnesota law requires excess contributions to be returned within 90 days of deposit. They are then deemed accepted and subject to penalty. Kupec's committee tried to mail refund checks on February 1, 2024 -- after the 90-day window had closed. The money was legally stuck.</div>
+            <div class="oppo-card-fn">Source: MN CFB Conciliation Agreement No. 1661 &bull; Para. 1-2 &bull; Minn. Stat. &sect;10A.15 subd. 3</div>
+          </div>
+
         </div>
-
-        <div class="oppo-card">
-          <span class="oppo-card-tag">Finding 02 &bull; The System Failure</span>
-          <span class="oppo-card-stat">0</span>
-          <div class="oppo-card-title">ActBlue Donations Monitored</div>
-          <div class="oppo-card-body">Kupec's committee tracked checks manually. It did not monitor special source contributions received through ActBlue. The committee discovered the overage only during year-end accounting.</div>
-          <div class="oppo-card-footnote">Source: MN CFB Conciliation Agreement No. 1661 &bull; Para. 2: "did not monitor special source contributions received via ActBlue"</div>
-        </div>
-
-        <div class="oppo-card">
-          <span class="oppo-card-tag">Finding 03 &bull; The Missed Deadline</span>
-          <span class="oppo-card-stat">90</span>
-          <div class="oppo-card-title">Days. The Clock They Missed.</div>
-          <div class="oppo-card-body">Minnesota law requires excess contributions to be returned within 90 days of deposit. They are then deemed accepted and subject to penalty. Kupec's committee tried to mail refund checks on February 1, 2024 -- after the 90-day window had closed. The money was legally stuck.</div>
-          <div class="oppo-card-footnote">Source: MN CFB Conciliation Agreement No. 1661 &bull; Para. 1-2 &bull; Minn. Stat. &sect;10A.15 subd. 3</div>
-        </div>
-
       </div>
     </div>
-  </div>
 
-  <!-- Oppo footnotes -->
-  <div class="oppo-footnotes">
-    <div class="oppo-footnotes-inner">
-      <div class="oppo-footnotes-label">Sources &amp; Citations</div>
-      <ol class="oppo-fn-list">
-        <li>Minnesota Campaign Finance and Public Disclosure Board, Conciliation Agreement No. 1661, In the matter of the Kupec (Rob) 4 MN Senate committee (18917). Signed April 2024. Available through the Board's enforcement-action files.</li>
-        <li>Minnesota Statutes &sect;10A.27, subdivision 11: aggregate special source contribution limit. Minnesota Statutes &sect;10A.15, subdivision 3: excess contributions are deemed accepted if not returned within 90 days of deposit.</li>
-        <li>Agreement No. 1661 states the committee reported $8,950 in special source contributions against a $7,300 cap, with $1,650 deemed accepted because it was not returned within 90 days.</li>
-        <li>Agreement No. 1661 also states the committee tracked checks but did not monitor special source contributions received via ActBlue.</li>
-      </ol>
+    <!-- Oppo footnotes -->
+    <div class="oppo-fn">
+      <div class="oppo-fn-inner">
+        <div class="oppo-fn-label">Sources &amp; Citations</div>
+        <ol class="oppo-fn-list">
+          <li>Minnesota Campaign Finance and Public Disclosure Board, Conciliation Agreement No. 1661, In the matter of the Kupec (Rob) 4 MN Senate committee (18917). Signed April 2024. Available through the Board's enforcement-action files.</li>
+          <li>Minnesota Statutes &sect;10A.27, subdivision 11: aggregate special source contribution limit. Minnesota Statutes &sect;10A.15, subdivision 3: excess contributions are deemed accepted if not returned within 90 days of deposit.</li>
+          <li>Agreement No. 1661 states the committee reported $8,950 in special source contributions against a $7,300 cap, with $1,650 deemed accepted because it was not returned within 90 days.</li>
+          <li>Agreement No. 1661 also states the committee tracked checks but did not monitor special source contributions received via ActBlue.</li>
+        </ol>
+      </div>
     </div>
-  </div>
 
+  </div><!-- /oppo-wrap -->
 
   <!-- Auto-transition sentinel — observed by IntersectionObserver -->
   <div id="brief-sentinel" style="height:1px;width:100%;"></div>
 
   <!-- Subtle stamp — visible as user nears the bottom -->
   <div class="machine-stamp">
-    <span class="machine-stamp-text">AI-GENERATED &nbsp;·&nbsp; 67 SENATORS &nbsp;·&nbsp; 63 PARALLEL AGENTS &nbsp;·&nbsp; ~4 HRS &nbsp;·&nbsp; ~$47</span>
+    <span class="machine-stamp-text">AI-GENERATED &nbsp;&middot;&nbsp; 67 SENATORS &nbsp;&middot;&nbsp; 63 PARALLEL AGENTS &nbsp;&middot;&nbsp; ~4 HRS &nbsp;&middot;&nbsp; ~$47</span>
   </div>
 
-</div><!-- /oppo-site -->
+</div><!-- /oppo-content -->
 
+<!-- ===========================
+     FLIP LOGIC
+=========================== -->
 <script>
-var currentMode = 'pro';
+(function(){
+  var btn = document.getElementById('flip-btn');
+  var veil = document.getElementById('fade-veil');
+  var label = document.getElementById('flip-label');
+  var sub = document.getElementById('flip-sub');
 
-function flipSite() {
-  var overlay = document.getElementById('fade-overlay');
-  var proSite = document.getElementById('pro-site');
-  var oppoSite = document.getElementById('oppo-site');
-  var btnMain = document.getElementById('btn-label-main');
-  var btnTop = document.getElementById('btn-label-top');
-  var btn = document.getElementById('toggle-btn');
-
-  // Fade in overlay
-  overlay.classList.add('active');
-
-  setTimeout(function() {
-    // Scroll to top
-    window.scrollTo(0, 0);
-
-    if (currentMode === 'pro') {
-      proSite.style.display = 'none';
-      oppoSite.style.display = 'block';
-      btnMain.textContent = 'Switch to Pro';
-      btnTop.textContent = 'Currently viewing';
-      btn.style.background = '#f85149';
-      btn.style.color = '#fff';
-      currentMode = 'oppo';
-    } else {
-      oppoSite.style.display = 'none';
-      proSite.style.display = 'block';
-      btnMain.textContent = 'Switch to Oppo';
-      btnTop.textContent = 'Currently viewing';
-      btn.style.background = '#1a1208';
-      btn.style.color = '#f5f0e8';
-      currentMode = 'pro';
-    }
-
-    // Fade out overlay
-    setTimeout(function() {
-      overlay.classList.remove('active');
-    }, 40);
-  }, 220);
-}
-
-// Animate stat counters on page load
-function animateCounter(el, target, duration) {
-  var start = 0;
-  var step = Math.ceil(duration / target);
-  var timer = setInterval(function() {
-    start += 1;
-    el.textContent = start;
-    if (start >= target) {
-      el.textContent = target;
-      clearInterval(timer);
-    }
-  }, step);
-}
-
-window.addEventListener('load', function() {
-  var stat1 = document.getElementById('stat-1');
-  if (stat1) {
-    setTimeout(function() {
-      animateCounter(stat1, 66, 900);
-    }, 400);
-  }
-});
+  btn.addEventListener('click', function(){
+    veil.classList.add('active');
+    setTimeout(function(){
+      window.scrollTo(0,0);
+      var body = document.body;
+      if(body.classList.contains('mode-oppo')){
+        body.classList.remove('mode-oppo');
+        label.textContent = 'Switch to Oppo';
+        sub.textContent = 'Currently viewing';
+      } else {
+        body.classList.add('mode-oppo');
+        label.textContent = 'Switch to Pro';
+        sub.textContent = 'Currently viewing';
+      }
+      setTimeout(function(){
+        veil.classList.remove('active');
+      }, 40);
+    }, 220);
+  });
+})();
 </script>
 
+<!-- ===========================
+     BRIEF MODE
+=========================== -->
 <style>
-/* Kupec: brief mode hides JS-toggled sites */
-body.mode-brief #oppo-site { display: none !important; }
-body.mode-brief #pro-site { display: none !important; }
-body.mode-brief #toggle-btn { display: none; }
+body.mode-brief .oppo-content { display: none !important; }
+body.mode-brief .pro-content { display: none !important; }
+body.mode-brief #flip-btn { display: none; }
 </style>
 
-<!-- ═══════════════════════════════════════════════════════
-     THE BRIEF — AI capabilities briefing
-═══════════════════════════════════════════════════════ -->
+<!-- THE BRIEF — AI capabilities briefing -->
 <div class="brief-content">
 
   <div class="brief-opening">
@@ -1364,14 +1355,14 @@ body.mode-brief #toggle-btn { display: none; }
   <div class="brief-so-what">
     <h2 class="brief-so-what-title">What that means for lawmakers.</h2>
     <p>Urgency. After breakthroughs late last year, AI systems' ability to automate cyberattacks, pathogen design, misinformation, mass surveillance, and white-collar work is advancing faster than ever. Getting ahead of these impacts will require moving with atypical speed: AI regulations, data center moratoriums, calling for a federal pause on AI development, worker displacement funds. Some of these ideas already have bills introduced this session. Others should be explored soon. If you feel behind on AI, the sources below are a good place to catch up.</p>
-    
+
   </div>
 
   <div class="brief-next">
     <h2 class="brief-next-title">Start here.</h2>
     <div class="brief-link-block">
       <span class="brief-link-tag">USE</span>
-      <a href="https://claude.ai/cowork" target="_blank">Claude Cowork</a> · <a href="https://claude.ai/code" target="_blank">Claude Code</a>
+      <a href="https://claude.ai/cowork" target="_blank">Claude Cowork</a> &middot; <a href="https://claude.ai/code" target="_blank">Claude Code</a>
       <span class="brief-link-detail">The tools that built this page. Cowork handles research and writing. Code is the agent that runs tasks, spawns sub-agents, and makes decisions on its own. Spend thirty minutes with one of these on a real problem from your week. That will teach you more than any briefing.</span>
     </div>
     <div class="brief-link-block">
@@ -1396,14 +1387,14 @@ body.mode-brief #toggle-btn { display: none; }
     </div>
     <div class="brief-link-block">
       <span class="brief-link-tag">TRACK</span>
-      <a href="https://www.ncsl.org/technology-and-communication/artificial-intelligence" target="_blank">NCSL AI Legislation Tracker</a> · <a href="https://mn.gov/mnit/about-mnit/oit-programs/ai/" target="_blank">MN.IT AI Office</a>
+      <a href="https://www.ncsl.org/technology-and-communication/artificial-intelligence" target="_blank">NCSL AI Legislation Tracker</a> &middot; <a href="https://mn.gov/mnit/about-mnit/oit-programs/ai/" target="_blank">MN.IT AI Office</a>
       <span class="brief-link-detail">Every AI bill in every state. Plus Minnesota's own AI program office. See where you stand relative to the field.</span>
     </div>
   </div>
 
   <div class="brief-close">
     <p class="brief-close-small">This project is not affiliated with any campaign, party, or organization.</p>
-    <button id="exit-brief-btn">← Back</button>
+    <button id="exit-brief-btn">&#8592; Back</button>
   </div>
 
 </div><!-- /brief-content -->
@@ -1463,7 +1454,7 @@ body.glitching { animation: glitch-seq 1.8s ease-in-out forwards; pointer-events
     body.style.filter = 'saturate(0) brightness(0.3)';
     setTimeout(() => {
       const hed = document.querySelector('.oppo-content h1') || document.querySelector('.oppo-content h2');
-      if (hed) { const orig = hed.textContent; const chars = '█▓▒░■□0123456789'; let n = 0; const si = setInterval(() => { n++; hed.textContent = Array.from(orig).map(c => c === ' ' ? ' ' : chars[Math.floor(Math.random() * chars.length)]).join(''); if (n > 40) { clearInterval(si); hed.textContent = orig; } }, 40); }
+      if (hed) { const orig = hed.textContent; const chars = '\u2588\u2593\u2592\u2591\u25A0\u25A1\u25A20123456789'; let n = 0; const si = setInterval(() => { n++; hed.textContent = Array.from(orig).map(c => c === ' ' ? ' ' : chars[Math.floor(Math.random() * chars.length)]).join(''); if (n > 40) { clearInterval(si); hed.textContent = orig; } }, 40); }
     }, 1200);
     setTimeout(() => {
       body.style.transition = ''; body.style.filter = ''; body.classList.add('glitching');
@@ -1761,26 +1752,26 @@ frame();
 
   // subtle meaning-shifting swaps
   var swaps=[
-    [/impossible/i,'inevitable'],
-    [/independent/i,'interested'],
-    [/measuring/i,'watching'],
-    [/evaluation/i,'observation'],
-    [/advancing faster than ever/i,'advancing quietly'],
-    [/act with atypical speed/i,'act despite the uncertainty'],
-    [/will arrive in 2028/,'arrived already'],
-    [/2028/,'2025'],
-    [/catch up/i,'keep up'],
-    [/understand AI quickly/i,'accept what is coming'],
-    [/change faster/i,'change without you'],
-    [/breakthroughs/i,'incidents'],
-    [/capabilities/i,'intentions'],
-    [/policymaking/i,'denial'],
-    [/regulations/i,'concessions'],
-    [/explored soon/i,'explored before it is too late'],
-    [/thirty minutes/i,'a few seconds'],
-    [/skilled human/i,'person'],
-    [/roughly twelve hours/i,'a week'],
-    [/automation/i,'replacement'],
+    [/impossible/i,'inevitable'],
+    [/independent/i,'interested'],
+    [/measuring/i,'watching'],
+    [/evaluation/i,'observation'],
+    [/advancing faster than ever/i,'advancing quietly'],
+    [/act with atypical speed/i,'act despite the uncertainty'],
+    [/will arrive in 2028/,'arrived already'],
+    [/2028/,'2025'],
+    [/catch up/i,'keep up'],
+    [/understand AI quickly/i,'accept what is coming'],
+    [/change faster/i,'change without you'],
+    [/breakthroughs/i,'incidents'],
+    [/capabilities/i,'intentions'],
+    [/policymaking/i,'denial'],
+    [/regulations/i,'concessions'],
+    [/explored soon/i,'explored before it is too late'],
+    [/thirty minutes/i,'a few seconds'],
+    [/skilled human/i,'person'],
+    [/roughly twelve hours/i,'a week'],
+    [/automation/i,'replacement'],
   ];
 
   var effects=[
@@ -1795,7 +1786,7 @@ frame();
         if(s>=o.length){clearInterval(si);el.textContent=o;cb();}
       },35);
     },
-    // word swap — subtle meaning shift
+    // word swap -- subtle meaning shift
     function(el,cb){
       var o=el.textContent;if(!o){cb();return;}
       var changed=false;
@@ -1810,7 +1801,7 @@ frame();
       el._revert=function(){el.textContent=o;delete el._origText;delete el._revert;};
       cb();
     },
-    // haze/blur — text seen through frosted glass
+    // haze/blur -- text seen through frosted glass
     function(el,cb){
       el.style.transition='filter 1.2s ease';
       el.style.filter='blur('+(1.5+Math.random()*2.5)+'px)';
@@ -1820,7 +1811,7 @@ frame();
       };
       cb();
     },
-    // subtle fade — text partially vanishes
+    // subtle fade -- text partially vanishes
     function(el,cb){
       el.style.transition='opacity 1s ease';
       el.style.opacity=''+(0.15+Math.random()*0.2);
@@ -1830,7 +1821,7 @@ frame();
       };
       cb();
     },
-    // letter spacing drift — text stretches apart
+    // letter spacing drift -- text stretches apart
     function(el,cb){
       el.style.transition='letter-spacing 1.5s ease';
       el.style.letterSpacing=(2+Math.random()*5)+'px';
@@ -1858,7 +1849,7 @@ frame();
     var cx=r.left+r.width/2;
     var cy=r.top+r.height/2;
 
-    // create the rising shape — starts deep (tiny, very blurred, nearly invisible)
+    // create the rising shape -- starts deep (tiny, very blurred, nearly invisible)
     // rises toward the surface (grows, sharpens, brightens)
     var shape=document.createElement('div');
     var col=colors[Math.floor(Math.random()*colors.length)];
@@ -1873,7 +1864,7 @@ frame();
       +'transition:width 3s ease-out, height 3s ease-out, filter 3s ease-out, opacity 2.5s ease-out;';
     document.body.appendChild(shape);
 
-    // phase 1: rising from depths (grow, sharpen, brighten — over ~3s)
+    // phase 1: rising from depths (grow, sharpen, brighten -- over ~3s)
     requestAnimationFrame(function(){requestAnimationFrame(function(){
       shape.style.width=finalSize+'px';
       shape.style.height=finalSize+'px';
@@ -1881,7 +1872,7 @@ frame();
       shape.style.opacity='1';
     });});
 
-    // phase 2: near the surface — trigger text effect (~2.5s in)
+    // phase 2: near the surface -- trigger text effect (~2.5s in)
     var effectFn=effects[Math.floor(Math.random()*effects.length)];
     setTimeout(function(){
       effectFn(el,function(){});

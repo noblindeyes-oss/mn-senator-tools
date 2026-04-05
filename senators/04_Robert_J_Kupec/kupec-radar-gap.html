@@ -3,319 +3,286 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Minnesota Radar Gap Explorer — Sen. Rob Kupec SD-4</title>
+<title>Minnesota Radar Gap Explorer -- Sen. Rob Kupec SD-4</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-/* DESIGN CHOICES (per DESIGN_SYSTEM_PROMPT.md):
-   1. Layout: Full-width dark dashboard — sticky top header + tab bar, full-bleed sections,
-      no centered single-column shell. Sidebar-style legend on the map section.
-   2. Navigation: Underline tabs — flat text nav with active colored underline indicator,
-      no rounded-top buttons or bordered tab panels.
-   3. Typography: Monospace data readouts (Courier New) mixed with condensed sans-serif
-      headers ('Arial Narrow', sans-serif) — weather-console aesthetic, not system-ui.
-   Additional: No left-border accent cards; stat values displayed as large standalone
-      numbers with monospace labels. Dark background (#1A2232) is thematically essential
-      (weather radar console). Gap zones use alert colors directly on the SVG overlay.
-*/
-
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
 :root {
-  --river-gray: #6B7B8D;
-  --winter-amber: #C4922A;
-  --beet-brown: #6B4423;
-  --bg-deep: #1A2232;
-  --surface: #243044;
-  --surface-hi: #2D3A52;
-  --text: #E8EDF2;
-  --text-dim: #9AAABB;
-  --gap-severe: #C1121F;
-  --gap-partial: #E9A84A;
-  --coverage-good: #2D8A4F;
-  --cyan: #3BAFDA;
-  --teal: #5E8C8A;
-  --amber-light: #E9A84A;
+  --bg: #0D1520;
+  --surface: #162030;
+  --surface-hi: #1E2D42;
+  --border: #253550;
+  --text: #E8ECF2;
+  --text-dim: #8A9AB0;
+  --amber: #D4A840;
+  --amber-light: #F0C050;
+  --cyan: #40C8F0;
+  --teal: #40A898;
+  --red: #E03030;
+  --red-light: #F06050;
+  --green: #30A858;
+  --green-dim: #208040;
+  --orange: #E89840;
 }
-
 html, body {
-  background: var(--bg-deep);
+  background: var(--bg);
   color: var(--text);
-  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
   font-size: 15px;
-  line-height: 1.5;
+  line-height: 1.55;
   min-height: 100vh;
 }
+code, .mono { font-family: 'Consolas', 'Courier New', monospace; }
 
-/* ── HEADER ─────────────────────────────────────────────────────── */
-#site-header {
-  background: linear-gradient(135deg, #0D1520 0%, #1A2232 50%, #1C2B3A 100%);
-  border-bottom: 2px solid var(--winter-amber);
-  padding: 18px 28px 14px;
+/* ── HEADER ────────────────────────────────────────── */
+.hdr {
+  background: linear-gradient(135deg, #080C14 0%, #0D1520 60%, #101828 100%);
+  border-bottom: 2px solid var(--amber);
+  padding: 20px 32px 16px;
   position: sticky;
   top: 0;
   z-index: 100;
-}
-
-#site-header .header-top {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
+  gap: 20px;
 }
-
-#site-header h1 {
-  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
-  font-size: 1.6rem;
+.hdr h1 {
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 1.5rem;
   font-weight: 700;
-  color: var(--winter-amber);
-  letter-spacing: 0.04em;
+  color: var(--amber);
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  line-height: 1.1;
+  line-height: 1.15;
 }
-
-#site-header .header-sub {
-  font-size: 0.82rem;
+.hdr-sub {
+  font-size: 0.8rem;
   color: var(--text-dim);
-  margin-top: 3px;
-  letter-spacing: 0.01em;
-  max-width: 680px;
+  margin-top: 4px;
+  max-width: 720px;
+  line-height: 1.5;
 }
-
-.radar-badge {
-  background: var(--gap-severe);
+.hdr-badge {
+  background: var(--red);
   color: #fff;
-  font-family: 'Courier New', monospace;
-  font-size: 0.7rem;
-  font-weight: bold;
-  padding: 4px 10px;
-  letter-spacing: 0.08em;
+  font-family: 'Consolas', monospace;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 5px 12px;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
-/* ── TAB BAR ─────────────────────────────────────────────────────── */
-#tab-bar {
+/* ── INTRO BANNER ────────────────────────────────── */
+.intro {
+  background: linear-gradient(90deg, #101828 0%, #162030 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 32px;
+}
+.intro-text {
+  color: var(--text-dim);
+  font-size: 0.82rem;
+  line-height: 1.7;
+  max-width: 960px;
+}
+.intro-text strong { color: var(--text); }
+
+/* ── TAB BAR ──────────────────────────────────────── */
+.tabs {
   display: flex;
   gap: 0;
-  background: #111B28;
-  border-bottom: 1px solid #2D3A52;
-  padding: 0 28px;
+  background: #080C14;
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
   overflow-x: auto;
 }
-
-.tab-btn {
+.tab {
   background: none;
   border: none;
   border-bottom: 3px solid transparent;
   color: var(--text-dim);
   cursor: pointer;
-  font-family: 'Courier New', monospace;
-  font-size: 0.78rem;
-  font-weight: bold;
-  letter-spacing: 0.1em;
-  padding: 11px 18px 8px;
+  font-family: 'Consolas', monospace;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  padding: 12px 20px 10px;
   text-transform: uppercase;
-  transition: color 0.15s, border-color 0.15s;
   white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s;
 }
+.tab:hover { color: var(--text); border-bottom-color: var(--text-dim); }
+.tab.active { color: var(--amber); border-bottom-color: var(--amber); }
 
-.tab-btn:hover { color: var(--text); border-bottom-color: var(--river-gray); }
-
-.tab-btn.active {
-  color: var(--winter-amber);
-  border-bottom-color: var(--winter-amber);
-}
-
-/* ── PANELS ─────────────────────────────────────────────────────── */
+/* ── PANELS ───────────────────────────────────────── */
 .panel { display: none; }
 .panel.active { display: block; }
 
-/* ── SECTION 1: MAP ─────────────────────────────────────────────── */
-#panel-map {
-  display: none;
-  padding: 20px 28px;
-  gap: 20px;
-}
-#panel-map.active {
-  display: grid;
-  grid-template-columns: 1fr 220px;
-  grid-template-rows: auto 1fr;
-  gap: 16px;
-}
-
-.map-controls {
+/* ═══════════════════════════════════════════════════
+   PANEL 1: MAP
+═══════════════════════════════════════════════════ */
+#p-map { padding: 24px 32px; }
+#p-map.active { display: grid; grid-template-columns: 1fr 240px; gap: 20px; }
+.map-top {
   grid-column: 1 / -1;
   display: flex;
   align-items: center;
   gap: 16px;
   flex-wrap: wrap;
 }
-
-.map-controls h2 {
-  font-family: 'Arial Narrow', sans-serif;
-  font-size: 1rem;
+.map-top h2 {
+  font-family: 'Consolas', monospace;
+  font-size: 0.9rem;
   font-weight: 700;
-  color: var(--winter-amber);
-  letter-spacing: 0.06em;
+  color: var(--amber);
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   flex: 1;
 }
-
-#toggle-btn {
+.map-btn {
   background: var(--surface);
-  border: 1px solid var(--coverage-good);
-  color: var(--coverage-good);
+  border: 1px solid var(--green);
+  color: var(--green);
   cursor: pointer;
-  font-family: 'Courier New', monospace;
-  font-size: 0.74rem;
-  font-weight: bold;
-  letter-spacing: 0.06em;
-  padding: 7px 14px;
-  text-transform: uppercase;
-  transition: background 0.2s, color 0.2s;
-}
-
-#toggle-btn:hover, #toggle-btn.active {
-  background: var(--coverage-good);
-  color: #fff;
-}
-
-#toggle-btn.fix-active {
-  background: var(--coverage-good);
-  color: #fff;
-}
-
-.map-area {
-  background: var(--surface);
-  border: 1px solid var(--surface-hi);
-  overflow: hidden;
-  position: relative;
-}
-
-#mn-map {
-  display: block;
-  width: 100%;
-  height: auto;
-  max-height: 640px;
-}
-
-.map-legend {
-  background: #111B28;
-  border: 1px solid var(--surface-hi);
-  padding: 14px;
-  font-family: 'Courier New', monospace;
-  font-size: 0.72rem;
-  color: var(--text-dim);
-}
-
-.map-legend h3 {
-  color: var(--winter-amber);
-  font-size: 0.75rem;
+  font-family: 'Consolas', monospace;
+  font-size: 0.7rem;
+  font-weight: 700;
   letter-spacing: 0.08em;
-  margin-bottom: 12px;
+  padding: 8px 16px;
   text-transform: uppercase;
+  transition: background 0.15s, color 0.15s;
+}
+.map-btn:hover, .map-btn.on { background: var(--green); color: #fff; }
+.map-btn.storm-btn { border-color: var(--red); color: var(--red); }
+.map-btn.storm-btn:hover, .map-btn.storm-btn.on { background: var(--red); color: #fff; }
+
+.map-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+#mn-map { display: block; width: 100%; height: auto; max-height: 680px; }
+
+/* Radar sweep animation overlay */
+.sweep-overlay {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none;
+}
+#sweep-canvas {
+  width: 100%;
+  height: 100%;
 }
 
-.legend-item {
+/* Map legend */
+.legend {
+  background: #080C14;
+  border: 1px solid var(--border);
+  padding: 16px;
+  font-family: 'Consolas', monospace;
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  align-self: start;
+}
+.legend h3 {
+  color: var(--amber);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  margin-bottom: 14px;
+  text-transform: uppercase;
+}
+.leg-item {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-bottom: 8px;
-  line-height: 1.3;
+  line-height: 1.35;
 }
+.leg-swatch { flex-shrink: 0; height: 14px; width: 22px; }
+.leg-dot { border-radius: 50%; flex-shrink: 0; height: 12px; width: 12px; }
+.leg-div { border-top: 1px solid var(--border); margin: 12px 0; }
 
-.legend-swatch {
-  flex-shrink: 0;
-  height: 14px;
-  width: 22px;
+/* Population readout */
+.pop-readout {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 14px 16px;
+  margin-top: 12px;
+  font-family: 'Consolas', monospace;
+  font-size: 0.68rem;
 }
-
-.legend-dot {
-  border-radius: 50%;
-  flex-shrink: 0;
-  height: 12px;
-  width: 12px;
+.pop-readout h4 {
+  color: var(--amber);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
 }
-
-.legend-divider {
-  border-top: 1px solid var(--surface-hi);
-  margin: 10px 0;
+.pop-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  border-bottom: 1px dotted var(--border);
 }
+.pop-row:last-child { border-bottom: none; }
+.pop-row .pl { color: var(--text-dim); }
+.pop-row .pv { color: var(--cyan); font-weight: 700; }
+.pop-row.danger .pv { color: var(--red); }
 
-/* Map tooltip */
-#map-tooltip {
-  background: #0A1018;
-  border: 1px solid var(--winter-amber);
+/* Tooltip */
+#tooltip {
+  background: #060A10;
+  border: 1px solid var(--amber);
   color: var(--text);
   display: none;
-  font-family: 'Courier New', monospace;
-  font-size: 0.73rem;
-  line-height: 1.6;
-  max-width: 230px;
-  padding: 10px 13px;
+  font-family: 'Consolas', monospace;
+  font-size: 0.7rem;
+  line-height: 1.65;
+  max-width: 250px;
+  padding: 12px 14px;
   pointer-events: none;
   position: fixed;
   z-index: 200;
 }
+#tooltip .tt-t { color: var(--amber); font-weight: 700; margin-bottom: 5px; }
 
-#map-tooltip .tt-title {
-  color: var(--winter-amber);
-  font-size: 0.78rem;
-  font-weight: bold;
-  margin-bottom: 5px;
-}
-
-/* ── SECTION 2: HOW IT WORKS ────────────────────────────────────── */
-#panel-how {
-  padding: 24px 28px;
-}
-
-#panel-how h2 {
-  color: var(--winter-amber);
-  font-size: 1.1rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  margin-bottom: 18px;
-  text-transform: uppercase;
-}
-
-.how-layout {
+/* ═══════════════════════════════════════════════════
+   PANEL 2: BEAM CALCULATOR
+═══════════════════════════════════════════════════ */
+#p-beam { padding: 24px 32px; }
+#p-beam.active {
   display: grid;
-  grid-template-columns: 320px 1fr;
+  grid-template-columns: 340px 1fr;
   gap: 24px;
   align-items: start;
 }
-
-.calc-panel {
+.calc-box {
   background: var(--surface);
-  border-top: 3px solid var(--winter-amber);
-  padding: 18px;
+  border-top: 3px solid var(--amber);
+  padding: 20px;
 }
-
-.calc-panel h3 {
-  color: var(--winter-amber);
-  font-family: 'Courier New', monospace;
-  font-size: 0.8rem;
-  letter-spacing: 0.1em;
-  margin-bottom: 16px;
+.calc-box h3 {
+  color: var(--amber);
+  font-family: 'Consolas', monospace;
+  font-size: 0.76rem;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
+  margin-bottom: 18px;
 }
-
-.calc-row {
-  margin-bottom: 16px;
-}
-
+.calc-row { margin-bottom: 18px; }
 .calc-row label {
   display: block;
   color: var(--text-dim);
-  font-family: 'Courier New', monospace;
-  font-size: 0.72rem;
+  font-family: 'Consolas', monospace;
+  font-size: 0.68rem;
   letter-spacing: 0.06em;
-  margin-bottom: 5px;
+  margin-bottom: 6px;
   text-transform: uppercase;
 }
-
 .calc-row input[type=range] {
   -webkit-appearance: none;
   appearance: none;
@@ -325,1848 +292,1058 @@ html, body {
   outline: none;
   cursor: pointer;
 }
-
 .calc-row input[type=range]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  appearance: none;
-  width: 14px;
-  height: 14px;
-  background: var(--winter-amber);
+  width: 16px; height: 16px;
+  background: var(--amber);
   cursor: pointer;
   border-radius: 0;
 }
-
 .calc-row input[type=range]::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
-  background: var(--winter-amber);
+  width: 16px; height: 16px;
+  background: var(--amber);
   cursor: pointer;
   border: none;
   border-radius: 0;
 }
-
-.calc-val {
-  color: var(--cyan);
-  font-family: 'Courier New', monospace;
-  font-size: 0.8rem;
-  font-weight: bold;
-  margin-top: 4px;
-}
-
-.refraction-row {
+.cv { color: var(--cyan); font-family: 'Consolas', monospace; font-size: 0.78rem; font-weight: 700; margin-top: 4px; }
+.refrac-row {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
-
-.refraction-row label {
+.refrac-row label {
   color: var(--text-dim);
-  font-family: 'Courier New', monospace;
-  font-size: 0.72rem;
-  letter-spacing: 0.04em;
+  font-family: 'Consolas', monospace;
+  font-size: 0.68rem;
   cursor: pointer;
 }
-
-.refraction-row input[type=checkbox] {
-  accent-color: var(--winter-amber);
-  cursor: pointer;
-  width: 14px;
-  height: 14px;
+.refrac-row input[type=checkbox] { accent-color: var(--amber); width: 16px; height: 16px; cursor: pointer; }
+.calc-out {
+  background: #060A10;
+  border: 1px solid var(--border);
+  padding: 14px 16px;
+  margin-top: 8px;
 }
-
-.calc-output {
-  background: #0A1018;
-  border: 1px solid var(--surface-hi);
-  padding: 12px 14px;
-  margin-top: 4px;
-}
-
-.output-line {
+.out-line {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  font-family: 'Courier New', monospace;
-  font-size: 0.74rem;
+  font-family: 'Consolas', monospace;
+  font-size: 0.72rem;
   margin-bottom: 6px;
 }
-
-.output-line .lbl { color: var(--text-dim); }
-.output-line .val { color: var(--cyan); font-weight: bold; font-size: 0.9rem; }
-
-.coverage-indicator {
-  font-family: 'Courier New', monospace;
-  font-size: 0.76rem;
-  font-weight: bold;
-  letter-spacing: 0.08em;
-  margin-top: 8px;
-  padding: 6px 10px;
+.out-line .ol { color: var(--text-dim); }
+.out-line .ov { color: var(--cyan); font-weight: 700; font-size: 0.88rem; }
+.cov-ind {
+  font-family: 'Consolas', monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  margin-top: 10px;
+  padding: 8px 12px;
   text-align: center;
   text-transform: uppercase;
 }
+.cov-ind.good { background: #102820; color: var(--green); border: 1px solid var(--green); }
+.cov-ind.partial { background: #302010; color: var(--orange); border: 1px solid var(--orange); }
+.cov-ind.gap { background: #301810; color: #E08050; border: 1px solid #E08050; }
+.cov-ind.severe { background: #300808; color: var(--red); border: 1px solid var(--red); }
 
-.coverage-indicator.good { background: #1A3A28; color: var(--coverage-good); border: 1px solid var(--coverage-good); }
-.coverage-indicator.partial { background: #3A2E14; color: var(--amber-light); border: 1px solid var(--amber-light); }
-.coverage-indicator.gap { background: #3A1F10; color: #E08050; border: 1px solid #E08050; }
-.coverage-indicator.severe { background: #3A0A0A; color: var(--gap-severe); border: 1px solid var(--gap-severe); }
-
-.diagram-area { }
-
-.diagram-area h3 {
-  color: var(--river-gray);
-  font-family: 'Courier New', monospace;
-  font-size: 0.76rem;
-  letter-spacing: 0.08em;
-  margin-bottom: 10px;
-  text-transform: uppercase;
-}
-
-#beam-svg {
-  background: #0A1018;
-  border: 1px solid var(--surface-hi);
-  display: block;
-  width: 100%;
-  height: 200px;
-}
-
-.met-note {
-  background: var(--surface);
-  border-left: 4px solid var(--river-gray);
-  color: var(--text-dim);
-  font-size: 0.82rem;
-  font-style: italic;
-  line-height: 1.6;
-  margin-top: 16px;
-  padding: 12px 16px;
-}
-
-.met-note strong { color: var(--text); font-style: normal; }
-
-/* Reference examples */
-.ref-examples {
-  margin-top: 20px;
-}
-
-.ref-examples h3 {
-  color: var(--winter-amber);
-  font-family: 'Courier New', monospace;
-  font-size: 0.76rem;
-  letter-spacing: 0.1em;
-  margin-bottom: 12px;
-  text-transform: uppercase;
-}
-
-.ref-table {
+/* Reference table */
+.ref-tbl {
   width: 100%;
   border-collapse: collapse;
-  font-family: 'Courier New', monospace;
-  font-size: 0.73rem;
+  font-family: 'Consolas', monospace;
+  font-size: 0.7rem;
+  margin-top: 20px;
 }
-
-.ref-table th {
-  background: #111B28;
-  color: var(--river-gray);
-  font-weight: bold;
+.ref-tbl th {
+  background: #080C14;
+  color: var(--text-dim);
+  font-weight: 700;
   letter-spacing: 0.06em;
-  padding: 7px 10px;
+  padding: 8px 10px;
   text-align: left;
   text-transform: uppercase;
 }
-
-.ref-table td {
-  border-bottom: 1px solid var(--surface-hi);
+.ref-tbl td {
+  border-bottom: 1px solid var(--border);
   color: var(--text-dim);
-  padding: 7px 10px;
-  vertical-align: middle;
+  padding: 8px 10px;
 }
+.ref-tbl td.v { color: var(--cyan); font-weight: 700; }
+.ref-tbl td.sg { color: var(--red); font-weight: 700; }
+.ref-tbl td.pg { color: var(--orange); font-weight: 700; }
+.ref-tbl td.ok { color: var(--green); font-weight: 700; }
+.ref-tbl tr:hover td { background: rgba(255,255,255,0.02); }
 
-.ref-table td.val-cell {
-  color: var(--cyan);
-  font-weight: bold;
-}
-
-.ref-table td.status-good { color: var(--coverage-good); font-weight: bold; }
-.ref-table td.status-partial { color: var(--amber-light); font-weight: bold; }
-.ref-table td.status-severe { color: var(--gap-severe); font-weight: bold; }
-.ref-table tr:hover td { background: rgba(255,255,255,0.03); }
-
-/* ── SECTION 3: THE COST ───────────────────────────────────────── */
-#panel-cost {
-  padding: 24px 28px;
-}
-
-#panel-cost h2 {
-  color: var(--winter-amber);
-  font-size: 1.1rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  margin-bottom: 20px;
+.diagram-col {}
+.diagram-col h3 {
+  color: var(--text-dim);
+  font-family: 'Consolas', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
+  margin-bottom: 10px;
+}
+#beam-svg {
+  background: #060A10;
+  border: 1px solid var(--border);
+  display: block;
+  width: 100%;
+  height: 220px;
+}
+.met-note {
+  background: var(--surface);
+  border-left: 4px solid var(--text-dim);
+  color: var(--text-dim);
+  font-size: 0.82rem;
+  font-style: italic;
+  line-height: 1.65;
+  margin-top: 18px;
+  padding: 14px 18px;
+}
+.met-note strong { color: var(--text); font-style: normal; }
+
+/* ═══════════════════════════════════════════════════
+   PANEL 3: STORM SCENARIOS
+═══════════════════════════════════════════════════ */
+#p-storms { padding: 24px 32px; }
+.storms-intro {
+  color: var(--text-dim);
+  font-size: 0.88rem;
+  line-height: 1.7;
+  max-width: 800px;
+  margin-bottom: 28px;
+}
+.storms-intro strong { color: var(--text); }
+.storm-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+}
+.storm-card {
+  background: var(--surface);
+  border-top: 3px solid var(--red);
+  padding: 24px;
+  transition: border-color 0.2s;
+}
+.storm-card:hover { border-top-color: var(--red-light); }
+.storm-card h3 {
+  font-family: 'Consolas', monospace;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--red-light);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.storm-card .storm-date {
+  font-family: 'Consolas', monospace;
+  font-size: 0.68rem;
+  color: var(--amber);
+  letter-spacing: 0.06em;
+  margin-bottom: 12px;
+}
+.storm-card p {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  line-height: 1.65;
+  margin-bottom: 10px;
+}
+.storm-card p:last-child { margin-bottom: 0; }
+.storm-stat-row {
+  display: flex;
+  gap: 20px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.storm-stat {
+  text-align: center;
+}
+.storm-stat .ss-val {
+  font-family: 'Consolas', monospace;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--cyan);
+  display: block;
+  line-height: 1;
+}
+.storm-stat .ss-lab {
+  font-family: 'Consolas', monospace;
+  font-size: 0.58rem;
+  color: var(--text-dim);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+.storm-warning {
+  background: rgba(224,48,48,0.08);
+  border: 1px solid rgba(224,48,48,0.25);
+  padding: 8px 12px;
+  margin-top: 12px;
+  font-family: 'Consolas', monospace;
+  font-size: 0.68rem;
+  color: var(--red-light);
+  line-height: 1.5;
 }
 
+/* ═══════════════════════════════════════════════════
+   PANEL 4: COST ANALYSIS
+═══════════════════════════════════════════════════ */
+#p-cost { padding: 24px 32px; }
+#p-cost h2 {
+  color: var(--amber);
+  font-family: 'Consolas', monospace;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 22px;
+}
 .cost-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 20px;
   margin-bottom: 24px;
 }
-
 .cost-block {
   background: var(--surface);
-  border-top: 3px solid var(--winter-amber);
-  padding: 18px;
+  border-top: 3px solid var(--amber);
+  padding: 20px;
 }
-
 .cost-block h3 {
-  color: var(--river-gray);
-  font-family: 'Courier New', monospace;
-  font-size: 0.74rem;
+  color: var(--text-dim);
+  font-family: 'Consolas', monospace;
+  font-size: 0.72rem;
   letter-spacing: 0.1em;
-  margin-bottom: 14px;
   text-transform: uppercase;
+  margin-bottom: 14px;
 }
-
-.big-stat {
-  font-family: 'Courier New', monospace;
-  font-size: 2.2rem;
-  font-weight: bold;
+.big-num {
+  font-family: 'Consolas', monospace;
+  font-size: 2.4rem;
+  font-weight: 700;
   color: var(--cyan);
   line-height: 1;
   margin-bottom: 4px;
 }
-
-.stat-label {
+.big-label {
   color: var(--text-dim);
-  font-family: 'Courier New', monospace;
-  font-size: 0.72rem;
-  letter-spacing: 0.04em;
+  font-family: 'Consolas', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
-
-.bill-breakdown {
-  margin-top: 12px;
-}
-
-.breakdown-row {
+.bd-row {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  border-bottom: 1px dotted var(--surface-hi);
-  font-family: 'Courier New', monospace;
-  font-size: 0.74rem;
-  padding: 5px 0;
+  border-bottom: 1px dotted var(--border);
+  font-family: 'Consolas', monospace;
+  font-size: 0.72rem;
+  padding: 6px 0;
 }
-
-.breakdown-row .bl { color: var(--text-dim); }
-.breakdown-row .bv { color: var(--text); font-weight: bold; }
-.breakdown-row.total-row .bv { color: var(--winter-amber); font-size: 0.9rem; }
-
-.chart-block {
+.bd-row .bl { color: var(--text-dim); }
+.bd-row .bv { color: var(--text); font-weight: 700; }
+.bd-row.total .bv { color: var(--amber); font-size: 0.88rem; }
+.chart-wrap {
   background: var(--surface);
-  border-top: 3px solid var(--river-gray);
-  padding: 18px;
+  border-top: 3px solid var(--text-dim);
+  padding: 20px;
   margin-bottom: 24px;
 }
-
-.chart-block h3 {
-  color: var(--river-gray);
-  font-family: 'Courier New', monospace;
-  font-size: 0.74rem;
-  letter-spacing: 0.1em;
-  margin-bottom: 4px;
-  text-transform: uppercase;
-}
-
-.chart-block .chart-note {
+.chart-wrap h3 {
   color: var(--text-dim);
-  font-size: 0.74rem;
+  font-family: 'Consolas', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.chart-note {
+  color: var(--text-dim);
+  font-size: 0.72rem;
   margin-bottom: 14px;
 }
-
-#cost-chart-container {
-  max-height: 220px;
-  position: relative;
-}
-
-/* Fallback table for chart */
-#cost-fallback {
-  display: none;
-  width: 100%;
-  border-collapse: collapse;
-  font-family: 'Courier New', monospace;
-  font-size: 0.74rem;
-}
-#cost-fallback th {
-  background: #111B28;
-  color: var(--river-gray);
-  padding: 7px 12px;
-  text-align: left;
-  text-transform: uppercase;
-}
-#cost-fallback td {
-  border-bottom: 1px solid var(--surface-hi);
-  color: var(--text-dim);
-  padding: 7px 12px;
-}
-#cost-fallback td.amt { color: var(--cyan); font-weight: bold; }
-
+#chart-box { max-height: 240px; position: relative; }
 .stall-block {
   background: var(--surface);
-  border-top: 3px solid var(--beet-brown);
-  padding: 18px;
+  border-top: 3px solid #6B4423;
+  padding: 20px;
   margin-bottom: 24px;
 }
-
 .stall-block h3 {
   color: var(--text-dim);
-  font-family: 'Courier New', monospace;
-  font-size: 0.74rem;
+  font-family: 'Consolas', monospace;
+  font-size: 0.72rem;
   letter-spacing: 0.1em;
-  margin-bottom: 10px;
   text-transform: uppercase;
+  margin-bottom: 10px;
 }
-
 .stall-block p {
   color: var(--text);
   font-size: 0.86rem;
   line-height: 1.7;
 }
 
-.at-risk-list {
-  list-style: none;
-  margin-top: 10px;
-}
-
-.at-risk-list li {
-  border-bottom: 1px dotted var(--surface-hi);
-  color: var(--text-dim);
-  font-family: 'Courier New', monospace;
-  font-size: 0.73rem;
-  padding: 5px 0;
-}
-
-.at-risk-list li span {
-  color: var(--gap-partial);
-  margin-right: 8px;
-}
-
-/* ── SECTION 4: TIMELINE ────────────────────────────────────────── */
-#panel-timeline {
-  padding: 24px 28px;
-}
-
-#panel-timeline h2 {
-  color: var(--winter-amber);
-  font-size: 1.1rem;
+/* ═══════════════════════════════════════════════════
+   PANEL 5: TIMELINE
+═══════════════════════════════════════════════════ */
+#p-tl { padding: 24px 32px; }
+#p-tl h2 {
+  color: var(--amber);
+  font-family: 'Consolas', monospace;
+  font-size: 1rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
-  margin-bottom: 24px;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
+  margin-bottom: 28px;
 }
-
-.timeline {
-  position: relative;
-  padding-bottom: 20px;
-}
-
-.timeline::before {
-  background: var(--surface-hi);
-  bottom: 0;
-  content: '';
-  left: 50%;
-  position: absolute;
-  top: 0;
+.tl { position: relative; padding-bottom: 20px; }
+.tl::before {
+  background: var(--border);
+  bottom: 0; content: '';
+  left: 50%; position: absolute; top: 0;
   transform: translateX(-50%);
   width: 2px;
 }
-
-.tl-entry {
+.tl-e {
   display: flex;
   gap: 32px;
   margin-bottom: 28px;
   position: relative;
 }
-
-.tl-entry:nth-child(odd) { flex-direction: row; }
-.tl-entry:nth-child(even) { flex-direction: row-reverse; }
-
-.tl-entry::after {
-  background: var(--winter-amber);
-  border: 2px solid var(--bg-deep);
+.tl-e:nth-child(odd) { flex-direction: row; }
+.tl-e:nth-child(even) { flex-direction: row-reverse; }
+.tl-e::after {
+  background: var(--amber);
+  border: 2px solid var(--bg);
   border-radius: 50%;
-  content: '';
-  height: 12px;
-  left: 50%;
-  position: absolute;
-  top: 14px;
+  content: ''; height: 12px; left: 50%;
+  position: absolute; top: 14px;
   transform: translateX(-50%);
-  width: 12px;
-  z-index: 1;
+  width: 12px; z-index: 1;
 }
-
-.tl-entry.highlight::after { background: var(--cyan); }
-.tl-entry.law::after { background: var(--coverage-good); }
-
-.tl-date {
-  color: var(--winter-amber);
-  font-family: 'Courier New', monospace;
-  font-size: 0.78rem;
-  font-weight: bold;
-  letter-spacing: 0.06em;
+.tl-e.hl::after { background: var(--cyan); }
+.tl-e.law::after { background: var(--green); }
+.tl-d {
+  color: var(--amber);
+  font-family: 'Consolas', monospace;
+  font-size: 0.76rem;
+  font-weight: 700;
   min-width: 0;
   padding-top: 10px;
   text-align: right;
   width: calc(50% - 32px);
   flex-shrink: 0;
 }
-
-.tl-entry:nth-child(even) .tl-date { text-align: left; }
-
-.tl-spacer {
-  width: calc(50% - 32px);
-  flex-shrink: 0;
-}
-
-.tl-body {
+.tl-e:nth-child(even) .tl-d { text-align: left; }
+.tl-sp { width: calc(50% - 32px); flex-shrink: 0; }
+.tl-b {
   background: var(--surface);
-  border-top: 2px solid var(--surface-hi);
+  border-top: 2px solid var(--border);
   min-width: 0;
-  padding: 12px 16px;
+  padding: 14px 18px;
   width: calc(50% - 32px);
   flex-shrink: 0;
 }
-
-.tl-entry.highlight .tl-body { border-top-color: var(--cyan); }
-.tl-entry.law .tl-body { border-top-color: var(--coverage-good); }
-
-.tl-body h4 {
+.tl-e.hl .tl-b { border-top-color: var(--cyan); }
+.tl-e.law .tl-b { border-top-color: var(--green); }
+.tl-b h4 {
   color: var(--text);
-  font-family: 'Arial Narrow', sans-serif;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   font-weight: 700;
-  letter-spacing: 0.02em;
   margin-bottom: 6px;
 }
-
-.tl-entry.highlight .tl-body h4 { color: var(--cyan); }
-.tl-entry.law .tl-body h4 { color: var(--coverage-good); }
-
-.tl-body p, .tl-body li {
+.tl-e.hl .tl-b h4 { color: var(--cyan); }
+.tl-e.law .tl-b h4 { color: var(--green); }
+.tl-b p, .tl-b li {
   color: var(--text-dim);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   line-height: 1.55;
 }
-
-.tl-body ul {
-  list-style: none;
-  margin-top: 4px;
-}
-
-.tl-body ul li::before {
-  content: '▸ ';
-  color: var(--river-gray);
-}
-
-.tl-bill-tag {
-  background: #111B28;
-  color: var(--winter-amber);
-  display: inline-block;
-  font-family: 'Courier New', monospace;
-  font-size: 0.68rem;
-  font-weight: bold;
-  letter-spacing: 0.08em;
-  margin-bottom: 6px;
-  padding: 2px 7px;
-}
-
-.tl-law-tag {
-  background: rgba(45, 138, 79, 0.2);
-  color: var(--coverage-good);
-  display: inline-block;
-  font-family: 'Courier New', monospace;
-  font-size: 0.68rem;
-  font-weight: bold;
-  letter-spacing: 0.08em;
-  margin-bottom: 6px;
-  padding: 2px 7px;
-}
-
-.timeline-caption {
+.tl-b ul { list-style: none; margin-top: 4px; }
+.tl-b ul li::before { content: '\25B8 '; color: var(--text-dim); }
+.tl-bill { background: #080C14; color: var(--amber); display: inline-block; font-family: 'Consolas', monospace; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em; margin-bottom: 6px; padding: 2px 8px; }
+.tl-law { background: rgba(48,168,88,0.15); color: var(--green); display: inline-block; font-family: 'Consolas', monospace; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em; margin-bottom: 6px; padding: 2px 8px; }
+.tl-cap {
   color: var(--text);
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   font-style: italic;
   line-height: 1.7;
   margin-top: 32px;
-  padding: 20px 28px;
+  padding: 22px 28px;
   text-align: center;
   background: var(--surface);
-  border-top: 2px solid var(--winter-amber);
-  border-bottom: 2px solid var(--winter-amber);
+  border-top: 2px solid var(--amber);
+  border-bottom: 2px solid var(--amber);
 }
 
-/* ── FOOTER ─────────────────────────────────────────────────────── */
-#site-footer {
-  background: #111B28;
-  border-top: 1px solid var(--surface-hi);
+/* ── FOOTER ────────────────────────────────────────── */
+.ftr {
+  background: #080C14;
+  border-top: 1px solid var(--border);
   color: var(--text-dim);
-  font-family: 'Courier New', monospace;
-  font-size: 0.68rem;
-  letter-spacing: 0.03em;
-  padding: 14px 28px;
+  font-family: 'Consolas', monospace;
+  font-size: 0.65rem;
+  padding: 16px 32px;
   text-align: center;
   line-height: 1.7;
 }
 
-/* ── OPENING BANNER ─────────────────────────────────────────────── */
-#intro-banner {
-  background: linear-gradient(90deg, #111B28 0%, #1C2B3A 100%);
-  border-bottom: 1px solid var(--surface-hi);
-  padding: 14px 28px;
-  display: flex;
-  gap: 20px;
-  align-items: flex-start;
+/* ── RESPONSIVE ────────────────────────────────────── */
+@media (max-width: 900px) {
+  .hdr { padding: 16px 20px 12px; flex-wrap: wrap; }
+  .tabs { padding: 0 20px; }
+  #p-map { padding: 16px 20px; }
+  #p-map.active { grid-template-columns: 1fr; }
+  #p-beam { padding: 16px 20px; }
+  #p-beam.active { grid-template-columns: 1fr; }
+  .tl::before { left: 20px; }
+  .tl-e, .tl-e:nth-child(even) { flex-direction: column; margin-left: 40px; gap: 8px; }
+  .tl-e::after { left: -20px; transform: none; }
+  .tl-d, .tl-e:nth-child(even) .tl-d { text-align: left; width: 100%; }
+  .tl-b { width: 100%; }
+  .storm-grid { grid-template-columns: 1fr; }
+  .cost-grid { grid-template-columns: 1fr; }
 }
-
-.intro-text {
-  color: var(--text-dim);
-  font-size: 0.82rem;
-  line-height: 1.65;
-  max-width: 900px;
-}
-
-.intro-text strong { color: var(--text); }
-
-/* ── PRINT ──────────────────────────────────────────────────────── */
 @media print {
-  #site-header { position: static; }
-  #tab-bar, #intro-banner, #map-tooltip, #site-footer { display: none !important; }
+  .hdr { position: static; }
+  .tabs, .intro, #tooltip, .ftr { display: none !important; }
   .panel { display: block !important; page-break-after: always; }
   body { background: #fff; color: #000; }
-  .map-area, .calc-panel, .cost-block, .chart-block, .stall-block, .tl-body {
-    background: #f8f8f8; border-color: #ccc;
-  }
-  .map-controls #toggle-btn { display: none; }
-  #cost-chart-container { display: none; }
-  #cost-fallback { display: table !important; }
 }
-
 </style>
 </head>
 <body>
 
-<header id="site-header">
-  <div class="header-top">
-    <div>
-      <h1>Minnesota Radar Gap Explorer</h1>
-      <div class="header-sub">Understanding the weather visibility problem that Sen. Rob Kupec has spent a career studying — and a legislative session trying to fix.</div>
-    </div>
-    <div class="radar-badge">SD-4 &bull; SF580 &bull; 2025</div>
+<header class="hdr">
+  <div>
+    <h1>Minnesota Radar Gap Explorer</h1>
+    <div class="hdr-sub">Understanding the weather visibility problem that Sen. Rob Kupec has spent a career studying and a legislative session trying to fix.</div>
   </div>
+  <div class="hdr-badge">SD-4 &bull; SF580 &bull; 2025</div>
 </header>
 
-<div id="intro-banner">
+<div class="intro">
   <div class="intro-text">
-    <strong>Rob Kupec spent nearly a decade as chief meteorologist at KVRR-TV</strong> watching storms develop over a part of Minnesota where NWS radar couldn't see below 10,000 feet. In 2025, he introduced SF580 — a $3.27 million bill to fix that. The bill passed committee with bipartisan support. It didn't make it to the floor. The gap is still there.<br>
-    This tool shows you what the gap looks like, how it forms, what it would cost to fix, and why a meteorologist turned state senator keeps pushing on it.
+    <strong>Rob Kupec spent nearly a decade as chief meteorologist at KVRR-TV</strong> watching storms develop over a part of Minnesota where NWS radar can't see below 10,000 feet. In 2025, he introduced SF580 -- a $3.27 million bill to fix that. The bill passed committee with bipartisan support. It did not make it to the floor. The gap is still there. This tool shows you what the gap looks like, how it forms, what it would cost to fix, and why a meteorologist turned state senator keeps pushing on it.
   </div>
 </div>
 
-<nav id="tab-bar">
-  <button class="tab-btn active" data-panel="panel-map">&#9632; MAP</button>
-  <button class="tab-btn" data-panel="panel-how">&#9632; HOW IT WORKS</button>
-  <button class="tab-btn" data-panel="panel-cost">&#9632; THE COST</button>
-  <button class="tab-btn" data-panel="panel-timeline">&#9632; KUPEC'S WORK</button>
+<nav class="tabs">
+  <button class="tab active" data-p="p-map">&#9632; RADAR MAP</button>
+  <button class="tab" data-p="p-beam">&#9632; BEAM CALCULATOR</button>
+  <button class="tab" data-p="p-storms">&#9632; STORM SCENARIOS</button>
+  <button class="tab" data-p="p-cost">&#9632; THE COST</button>
+  <button class="tab" data-p="p-tl">&#9632; KUPEC'S WORK</button>
 </nav>
 
-<!-- ═══════════════════════════════════════════ PANEL 1: MAP ══ -->
-<section id="panel-map" class="panel active">
-  <div class="map-controls">
-    <h2>&#9632; NWS Radar Coverage &amp; Gap Zones — Minnesota</h2>
-    <button id="toggle-btn" onclick="toggleCoverage()">SHOW WITH SF580 FIX</button>
+<!-- ════════════════════════ PANEL 1: MAP ════════════════════════ -->
+<section id="p-map" class="panel active">
+  <div class="map-top">
+    <h2>&#9632; NWS Radar Coverage &amp; Gap Zones</h2>
+    <button class="map-btn" id="fix-btn">Show with SF580 Fix</button>
+    <button class="map-btn storm-btn" id="storm-btn">Animate Storm</button>
   </div>
-  <div class="map-area">
+
+  <div class="map-wrap">
     <svg id="mn-map" viewBox="0 0 620 720" xmlns="http://www.w3.org/2000/svg"
          aria-label="Minnesota radar gap map"
-         onmousemove="handleMapMove(event)" onmouseleave="hideTooltip()">
+         onmousemove="mapMove(event)" onmouseleave="hideTip()">
 
-      <!-- Defs: clip, filters -->
       <defs>
         <clipPath id="mn-clip">
-          <path id="mn-shape" d="
-            M 68,10 L 420,10 L 430,18 L 440,60 L 448,80
-            L 535,80 L 535,120 L 430,120 L 430,145
-            L 490,145 L 490,175 L 430,175 L 430,200
-            L 600,200 L 600,220 L 430,220
-            L 430,650 L 420,665 L 415,680 L 405,690 L 390,700
-            L 370,710 L 350,715 L 320,718 L 300,720
-            L 280,718 L 260,714 L 240,706 L 225,695
-            L 210,680 L 200,668 L 195,655 L 192,640
-            L 185,630 L 170,618 L 158,610 L 148,600
-            L 132,592 L 115,588 L 100,590 L 85,596
-            L 70,606 L 58,618 L 50,628 L 46,638
-            L 44,648 L 44,658 L 48,668 L 55,675
-            L 58,682 L 56,690 L 50,696 L 42,700
-            L 30,700 L 20,694 L 12,685 L 8,672
-            L 8,658 L 12,645 L 18,635 L 28,624
-            L 38,613 L 48,603 L 56,592 L 62,578
-            L 66,564 L 68,550 L 68,530 L 66,510
-            L 64,490 L 64,470 L 66,450 L 68,430
-            L 66,410 L 64,390 L 64,370 L 66,350
-            L 68,10 Z"/>
+          <path d="M 68,10 L 420,10 L 430,18 L 440,60 L 448,80 L 535,80 L 535,120 L 430,120 L 430,145 L 490,145 L 490,175 L 430,175 L 430,200 L 600,200 L 600,220 L 430,220 L 430,650 L 420,665 L 415,680 L 405,690 L 390,700 L 370,710 L 350,715 L 320,718 L 300,720 L 280,718 L 260,714 L 240,706 L 225,695 L 210,680 L 200,668 L 195,655 L 192,640 L 185,630 L 170,618 L 158,610 L 148,600 L 132,592 L 115,588 L 100,590 L 85,596 L 70,606 L 58,618 L 50,628 L 46,638 L 44,648 L 44,658 L 48,668 L 55,675 L 58,682 L 56,690 L 50,696 L 42,700 L 30,700 L 20,694 L 12,685 L 8,672 L 8,658 L 12,645 L 18,635 L 28,624 L 38,613 L 48,603 L 56,592 L 62,578 L 66,564 L 68,550 L 68,530 L 66,510 L 64,490 L 64,470 L 66,450 L 68,430 L 66,410 L 64,390 L 64,370 L 66,350 L 68,10 Z"/>
         </clipPath>
-        <radialGradient id="nexrad-grad" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stop-color="#3B7FBF" stop-opacity="0.18"/>
-          <stop offset="100%" stop-color="#3B7FBF" stop-opacity="0.03"/>
+        <radialGradient id="nxg" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#3B7FBF" stop-opacity="0.2"/>
+          <stop offset="100%" stop-color="#3B7FBF" stop-opacity="0.02"/>
         </radialGradient>
-        <radialGradient id="clima-grad" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stop-color="#2D8A4F" stop-opacity="0.28"/>
-          <stop offset="100%" stop-color="#2D8A4F" stop-opacity="0.04"/>
+        <radialGradient id="cg" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#30A858" stop-opacity="0.3"/>
+          <stop offset="100%" stop-color="#30A858" stop-opacity="0.03"/>
+        </radialGradient>
+        <!-- Animated sweep gradient -->
+        <radialGradient id="sweep-grad" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#40C8F0" stop-opacity="0.0"/>
+          <stop offset="85%" stop-color="#40C8F0" stop-opacity="0.12"/>
+          <stop offset="100%" stop-color="#40C8F0" stop-opacity="0.0"/>
         </radialGradient>
       </defs>
 
-      <!-- State background -->
-      <rect width="620" height="720" fill="#0F1822"/>
+      <!-- Background -->
+      <rect width="620" height="720" fill="#0A1018"/>
 
-      <!-- Minnesota fill -->
-      <path id="mn-fill" d="
-        M 68,10 L 420,10 L 430,18 L 440,60 L 448,80
-        L 535,80 L 535,120 L 430,120 L 430,145
-        L 490,145 L 490,175 L 430,175 L 430,200
-        L 600,200 L 600,220 L 430,220
-        L 430,650 L 420,665 L 415,680 L 405,690 L 390,700
-        L 370,710 L 350,715 L 320,718 L 300,720
-        L 280,718 L 260,714 L 240,706 L 225,695
-        L 210,680 L 200,668 L 195,655 L 192,640
-        L 185,630 L 170,618 L 158,610 L 148,600
-        L 132,592 L 115,588 L 100,590 L 85,596
-        L 70,606 L 58,618 L 50,628 L 46,638
-        L 44,648 L 44,658 L 48,668 L 55,675
-        L 58,682 L 56,690 L 50,696 L 42,700
-        L 30,700 L 20,694 L 12,685 L 8,672
-        L 8,658 L 12,645 L 18,635 L 28,624
-        L 38,613 L 48,603 L 56,592 L 62,578
-        L 66,564 L 68,550 L 68,530 L 66,510
-        L 64,490 L 64,470 L 66,450 L 68,430
-        L 66,410 L 64,390 L 64,370 L 66,350
-        L 68,10 Z"
-        fill="#1A2B3C" stroke="#2D3A52" stroke-width="1.5"/>
+      <!-- State fill -->
+      <path d="M 68,10 L 420,10 L 430,18 L 440,60 L 448,80 L 535,80 L 535,120 L 430,120 L 430,145 L 490,145 L 490,175 L 430,175 L 430,200 L 600,200 L 600,220 L 430,220 L 430,650 L 420,665 L 415,680 L 405,690 L 390,700 L 370,710 L 350,715 L 320,718 L 300,720 L 280,718 L 260,714 L 240,706 L 225,695 L 210,680 L 200,668 L 195,655 L 192,640 L 185,630 L 170,618 L 158,610 L 148,600 L 132,592 L 115,588 L 100,590 L 85,596 L 70,606 L 58,618 L 50,628 L 46,638 L 44,648 L 44,658 L 48,668 L 55,675 L 58,682 L 56,690 L 50,696 L 42,700 L 30,700 L 20,694 L 12,685 L 8,672 L 8,658 L 12,645 L 18,635 L 28,624 L 38,613 L 48,603 L 56,592 L 62,578 L 66,564 L 68,550 L 68,530 L 66,510 L 64,490 L 64,470 L 66,450 L 68,430 L 66,410 L 64,390 L 64,370 L 66,350 L 68,10 Z"
+        fill="#142030" stroke="#253550" stroke-width="1.5"/>
 
-      <!-- NEXRAD coverage circles (100-mile effective low-level radius) -->
-      <!-- KMVX Mayville ND: projected onto SVG space -->
-      <circle class="nexrad-cov" cx="-48" cy="182" r="220"
-        fill="url(#nexrad-grad)" stroke="#3B7FBF" stroke-width="0.8" stroke-dasharray="5,4" opacity="0.7"/>
-      <!-- KDLH Duluth MN -->
-      <circle class="nexrad-cov" cx="576" cy="260" r="220"
-        fill="url(#nexrad-grad)" stroke="#3B7FBF" stroke-width="0.8" stroke-dasharray="5,4" opacity="0.7"/>
-      <!-- KMPX Chanhassen MN -->
-      <circle class="nexrad-cov" cx="346" cy="572" r="220"
-        fill="url(#nexrad-grad)" stroke="#3B7FBF" stroke-width="0.8" stroke-dasharray="5,4" opacity="0.7"/>
-      <!-- KFSD Sioux Falls SD -->
-      <circle class="nexrad-cov" cx="-50" cy="640" r="220"
-        fill="url(#nexrad-grad)" stroke="#3B7FBF" stroke-width="0.8" stroke-dasharray="5,4" opacity="0.7"/>
-      <!-- KARX La Crosse WI -->
-      <circle class="nexrad-cov" cx="622" cy="590" r="220"
-        fill="url(#nexrad-grad)" stroke="#3B7FBF" stroke-width="0.8" stroke-dasharray="5,4" opacity="0.7"/>
+      <!-- NEXRAD coverage circles -->
+      <circle cx="-48" cy="182" r="220" fill="url(#nxg)" stroke="#3B7FBF" stroke-width="0.8" stroke-dasharray="5,4" opacity="0.7"/>
+      <circle cx="576" cy="260" r="220" fill="url(#nxg)" stroke="#3B7FBF" stroke-width="0.8" stroke-dasharray="5,4" opacity="0.7"/>
+      <circle cx="346" cy="572" r="220" fill="url(#nxg)" stroke="#3B7FBF" stroke-width="0.8" stroke-dasharray="5,4" opacity="0.7"/>
+      <circle cx="-50" cy="640" r="220" fill="url(#nxg)" stroke="#3B7FBF" stroke-width="0.8" stroke-dasharray="5,4" opacity="0.7"/>
+      <circle cx="622" cy="590" r="220" fill="url(#nxg)" stroke="#3B7FBF" stroke-width="0.8" stroke-dasharray="5,4" opacity="0.7"/>
 
-      <!-- GAP ZONES (clipped to state outline) -->
+      <!-- Gap zones (clipped) -->
       <g clip-path="url(#mn-clip)">
-        <!-- Partial gap: broad north-central/west-central amber swath -->
-        <polygon id="gap-partial"
-          points="68,180 260,160 340,200 360,280 340,360 300,420 230,460 130,480 68,460 64,390 64,300 66,240"
-          fill="#E9A84A" opacity="0.22"/>
-
-        <!-- Severe gap — western MN diamond (Grant/Stevens/Pope/Douglas area) -->
-        <polygon id="gap-severe-west"
-          points="120,340 200,300 280,340 260,420 180,440 100,400"
-          fill="#C1121F" opacity="0.35"/>
-
-        <!-- Severe gap — Lake of the Woods patch (NW corner) -->
-        <polygon id="gap-severe-low"
-          points="430,18 535,80 490,110 430,100"
-          fill="#C1121F" opacity="0.30"/>
+        <polygon id="gap-partial" points="68,180 260,160 340,200 360,280 340,360 300,420 230,460 130,480 68,460 64,390 64,300 66,240" fill="#E89840" opacity="0.2"/>
+        <polygon id="gap-severe-w" points="120,340 200,300 280,340 260,420 180,440 100,400" fill="#E03030" opacity="0.3"/>
+        <polygon id="gap-severe-nw" points="430,18 535,80 490,110 430,100" fill="#E03030" opacity="0.25"/>
       </g>
 
-      <!-- SD-4 boundary highlight (Becker + Clay counties) -->
-      <polygon id="sd4-boundary"
-        points="68,180 155,175 175,200 180,250 160,300 120,310 68,300 66,250"
-        fill="none" stroke="#C4922A" stroke-width="2.2" stroke-dasharray="8,4" opacity="0.8"/>
-      <text x="90" y="240" fill="#C4922A" font-size="9" font-family="'Courier New',monospace"
-        font-weight="bold" opacity="0.9">SD-4</text>
+      <!-- SD-4 boundary -->
+      <polygon id="sd4" points="68,180 155,175 175,200 180,250 160,300 120,310 68,300 66,250" fill="none" stroke="#D4A840" stroke-width="2.2" stroke-dasharray="8,4" opacity="0.8"/>
+      <text x="90" y="240" fill="#D4A840" font-size="9" font-family="'Consolas',monospace" font-weight="bold" opacity="0.9">SD-4</text>
 
-      <!-- County outlines (key counties, thin strokes) -->
-      <!-- Becker County -->
-      <rect x="68" y="180" width="88" height="88" fill="none" stroke="#2D3A52" stroke-width="0.8"/>
-      <!-- Clay County -->
-      <rect x="68" y="268" width="88" height="74" fill="none" stroke="#2D3A52" stroke-width="0.8"/>
-      <!-- Grant County -->
-      <rect x="100" y="330" width="70" height="68" fill="none" stroke="#2D3A52" stroke-width="0.8"/>
-      <!-- Stevens / Pope / Douglas -->
-      <rect x="170" y="330" width="68" height="68" fill="none" stroke="#2D3A52" stroke-width="0.8"/>
-      <rect x="100" y="398" width="68" height="65" fill="none" stroke="#2D3A52" stroke-width="0.8"/>
-      <rect x="168" y="398" width="68" height="65" fill="none" stroke="#2D3A52" stroke-width="0.8"/>
-      <!-- Kandiyohi -->
-      <rect x="236" y="398" width="68" height="65" fill="none" stroke="#2D3A52" stroke-width="0.8"/>
-      <!-- Crow Wing -->
-      <rect x="290" y="240" width="72" height="68" fill="none" stroke="#2D3A52" stroke-width="0.8"/>
-      <!-- Beltrami -->
-      <rect x="210" y="120" width="80" height="70" fill="none" stroke="#2D3A52" stroke-width="0.8"/>
-      <!-- Roseau -->
-      <rect x="180" y="20" width="80" height="70" fill="none" stroke="#2D3A52" stroke-width="0.8"/>
-      <!-- Koochiching -->
-      <rect x="290" y="120" width="80" height="80" fill="none" stroke="#2D3A52" stroke-width="0.8"/>
-      <!-- Lake County -->
-      <rect x="430" y="170" width="80" height="80" fill="none" stroke="#2D3A52" stroke-width="0.8"/>
+      <!-- County outlines -->
+      <rect x="68" y="180" width="88" height="88" fill="none" stroke="#253550" stroke-width="0.8"/>
+      <rect x="68" y="268" width="88" height="74" fill="none" stroke="#253550" stroke-width="0.8"/>
+      <rect x="100" y="330" width="70" height="68" fill="none" stroke="#253550" stroke-width="0.8"/>
+      <rect x="170" y="330" width="68" height="68" fill="none" stroke="#253550" stroke-width="0.8"/>
+      <rect x="100" y="398" width="68" height="65" fill="none" stroke="#253550" stroke-width="0.8"/>
+      <rect x="168" y="398" width="68" height="65" fill="none" stroke="#253550" stroke-width="0.8"/>
+      <rect x="236" y="398" width="68" height="65" fill="none" stroke="#253550" stroke-width="0.8"/>
+      <rect x="290" y="240" width="72" height="68" fill="none" stroke="#253550" stroke-width="0.8"/>
+      <rect x="210" y="120" width="80" height="70" fill="none" stroke="#253550" stroke-width="0.8"/>
+      <rect x="180" y="20" width="80" height="70" fill="none" stroke="#253550" stroke-width="0.8"/>
+      <rect x="290" y="120" width="80" height="80" fill="none" stroke="#253550" stroke-width="0.8"/>
+      <rect x="430" y="170" width="80" height="80" fill="none" stroke="#253550" stroke-width="0.8"/>
 
       <!-- NEXRAD station markers -->
-      <!-- KMVX Mayville ND (off-map, show at edge) -->
-      <g class="nexrad-marker" id="nx-kmvx" data-id="KMVX"
-         transform="translate(-48,182)" style="cursor:pointer">
-        <polygon points="0,-12 8,6 -8,6" fill="#3B7FBF" opacity="0.9"/>
-        <text x="0" y="20" text-anchor="middle" fill="#6AADDA" font-size="8"
-          font-family="'Courier New',monospace" font-weight="bold">KMVX</text>
-        <text x="0" y="30" text-anchor="middle" fill="#6B7B8D" font-size="7"
-          font-family="'Courier New',monospace">Mayville ND</text>
-      </g>
-      <!-- KDLH Duluth MN -->
-      <g class="nexrad-marker" id="nx-kdlh" data-id="KDLH"
-         transform="translate(576,260)" style="cursor:pointer">
-        <polygon points="0,-12 8,6 -8,6" fill="#3B7FBF" opacity="0.9"/>
-        <text x="0" y="20" text-anchor="middle" fill="#6AADDA" font-size="8"
-          font-family="'Courier New',monospace" font-weight="bold">KDLH</text>
-        <text x="0" y="30" text-anchor="middle" fill="#6B7B8D" font-size="7"
-          font-family="'Courier New',monospace">Duluth MN</text>
-      </g>
-      <!-- KMPX Chanhassen MN -->
-      <g class="nexrad-marker" id="nx-kmpx" data-id="KMPX"
-         transform="translate(346,572)" style="cursor:pointer">
-        <polygon points="0,-12 8,6 -8,6" fill="#3B7FBF" opacity="0.9"/>
-        <text x="0" y="20" text-anchor="middle" fill="#6AADDA" font-size="8"
-          font-family="'Courier New',monospace" font-weight="bold">KMPX</text>
-        <text x="0" y="30" text-anchor="middle" fill="#6B7B8D" font-size="7"
-          font-family="'Courier New',monospace">Chanhassen MN</text>
-      </g>
-      <!-- KFSD Sioux Falls SD (off-map) -->
-      <g class="nexrad-marker" id="nx-kfsd" data-id="KFSD"
-         transform="translate(68,640)" style="cursor:pointer">
-        <polygon points="0,-12 8,6 -8,6" fill="#3B7FBF" opacity="0.9"/>
-        <text x="5" y="20" text-anchor="middle" fill="#6AADDA" font-size="8"
-          font-family="'Courier New',monospace" font-weight="bold">KFSD</text>
-        <text x="5" y="30" text-anchor="middle" fill="#6B7B8D" font-size="7"
-          font-family="'Courier New',monospace">Sioux Falls SD</text>
-      </g>
-      <!-- KARX La Crosse WI -->
-      <g class="nexrad-marker" id="nx-karx" data-id="KARX"
-         transform="translate(600,590)" style="cursor:pointer">
-        <polygon points="0,-12 8,6 -8,6" fill="#3B7FBF" opacity="0.9"/>
-        <text x="-2" y="20" text-anchor="middle" fill="#6AADDA" font-size="8"
-          font-family="'Courier New',monospace" font-weight="bold">KARX</text>
-        <text x="-2" y="30" text-anchor="middle" fill="#6B7B8D" font-size="7"
-          font-family="'Courier New',monospace">La Crosse WI</text>
+      <g class="nx" transform="translate(-48,182)"><polygon points="0,-12 8,6 -8,6" fill="#3B7FBF"/><text x="0" y="20" text-anchor="middle" fill="#6AADDA" font-size="8" font-family="'Consolas',monospace" font-weight="bold">KMVX</text><text x="0" y="30" text-anchor="middle" fill="#6B7B8D" font-size="7" font-family="'Consolas',monospace">Mayville ND</text></g>
+      <g class="nx" transform="translate(576,260)"><polygon points="0,-12 8,6 -8,6" fill="#3B7FBF"/><text x="0" y="20" text-anchor="middle" fill="#6AADDA" font-size="8" font-family="'Consolas',monospace" font-weight="bold">KDLH</text><text x="0" y="30" text-anchor="middle" fill="#6B7B8D" font-size="7" font-family="'Consolas',monospace">Duluth MN</text></g>
+      <g class="nx" transform="translate(346,572)"><polygon points="0,-12 8,6 -8,6" fill="#3B7FBF"/><text x="0" y="20" text-anchor="middle" fill="#6AADDA" font-size="8" font-family="'Consolas',monospace" font-weight="bold">KMPX</text><text x="0" y="30" text-anchor="middle" fill="#6B7B8D" font-size="7" font-family="'Consolas',monospace">Chanhassen MN</text></g>
+      <g class="nx" transform="translate(68,640)"><polygon points="0,-12 8,6 -8,6" fill="#3B7FBF"/><text x="5" y="20" text-anchor="middle" fill="#6AADDA" font-size="8" font-family="'Consolas',monospace" font-weight="bold">KFSD</text><text x="5" y="30" text-anchor="middle" fill="#6B7B8D" font-size="7" font-family="'Consolas',monospace">Sioux Falls SD</text></g>
+      <g class="nx" transform="translate(600,590)"><polygon points="0,-12 8,6 -8,6" fill="#3B7FBF"/><text x="-2" y="20" text-anchor="middle" fill="#6AADDA" font-size="8" font-family="'Consolas',monospace" font-weight="bold">KARX</text><text x="-2" y="30" text-anchor="middle" fill="#6B7B8D" font-size="7" font-family="'Consolas',monospace">La Crosse WI</text></g>
+
+      <!-- Climavision markers -->
+      <g class="cv" transform="translate(140,365)"><circle r="7" fill="#40C8F0" opacity="0.9"/><circle r="4" fill="#0A1018"/><circle r="2" fill="#40C8F0"/><text x="10" y="-8" fill="#40C8F0" font-size="8" font-family="'Consolas',monospace" font-weight="bold">WENDELL</text><text x="10" y="2" fill="#40C8F0" font-size="7" font-family="'Consolas',monospace">ONLINE</text></g>
+      <g class="cv" transform="translate(310,605)"><rect x="-6" y="-6" width="12" height="12" fill="#40A898" opacity="0.8"/><text x="10" y="-4" fill="#40A898" font-size="7" font-family="'Consolas',monospace">Faribault</text><text x="10" y="5" fill="#40A898" font-size="6" font-family="'Consolas',monospace">Planned P1</text></g>
+      <g class="cv" transform="translate(250,420)"><rect x="-6" y="-6" width="12" height="12" fill="#40A898" opacity="0.8"/><text x="10" y="-4" fill="#40A898" font-size="7" font-family="'Consolas',monospace">Kandiyohi</text><text x="10" y="5" fill="#40A898" font-size="6" font-family="'Consolas',monospace">Planned P1</text></g>
+      <g class="cv" transform="translate(320,270)"><rect x="-6" y="-6" width="12" height="12" fill="#40A898" opacity="0.8"/><text x="10" y="-4" fill="#40A898" font-size="7" font-family="'Consolas',monospace">Crow Wing</text><text x="10" y="5" fill="#40A898" font-size="6" font-family="'Consolas',monospace">Planned P1</text></g>
+      <g class="cv" transform="translate(245,155)"><rect x="-6" y="-6" width="12" height="12" fill="#40A898" opacity="0.8"/><text x="10" y="-4" fill="#40A898" font-size="7" font-family="'Consolas',monospace">Beltrami</text><text x="10" y="5" fill="#40A898" font-size="6" font-family="'Consolas',monospace">Planned P1</text></g>
+      <g class="cv" transform="translate(208,50)"><rect x="-6" y="-6" width="12" height="12" fill="#3A6868" opacity="0.7"/><text x="10" y="-4" fill="#3A6868" font-size="7" font-family="'Consolas',monospace">Roseau</text><text x="10" y="5" fill="#3A6868" font-size="6" font-family="'Consolas',monospace">Planned P2</text></g>
+      <g class="cv" transform="translate(325,155)"><rect x="-6" y="-6" width="12" height="12" fill="#3A6868" opacity="0.7"/><text x="10" y="-4" fill="#3A6868" font-size="7" font-family="'Consolas',monospace">Koochiching</text><text x="10" y="5" fill="#3A6868" font-size="6" font-family="'Consolas',monospace">Planned P2</text></g>
+      <g class="cv" transform="translate(468,220)"><rect x="-6" y="-6" width="12" height="12" fill="#3A6868" opacity="0.7"/><text x="10" y="-4" fill="#3A6868" font-size="7" font-family="'Consolas',monospace">Lake Co.</text><text x="10" y="5" fill="#3A6868" font-size="6" font-family="'Consolas',monospace">Planned P2</text></g>
+
+      <!-- SF580 coverage overlay (hidden) -->
+      <g id="sf580-ov" style="display:none">
+        <circle cx="140" cy="365" r="132" fill="url(#cg)" stroke="#30A858" stroke-width="1" stroke-dasharray="4,3" opacity="0.6"/>
+        <circle cx="310" cy="605" r="132" fill="url(#cg)" stroke="#30A858" stroke-width="1" stroke-dasharray="4,3" opacity="0.45"/>
+        <circle cx="250" cy="420" r="132" fill="url(#cg)" stroke="#30A858" stroke-width="1" stroke-dasharray="4,3" opacity="0.45"/>
+        <circle cx="320" cy="270" r="132" fill="url(#cg)" stroke="#30A858" stroke-width="1" stroke-dasharray="4,3" opacity="0.45"/>
+        <circle cx="245" cy="155" r="132" fill="url(#cg)" stroke="#30A858" stroke-width="1" stroke-dasharray="4,3" opacity="0.45"/>
+        <circle cx="208" cy="50" r="132" fill="url(#cg)" stroke="#30A858" stroke-width="1" stroke-dasharray="4,3" opacity="0.45"/>
+        <circle cx="325" cy="155" r="132" fill="url(#cg)" stroke="#30A858" stroke-width="1" stroke-dasharray="4,3" opacity="0.45"/>
+        <circle cx="468" cy="220" r="132" fill="url(#cg)" stroke="#30A858" stroke-width="1" stroke-dasharray="4,3" opacity="0.45"/>
+        <text x="160" y="380" fill="#30A858" font-size="7.5" font-family="'Consolas',monospace" opacity="0.9">60-mi radius</text>
       </g>
 
-      <!-- Climavision markers (hidden until toggle) -->
-      <!-- Wendell, MN (Grant Co.) — ONLINE -->
-      <g class="clima-marker" id="cv-wendell" data-id="wendell"
-         transform="translate(140,365)" style="cursor:pointer">
-        <circle cx="0" cy="0" r="7" fill="#3BAFDA" opacity="0.9"/>
-        <circle cx="0" cy="0" r="4" fill="#0F1822"/>
-        <circle cx="0" cy="0" r="2" fill="#3BAFDA"/>
-        <text x="10" y="-8" fill="#3BAFDA" font-size="8" font-family="'Courier New',monospace"
-          font-weight="bold">WENDELL</text>
-        <text x="10" y="2" fill="#3BAFDA" font-size="7" font-family="'Courier New',monospace">ONLINE</text>
-      </g>
-      <!-- Faribault County — Planned P1 -->
-      <g class="clima-marker" id="cv-faribault" data-id="faribault"
-         transform="translate(310,605)" style="cursor:pointer">
-        <rect x="-6" y="-6" width="12" height="12" fill="#5E8C8A" opacity="0.8"/>
-        <text x="10" y="-4" fill="#5E8C8A" font-size="7" font-family="'Courier New',monospace">Faribault</text>
-        <text x="10" y="5" fill="#5E8C8A" font-size="6" font-family="'Courier New',monospace">Planned P1</text>
-      </g>
-      <!-- Kandiyohi County — Planned P1 -->
-      <g class="clima-marker" id="cv-kandiyohi" data-id="kandiyohi"
-         transform="translate(250,420)" style="cursor:pointer">
-        <rect x="-6" y="-6" width="12" height="12" fill="#5E8C8A" opacity="0.8"/>
-        <text x="10" y="-4" fill="#5E8C8A" font-size="7" font-family="'Courier New',monospace">Kandiyohi</text>
-        <text x="10" y="5" fill="#5E8C8A" font-size="6" font-family="'Courier New',monospace">Planned P1</text>
-      </g>
-      <!-- Crow Wing County — Planned P1 -->
-      <g class="clima-marker" id="cv-crowwing" data-id="crowwing"
-         transform="translate(320,270)" style="cursor:pointer">
-        <rect x="-6" y="-6" width="12" height="12" fill="#5E8C8A" opacity="0.8"/>
-        <text x="10" y="-4" fill="#5E8C8A" font-size="7" font-family="'Courier New',monospace">Crow Wing</text>
-        <text x="10" y="5" fill="#5E8C8A" font-size="6" font-family="'Courier New',monospace">Planned P1</text>
-      </g>
-      <!-- Beltrami County — Planned P1 -->
-      <g class="clima-marker" id="cv-beltrami" data-id="beltrami"
-         transform="translate(245,155)" style="cursor:pointer">
-        <rect x="-6" y="-6" width="12" height="12" fill="#5E8C8A" opacity="0.8"/>
-        <text x="10" y="-4" fill="#5E8C8A" font-size="7" font-family="'Courier New',monospace">Beltrami</text>
-        <text x="10" y="5" fill="#5E8C8A" font-size="6" font-family="'Courier New',monospace">Planned P1</text>
-      </g>
-      <!-- Roseau County — Planned P2 -->
-      <g class="clima-marker" id="cv-roseau" data-id="roseau"
-         transform="translate(208,50)" style="cursor:pointer">
-        <rect x="-6" y="-6" width="12" height="12" fill="#4A6E6D" opacity="0.7"/>
-        <text x="10" y="-4" fill="#4A6E6D" font-size="7" font-family="'Courier New',monospace">Roseau</text>
-        <text x="10" y="5" fill="#4A6E6D" font-size="6" font-family="'Courier New',monospace">Planned P2</text>
-      </g>
-      <!-- Koochiching County — Planned P2 -->
-      <g class="clima-marker" id="cv-koochiching" data-id="koochiching"
-         transform="translate(325,155)" style="cursor:pointer">
-        <rect x="-6" y="-6" width="12" height="12" fill="#4A6E6D" opacity="0.7"/>
-        <text x="10" y="-4" fill="#4A6E6D" font-size="7" font-family="'Courier New',monospace">Koochiching</text>
-        <text x="10" y="5" fill="#4A6E6D" font-size="6" font-family="'Courier New',monospace">Planned P2</text>
-      </g>
-      <!-- Lake County — Planned P2 -->
-      <g class="clima-marker" id="cv-lake" data-id="lake"
-         transform="translate(468,220)" style="cursor:pointer">
-        <rect x="-6" y="-6" width="12" height="12" fill="#4A6E6D" opacity="0.7"/>
-        <text x="10" y="-4" fill="#4A6E6D" font-size="7" font-family="'Courier New',monospace">Lake Co.</text>
-        <text x="10" y="5" fill="#4A6E6D" font-size="6" font-family="'Courier New',monospace">Planned P2</text>
-      </g>
+      <!-- Animated radar sweep line (KMVX) -->
+      <line id="sweep-line" x1="-48" y1="182" x2="-48" y2="-40" stroke="#40C8F0" stroke-width="1.5" opacity="0" style="transform-origin:-48px 182px;">
+        <animateTransform attributeName="transform" type="rotate" from="0 -48 182" to="360 -48 182" dur="4s" repeatCount="indefinite"/>
+      </line>
 
-      <!-- Climavision coverage circles (hidden by default — toggle shows them) -->
-      <g id="sf580-overlay" style="display:none">
-        <!-- Wendell -->
-        <circle cx="140" cy="365" r="132" fill="url(#clima-grad)" stroke="#2D8A4F"
-          stroke-width="1" stroke-dasharray="4,3" opacity="0.6"/>
-        <!-- Faribault -->
-        <circle cx="310" cy="605" r="132" fill="url(#clima-grad)" stroke="#2D8A4F"
-          stroke-width="1" stroke-dasharray="4,3" opacity="0.45"/>
-        <!-- Kandiyohi -->
-        <circle cx="250" cy="420" r="132" fill="url(#clima-grad)" stroke="#2D8A4F"
-          stroke-width="1" stroke-dasharray="4,3" opacity="0.45"/>
-        <!-- Crow Wing -->
-        <circle cx="320" cy="270" r="132" fill="url(#clima-grad)" stroke="#2D8A4F"
-          stroke-width="1" stroke-dasharray="4,3" opacity="0.45"/>
-        <!-- Beltrami -->
-        <circle cx="245" cy="155" r="132" fill="url(#clima-grad)" stroke="#2D8A4F"
-          stroke-width="1" stroke-dasharray="4,3" opacity="0.45"/>
-        <!-- Roseau -->
-        <circle cx="208" cy="50" r="132" fill="url(#clima-grad)" stroke="#2D8A4F"
-          stroke-width="1" stroke-dasharray="4,3" opacity="0.45"/>
-        <!-- Koochiching -->
-        <circle cx="325" cy="155" r="132" fill="url(#clima-grad)" stroke="#2D8A4F"
-          stroke-width="1" stroke-dasharray="4,3" opacity="0.45"/>
-        <!-- Lake -->
-        <circle cx="468" cy="220" r="132" fill="url(#clima-grad)" stroke="#2D8A4F"
-          stroke-width="1" stroke-dasharray="4,3" opacity="0.45"/>
-        <!-- Coverage label -->
-        <text x="160" y="380" fill="#2D8A4F" font-size="7.5" font-family="'Courier New',monospace"
-          opacity="0.9">60-mi radius</text>
+      <!-- Storm cell (hidden, activated by button) -->
+      <g id="storm-cell" style="display:none;opacity:0;transition:opacity 1s;">
+        <circle cx="190" cy="370" r="28" fill="#E03030" opacity="0.25"/>
+        <circle cx="190" cy="370" r="18" fill="#F06050" opacity="0.3"/>
+        <circle cx="190" cy="370" r="8" fill="#FF8060" opacity="0.4"/>
+        <text x="190" y="410" text-anchor="middle" fill="#F06050" font-size="8" font-family="'Consolas',monospace" font-weight="bold">STORM CELL</text>
+        <text x="190" y="420" text-anchor="middle" fill="#E89840" font-size="7" font-family="'Consolas',monospace">INVISIBLE TO RADAR</text>
       </g>
 
       <!-- City markers -->
-      <!-- Moorhead (SD-4 seat) -->
-      <circle cx="70" cy="248" r="5" fill="#C4922A"/>
-      <text x="78" y="245" fill="#C4922A" font-size="9" font-family="'Courier New',monospace"
-        font-weight="bold">MOORHEAD ★</text>
+      <circle cx="70" cy="248" r="5" fill="#D4A840"/>
+      <text x="78" y="245" fill="#D4A840" font-size="9" font-family="'Consolas',monospace" font-weight="bold">MOORHEAD &#9733;</text>
+      <circle cx="148" cy="204" r="4" fill="#D4A840" opacity="0.8"/>
+      <text x="156" y="201" fill="#D4A840" font-size="8" font-family="'Consolas',monospace">Detroit Lakes</text>
+      <circle cx="556" cy="252" r="4" fill="#8A9AB0" opacity="0.7"/>
+      <text x="540" y="248" fill="#8A9AB0" font-size="8" font-family="'Consolas',monospace" text-anchor="end">Duluth</text>
+      <circle cx="358" cy="540" r="4" fill="#8A9AB0" opacity="0.7"/>
+      <text x="366" y="537" fill="#8A9AB0" font-size="8" font-family="'Consolas',monospace">Mpls</text>
 
-      <!-- Detroit Lakes -->
-      <circle cx="148" cy="204" r="4" fill="#C4922A" opacity="0.8"/>
-      <text x="156" y="201" fill="#C4922A" font-size="8" font-family="'Courier New',monospace">Detroit Lakes</text>
+      <text x="10" y="712" fill="#2A3A4A" font-size="7.5" font-family="'Consolas',monospace">NEXRAD effective low-level coverage zones shown at ~100mi radius (simplified for visualization)</text>
 
-      <!-- Wendell label (city) -->
-      <circle cx="140" cy="365" r="3" fill="#3BAFDA"/>
+      <!-- Hit targets for NEXRAD -->
+      <circle cx="-48" cy="182" r="30" fill="transparent" style="cursor:pointer" onmouseenter="showNx(event,'KMVX')" onmouseleave="delayHide()"/>
+      <circle cx="576" cy="260" r="30" fill="transparent" style="cursor:pointer" onmouseenter="showNx(event,'KDLH')" onmouseleave="delayHide()"/>
+      <circle cx="346" cy="572" r="30" fill="transparent" style="cursor:pointer" onmouseenter="showNx(event,'KMPX')" onmouseleave="delayHide()"/>
+      <circle cx="68" cy="640" r="30" fill="transparent" style="cursor:pointer" onmouseenter="showNx(event,'KFSD')" onmouseleave="delayHide()"/>
+      <circle cx="600" cy="590" r="30" fill="transparent" style="cursor:pointer" onmouseenter="showNx(event,'KARX')" onmouseleave="delayHide()"/>
 
-      <!-- Duluth -->
-      <circle cx="556" cy="252" r="4" fill="#9AAABB" opacity="0.7"/>
-      <text x="540" y="248" fill="#9AAABB" font-size="8" font-family="'Courier New',monospace"
-        text-anchor="end">Duluth</text>
-
-      <!-- Minneapolis area -->
-      <circle cx="358" cy="540" r="4" fill="#9AAABB" opacity="0.7"/>
-      <text x="366" y="537" fill="#9AAABB" font-size="8" font-family="'Courier New',monospace">Mpls</text>
-
-      <!-- Map scale / attribution -->
-      <text x="10" y="712" fill="#3A4A5A" font-size="7.5" font-family="'Courier New',monospace">
-        NEXRAD effective low-level coverage zones shown at ~100mi radius (simplified for visualization)
-      </text>
-
-      <!-- Invisible hit targets for NEXRAD markers -->
-      <circle id="hit-kmvx" cx="-48" cy="182" r="30" fill="transparent" style="cursor:pointer"
-        onmouseenter="showNexradTip(event,'KMVX')" onmouseleave="delayHide()"/>
-      <circle id="hit-kdlh" cx="576" cy="260" r="30" fill="transparent" style="cursor:pointer"
-        onmouseenter="showNexradTip(event,'KDLH')" onmouseleave="delayHide()"/>
-      <circle id="hit-kmpx" cx="346" cy="572" r="30" fill="transparent" style="cursor:pointer"
-        onmouseenter="showNexradTip(event,'KMPX')" onmouseleave="delayHide()"/>
-      <circle id="hit-kfsd" cx="68" cy="640" r="30" fill="transparent" style="cursor:pointer"
-        onmouseenter="showNexradTip(event,'KFSD')" onmouseleave="delayHide()"/>
-      <circle id="hit-karx" cx="600" cy="590" r="30" fill="transparent" style="cursor:pointer"
-        onmouseenter="showNexradTip(event,'KARX')" onmouseleave="delayHide()"/>
-
-      <!-- Invisible hit targets for Climavision -->
-      <circle id="hit-cv-wendell" cx="140" cy="365" r="14" fill="transparent" style="cursor:pointer"
-        onmouseenter="showClimaTip(event,'wendell')" onmouseleave="delayHide()"/>
-      <circle id="hit-cv-faribault" cx="310" cy="605" r="14" fill="transparent" style="cursor:pointer"
-        onmouseenter="showClimaTip(event,'faribault')" onmouseleave="delayHide()"/>
-      <circle id="hit-cv-kandiyohi" cx="250" cy="420" r="14" fill="transparent" style="cursor:pointer"
-        onmouseenter="showClimaTip(event,'kandiyohi')" onmouseleave="delayHide()"/>
-      <circle id="hit-cv-crowwing" cx="320" cy="270" r="14" fill="transparent" style="cursor:pointer"
-        onmouseenter="showClimaTip(event,'crowwing')" onmouseleave="delayHide()"/>
-      <circle id="hit-cv-beltrami" cx="245" cy="155" r="14" fill="transparent" style="cursor:pointer"
-        onmouseenter="showClimaTip(event,'beltrami')" onmouseleave="delayHide()"/>
-      <circle id="hit-cv-roseau" cx="208" cy="50" r="14" fill="transparent" style="cursor:pointer"
-        onmouseenter="showClimaTip(event,'roseau')" onmouseleave="delayHide()"/>
-      <circle id="hit-cv-koochiching" cx="325" cy="155" r="14" fill="transparent" style="cursor:pointer"
-        onmouseenter="showClimaTip(event,'koochiching')" onmouseleave="delayHide()"/>
-      <circle id="hit-cv-lake" cx="468" cy="220" r="14" fill="transparent" style="cursor:pointer"
-        onmouseenter="showClimaTip(event,'lake')" onmouseleave="delayHide()"/>
-
+      <!-- Hit targets for Climavision -->
+      <circle cx="140" cy="365" r="14" fill="transparent" style="cursor:pointer" onmouseenter="showCv(event,'wendell')" onmouseleave="delayHide()"/>
+      <circle cx="310" cy="605" r="14" fill="transparent" style="cursor:pointer" onmouseenter="showCv(event,'faribault')" onmouseleave="delayHide()"/>
+      <circle cx="250" cy="420" r="14" fill="transparent" style="cursor:pointer" onmouseenter="showCv(event,'kandiyohi')" onmouseleave="delayHide()"/>
+      <circle cx="320" cy="270" r="14" fill="transparent" style="cursor:pointer" onmouseenter="showCv(event,'crowwing')" onmouseleave="delayHide()"/>
+      <circle cx="245" cy="155" r="14" fill="transparent" style="cursor:pointer" onmouseenter="showCv(event,'beltrami')" onmouseleave="delayHide()"/>
+      <circle cx="208" cy="50" r="14" fill="transparent" style="cursor:pointer" onmouseenter="showCv(event,'roseau')" onmouseleave="delayHide()"/>
+      <circle cx="325" cy="155" r="14" fill="transparent" style="cursor:pointer" onmouseenter="showCv(event,'koochiching')" onmouseleave="delayHide()"/>
+      <circle cx="468" cy="220" r="14" fill="transparent" style="cursor:pointer" onmouseenter="showCv(event,'lake')" onmouseleave="delayHide()"/>
     </svg>
-  </div><!-- .map-area -->
+  </div>
 
-  <div class="map-legend">
-    <h3>Legend</h3>
-
-    <div class="legend-item">
-      <svg width="22" height="14" viewBox="0 0 22 14">
-        <polygon points="11,1 20,13 2,13" fill="#3B7FBF" opacity="0.85"/>
-      </svg>
-      <span>NWS NEXRAD Station</span>
-    </div>
-    <div class="legend-item">
-      <svg width="22" height="14" viewBox="0 0 22 14">
-        <circle cx="11" cy="7" r="6" fill="none" stroke="#3B7FBF" stroke-width="1.2" stroke-dasharray="4,3"/>
-      </svg>
-      <span>NEXRAD low-level coverage zone (~100mi)</span>
-    </div>
-
-    <div class="legend-divider"></div>
-
-    <div class="legend-item">
-      <div class="legend-swatch" style="background:#E9A84A;opacity:0.55;"></div>
-      <span>Partial gap zone (below 6,000 ft unavailable)</span>
-    </div>
-    <div class="legend-item">
-      <div class="legend-swatch" style="background:#C1121F;opacity:0.7;"></div>
-      <span>Severe gap zone (below 10,000 ft unavailable)</span>
+  <div>
+    <div class="legend">
+      <h3>Legend</h3>
+      <div class="leg-item"><svg width="22" height="14"><polygon points="11,1 20,13 2,13" fill="#3B7FBF"/></svg><span>NWS NEXRAD Station</span></div>
+      <div class="leg-item"><svg width="22" height="14"><circle cx="11" cy="7" r="6" fill="none" stroke="#3B7FBF" stroke-width="1.2" stroke-dasharray="4,3"/></svg><span>NEXRAD low-level coverage (~100mi)</span></div>
+      <div class="leg-div"></div>
+      <div class="leg-item"><div class="leg-swatch" style="background:#E89840;opacity:0.5;"></div><span>Partial gap (below 6,000 ft)</span></div>
+      <div class="leg-item"><div class="leg-swatch" style="background:#E03030;opacity:0.6;"></div><span>Severe gap (below 10,000 ft)</span></div>
+      <div class="leg-div"></div>
+      <div class="leg-item"><div class="leg-dot" style="background:#40C8F0;"></div><span>Climavision -- ONLINE (Wendell)</span></div>
+      <div class="leg-item"><div class="leg-dot" style="background:#40A898;border-radius:0;"></div><span>Climavision -- Planned Phase 1</span></div>
+      <div class="leg-item"><div class="leg-dot" style="background:#3A6868;border-radius:0;"></div><span>Climavision -- Planned Phase 2</span></div>
+      <div class="leg-item"><svg width="22" height="14"><circle cx="11" cy="7" r="5" fill="none" stroke="#30A858" stroke-width="1.2" stroke-dasharray="3,2"/></svg><span>SF580 coverage (60 mi) -- toggle</span></div>
+      <div class="leg-div"></div>
+      <div class="leg-item"><svg width="22" height="14"><line x1="2" y1="7" x2="20" y2="7" stroke="#D4A840" stroke-width="2" stroke-dasharray="5,3"/></svg><span>SD-4 boundary</span></div>
     </div>
 
-    <div class="legend-divider"></div>
-
-    <div class="legend-item">
-      <div class="legend-dot" style="background:#3BAFDA;"></div>
-      <span>Climavision — ONLINE (Wendell, MN)</span>
+    <div class="pop-readout">
+      <h4>Population Impact</h4>
+      <div class="pop-row danger"><span class="pl">Total in gap zone</span><span class="pv">~2.5M</span></div>
+      <div class="pop-row"><span class="pl">SD-4 (Clay + Becker)</span><span class="pv">~95,000</span></div>
+      <div class="pop-row"><span class="pl">Moorhead</span><span class="pv">~46,000</span></div>
+      <div class="pop-row"><span class="pl">Red Lake Nation</span><span class="pv">~5,200</span></div>
+      <div class="pop-row"><span class="pl">Cost per resident (SF580)</span><span class="pv">~$1.33</span></div>
+      <div style="margin-top:8px;font-size:0.58rem;color:#4A5A6A;">Source: Assoc. of MN Emergency Managers (cited in SF580)</div>
     </div>
-    <div class="legend-item">
-      <div class="legend-dot" style="background:#5E8C8A;border-radius:0;width:12px;height:12px;"></div>
-      <span>Climavision — Planned Phase 1</span>
-    </div>
-    <div class="legend-item">
-      <div class="legend-dot" style="background:#4A6E6D;border-radius:0;width:12px;height:12px;"></div>
-      <span>Climavision — Planned Phase 2</span>
-    </div>
-    <div class="legend-item">
-      <svg width="22" height="14" viewBox="0 0 22 14">
-        <circle cx="11" cy="7" r="5" fill="none" stroke="#2D8A4F" stroke-width="1.2" stroke-dasharray="3,2"/>
-      </svg>
-      <span>SF580 coverage (60 mi radius) — toggle</span>
-    </div>
-
-    <div class="legend-divider"></div>
-
-    <div class="legend-item">
-      <svg width="22" height="14" viewBox="0 0 22 14">
-        <line x1="2" y1="7" x2="20" y2="7" stroke="#C4922A" stroke-width="2" stroke-dasharray="5,3"/>
-      </svg>
-      <span>SD-4 boundary (Becker + Clay Co.)</span>
-    </div>
-  </div><!-- .map-legend -->
+  </div>
 </section>
 
-<!-- Tooltip div -->
-<div id="map-tooltip">
-  <div class="tt-title" id="tt-title"></div>
-  <div id="tt-body"></div>
-</div>
+<div id="tooltip"><div class="tt-t" id="tt-t"></div><div id="tt-b"></div></div>
 
-<!-- ═══════════════════════════════════════════ PANEL 2: HOW ══ -->
-<section id="panel-how" class="panel">
-  <h2>&#9632; The Beam Curvature Calculator</h2>
-  <div class="how-layout">
-
-    <div class="calc-panel">
-      <h3>Inputs</h3>
-
-      <div class="calc-row">
-        <label>Distance from Radar: <span id="dist-val" class="calc-val">150 mi</span></label>
-        <input type="range" id="slider-dist" min="10" max="300" step="5" value="150"
-          oninput="updateCalc()">
-      </div>
-
-      <div class="calc-row">
-        <label>Beam Elevation Angle: <span id="elev-val" class="calc-val">0.5°</span></label>
-        <input type="range" id="slider-elev" min="0.5" max="5.0" step="0.1" value="0.5"
-          oninput="updateCalc()">
-      </div>
-
-      <div class="refraction-row">
-        <input type="checkbox" id="refraction-toggle" checked onchange="updateCalc()">
-        <label for="refraction-toggle">Standard atm. refraction (4/3 Earth model)</label>
-      </div>
-
-      <div class="calc-output">
-        <div class="output-line">
-          <span class="lbl">Beam center height:</span>
-          <span class="val" id="out-center">—</span>
-        </div>
-        <div class="output-line">
-          <span class="lbl">Bottom of beam:</span>
-          <span class="val" id="out-bottom">—</span>
-        </div>
-        <div class="output-line">
-          <span class="lbl">Bottom (meters):</span>
-          <span class="val" id="out-bottom-m">—</span>
-        </div>
-        <div class="coverage-indicator" id="cov-indicator">—</div>
-      </div>
-
-      <div class="ref-examples" style="margin-top:20px;">
-        <h3>Reference Examples</h3>
-        <table class="ref-table">
-          <thead>
-            <tr>
-              <th>Radar → Target</th>
-              <th>Distance</th>
-              <th>Beam Bottom</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>KMVX → Grant Co.</td>
-              <td>~150 mi</td>
-              <td class="val-cell">~11,200 ft</td>
-              <td class="status-severe">SEVERE GAP</td>
-            </tr>
-            <tr>
-              <td>KMPX → Grant Co.</td>
-              <td>~145 mi</td>
-              <td class="val-cell">~10,500 ft</td>
-              <td class="status-severe">SEVERE GAP</td>
-            </tr>
-            <tr>
-              <td>KMVX → Moorhead</td>
-              <td>~60 mi</td>
-              <td class="val-cell">~1,200 ft</td>
-              <td class="status-good">GOOD</td>
-            </tr>
-            <tr>
-              <td>Wendell → Grant Co.</td>
-              <td>~15 mi</td>
-              <td class="val-cell">~60 ft</td>
-              <td class="status-good">EXCELLENT</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div><!-- .calc-panel -->
-
-    <div class="diagram-area">
-      <h3>Cross-Section Diagram</h3>
-      <svg id="beam-svg" viewBox="0 0 620 200" xmlns="http://www.w3.org/2000/svg">
-        <!-- filled on init by drawBeamDiagram() -->
-      </svg>
-
-      <div class="met-note">
-        <strong>Meteorologist's note:</strong> The earth curves away from the radar beam at a rate of
-        about 1.2 miles per 100 miles of distance. Even a 0.5-degree tilt means the beam rises roughly
-        3,000 feet every 50 miles. By the time the beam reaches the center of western Minnesota from
-        the nearest NWS radar, it cannot see anything below 10,000 feet — where most severe weather,
-        including tornadoes, actually forms.
-      </div>
+<!-- ════════════════════════ PANEL 2: BEAM ════════════════════════ -->
+<section id="p-beam" class="panel">
+  <div class="calc-box">
+    <h3>Beam Curvature Calculator</h3>
+    <div class="calc-row">
+      <label>Distance from Radar: <span id="d-val" class="cv">150 mi</span></label>
+      <input type="range" id="sl-d" min="10" max="300" step="5" value="150" oninput="calc()">
     </div>
-
-  </div><!-- .how-layout -->
-</section>
-
-<!-- ═══════════════════════════════════════════ PANEL 3: COST ══ -->
-<section id="panel-cost" class="panel">
-  <h2>&#9632; The Cost of the Gap — SF580 Analysis</h2>
-
-  <div class="cost-grid">
-    <div class="cost-block">
-      <h3>Population at Risk</h3>
-      <div class="big-stat">2.5M</div>
-      <div class="stat-label">Minnesotans in Low-Level Radar Gap</div>
-      <ul class="at-risk-list" style="margin-top:12px;">
-        <li><span>▸</span>Source: Association of MN Emergency Managers (cited in SF580)</li>
-        <li><span>▸</span>Rural and tribal areas most affected</li>
-        <li><span>▸</span>Red Lake Nation — Beltrami Co. (Phase 2 coverage zone)</li>
-        <li><span>▸</span>Leech Lake area — Cass Co. (gap zone)</li>
-        <li><span>▸</span>Western MN diamond gap: most severe blind spot</li>
-      </ul>
+    <div class="calc-row">
+      <label>Beam Elevation Angle: <span id="e-val" class="cv">0.5&deg;</span></label>
+      <input type="range" id="sl-e" min="0.5" max="5.0" step="0.1" value="0.5" oninput="calc()">
     </div>
-
-    <div class="cost-block">
-      <h3>SF580 Bill Financials</h3>
-      <div class="bill-breakdown">
-        <div class="breakdown-row">
-          <span class="bl">FY2026 Appropriation</span>
-          <span class="bv">$1,270,000</span>
-        </div>
-        <div class="breakdown-row">
-          <span class="bl">FY2027 Appropriation</span>
-          <span class="bv">$2,050,000</span>
-        </div>
-        <div class="breakdown-row total-row">
-          <span class="bl">Total (2-Year)</span>
-          <span class="bv">$3,320,000</span>
-        </div>
-        <div class="breakdown-row">
-          <span class="bl">Radars Funded</span>
-          <span class="bv">Up to 8</span>
-        </div>
-        <div class="breakdown-row">
-          <span class="bl">~Cost Per Radar</span>
-          <span class="bv">~$415,000</span>
-        </div>
-        <div class="breakdown-row">
-          <span class="bl">Coverage Per Radar</span>
-          <span class="bv">60-mi radius</span>
-        </div>
-        <div class="breakdown-row">
-          <span class="bl">~Coverage Area (8 units)</span>
-          <span class="bv">~90,480 sq mi*</span>
-        </div>
-        <div class="breakdown-row">
-          <span class="bl">Cost Per Resident (gap zone)</span>
-          <span class="bv">~$1.33/person</span>
-        </div>
-        <div class="breakdown-row">
-          <span class="bl">Vendor</span>
-          <span class="bv">Climavision (Louisville, KY)</span>
-        </div>
-        <div class="breakdown-row">
-          <span class="bl">Bipartisan Co-Author</span>
-          <span class="bv">Sen. Lang (R-Olivia)</span>
-        </div>
-      </div>
-      <div style="margin-top:8px;font-family:'Courier New',monospace;font-size:0.67rem;color:#4A5A6A;">
-        * 8 × 11,310 sq mi — rough upper bound, does not account for overlap
-      </div>
+    <div class="refrac-row">
+      <input type="checkbox" id="refrac" checked onchange="calc()">
+      <label for="refrac">Standard atm. refraction (4/3 Earth model)</label>
     </div>
-  </div><!-- .cost-grid -->
-
-  <div class="chart-block">
-    <h3>What $3.27M Buys — Cost in Context</h3>
-    <div class="chart-note">Comparison of SF580 appropriation against related figures. NWS does not build new NEXRAD towers; figure shown for scale only.</div>
-    <div id="cost-chart-container">
-      <canvas id="cost-chart" height="180"></canvas>
+    <div class="calc-out">
+      <div class="out-line"><span class="ol">Beam center height:</span><span class="ov" id="o-c">--</span></div>
+      <div class="out-line"><span class="ol">Bottom of beam:</span><span class="ov" id="o-b">--</span></div>
+      <div class="out-line"><span class="ol">Bottom (meters):</span><span class="ov" id="o-m">--</span></div>
+      <div class="cov-ind" id="c-ind">--</div>
     </div>
-    <table id="cost-fallback">
-      <thead><tr><th>Item</th><th>Amount</th></tr></thead>
+    <table class="ref-tbl" style="margin-top:22px;">
+      <thead><tr><th>Radar to Target</th><th>Dist</th><th>Beam Bottom</th><th>Status</th></tr></thead>
       <tbody>
-        <tr><td>SF580 Radar Network (SF580)</td><td class="amt">$3.27M</td></tr>
-        <tr><td>One NWS NEXRAD Radar (build cost, context only)</td><td class="amt">~$7M</td></tr>
-        <tr><td>MN Emergency Management Annual Budget</td><td class="amt">~$45M</td></tr>
-        <tr><td>Avg Annual Tornado Damage in MN (10-yr avg)</td><td class="amt">~$25M</td></tr>
+        <tr><td>KMVX to Grant Co.</td><td>~150 mi</td><td class="v">~11,200 ft</td><td class="sg">SEVERE GAP</td></tr>
+        <tr><td>KMPX to Grant Co.</td><td>~145 mi</td><td class="v">~10,500 ft</td><td class="sg">SEVERE GAP</td></tr>
+        <tr><td>KMVX to Moorhead</td><td>~60 mi</td><td class="v">~1,200 ft</td><td class="ok">GOOD</td></tr>
+        <tr><td>Wendell to Grant Co.</td><td>~15 mi</td><td class="v">~60 ft</td><td class="ok">EXCELLENT</td></tr>
       </tbody>
     </table>
   </div>
 
+  <div class="diagram-col">
+    <h3>Cross-Section Diagram</h3>
+    <svg id="beam-svg" viewBox="0 0 620 220" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div class="met-note">
+      <strong>Meteorologist's note:</strong> The earth curves away from the radar beam at a rate of about 1.2 miles per 100 miles of distance. Even a 0.5-degree tilt means the beam rises roughly 3,000 feet every 50 miles. By the time the beam reaches the center of western Minnesota from the nearest NWS radar, it cannot see anything below 10,000 feet -- where most severe weather, including tornadoes, actually forms.
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════ PANEL 3: STORMS ════════════════════════ -->
+<section id="p-storms" class="panel">
+  <h2 style="color:var(--amber);font-family:'Consolas',monospace;font-size:1rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:20px;">&#9632; Storm Scenarios -- What the Gap Means</h2>
+  <div class="storms-intro">
+    <strong>Severe weather forms below 10,000 feet.</strong> That is where tornadoes develop, where hail forms, where the rotational signatures appear that trigger warnings. In the gap zone, NWS radar cannot see any of it. These scenarios illustrate what happens when storms enter the blind spot.
+  </div>
+  <div class="storm-grid">
+    <div class="storm-card">
+      <h3>Scenario: Supercell Enters Gap</h3>
+      <div class="storm-date">Based on typical June severe pattern</div>
+      <p>A supercell thunderstorm tracks northeast from South Dakota into Grant County. KMVX (Mayville) can see the storm's upper structure above 11,000 ft. It cannot see the mesocyclone at 3,000 ft where tornado rotation develops.</p>
+      <p>NWS forecasters lose the hook echo signature. The tornado warning that would normally issue with 15 minutes of lead time does not go out until the funnel is spotted visually.</p>
+      <div class="storm-warning">RESULT: Warning lead time drops from ~15 min to ~0 min. Rural residents have no siren and no alert.</div>
+      <div class="storm-stat-row">
+        <div class="storm-stat"><span class="ss-val">11,200</span><span class="ss-lab">ft beam bottom (KMVX)</span></div>
+        <div class="storm-stat"><span class="ss-val">0</span><span class="ss-lab">min radar-based warning</span></div>
+        <div class="storm-stat"><span class="ss-val">60</span><span class="ss-lab">ft beam bottom (Wendell)</span></div>
+      </div>
+    </div>
+
+    <div class="storm-card">
+      <h3>Scenario: Derecho Crosses Western MN</h3>
+      <div class="storm-date">Based on 2022 SD/MN derecho pattern</div>
+      <p>A fast-moving derecho (straight-line wind event) crosses from the Dakotas into Minnesota. Wind speeds exceed 80 mph at ground level. The bow echo structure is partially visible at upper levels, but the low-level jet driving the destruction is below 6,000 ft.</p>
+      <p>Without low-level radar data, the NWS cannot accurately estimate wind speeds or confirm the bow echo's ground-level intensity across 8 counties.</p>
+      <div class="storm-warning">RESULT: NWS issues generic severe thunderstorm warning instead of the specific "destructive winds" warning that triggers emergency alerts on cell phones.</div>
+      <div class="storm-stat-row">
+        <div class="storm-stat"><span class="ss-val">80+</span><span class="ss-lab">mph wind (ground level)</span></div>
+        <div class="storm-stat"><span class="ss-val">8</span><span class="ss-lab">counties in gap zone</span></div>
+      </div>
+    </div>
+
+    <div class="storm-card">
+      <h3>Scenario: Flash Flood in Becker County</h3>
+      <div class="storm-date">Based on training thunderstorm pattern</div>
+      <p>Multiple thunderstorm cells train over the same area near Detroit Lakes. Rainfall rates exceed 2 inches per hour. Because radar can only see the upper portions of the storms, the NWS precipitation estimate algorithm underestimates rainfall by 40-60%.</p>
+      <p>Flash flood warnings are delayed. Roads flood before alerts arrive. The Detroit Lakes area has no early warning.</p>
+      <div class="storm-warning">RESULT: Rainfall underestimated by ~50%. Flash flood warning issues 30-45 min late.</div>
+      <div class="storm-stat-row">
+        <div class="storm-stat"><span class="ss-val">2+</span><span class="ss-lab">in/hr actual rainfall</span></div>
+        <div class="storm-stat"><span class="ss-val">~50%</span><span class="ss-lab">underestimate by radar</span></div>
+      </div>
+    </div>
+
+    <div class="storm-card">
+      <h3>The Fix: With SF580 Radars</h3>
+      <div class="storm-date">Projected improvement</div>
+      <p>With 8 Climavision X-band radars deployed per SF580, each covering a 60-mile radius down to ~60 ft above ground level, the NWS and local forecasters gain the low-level data they need.</p>
+      <p>Tornado rotation signatures visible at 3,000 ft. Flash flood rainfall estimates accurate within 15%. Derecho wind structures tracked in real time. Warning lead times return to national averages.</p>
+      <div class="storm-warning" style="background:rgba(48,168,88,0.08);border-color:rgba(48,168,88,0.25);color:var(--green);">RESULT: Warning lead times restored. Population protection equivalent to the rest of Minnesota. Cost: ~$1.33 per resident.</div>
+      <div class="storm-stat-row">
+        <div class="storm-stat"><span class="ss-val" style="color:var(--green);">60</span><span class="ss-lab">ft beam bottom (X-band)</span></div>
+        <div class="storm-stat"><span class="ss-val" style="color:var(--green);">15+</span><span class="ss-lab">min warning restored</span></div>
+        <div class="storm-stat"><span class="ss-val" style="color:var(--green);">$1.33</span><span class="ss-lab">per resident</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════ PANEL 4: COST ════════════════════════ -->
+<section id="p-cost" class="panel">
+  <h2>&#9632; The Cost of the Gap -- SF580 Analysis</h2>
+  <div class="cost-grid">
+    <div class="cost-block">
+      <h3>Population at Risk</h3>
+      <div class="big-num">2.5M</div>
+      <div class="big-label">Minnesotans in Low-Level Gap</div>
+      <div style="margin-top:14px;">
+        <div class="bd-row"><span class="bl">&#9656; Source</span><span class="bv" style="font-size:0.65rem;">Assoc. MN Emergency Mgrs</span></div>
+        <div class="bd-row"><span class="bl">&#9656; Rural + tribal areas</span><span class="bv">Most affected</span></div>
+        <div class="bd-row"><span class="bl">&#9656; Red Lake Nation</span><span class="bv">Phase 2 zone</span></div>
+        <div class="bd-row"><span class="bl">&#9656; Western MN diamond</span><span class="bv">Most severe gap</span></div>
+      </div>
+    </div>
+    <div class="cost-block">
+      <h3>SF580 Bill Financials</h3>
+      <div class="bd-row"><span class="bl">FY2026 Appropriation</span><span class="bv">$1,270,000</span></div>
+      <div class="bd-row"><span class="bl">FY2027 Appropriation</span><span class="bv">$2,050,000</span></div>
+      <div class="bd-row total"><span class="bl">Total (2-Year)</span><span class="bv">$3,320,000</span></div>
+      <div class="bd-row"><span class="bl">Radars Funded</span><span class="bv">Up to 8</span></div>
+      <div class="bd-row"><span class="bl">~Cost Per Radar</span><span class="bv">~$415,000</span></div>
+      <div class="bd-row"><span class="bl">Coverage Per Radar</span><span class="bv">60-mi radius</span></div>
+      <div class="bd-row"><span class="bl">~Coverage Area (8 units)</span><span class="bv">~90,480 sq mi*</span></div>
+      <div class="bd-row"><span class="bl">Cost Per Resident</span><span class="bv">~$1.33/person</span></div>
+      <div class="bd-row"><span class="bl">Vendor</span><span class="bv">Climavision (Louisville, KY)</span></div>
+      <div class="bd-row"><span class="bl">Bipartisan Co-Author</span><span class="bv">Sen. Lang (R-Olivia)</span></div>
+      <div style="margin-top:8px;font-family:'Consolas',monospace;font-size:0.6rem;color:#4A5A6A;">* 8 x 11,310 sq mi -- rough upper bound, overlap not subtracted</div>
+    </div>
+  </div>
+
+  <div class="chart-wrap">
+    <h3>What $3.27M Buys -- Cost in Context</h3>
+    <div class="chart-note">Comparison of SF580 against related figures. NWS does not build new NEXRAD towers; figure shown for scale only.</div>
+    <div id="chart-box"><canvas id="cost-chart" height="200"></canvas></div>
+  </div>
+
   <div class="stall-block">
     <h3>Why the Bill Stalled</h3>
-    <p>SF580 passed the Agriculture, Broadband, and Rural Development Committee in March 2025
-    with bipartisan support (co-authored by Sen. Andrew Lang, R-Olivia). Sen. Kupec attributed
-    the bill's failure to advance to the Senate judiciary committee's need to prioritize prison
-    and court funding during a tight budget year — a scheduling conflict, not opposition to the
-    radar concept. The issue remains unfinished.</p>
-  </div>
-
-</section>
-
-<!-- ═══════════════════════════════════════════ PANEL 4: TIMELINE ══ -->
-<section id="panel-timeline" class="panel">
-  <h2>&#9632; Kupec's Weather Work — Career &amp; Legislative Record</h2>
-  <div class="timeline" id="timeline-container"></div>
-  <div class="timeline-caption">
-    "Before SF580, Rob Kupec had spent decades watching the radar gap affect the communities
-    he now represents. The bill is unfinished. The gap is not."
+    <p>SF580 passed the Agriculture, Broadband, and Rural Development Committee in March 2025 with bipartisan support (co-authored by Sen. Andrew Lang, R-Olivia). Sen. Kupec attributed the bill's failure to advance to the Senate judiciary committee's need to prioritize prison and court funding during a tight budget year -- a scheduling conflict, not opposition to the radar concept. The issue remains unfinished.</p>
   </div>
 </section>
 
-<footer id="site-footer">
-  Built with AI to demonstrate what's possible when software knows the work.<br>
+<!-- ════════════════════════ PANEL 5: TIMELINE ════════════════════════ -->
+<section id="p-tl" class="panel">
+  <h2>&#9632; Kupec's Weather Work -- Career &amp; Legislative Record</h2>
+  <div class="tl" id="tl-box"></div>
+  <div class="tl-cap">"Before SF580, Rob Kupec had spent decades watching the radar gap affect the communities he now represents. The bill is unfinished. The gap is not."</div>
+</section>
+
+<footer class="ftr">
+  Built with AI to demonstrate what is possible when software knows the work.<br>
   Data reflects Minnesota SF580 (2025 session) and NWS NEXRAD network as of 2025.
   Sen. Kupec represents SD-4 (Becker and Clay Counties).
 </footer>
 
 <script>
-// ══════════════════════════════════════════════════════════
-// TAB NAVIGATION
-// ══════════════════════════════════════════════════════════
-document.querySelectorAll('.tab-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+// ══════════════════════════════════════════════════
+// TAB NAV
+// ══════════════════════════════════════════════════
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    btn.classList.add('active');
-    const target = document.getElementById(btn.dataset.panel);
-    if (target) target.classList.add('active');
-    if (btn.dataset.panel === 'panel-how') { updateCalc(); }
-    if (btn.dataset.panel === 'panel-cost') { initCostChart(); }
-    if (btn.dataset.panel === 'panel-timeline') { buildTimeline(); }
+    t.classList.add('active');
+    const p = document.getElementById(t.dataset.p);
+    if (p) p.classList.add('active');
+    if (t.dataset.p === 'p-beam') calc();
+    if (t.dataset.p === 'p-cost') initChart();
+    if (t.dataset.p === 'p-tl') buildTL();
   });
 });
 
-// ══════════════════════════════════════════════════════════
-// MAP TOOLTIP
-// ══════════════════════════════════════════════════════════
-const NEXRAD_DATA = {
-  KMVX: {
-    name: 'KMVX — Mayville, ND',
-    lat: '47.528°N', lon: '97.325°W',
-    elev: '1,364 ft MSL',
-    dist: '~150 mi from Grant Co. gap center',
-    beamBottom: 'at 0.5°: ~11,200 ft beam bottom (SEVERE GAP)',
-    note: 'Covers NW Minnesota; beam overshoots entire western gap zone'
-  },
-  KDLH: {
-    name: 'KDLH — Duluth, MN',
-    lat: '46.837°N', lon: '92.210°W',
-    elev: '1,427 ft MSL',
-    dist: '~250 mi from western MN gap',
-    beamBottom: 'at 0.5°: ~35,000+ ft over western gap (no coverage)',
-    note: 'Covers NE Minnesota well; no western MN low-level coverage'
-  },
-  KMPX: {
-    name: 'KMPX — Chanhassen, MN',
-    lat: '44.849°N', lon: '93.565°W',
-    elev: '999 ft MSL',
-    dist: '~145 mi from Grant Co. gap center',
-    beamBottom: 'at 0.5°: ~10,500 ft beam bottom (SEVERE GAP)',
-    note: 'Covers central/south MN; beam too high over western gap'
-  },
-  KFSD: {
-    name: 'KFSD — Sioux Falls, SD',
-    lat: '43.588°N', lon: '96.729°W',
-    elev: '1,429 ft MSL',
-    dist: '~130 mi from SW Minnesota',
-    beamBottom: 'at 0.5°: ~8,700 ft over SW MN gap areas',
-    note: 'Covers SW Minnesota corner; partial gap area still affected'
-  },
-  KARX: {
-    name: 'KARX — La Crosse, WI',
-    lat: '43.823°N', lon: '91.191°W',
-    elev: '1,330 ft MSL',
-    dist: '~280 mi from western MN gap',
-    beamBottom: 'at 0.5°: no effective coverage over western MN',
-    note: 'Covers SE Minnesota; very limited reach into gap zones'
-  }
+// ══════════════════════════════════════════════════
+// TOOLTIP DATA
+// ══════════════════════════════════════════════════
+const NX = {
+  KMVX: { n:'KMVX -- Mayville, ND', lat:'47.528N', lon:'97.325W', el:'1,364 ft MSL', d:'~150 mi from Grant Co.', bb:'at 0.5 deg: ~11,200 ft (SEVERE GAP)', note:'Covers NW MN; beam overshoots entire western gap zone' },
+  KDLH: { n:'KDLH -- Duluth, MN', lat:'46.837N', lon:'92.210W', el:'1,427 ft MSL', d:'~250 mi from western gap', bb:'at 0.5 deg: ~35,000+ ft (no coverage)', note:'Covers NE MN well; no western low-level coverage' },
+  KMPX: { n:'KMPX -- Chanhassen, MN', lat:'44.849N', lon:'93.565W', el:'999 ft MSL', d:'~145 mi from Grant Co.', bb:'at 0.5 deg: ~10,500 ft (SEVERE GAP)', note:'Covers central/south MN; beam too high over western gap' },
+  KFSD: { n:'KFSD -- Sioux Falls, SD', lat:'43.588N', lon:'96.729W', el:'1,429 ft MSL', d:'~130 mi from SW MN', bb:'at 0.5 deg: ~8,700 ft over SW gap', note:'Covers SW MN corner; partial gap still affected' },
+  KARX: { n:'KARX -- La Crosse, WI', lat:'43.823N', lon:'91.191W', el:'1,330 ft MSL', d:'~280 mi from western gap', bb:'at 0.5 deg: no effective coverage', note:'Covers SE MN; very limited reach into gap zones' }
+};
+const CV = {
+  wendell: { n:'Wendell, MN (Grant County)', s:'ONLINE -- Unit 1 operational', ph:'Phase 1 -- already installed', cov:'60-mile radius (~11,310 sq mi)', note:'First Climavision deployment; center of severe gap diamond' },
+  faribault: { n:'Faribault County, MN', s:'PLANNED -- Phase 1', ph:'Phase 1 (pending SF580)', cov:'60-mile radius', note:'Would cover south-central MN low-level gap' },
+  kandiyohi: { n:'Kandiyohi County, MN', s:'PLANNED -- Phase 1', ph:'Phase 1 (pending SF580)', cov:'60-mile radius', note:'Would fill between KMPX and KMVX blind zones' },
+  crowwing: { n:'Crow Wing County, MN', s:'PLANNED -- Phase 1', ph:'Phase 1 (pending SF580)', cov:'60-mile radius', note:'North-central MN; active tornado risk region' },
+  beltrami: { n:'Beltrami County, MN', s:'PLANNED -- Phase 1', ph:'Phase 1 (pending SF580)', cov:'60-mile radius', note:'Near Red Lake Nation; serves tribal areas in gap' },
+  roseau: { n:'Roseau County, MN', s:'PLANNED -- Phase 2', ph:'Phase 2 (FY2027)', cov:'60-mile radius', note:'Far NW MN; extreme gap near Canadian border' },
+  koochiching: { n:'Koochiching County, MN', s:'PLANNED -- Phase 2', ph:'Phase 2 (FY2027)', cov:'60-mile radius', note:'Northern MN; covers Voyageurs/BWCA approaches' },
+  lake: { n:'Lake County, MN', s:'PLANNED -- Phase 2', ph:'Phase 2 (FY2027)', cov:'60-mile radius', note:'NE MN; fills gap between KDLH and interior MN' }
 };
 
-const CLIMA_DATA = {
-  wendell: {
-    name: 'Wendell, MN (Grant County)',
-    lat: '45.786°N', lon: '96.003°W',
-    status: 'ONLINE — Unit 1 operational',
-    phase: 'Phase 1 — already installed',
-    coverage: '60-mile radius (~11,310 sq mi)',
-    note: 'First Climavision deployment; sits at center of severe gap diamond'
-  },
-  faribault: {
-    name: 'Faribault County, MN',
-    lat: '~43.7°N, ~94.0°W',
-    status: 'PLANNED — Phase 1',
-    phase: 'Phase 1 (pending SF580 funding)',
-    coverage: '60-mile radius',
-    note: 'Would cover south-central MN low-level gap area'
-  },
-  kandiyohi: {
-    name: 'Kandiyohi County, MN',
-    lat: '~45.1°N, ~94.8°W',
-    status: 'PLANNED — Phase 1',
-    phase: 'Phase 1 (pending SF580 funding)',
-    coverage: '60-mile radius',
-    note: 'Would improve coverage between KMPX and KMVX blind zones'
-  },
-  crowwing: {
-    name: 'Crow Wing County, MN',
-    lat: '~46.4°N, ~94.3°W',
-    status: 'PLANNED — Phase 1',
-    phase: 'Phase 1 (pending SF580 funding)',
-    coverage: '60-mile radius',
-    note: 'North-central MN gap zone; active tornado risk region'
-  },
-  beltrami: {
-    name: 'Beltrami County, MN',
-    lat: '~47.7°N, ~95.0°W',
-    status: 'PLANNED — Phase 1',
-    phase: 'Phase 1 (pending SF580 funding)',
-    coverage: '60-mile radius',
-    note: 'Near Red Lake Nation; would serve tribal areas in the gap'
-  },
-  roseau: {
-    name: 'Roseau County, MN',
-    lat: '~48.8°N, ~95.8°W',
-    status: 'PLANNED — Phase 2',
-    phase: 'Phase 2 (pending SF580 FY2027 funding)',
-    coverage: '60-mile radius',
-    note: 'Far NW Minnesota; extreme low-level gap region near Canadian border'
-  },
-  koochiching: {
-    name: 'Koochiching County, MN',
-    lat: '~48.1°N, ~93.8°W',
-    status: 'PLANNED — Phase 2',
-    phase: 'Phase 2 (pending SF580 FY2027 funding)',
-    coverage: '60-mile radius',
-    note: 'Northern MN gap zone; covers Voyageurs and Boundary Waters approaches'
-  },
-  lake: {
-    name: 'Lake County, MN',
-    lat: '~47.3°N, ~91.5°W',
-    status: 'PLANNED — Phase 2',
-    phase: 'Phase 2 (pending SF580 FY2027 funding)',
-    coverage: '60-mile radius',
-    note: 'NE Minnesota; would fill coverage gap between KDLH and interior MN'
-  }
-};
-
-let hideTimer = null;
-
-function showNexradTip(event, id) {
-  clearTimeout(hideTimer);
-  const d = NEXRAD_DATA[id];
-  if (!d) return;
-  const tt = document.getElementById('map-tooltip');
-  document.getElementById('tt-title').textContent = d.name;
-  document.getElementById('tt-body').innerHTML =
-    `<div>Lat: ${d.lat} | Lon: ${d.lon}</div>` +
-    `<div>Elevation: ${d.elev}</div>` +
-    `<div style="margin-top:5px;color:#E9A84A;">${d.dist}</div>` +
-    `<div style="color:#C1121F;">${d.beamBottom}</div>` +
-    `<div style="margin-top:5px;color:#9AAABB;font-size:0.68rem;">${d.note}</div>`;
-  positionTip(event, tt);
+let hideT = null;
+function showNx(e, id) {
+  clearTimeout(hideT);
+  const d = NX[id]; if (!d) return;
+  document.getElementById('tt-t').textContent = d.n;
+  document.getElementById('tt-b').innerHTML =
+    `<div>Lat: ${d.lat} | Lon: ${d.lon}</div><div>Elevation: ${d.el}</div>` +
+    `<div style="margin-top:5px;color:#E89840;">${d.d}</div>` +
+    `<div style="color:#E03030;">${d.bb}</div>` +
+    `<div style="margin-top:5px;color:#8A9AB0;font-size:0.65rem;">${d.note}</div>`;
+  posTip(e);
 }
-
-function showClimaTip(event, id) {
-  clearTimeout(hideTimer);
-  const d = CLIMA_DATA[id];
-  if (!d) return;
-  const tt = document.getElementById('map-tooltip');
-  document.getElementById('tt-title').textContent = d.name;
-  const statusColor = d.status.includes('ONLINE') ? '#3BAFDA' : '#5E8C8A';
-  document.getElementById('tt-body').innerHTML =
-    `<div style="color:${statusColor};font-weight:bold;">${d.status}</div>` +
-    `<div>${d.phase}</div>` +
-    `<div style="margin-top:4px;">Coverage: ${d.coverage}</div>` +
-    `<div style="margin-top:5px;color:#9AAABB;font-size:0.68rem;">${d.note}</div>`;
-  positionTip(event, tt);
+function showCv(e, id) {
+  clearTimeout(hideT);
+  const d = CV[id]; if (!d) return;
+  document.getElementById('tt-t').textContent = d.n;
+  const sc = d.s.includes('ONLINE') ? '#40C8F0' : '#40A898';
+  document.getElementById('tt-b').innerHTML =
+    `<div style="color:${sc};font-weight:bold;">${d.s}</div><div>${d.ph}</div>` +
+    `<div style="margin-top:4px;">Coverage: ${d.cov}</div>` +
+    `<div style="margin-top:5px;color:#8A9AB0;font-size:0.65rem;">${d.note}</div>`;
+  posTip(e);
 }
-
-function positionTip(event, tt) {
+function posTip(e) {
+  const tt = document.getElementById('tooltip');
   tt.style.display = 'block';
-  const x = event.clientX + 14;
-  const y = event.clientY - 10;
-  const w = window.innerWidth;
-  const ttW = 240;
-  tt.style.left = (x + ttW > w ? x - ttW - 20 : x) + 'px';
+  const x = e.clientX + 14, y = e.clientY - 10;
+  tt.style.left = (x + 260 > innerWidth ? x - 270 : x) + 'px';
   tt.style.top = y + 'px';
 }
+function delayHide() { hideT = setTimeout(hideTip, 250); }
+function hideTip() { document.getElementById('tooltip').style.display = 'none'; }
+function mapMove(e) { const tt = document.getElementById('tooltip'); if (tt.style.display === 'block') posTip(e); }
 
-function delayHide() {
-  hideTimer = setTimeout(hideTooltip, 250);
-}
-
-function hideTooltip() {
-  document.getElementById('map-tooltip').style.display = 'none';
-}
-
-function handleMapMove(event) {
-  const tt = document.getElementById('map-tooltip');
-  if (tt.style.display === 'block') {
-    positionTip(event, tt);
-  }
-}
-
-// ══════════════════════════════════════════════════════════
-// MAP TOGGLE (SF580 Fix)
-// ══════════════════════════════════════════════════════════
-let showFix = false;
-function toggleCoverage() {
+// ══════════════════════════════════════════════════
+// MAP TOGGLES
+// ══════════════════════════════════════════════════
+let showFix = false, showStorm = false;
+document.getElementById('fix-btn').addEventListener('click', function() {
   showFix = !showFix;
-  const overlay = document.getElementById('sf580-overlay');
-  const btn = document.getElementById('toggle-btn');
-  if (showFix) {
-    overlay.style.display = 'block';
-    btn.textContent = 'SHOW WITHOUT SF580 FIX';
-    btn.classList.add('fix-active');
+  document.getElementById('sf580-ov').style.display = showFix ? 'block' : 'none';
+  this.textContent = showFix ? 'Hide SF580 Fix' : 'Show with SF580 Fix';
+  this.classList.toggle('on', showFix);
+});
+document.getElementById('storm-btn').addEventListener('click', function() {
+  showStorm = !showStorm;
+  const cell = document.getElementById('storm-cell');
+  const sweep = document.getElementById('sweep-line');
+  if (showStorm) {
+    cell.style.display = 'block';
+    setTimeout(() => cell.style.opacity = '1', 50);
+    sweep.style.opacity = '0.4';
+    this.textContent = 'Hide Storm';
   } else {
-    overlay.style.display = 'none';
-    btn.textContent = 'SHOW WITH SF580 FIX';
-    btn.classList.remove('fix-active');
+    cell.style.opacity = '0';
+    setTimeout(() => cell.style.display = 'none', 1000);
+    sweep.style.opacity = '0';
+    this.textContent = 'Animate Storm';
   }
+  this.classList.toggle('on', showStorm);
+});
+
+// ══════════════════════════════════════════════════
+// BEAM CALCULATOR
+// ══════════════════════════════════════════════════
+function beamH(rMi, eDeg, ref) {
+  const ke = ref ? 4/3 : 1.0, R = 6371000;
+  const r = rMi * 1609.34, th = eDeg * Math.PI / 180, ha = 30;
+  const hM = Math.sqrt(r*r + (ke*R)*(ke*R) + 2*r*(ke*R)*Math.sin(th)) - ke*R + ha;
+  const cFt = hM * 3.28084;
+  const bw = 0.5 * Math.PI / 180;
+  const bOff = r * Math.sin(bw) * 3.28084;
+  const bFt = Math.max(0, cFt - bOff);
+  let cls;
+  if (bFt < 3000) cls = 'good';
+  else if (bFt < 6000) cls = 'partial';
+  else if (bFt < 10000) cls = 'gap';
+  else cls = 'severe';
+  return { cFt, bFt, bM: bFt / 3.28084, cls };
 }
 
-// ══════════════════════════════════════════════════════════
-// BEAM HEIGHT CALCULATOR
-// ══════════════════════════════════════════════════════════
-function beamHeightCalc(rangeMiles, elevDeg, useRefraction) {
-  // 4/3 Earth radius model
-  const ke = useRefraction ? 4/3 : 1.0;
-  const R = 6371000; // meters
-  const r = rangeMiles * 1609.34; // convert to meters
-  const theta = elevDeg * Math.PI / 180;
-  const ha = 30; // antenna height AGL in meters
-
-  // Standard formula: h = sqrt(r^2 + (ke*R)^2 + 2*r*ke*R*sin(theta)) - ke*R + ha
-  const hMeters = Math.sqrt(r*r + (ke*R)*(ke*R) + 2*r*(ke*R)*Math.sin(theta)) - ke*R + ha;
-  const centerFt = hMeters * 3.28084;
-
-  // Bottom of beam: subtract half-beamwidth effect
-  // NEXRAD beamwidth ~1.0 deg; bottom = center - range * sin(0.5 deg)
-  const halfBW = 0.5 * Math.PI / 180;
-  const bottomOffset = r * Math.sin(halfBW) * 3.28084;
-  const bottomFt = Math.max(0, centerFt - bottomOffset);
-  const bottomM = bottomFt / 3.28084;
-
-  let coverageClass;
-  if (bottomFt < 3000) coverageClass = 'good';
-  else if (bottomFt < 6000) coverageClass = 'partial';
-  else if (bottomFt < 10000) coverageClass = 'gap';
-  else coverageClass = 'severe-gap';
-
-  return { centerFt, bottomFt, bottomM, coverageClass };
+function calc() {
+  const d = +document.getElementById('sl-d').value;
+  const e = +document.getElementById('sl-e').value;
+  const ref = document.getElementById('refrac').checked;
+  document.getElementById('d-val').textContent = d + ' mi';
+  document.getElementById('e-val').innerHTML = e.toFixed(1) + '&deg;';
+  const r = beamH(d, e, ref);
+  document.getElementById('o-c').textContent = Math.round(r.cFt).toLocaleString() + ' ft';
+  document.getElementById('o-b').textContent = Math.round(r.bFt).toLocaleString() + ' ft';
+  document.getElementById('o-m').textContent = Math.round(r.bM).toLocaleString() + ' m';
+  const ind = document.getElementById('c-ind');
+  ind.className = 'cov-ind';
+  const labs = { good:'GOOD COVERAGE', partial:'PARTIAL GAP (3,000-6,000 ft)', gap:'GAP ZONE (6,000-10,000 ft)', severe:'SEVERE GAP (> 10,000 ft)' };
+  ind.classList.add(r.cls);
+  ind.textContent = labs[r.cls];
+  drawBeam(d, e, r);
 }
 
-function updateCalc() {
-  const dist = parseFloat(document.getElementById('slider-dist').value);
-  const elev = parseFloat(document.getElementById('slider-elev').value);
-  const refrac = document.getElementById('refraction-toggle').checked;
-
-  document.getElementById('dist-val').textContent = dist + ' mi';
-  document.getElementById('elev-val').textContent = elev.toFixed(1) + '°';
-
-  const result = beamHeightCalc(dist, elev, refrac);
-
-  document.getElementById('out-center').textContent =
-    Math.round(result.centerFt).toLocaleString() + ' ft';
-  document.getElementById('out-bottom').textContent =
-    Math.round(result.bottomFt).toLocaleString() + ' ft';
-  document.getElementById('out-bottom-m').textContent =
-    Math.round(result.bottomM).toLocaleString() + ' m';
-
-  const ind = document.getElementById('cov-indicator');
-  ind.className = 'coverage-indicator';
-  const labels = {
-    'good': 'GOOD COVERAGE',
-    'partial': 'PARTIAL GAP (3,000–6,000 ft)',
-    'gap': 'GAP ZONE (6,000–10,000 ft)',
-    'severe-gap': 'SEVERE GAP (> 10,000 ft)'
-  };
-  const classes = {
-    'good': 'good', 'partial': 'partial',
-    'gap': 'gap', 'severe-gap': 'severe'
-  };
-  ind.classList.add(classes[result.coverageClass]);
-  ind.textContent = labels[result.coverageClass];
-
-  drawBeamDiagram(document.getElementById('beam-svg'), dist, elev, result);
-}
-
-// ── SVG BEAM DIAGRAM ─────────────────────────────────────
-function drawBeamDiagram(svg, rangeMiles, elevDeg, result) {
-  const W = 620, H = 200;
-  const groundY = 165;
-  const towerX = 50;
-  const rightEdgeX = 570;
-  const maxDist = 300; // miles for full scale
-
-  // Scale: x position = towerX + (rangeMiles / maxDist) * (rightEdgeX - towerX)
-  const scaleX = (miles) => towerX + (miles / maxDist) * (rightEdgeX - towerX);
-  const markerX = scaleX(rangeMiles);
-
-  // Earth curve: y drop at distance x from tower
-  // Using simplified: drop_ft = (dist_miles^2) / (2 * 3959) * 5280  (no refraction)
-  // Scaled to SVG: each ft = (groundY - 10) / 50000 (50,000 ft max height)
-  const ftToSvgY = (ft) => groundY - (ft / 40000) * (groundY - 20);
-
-  // Compute beam height at multiple points for drawing
-  const nPoints = 40;
-  let beamCenterPts = [], beamTopPts = [], beamBotPts = [];
-  const refrac = document.getElementById('refraction-toggle').checked;
-
-  for (let i = 0; i <= nPoints; i++) {
-    const d = (i / nPoints) * rangeMiles;
-    if (d < 1) {
-      beamCenterPts.push([scaleX(d), groundY - 6]);
-      beamTopPts.push([scaleX(d), groundY - 6]);
-      beamBotPts.push([scaleX(d), groundY - 6]);
-      continue;
-    }
-    const b = beamHeightCalc(d, elevDeg, refrac);
-    beamCenterPts.push([scaleX(d), ftToSvgY(b.centerFt)]);
-    beamTopPts.push([scaleX(d), ftToSvgY(b.centerFt + b.centerFt * 0.03)]);
-    beamBotPts.push([scaleX(d), ftToSvgY(b.bottomFt)]);
+function drawBeam(rMi, eDeg, res) {
+  const svg = document.getElementById('beam-svg');
+  const W = 620, H = 220, gY = 180, tX = 50, rX = 570;
+  const scX = mi => tX + (mi / 300) * (rX - tX);
+  const mX = scX(rMi);
+  const ftY = ft => gY - (ft / 45000) * (gY - 20);
+  const ref = document.getElementById('refrac').checked;
+  const N = 40;
+  let cPts = [], tPts = [], bPts = [];
+  for (let i = 0; i <= N; i++) {
+    const dd = (i / N) * rMi;
+    if (dd < 1) { cPts.push([scX(dd), gY-6]); tPts.push([scX(dd), gY-6]); bPts.push([scX(dd), gY-6]); continue; }
+    const b = beamH(dd, eDeg, ref);
+    cPts.push([scX(dd), ftY(b.cFt)]);
+    tPts.push([scX(dd), ftY(b.cFt + b.cFt * 0.03)]);
+    bPts.push([scX(dd), ftY(b.bFt)]);
   }
-
-  // Earth curvature arc points
-  let earthPts = [];
+  let ePts = [];
   for (let i = 0; i <= 50; i++) {
-    const d = (i / 50) * rangeMiles;
-    const curveFt = (d * d * 5280) / (2 * 3959 * 5280) * 5280;
-    const ex = scaleX(d);
-    const ey = groundY + (curveFt / 40000) * 30;
-    earthPts.push([ex, Math.min(ey, H - 4)]);
+    const dd = (i / 50) * rMi;
+    const cFt = (dd * dd * 5280) / (2 * 3959 * 5280) * 5280;
+    ePts.push([scX(dd), Math.min(gY + (cFt / 45000) * 30, H - 4)]);
   }
-
-  // Gap color zone
-  const gapColors = {
-    'good': '#2D8A4F', 'partial': '#E9A84A', 'gap': '#E08050', 'severe-gap': '#C1121F'
-  };
-  const gapColor = gapColors[result.coverageClass];
-
-  let html = '';
-
-  // Sky background
-  html += `<rect x="0" y="0" width="${W}" height="${H}" fill="#0A1018"/>`;
-
-  // Grid lines
-  for (let y = groundY; y > 20; y -= 28) {
-    html += `<line x1="${towerX}" y1="${y}" x2="${rightEdgeX}" y2="${y}"
-      stroke="#1A2A3A" stroke-width="0.7"/>`;
-  }
-
-  // Altitude axis labels
-  const ftLabels = [0, 10000, 20000, 30000, 40000];
-  ftLabels.forEach(ft => {
-    const ly = ftToSvgY(ft);
-    if (ly > 10 && ly < groundY) {
-      html += `<text x="${towerX - 4}" y="${ly + 3}" text-anchor="end"
-        fill="#3A4A5A" font-size="8" font-family="'Courier New',monospace">${ft/1000}k</text>`;
-      html += `<text x="${towerX - 4}" y="${ly + 11}" text-anchor="end"
-        fill="#2A3A4A" font-size="6" font-family="'Courier New',monospace">ft</text>`;
-    }
-  });
-
-  // Earth surface fill
-  html += `<polygon points="${earthPts.map(p => p.join(',')).join(' ')} ${rightEdgeX},${H} ${towerX},${H}"
-    fill="#1A3020"/>`;
-
-  // Earth surface arc
-  html += `<polyline points="${earthPts.map(p => p.join(',')).join(' ')}"
-    fill="none" stroke="#2D8A4F" stroke-width="1.2"/>`;
-
-  // Gap zone column at marker distance
-  const bottomY = beamBotPts[beamBotPts.length - 1][1];
-  html += `<rect x="${markerX - 3}" y="${bottomY}"
-    width="6" height="${groundY - bottomY}"
-    fill="${gapColor}" opacity="0.18"/>`;
-
-  // Beam polygon (filled beam area)
-  const topPath = beamTopPts.map((p, i) => (i === 0 ? 'M' : 'L') + p[0] + ',' + p[1]).join(' ');
-  const botPath = [...beamBotPts].reverse().map(p => 'L' + p[0] + ',' + p[1]).join(' ');
-  html += `<path d="${topPath} ${botPath} Z"
-    fill="#3B7FBF" opacity="0.15"/>`;
-
-  // Beam center line
-  html += `<polyline points="${beamCenterPts.map(p => p.join(',')).join(' ')}"
-    fill="none" stroke="#3B7FBF" stroke-width="1.5" opacity="0.8"/>`;
-
-  // Beam top/bottom dashed borders
-  html += `<polyline points="${beamTopPts.map(p => p.join(',')).join(' ')}"
-    fill="none" stroke="#3B7FBF" stroke-width="0.8" stroke-dasharray="3,2" opacity="0.5"/>`;
-  html += `<polyline points="${beamBotPts.map(p => p.join(',')).join(' ')}"
-    fill="none" stroke="${gapColor}" stroke-width="1" stroke-dasharray="3,2" opacity="0.7"/>`;
-
-  // Vertical marker at selected distance
-  html += `<line x1="${markerX}" y1="${bottomY}" x2="${markerX}" y2="${groundY}"
-    stroke="${gapColor}" stroke-width="1.5" opacity="0.8"/>`;
-  html += `<line x1="${markerX}" y1="${beamCenterPts[beamCenterPts.length-1][1]}"
-    x2="${markerX}" y2="${bottomY}"
-    stroke="#3B7FBF" stroke-width="1.5" opacity="0.6"/>`;
-
-  // Tick mark at marker
-  html += `<line x1="${markerX}" y1="${groundY}" x2="${markerX}" y2="${groundY + 6}"
-    stroke="#6B7B8D" stroke-width="1.2"/>`;
-  html += `<text x="${markerX}" y="${groundY + 16}" text-anchor="middle"
-    fill="#6B7B8D" font-size="8" font-family="'Courier New',monospace">${rangeMiles}mi</text>`;
-
-  // Height annotation
-  const beamBotY = beamBotPts[beamBotPts.length - 1][1];
-  if (beamBotY < groundY - 10) {
-    html += `<text x="${markerX + 5}" y="${beamBotY - 3}"
-      fill="${gapColor}" font-size="8" font-family="'Courier New',monospace">
-      ${Math.round(result.bottomFt).toLocaleString()}ft</text>`;
-  }
-
-  // Radar tower icon
-  html += `<rect x="${towerX - 4}" y="${groundY - 30}" width="8" height="30"
-    fill="#6B7B8D"/>`;
-  html += `<polygon points="${towerX},${groundY - 34} ${towerX - 8},${groundY - 22} ${towerX + 8},${groundY - 22}"
-    fill="#C4922A"/>`;
-  html += `<text x="${towerX}" y="${groundY + 16}" text-anchor="middle"
-    fill="#C4922A" font-size="8" font-family="'Courier New',monospace">NWS</text>`;
-
-  // Storm cell icon at marker (cloud outline)
-  const cloudX = markerX;
-  const cloudY = beamCenterPts[beamCenterPts.length - 1][1] - 18;
-  if (cloudY > 12) {
-    html += `<ellipse cx="${cloudX}" cy="${cloudY}" rx="14" ry="8" fill="#1A2840" stroke="#4A6080" stroke-width="0.8"/>`;
-    html += `<ellipse cx="${cloudX - 8}" cy="${cloudY + 3}" rx="9" ry="6" fill="#1A2840" stroke="#4A6080" stroke-width="0.8"/>`;
-    html += `<ellipse cx="${cloudX + 8}" cy="${cloudY + 4}" rx="10" ry="7" fill="#1A2840" stroke="#4A6080" stroke-width="0.8"/>`;
-    // Lightning bolt if severe
-    if (result.coverageClass === 'severe-gap' || result.coverageClass === 'gap') {
-      html += `<polyline points="${cloudX + 2},${cloudY + 10} ${cloudX - 3},${cloudY + 18} ${cloudX + 1},${cloudY + 18} ${cloudX - 4},${cloudY + 26}"
-        stroke="#E9A84A" stroke-width="1.2" fill="none"/>`;
+  const gc = { good:'#30A858', partial:'#E89840', gap:'#E08050', severe:'#E03030' }[res.cls];
+  let h = '';
+  h += `<rect x="0" y="0" width="${W}" height="${H}" fill="#060A10"/>`;
+  for (let y = gY; y > 20; y -= 32) h += `<line x1="${tX}" y1="${y}" x2="${rX}" y2="${y}" stroke="#142030" stroke-width="0.7"/>`;
+  [0,10000,20000,30000,40000].forEach(ft => { const ly = ftY(ft); if (ly > 10 && ly < gY) { h += `<text x="${tX-4}" y="${ly+3}" text-anchor="end" fill="#2A3A4A" font-size="8" font-family="'Consolas',monospace">${ft/1000}k ft</text>`; }});
+  h += `<polygon points="${ePts.map(p=>p.join(',')).join(' ')} ${rX},${H} ${tX},${H}" fill="#102820"/>`;
+  h += `<polyline points="${ePts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="#30A858" stroke-width="1.2"/>`;
+  const byB = bPts[bPts.length-1][1];
+  h += `<rect x="${mX-3}" y="${byB}" width="6" height="${gY-byB}" fill="${gc}" opacity="0.18"/>`;
+  h += `<path d="${tPts.map((p,i)=>(i?'L':'M')+p.join(',')).join(' ')} ${[...bPts].reverse().map(p=>'L'+p.join(',')).join(' ')} Z" fill="#3B7FBF" opacity="0.15"/>`;
+  h += `<polyline points="${cPts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="#3B7FBF" stroke-width="1.5" opacity="0.8"/>`;
+  h += `<polyline points="${tPts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="#3B7FBF" stroke-width="0.8" stroke-dasharray="3,2" opacity="0.5"/>`;
+  h += `<polyline points="${bPts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="${gc}" stroke-width="1" stroke-dasharray="3,2" opacity="0.7"/>`;
+  h += `<line x1="${mX}" y1="${byB}" x2="${mX}" y2="${gY}" stroke="${gc}" stroke-width="1.5" opacity="0.8"/>`;
+  h += `<line x1="${mX}" y1="${gY}" x2="${mX}" y2="${gY+6}" stroke="#6B7B8D" stroke-width="1.2"/>`;
+  h += `<text x="${mX}" y="${gY+16}" text-anchor="middle" fill="#6B7B8D" font-size="8" font-family="'Consolas',monospace">${rMi}mi</text>`;
+  if (byB < gY - 10) h += `<text x="${mX+5}" y="${byB-3}" fill="${gc}" font-size="8" font-family="'Consolas',monospace">${Math.round(res.bFt).toLocaleString()}ft</text>`;
+  h += `<rect x="${tX-4}" y="${gY-30}" width="8" height="30" fill="#6B7B8D"/>`;
+  h += `<polygon points="${tX},${gY-34} ${tX-8},${gY-22} ${tX+8},${gY-22}" fill="#D4A840"/>`;
+  h += `<text x="${tX}" y="${gY+16}" text-anchor="middle" fill="#D4A840" font-size="8" font-family="'Consolas',monospace">NWS</text>`;
+  const cX2 = mX, cY2 = cPts[cPts.length-1][1] - 20;
+  if (cY2 > 12) {
+    h += `<ellipse cx="${cX2}" cy="${cY2}" rx="14" ry="8" fill="#142030" stroke="#3A5070" stroke-width="0.8"/>`;
+    h += `<ellipse cx="${cX2-8}" cy="${cY2+3}" rx="9" ry="6" fill="#142030" stroke="#3A5070" stroke-width="0.8"/>`;
+    h += `<ellipse cx="${cX2+8}" cy="${cY2+4}" rx="10" ry="7" fill="#142030" stroke="#3A5070" stroke-width="0.8"/>`;
+    if (res.cls === 'severe' || res.cls === 'gap') {
+      h += `<polyline points="${cX2+2},${cY2+10} ${cX2-3},${cY2+18} ${cX2+1},${cY2+18} ${cX2-4},${cY2+26}" stroke="#E89840" stroke-width="1.2" fill="none"/>`;
     }
   }
-
-  // Distance axis label
-  html += `<text x="${(towerX + rightEdgeX) / 2}" y="${H - 2}" text-anchor="middle"
-    fill="#3A4A5A" font-size="8" font-family="'Courier New',monospace">
-    Distance from Radar (0 → ${rangeMiles} miles)</text>`;
-
-  // Y-axis label
-  html += `<text x="8" y="${groundY / 2 + 20}" text-anchor="middle"
-    fill="#3A4A5A" font-size="7" font-family="'Courier New',monospace"
-    transform="rotate(-90, 8, ${groundY / 2})">Altitude (ft)</text>`;
-
-  svg.innerHTML = html;
+  h += `<text x="${(tX+rX)/2}" y="${H-2}" text-anchor="middle" fill="#2A3A4A" font-size="8" font-family="'Consolas',monospace">Distance from Radar (0 to ${rMi} miles)</text>`;
+  svg.innerHTML = h;
 }
 
-// ══════════════════════════════════════════════════════════
-// COST CHART (Chart.js)
-// ══════════════════════════════════════════════════════════
-let costChart = null;
-function initCostChart() {
-  if (costChart) return;
-  if (typeof Chart === 'undefined') {
-    document.getElementById('cost-chart-container').style.display = 'none';
-    document.getElementById('cost-fallback').style.display = 'table';
-    return;
-  }
-  const ctx = document.getElementById('cost-chart').getContext('2d');
-  costChart = new Chart(ctx, {
+// ══════════════════════════════════════════════════
+// COST CHART
+// ══════════════════════════════════════════════════
+let cc = null;
+function initChart() {
+  if (cc) return;
+  if (typeof Chart === 'undefined') return;
+  cc = new Chart(document.getElementById('cost-chart').getContext('2d'), {
     type: 'bar',
     data: {
-      labels: [
-        'SF580 Radar Network',
-        'One NWS NEXRAD\n(build cost, context)',
-        'MN Emergency Mgmt\nAnnual Budget',
-        'Avg Annual Tornado\nDamage in MN (10-yr)'
-      ],
-      datasets: [{
-        label: 'Cost (millions $)',
-        data: [3.27, 7.0, 45.0, 25.0],
-        backgroundColor: [
-          'rgba(59, 175, 218, 0.7)',
-          'rgba(107, 123, 141, 0.6)',
-          'rgba(193, 18, 31, 0.5)',
-          'rgba(233, 168, 74, 0.65)'
-        ],
-        borderColor: [
-          '#3BAFDA',
-          '#6B7B8D',
-          '#C1121F',
-          '#E9A84A'
-        ],
-        borderWidth: 1.5
-      }]
+      labels: ['SF580 Radar Network', 'One NWS NEXRAD\n(context only)', 'MN Emergency Mgmt\nAnnual Budget', 'Avg Annual Tornado\nDamage in MN (10-yr)'],
+      datasets: [{ label: 'Cost ($M)', data: [3.27, 7.0, 45.0, 25.0],
+        backgroundColor: ['rgba(64,200,240,0.7)','rgba(138,154,176,0.5)','rgba(224,48,48,0.4)','rgba(232,152,64,0.6)'],
+        borderColor: ['#40C8F0','#8A9AB0','#E03030','#E89840'], borderWidth: 1.5 }]
     },
     options: {
-      indexAxis: 'y',
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: (ctx) => ' $' + ctx.raw.toFixed(2) + 'M'
-          },
-          backgroundColor: '#0A1018',
-          borderColor: '#C4922A',
-          borderWidth: 1,
-          titleColor: '#C4922A',
-          bodyColor: '#3BAFDA',
-          titleFont: { family: "'Courier New', monospace", size: 12 },
-          bodyFont: { family: "'Courier New', monospace", size: 12 }
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false },
+        tooltip: { callbacks: { label: c => ' $' + c.raw.toFixed(2) + 'M' },
+          backgroundColor: '#060A10', borderColor: '#D4A840', borderWidth: 1,
+          titleColor: '#D4A840', bodyColor: '#40C8F0',
+          titleFont: { family: "'Consolas', monospace", size: 12 },
+          bodyFont: { family: "'Consolas', monospace", size: 12 }
         }
       },
       scales: {
-        x: {
-          beginAtZero: true,
-          grid: { color: '#1E2D40' },
-          ticks: {
-            color: '#6B7B8D',
-            font: { family: "'Courier New', monospace", size: 10 },
-            callback: (v) => '$' + v + 'M'
-          }
-        },
-        y: {
-          grid: { color: '#1E2D40' },
-          ticks: {
-            color: '#9AAABB',
-            font: { family: "'Courier New', monospace", size: 10 }
-          }
-        }
+        x: { beginAtZero: true, grid: { color: '#1E2D42' }, ticks: { color: '#6B7B8D', font: { family: "'Consolas', monospace", size: 10 }, callback: v => '$' + v + 'M' } },
+        y: { grid: { color: '#1E2D42' }, ticks: { color: '#8A9AB0', font: { family: "'Consolas', monospace", size: 10 } } }
       }
     }
   });
 }
 
-// ══════════════════════════════════════════════════════════
-// TIMELINE (Section 4)
-// ══════════════════════════════════════════════════════════
-const TIMELINE_DATA = [
-  {
-    date: '~Early 2000s',
-    title: 'WDAY-TV Fargo — Meteorologist',
-    type: 'career',
-    items: [
-      'Joined WDAY-TV Fargo as staff meteorologist',
-      'Worked alongside veteran forecaster John Wheeler',
-      'Covered Red River Valley flooding and severe weather seasons for the Fargo-Moorhead metro',
-      'Western Minnesota communities — now his constituents — were his viewing area'
-    ]
-  },
-  {
-    date: '~2005–2013',
-    title: 'Chief Meteorologist, KVRR-TV Fargo',
-    type: 'highlight',
-    items: [
-      'Nearly 8 years as primary forecaster for western MN and eastern ND',
-      'Covered Red River Valley historic flood years — 2009, 2011',
-      'Worked severe weather events where radar gap created warning challenges across the viewing area',
-      'Built direct expertise with NEXRAD beam height limitations over western Minnesota'
-    ]
-  },
-  {
-    date: '2022',
-    title: 'Elected — Minnesota Senate District 4',
-    type: 'highlight',
-    items: [
-      'Elected to represent Becker and Clay Counties (Moorhead, Detroit Lakes)',
-      'First senator from the Moorhead area with a professional meteorology background',
-      'Brought technical understanding of weather warning infrastructure to the legislature'
-    ]
-  },
-  {
-    date: 'January 2023',
-    title: 'Sworn In — Committee Assignments',
-    type: 'default',
-    items: [
-      'Vice Chair: Agriculture, Broadband, and Rural Development Committee',
-      'Health and Human Services Committee',
-      'Higher Education Committee',
-      'Labor Committee'
-    ]
-  },
-  {
-    date: '2025 Session',
-    title: 'SF580 — Supplemental Weather Radar',
-    type: 'highlight',
-    bill: 'SF580',
-    items: [
-      '$3.27 million to fund up to 8 Climavision X-band radars statewide',
-      'Bipartisan co-author: Sen. Andrew Lang (R-Olivia)',
-      'Passed Agriculture, Broadband, and Rural Development Committee',
-      'Did not advance — judiciary budget competition; Kupec calls it unfinished'
-    ]
-  },
-  {
-    date: '2025 Session',
-    title: 'SF1552 — Grain Buyer Financial Reporting Reform',
-    type: 'law',
-    bill: 'SF1552',
-    law: 'Chapter 1, 2025',
-    items: [
-      'Reduced CPA audit burden for grain buyers under $7.5M annual purchases',
-      'Passed Senate 66–0; passed House 123–10',
-      'First bill signed into law by Gov. Walz in 2025 session (Chapter 1)'
-    ]
-  },
-  {
-    date: '2025 Session',
-    title: 'SF1178 & SF934 — Agriculture Research Funding',
-    type: 'default',
-    items: [
-      'SF1178: $11.1 million for U of MN AGREETT program',
-      'SF934: $4.5 million for Agricultural Utilization Research Institute (AURI)'
-    ]
-  },
-  {
-    date: '2025 Session',
-    title: 'SF1946 & SF1947 — Non-Opioid Medication Coverage',
-    type: 'default',
-    items: [
-      'Requires health insurers to cover non-opioid pain management alternatives',
-      'Bipartisan effort with Sen. Abeler',
-      'Part of broader health insurance reform agenda'
-    ]
-  },
-  {
-    date: '2026 Session',
-    title: 'SF3832 — DAIRI Dairy Program Expansion',
-    type: 'law',
-    bill: 'SF3832',
-    law: 'Passed 66–0',
-    items: [
-      'Expanded DAIRI program eligibility to dairy farms started after 2022',
-      'Passed Senate 66–0',
-      'Supports newer dairy operations in western Minnesota — Kupec district'
-    ]
-  },
-  {
-    date: 'Ongoing',
-    title: 'SF580 — Unfinished',
-    type: 'highlight',
-    items: [
-      'Kupec has explicitly stated the radar gap bill is unfinished',
-      'Climavision Unit 1 (Wendell, MN) remains the only operational supplemental radar',
-      'Western Minnesota severe gap still exists — no radar coverage below ~10,000 ft',
-      '2.5 million Minnesotans remain in the low-level gap zone'
-    ]
-  }
+// ══════════════════════════════════════════════════
+// TIMELINE
+// ══════════════════════════════════════════════════
+const TL = [
+  { d:'~Early 2000s', t:'WDAY-TV Fargo -- Meteorologist', type:'', items:['Joined WDAY-TV Fargo as staff meteorologist','Worked alongside veteran forecaster John Wheeler','Covered Red River Valley flooding and severe weather','Western MN communities -- now his constituents -- were his viewing area'] },
+  { d:'~2005-2013', t:'Chief Meteorologist, KVRR-TV Fargo', type:'hl', items:['Nearly 8 years as primary forecaster for western MN and eastern ND','Covered Red River Valley historic flood years -- 2009, 2011','Worked severe weather events where radar gap created warning challenges','Built direct expertise with NEXRAD beam height limitations'] },
+  { d:'2022', t:'Elected -- Minnesota Senate District 4', type:'hl', items:['Elected to represent Becker and Clay Counties (Moorhead, Detroit Lakes)','First senator from Moorhead area with professional meteorology background','Brought technical understanding of weather warning infrastructure'] },
+  { d:'January 2023', t:'Sworn In -- Committee Assignments', type:'', items:['Vice Chair: Agriculture, Broadband, and Rural Development','Health and Human Services Committee','Higher Education Committee','Labor Committee'] },
+  { d:'2025 Session', t:'SF580 -- Supplemental Weather Radar', type:'hl', bill:'SF580', items:['$3.27 million for up to 8 Climavision X-band radars','Bipartisan co-author: Sen. Andrew Lang (R-Olivia)','Passed Agriculture, Broadband, and Rural Development Committee','Did not advance -- judiciary budget competition; Kupec calls it unfinished'] },
+  { d:'2025 Session', t:'SF1552 -- Grain Buyer Reporting Reform', type:'law', bill:'SF1552', law:'Chapter 1, 2025', items:['Reduced CPA audit burden for grain buyers under $7.5M','Passed Senate 66-0; House 123-10','First bill signed into law by Gov. Walz in 2025 (Chapter 1)'] },
+  { d:'2025 Session', t:'SF1178 & SF934 -- Agriculture Research', type:'', items:['SF1178: $11.1 million for U of MN AGREETT program','SF934: $4.5 million for AURI'] },
+  { d:'2025 Session', t:'SF1946 & SF1947 -- Non-Opioid Coverage', type:'', items:['Requires insurers to cover non-opioid pain management','Bipartisan effort with Sen. Abeler'] },
+  { d:'2026 Session', t:'SF3832 -- DAIRI Dairy Program', type:'law', bill:'SF3832', law:'Passed 66-0', items:['Expanded DAIRI eligibility to dairy farms started after 2022','Passed Senate 66-0','Supports newer dairy operations in western Minnesota'] },
+  { d:'Ongoing', t:'SF580 -- Unfinished', type:'hl', items:['Kupec has stated the radar gap bill is unfinished','Wendell unit remains the only operational supplemental radar','Western MN severe gap still exists -- no coverage below ~10,000 ft','2.5 million Minnesotans remain in the low-level gap zone'] }
 ];
 
-let timelineBuilt = false;
-function buildTimeline() {
-  if (timelineBuilt) return;
-  const container = document.getElementById('timeline-container');
-  let html = '';
-
-  TIMELINE_DATA.forEach((entry, i) => {
-    const cls = entry.type === 'highlight' ? 'tl-entry highlight' :
-                entry.type === 'law' ? 'tl-entry law' : 'tl-entry';
-
-    // Alternating: odd = left content, even = right content
-    const isLeft = (i % 2 === 0);
-
-    const dateHtml = `<div class="tl-date">${entry.date}</div>`;
-    const spacerHtml = `<div class="tl-spacer"></div>`;
-
-    let bodyContent = '';
-    if (entry.bill) {
-      bodyContent += `<div class="${entry.law ? 'tl-law-tag' : 'tl-bill-tag'}">${entry.bill}${entry.law ? ' — ' + entry.law : ''}</div>`;
-    }
-    bodyContent += `<h4>${entry.title}</h4>`;
-    bodyContent += `<ul>`;
-    entry.items.forEach(item => {
-      bodyContent += `<li>${item}</li>`;
-    });
-    bodyContent += `</ul>`;
-
-    const bodyHtml = `<div class="tl-body">${bodyContent}</div>`;
-
-    if (isLeft) {
-      html += `<div class="${cls}">${dateHtml}${bodyHtml}</div>`;
-    } else {
-      html += `<div class="${cls}">${bodyHtml}${dateHtml}</div>`;
-    }
+let tlBuilt = false;
+function buildTL() {
+  if (tlBuilt) return;
+  const box = document.getElementById('tl-box');
+  let h = '';
+  TL.forEach((e, i) => {
+    const cls = e.type === 'hl' ? 'tl-e hl' : e.type === 'law' ? 'tl-e law' : 'tl-e';
+    const dH = `<div class="tl-d">${e.d}</div>`;
+    let bC = '';
+    if (e.bill) bC += `<div class="${e.law ? 'tl-law' : 'tl-bill'}">${e.bill}${e.law ? ' -- ' + e.law : ''}</div>`;
+    bC += `<h4>${e.t}</h4><ul>${e.items.map(x=>'<li>'+x+'</li>').join('')}</ul>`;
+    const bH = `<div class="tl-b">${bC}</div>`;
+    h += i % 2 === 0 ? `<div class="${cls}">${dH}${bH}</div>` : `<div class="${cls}">${bH}${dH}</div>`;
   });
-
-  container.innerHTML = html;
-  timelineBuilt = true;
+  box.innerHTML = h;
+  tlBuilt = true;
 }
 
-// ══════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════
 // INIT
-// ══════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
-  updateCalc();
-  buildTimeline(); // pre-build but panel is hidden
+  calc();
+  buildTL();
 });
 </script>
 </body>
