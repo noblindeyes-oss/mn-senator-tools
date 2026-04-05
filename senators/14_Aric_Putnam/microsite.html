@@ -2084,40 +2084,74 @@ function drawConfetti(){
   }
 }
 
-// TENDRILS - slow wandering lines unique to microsites
-var tendrils=[];
-for(var i=0;i<4;i++){
-  var pts=[];
-  for(var j=0;j<40;j++){
-    pts.push({x:Math.random(),y:Math.random(),
-      vx:(Math.random()-0.5)*0.001,vy:(Math.random()-0.5)*0.001,
-      phase:Math.random()*6.28});
-  }
-  tendrils.push({pts:pts,col:blobColors[Math.floor(Math.random()*blobColors.length)],
-    alpha:0.04+Math.random()*0.03,speed:0.002+Math.random()*0.003});
+// PULSE RINGS - sonar pings from random points
+var rings=[];
+var ringTimer=0,ringInterval=400+Math.random()*500;
+function spawnRing(){
+  var col=blobColors[Math.floor(Math.random()*blobColors.length)];
+  rings.push({
+    x:Math.random()*W,y:Math.random()*H,
+    r:0,maxR:150+Math.random()*250,
+    speed:0.3+Math.random()*0.5,
+    col:col,life:1,
+    lineWidth:1.5+Math.random()*1,
+  });
 }
-function drawTendrils(time){
-  for(var t2=0;t2<tendrils.length;t2++){
-    var tn=tendrils[t2];
+function drawRings(){
+  for(var i=rings.length-1;i>=0;i--){
+    var rn=rings[i];
+    rn.r+=rn.speed;
+    rn.life=1-(rn.r/rn.maxR);
+    if(rn.life<=0){rings.splice(i,1);continue;}
     ctx.beginPath();
-    ctx.strokeStyle='rgba('+tn.col[0]+','+tn.col[1]+','+tn.col[2]+','+tn.alpha+')';
-    ctx.lineWidth=1;
-    for(var j=0;j<tn.pts.length;j++){
-      var p=tn.pts[j];
-      p.x+=p.vx+Math.sin(time*tn.speed*20+p.phase)*0.0003;
-      p.y+=p.vy+Math.cos(time*tn.speed*15+p.phase*1.5)*0.0002;
-      if(p.x<-0.1)p.x=1.1;if(p.x>1.1)p.x=-0.1;
-      if(p.y<-0.1)p.y=1.1;if(p.y>1.1)p.y=-0.1;
-      var sx=p.x*W,sy=p.y*H;
-      if(j===0)ctx.moveTo(sx,sy);
-      else{
-        var prev=tn.pts[j-1];
-        var cpx=(prev.x*W+sx)/2+Math.sin(time*0.3+j)*15;
-        var cpy=(prev.y*H+sy)/2+Math.cos(time*0.4+j)*15;
-        ctx.quadraticCurveTo(cpx,cpy,sx,sy);
-      }
-    }
+    ctx.arc(rn.x,rn.y,rn.r,0,6.28);
+    ctx.strokeStyle='rgba('+rn.col[0]+','+rn.col[1]+','+rn.col[2]+','+(rn.life*0.08)+')';
+    ctx.lineWidth=rn.lineWidth*rn.life;
     ctx.stroke();
+  }
+}
+
+// DRIFTING GLYPHS - subliminal code fragments
+var glyphs=[];
+var glyphChars=['{','}','0','1',';','_','//','+=','=>',':','[]','&&','||','<>','fn','if','0x','null','let','...'];
+var glyphTimer=0,glyphInterval=80+Math.random()*120;
+function spawnGlyph(){
+  var col=blobColors[Math.floor(Math.random()*blobColors.length)];
+  glyphs.push({
+    x:Math.random()*W,y:Math.random()*H,
+    char:glyphChars[Math.floor(Math.random()*glyphChars.length)],
+    col:col,
+    life:0,maxLife:1,
+    fadeIn:0.008+Math.random()*0.006,
+    fadeOut:0.003+Math.random()*0.004,
+    phase:0, // 0=fading in, 1=holding, 2=fading out
+    holdTime:60+Math.floor(Math.random()*120),
+    holdCounter:0,
+    drift:Math.random()*0.15-0.075,
+    size:8+Math.floor(Math.random()*6),
+  });
+}
+function drawGlyphs(){
+  ctx.font=''; // reset
+  for(var i=glyphs.length-1;i>=0;i--){
+    var g=glyphs[i];
+    if(g.phase===0){
+      g.life+=g.fadeIn;
+      if(g.life>=g.maxLife){g.life=g.maxLife;g.phase=1;}
+    }else if(g.phase===1){
+      g.holdCounter++;
+      if(g.holdCounter>=g.holdTime)g.phase=2;
+    }else{
+      g.life-=g.fadeOut;
+      if(g.life<=0){glyphs.splice(i,1);continue;}
+    }
+    g.y+=g.drift;
+    ctx.save();
+    ctx.globalAlpha=g.life*0.12;
+    ctx.font=g.size+'px monospace';
+    ctx.fillStyle='rgb('+g.col[0]+','+g.col[1]+','+g.col[2]+')';
+    ctx.fillText(g.char,g.x,g.y);
+    ctx.restore();
   }
 }
 
@@ -2125,7 +2159,12 @@ function frame(){
   t++;var time=t*0.016;
   ctx.clearRect(0,0,W,H);
   for(var i=0;i<blobs.length;i++)drawBlob(blobs[i],time);
-  drawTendrils(time);
+  ringTimer++;
+  if(ringTimer>=ringInterval){spawnRing();ringTimer=0;ringInterval=400+Math.random()*500;}
+  drawRings();
+  glyphTimer++;
+  if(glyphTimer>=glyphInterval){spawnGlyph();glyphTimer=0;glyphInterval=60+Math.random()*140;}
+  drawGlyphs();
   for(var i=0;i<shapes.length;i++)drawShape(shapes[i],time);
   cTimer++;
   if(cTimer>=cInterval){spawnConfetti();cTimer=0;cInterval=200+Math.random()*600;}
