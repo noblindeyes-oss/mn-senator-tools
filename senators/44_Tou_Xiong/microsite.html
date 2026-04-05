@@ -2253,6 +2253,7 @@ document.addEventListener('click', (e) => {
 </script>
 
 <canvas id="bgCanvasMs" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;"></canvas>
+<style>body:not(.mode-brief) #mouseGlowMs { display: none; }</style>
 <div id="mouseGlowMs" style="position:fixed;width:320px;height:320px;border-radius:50%;pointer-events:none;z-index:0;background:radial-gradient(circle,rgba(200,160,80,0.07) 0%,rgba(120,60,180,0.04) 40%,transparent 70%);transform:translate(-50%,-50%);transition:left 1.2s cubic-bezier(.15,.85,.25,1),top 1.2s cubic-bezier(.15,.85,.25,1);left:-300px;top:-300px;"></div>
 <script>
 (function(){
@@ -2504,6 +2505,8 @@ frame();
 
 <script>
 // --- HAZE MISCHIEF (brief screen only) ---
+// A background shape rises from the depths toward the surface.
+// As it nears, text warps. When it sinks back, text reverts.
 (function(){
   var busy=false;
   var tick=0;
@@ -2521,7 +2524,7 @@ frame();
     return vis.length?vis[Math.floor(Math.random()*vis.length)]:null;
   }
 
-  // subtle meaning-shifting swaps — nothing sci-fi, just quietly wrong
+  // subtle meaning-shifting swaps
   var swaps=[
     [/impossible/i,'inevitable'],
     [/independent/i,'interested'],
@@ -2545,7 +2548,6 @@ frame();
     [/automation/i,'replacement'],
   ];
 
-  // text effects — eerie, not flashy
   var effects=[
     // scramble: characters go haywire then resolve back
     function(el,cb){
@@ -2558,32 +2560,28 @@ frame();
         if(s>=o.length){clearInterval(si);el.textContent=o;cb();}
       },35);
     },
-    // word swap — subtle meaning shift, reverts when haze recedes
+    // word swap — subtle meaning shift
     function(el,cb){
       var o=el.textContent;if(!o){cb();return;}
       var changed=false;
       for(var i=0;i<swaps.length;i++){
         if(swaps[i][0].test(o)){
           el.textContent=o.replace(swaps[i][0],swaps[i][1]);
-          changed=true;
-          break;
+          changed=true;break;
         }
       }
       if(!changed){cb();return;}
-      // hold the wrong version — haze fade will revert it
       el._origText=o;
       el._revert=function(){el.textContent=o;delete el._origText;delete el._revert;};
       cb();
     },
-    // haze/blur — text goes soft, like seeing it through frosted glass
+    // haze/blur — text seen through frosted glass
     function(el,cb){
       el.style.transition='filter 1.2s ease';
       el.style.filter='blur('+(1.5+Math.random()*2.5)+'px)';
       el._revert=function(){
-        el.style.transition='filter 1.5s ease';
-        el.style.filter='';
-        setTimeout(function(){el.style.transition='';},1600);
-        delete el._revert;
+        el.style.transition='filter 1.5s ease';el.style.filter='';
+        setTimeout(function(){el.style.transition='';},1600);delete el._revert;
       };
       cb();
     },
@@ -2592,31 +2590,27 @@ frame();
       el.style.transition='opacity 1s ease';
       el.style.opacity=''+(0.15+Math.random()*0.2);
       el._revert=function(){
-        el.style.transition='opacity 1.2s ease';
-        el.style.opacity='';
-        setTimeout(function(){el.style.transition='';},1300);
-        delete el._revert;
+        el.style.transition='opacity 1.2s ease';el.style.opacity='';
+        setTimeout(function(){el.style.transition='';},1300);delete el._revert;
       };
       cb();
     },
-    // letter spacing drift — text stretches apart eerily
+    // letter spacing drift — text stretches apart
     function(el,cb){
       el.style.transition='letter-spacing 1.5s ease';
       el.style.letterSpacing=(2+Math.random()*5)+'px';
       el._revert=function(){
-        el.style.transition='letter-spacing 1.2s ease';
-        el.style.letterSpacing='';
-        setTimeout(function(){el.style.transition='';},1300);
-        delete el._revert;
+        el.style.transition='letter-spacing 1.2s ease';el.style.letterSpacing='';
+        setTimeout(function(){el.style.transition='';},1300);delete el._revert;
       };
       cb();
     },
   ];
 
-  // pick a color from the background palette for the haze
-  var hazeColors=[
-    'rgba(200,160,60,','rgba(120,60,180,','rgba(60,200,170,','rgba(220,70,90,',
-    'rgba(70,140,220,','rgba(180,200,50,','rgba(200,100,180,','rgba(80,220,200,'
+  // background palette for the rising shape
+  var colors=[
+    [200,160,60],[120,60,180],[60,200,170],[220,70,90],
+    [70,140,220],[180,200,50],[200,100,180],[80,220,200]
   ];
 
   function surge(){
@@ -2629,43 +2623,54 @@ frame();
     var cx=r.left+r.width/2;
     var cy=r.top+r.height/2;
 
-    // create haze element — big soft radial gradient
-    var haze=document.createElement('div');
-    var col=hazeColors[Math.floor(Math.random()*hazeColors.length)];
-    var sz=200+Math.random()*300;
-    haze.style.cssText='position:fixed;pointer-events:none;z-index:1;'
-      +'left:'+(cx-sz/2)+'px;top:'+(cy-sz/2)+'px;'
-      +'width:'+sz+'px;height:'+sz+'px;border-radius:50%;'
-      +'background:radial-gradient(circle,'+col+'0.12) 0%,'+col+'0.04) 40%,transparent 70%);'
-      +'filter:blur(40px);'
-      +'opacity:0;transform:scale(0.5);'
-      +'transition:opacity 2.5s ease, transform 2.5s ease;';
-    document.body.appendChild(haze);
+    // create the rising shape — starts deep (tiny, very blurred, nearly invisible)
+    // rises toward the surface (grows, sharpens, brightens)
+    var shape=document.createElement('div');
+    var col=colors[Math.floor(Math.random()*colors.length)];
+    var finalSize=250+Math.random()*350;
+    shape.style.cssText='position:fixed;pointer-events:none;z-index:1;border-radius:50%;'
+      +'left:'+(cx)+'px;top:'+(cy)+'px;'
+      +'width:0px;height:0px;'
+      +'transform:translate(-50%,-50%);'
+      +'background:radial-gradient(circle,rgba('+col[0]+','+col[1]+','+col[2]+',0.18) 0%,rgba('+col[0]+','+col[1]+','+col[2]+',0.06) 35%,transparent 65%);'
+      +'filter:blur(80px);'
+      +'opacity:0;'
+      +'transition:width 3s ease-out, height 3s ease-out, filter 3s ease-out, opacity 2.5s ease-out;';
+    document.body.appendChild(shape);
 
-    // phase 1: haze approaches (swells in)
-    requestAnimationFrame(function(){
-      haze.style.opacity='1';
-      haze.style.transform='scale(1.3)';
-    });
+    // phase 1: rising from depths (grow, sharpen, brighten — over ~3s)
+    requestAnimationFrame(function(){requestAnimationFrame(function(){
+      shape.style.width=finalSize+'px';
+      shape.style.height=finalSize+'px';
+      shape.style.filter='blur(20px)';
+      shape.style.opacity='1';
+    });});
 
-    // phase 2: at peak brightness, trigger text effect
+    // phase 2: near the surface — trigger text effect (~2.5s in)
     var effectFn=effects[Math.floor(Math.random()*effects.length)];
     setTimeout(function(){
       effectFn(el,function(){});
-    },2000+Math.random()*800);
+    },2500+Math.random()*500);
 
-    // phase 3: haze recedes, revert text effect
-    var holdTime=3500+Math.random()*3000;
+    // phase 3: hold near surface, then sink back
+    var holdTime=4000+Math.random()*3000;
     setTimeout(function(){
-      haze.style.transition='opacity 3s ease, transform 3s ease';
-      haze.style.opacity='0';
-      haze.style.transform='scale(0.3)';
-      // revert any lingering text effect
-      if(el._revert)el._revert();
+      // sinking: shrink, blur out, fade
+      shape.style.transition='width 3.5s ease-in, height 3.5s ease-in, filter 3.5s ease-in, opacity 3s ease-in';
+      shape.style.width='20px';
+      shape.style.height='20px';
+      shape.style.filter='blur(80px)';
+      shape.style.opacity='0';
+
+      // revert text effect as it sinks
       setTimeout(function(){
-        haze.remove();
+        if(el._revert)el._revert();
+      },800);
+
+      setTimeout(function(){
+        shape.remove();
         busy=false;
-      },3200);
+      },3800);
     },holdTime);
   }
 
