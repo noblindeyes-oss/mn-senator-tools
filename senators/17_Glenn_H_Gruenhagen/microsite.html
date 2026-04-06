@@ -970,6 +970,37 @@
       .seq-item { grid-template-columns: 1fr; }
       .seq-left { padding: 16px 20px; }
     }
+
+    /* ── AMBIENT BACKGROUND: Prairie Wind ──────────────────────────────
+       A fixed ::before on body creates a wide gradient band suggesting
+       a prairie horizon. The band oscillates laterally at very low
+       opacity — warm wheat tones, 10-second cycle, z-index below all
+       content. No new HTML elements required.
+    ─────────────────────────────────────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background: linear-gradient(
+        165deg,
+        transparent              0%,
+        rgba(212, 185, 120, 0.07) 28%,
+        rgba(194, 162,  88, 0.09) 46%,
+        rgba(210, 180, 110, 0.06) 62%,
+        transparent              100%
+      );
+      background-size: 220% 100%;
+      animation: prairieWind 11s ease-in-out infinite alternate;
+      will-change: background-position;
+    }
+    @keyframes prairieWind {
+      0%   { background-position:   0% 50%; }
+      40%  { background-position:  55% 52%; }
+      70%  { background-position:  80% 48%; }
+      100% { background-position: 100% 50%; }
+    }
   </style>
 </head>
 <body>
@@ -1016,8 +1047,8 @@
           <span class="stat-label">SF165 Appropriation</span>
         </div>
         <div class="pro-stat-pill">
-          <span class="stat-num">14+</span>
-          <span class="stat-label">Years District Service</span>
+          <span class="stat-num">15+</span>
+          <span class="stat-label">Years Legislative Service</span>
         </div>
         <div class="pro-stat-pill">
           <span class="stat-num">70%</span>
@@ -1487,7 +1518,7 @@
     <ol class="footnote-list">
       <li data-n="1.">
         SF 744, 2025-2026 Minnesota Legislative Session. Chief author: Gruenhagen. Co-authors: Drazkowski, Green, Koran, Lucero. Referred to Health and Human Services, January 30, 2025. Bill text prohibits specified surgeries, puberty blockers, and hormone therapies for minors for treatment of gender dysphoria.
-        <a href="https://www.revisor.mn.gov/bills/94/2025/0/SF/744/versions/latest/" target="_blank" rel="noopener">[revisor.mn.gov &mdash; SF 744]</a>
+        <a href="https://www.revisor.mn.gov/bills/94/2025/0/SF/744/?body=senate" target="_blank" rel="noopener">[revisor.mn.gov &mdash; SF 744]</a>
       </li>
       <li data-n="2.">
         Gruenhagen Senate floor statement on abortion legislation, January 2023. Quotes reported by Minnesota Reformer and Star Tribune. Source:
