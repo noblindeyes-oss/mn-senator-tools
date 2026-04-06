@@ -1287,6 +1287,61 @@ body.mode-oppo .section-rule { border-color: var(--oppo-rule); }
   .pro-timeline-item       { grid-template-columns: 80px 1fr; }
   #flip-btn                { bottom: 16px; right: 16px; padding: 12px 16px; font-size: 10px; }
 }
+
+/* ============================================================
+   PARALLAX PHOTO DEPTH
+   ============================================================ */
+.pro-hero-right {
+  /* Contain the parallax travel without clipping the grid */
+  overflow: hidden;
+}
+
+.pro-hero-right img.senator-photo {
+  /* Extra height so parallax shift doesn't expose empty space */
+  height: 130%;
+  top: -15%;
+  position: absolute;
+  left: 0;
+  width: 100%;
+  will-change: transform;
+  transition: filter 600ms ease;
+}
+
+/* Frosted depth overlay — fades in as user scrolls into hero */
+.pro-hero-photo-frost {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(26, 122, 110, 0.08) 0%,
+    rgba(26, 18, 8, 0.18) 60%,
+    rgba(26, 18, 8, 0.32) 100%
+  );
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  pointer-events: none;
+  z-index: 1;
+  transition: backdrop-filter 400ms ease, opacity 400ms ease;
+  opacity: 0.6;
+}
+
+/* When scrolled, deepen the frost */
+.pro-hero-right.parallax-active .pro-hero-photo-frost {
+  backdrop-filter: blur(1.5px);
+  -webkit-backdrop-filter: blur(1.5px);
+  opacity: 1;
+}
+
+/* On mobile, fall back to static — no parallax jump */
+@media (max-width: 1000px) {
+  .pro-hero-right img.senator-photo {
+    position: relative;
+    height: 100%;
+    top: 0;
+    transform: none !important;
+  }
+  .pro-hero-photo-frost { backdrop-filter: none; -webkit-backdrop-filter: none; }
+}
 </style>
 </head>
 <body>
@@ -1336,13 +1391,13 @@ body.mode-oppo .section-rule { border-color: var(--oppo-rule); }
   <div class="pro-ticker" aria-hidden="true">
     <div class="pro-ticker-inner">
       <span>SF 2520 &bull; ARCADE STREET CONSTRUCTION MITIGATION</span>
-      <span>$250,000 PROPOSED</span>
+      <span>$250,000 ENACTED</span>
       <span>UP TO $5,000 PER BUSINESS</span>
       <span>UP TO 50 CORRIDOR BUSINESSES ASSISTED</span>
       <span>EAST SIDE NEIGHBORHOOD DEVELOPMENT COMPANY DISTRIBUTING</span>
       <span>BUSINESSES WITH FEWER THAN 25 EMPLOYEES ELIGIBLE</span>
       <span>SF 2520 &bull; ARCADE STREET CONSTRUCTION MITIGATION</span>
-      <span>$250,000 PROPOSED</span>
+      <span>$250,000 ENACTED</span>
       <span>UP TO $5,000 PER BUSINESS</span>
       <span>UP TO 50 CORRIDOR BUSINESSES ASSISTED</span>
       <span>EAST SIDE NEIGHBORHOOD DEVELOPMENT COMPANY DISTRIBUTING</span>
@@ -1393,7 +1448,7 @@ body.mode-oppo .section-rule { border-color: var(--oppo-rule); }
         <span class="pro-receipt-value">Within 300 ft. of active construction</span>
       </div>
       <div class="pro-receipt-total-row">
-        <span class="pro-receipt-total-label">Total Requested</span>
+        <span class="pro-receipt-total-label">Total Enacted</span>
         <span class="pro-receipt-total-value mono" id="pro-total-counter">$250,000</span>
       </div>
     </div>
@@ -1527,11 +1582,11 @@ body.mode-oppo .section-rule { border-color: var(--oppo-rule); }
       <h3>Sources &amp; Notes</h3>
       <ol>
         <li>Star Tribune, "St. Paul small businesses receive financial help from Legislature," 2025. <a href="https://www.startribune.com/st-paul-arcade-street-construction/601378605" target="_blank">startribune.com</a></li>
-        <li>SF 2520 official status page, 94th Legislature. Introduction March 13, 2025; Transportation committee reported the bill out as amended and re-referred it to Jobs and Economic Development on April 1, 2025. <a href="https://www.revisor.mn.gov/bills/94/2025/0/SF/2520/?body=senate" target="_blank">revisor.mn.gov</a></li>
+        <li>SF 2520 official status page, 94th Legislature. Introduction March 13, 2025; passed as part of the 2025 transportation omnibus bill. <a href="https://www.revisor.mn.gov/bills/bill.php?b=Senate&f=SF2520&ssn=0&y=2025" target="_blank">revisor.mn.gov</a></li>
         <li>MnDOT, East 7th St. and Arcade St. in St. Paul and Maplewood project page. <a href="https://www.dot.state.mn.us/metro/projects/e7th-arcade/" target="_blank">dot.state.mn.us</a></li>
         <li>East Side Area Business Association, Arcade &amp; E7th Mitigation and Resilience. <a href="https://www.esaba.org/news-and-media/p/item/61339/arcade-&-e7th-mitigation-and-resilience" target="_blank">esaba.org</a></li>
         <li>Minnesota Senate DFL, Senator Foung Hawj biography. <a href="https://senatedfl.mn/home/members/senator-foung-hawj/" target="_blank">senatedfl.mn</a></li>
-        <li>Minnesota Senate member page, Sen. Foung Hawj. <a href="https://www.senate.mn/members/member_bio.html?mem_id=1259" target="_blank">senate.mn</a></li>
+        <li>Minnesota Senate member page, Sen. Foung Hawj. <a href="https://www.senate.mn/members/member_bio.html?mem_id=1213" target="_blank">senate.mn</a></li>
         <li>Star Tribune, "Arcade Street businesses seek state funds," 2025. <a href="https://www.startribune.com/arcade-street-st-paul-construction/601324180" target="_blank">startribune.com</a></li>
         <li>LEDC, "Building Resilience: Business Support During Street Improvements on the East Side." <a href="https://www.ledcmn.org/building-resilience-business-support-during-street-improvements-on-the-east-side/" target="_blank">ledcmn.org</a></li>
       </ol>
@@ -1747,7 +1802,7 @@ body.mode-oppo .section-rule { border-color: var(--oppo-rule); }
         <li>Minnesota Senate DFL, Senator Foung Hawj profile. <a href="https://senatedfl.mn/home/members/senator-foung-hawj/" target="_blank">senatedfl.mn</a></li>
         <li>MnDOT, East 7th St. and Arcade St. project page. <a href="https://www.dot.state.mn.us/metro/projects/e7th-arcade/" target="_blank">dot.state.mn.us</a></li>
         <li>SF 2520 official status page. Introduction March 13, 2025; committee report April 1, 2025. <a href="https://www.revisor.mn.gov/bills/94/2025/0/SF/2520/?body=senate" target="_blank">revisor.mn.gov</a></li>
-        <li>Minnesota Senate member page, Sen. Foung Hawj. <a href="https://www.senate.mn/members/member_bio.html?mem_id=1259" target="_blank">senate.mn</a></li>
+        <li>Minnesota Senate member page, Sen. Foung Hawj. <a href="https://www.senate.mn/members/member_bio.html?mem_id=1213" target="_blank">senate.mn</a></li>
         <li>Star Tribune, "Arcade Street businesses seek state funds," 2025. <a href="https://www.startribune.com/arcade-street-st-paul-construction/601324180" target="_blank">startribune.com</a></li>
       </ol>
     </div>

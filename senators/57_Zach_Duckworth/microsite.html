@@ -1080,6 +1080,115 @@ sup.fn {
   .bio-item { border-right: none; border-bottom: 1.5px solid var(--pro-rule); }
   .bio-item:last-child { border-bottom: none; }
 }
+
+/* ============================================================
+   ANIMATED BORDER ACCENTS — conic-gradient sweep
+   Applied to: ledger-card-animated (first two cards) +
+               pro-fact-block
+   No new HTML elements. Uses padding + background-clip trick
+   on a pseudo-element for the rotating border.
+   ============================================================ */
+
+@property --angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes spin-border {
+  to { --angle: 360deg; }
+}
+
+/* Animated border on selected ledger cards */
+.ledger-card.animated-border {
+  --border-px: 2px;
+  position: relative;
+  isolation: isolate;
+  background: var(--pro-card);
+}
+
+.ledger-card.animated-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 0;
+  padding: var(--border-px);
+  background: conic-gradient(
+    from var(--angle),
+    transparent 0%,
+    var(--pro-accent) 20%,
+    var(--pro-blue) 40%,
+    transparent 60%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: spin-border 9s linear infinite;
+}
+
+/* Animated border on the main fact block */
+.pro-fact-block.animated-border {
+  --border-px: 3px;
+  position: relative;
+  isolation: isolate;
+  overflow: visible;
+}
+
+.pro-fact-block.animated-border::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  padding: var(--border-px);
+  background: conic-gradient(
+    from var(--angle),
+    transparent 0%,
+    rgba(217, 95, 10, 0.9) 15%,
+    rgba(255, 255, 255, 0.6) 35%,
+    rgba(217, 95, 10, 0.9) 55%,
+    transparent 70%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: spin-border 11s linear infinite;
+  animation-delay: -4s;
+}
+
+/* Animated border on the oppo proof block */
+.oppo-proof-block.animated-border {
+  --border-px: 2px;
+  position: relative;
+  isolation: isolate;
+  overflow: visible;
+}
+
+.oppo-proof-block.animated-border::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  padding: var(--border-px);
+  background: conic-gradient(
+    from var(--angle),
+    transparent 0%,
+    rgba(192, 0, 26, 0.85) 20%,
+    rgba(139, 69, 0, 0.5) 40%,
+    transparent 60%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: spin-border 10s linear infinite;
+  animation-delay: -2s;
+}
 </style>
 </head>
 
@@ -1153,7 +1262,7 @@ sup.fn {
     <div class="section-label">District Record — Key Appropriations</div>
     <div class="ledger-grid">
 
-      <div class="ledger-card">
+      <div class="ledger-card animated-border">
         <div class="card-accent-bar"></div>
         <div class="ledger-card-label">Water Infrastructure</div>
         <div class="ledger-card-number">
@@ -1163,7 +1272,7 @@ sup.fn {
         <div class="ledger-card-bill">SF24 &bull; Chief Author: Duckworth</div>
       </div>
 
-      <div class="ledger-card">
+      <div class="ledger-card animated-border">
         <div class="card-accent-bar"></div>
         <div class="ledger-card-label">Fire Station Land</div>
         <div class="ledger-card-number">
@@ -1187,7 +1296,7 @@ sup.fn {
     <!-- end ledger grid -->
 
     <!-- MAIN FACT BLOCK -->
-    <div class="pro-fact-block">
+    <div class="pro-fact-block animated-border">
       <div class="eyebrow">Lead Legislation &bull; SF24</div>
       <h3>$5.4 million for the infrastructure a growing city actually needs</h3>
       <p>SF24 would appropriate state bond funds for Lakeville property acquisition. The two purposes -- water treatment capacity and fire station land -- are not abstractions. They are the two things a growing suburb cannot add residents without.</p>
@@ -1247,7 +1356,7 @@ sup.fn {
         <div class="progress-bar-track">
           <div class="progress-bar-fill" data-width="72"></div>
         </div>
-        <div class="progress-item-note">17% growth 2020–2026 &bull; Infrastructure investment closes the gap</div>
+        <div class="progress-item-note">~12% growth 2020–2024 (Census estimate) &bull; Infrastructure investment closes the gap</div>
       </div>
     </div>
 
@@ -1390,7 +1499,7 @@ sup.fn {
 
     <!-- PROOF BLOCK -->
     <div class="oppo-section-label">Core Document</div>
-    <div class="oppo-proof-block">
+    <div class="oppo-proof-block animated-border">
       <div class="proof-block-header">
         <span>SF3811 — BILL SUMMARY</span>
         <span>Chief Author: Sen. Zach Duckworth, District 57</span>

@@ -362,7 +362,11 @@
       object-fit: cover;
       object-position: center 15%;
       display: block;
-      filter: sepia(0.12) contrast(1.04);
+      filter: grayscale(100%) contrast(1.04);
+      transition: filter 1.2s ease;
+    }
+    .pro-photo-block img.photo-revealed {
+      filter: grayscale(0%) sepia(0.12) contrast(1.04);
     }
     .pro-photo-caption {
       font-family: 'IBM Plex Mono', monospace;
@@ -1126,8 +1130,8 @@
         <h1 class="oppo-headline">
           The Senate<br>President<br><em>Steered $3M</em><br>to His Client
         </h1>
-        <!-- VERIFY: Champion's legal clients were Rev. Jerry McAfee AND his nonprofit Salem Inc. The grant recipient was 21 Days of Peace — a separate nonprofit also run by McAfee. "Nonprofit run by his former legal client" is accurate (McAfee ran both), but Salem Inc. ≠ 21 Days of Peace. Source: Minnesota Reformer 2025-04-04, ethics complaint. Also: ethics subcommittee found NO financial conflict of interest and deadlocked 2-2 on the 2023 authorship question — "told him to do better next time" is accurate editorially (disclosure recommendation issued) but elides the no-conflict finding. -->
-        <p class="oppo-dek">Champion used the power of the Minnesota Senate presidency to direct millions in public grants to a nonprofit run by his former legal client. He disclosed nothing. The ethics committee told him to do better next time.</p>
+        <!-- Verified 2026-04: Salem Inc. (Champion's client) ≠ 21 Days of Peace (grant recipient), but both are headed by Rev. McAfee — "nonprofit run by his former legal client" is accurate. Subcommittee voted 4-0 no financial conflict on SF2978 (2025); 2-2 deadlock on SF2970 (2023) authorship question. Disclosure recommendation was unanimous 4-0. Dek revised to reflect actual findings. -->
+        <p class="oppo-dek">Champion used the power of the Minnesota Senate presidency to back millions in public grants to a nonprofit headed by his former legal client — without disclosing the relationship. The ethics panel found no financial conflict on the 2025 bill but deadlocked 2-2 on the 2023 funding question and unanimously told him to disclose any appearance of conflict going forward.</p>
       </div>
       <div class="oppo-photo-col">
         <div class="oppo-photo-frame">
@@ -1323,6 +1327,20 @@
       });
     }, { threshold: 0.5 });
     counters.forEach(el => io.observe(el));
+  }
+
+  /* ─── MONOCHROME-TO-COLOR PHOTO REVEAL ────────────────── */
+  const landscapePhoto = document.querySelector('.pro-photo-block img');
+  if (landscapePhoto && 'IntersectionObserver' in window) {
+    const photoIO = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('photo-revealed');
+          photoIO.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.25 });
+    photoIO.observe(landscapePhoto);
   }
 </script>
 
