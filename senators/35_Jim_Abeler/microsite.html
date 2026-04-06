@@ -178,6 +178,19 @@
           rgba(255,255,255,0.025) 47px, rgba(255,255,255,0.025) 48px);
       pointer-events: none;
     }
+    /* Parallax depth layer — scrolls at half-speed via JS */
+    .pro-hero::after {
+      content: '';
+      position: absolute;
+      inset: -40px;
+      background: radial-gradient(ellipse 70% 60% at 70% 50%,
+        rgba(232,184,75,0.07) 0%,
+        rgba(42,74,46,0.0) 60%);
+      pointer-events: none;
+      will-change: transform;
+      z-index: 0;
+    }
+    .pro-hero-inner { position: relative; z-index: 1; }
     .pro-hero-inner {
       position: relative;
       max-width: 1100px;
@@ -217,6 +230,21 @@
     }
     .pro-hero-photo-wrap {
       position: relative;
+    }
+    /* Frosted depth vignette over the portrait — no new HTML */
+    .pro-hero-photo-wrap::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        160deg,
+        rgba(42,74,46,0.18) 0%,
+        transparent 40%,
+        transparent 60%,
+        rgba(28,43,26,0.32) 100%
+      );
+      pointer-events: none;
+      z-index: 2;
     }
     .pro-photo {
       width: 100%;
@@ -469,7 +497,12 @@
 
     /* ── PRO: PULL QUOTE ──────────────────────────────────── */
     .pro-pull-quote {
-      background: #2A4A2E;
+      background:
+        radial-gradient(ellipse 120% 200% at 50% 50%,
+          rgba(232,184,75,0.06) 0%,
+          transparent 65%),
+        #2A4A2E;
+      background-attachment: fixed, scroll;
       padding: 48px 32px;
       position: relative;
     }
@@ -1594,7 +1627,7 @@
             <div class="oppo-card-num">Evidence 01 &mdash; The Bill</div>
             <h3 class="oppo-card-hed">A delay bill with Abeler's name on it</h3>
             <p class="oppo-card-body">
-              SF2297, filed March 6, 2025 by Jim Abeler, explicitly delays implementation of new rates for family residential services and life-sharing services. It does not fix the rates. It creates a task force to study the rates, with a report due August 2026. That is an 18-month pause on a process that was already moving.
+              SF2297, filed March 6, 2025 by Jim Abeler, explicitly delays implementation of new rates for family residential services and life-sharing services. It does not fix the rates. It creates a task force to study the rates, with a report due August 2026. That is a 17-month pause on a process that was already moving.
             </p>
             <div class="oppo-card-ref">
               SF2297 &bull; 94th Legislature &bull; revisor.mn.gov
@@ -1645,7 +1678,7 @@
             ...provides for <span class="oppo-doc-highlight">delaying implementation of new rates for family residential services and life-sharing services</span>... establishes an <span class="oppo-doc-highlight">Advisory Task Force on Family Residential Services</span>... task force shall submit recommendations to the legislature by <span class="oppo-doc-highlight">August 1, 2026</span>...
           </div>
           <p class="oppo-doc-context">
-            The bill's full title is its own indictment. <strong>Delaying provision.</strong> Not a fix, not a redesign -- a delay. Minnesota's family residential service providers had already been told to prepare for new rates. The companion bill HF1894 moved in the House. Abeler's Senate version put the question back into a study process, with a deadline that is more than a year away from the bill's filing date.
+            The bill's full title is its own indictment. <strong>Delaying provision.</strong> Not a fix, not a redesign -- a delay. Minnesota's family residential service providers had already been told to prepare for new rates. The companion bill HF1894 moved in the House. Abeler's Senate version put the question back into a study process, with a deadline 17 months away from the bill's filing date.
           </p>
         </div>
       </div>
@@ -1678,7 +1711,7 @@
             <li class="oppo-data-item">
               <div class="oppo-data-icon">&#x23F3;</div>
               <div>
-                <div class="oppo-data-label">18+ months of additional delay</div>
+                <div class="oppo-data-label">17 months of additional delay</div>
                 <div class="oppo-data-sub">Task force report deadline: August 2026. Bill filed: March 2025.</div>
               </div>
             </li>
@@ -1738,6 +1771,60 @@
         document.body.classList.remove('fading');
       }, 220);
     });
+
+    // ── PARALLAX DEPTH ──────────────────────────────────── //
+    (function() {
+      var hero       = document.querySelector('.pro-hero');
+      var heroAfter  = null; // driven via CSS custom property
+      var photo      = document.querySelector('.pro-photo');
+      var pullQuote  = document.querySelector('.pro-pull-quote');
+      var ticking    = false;
+
+      function onScroll() {
+        if (!ticking) {
+          requestAnimationFrame(function() {
+            var sy = window.scrollY;
+
+            // Portrait photo: drifts upward at 18% scroll speed (subtle float)
+            if (photo) {
+              photo.style.transform = 'translateY(' + (sy * 0.09) + 'px)';
+            }
+
+            // Hero ::after depth blob: drifts at 30% speed via CSS var on hero element
+            if (hero) {
+              hero.style.setProperty('--parallax-y', (sy * 0.18) + 'px');
+            }
+
+            ticking = false;
+          });
+          ticking = true;
+        }
+      }
+
+      // Wire CSS var to the ::after via an inline style on .pro-hero
+      // (pseudo-elements can't be targeted by JS directly; we use a wrapper trick)
+      var styleTag = document.createElement('style');
+      document.head.appendChild(styleTag);
+      function updatePseudoParallax() {
+        var sy = window.scrollY;
+        styleTag.textContent =
+          '.pro-hero::after { transform: translateY(' + (sy * 0.18) + 'px); }';
+      }
+
+      window.addEventListener('scroll', function() {
+        if (!ticking) {
+          requestAnimationFrame(function() {
+            updatePseudoParallax();
+            if (photo) photo.style.transform = 'translateY(' + (window.scrollY * 0.09) + 'px)';
+            ticking = false;
+          });
+          ticking = true;
+        }
+      }, { passive: true });
+
+      // Initial position
+      updatePseudoParallax();
+    })();
 
     // ── STAT BAR ANIMATION ──────────────────────────────── //
     const bars = document.querySelectorAll('.pro-stat-bar');

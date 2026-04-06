@@ -1040,6 +1040,85 @@
     }
     .oppo-footnotes a:hover { text-decoration: underline; }
 
+    /* ─── ANIMATED BORDER ACCENTS ───────────────────────── */
+    /* Conic-gradient rotating border on 2 pro address cards + 1 oppo evidence card */
+    @keyframes spin-border {
+      from { --border-angle: 0deg; }
+      to   { --border-angle: 360deg; }
+    }
+    @property --border-angle {
+      syntax: '<angle>';
+      initial-value: 0deg;
+      inherits: false;
+    }
+
+    /* Pro address cards */
+    .pro-address-card {
+      --border-angle: 0deg;
+      animation: spin-border 10s linear infinite;
+      border: none;           /* override static border; replaced by pseudo */
+      border-radius: 0 4px 4px 0;
+      position: relative;
+      isolation: isolate;
+    }
+    .pro-address-card::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: 0 5px 5px 0;
+      z-index: -1;
+      background: conic-gradient(
+        from var(--border-angle),
+        #0A3D35 0%,
+        #1A6B5E 20%,
+        #5AB8A6 40%,
+        #8ECCC4 50%,
+        #5AB8A6 60%,
+        #1A6B5E 80%,
+        #0A3D35 100%
+      );
+    }
+    .pro-address-card::after {
+      content: '';
+      position: absolute;
+      inset: 2px;
+      border-radius: 0 3px 3px 0;
+      background: #FFFFFF;
+      z-index: -1;
+    }
+
+    /* One oppo evidence card — the first one (scope-of-removal) */
+    .oppo-evidence-card:first-child {
+      --border-angle: 0deg;
+      animation: spin-border 12s linear infinite;
+      border: none;
+      position: relative;
+      isolation: isolate;
+    }
+    .oppo-evidence-card:first-child::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      z-index: -1;
+      background: conic-gradient(
+        from var(--border-angle),
+        #1A1814 0%,
+        #5A5248 15%,
+        #9B2A1E 35%,
+        #E8A88A 50%,
+        #9B2A1E 65%,
+        #5A5248 85%,
+        #1A1814 100%
+      );
+    }
+    .oppo-evidence-card:first-child::after {
+      content: '';
+      position: absolute;
+      inset: 2px;
+      background: #FDFAF4;
+      z-index: -1;
+    }
+
     /* ─── RESPONSIVE ─────────────────────────────────────── */
     @media (max-width: 960px) {
       .pro-hero { grid-template-columns: 1fr; }
@@ -1273,7 +1352,7 @@
   <!-- Case header bar -->
   <div class="oppo-case-header">
     <div class="oppo-case-id">Case File: SF 3439 &bull; 94th Legislature &bull; District 25</div>
-    <div class="oppo-case-status">Status: <span>Introduced April 25, 2025; advanced to Education Policy on March 18, 2026</span></div>
+    <div class="oppo-case-status">Status: <span>Introduced April 25, 2025; passed HHS committee as amended &amp; referred to Education Policy on March 18, 2026</span></div>
   </div>
 
   <!-- Subject block -->
@@ -1351,8 +1430,8 @@
         <div class="oppo-timeline-item">
           <div class="oppo-timeline-dot dot-mid"></div>
           <div class="oppo-timeline-date">March 18, 2026</div>
-          <div class="oppo-timeline-head">Committee hearing &mdash; bill passes to Senate Education Policy Committee</div>
-          <div class="oppo-timeline-body">The Senate status page shows SF 3439 moving from Health and Human Services to Education Policy on March 18, 2026. Boldon's bill had advanced beyond introduction, but it had not become law.</div>
+          <div class="oppo-timeline-head">HHS committee passes bill as amended &mdash; referred to Senate Education Policy Committee</div>
+          <div class="oppo-timeline-body">The Senate status page shows SF 3439 passing the Health and Human Services Committee as amended on March 18, 2026, with a re-referral to Education Policy. Boldon's bill had advanced beyond introduction, but it had not become law.</div>
         </div>
 
         <div class="oppo-timeline-item">

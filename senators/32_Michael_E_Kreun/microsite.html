@@ -1287,6 +1287,128 @@ body.mode-oppo #mode-toggle {
    ============================================================ */
 .count-up { transition: all 0.5s ease; }
 
+/* ============================================================
+   RIBBON / BADGE CORNER FLAIR
+   Pro sections get a deep-blue "PRO" ribbon top-left.
+   Oppo sections get a caution-yellow "OPPO" ribbon top-left.
+   Uses ::before on the section wrapper — no new HTML.
+   ============================================================ */
+
+/* Shared ribbon base */
+.pro-corridor-header::before,
+.pro-safety-section::before,
+.oppo-header::before,
+.oppo-evidence-section::before {
+  /* reset any existing decorative ::before on these elements */
+  content: '' !important;
+  display: none !important;
+}
+
+/* We target the stat rail and brief section which have clean ::before slots */
+.pro-stat-rail {
+  position: relative;
+  overflow: visible;
+}
+.pro-stat-rail::before {
+  content: 'PRO';
+  position: absolute;
+  top: 14px;
+  left: -34px;
+  width: 110px;
+  padding: 6px 0;
+  background: var(--pro-blue-deep);
+  color: var(--pro-amber);
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 0.6rem;
+  letter-spacing: 0.28em;
+  text-align: center;
+  text-transform: uppercase;
+  transform: rotate(-45deg);
+  transform-origin: center center;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+  pointer-events: none;
+}
+
+.oppo-section:first-of-type {
+  position: relative;
+}
+.oppo-section:first-of-type::before {
+  content: 'OPPO';
+  position: absolute;
+  top: 14px;
+  left: -34px;
+  width: 110px;
+  padding: 6px 0;
+  background: var(--oppo-caution);
+  color: #000000;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 0.6rem;
+  letter-spacing: 0.22em;
+  text-align: center;
+  text-transform: uppercase;
+  transform: rotate(-45deg);
+  transform-origin: center center;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  pointer-events: none;
+}
+
+/* ---- Corner-clip container ribbons on section cards ---- */
+/* Pro pullquote section */
+.pro-pullquote-section {
+  position: relative;
+  overflow: hidden;
+}
+.pro-pullquote-section::before {
+  content: 'PRO';
+  position: absolute;
+  top: 18px;
+  left: -30px;
+  width: 100px;
+  padding: 5px 0;
+  background: var(--pro-blue);
+  color: #ffffff;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 0.58rem;
+  letter-spacing: 0.28em;
+  text-align: center;
+  text-transform: uppercase;
+  transform: rotate(-45deg);
+  z-index: 5;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  pointer-events: none;
+}
+
+/* Oppo contrast section */
+.oppo-contrast-section {
+  position: relative;
+  overflow: hidden;
+}
+.oppo-contrast-section::before {
+  content: 'OPPO';
+  position: absolute;
+  top: 18px;
+  left: -30px;
+  width: 100px;
+  padding: 5px 0;
+  background: var(--oppo-caution);
+  color: #000000;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 0.58rem;
+  letter-spacing: 0.22em;
+  text-align: center;
+  text-transform: uppercase;
+  transform: rotate(-45deg);
+  z-index: 5;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  pointer-events: none;
+}
+
 </style>
 </head>
 
@@ -1411,7 +1533,7 @@ body.mode-oppo #mode-toggle {
           </div>
           <div class="pro-project-detail-row">
             <span class="pro-detail-key">Total project cost</span>
-            <span class="pro-detail-value highlight">$37M – $42M</span>
+            <span class="pro-detail-value highlight">$46.8M</span>
           </div>
           <div class="pro-project-detail-row">
             <span class="pro-detail-key">Federal funds secured</span>
@@ -1445,12 +1567,11 @@ body.mode-oppo #mode-toggle {
   <!-- PULL QUOTE -->
   <div class="pro-pullquote-section">
     <div class="pro-pullquote">
-      <!-- VERIFY: exact wording of this quote is unconfirmed. Sources confirm Kreun called this his "top bonding priority" and cited the 15-day crash frequency at the Capital Investment Committee, but this verbatim construction is not sourced to a transcript or direct recording. -->
       <span class="pro-quote-mark">"</span>
       <blockquote class="pro-quote-text">
         This is my top bonding priority. The data on this intersection is not ambiguous. Every fifteen days there is a crash call. That is not a normal road.
       </blockquote>
-      <cite class="pro-quote-attr">Sen. Michael Kreun, R-Blaine — Senate Capital Investment Committee presentation<sup>1</sup></cite>
+      <cite class="pro-quote-attr">Sen. Michael Kreun, R-Blaine — paraphrased from Senate Capital Investment Committee presentation<sup>1</sup></cite>
     </div>
   </div>
 
@@ -1504,7 +1625,7 @@ body.mode-oppo #mode-toggle {
     <ul class="pro-footnote-list">
       <li>Crash rate (3x state average), sheriff call frequency (every 15 days), and Capital Investment Committee presentation: <a href="https://www.hometownsource.com/abc_newspapers/officials-pitch-highway-65-bunker-lake-blvd-interchange-for-bonding-funds/article_31d64c88-39a9-4039-a936-7c1d27424d9a.html" target="_blank">ABC Newspapers / Hometown Source — "Officials pitch Highway 65–Bunker Lake Blvd. interchange for bonding funds"</a></li>
       <li>SF4789 official status page and introduced text: filed March 25, 2026; referred to Senate Transportation; $4.3 million bond request for the TH 65 and Bunker Lake Boulevard interchange. <a href="https://www.revisor.mn.gov/bills/94/2026/0/SF/4789/?body=senate" target="_blank">revisor.mn.gov</a></li>
-      <li>$10M federal funding secured, daily traffic volume (25,000–30,000 vehicles), total project cost ($37M–$42M): <a href="https://www.hometownsource.com/abc_newspapers/abc_newspapers/community/andover/anoka-county-seeks-36-8m-to-close-funding-gap-for-highway-65-bunker-lake-interchange/article_baf7ca26-c072-40af-aaa3-7c14131b54a3.html" target="_blank">Hometown Source — "Anoka County seeks $36.8M to close funding gap for Highway 65–Bunker Lake interchange"</a></li>
+      <li>$10M federal funding secured, daily traffic volume (25,000–30,000 vehicles), total project cost ($46.8M per current county estimates): <a href="https://www.hometownsource.com/abc_newspapers/abc_newspapers/community/andover/anoka-county-seeks-36-8m-to-close-funding-gap-for-highway-65-bunker-lake-interchange/article_baf7ca26-c072-40af-aaa3-7c14131b54a3.html" target="_blank">Hometown Source — "Anoka County seeks $36.8M to close funding gap for Highway 65–Bunker Lake interchange"</a></li>
       <li>Ham Lake 2026 Open House: <a href="https://www.hamlakemn.gov/articles/hwy-65-bunker-lake-blvd-reconstruction-open-house-february-3-2026" target="_blank">City of Ham Lake — Hwy 65 &amp; Bunker Lake Blvd Reconstruction Open House, February 3, 2026</a></li>
       <li>Kreun biography, committee assignments, and 2022 election results: <a href="https://ballotpedia.org/Michael_Kreun" target="_blank">Ballotpedia — Michael Kreun</a></li>
       <li>Anoka County project page: <a href="https://www.anokacountymn.gov/4656/Bunker-TH65" target="_blank">Anoka County, MN — Bunker Lake Boulevard at Trunk Highway 65</a></li>

@@ -1020,6 +1020,56 @@ body.mode-oppo {
   .tl-dot            { left: 83px; }
   #mode-toggle       { bottom: 16px; right: 16px; }
 }
+
+/* ====================================================
+   FLOATING PARTICLE DUST — CSS-only, ::before, fixed
+   5 tiny circles via box-shadow, opacity 0.10–0.18
+   Drift animations 16s–30s, pointer-events none
+   ==================================================== */
+.particle-dust::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;
+  /* Each shadow: offset-x offset-y blur spread color
+     Five particles scattered across the viewport      */
+  box-shadow:
+    18vw  22vh 2px 1px rgba(245, 196,   0, 0.13),
+    67vw  14vh 1px 1px rgba(245, 196,   0, 0.10),
+    43vw  58vh 2px 0px rgba(176, 196, 185, 0.12),
+    82vw  71vh 1px 1px rgba(245, 196,   0, 0.11),
+    31vw  85vh 2px 1px rgba(176, 196, 185, 0.10);
+  animation:
+    dust-a 24s ease-in-out infinite,
+    dust-b 18s ease-in-out infinite 3s,
+    dust-c 30s ease-in-out infinite 9s;
+  will-change: transform, opacity;
+}
+
+@keyframes dust-a {
+  0%   { transform: translate(0,    0);    opacity: 1;    }
+  25%  { transform: translate(3vw,  -5vh); opacity: 0.7;  }
+  50%  { transform: translate(-2vw,  8vh); opacity: 1;    }
+  75%  { transform: translate(5vw,   3vh); opacity: 0.75; }
+  100% { transform: translate(0,    0);    opacity: 1;    }
+}
+@keyframes dust-b {
+  0%   { transform: translate(0,    0);    }
+  33%  { transform: translate(-4vw, -3vh); }
+  66%  { transform: translate(2vw,   6vh); }
+  100% { transform: translate(0,    0);    }
+}
+@keyframes dust-c {
+  0%   { transform: translate(0,   0);    opacity: 1;   }
+  20%  { transform: translate(2vw, 4vh);  opacity: 0.6; }
+  60%  { transform: translate(-3vw,-2vh); opacity: 1;   }
+  100% { transform: translate(0,   0);    opacity: 1;   }
+}
 </style>
 </head>
 <body>
@@ -1055,7 +1105,7 @@ body.mode-oppo {
         <h1 class="pro-name">Calvin<span>Bahr</span></h1>
         <p class="pro-tagline">
           A truck driver who knows every bad intersection on Highway 65.
-          <strong>Now he has the bond request on file for one of the worst ones.</strong>
+          <strong>Now he has the appropriation request on file for one of the worst ones.</strong>
         </p>
         <div class="pro-stat-row">
           <div class="pro-stat-chip">
@@ -1102,12 +1152,12 @@ body.mode-oppo {
       </div>
 
       <div class="project-card">
-        <div class="card-tag">SF2145 &bull; Chief Author: Sen. Calvin K. Bahr &bull; 93rd Legislature</div>
+        <div class="card-tag">SF2145 &bull; Chief Author: Sen. Calvin K. Bahr &bull; 94th Legislature</div>
         <h3>TH-65 / Anoka County Road 60 Intersection Safety Project &mdash; Ham Lake</h3>
         <p>
           Highway 65 through Ham Lake is not a bureaucratic abstraction. It is the road that District 31 drivers take
           to work every morning. For years it was one of the most dangerous stretches in the state.
-          Bahr filed a $2,273,000 state bond request to redesign the intersection at Trunk Highway 65 and
+          Bahr filed a $2,273,000 state appropriation request to redesign the intersection at Trunk Highway 65 and
           Anoka County Road 60.
         </p>
         <p>
@@ -1116,7 +1166,7 @@ body.mode-oppo {
         </p>
         <div class="spec-grid">
           <div class="spec-cell">
-            <div class="spec-key">Bond Request</div>
+            <div class="spec-key">Appropriation Request</div>
             <div class="spec-val">$2,273,000</div>
           </div>
           <div class="spec-cell">
@@ -1232,7 +1282,7 @@ body.mode-oppo {
         </div>
         <div class="road-visual">
           <div class="road-row"><span class="rr-icon">TH-65</span><span class="rr-text">Central corridor &mdash; 65 mph, frequent signals north of Blaine</span></div>
-          <div class="road-row"><span class="rr-icon">CSAH-60</span><span class="rr-text">Target intersection &mdash; Ham Lake, now funded for realignment</span></div>
+          <div class="road-row"><span class="rr-icon">CSAH-60</span><span class="rr-text">Target intersection &mdash; Ham Lake, appropriation requested for realignment</span></div>
           <div class="road-row"><span class="rr-icon">ANOKA CO.</span><span class="rr-text">19 of 200 costliest intersections statewide along this corridor</span></div>
           <div class="road-row"><span class="rr-icon">ISANTI CO.</span><span class="rr-text">Eastern boundary &mdash; rural township character, long commute distances</span></div>
           <div class="road-row"><span class="rr-icon">DIST. 31</span><span class="rr-text">Rapidly suburbanizing, family-heavy, commuter-dependent district</span></div>
@@ -1248,7 +1298,7 @@ body.mode-oppo {
     <div class="container">
       <h4>Sources &amp; References</h4>
       <ol>
-        <li>SF2145, 93rd Minnesota Legislature. Chief author Sen. Calvin K. Bahr. Appropriation of $2,273,000 for intersection improvements at Trunk Highway 65 and Anoka County Road 60, Ham Lake, including frontage and backage road realignment. <a href="https://www.revisor.mn.gov/bills/93/2023/0/SF/2145/" target="_blank" rel="noopener">revisor.mn.gov</a></li>
+        <li>SF2145, 94th Minnesota Legislature (2025&ndash;2026). Chief author Sen. Calvin K. Bahr. General fund appropriation of $2,273,000 in FY2026 for intersection improvements at Trunk Highway 65 and Anoka County Road 60, Ham Lake, including frontage and backage road realignment; grant to the city of Ham Lake via the commissioner of transportation. <a href="https://www.revisor.mn.gov/bills/bill.php?b=Senate&f=SF2145&ssn=0&y=2025" target="_blank" rel="noopener">revisor.mn.gov</a></li>
         <li>"Study Underscores Danger of Hwy. 65 Intersections." <em>Star Tribune.</em> Documented 8 deaths in 3-year span, $12M in damages; 19 of 200 costliest statewide intersections in the corridor. <a href="https://www.startribune.com/study-underscores-danger-of-hwy-65-intersections/96622494/" target="_blank" rel="noopener">startribune.com</a></li>
         <li>"Lawbreaking Drivers Spur Plan to Rebuild Ham Lake Intersection." <em>Star Tribune.</em> Ham Lake Mayor Paul Meunier quoted calling Hwy 65 a road "to be avoided at all possible costs." 150+ injury crashes documented at Hwy 65 intersections in Ham Lake over 8 years. <a href="https://www.startribune.com/drivers-running-red-lights-are-behind-plan-to-rebuild-ham-lake-intersection/601161914" target="_blank" rel="noopener">startribune.com</a></li>
         <li>Anoka County Engineer Doug Fischer: "People get out of Blaine, into the northern half of the county, and see that 65 mile-per-hour speed limit and they start blowing right through red lights." Star Tribune.</li>

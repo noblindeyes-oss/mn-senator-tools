@@ -1061,6 +1061,119 @@
       .oppo-compare-vs { font-size: 32px; }
       .oppo-footnotes { padding: 40px 28px; }
     }
+
+    /* ─── ACCENT LINE DECORATIONS ─────────────────────────────
+       Animated gradient dividers via ::after pseudo-elements.
+       Sweep: transparent → accent → transparent, 60–70% width.
+    ────────────────────────────────────────────────────────── */
+    @keyframes accentSweep {
+      0%   { transform: translateX(-120%) scaleX(0.6); opacity: 0; }
+      30%  { opacity: 1; }
+      70%  { opacity: 1; }
+      100% { transform: translateX(120%) scaleX(0.6); opacity: 0; }
+    }
+    @keyframes accentSweepAmber {
+      0%   { transform: translateX(-120%) scaleX(0.6); opacity: 0; }
+      30%  { opacity: 1; }
+      70%  { opacity: 1; }
+      100% { transform: translateX(120%) scaleX(0.6); opacity: 0; }
+    }
+
+    /* PRO: between signs-band and main section */
+    .pro-main {
+      position: relative;
+    }
+    .pro-main::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 65%;
+      height: 2px;
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        #2B8040 20%,
+        #E8C84A 50%,
+        #2B8040 80%,
+        transparent 100%
+      );
+      animation: accentSweep 3.8s ease-in-out infinite;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* PRO: between main section and district band */
+    .pro-district {
+      position: relative;
+    }
+    .pro-district::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 60%;
+      height: 3px;
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        #E8C84A 25%,
+        #F2F4EF 50%,
+        #E8C84A 75%,
+        transparent 100%
+      );
+      animation: accentSweep 4.4s ease-in-out 0.9s infinite;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* OPPO: between charge block and evidence section */
+    .oppo-evidence {
+      position: relative;
+    }
+    .oppo-evidence::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 70%;
+      height: 2px;
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        #C47B10 20%,
+        #E8DFC8 50%,
+        #C47B10 80%,
+        transparent 100%
+      );
+      animation: accentSweepAmber 5.2s ease-in-out 1.4s infinite;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* OPPO: between evidence and compare section */
+    .oppo-compare {
+      position: relative;
+    }
+    .oppo-compare::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 62%;
+      height: 2px;
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        #8B2A1A 15%,
+        #C47B10 50%,
+        #8B2A1A 85%,
+        transparent 100%
+      );
+      animation: accentSweepAmber 4.8s ease-in-out 0.5s infinite;
+      z-index: 1;
+      pointer-events: none;
+    }
   </style>
 </head>
 <body>
@@ -1393,7 +1506,7 @@
           <div class="oppo-penalty-cell">
             <div class="oppo-penalty-label">Repeat or Court-Order Violation</div>
             <div class="oppo-penalty-value">GROSS MISD.</div>
-            <div class="oppo-penalty-desc">Up to 365 days in jail and/or $3,000 fine. Applies if prior conviction exists or if a protection order, restraining order, or no-contact order is in place.</div>
+            <div class="oppo-penalty-desc">Up to 364 days in jail and/or $3,000 fine. Applies if prior conviction exists or if a protection order, restraining order, or no-contact order is in place.</div>
           </div>
         </div>
       </div><!-- /doc-block -->

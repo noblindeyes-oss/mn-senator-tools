@@ -1061,6 +1061,46 @@
         padding: 10px 16px;
       }
     }
+
+    /* ── SECTION ENTRANCE ANIMATIONS ───────────────────────────── */
+    .section-animate {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    }
+    .section-animate.slide-left {
+      transform: translateX(-40px) translateY(10px);
+    }
+    .section-animate.slide-right {
+      transform: translateX(40px) translateY(10px);
+    }
+    .section-animate.visible {
+      opacity: 1;
+      transform: translateX(0) translateY(0);
+    }
+    /* Stagger child cards inside animated containers */
+    .section-animate.visible .pro-why-card,
+    .section-animate.visible .oppo-card {
+      animation: cardFadeUp 0.5s ease-out both;
+    }
+    .section-animate.visible .pro-why-card:nth-child(2),
+    .section-animate.visible .oppo-card:nth-child(2) { animation-delay: 0.12s; }
+    .section-animate.visible .pro-why-card:nth-child(3),
+    .section-animate.visible .oppo-card:nth-child(3) { animation-delay: 0.24s; }
+    @keyframes cardFadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    /* Respect reduced-motion preference */
+    @media (prefers-reduced-motion: reduce) {
+      .section-animate,
+      .section-animate.slide-left,
+      .section-animate.slide-right {
+        opacity: 1;
+        transform: none;
+        transition: none;
+      }
+    }
   </style>
 </head>
 
@@ -1269,7 +1309,7 @@
       <li>Minnesota MMB budget documents confirm city of Mahnomen tax base fell approximately 50 percent following the Shooting Star Casino exemption. Payment first made in calendar year 2006, made permanent in 2008. <a href="https://mn.gov/mmb-stat/documents/budget/updates13/tax-policy/76__E+-+Budget+Books_Intergovernmental+Payments_HTML+docs_G905052_Mahnomen+Pr+Tax+Reimbursement.htm" target="_blank" rel="noopener">mn.gov/mmb-stat</a></li>
       <li>U.S. Census Bureau, American Community Survey 5-year estimates: Mahnomen County poverty rate approximately 21.1 percent, highest of any county in Minnesota; statewide rate approximately 9.2 percent. <a href="https://www.census.gov/quickfacts/fact/table/mahnomencountyminnesota,MN/PST045222" target="_blank" rel="noopener">census.gov</a></li>
       <li>Senator biography: Steve Green, Minnesota Senate District 2. <a href="https://www.senate.mn/members/member_bio.html?mem_id=1251" target="_blank" rel="noopener">senate.mn</a></li>
-      <li>Official district map for Senate District 2. <a href="https://www.gis.leg.mn/pdf/leg2022/senate/02.pdf" target="_blank" rel="noopener">Minnesota Legislature GIS PDF</a>.</li>
+      <li>Official district map for Senate District 2. Includes all of Beltrami, Clearwater, Lake of the Woods, and Mahnomen Counties, plus portions of Becker, Cass, Hubbard, and Itasca Counties. <a href="https://www.gis.leg.mn/pdf/leg2022/senate/02.pdf" target="_blank" rel="noopener">Minnesota Legislature GIS PDF</a>.</li>
       <li>SF1205 description and status page: Mahnomen County aid payments to taxing jurisdictions increase. <a href="https://www.revisor.mn.gov/bills/93/2023/0/SF/1205/?body=senate" target="_blank" rel="noopener">revisor.mn.gov</a></li>
     </ol>
   </div>
@@ -1534,6 +1574,72 @@
       obs.observe(statStrip);
     } else if (statStrip) {
       animateCounters();
+    }
+
+    // ── SECTION ENTRANCE ANIMATIONS ─────────────────────────────
+    // Targets: major content blocks in both pro and oppo sites.
+    // Alternate slide-left / slide-right for visual rhythm.
+    var animTargets = [
+      // PRO sections
+      '.pro-bill-grid',
+      '.pro-pullquote',
+      '.pro-district-band',
+      '.pro-why-grid',
+      '.pro-body > .pro-section-header:nth-of-type(3) + .pro-bill-grid',
+      // OPPO sections
+      '.oppo-sequence',
+      '.oppo-doc-block',
+      '.oppo-cards'
+    ];
+
+    // Collect all unique animatable elements in DOM order
+    var animEls = [];
+    var seen = [];
+    // Pro site blocks
+    var proBlocks = document.querySelectorAll(
+      '.pro-bill-grid, .pro-pullquote, .pro-district-band, .pro-why-grid, .pro-section-header, .pro-body .pro-bill-detail'
+    );
+    // Oppo site blocks
+    var oppoBlocks = document.querySelectorAll(
+      '.oppo-sequence, .oppo-doc-block, .oppo-cards, .oppo-sequence-header, .oppo-evidence-header, .oppo-core-gap'
+    );
+
+    function setupEntranceAnims(nodeList) {
+      var idx = 0;
+      nodeList.forEach(function(el) {
+        // Skip if already processed
+        if (el.dataset.animSetup) return;
+        el.dataset.animSetup = '1';
+        el.classList.add('section-animate');
+        if (idx % 2 === 0) {
+          el.classList.add('slide-left');
+        } else {
+          el.classList.add('slide-right');
+        }
+        idx++;
+        animEls.push(el);
+      });
+    }
+
+    setupEntranceAnims(proBlocks);
+    setupEntranceAnims(oppoBlocks);
+
+    if ('IntersectionObserver' in window && animEls.length) {
+      var entranceObs = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            entranceObs.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+      animEls.forEach(function(el) {
+        entranceObs.observe(el);
+      });
+    } else {
+      // Fallback: make all visible immediately
+      animEls.forEach(function(el) { el.classList.add('visible'); });
     }
 
   })();
