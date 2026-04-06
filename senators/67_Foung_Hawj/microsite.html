@@ -1382,6 +1382,7 @@ body.mode-oppo .section-rule { border-color: var(--oppo-rule); }
       <div class="pro-hero-photo-fallback" style="display:none;">
         <div class="initials">FH</div>
       </div>
+      <div class="pro-hero-photo-frost"></div>
       <div class="pro-hero-overlay"></div>
       <div class="pro-hero-corridor-label">East Side St. Paul &bull; Ramsey County</div>
     </div>
@@ -1942,6 +1943,51 @@ body.mode-oppo .section-rule { border-color: var(--oppo-rule); }
   if (body.classList.contains('mode-oppo')) {
     startTypewriter();
   }
+
+  // --- PARALLAX PHOTO DEPTH ---
+  (function() {
+    var heroRight  = document.querySelector('.pro-hero-right');
+    var heroPhoto  = document.querySelector('.pro-hero-right img.senator-photo');
+    if (!heroRight || !heroPhoto) return;
+
+    // Disable on mobile / reduced-motion
+    var mq        = window.matchMedia('(max-width:1000px)');
+    var prefersRM = window.matchMedia('(prefers-reduced-motion:reduce)');
+    if (mq.matches || prefersRM.matches) return;
+
+    var ticking = false;
+
+    function updateParallax() {
+      var rect     = heroRight.getBoundingClientRect();
+      var viewH    = window.innerHeight;
+      // progress: 0 when top of hero is at bottom of viewport → 1 when bottom of hero is at top
+      var progress = 1 - (rect.bottom / (viewH + rect.height));
+      progress     = Math.max(0, Math.min(1, progress));
+
+      // Travel range: ±8% of the element height — subtle, not seasick
+      var shift = (progress - 0.5) * 2 * 0.08 * rect.height;
+      heroPhoto.style.transform = 'translateY(' + shift.toFixed(2) + 'px)';
+
+      // Activate frost class once hero has scrolled at all
+      if (progress > 0.05) {
+        heroRight.classList.add('parallax-active');
+      } else {
+        heroRight.classList.remove('parallax-active');
+      }
+
+      ticking = false;
+    }
+
+    window.addEventListener('scroll', function() {
+      if (!ticking) {
+        requestAnimationFrame(updateParallax);
+        ticking = true;
+      }
+    }, { passive: true });
+
+    // Run once on load to set initial position
+    updateParallax();
+  }());
 
 })();
 </script>
