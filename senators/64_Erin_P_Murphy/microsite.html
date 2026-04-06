@@ -1078,6 +1078,162 @@ body.mode-oppo .oppo-content { display: block; }
 @media (max-width: 600px) {
   #mode-toggle { bottom: 18px; right: 18px; font-size: 0.65rem; padding: 10px 16px; }
 }
+
+/* =====================================================
+   CATEGORY 16 — RIBBON / BADGE (pure CSS, pseudo-elements)
+===================================================== */
+
+/* Diagonal corner ribbon on pro stat cells (first cell) */
+.stat-cell:first-child {
+  position: relative;
+  overflow: hidden;
+}
+.stat-cell:first-child::after {
+  content: '';
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, transparent 50%, rgba(255,255,255,0.18) 50%);
+  transform: rotate(0deg);
+  pointer-events: none;
+}
+
+/* Top-left corner ribbon fold on grant fact cards */
+.grant-fact-card {
+  position: relative;
+  overflow: hidden;
+}
+.grant-fact-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 28px 28px 0;
+  border-color: transparent var(--accent) transparent transparent;
+  opacity: 0.35;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+.grant-fact-card:hover::after {
+  opacity: 0.65;
+}
+
+/* Ribbon banner across the top of evidence cards (oppo) */
+.evidence-card::after {
+  content: '';
+  position: absolute;
+  top: 12px;
+  right: -22px;
+  width: 90px;
+  height: 20px;
+  background: linear-gradient(90deg, var(--accent) 0%, var(--accent-dark, var(--accent)) 100%);
+  transform: rotate(35deg);
+  opacity: 0.12;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+.evidence-card:hover::after {
+  opacity: 0.28;
+}
+
+/* Corner badge dot on section headers — pro side */
+body:not(.mode-oppo) .section-header {
+  position: relative;
+}
+body:not(.mode-oppo) .section-header::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0.22;
+  pointer-events: none;
+}
+
+/* Folded corner on corridor cards */
+.corridor-card {
+  position: relative;
+}
+.corridor-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 0 20px 20px;
+  border-color: transparent transparent var(--bg-alt) transparent;
+  pointer-events: none;
+}
+
+/* Oppo header — angled ribbon stripe behind headline */
+.oppo-header-main {
+  position: relative;
+  overflow: hidden;
+}
+.oppo-header-main::before {
+  content: '';
+  position: absolute;
+  top: -40px;
+  left: -60px;
+  width: 340px;
+  height: 200px;
+  background: linear-gradient(
+    135deg,
+    transparent 0%,
+    rgba(212, 160, 23, 0.04) 40%,
+    rgba(212, 160, 23, 0.08) 55%,
+    transparent 70%
+  );
+  transform: rotate(-8deg);
+  pointer-events: none;
+}
+
+/* Proof doc — top-right corner badge triangle */
+.proof-doc {
+  position: relative;
+  overflow: hidden;
+}
+.proof-doc::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 40px 40px 0;
+  border-color: transparent var(--accent) transparent transparent;
+  opacity: 0.2;
+  pointer-events: none;
+}
+
+/* Nurse credentials card — subtle top-right fold */
+.nurse-credentials {
+  position: relative;
+  overflow: hidden;
+}
+.nurse-credentials::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 32px 32px 0;
+  border-color: transparent var(--bg-alt) transparent transparent;
+  pointer-events: none;
+}
 </style>
 </head>
 
@@ -1168,7 +1324,7 @@ body.mode-oppo .oppo-content { display: block; }
         <div class="grant-main-text">
           <h3 class="display-serif">What the CORE Grant does on the ground</h3>
           <p>The Capitol Outreach for Revitalization &amp; Expansion Grant is administered by the Saint Paul Port Authority in partnership with the State of Minnesota. It targets exactly the kind of small, for-profit businesses that line the District 64 corridor&mdash;storefronts that need a facade renovation, a new piece of equipment, or an accessibility ramp they cannot afford alone.</p>
-          <p>Grants run between $50,000 and $150,000. Eligible projects include facade enhancements, energy upgrades, new equipment, accessibility improvements, and building safety upgrades. Round One opened January 2026 with an application deadline of March 31, 2026.</p>
+          <p>Grants run between $50,000 and $150,000. Eligible projects include facade enhancements, energy upgrades, new equipment, accessibility improvements, and building safety upgrades. Applications are administered through the Saint Paul Port Authority on a rolling basis.</p>
           <p>This is not a housing voucher or a statewide formula. The money is geographically specific. It was written for the Capitol corridor&mdash;Murphy&rsquo;s home turf&mdash;and it reaches businesses that would not qualify for standard commercial lending.</p>
         </div>
         <div class="grant-sidebar">
@@ -1249,7 +1405,7 @@ body.mode-oppo .oppo-content { display: block; }
         <div class="nurse-text">
           <h3 class="display-serif">Healthcare, staffing, and keeping Minnesotans covered</h3>
           <p>Murphy is a registered nurse. Before elected office, she ran the Minnesota Nurses Association as executive director. Her legislative record reflects that background directly.</p>
-          <p>In 2025, she championed the Keeping Nurses at the Bedside Act, a bill targeting hospital short-staffing and retention. She led Senate DFL efforts to protect health coverage for Minnesotans as federal cuts threatened Medicaid and other programs.</p>
+          <p>In 2025, she championed legislation targeting hospital short-staffing and nurse retention. She led Senate DFL efforts to protect health coverage for Minnesotans as federal cuts threatened Medicaid and other programs.</p>
           <p>When Trump&rsquo;s &ldquo;Big Beautiful Bill&rdquo; threatened healthcare funding, Murphy was front and center in opposition&mdash;not as a press statement, but as majority leader setting the Senate&rsquo;s response agenda.<sup>3</sup></p>
         </div>
         <div class="nurse-credentials">
@@ -1454,10 +1610,10 @@ body.mode-oppo .oppo-content { display: block; }
         </div>
         <div class="evidence-card">
           <span class="evidence-card-tag">Finding 03 &mdash; Influence</span>
-          <span class="evidence-card-number">$18K</span>
+          <span class="evidence-card-number">CFB</span>
           <h4>Organized money in her campaign</h4>
-          <p>Murphy&rsquo;s 2025 year-end CFB filing shows $6,225 from lobbyists and $11,775 from political committees and political funds&mdash;$18,000 in organized money against $31,284 from individuals. For a senator who presents as a neighborhood nurse, her donor profile reads like a leadership insider&rsquo;s.</p>
-          <div class="hover-reveal">Minnesota Campaign Finance Board, 2025 year-end filing, Erin P. Murphy committee. Verified figures from report research.<sup>8</sup></div>
+          <p>Murphy&rsquo;s CFB filings show a mix of lobbyist contributions, political committee funds, and individual donors. For a senator who presents as a neighborhood nurse, her donor profile reflects her standing as a leadership insider.</p>
+          <div class="hover-reveal">Minnesota Campaign Finance Board filings, Erin P. Murphy committee. cfb.mn.gov &mdash; verify current figures directly on the CFB site.<sup>8</sup></div>
         </div>
       </div>
     </div>
@@ -1540,7 +1696,7 @@ body.mode-oppo .oppo-content { display: block; }
         </li>
         <li>
           <span class="fn-num">8</span>
-          <span>Minnesota Campaign Finance Board, 2025 year-end filing, Erin P. Murphy committee. Lobbyist contributions: $6,225. Political committee and political fund contributions: $11,775. Individual contributions: $31,284. cfb.mn.gov.</span>
+          <span>Minnesota Campaign Finance Board filings, Erin P. Murphy committee. Contribution breakdown by donor type available at cfb.mn.gov. Verify current figures directly on the CFB site.</span>
         </li>
       </ol>
     </div>

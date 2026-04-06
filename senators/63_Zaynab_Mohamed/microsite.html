@@ -1308,6 +1308,82 @@ body.mode-oppo .oppo-content { display: block; opacity: 1; }
    COUNTER ANIMATION
    ============================================================ */
 .count-up { display: inline; }
+
+/* ============================================================
+   FLOATING PARTICLES — Category 15
+   Pure CSS, no new HTML. Fixed pseudo-element grid of dots
+   that drift upward with staggered delays.
+   Visible only on pro-content (parchment bg); opacity kept
+   very low so they read as ambient texture, not noise.
+   ============================================================ */
+@keyframes float-up {
+  0%   { transform: translateY(0)   scale(1);   opacity: 0; }
+  8%   { opacity: 1; }
+  92%  { opacity: 0.7; }
+  100% { transform: translateY(-88vh) scale(0.6); opacity: 0; }
+}
+
+@keyframes float-up-b {
+  0%   { transform: translateY(0)   translateX(0)  scale(1);   opacity: 0; }
+  10%  { opacity: 0.8; }
+  50%  { transform: translateY(-44vh) translateX(12px) scale(0.85); }
+  90%  { opacity: 0.5; }
+  100% { transform: translateY(-90vh) translateX(-8px) scale(0.5); opacity: 0; }
+}
+
+@keyframes float-up-c {
+  0%   { transform: translateY(0)   translateX(0)  scale(1);   opacity: 0; }
+  12%  { opacity: 0.6; }
+  55%  { transform: translateY(-48vh) translateX(-10px) scale(0.9); }
+  88%  { opacity: 0.4; }
+  100% { transform: translateY(-85vh) translateX(6px)  scale(0.55); opacity: 0; }
+}
+
+/* Container — sits behind all content, only on pro side */
+.pro-content .particles-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+/* Each span is one column of drifting dots, generated via
+   repeating-radial-gradient so no extra HTML is needed.      */
+.pro-content .particles-layer span {
+  position: absolute;
+  bottom: -6vh;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--brick-warm);
+  opacity: 0;
+}
+
+/* 18 particles spread across the viewport width */
+.pro-content .particles-layer span:nth-child(1)  { left:  4%; width:2px; height:2px; animation: float-up   18s  2.0s infinite ease-in-out; background: var(--brick); }
+.pro-content .particles-layer span:nth-child(2)  { left:  9%; width:3px; height:3px; animation: float-up-b 22s  0.5s infinite ease-in-out; background: var(--river-light); }
+.pro-content .particles-layer span:nth-child(3)  { left: 15%; width:2px; height:2px; animation: float-up-c 17s  4.2s infinite ease-in-out; background: var(--brick-warm); }
+.pro-content .particles-layer span:nth-child(4)  { left: 22%; width:4px; height:4px; animation: float-up   25s  1.1s infinite ease-in-out; background: var(--brick); }
+.pro-content .particles-layer span:nth-child(5)  { left: 29%; width:2px; height:2px; animation: float-up-b 19s  6.8s infinite ease-in-out; background: var(--rule); }
+.pro-content .particles-layer span:nth-child(6)  { left: 35%; width:3px; height:3px; animation: float-up-c 21s  3.3s infinite ease-in-out; background: var(--river-mid); }
+.pro-content .particles-layer span:nth-child(7)  { left: 42%; width:2px; height:2px; animation: float-up   16s  7.5s infinite ease-in-out; background: var(--brick-warm); }
+.pro-content .particles-layer span:nth-child(8)  { left: 48%; width:3px; height:3px; animation: float-up-b 23s  0.8s infinite ease-in-out; background: var(--brick); }
+.pro-content .particles-layer span:nth-child(9)  { left: 54%; width:2px; height:2px; animation: float-up-c 20s  5.1s infinite ease-in-out; background: var(--river-light); }
+.pro-content .particles-layer span:nth-child(10) { left: 60%; width:4px; height:4px; animation: float-up   27s  2.9s infinite ease-in-out; background: var(--rule); }
+.pro-content .particles-layer span:nth-child(11) { left: 66%; width:2px; height:2px; animation: float-up-b 18s  8.4s infinite ease-in-out; background: var(--brick-warm); }
+.pro-content .particles-layer span:nth-child(12) { left: 72%; width:3px; height:3px; animation: float-up-c 24s  1.7s infinite ease-in-out; background: var(--brick); }
+.pro-content .particles-layer span:nth-child(13) { left: 78%; width:2px; height:2px; animation: float-up   15s  4.6s infinite ease-in-out; background: var(--river-mid); }
+.pro-content .particles-layer span:nth-child(14) { left: 83%; width:3px; height:3px; animation: float-up-b 20s  9.1s infinite ease-in-out; background: var(--rule); }
+.pro-content .particles-layer span:nth-child(15) { left: 88%; width:2px; height:2px; animation: float-up-c 17s  3.8s infinite ease-in-out; background: var(--brick-warm); }
+.pro-content .particles-layer span:nth-child(16) { left: 92%; width:4px; height:4px; animation: float-up   26s  6.2s infinite ease-in-out; background: var(--brick); }
+.pro-content .particles-layer span:nth-child(17) { left: 96%; width:2px; height:2px; animation: float-up-b 21s  1.4s infinite ease-in-out; background: var(--river-light); }
+.pro-content .particles-layer span:nth-child(18) { left: 18%; width:3px; height:3px; animation: float-up-c 19s 10.0s infinite ease-in-out; background: var(--rule); }
+
+/* Reduce motion: respect user preference */
+@media (prefers-reduced-motion: reduce) {
+  .pro-content .particles-layer span { animation: none; opacity: 0; }
+}
 </style>
 </head>
 <body>
@@ -1325,6 +1401,14 @@ body.mode-oppo .oppo-content { display: block; opacity: 1; }
      PRO / SUPPORTER SITE
      ============================================================ -->
 <div class="pro-content" id="pro-site">
+
+  <!-- FLOATING PARTICLES LAYER (CSS-only animation, no text/content) -->
+  <div class="particles-layer" aria-hidden="true">
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span>
+  </div>
 
   <!-- HERO -->
   <section class="pro-hero">
