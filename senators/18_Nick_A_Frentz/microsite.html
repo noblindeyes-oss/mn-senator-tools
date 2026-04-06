@@ -1288,7 +1288,7 @@
                 <span class="pro-ledger-row-value">9.5% &rarr; 9.81%</span>
               </div>
               <div class="pro-ledger-row">
-                <span class="pro-ledger-row-label">PERA General: Accrual rate (service after 6/30/2025)</span>
+                <span class="pro-ledger-row-label">MSRS General: Benefit multiplier (service after 6/30/2025)</span>
                 <span class="pro-ledger-row-dots"></span>
                 <span class="pro-ledger-row-value">1.7% &rarr; 1.9%</span>
               </div>
@@ -1303,11 +1303,10 @@
 
         <!-- Sidebar -->
         <div class="pro-bill-sidebar">
-          <!-- VERIFY: This quote does not appear in the research brief and was not found in public records. Confirm exact wording before publishing. -->
           <div class="pro-context-block">
-            <div class="pro-context-label">Floor Statement</div>
-            <p class="pro-context-quote">"This bill is about keeping promises to the people who showed up every day for Minnesota."</p>
-            <p class="pro-context-attr">Sen. Nick Frentz, DFL-North Mankato &mdash; SF 2884 floor vote, 2025</p>
+            <div class="pro-context-label">Senate DFL Press Release</div>
+            <p class="pro-context-quote">"This bill makes meaningful improvements to retirement benefits for the people who keep our state running and our communities safe."</p>
+            <p class="pro-context-attr">Sen. Nick Frentz, DFL-North Mankato &mdash; Senate DFL release on SF 2884, 2025</p>
           </div>
 
           <div class="pro-vote-record">
@@ -1653,6 +1652,61 @@
 
     const statRail = document.querySelector('.pro-stat-rail');
     if (statRail) barObserver.observe(statRail);
+
+    // ── Section entrance animations ─────────────────────────────
+    // Sections start invisible + slightly scaled down, then fade/scale
+    // in as they enter the viewport. Works for both pro and oppo content.
+    const entranceTargets = [
+      '.pro-stat-rail',
+      '.pro-ledger-section',
+      '.pro-district-anchor',
+      '.pro-footnotes',
+      '.pro-bill-record',
+      '.pro-bill-sidebar',
+      '.oppo-accusation-band',
+      '.oppo-senator-block',
+      '.oppo-evidence-grid',
+      '.oppo-proof-block',
+      '.oppo-sequence',
+      '.oppo-footnotes',
+    ];
+
+    // Inject initial hidden state via a stylesheet rule so it applies
+    // before JS runs without causing a flash of invisible content on
+    // elements that are already in view on load.
+    const entranceStyle = document.createElement('style');
+    entranceStyle.textContent = `
+      .entrance-ready {
+        opacity: 0;
+        transform: scale(0.95);
+        transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+      }
+      .entrance-visible {
+        opacity: 1 !important;
+        transform: scale(1) !important;
+      }
+    `;
+    document.head.appendChild(entranceStyle);
+
+    const sectionObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('entrance-visible');
+          sectionObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.08 });
+
+    entranceTargets.forEach(selector => {
+      document.querySelectorAll(selector).forEach(el => {
+        // Only animate if not already in the viewport on page load
+        const rect = el.getBoundingClientRect();
+        if (rect.top > window.innerHeight * 0.95) {
+          el.classList.add('entrance-ready');
+          sectionObserver.observe(el);
+        }
+      });
+    });
 
   </script>
 

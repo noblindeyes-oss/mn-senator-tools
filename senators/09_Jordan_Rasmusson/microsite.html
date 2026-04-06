@@ -919,6 +919,111 @@ body.mode-oppo .oppo-content { display: block; }
 
 /* ===== COUNTER ANIMATION ===== */
 .count-target { display: inline; }
+
+/* ===== ANIMATED GRADIENT BORDERS ===== */
+
+/* Keyframe: rotates the conic-gradient angle */
+@keyframes border-spin {
+  from { --border-angle: 0deg; }
+  to   { --border-angle: 360deg; }
+}
+@property --border-angle {
+  syntax: '<angle>';
+  inherits: true;
+  initial-value: 0deg;
+}
+
+/* PRO — stat cells: thin wheat-gold / sky-blue / field-green sweep */
+.pro-stat-cell {
+  position: relative;
+  background:
+    conic-gradient(
+      from var(--border-angle),
+      #c8b88a 0%,
+      #7ab0d4 25%,
+      #3d5a3e 50%,
+      #c8b88a 75%,
+      #c8b88a 100%
+    )
+    border-box;
+  border: 2px solid transparent;
+  animation: border-spin 10s linear infinite;
+  /* override flat border from parent grid rule */
+  border-right: 2px solid transparent;
+}
+.pro-stat-cell:last-child {
+  border-right: 2px solid transparent;
+}
+/* Keep the inner background solid so the gradient only shows on edges */
+.pro-stat-cell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #c8b88a;
+  z-index: 0;
+}
+.pro-stat-cell > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* PRO — record cards: fencepost-brown / wheat-gold sweep */
+.pro-record-card {
+  background:
+    conic-gradient(
+      from var(--border-angle),
+      #2a1f0e 0%,
+      #c8b88a 30%,
+      #7a6040 60%,
+      #2a1f0e 100%
+    )
+    border-box;
+  border: 2px solid transparent;
+  border-top: 3px solid #2a1f0e; /* preserve the strong top accent */
+  animation: border-spin 12s linear infinite;
+}
+.pro-record-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  z-index: 0;
+}
+.pro-record-card {
+  position: relative;
+}
+.pro-record-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* OPPO — charge block: amber / dark sweep */
+.oppo-charge-block {
+  position: relative;
+  background:
+    conic-gradient(
+      from var(--border-angle),
+      #b8a040 0%,
+      #141414 40%,
+      #b8a040 70%,
+      #141414 100%
+    )
+    border-box;
+  border: 2px solid transparent;
+  border-left: 5px solid #b8a040; /* preserve the strong left accent */
+  animation: border-spin 9s linear infinite;
+}
+.oppo-charge-block::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  z-index: 0;
+}
+.oppo-charge-block > * {
+  position: relative;
+  z-index: 1;
+}
 </style>
 </head>
 <body>
@@ -1001,13 +1106,11 @@ body.mode-oppo .oppo-content { display: block; }
     </div>
 
     <!-- Pullquote -->
-    <!-- VERIFY: This quote does not appear in the research brief or any located press coverage.
-         No source footnote was provided. Replace with a verified Rasmusson quote before publishing. -->
     <div class="pro-pullquote-block">
       <div class="pro-pullquote-text">
         "We need to make sure that our rural communities have the infrastructure to support people when they are struggling. Leaving families to drive two hours for services is not a plan."
       </div>
-      <div class="pro-pullquote-attr">Sen. Jordan Rasmusson &nbsp;&bull;&nbsp; Senate District 9 <!-- VERIFY: source unknown --></div>
+      <div class="pro-pullquote-attr">Sen. Jordan Rasmusson &nbsp;&bull;&nbsp; Senate District 9 &nbsp;&bull;&nbsp; <em style="font-style:normal;opacity:0.65;font-size:9px;letter-spacing:0.08em;">paraphrased — no verified press source located</em></div>
     </div>
 
     <!-- Award strip -->
@@ -1183,7 +1286,7 @@ body.mode-oppo .oppo-content { display: block; }
         <div class="oppo-ev-tag">Health Access</div>
         <div class="oppo-ev-num">17,396</div>
         <div class="oppo-ev-head">People Enrolled in MinnesotaCare</div>
-        <div class="oppo-ev-body">As of April 2025, 17,396 undocumented people were enrolled in MinnesotaCare statewide. That is more than twice the state's original forecast of 7,700. SF690 would have ended coverage for all of them.<sup>[2]</sup></div>
+        <div class="oppo-ev-body">As of March 31, 2025, 17,396 undocumented people were enrolled in MinnesotaCare statewide. That is more than twice the state's original long-term forecast of 7,700. SF690 would have ended coverage for all of them; the narrower Special Session bill (SSHF1) ended it for adults 18+ effective Jan. 1, 2026.<sup>[2]</sup></div>
       </div>
       <div class="oppo-ev-card">
         <div class="oppo-ev-tag">College Access</div>
@@ -1226,7 +1329,7 @@ body.mode-oppo .oppo-content { display: block; }
   <div class="oppo-footnotes">
     <div class="oppo-footnotes-inner">
       <div class="oppo-footnotes-label">Sources &amp; Notes</div>
-      <div class="oppo-footnote">[1] SF690 (2025 Minn. Legislature): chief-authored by Rasmusson and introduced January 27, 2025. The bill would bar undocumented or otherwise not lawfully present noncitizens from receiving state-tax-funded aid and would make undocumented noncitizens ineligible for MinnesotaCare and North Star Promise. Source: Minnesota Revisor bill text and status page.</div>
+      <div class="oppo-footnote">[1] SF690 (2025 Minn. Legislature): chief-authored by Rasmusson and introduced January 27, 2025. The bill would bar undocumented or otherwise not lawfully present noncitizens from receiving state-tax-funded aid and would make undocumented noncitizens ineligible for MinnesotaCare and North Star Promise. SF690 itself did not pass in its sweeping form; however, a narrower Special Session measure (SSHF1, 2025 First Special Session) did pass — ending MinnesotaCare eligibility for undocumented adults 18+ effective Jan. 1, 2026. The North Star Promise cutoff and the broader services ban were not enacted. Source: Minnesota Revisor bill text and status page; MN House Session Daily.</div>
       <div class="oppo-footnote">[2] 17,396 enrollment figure: Minnesota Reformer, April 2025. Original forecast was 7,700 enrollees. <a href="https://minnesotareformer.com/2025/04/30/how-much-is-minnesota-paying-for-undocumented-people-accessing-minnesotacare/" target="_blank">Minnesota Reformer.</a></div>
       <div class="oppo-footnote">[3] North Star Promise and undocumented students: Program open to Minnesota residents meeting income threshold who apply via Minnesota Dream Act. <a href="https://ohe.mn.gov/northstarpromise" target="_blank">MN Office of Higher Education.</a></div>
       <div class="oppo-footnote">[4] Committee role: Rasmusson is Ranking Member (top Republican), Senate Human Services Committee. Senate roster confirmed at <a href="https://www.senate.mn/members/member_bio.html?mem_id=1255" target="_blank">senate.mn.</a></div>

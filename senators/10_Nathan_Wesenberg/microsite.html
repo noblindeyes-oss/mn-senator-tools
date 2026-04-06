@@ -1020,6 +1020,93 @@
     .oppo-footnotes li + li { margin-top: 6px; }
     .oppo-footnotes a { color: #B01020; text-decoration: underline; }
 
+    /* ── MICRO-HOVER TRANSFORMS ─────────────────────────────── */
+    /* Perspective set on parent containers */
+    .pro-stat-rail,
+    .pro-evidence-grid,
+    .oppo-seq-grid,
+    .oppo-cards-grid {
+      perspective: 800px;
+    }
+
+    /* PRO: stat items */
+    .pro-stat-item {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      will-change: transform;
+    }
+    .pro-stat-item:hover {
+      transform: translateY(-4px) rotateY(2deg) rotateX(1deg) scale(1.02);
+      box-shadow: 0 12px 32px rgba(28,43,26,0.22);
+      z-index: 2;
+      position: relative;
+    }
+
+    /* PRO: evidence cards */
+    .pro-card {
+      transition: background 0.2s, transform 0.3s ease, box-shadow 0.3s ease;
+      will-change: transform;
+    }
+    .pro-card:hover {
+      background: #E8E3D8;
+      transform: translateY(-4px) rotateY(2deg) rotateX(1deg) scale(1.02);
+      box-shadow: 0 12px 28px rgba(28,43,26,0.18);
+      z-index: 2;
+      position: relative;
+    }
+
+    /* OPPO: sequence steps */
+    .oppo-seq-step {
+      transition: background 0.18s, transform 0.3s ease, box-shadow 0.3s ease;
+      will-change: transform;
+    }
+    .oppo-seq-step:hover {
+      background: #2E1010;
+      transform: translateY(-4px) rotateY(2deg) rotateX(1deg) scale(1.02);
+      box-shadow: 0 12px 28px rgba(0,0,0,0.4);
+      z-index: 2;
+      position: relative;
+    }
+
+    /* OPPO: evidence cards */
+    .oppo-card {
+      transition: background 0.2s, transform 0.3s ease, box-shadow 0.3s ease;
+      will-change: transform;
+    }
+    .oppo-card:hover {
+      background: #FEF0F0;
+      transform: translateY(-4px) rotateY(2deg) rotateX(1deg) scale(1.02);
+      box-shadow: 0 12px 28px rgba(176,16,32,0.14);
+      z-index: 2;
+      position: relative;
+    }
+    .oppo-card:hover .oppo-card-head { color: #B01020; }
+
+    /* OPPO: EOB line items */
+    .oppo-line-item {
+      transition: background 0.18s, transform 0.25s ease, box-shadow 0.25s ease;
+      will-change: transform;
+    }
+    .oppo-line-item:hover {
+      background: #FDF0F0;
+      transform: translateY(-2px) rotateX(0.5deg) scale(1.01);
+      box-shadow: 0 6px 18px rgba(176,16,32,0.1);
+      z-index: 1;
+      position: relative;
+    }
+
+    /* Reduce motion for accessibility */
+    @media (prefers-reduced-motion: reduce) {
+      .pro-stat-item,
+      .pro-card,
+      .oppo-seq-step,
+      .oppo-card,
+      .oppo-line-item {
+        transition: background 0.2s;
+        transform: none !important;
+        box-shadow: none !important;
+      }
+    }
+
     /* ── RESPONSIVE ─────────────────────────────────────────── */
     @media (max-width: 900px) {
       .pro-hero { grid-template-columns: 1fr; }
@@ -1375,7 +1462,7 @@
         <div class="oppo-profile-body">
           <p>Nathan Wesenberg (Republican, District 10) has been in the Minnesota Senate since January 2023. His public biography emphasizes his career as a wildlife biologist with the DNR. He is from Little Falls, the county seat of Morrison County.</p>
           <p>In the 2026 session, Wesenberg chief-authored SF3775 to remove abortion coverage from Medical Assistance, MinnesotaCare, the State Employees Group Insurance Program, and most individual health plans. He also co-authored SF3773 for dam repair funding. His bill file shows the distance between his outdoor conservationist brand and his social-conservative legislative record.</p>
-          <p>SF3775 was referred to committee on the same day it was introduced: February 23, 2026. <!-- VERIFY --> HF4041 is listed as similar to SF3775; official companion designation is unconfirmed.</p>
+          <p>SF3775 was referred to the Senate Commerce and Consumer Protection Committee on the same day it was introduced: February 23, 2026. HF4041 is listed by the MN Revisor as "similar to" SF3775; it is not a formally designated companion bill.</p>
         </div>
       </div>
     </div>
@@ -1389,7 +1476,7 @@
         Chief author: Sen. Nathan Wesenberg<br>
         Introduced: February 23, 2026<br>
         Committee: Commerce &amp; Consumer Protection<br>
-        Companion: HF4041<!-- VERIFY: listed as "similar to" SF3775, not confirmed official companion -->
+        Similar to: HF4041 (no formal companion designated)
       </div>
     </div>
 
