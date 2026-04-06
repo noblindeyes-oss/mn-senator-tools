@@ -2319,71 +2319,11 @@ function updateSpits(){
     ctx.filter='blur(15px)';ctx.fill();ctx.filter='none';
   }
 }
-
-// FLOATING SHAPES - more variety, weirder motion
-var shapeTypes=['tri','ring','hex','diamond','cross','arc'];
-var shapes=[];
-for(var s=0;s<12;s++){
-  shapes.push({
-    x:Math.random(),y:Math.random(),
-    size:2+Math.random()*10,
-    type:shapeTypes[s%shapeTypes.length],
-    rot:Math.random()*6.28,
-    rotSpeed:(Math.random()-0.5)*0.015,
-    driftX:(Math.random()-0.5)*0.12,
-    driftY:-0.03-Math.random()*0.12,
-    alpha:0.07+Math.random()*0.1,
-    col:blobColors[Math.floor(Math.random()*blobColors.length)],
-    phase:Math.random()*6.28,
-    jerkX:(Math.random()-0.5)*0.6,
-    jerkY:(Math.random()-0.5)*0.5,
-    switchTime:200+Math.floor(Math.random()*600),
-    switchCounter:0,
-    switchDirX:1,switchDirY:1,
-  });
-}
-function drawShape(sh,time){
-  sh.switchCounter++;
-  if(sh.switchCounter>=sh.switchTime){
-    sh.switchCounter=0;sh.switchTime=200+Math.floor(Math.random()*600);
-    if(Math.random()>0.5)sh.switchDirX*=-1;
-    if(Math.random()>0.5)sh.switchDirY*=-1;
-  }
-  var wx=Math.sin(time*0.5+sh.phase)*sh.jerkX*sh.switchDirX+Math.sin(time*2.1+sh.phase*3)*sh.jerkX*0.3;
-  var wy=Math.cos(time*0.4+sh.phase)*sh.jerkY*sh.switchDirY+Math.cos(time*1.7-sh.phase*2)*sh.jerkY*0.25;
-  var px=(sh.x*W+wx*50+time*sh.driftX*6)%(W+60)-30;
-  var py=(sh.y*H+wy*40+time*sh.driftY*5);
-  if(py<-30){sh.y=1.1;py=H+20;}
-  if(py>H+30){sh.y=-0.05;py=-20;}
-  ctx.save();
-  ctx.translate(px,py);
-  ctx.rotate(sh.rot+time*sh.rotSpeed*8+Math.sin(time*0.2+sh.phase)*0.8);
-  ctx.globalAlpha=sh.alpha*(0.5+Math.sin(time*0.3+sh.phase)*0.5);
-  ctx.strokeStyle='rgb('+sh.col[0]+','+sh.col[1]+','+sh.col[2]+')';
-  ctx.lineWidth=0.7;
-  var sz=sh.size+Math.sin(time*0.5+sh.phase)*3;
-  if(sh.type==='tri'){
-    ctx.beginPath();for(var i=0;i<3;i++){var a=(i/3)*6.28-1.57;ctx[i?'lineTo':'moveTo'](Math.cos(a)*sz,Math.sin(a)*sz);}ctx.closePath();ctx.stroke();
-  }else if(sh.type==='ring'){
-    ctx.beginPath();ctx.arc(0,0,sz,0,6.28);ctx.stroke();
-  }else if(sh.type==='hex'){
-    ctx.beginPath();for(var i=0;i<6;i++){var a=(i/6)*6.28;ctx[i?'lineTo':'moveTo'](Math.cos(a)*sz,Math.sin(a)*sz);}ctx.closePath();ctx.stroke();
-  }else if(sh.type==='diamond'){
-    ctx.beginPath();ctx.moveTo(0,-sz);ctx.lineTo(sz*0.6,0);ctx.lineTo(0,sz);ctx.lineTo(-sz*0.6,0);ctx.closePath();ctx.stroke();
-  }else if(sh.type==='cross'){
-    ctx.beginPath();ctx.moveTo(-sz,0);ctx.lineTo(sz,0);ctx.moveTo(0,-sz);ctx.lineTo(0,sz);ctx.stroke();
-  }else if(sh.type==='arc'){
-    ctx.beginPath();ctx.arc(0,0,sz,time*0.3%(6.28),(time*0.3%(6.28))+3.14);ctx.stroke();
-  }
-  ctx.restore();
-}
-
 function frame(){
   t++;var time=t*0.016;
   ctx.clearRect(0,0,W,H);
   for(var i=0;i<blobs.length;i++)drawBlob(blobs[i],time);
   updateSpits();
-  for(var i=0;i<shapes.length;i++)drawShape(shapes[i],time);
   requestAnimationFrame(frame);
 }
 frame();
