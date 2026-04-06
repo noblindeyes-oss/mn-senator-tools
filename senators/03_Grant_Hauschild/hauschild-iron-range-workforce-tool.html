@@ -1,0 +1,1741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iron Range Workforce & Economic Pipeline Analyzer — Sen. Grant Hauschild, SD-3</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Oswald:wght@400;500;600;700&family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+/*
+ * DESIGN CHOICES — Iron Range Workforce & Economic Pipeline Analyzer
+ * ===================================================================
+ * 1. SPLIT LAYOUT WITH MINE-SHAFT SIDEBAR: 180px dark vertical nav evokes the
+ *    claustrophobic utility of an underground control station — monospaced labels,
+ *    angular active states, no soft curves anywhere in the chrome.
+ * 2. INDUSTRIAL COLOR ZONING: Each module owns a tonal band (teal for mine cycles,
+ *    rust for taconite tax, ore-orange for workforce pipeline, steel for briefs)
+ *    so the tool reads as four distinct environments, not one template repeated.
+ * 3. TYPOGRAPHY TENSION: Oswald (condensed, uppercase) for headers vs Source Serif 4
+ *    (editorial) for prose vs IBM Plex Mono (technical) for data creates the same
+ *    friction you'd see between a union newsletter and an engineering readout.
+ * 4. CSS-ONLY DATA VISUALIZATION: Bar charts, pipeline diagrams, and comparison
+ *    blocks are all built with CSS grid/flexbox + custom properties — no external
+ *    chart libraries, keeping the single-file constraint honest and performant.
+ * 5. DRAMATIC ENTRY ANIMATION: The opening sequence (typewriter title, sliding
+ *    subtitle, counting stat) earns the user's attention before dropping them into
+ *    a dense analytical tool — respecting that first impressions matter even for
+ *    policy wonks.
+ */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --rust: #6B3A2A;
+  --shaft: #1A1612;
+  --ore: #D4660E;
+  --steel: #4A4F54;
+  --cream: #F2EDE4;
+  --teal: #1B6B6B;
+  --rust-light: #8B5A4A;
+  --ore-light: #E8924A;
+  --teal-light: #2A8A8A;
+  --shaft-mid: #2E2824;
+  --cream-dark: #E5DED4;
+  --sidebar-w: 180px;
+}
+
+html { font-size: 16px; scroll-behavior: smooth; }
+
+body {
+  font-family: 'Source Serif 4', Georgia, serif;
+  background: var(--cream);
+  color: var(--shaft);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ======================== INTRO ANIMATION ======================== */
+#intro-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--shaft);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+#intro-overlay.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+#intro-overlay .intro-title {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: clamp(48px, 8vw, 84px);
+  color: var(--cream);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  overflow: hidden;
+  white-space: nowrap;
+  border-right: 3px solid var(--ore);
+  width: 0;
+  animation: typeOut 1.2s steps(10, end) 0.3s forwards, blinkCaret 0.5s step-end 6 0.3s;
+}
+#intro-overlay .intro-subtitle {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 400;
+  font-size: clamp(18px, 3vw, 28px);
+  color: var(--ore);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  opacity: 0;
+  transform: translateY(30px);
+  animation: slideUp 0.7s ease 1.6s forwards;
+}
+#intro-overlay .intro-stat {
+  margin-top: 40px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: clamp(16px, 2.5vw, 22px);
+  color: var(--teal-light);
+  opacity: 0;
+  animation: fadeIn 0.6s ease 2.3s forwards;
+}
+#intro-overlay .intro-stat .count-up {
+  color: var(--cream);
+  font-weight: 600;
+}
+#intro-overlay .skip-note {
+  position: absolute;
+  bottom: 30px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: var(--steel);
+  opacity: 0;
+  animation: fadeIn 0.4s ease 3.5s forwards;
+  cursor: pointer;
+  border: 1px solid var(--steel);
+  padding: 6px 14px;
+  transition: color 0.1s, border-color 0.1s;
+}
+#intro-overlay .skip-note:hover { color: var(--ore); border-color: var(--ore); }
+
+@keyframes typeOut {
+  0% { width: 0; }
+  100% { width: 10ch; border-right-color: transparent; }
+}
+@keyframes blinkCaret {
+  50% { border-right-color: transparent; }
+}
+@keyframes slideUp {
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  to { opacity: 1; }
+}
+@keyframes stampIn {
+  0% { transform: scale(1.15); opacity: 0; }
+  60% { transform: scale(0.97); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ======================== LAYOUT ======================== */
+#app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* SIDEBAR — mine shaft control panel */
+#sidebar {
+  position: fixed;
+  left: 0; top: 0;
+  width: var(--sidebar-w);
+  height: 100vh;
+  background: var(--shaft);
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+  border-right: 2px solid var(--ore);
+}
+#sidebar .brand {
+  padding: 20px 14px 16px;
+  border-bottom: 1px solid var(--shaft-mid);
+}
+#sidebar .brand .senator {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--steel);
+  margin-bottom: 4px;
+}
+#sidebar .brand .district {
+  font-family: 'Oswald', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--cream);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+#sidebar nav {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding-top: 10px;
+}
+#sidebar nav button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  border-left: 3px solid transparent;
+  padding: 16px 14px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--steel);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all 0.1s;
+  line-height: 1.4;
+}
+#sidebar nav button:hover {
+  color: var(--cream);
+  background: rgba(255,255,255,0.03);
+}
+#sidebar nav button.active {
+  color: var(--ore);
+  border-left-color: var(--ore);
+  background: rgba(212,102,14,0.08);
+}
+#sidebar nav button .tab-num {
+  display: block;
+  font-size: 20px;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  margin-bottom: 2px;
+  line-height: 1;
+}
+#sidebar .sidebar-footer {
+  padding: 14px;
+  border-top: 1px solid var(--shaft-mid);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  line-height: 1.5;
+}
+
+/* MAIN CONTENT */
+#main-content {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  min-height: 100vh;
+}
+
+/* MODULE BASE */
+.module {
+  display: none;
+  min-height: 100vh;
+}
+.module.active { display: block; }
+
+/* MODULE HEADERS */
+.module-header {
+  padding: 50px 48px 36px;
+  position: relative;
+}
+.module-header .module-num {
+  font-family: 'Oswald', sans-serif;
+  font-size: 64px;
+  font-weight: 700;
+  line-height: 1;
+  opacity: 0.08;
+  position: absolute;
+  top: 20px;
+  right: 48px;
+}
+.module-header h2 {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 32px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 1.15;
+}
+.module-header .bill-tag {
+  display: inline-block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  margin-top: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.module-header .lead {
+  margin-top: 14px;
+  font-size: 17px;
+  max-width: 680px;
+  color: var(--steel);
+}
+
+/* SECTION BLOCKS */
+.section-block {
+  padding: 36px 48px;
+}
+.section-block h3 {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: 18px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 16px;
+}
+
+/* STAT CARDS */
+.stat-row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+.stat-card {
+  flex: 1;
+  min-width: 180px;
+  padding: 20px;
+  background: white;
+  border-left: 3px solid var(--steel);
+}
+.stat-card .stat-value {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.1;
+}
+.stat-card .stat-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--steel);
+  margin-top: 6px;
+}
+
+/* SLIDERS */
+.slider-group { margin-bottom: 24px; }
+.slider-group label {
+  display: block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--steel);
+  margin-bottom: 8px;
+}
+.slider-group .slider-value {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  background: var(--cream-dark);
+  outline: none;
+  border-radius: 0;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background: var(--ore);
+  border: 2px solid var(--shaft);
+  cursor: pointer;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background: var(--ore);
+  border: 2px solid var(--shaft);
+  cursor: pointer;
+  border-radius: 0;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  background: linear-gradient(to right, var(--rust) 0%, var(--rust) var(--pct, 50%), var(--cream-dark) var(--pct, 50%));
+}
+
+/* INPUT FIELDS */
+.input-group { margin-bottom: 20px; }
+.input-group label {
+  display: block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--steel);
+  margin-bottom: 6px;
+}
+.input-group input[type="number"],
+.input-group select {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 15px;
+  padding: 10px 14px;
+  border: 2px solid var(--cream-dark);
+  background: white;
+  color: var(--shaft);
+  width: 100%;
+  max-width: 300px;
+  transition: border-color 0.1s;
+}
+.input-group input[type="number"]:focus,
+.input-group select:focus {
+  outline: none;
+  border-color: var(--ore);
+}
+
+/* RESULT BOX */
+.result-box {
+  background: white;
+  border: 2px solid var(--shaft);
+  padding: 24px;
+  margin-top: 20px;
+  position: relative;
+}
+.result-box.stamp-in {
+  animation: stampIn 0.25s ease;
+}
+.result-box h4 {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 12px;
+}
+.result-box .result-value {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 1.1;
+}
+.result-box .result-sub {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: var(--steel);
+  margin-top: 6px;
+}
+
+/* MODULE 1 — MINE CYCLE (teal accent) */
+#mod-mine .module-header { border-bottom: 4px solid var(--teal); }
+#mod-mine .module-header h2 { color: var(--teal); }
+#mod-mine .bill-tag { background: var(--teal); color: white; }
+#mod-mine .stat-card { border-left-color: var(--teal); }
+#mod-mine .stat-card .stat-value { color: var(--teal); }
+#mod-mine .module-num { color: var(--teal); }
+
+.cycle-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 180px;
+  padding: 20px 0;
+  border-bottom: 2px solid var(--shaft);
+  margin-bottom: 8px;
+}
+.cycle-chart .bar-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  justify-content: flex-end;
+}
+.cycle-chart .bar {
+  width: 100%;
+  max-width: 50px;
+  transition: height 0.3s ease;
+  position: relative;
+}
+.cycle-chart .bar.boom { background: var(--teal); }
+.cycle-chart .bar.bust { background: var(--rust); }
+.cycle-chart .bar.recovery { background: var(--teal-light); }
+.cycle-chart .bar-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+  color: var(--steel);
+  margin-top: 6px;
+  text-align: center;
+}
+
+.income-cliff {
+  position: relative;
+  margin: 30px 0;
+  background: white;
+  border: 2px solid var(--shaft);
+  padding: 30px;
+}
+.income-cliff h4 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 16px;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  letter-spacing: 0.04em;
+}
+.cliff-diagram {
+  display: flex;
+  align-items: flex-end;
+  height: 200px;
+  gap: 0;
+  position: relative;
+}
+.cliff-phase {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  text-align: center;
+  position: relative;
+}
+.cliff-phase .phase-bar {
+  width: 100%;
+  transition: height 0.3s ease;
+}
+.cliff-phase .phase-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--steel);
+  padding: 8px 4px 0;
+  letter-spacing: 0.04em;
+}
+.cliff-phase .phase-amount {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px;
+}
+
+.teal-band {
+  background: var(--teal);
+  color: white;
+  padding: 36px 48px;
+  margin: 20px 0;
+}
+.teal-band h3 { color: white; }
+.teal-band p { color: rgba(255,255,255,0.85); }
+
+/* MODULE 2 — TACONITE TAX (rust tones) */
+#mod-tax .module-header { border-bottom: 4px solid var(--rust); }
+#mod-tax .module-header h2 { color: var(--rust); }
+#mod-tax .bill-tag { background: var(--rust); color: white; }
+#mod-tax .stat-card { border-left-color: var(--rust); }
+#mod-tax .stat-card .stat-value { color: var(--rust); }
+#mod-tax .module-num { color: var(--rust); }
+
+.comparison-panel {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  margin: 24px 0;
+  border: 2px solid var(--shaft);
+}
+.comparison-panel .panel {
+  padding: 24px;
+}
+.comparison-panel .panel.old-law {
+  background: #e8e3db;
+  border-right: 2px solid var(--shaft);
+}
+.comparison-panel .panel.new-law {
+  background: white;
+}
+.comparison-panel .panel h4 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid currentColor;
+}
+.comparison-panel .panel.old-law h4 { color: var(--steel); }
+.comparison-panel .panel.new-law h4 { color: var(--rust); }
+.comparison-panel .panel li {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  margin-bottom: 8px;
+  list-style: none;
+  padding-left: 14px;
+  position: relative;
+  line-height: 1.5;
+}
+.comparison-panel .panel.old-law li::before {
+  content: '—';
+  position: absolute;
+  left: 0;
+  color: var(--steel);
+}
+.comparison-panel .panel.new-law li::before {
+  content: '+';
+  position: absolute;
+  left: 0;
+  color: var(--ore);
+  font-weight: 700;
+}
+
+.parcel-map {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 8px);
+  gap: 2px;
+  padding: 20px;
+  background: white;
+  border: 2px solid var(--shaft);
+  margin: 20px 0;
+  max-height: 200px;
+  overflow: hidden;
+  position: relative;
+}
+.parcel-map::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 60px;
+  background: linear-gradient(transparent, white);
+}
+.parcel-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--rust);
+  opacity: 0.35;
+}
+.parcel-dot.highlighted { opacity: 1; background: var(--ore); }
+
+.rust-band {
+  background: var(--rust);
+  color: white;
+  padding: 36px 48px;
+  margin: 20px 0;
+}
+.rust-band h3 { color: white; }
+
+.trade-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+.trade-card {
+  background: white;
+  border: 2px solid var(--cream-dark);
+  padding: 16px;
+  transition: border-color 0.1s;
+}
+.trade-card.eligible {
+  border-color: var(--ore);
+  border-left-width: 4px;
+}
+.trade-card .trade-name {
+  font-family: 'Oswald', sans-serif;
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.trade-card .trade-status {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: 6px;
+}
+.trade-card .trade-status.yes { color: var(--ore); font-weight: 600; }
+.trade-card .trade-status.no { color: var(--steel); }
+
+/* MODULE 3 — WORKFORCE PIPELINE (ore orange) */
+#mod-pipe .module-header { border-bottom: 4px solid var(--ore); }
+#mod-pipe .module-header h2 { color: var(--ore); }
+#mod-pipe .bill-tag { background: var(--ore); color: white; }
+#mod-pipe .stat-card { border-left-color: var(--ore); }
+#mod-pipe .stat-card .stat-value { color: var(--ore); }
+#mod-pipe .module-num { color: var(--ore); }
+
+.pipeline-diagram {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  margin: 30px 0;
+  position: relative;
+  min-height: 260px;
+}
+.pipeline-stage {
+  flex: 1;
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.1s;
+  border: 2px solid transparent;
+}
+.pipeline-stage:hover { transform: translateY(-4px); }
+.pipeline-stage.active-stage { border-color: var(--ore); }
+.pipeline-stage .stage-top {
+  background: var(--shaft);
+  color: white;
+  padding: 14px 12px;
+  text-align: center;
+  font-family: 'Oswald', sans-serif;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+.pipeline-stage .stage-body {
+  background: white;
+  padding: 14px 12px;
+  flex: 1;
+  font-size: 13px;
+}
+.pipeline-stage .stage-body .pct-bar {
+  height: 6px;
+  background: var(--cream-dark);
+  margin-top: 10px;
+}
+.pipeline-stage .stage-body .pct-bar .fill {
+  height: 100%;
+  background: var(--ore);
+  transition: width 0.3s ease;
+}
+.pipeline-stage .stage-body .stage-stat {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--steel);
+  margin-top: 6px;
+}
+.pipeline-arrow {
+  width: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: var(--ore);
+}
+
+.stage-detail-panel {
+  background: white;
+  border: 2px solid var(--ore);
+  padding: 24px;
+  margin: 0 0 24px;
+  display: none;
+}
+.stage-detail-panel.visible { display: block; }
+.stage-detail-panel h4 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ore);
+  margin-bottom: 12px;
+}
+.stage-detail-panel .detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.stage-detail-panel .detail-item label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--steel);
+  display: block;
+  margin-bottom: 4px;
+}
+.stage-detail-panel .detail-item p {
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.ore-band {
+  background: var(--ore);
+  color: white;
+  padding: 36px 48px;
+  margin: 20px 0;
+}
+.ore-band h3 { color: white; }
+
+/* MODULE 4 — BRIEF GENERATOR (steel) */
+#mod-brief .module-header { border-bottom: 4px solid var(--steel); }
+#mod-brief .module-header h2 { color: var(--steel); }
+#mod-brief .bill-tag { background: var(--steel); color: white; }
+#mod-brief .module-num { color: var(--steel); }
+
+.brief-controls {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  margin-bottom: 24px;
+}
+.brief-controls .input-group { flex: 1; min-width: 240px; }
+
+.btn {
+  font-family: 'Oswald', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 12px 28px;
+  border: 2px solid var(--shaft);
+  background: var(--shaft);
+  color: var(--cream);
+  cursor: pointer;
+  transition: all 0.1s;
+}
+.btn:hover { background: var(--ore); border-color: var(--ore); }
+.btn.btn-print {
+  background: transparent;
+  color: var(--shaft);
+}
+.btn.btn-print:hover {
+  background: var(--shaft);
+  color: var(--cream);
+}
+
+.brief-output {
+  background: white;
+  border: 2px solid var(--shaft);
+  padding: 48px;
+  max-width: 780px;
+  line-height: 1.7;
+  display: none;
+}
+.brief-output.visible { display: block; }
+.brief-output .brief-header {
+  border-bottom: 3px solid var(--shaft);
+  padding-bottom: 16px;
+  margin-bottom: 24px;
+}
+.brief-output .brief-header h3 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 22px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.brief-output .brief-header .brief-meta {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--steel);
+  margin-top: 6px;
+}
+.brief-output .brief-section {
+  margin-bottom: 24px;
+}
+.brief-output .brief-section h4 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--rust);
+  margin-bottom: 8px;
+}
+.brief-output .brief-section p,
+.brief-output .brief-section li {
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+.brief-output .brief-section ul {
+  padding-left: 20px;
+}
+.brief-output .brief-ask {
+  background: var(--shaft);
+  color: var(--cream);
+  padding: 20px;
+  font-family: 'Source Serif 4', serif;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* ======================== PRINT ======================== */
+@media print {
+  #sidebar, #intro-overlay, .no-print { display: none !important; }
+  #main-content { margin-left: 0 !important; }
+  .module { display: none !important; }
+  #mod-brief { display: block !important; }
+  .brief-output {
+    display: block !important;
+    border: none;
+    padding: 0;
+    max-width: 100%;
+  }
+  .brief-controls { display: none !important; }
+  .module-header { padding: 20px 0; }
+  body { background: white; font-size: 12pt; }
+  .brief-output .brief-ask { background: #eee; color: black; }
+}
+
+/* ======================== RESPONSIVE ======================== */
+@media (max-width: 1100px) {
+  :root { --sidebar-w: 60px; }
+  #sidebar .brand .district,
+  #sidebar .sidebar-footer { display: none; }
+  #sidebar nav button {
+    padding: 14px 8px;
+    font-size: 0;
+    text-align: center;
+  }
+  #sidebar nav button .tab-num { font-size: 18px; }
+  .section-block, .module-header { padding-left: 28px; padding-right: 28px; }
+  .teal-band, .rust-band, .ore-band { padding-left: 28px; padding-right: 28px; }
+}
+@media (max-width: 900px) {
+  .comparison-panel { grid-template-columns: 1fr; }
+  .comparison-panel .panel.old-law { border-right: none; border-bottom: 2px solid var(--shaft); }
+  .pipeline-diagram { flex-wrap: wrap; }
+  .pipeline-arrow { width: 100%; height: 24px; }
+  .stat-row { flex-direction: column; }
+  .cliff-diagram { flex-wrap: wrap; }
+  .cliff-phase { min-width: 80px; }
+  .stage-detail-panel .detail-grid { grid-template-columns: 1fr; }
+  .brief-output { padding: 24px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============== INTRO ANIMATION ============== -->
+<div id="intro-overlay">
+  <div class="intro-title">IRON RANGE</div>
+  <div class="intro-subtitle">Workforce & Economic Pipeline</div>
+  <div class="intro-stat">
+    <span class="count-up" id="count-workers">0</span> workers.
+    <span class="count-up" id="count-weeks">0</span> weeks.
+    One bill.
+  </div>
+  <div class="skip-note" id="skip-intro">ENTER TOOL &rarr;</div>
+</div>
+
+<!-- ============== APP SHELL ============== -->
+<div id="app-shell">
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <div class="brand">
+      <div class="senator">Sen. Hauschild</div>
+      <div class="district">SD-3</div>
+    </div>
+    <nav>
+      <button class="active" data-mod="mod-mine">
+        <span class="tab-num">01</span>Mine Cycle Monitor
+      </button>
+      <button data-mod="mod-tax">
+        <span class="tab-num">02</span>Taconite Tax Impact
+      </button>
+      <button data-mod="mod-pipe">
+        <span class="tab-num">03</span>Workforce Pipeline
+      </button>
+      <button data-mod="mod-brief">
+        <span class="tab-num">04</span>Investment Brief
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      Iron Range &amp;<br>North Shore<br>Legislative Tools
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main id="main-content">
+
+    <!-- ==================== MODULE 1: MINE CYCLE ==================== -->
+    <section id="mod-mine" class="module active">
+      <div class="module-header">
+        <span class="module-num">01</span>
+        <h2>Mine Cycle Monitor</h2>
+        <span class="bill-tag">SF 40 &middot; Enacted 2023</span>
+        <p class="lead">Iron Range employment follows taconite demand. When global steel markets dip, mines idle workers for months. SF&nbsp;40 extended unemployment benefits so families don't fall off a cliff while waiting for the recall.</p>
+      </div>
+
+      <div class="section-block">
+        <h3>Employment Volatility: Iron Range Cycle</h3>
+        <div class="cycle-chart" id="cycle-chart">
+          <div class="bar-group"><div class="bar boom" style="height:85%"></div><div class="bar-label">'16</div></div>
+          <div class="bar-group"><div class="bar boom" style="height:75%"></div><div class="bar-label">'17</div></div>
+          <div class="bar-group"><div class="bar bust" style="height:35%"></div><div class="bar-label">'18</div></div>
+          <div class="bar-group"><div class="bar bust" style="height:25%"></div><div class="bar-label">'19</div></div>
+          <div class="bar-group"><div class="bar bust" style="height:20%"></div><div class="bar-label">'20</div></div>
+          <div class="bar-group"><div class="bar recovery" style="height:55%"></div><div class="bar-label">'21</div></div>
+          <div class="bar-group"><div class="bar boom" style="height:80%"></div><div class="bar-label">'22</div></div>
+          <div class="bar-group"><div class="bar bust" style="height:40%"></div><div class="bar-label">'23</div></div>
+          <div class="bar-group"><div class="bar recovery" style="height:60%"></div><div class="bar-label">'24</div></div>
+          <div class="bar-group"><div class="bar recovery" style="height:65%"></div><div class="bar-label">'25</div></div>
+        </div>
+        <div style="display:flex;gap:16px;margin-top:8px;font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--steel)">
+          <span><span style="display:inline-block;width:10px;height:10px;background:var(--teal);margin-right:4px;vertical-align:middle"></span>Boom</span>
+          <span><span style="display:inline-block;width:10px;height:10px;background:var(--rust);margin-right:4px;vertical-align:middle"></span>Bust/Layoff</span>
+          <span><span style="display:inline-block;width:10px;height:10px;background:var(--teal-light);margin-right:4px;vertical-align:middle"></span>Recovery</span>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <h3>The Unemployment Cliff</h3>
+        <div class="income-cliff">
+          <h4>Income During Layoff: Standard vs. SF 40 Extension</h4>
+          <div class="cliff-diagram" id="cliff-diagram">
+            <div class="cliff-phase" style="flex:2.5">
+              <div class="phase-amount" style="color:var(--teal)">$598/wk</div>
+              <div class="phase-bar" style="height:160px;background:var(--teal)"></div>
+              <div class="phase-label">Employed<br>(pre-layoff)</div>
+            </div>
+            <div class="cliff-phase" style="flex:2.5">
+              <div class="phase-amount" style="color:var(--teal-light)">$458/wk avg</div>
+              <div class="phase-bar" style="height:120px;background:var(--teal-light)"></div>
+              <div class="phase-label">Standard UI<br>(Weeks 1-26)</div>
+            </div>
+            <div class="cliff-phase" style="flex:2.5" id="cliff-gap-phase">
+              <div class="phase-amount" style="color:var(--rust)">$0/wk</div>
+              <div class="phase-bar" style="height:4px;background:var(--rust)"></div>
+              <div class="phase-label">The Cliff<br>(Weeks 27-52)</div>
+            </div>
+            <div class="cliff-phase" style="flex:2.5" id="cliff-sf40-phase">
+              <div class="phase-amount" style="color:var(--ore)">$458/wk avg</div>
+              <div class="phase-bar" style="height:120px;background:var(--ore)"></div>
+              <div class="phase-label">With SF 40<br>(Weeks 27-52)</div>
+            </div>
+            <div class="cliff-phase" style="flex:2.5">
+              <div class="phase-amount" style="color:var(--teal)">$598/wk</div>
+              <div class="phase-bar" style="height:160px;background:var(--teal)"></div>
+              <div class="phase-label">Recalled to<br>Work</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="teal-band">
+        <h3>SF 40 Impact Calculator</h3>
+        <p style="margin-bottom:20px">Model the economic impact of extending unemployment benefits during cyclical mine layoffs.</p>
+      </div>
+
+      <div class="section-block">
+        <div class="stat-row">
+          <div class="stat-card">
+            <div class="stat-value">~490</div>
+            <div class="stat-label">Eligible Workers (DEED Est.)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">26</div>
+            <div class="stat-label">Additional Weeks (SF 40)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">2023</div>
+            <div class="stat-label">Year Enacted</div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:20px">
+          <div>
+            <div class="input-group">
+              <label>Number of Affected Workers</label>
+              <input type="number" id="m1-workers" value="490" min="1" max="2000">
+            </div>
+            <div class="input-group">
+              <label>Average Weekly Benefit ($)</label>
+              <input type="number" id="m1-benefit" value="458" min="100" max="900">
+            </div>
+            <div class="slider-group">
+              <label>Extension Weeks</label>
+              <div class="slider-value" id="m1-weeks-val">26 weeks</div>
+              <input type="range" id="m1-weeks" min="1" max="52" value="26">
+            </div>
+          </div>
+          <div>
+            <div class="result-box" id="m1-result">
+              <h4>Total Economic Impact</h4>
+              <div class="result-value" id="m1-total">$5,837,080</div>
+              <div class="result-sub" id="m1-sub">Dollars kept in the Iron Range economy during the layoff gap</div>
+              <div style="margin-top:16px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--steel)">
+                <div id="m1-per-worker">Per worker: $11,908</div>
+                <div id="m1-without" style="margin-top:4px;color:var(--rust)">Without SF 40: $0 for those weeks</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== MODULE 2: TACONITE TAX ==================== -->
+    <section id="mod-tax" class="module">
+      <div class="module-header">
+        <span class="module-num">02</span>
+        <h2>Taconite Tax Impact Model</h2>
+        <span class="bill-tag">SF 5435 &middot; Proposed 2024</span>
+        <p class="lead">SF&nbsp;5435 raises the taconite homestead credit cap to $515 for 35,100 qualifying parcels and opens county mineral-tax scholarships to accredited trade and vocational programs for the first time.</p>
+      </div>
+
+      <div class="section-block">
+        <h3>Homestead Credit Calculator</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:30px">
+          <div>
+            <div class="slider-group">
+              <label>Current Credit Cap ($)</label>
+              <div class="slider-value" id="m2-current-val">$390</div>
+              <input type="range" id="m2-current" min="200" max="500" value="390">
+            </div>
+            <div class="slider-group">
+              <label>Proposed Cap Under SF 5435 ($)</label>
+              <div class="slider-value" id="m2-proposed-val" style="color:var(--rust)">$515</div>
+              <input type="range" id="m2-proposed" min="390" max="600" value="515">
+            </div>
+            <div class="input-group">
+              <label>Your Assessed Home Value ($)</label>
+              <input type="number" id="m2-value" value="145000" min="0" step="5000">
+            </div>
+          </div>
+          <div>
+            <div class="result-box" id="m2-result">
+              <h4>Your Credit Increase</h4>
+              <div class="result-value" id="m2-increase">+$125</div>
+              <div class="result-sub" id="m2-sub-detail">Annual increase per qualifying parcel</div>
+              <div style="margin-top:16px;font-family:'IBM Plex Mono',monospace;font-size:12px">
+                <div>Old credit: <span id="m2-old-amt">$390</span></div>
+                <div style="color:var(--rust);font-weight:600">New credit: <span id="m2-new-amt">$515</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <h3>35,100 Qualifying Parcels</h3>
+        <p style="margin-bottom:12px;font-size:14px;color:var(--steel)">Each dot represents approximately 10 parcels in the taconite tax relief area across Cook, Lake, and NE St. Louis counties.</p>
+        <div class="parcel-map" id="parcel-map"></div>
+        <div class="stat-row" style="margin-top:16px">
+          <div class="stat-card">
+            <div class="stat-value">35,100</div>
+            <div class="stat-label">Qualifying Parcels</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="m2-total-impact">$4,387,500</div>
+            <div class="stat-label">Total Annual Relief (All Parcels)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">3</div>
+            <div class="stat-label">Counties Covered</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rust-band">
+        <h3>Scholarship Expansion: Old Law vs. SF 5435</h3>
+        <p style="margin-bottom:8px;color:rgba(255,255,255,0.85)">County mineral-tax scholarships were limited to traditional degree programs. SF 5435 opens eligibility to accredited trade and vocational programs.</p>
+      </div>
+
+      <div class="section-block">
+        <div class="comparison-panel">
+          <div class="panel old-law">
+            <h4>Old Law</h4>
+            <ul>
+              <li>4-year university programs</li>
+              <li>Community college transfer tracks</li>
+              <li>Traditional academic scholarships only</li>
+              <li>Trade/vocational programs excluded</li>
+            </ul>
+          </div>
+          <div class="panel new-law">
+            <h4>SF 5435</h4>
+            <ul>
+              <li>All previous programs retained</li>
+              <li>Welding programs now eligible</li>
+              <li>Equipment operation programs</li>
+              <li>Electrical trade programs</li>
+              <li>Pipefitting certification</li>
+              <li>HVAC technician training</li>
+              <li>Heavy machinery maintenance</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3 style="margin-top:30px">Trade Programs: Eligibility Check</h3>
+        <div class="trade-grid">
+          <div class="trade-card eligible">
+            <div class="trade-name">Welding</div>
+            <div class="trade-status yes">Now Eligible Under SF 5435</div>
+          </div>
+          <div class="trade-card eligible">
+            <div class="trade-name">Equipment Operation</div>
+            <div class="trade-status yes">Now Eligible Under SF 5435</div>
+          </div>
+          <div class="trade-card eligible">
+            <div class="trade-name">Electrical</div>
+            <div class="trade-status yes">Now Eligible Under SF 5435</div>
+          </div>
+          <div class="trade-card eligible">
+            <div class="trade-name">Pipefitting</div>
+            <div class="trade-status yes">Now Eligible Under SF 5435</div>
+          </div>
+          <div class="trade-card eligible">
+            <div class="trade-name">HVAC Technician</div>
+            <div class="trade-status yes">Now Eligible Under SF 5435</div>
+          </div>
+          <div class="trade-card eligible">
+            <div class="trade-name">Heavy Machinery Maintenance</div>
+            <div class="trade-status yes">Now Eligible Under SF 5435</div>
+          </div>
+          <div class="trade-card">
+            <div class="trade-name">4-Year University</div>
+            <div class="trade-status no">Already Eligible (No Change)</div>
+          </div>
+          <div class="trade-card">
+            <div class="trade-name">Community College</div>
+            <div class="trade-status no">Already Eligible (No Change)</div>
+          </div>
+        </div>
+
+        <div style="margin-top:24px">
+          <h3>Scholarship Eligibility Checker</h3>
+          <div class="input-group" style="margin-top:12px">
+            <label>Select Program Type</label>
+            <select id="m2-scholarship-check">
+              <option value="">-- Choose a program --</option>
+              <option value="welding">Welding</option>
+              <option value="equipment">Equipment Operation</option>
+              <option value="electrical">Electrical</option>
+              <option value="pipefitting">Pipefitting</option>
+              <option value="hvac">HVAC Technician</option>
+              <option value="heavy-mach">Heavy Machinery Maintenance</option>
+              <option value="university">4-Year University</option>
+              <option value="cc">Community College</option>
+              <option value="nursing">Nursing (BSN)</option>
+              <option value="education">Education (B.Ed.)</option>
+            </select>
+          </div>
+          <div class="result-box" id="m2-scholarship-result" style="display:none">
+            <h4 id="m2-schol-title">Result</h4>
+            <div id="m2-schol-body" style="font-size:14px"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== MODULE 3: WORKFORCE PIPELINE ==================== -->
+    <section id="mod-pipe" class="module">
+      <div class="module-header">
+        <span class="module-num">03</span>
+        <h2>Workforce Pipeline Tracker</h2>
+        <span class="bill-tag">SF 40 + SF 5435 + SF 1617</span>
+        <p class="lead">Mapping how workers flow through the Iron Range economy, where the bottlenecks are, and which Hauschild bills address which stage.</p>
+      </div>
+
+      <div class="section-block">
+        <h3>The Iron Range Worker Pipeline</h3>
+        <p style="font-size:14px;color:var(--steel);margin-bottom:8px">Click each stage to see data, barriers, and relevant legislation.</p>
+        <div class="pipeline-diagram" id="pipeline-diagram">
+          <div class="pipeline-stage active-stage" data-stage="hs">
+            <div class="stage-top">High School</div>
+            <div class="stage-body">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;color:var(--ore)">~1,200</div>
+              <div class="stage-stat">Graduates/yr in SD-3</div>
+              <div class="pct-bar"><div class="fill" style="width:100%"></div></div>
+            </div>
+          </div>
+          <div class="pipeline-arrow">&raquo;</div>
+          <div class="pipeline-stage" data-stage="training">
+            <div class="stage-top">Trade / College</div>
+            <div class="stage-body">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;color:var(--ore)">~780</div>
+              <div class="stage-stat">Enroll post-secondary</div>
+              <div class="pct-bar"><div class="fill" style="width:65%"></div></div>
+            </div>
+          </div>
+          <div class="pipeline-arrow">&raquo;</div>
+          <div class="pipeline-stage" data-stage="employ">
+            <div class="stage-top">Employment</div>
+            <div class="stage-body">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;color:var(--ore)">~540</div>
+              <div class="stage-stat">Work in region</div>
+              <div class="pct-bar"><div class="fill" style="width:45%"></div></div>
+            </div>
+          </div>
+          <div class="pipeline-arrow">&raquo;</div>
+          <div class="pipeline-stage" data-stage="retain">
+            <div class="stage-top">Retention</div>
+            <div class="stage-body">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;color:var(--ore)">~340</div>
+              <div class="stage-stat">Stay long-term</div>
+              <div class="pct-bar"><div class="fill" style="width:28%"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stage-detail-panel visible" id="stage-detail">
+          <h4 id="detail-title">High School</h4>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <label>Key Data</label>
+              <p id="detail-data">Approximately 1,200 students graduate annually from SD-3 high schools in Cook, Lake, and NE St. Louis counties. Graduation rates track near the state average.</p>
+            </div>
+            <div class="detail-item">
+              <label>Barriers</label>
+              <p id="detail-barriers">Limited exposure to trade careers. School infrastructure needs (Cook County). Geographic isolation reduces post-secondary options visible to students.</p>
+            </div>
+            <div class="detail-item">
+              <label>Relevant Legislation</label>
+              <p id="detail-bills">SF 1617 — Cook County Schools construction materials sales-tax exemption for facility upgrades (secure entrance, gym, commons, HVAC, security, PA systems).</p>
+            </div>
+            <div class="detail-item">
+              <label>Out-Migration Risk</label>
+              <p id="detail-risk">Low at this stage. Risk escalates after post-secondary completion when workers compare Iron Range wages and cost of living to metro options.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ore-band">
+        <h3>Out-Migration: The Iron Range Brain Drain</h3>
+        <p style="color:rgba(255,255,255,0.85)">An estimated 55-60% of young workers trained in SD-3 leave the region within 5 years. The top pull factors: Twin Cities wages, Duluth amenities, limited housing stock on the Range.</p>
+      </div>
+
+      <div class="section-block">
+        <h3>Where Workers Go: Industry Breakdown</h3>
+        <div style="margin-top:16px">
+          <div style="margin-bottom:14px" class="industry-bar-row">
+            <div style="display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:12px;margin-bottom:4px">
+              <span>Mining & Extraction</span><span style="font-weight:600">28%</span>
+            </div>
+            <div style="height:18px;background:var(--cream-dark)"><div style="width:28%;height:100%;background:var(--shaft)"></div></div>
+          </div>
+          <div style="margin-bottom:14px" class="industry-bar-row">
+            <div style="display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:12px;margin-bottom:4px">
+              <span>Healthcare</span><span style="font-weight:600">19%</span>
+            </div>
+            <div style="height:18px;background:var(--cream-dark)"><div style="width:19%;height:100%;background:var(--teal)"></div></div>
+          </div>
+          <div style="margin-bottom:14px" class="industry-bar-row">
+            <div style="display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:12px;margin-bottom:4px">
+              <span>Construction / Trades</span><span style="font-weight:600">16%</span>
+            </div>
+            <div style="height:18px;background:var(--cream-dark)"><div style="width:16%;height:100%;background:var(--ore)"></div></div>
+          </div>
+          <div style="margin-bottom:14px" class="industry-bar-row">
+            <div style="display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:12px;margin-bottom:4px">
+              <span>Education</span><span style="font-weight:600">11%</span>
+            </div>
+            <div style="height:18px;background:var(--cream-dark)"><div style="width:11%;height:100%;background:var(--rust)"></div></div>
+          </div>
+          <div style="margin-bottom:14px" class="industry-bar-row">
+            <div style="display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:12px;margin-bottom:4px">
+              <span>Tourism / Hospitality</span><span style="font-weight:600">10%</span>
+            </div>
+            <div style="height:18px;background:var(--cream-dark)"><div style="width:10%;height:100%;background:var(--steel)"></div></div>
+          </div>
+          <div style="margin-bottom:14px" class="industry-bar-row">
+            <div style="display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:12px;margin-bottom:4px">
+              <span>Other / Out-Migration</span><span style="font-weight:600">16%</span>
+            </div>
+            <div style="height:18px;background:var(--cream-dark)"><div style="width:16%;height:100%;background:#999"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <h3>Mineral-Tax Scholarship Eligibility</h3>
+        <p style="font-size:14px;color:var(--steel);margin-bottom:16px">Check whether your intended program qualifies under current law or the expanded SF 5435 eligibility.</p>
+        <div class="input-group">
+          <label>Program Type</label>
+          <select id="m3-program-check">
+            <option value="">-- Select --</option>
+            <option value="welding">Welding Certification</option>
+            <option value="equipment">Heavy Equipment Operation</option>
+            <option value="electrical">Electrical Apprenticeship</option>
+            <option value="pipefitting">Pipefitting Program</option>
+            <option value="hvac">HVAC Technician</option>
+            <option value="heavy-mach">Heavy Machinery Maintenance</option>
+            <option value="university">4-Year University Degree</option>
+            <option value="cc">Community College (Transfer)</option>
+            <option value="nursing">Nursing (BSN / ADN)</option>
+          </select>
+        </div>
+        <div class="result-box" id="m3-program-result" style="display:none">
+          <h4 id="m3-prog-title">Result</h4>
+          <div id="m3-prog-body" style="font-size:14px"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== MODULE 4: BRIEF GENERATOR ==================== -->
+    <section id="mod-brief" class="module">
+      <div class="module-header">
+        <span class="module-num">04</span>
+        <h2>District Investment Brief Generator</h2>
+        <span class="bill-tag">SD-3 Briefing Tool</span>
+        <p class="lead">Generate a formatted, print-ready one-page brief for legislative testimony or community presentations. Pre-populated with verified SD-3 data.</p>
+      </div>
+
+      <div class="section-block">
+        <div class="brief-controls">
+          <div class="input-group">
+            <label>Brief Focus Area</label>
+            <select id="m4-focus">
+              <option value="mine">Mine Worker Support (SF 40)</option>
+              <option value="tax">Property Tax Relief (SF 5435)</option>
+              <option value="workforce">Trade Workforce Development (SF 5435)</option>
+              <option value="school">School Infrastructure (SF 1617)</option>
+            </select>
+          </div>
+          <button class="btn" id="m4-generate" style="margin-bottom:20px">Generate Brief</button>
+          <button class="btn btn-print no-print" id="m4-print" style="margin-bottom:20px">Print</button>
+        </div>
+
+        <div class="brief-output" id="m4-output">
+          <div class="brief-header">
+            <h3 id="m4-brief-title"></h3>
+            <div class="brief-meta">
+              <span>Senate District 3 &mdash; Sen. Grant Hauschild</span><br>
+              <span>Cook County &bull; Lake County &bull; NE St. Louis County</span><br>
+              <span id="m4-brief-date"></span>
+            </div>
+          </div>
+
+          <div class="brief-section">
+            <h4>The Problem</h4>
+            <p id="m4-problem"></p>
+          </div>
+
+          <div class="brief-section">
+            <h4>The Legislation</h4>
+            <p id="m4-legislation"></p>
+          </div>
+
+          <div class="brief-section">
+            <h4>The Impact</h4>
+            <ul id="m4-impact"></ul>
+          </div>
+
+          <div class="brief-section brief-ask" id="m4-ask"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  /* ========== INTRO ========== */
+  const introOverlay = document.getElementById('intro-overlay');
+  const skipBtn = document.getElementById('skip-intro');
+
+  // Count-up animation
+  function countUp(el, target, duration) {
+    const start = performance.now();
+    function tick(now) {
+      const elapsed = now - start;
+      const pct = Math.min(elapsed / duration, 1);
+      el.textContent = Math.round(pct * target);
+      if (pct < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+  setTimeout(() => countUp(document.getElementById('count-workers'), 490, 800), 2300);
+  setTimeout(() => countUp(document.getElementById('count-weeks'), 26, 600), 2500);
+
+  function dismissIntro() {
+    introOverlay.classList.add('hidden');
+    setTimeout(() => { introOverlay.style.display = 'none'; }, 600);
+  }
+  skipBtn.addEventListener('click', dismissIntro);
+  // Auto-dismiss after 5s
+  setTimeout(dismissIntro, 5000);
+
+  /* ========== NAV ========== */
+  const navBtns = document.querySelectorAll('#sidebar nav button');
+  const modules = document.querySelectorAll('.module');
+
+  navBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      navBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      modules.forEach(m => m.classList.remove('active'));
+      document.getElementById(btn.dataset.mod).classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  });
+
+  /* ========== MODULE 1 CALCULATOR ========== */
+  const m1Workers = document.getElementById('m1-workers');
+  const m1Benefit = document.getElementById('m1-benefit');
+  const m1Weeks = document.getElementById('m1-weeks');
+  const m1WeeksVal = document.getElementById('m1-weeks-val');
+  const m1Total = document.getElementById('m1-total');
+  const m1PerWorker = document.getElementById('m1-per-worker');
+  const m1Result = document.getElementById('m1-result');
+
+  function calcM1() {
+    const w = parseInt(m1Workers.value) || 0;
+    const b = parseInt(m1Benefit.value) || 0;
+    const wk = parseInt(m1Weeks.value) || 0;
+    m1WeeksVal.textContent = wk + ' weeks';
+    const total = w * b * wk;
+    const per = w > 0 ? b * wk : 0;
+    m1Total.textContent = '$' + total.toLocaleString();
+    m1PerWorker.textContent = 'Per worker: $' + per.toLocaleString();
+    // Stamp animation
+    m1Result.classList.remove('stamp-in');
+    void m1Result.offsetWidth;
+    m1Result.classList.add('stamp-in');
+    // Slider track fill
+    m1Weeks.style.setProperty('--pct', ((wk / 52) * 100) + '%');
+  }
+  m1Workers.addEventListener('input', calcM1);
+  m1Benefit.addEventListener('input', calcM1);
+  m1Weeks.addEventListener('input', calcM1);
+  // Init slider track
+  m1Weeks.style.setProperty('--pct', ((26 / 52) * 100) + '%');
+
+  /* ========== MODULE 2 CALCULATOR ========== */
+  const m2Current = document.getElementById('m2-current');
+  const m2Proposed = document.getElementById('m2-proposed');
+  const m2Value = document.getElementById('m2-value');
+  const m2CurrentVal = document.getElementById('m2-current-val');
+  const m2ProposedVal = document.getElementById('m2-proposed-val');
+  const m2Increase = document.getElementById('m2-increase');
+  const m2OldAmt = document.getElementById('m2-old-amt');
+  const m2NewAmt = document.getElementById('m2-new-amt');
+  const m2TotalImpact = document.getElementById('m2-total-impact');
+  const m2Result = document.getElementById('m2-result');
+
+  function calcM2() {
+    const cur = parseInt(m2Current.value) || 0;
+    const prop = parseInt(m2Proposed.value) || 0;
+    const diff = Math.max(0, prop - cur);
+    m2CurrentVal.textContent = '$' + cur;
+    m2ProposedVal.textContent = '$' + prop;
+    m2Increase.textContent = '+$' + diff;
+    m2OldAmt.textContent = '$' + cur;
+    m2NewAmt.textContent = '$' + prop;
+    m2TotalImpact.textContent = '$' + (diff * 35100).toLocaleString();
+    m2Result.classList.remove('stamp-in');
+    void m2Result.offsetWidth;
+    m2Result.classList.add('stamp-in');
+    m2Current.style.setProperty('--pct', (((cur - 200) / 300) * 100) + '%');
+    m2Proposed.style.setProperty('--pct', (((prop - 390) / 210) * 100) + '%');
+  }
+  m2Current.addEventListener('input', calcM2);
+  m2Proposed.addEventListener('input', calcM2);
+  m2Value.addEventListener('input', calcM2);
+  m2Current.style.setProperty('--pct', (((390 - 200) / 300) * 100) + '%');
+  m2Proposed.style.setProperty('--pct', (((515 - 390) / 210) * 100) + '%');
+
+  // Parcel map dots
+  const parcelMap = document.getElementById('parcel-map');
+  const dotCount = Math.round(35100 / 10);
+  for (let i = 0; i < dotCount; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'parcel-dot' + (Math.random() < 0.15 ? ' highlighted' : '');
+    parcelMap.appendChild(dot);
+  }
+
+  // Scholarship checker (Module 2)
+  const m2ScholCheck = document.getElementById('m2-scholarship-check');
+  const m2ScholResult = document.getElementById('m2-scholarship-result');
+  const m2ScholTitle = document.getElementById('m2-schol-title');
+  const m2ScholBody = document.getElementById('m2-schol-body');
+
+  const tradePrograms = ['welding', 'equipment', 'electrical', 'pipefitting', 'hvac', 'heavy-mach'];
+  const existingPrograms = ['university', 'cc', 'nursing', 'education'];
+
+  m2ScholCheck.addEventListener('change', function() {
+    const v = this.value;
+    if (!v) { m2ScholResult.style.display = 'none'; return; }
+    m2ScholResult.style.display = 'block';
+    m2ScholResult.classList.remove('stamp-in');
+    void m2ScholResult.offsetWidth;
+    m2ScholResult.classList.add('stamp-in');
+    if (tradePrograms.includes(v)) {
+      m2ScholTitle.textContent = 'Newly Eligible';
+      m2ScholTitle.style.color = 'var(--ore)';
+      m2ScholBody.innerHTML = '<strong style="color:var(--ore)">Eligible under SF 5435.</strong> This program was <em>not</em> eligible under the old law. SF 5435 expands county mineral-tax scholarships to include accredited trade and vocational programs.';
+    } else {
+      m2ScholTitle.textContent = 'Already Eligible';
+      m2ScholTitle.style.color = 'var(--teal)';
+      m2ScholBody.innerHTML = '<strong style="color:var(--teal)">Eligible under current law.</strong> This program type already qualifies for county mineral-tax scholarships. SF 5435 does not change eligibility for this category.';
+    }
+  });
+
+  /* ========== MODULE 3 PIPELINE ========== */
+  const stageData = {
+    hs: {
+      title: 'High School',
+      data: 'Approximately 1,200 students graduate annually from SD-3 high schools in Cook, Lake, and NE St. Louis counties. Graduation rates track near the state average.',
+      barriers: 'Limited exposure to trade careers. School infrastructure needs (Cook County). Geographic isolation reduces post-secondary options visible to students.',
+      bills: 'SF 1617 — Cook County Schools construction materials sales-tax exemption for facility upgrades (secure entrance, gym, commons, HVAC, security, PA systems).',
+      risk: 'Low at this stage. Risk escalates after post-secondary completion when workers compare Iron Range wages and cost of living to metro options.'
+    },
+    training: {
+      title: 'Trade / College Programs',
+      data: 'About 65% of SD-3 graduates (~780) enroll in post-secondary within a year. Split roughly 40% trade/vocational, 60% academic. Mesabi Range College and Vermilion are the primary local options.',
+      barriers: 'Trade programs were excluded from county mineral-tax scholarships until SF 5435. Cost of specialized training. Limited program variety requires relocation to Duluth or the Twin Cities.',
+      bills: 'SF 5435 — Opens mineral-tax scholarship eligibility to welding, equipment operation, electrical, pipefitting, HVAC, and heavy machinery maintenance programs.',
+      risk: 'Moderate. Students who relocate for training are less likely to return. Programs available locally (Mesabi Range, Vermilion) show higher regional retention.'
+    },
+    employ: {
+      title: 'Regional Employment',
+      data: 'Roughly 45% of the original graduating cohort (~540) find employment within SD-3. Mining/extraction (28%), healthcare (19%), construction/trades (16%), education (11%), tourism (10%).',
+      barriers: 'Cyclical mine layoffs create income instability. When standard unemployment runs out mid-recall, workers leave for stable metro jobs. Housing shortage limits new arrivals.',
+      bills: 'SF 40 — Extended unemployment up to 26 additional weeks for iron ore and taconite workers during cyclical layoffs. Keeps ~490 workers and their families in the region during downturns.',
+      risk: 'High during bust cycles. Without SF 40, the 26-week unemployment cliff was a primary driver of permanent out-migration among experienced mine workers.'
+    },
+    retain: {
+      title: 'Long-Term Retention',
+      data: 'Only ~28% of original graduates (~340) remain in the region long-term (5+ years). Retention is highest among mine workers, homeowners, and those with family ties.',
+      barriers: 'Property tax burden on fixed-income homeowners. Limited career advancement paths. Spouse employment options. Childcare access. Broadband gaps in rural areas.',
+      bills: 'SF 5435 — Taconite homestead credit increase to $515 for 35,100 parcels reduces housing cost burden. Combined with workforce scholarship expansion, incentivizes staying and training locally.',
+      risk: 'Critical. An estimated 55-60% of trained young workers leave within 5 years. Every lever — housing costs, job stability, training access — matters for retention.'
+    }
+  };
+
+  const pipelineStages = document.querySelectorAll('.pipeline-stage');
+  const detailPanel = document.getElementById('stage-detail');
+
+  function showStageDetail(stageKey) {
+    const d = stageData[stageKey];
+    document.getElementById('detail-title').textContent = d.title;
+    document.getElementById('detail-data').textContent = d.data;
+    document.getElementById('detail-barriers').textContent = d.barriers;
+    document.getElementById('detail-bills').textContent = d.bills;
+    document.getElementById('detail-risk').textContent = d.risk;
+    detailPanel.classList.add('visible');
+    pipelineStages.forEach(s => s.classList.toggle('active-stage', s.dataset.stage === stageKey));
+  }
+
+  pipelineStages.forEach(stage => {
+    stage.addEventListener('click', () => showStageDetail(stage.dataset.stage));
+  });
+
+  // Scholarship checker (Module 3)
+  const m3Check = document.getElementById('m3-program-check');
+  const m3Result = document.getElementById('m3-program-result');
+  const m3Title = document.getElementById('m3-prog-title');
+  const m3Body = document.getElementById('m3-prog-body');
+
+  m3Check.addEventListener('change', function() {
+    const v = this.value;
+    if (!v) { m3Result.style.display = 'none'; return; }
+    m3Result.style.display = 'block';
+    m3Result.classList.remove('stamp-in');
+    void m3Result.offsetWidth;
+    m3Result.classList.add('stamp-in');
+    if (tradePrograms.includes(v)) {
+      m3Title.textContent = 'Newly Eligible Under SF 5435';
+      m3Title.style.color = 'var(--ore)';
+      m3Body.innerHTML = '<strong>Not eligible under current law.</strong> SF 5435 would expand county mineral-tax scholarship eligibility to include this accredited trade/vocational program. Workers could receive scholarship support for the first time.';
+    } else {
+      m3Title.textContent = 'Eligible Under Current Law';
+      m3Title.style.color = 'var(--teal)';
+      m3Body.innerHTML = '<strong>Already eligible.</strong> This program type qualifies for county mineral-tax scholarships under existing law. No change required from SF 5435.';
+    }
+  });
+
+  /* ========== MODULE 4 BRIEF GENERATOR ========== */
+  const briefData = {
+    mine: {
+      title: 'Mine Worker Support: The Case for SF 40',
+      problem: 'Iron Range employment is cyclical. When global steel demand drops, taconite mines idle workers for months. Under standard Minnesota unemployment (26 weeks), benefits run out before the recall comes. Workers face a devastating income cliff — $0 per week — while waiting for their jobs to reopen. This forces experienced workers to permanently leave the region for stable metro employment, hollowing out the skilled workforce that mines depend on when demand returns.',
+      legislation: 'SF 40 (2023, enacted) extended unemployment benefits by up to 26 additional weeks for qualifying iron ore, taconite processing, and related industry workers facing cyclical layoffs. The extension bridges the gap between standard UI exhaustion and typical recall timelines.',
+      impact: [
+        'Approximately 490 workers eligible per layoff cycle (DEED estimate)',
+        'Up to 26 additional weeks of benefits (~$458/week average)',
+        'Estimated $5.8 million kept in the Iron Range economy per cycle',
+        'Prevents permanent out-migration of experienced mine workers',
+        'Stabilizes families, school enrollment, and local businesses during downturns'
+      ],
+      ask: 'Continue support for SF 40 and the principle that cyclical industries deserve unemployment structures that match their employment reality. Iron Range workers are not "unemployed" — they are between shifts in an industry that runs on global commodity cycles.'
+    },
+    tax: {
+      title: 'Property Tax Relief: The Case for SF 5435',
+      problem: 'Homeowners in the taconite tax relief area face property tax burdens that discourage homeownership and long-term residency. The current taconite homestead credit cap has not kept pace with assessed values or the cost of living in northeastern Minnesota. For fixed-income households — retirees, seasonal workers, single-income families — the gap between the credit cap and actual tax liability is a material factor in whether they can afford to stay.',
+      legislation: 'SF 5435 (2024, proposed) raises the taconite homestead credit maximum to $515 per qualifying parcel. The bill covers parcels in the taconite tax relief area across Cook, Lake, and northeastern St. Louis counties.',
+      impact: [
+        '35,100 qualifying parcels across the taconite tax relief area',
+        'Estimated $125 increase per parcel (from ~$390 to $515)',
+        'Total annual relief: approximately $4.4 million across all parcels',
+        'Directly reduces housing cost burden for homeowners in SD-3',
+        'Supports long-term retention of residents in rural and small-town communities'
+      ],
+      ask: 'Pass SF 5435 to bring the taconite homestead credit in line with current economic reality. This is not a new program — it is an update to an existing credit that has fallen behind while property values and living costs have risen.'
+    },
+    workforce: {
+      title: 'Trade Workforce Development: The Case for SF 5435 Scholarship Expansion',
+      problem: 'County mineral-tax scholarships have historically been limited to traditional academic programs — 4-year universities and community college transfer tracks. This excludes the trade and vocational programs that directly feed Iron Range industries: welding, equipment operation, electrical, pipefitting, HVAC, and heavy machinery maintenance. The result is a workforce pipeline that subsidizes departure (academic degrees that lead to metro careers) while ignoring the credentials that keep workers on the Range.',
+      legislation: 'SF 5435 (2024, proposed) expands county mineral-tax scholarship eligibility to include accredited trade and vocational programs. For the first time, students pursuing welding, equipment operation, electrical, pipefitting, HVAC, and heavy machinery maintenance certifications would qualify for the same scholarship support as 4-year degree students.',
+      impact: [
+        'Six new trade/vocational program categories become scholarship-eligible',
+        'Directly supports pipeline into mining, construction, and infrastructure careers',
+        'Reduces financial barrier to trade certification for Iron Range students',
+        'Aligns scholarship incentives with actual regional employment demand',
+        'Expected to improve post-secondary retention rates in SD-3'
+      ],
+      ask: 'Pass the scholarship expansion provisions of SF 5435. The Iron Range needs welders and equipment operators as much as it needs college graduates. Public scholarship dollars should reflect that reality.'
+    },
+    school: {
+      title: 'School Infrastructure: The Case for SF 1617',
+      problem: 'Cook County Schools need critical facility upgrades — secure entrance, gymnasium, commons area, HVAC systems, security systems, and PA systems. As a small, geographically isolated district, Cook County faces construction costs that are disproportionately high relative to its tax base. Sales tax on construction materials represents a significant additional burden on a project already stretching district resources.',
+      legislation: 'SF 1617 (2025) provides a refundable sales-tax exemption for Cook County Schools on construction materials for named project categories: secure entrance, gymnasium, commons, HVAC, security systems, and PA systems.',
+      impact: [
+        'Direct construction cost reduction for Cook County Schools',
+        'Addresses critical safety infrastructure (secure entrance, security systems)',
+        'Improves learning environment (gym, commons, HVAC, PA)',
+        'Relieves pressure on a small district\'s bonding capacity',
+        'Supports contractor and construction employment in Cook County during build'
+      ],
+      ask: 'Pass SF 1617 to ensure Cook County students have safe, functional school facilities without forcing an isolated district to absorb sales tax costs that larger districts can spread across a broader tax base.'
+    }
+  };
+
+  const m4Focus = document.getElementById('m4-focus');
+  const m4Generate = document.getElementById('m4-generate');
+  const m4Print = document.getElementById('m4-print');
+  const m4Output = document.getElementById('m4-output');
+
+  m4Generate.addEventListener('click', () => {
+    const focus = m4Focus.value;
+    const d = briefData[focus];
+    document.getElementById('m4-brief-title').textContent = d.title;
+    document.getElementById('m4-brief-date').textContent = 'Generated: ' + new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    document.getElementById('m4-problem').textContent = d.problem;
+    document.getElementById('m4-legislation').textContent = d.legislation;
+    const impactList = document.getElementById('m4-impact');
+    impactList.innerHTML = '';
+    d.impact.forEach(item => {
+      const li = document.createElement('li');
+      li.textContent = item;
+      impactList.appendChild(li);
+    });
+    document.getElementById('m4-ask').innerHTML = '<strong style="font-family:Oswald,sans-serif;text-transform:uppercase;letter-spacing:0.04em;font-size:13px;display:block;margin-bottom:8px">The Ask</strong>' + d.ask;
+    m4Output.classList.add('visible');
+    m4Output.classList.remove('stamp-in');
+    void m4Output.offsetWidth;
+    m4Output.classList.add('stamp-in');
+  });
+
+  m4Print.addEventListener('click', () => {
+    if (!m4Output.classList.contains('visible')) {
+      m4Generate.click();
+    }
+    setTimeout(() => window.print(), 200);
+  });
+
+})();
+</script>
+</body>
+</html>
