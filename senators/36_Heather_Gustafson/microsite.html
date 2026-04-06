@@ -1598,7 +1598,7 @@
       <div class="oppo-footnotes-title">Sources &amp; footnotes</div>
       <ul class="oppo-fn-list">
         <li data-fn="1">2022 Minnesota Senate District 36 general election results: Gustafson 52.81% (23,348 votes), Chamberlain 47.13% (20,838 votes). Press Pubs election results coverage, November 2022; Minnesota Secretary of State canvass records.</li>
-        <li data-fn="2">SF662, 94th Minnesota Legislature (2025). Filed January 23, 2025. Author: Sen. Gustafson. Bill text and status: <a href="https://www.revisor.mn.gov/bills/bill.php?b=senate&f=SF662&ssn=0&y=2025" target="_blank">revisor.mn.gov</a>.</li>
+        <li data-fn="2">SF662, 94th Minnesota Legislature (2025). Filed January 27, 2025. Author: Sen. Gustafson. Bill text and status: <a href="https://www.revisor.mn.gov/bills/bill.php?b=senate&f=SF662&ssn=0&y=2025" target="_blank">revisor.mn.gov</a>.</li>
         <li data-fn="3">Gustafson committee assignments and biography: <a href="https://www.senate.mn/members/member_bio.html?mem_id=1263" target="_blank">senate.mn</a>. Legislative record: lrl.mn.gov.</li>
         <li data-fn="4">SF662 defines "sexual battery" and establishes a civil cause of action. Full text available at: <a href="https://www.revisor.mn.gov/bills/text.php?number=SF662&version=0&session=ls94&session_year=2025&session_number=0" target="_blank">revisor.mn.gov</a>.</li>
         <li data-fn="5">Gustafson campaign platform, 2022: voteheathergustafson.com (Meet Heather). Archive also available via Ballotpedia candidate page.</li>
@@ -1671,6 +1671,88 @@
     }, { threshold: 0.2 });
 
     document.querySelectorAll('.counter').forEach(el => counterObs.observe(el));
+  </script>
+
+  <!-- ── COLOR GRADIENT SCROLL ─────────────────────────────────── -->
+  <style>
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      pointer-events: none;
+      /* initial warm color — overridden immediately by JS */
+      background: rgba(42, 122, 140, 0.0);
+      transition: none;
+    }
+  </style>
+  <script>
+  (function () {
+    /* Warm anchor (pro palette) → Cool anchor (oppo palette)
+       We tint body::before with a very low-opacity wash so the
+       effect is atmospheric, not overwhelming.
+       warm = lake-teal tint  #2A7A8C at low opacity
+       cool = steel-blue tint #4A6B8A at low opacity            */
+    var warmR = 42,  warmG = 122, warmB = 140;   /* #2A7A8C */
+    var coolR = 74,  coolG = 107, coolB = 138;   /* #4A6B8A */
+
+    var currentT = 0;   /* 0 = warm top, 1 = cool bottom */
+    var targetT  = 0;
+    var rafId    = null;
+    var styleEl  = null;
+
+    function lerp(a, b, t) { return a + (b - a) * t; }
+
+    function applyColor(t) {
+      var r = Math.round(lerp(warmR, coolR, t));
+      var g = Math.round(lerp(warmG, coolG, t));
+      var b = Math.round(lerp(warmB, coolB, t));
+      /* max opacity: 0.07 — just a whisper */
+      var a = (0.035 + t * 0.035).toFixed(3);
+      if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = 'gradient-scroll-style';
+        document.head.appendChild(styleEl);
+      }
+      styleEl.textContent =
+        'body::before { background: rgba(' + r + ',' + g + ',' + b + ',' + a + ') !important; }';
+    }
+
+    function tick() {
+      var diff = targetT - currentT;
+      if (Math.abs(diff) < 0.001) {
+        currentT = targetT;
+        applyColor(currentT);
+        rafId = null;
+        return;
+      }
+      /* ease toward target */
+      currentT += diff * 0.06;
+      applyColor(currentT);
+      rafId = requestAnimationFrame(tick);
+    }
+
+    function onScroll() {
+      /* ignore in brief mode */
+      if (document.body.classList.contains('mode-brief')) return;
+      var scrollTop = window.scrollY || document.documentElement.scrollTop;
+      var maxScroll  = document.documentElement.scrollHeight - window.innerHeight;
+      targetT = maxScroll > 0 ? Math.min(scrollTop / maxScroll, 1) : 0;
+      if (!rafId) rafId = requestAnimationFrame(tick);
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    /* Re-evaluate on mode flip (scroll position resets to 0) */
+    document.getElementById('flip-btn').addEventListener('click', function () {
+      targetT  = 0;
+      currentT = 0;
+      applyColor(0);
+    });
+
+    /* initial paint */
+    applyColor(0);
+  }());
   </script>
 
 

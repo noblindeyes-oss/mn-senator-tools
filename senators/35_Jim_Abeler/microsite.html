@@ -1774,56 +1774,31 @@
 
     // ── PARALLAX DEPTH ──────────────────────────────────── //
     (function() {
-      var hero       = document.querySelector('.pro-hero');
-      var heroAfter  = null; // driven via CSS custom property
-      var photo      = document.querySelector('.pro-photo');
-      var pullQuote  = document.querySelector('.pro-pull-quote');
-      var ticking    = false;
+      var photo    = document.querySelector('.pro-photo');
+      var ticking  = false;
 
-      function onScroll() {
-        if (!ticking) {
-          requestAnimationFrame(function() {
-            var sy = window.scrollY;
-
-            // Portrait photo: drifts upward at 18% scroll speed (subtle float)
-            if (photo) {
-              photo.style.transform = 'translateY(' + (sy * 0.09) + 'px)';
-            }
-
-            // Hero ::after depth blob: drifts at 30% speed via CSS var on hero element
-            if (hero) {
-              hero.style.setProperty('--parallax-y', (sy * 0.18) + 'px');
-            }
-
-            ticking = false;
-          });
-          ticking = true;
-        }
-      }
-
-      // Wire CSS var to the ::after via an inline style on .pro-hero
-      // (pseudo-elements can't be targeted by JS directly; we use a wrapper trick)
+      // Inject a dynamic <style> to drive .pro-hero::after (pseudo-elements
+      // can't be targeted directly by JS)
       var styleTag = document.createElement('style');
       document.head.appendChild(styleTag);
-      function updatePseudoParallax() {
+
+      function updateParallax() {
         var sy = window.scrollY;
+        // Amber depth blob in hero drifts at 18% of scroll speed
         styleTag.textContent =
           '.pro-hero::after { transform: translateY(' + (sy * 0.18) + 'px); }';
+        // Portrait photo floats upward at 9% of scroll speed
+        if (photo) photo.style.transform = 'translateY(' + (sy * 0.09) + 'px)';
       }
 
       window.addEventListener('scroll', function() {
         if (!ticking) {
-          requestAnimationFrame(function() {
-            updatePseudoParallax();
-            if (photo) photo.style.transform = 'translateY(' + (window.scrollY * 0.09) + 'px)';
-            ticking = false;
-          });
+          requestAnimationFrame(function() { updateParallax(); ticking = false; });
           ticking = true;
         }
       }, { passive: true });
 
-      // Initial position
-      updatePseudoParallax();
+      updateParallax(); // set initial position
     })();
 
     // ── STAT BAR ANIMATION ──────────────────────────────── //
