@@ -1316,6 +1316,172 @@ body.mode-oppo .footnote-ref { color: var(--oppo-yellow); }
 .oppo-fn-text a:hover { text-decoration: underline; }
 
 /* =============================================
+   SECTION ENTRANCE ANIMATIONS
+   ============================================= */
+
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* PRO — header fades in */
+.pro-header {
+  animation: fadeIn 0.7s ease both;
+}
+
+/* PRO — stat band slides up */
+.pro-stat-band {
+  animation: fadeSlideUp 0.6s ease both;
+  animation-delay: 0.15s;
+}
+
+/* PRO — section label + first bill block */
+.pro-main > .pro-section-label:first-of-type {
+  animation: fadeSlideUp 0.5s ease both;
+  animation-delay: 0.25s;
+}
+
+.pro-bill-block {
+  animation: fadeSlideUp 0.6s ease both;
+  animation-delay: 0.35s;
+}
+
+/* PRO — what-it-does grid items staggered */
+.pro-what-section {
+  animation: fadeSlideUp 0.6s ease both;
+  animation-delay: 0.45s;
+}
+
+.pro-what-item:nth-child(1) {
+  animation: fadeSlideUp 0.55s ease both;
+  animation-delay: 0.5s;
+}
+.pro-what-item:nth-child(2) {
+  animation: fadeSlideUp 0.55s ease both;
+  animation-delay: 0.62s;
+}
+.pro-what-item:nth-child(3) {
+  animation: fadeSlideUp 0.55s ease both;
+  animation-delay: 0.74s;
+}
+
+/* PRO — pull quote scales in */
+.pro-pull-quote {
+  animation: scaleIn 0.65s ease both;
+  animation-delay: 0.5s;
+}
+
+/* PRO — ERPO strip + background section */
+.pro-erpo-strip {
+  animation: fadeSlideUp 0.55s ease both;
+  animation-delay: 0.3s;
+}
+
+.pro-background {
+  animation: fadeSlideUp 0.6s ease both;
+  animation-delay: 0.35s;
+}
+
+/* OPPO — warning bar + header */
+.oppo-warning-bar {
+  animation: fadeIn 0.5s ease both;
+}
+
+.oppo-header {
+  animation: fadeIn 0.7s ease both;
+  animation-delay: 0.1s;
+}
+
+/* OPPO — popup zone scales in */
+.oppo-popup-zone {
+  animation: scaleIn 0.6s ease both;
+  animation-delay: 0.25s;
+}
+
+/* OPPO — sequence steps staggered */
+.oppo-sequence {
+  animation: fadeSlideUp 0.55s ease both;
+  animation-delay: 0.2s;
+}
+
+.oppo-step:nth-child(1) .oppo-step-content {
+  animation: fadeSlideUp 0.5s ease both;
+  animation-delay: 0.25s;
+}
+.oppo-step:nth-child(3) .oppo-step-content {
+  animation: fadeSlideUp 0.5s ease both;
+  animation-delay: 0.4s;
+}
+.oppo-step:nth-child(5) .oppo-step-content {
+  animation: fadeSlideUp 0.5s ease both;
+  animation-delay: 0.55s;
+}
+.oppo-step:nth-child(7) .oppo-step-content {
+  animation: fadeSlideUp 0.5s ease both;
+  animation-delay: 0.7s;
+}
+
+/* OPPO — document block */
+.oppo-doc-block {
+  animation: fadeSlideUp 0.6s ease both;
+  animation-delay: 0.3s;
+}
+
+/* OPPO — evidence cards staggered */
+.oppo-evidence-grid .oppo-card:nth-child(1) {
+  animation: fadeSlideUp 0.5s ease both;
+  animation-delay: 0.3s;
+}
+.oppo-evidence-grid .oppo-card:nth-child(2) {
+  animation: fadeSlideUp 0.5s ease both;
+  animation-delay: 0.45s;
+}
+.oppo-evidence-grid .oppo-card:nth-child(3) {
+  animation: fadeSlideUp 0.5s ease both;
+  animation-delay: 0.6s;
+}
+
+/* OPPO — contradiction block */
+.oppo-contradiction {
+  animation: scaleIn 0.6s ease both;
+  animation-delay: 0.35s;
+}
+
+/* Respect reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .pro-header, .pro-stat-band, .pro-main > .pro-section-label:first-of-type,
+  .pro-bill-block, .pro-what-section, .pro-what-item, .pro-pull-quote,
+  .pro-erpo-strip, .pro-background,
+  .oppo-warning-bar, .oppo-header, .oppo-popup-zone, .oppo-sequence,
+  .oppo-step .oppo-step-content, .oppo-doc-block,
+  .oppo-evidence-grid .oppo-card, .oppo-contradiction {
+    animation: none;
+  }
+}
+
+/* =============================================
    RESPONSIVE
    ============================================= */
 @media (max-width: 900px) {
@@ -1778,8 +1944,8 @@ body.mode-oppo .footnote-ref { color: var(--oppo-yellow); }
         <div style="color:var(--oppo-muted); margin-bottom: 16px;">
           There is no passive dismissal. The state requires an action &mdash; a click or an exit &mdash; before a Minnesotan can use an app they have already chosen to use.
         </div>
-        <div class="oppo-doc-highlight">
-          "A social media platform must display a timer notification... at least every 30 minutes of continuous use."
+        <div style="color:var(--oppo-muted); font-size: 0.75rem; border-left: 2px solid var(--oppo-border); padding: 10px 14px; margin-bottom: 16px;">
+          SF 1807 as introduced also included a 30-minute timer notification provision. The enacted statute (Minn. Stat. &sect;&nbsp;325M.335) differs from the introduced bill; the operative warning-and-acknowledgment structure is what reached law.
         </div>
         <div style="margin-top:16px; padding: 12px 0; border-top: 1px solid var(--oppo-border);">
           <span class="oppo-doc-redline">Mann's role:</span> <span style="color:var(--oppo-muted);">Chief author, SF 1807. She introduced it, and related warning-language later reached statute through the 2025 first special session.</span>

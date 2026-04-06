@@ -1321,6 +1321,194 @@ body.mode-oppo .section-rule { background: var(--opp-red); }
 }
 
 /* ============================================================
+   CATEGORY 16 — RIBBON / BADGE AESTHETICS
+   Pure CSS, pseudo-elements only, no new HTML content.
+   ============================================================ */
+
+/* --- Corner ribbon on stat cards (pro side) --- */
+.stat-card {
+  overflow: hidden;
+}
+.stat-card::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 0; height: 0;
+  border-style: solid;
+  border-width: 0 42px 42px 0;
+  border-color: transparent var(--pro-cedar) transparent transparent;
+  opacity: 0.18;
+  pointer-events: none;
+}
+.stat-card { position: relative; }
+
+/* --- Folded-corner ribbon on safety bill box --- */
+.safety-bill-box {
+  position: relative;
+  overflow: hidden;
+}
+.safety-bill-box::after {
+  content: '';
+  position: absolute;
+  top: -1px; right: -1px;
+  width: 48px; height: 48px;
+  background: linear-gradient(
+    135deg,
+    transparent 50%,
+    var(--pro-cedar) 50%
+  );
+  opacity: 0.22;
+  pointer-events: none;
+}
+
+/* --- Diagonal ribbon stripe on highway section --- */
+.highway-section::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -60px;
+  width: 140px;
+  height: 100%;
+  background: repeating-linear-gradient(
+    -60deg,
+    transparent,
+    transparent 18px,
+    rgba(255,255,255,0.025) 18px,
+    rgba(255,255,255,0.025) 22px
+  );
+  pointer-events: none;
+}
+
+/* --- Top-left badge notch on evidence cards (oppo side) --- */
+.evidence-card {
+  overflow: hidden;
+}
+.evidence-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 0; height: 0;
+  border-style: solid;
+  border-width: 36px 36px 0 0;
+  border-color: var(--opp-red) transparent transparent transparent;
+  opacity: 0.14;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* --- Ribbon stripe across pro-pullquote left edge --- */
+.pro-pullquote {
+  position: relative;
+  overflow: hidden;
+}
+.pro-pullquote::before {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0; left: 0;
+  width: 6px;
+  background: linear-gradient(
+    180deg,
+    var(--pro-amber) 0%,
+    var(--pro-cedar) 60%,
+    var(--pro-amber) 100%
+  );
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+/* --- Diagonal badge watermark on doc-block header --- */
+.doc-header {
+  position: relative;
+  overflow: hidden;
+}
+.doc-header::after {
+  content: '';
+  position: absolute;
+  top: -18px; right: -18px;
+  width: 64px; height: 64px;
+  background: linear-gradient(
+    135deg,
+    transparent 50%,
+    rgba(255,255,255,0.06) 50%
+  );
+  transform: rotate(0deg);
+  pointer-events: none;
+}
+
+/* --- Section-eyebrow accent pip (pro side) --- */
+.section-eyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: var(--pro-cedar);
+  transform: rotate(45deg);
+  flex-shrink: 0;
+  opacity: 0.7;
+  margin-right: 2px;
+}
+
+/* --- Section-eyebrow accent pip (oppo side) --- */
+.oppo-eyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: var(--opp-red);
+  transform: rotate(45deg);
+  flex-shrink: 0;
+  opacity: 0.7;
+  margin-right: 2px;
+}
+
+/* --- Ribbon corner on pro-background section header --- */
+.pro-background .section-header {
+  position: relative;
+}
+.pro-background .section-header::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 80px; height: 4px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--pro-amber) 60%,
+    var(--pro-cedar)
+  );
+  opacity: 0.45;
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+/* --- Oppo accusation band end-chevrons --- */
+.oppo-accusation-band {
+  position: relative;
+  overflow: hidden;
+}
+.oppo-accusation-band::before,
+.oppo-accusation-band::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 48px;
+  background: linear-gradient(
+    90deg,
+    rgba(0,0,0,0.18),
+    transparent
+  );
+  pointer-events: none;
+}
+.oppo-accusation-band::before { left: 0; }
+.oppo-accusation-band::after  {
+  right: 0;
+  background: linear-gradient(
+    270deg,
+    rgba(0,0,0,0.18),
+    transparent
+  );
+}
+
+/* ============================================================
    COUNTER ANIMATION
    ============================================================ */
 .count-target { display: inline-block; }

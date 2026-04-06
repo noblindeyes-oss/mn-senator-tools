@@ -1063,6 +1063,66 @@
       opacity: 0.5;
     }
 
+    /* ─── FLOATING PARTICLES — Category 15 ─────────────────────── */
+    @keyframes float-up {
+      0%   { transform: translateY(0)   translateX(0)    scale(1);   opacity: 0; }
+      10%  { opacity: 1; }
+      85%  { opacity: 0.6; }
+      100% { transform: translateY(-88vh) translateX(var(--drift)) scale(0.55); opacity: 0; }
+    }
+
+    .particles-layer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      overflow: hidden;
+    }
+
+    .particle {
+      position: absolute;
+      bottom: -12px;
+      width:  var(--sz);
+      height: var(--sz);
+      border-radius: 50%;
+      background: var(--col);
+      animation: float-up var(--dur) var(--delay) ease-in infinite;
+      left: var(--x);
+      --drift: 0px;
+    }
+
+    /* pro mode — warm cream/brick tones */
+    body:not(.mode-oppo):not(.mode-brief) .particle { opacity: 0.18; }
+    body:not(.mode-oppo):not(.mode-brief) .particle:nth-child(1)  { --x:5%;  --sz:5px; --col:rgba(139,46,26,0.55);  --dur:14s; --delay:0s;    --drift:18px;  }
+    body:not(.mode-oppo):not(.mode-brief) .particle:nth-child(2)  { --x:13%; --sz:3px; --col:rgba(30,58,95,0.45);   --dur:17s; --delay:2.5s;  --drift:-12px; }
+    body:not(.mode-oppo):not(.mode-brief) .particle:nth-child(3)  { --x:22%; --sz:6px; --col:rgba(139,46,26,0.35);  --dur:20s; --delay:5s;    --drift:22px;  }
+    body:not(.mode-oppo):not(.mode-brief) .particle:nth-child(4)  { --x:34%; --sz:4px; --col:rgba(201,194,184,0.7); --dur:13s; --delay:1s;    --drift:-8px;  }
+    body:not(.mode-oppo):not(.mode-brief) .particle:nth-child(5)  { --x:47%; --sz:3px; --col:rgba(139,46,26,0.5);   --dur:18s; --delay:7s;    --drift:14px;  }
+    body:not(.mode-oppo):not(.mode-brief) .particle:nth-child(6)  { --x:58%; --sz:5px; --col:rgba(30,58,95,0.35);   --dur:15s; --delay:3.5s;  --drift:-20px; }
+    body:not(.mode-oppo):not(.mode-brief) .particle:nth-child(7)  { --x:69%; --sz:4px; --col:rgba(201,194,184,0.6); --dur:22s; --delay:9s;    --drift:10px;  }
+    body:not(.mode-oppo):not(.mode-brief) .particle:nth-child(8)  { --x:78%; --sz:3px; --col:rgba(139,46,26,0.45);  --dur:16s; --delay:0.5s;  --drift:-16px; }
+    body:not(.mode-oppo):not(.mode-brief) .particle:nth-child(9)  { --x:87%; --sz:5px; --col:rgba(30,58,95,0.4);    --dur:19s; --delay:4s;    --drift:24px;  }
+    body:not(.mode-oppo):not(.mode-brief) .particle:nth-child(10) { --x:94%; --sz:4px; --col:rgba(201,194,184,0.55);--dur:12s; --delay:6.5s;  --drift:-10px; }
+    body:not(.mode-oppo):not(.mode-brief) .particle:nth-child(11) { --x:28%; --sz:3px; --col:rgba(139,46,26,0.3);   --dur:24s; --delay:11s;   --drift:16px;  }
+    body:not(.mode-oppo):not(.mode-brief) .particle:nth-child(12) { --x:62%; --sz:4px; --col:rgba(30,58,95,0.3);    --dur:21s; --delay:8s;    --drift:-6px;  }
+
+    /* oppo mode — cold steel/red tones */
+    body.mode-oppo .particle:nth-child(1)  { --x:4%;  --sz:4px; --col:rgba(192,57,43,0.4);  --dur:15s; --delay:0s;    --drift:14px;  }
+    body.mode-oppo .particle:nth-child(2)  { --x:14%; --sz:3px; --col:rgba(45,74,107,0.5);  --dur:18s; --delay:3s;    --drift:-10px; }
+    body.mode-oppo .particle:nth-child(3)  { --x:24%; --sz:5px; --col:rgba(192,57,43,0.3);  --dur:21s; --delay:6s;    --drift:20px;  }
+    body.mode-oppo .particle:nth-child(4)  { --x:36%; --sz:3px; --col:rgba(143,168,192,0.5);--dur:13s; --delay:1.5s;  --drift:-8px;  }
+    body.mode-oppo .particle:nth-child(5)  { --x:48%; --sz:4px; --col:rgba(192,57,43,0.45); --dur:17s; --delay:8s;    --drift:12px;  }
+    body.mode-oppo .particle:nth-child(6)  { --x:57%; --sz:3px; --col:rgba(45,74,107,0.45); --dur:14s; --delay:4s;    --drift:-18px; }
+    body.mode-oppo .particle:nth-child(7)  { --x:67%; --sz:5px; --col:rgba(143,168,192,0.4);--dur:23s; --delay:10s;   --drift:8px;   }
+    body.mode-oppo .particle:nth-child(8)  { --x:76%; --sz:3px; --col:rgba(192,57,43,0.35); --dur:16s; --delay:2s;    --drift:-14px; }
+    body.mode-oppo .particle:nth-child(9)  { --x:85%; --sz:4px; --col:rgba(45,74,107,0.5);  --dur:20s; --delay:5.5s;  --drift:22px;  }
+    body.mode-oppo .particle:nth-child(10) { --x:93%; --sz:3px; --col:rgba(143,168,192,0.5);--dur:12s; --delay:7s;    --drift:-6px;  }
+    body.mode-oppo .particle:nth-child(11) { --x:31%; --sz:4px; --col:rgba(192,57,43,0.28); --dur:25s; --delay:12s;   --drift:18px;  }
+    body.mode-oppo .particle:nth-child(12) { --x:61%; --sz:3px; --col:rgba(45,74,107,0.35); --dur:19s; --delay:9s;    --drift:-12px; }
+
+    /* hide particles in brief mode */
+    body.mode-brief .particles-layer { display: none; }
+
     /* ─── RESPONSIVE ─────────────────────────────────────────────── */
     @media (max-width: 900px) {
       .pro-hero { grid-template-columns: 1fr; }
@@ -1105,6 +1165,22 @@
   </style>
 </head>
 <body>
+
+  <!-- ─── FLOATING PARTICLES ──────────────────────────────────────── -->
+  <div class="particles-layer" aria-hidden="true">
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+  </div>
 
   <!-- ─── FLIP TOGGLE ─────────────────────────────────────────────── -->
   <a id="home-btn" href="../../index.html" aria-label="Back to all senators" style="position:fixed;top:20px;left:20px;z-index:9999;font-family:monospace;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;text-decoration:none;color:#333;padding:6px 10px;border:1px solid #222;border-radius:2px;background:rgba(5,5,5,0.7);backdrop-filter:blur(4px);transition:color 0.2s,border-color 0.2s;"
